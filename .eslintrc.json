@@ -1,0 +1,92 @@
+{
+  "env": {
+    "es2020": true,
+    "browser": true,
+    "node": true
+  },
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript",
+    "plugin:jsx-a11y/recommended",
+    "plugin:cypress/recommended",
+    "plugin:tailwind/recommended",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2020,
+    "ecmaFeatures": { "jsx": true }
+  },
+  "plugins": [
+    "prettier",
+    "react",
+    "node",
+    "react-hooks",
+    "cypress",
+    "@typescript-eslint",
+    "jest",
+    "simple-import-sort",
+    "@funboxteam/no-only-tests"
+  ],
+  "rules": {
+    "semi": "off",
+    "prettier/prettier": "error",
+    "react/self-closing-comp": [
+      "error",
+      {
+        "component": true,
+        "html": true
+      }
+    ],
+    "react/prop-types": "off",
+    "no-param-reassign": "error",
+    "no-use-before-define": "off",
+    "no-underscore-dangle": "off",
+    "no-implicit-coercion": ["error", { "allow": ["!!"] }],
+    "block-scoped-var": "error",
+    "no-shadow": "warn",
+    "no-unsafe-optional-chaining": ["error", { "disallowArithmeticOperators": true }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-return-assign": "warn",
+    "consistent-return": "off",
+    "import/no-unresolved": "error",
+    "no-redeclare": "error",
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "react/jsx-props-no-spreading": "off",
+    "import/prefer-default-export": "off",
+    "jsx-a11y/anchor-is-valid": "warn",
+    "jsx-a11y/no-noninteractive-tabindex": "warn",
+    "jsx-a11y/tabindex-no-positive": "warn",
+    "jsx-a11y/click-events-have-key-events": "warn",
+    "jsx-a11y/no-static-element-interactions": "warn",
+    "jsx-a11y/no-noninteractive-element-interactions": "warn",
+    "tailwind/class-order": "error",
+    "no-console": "error",
+    "no-empty": ["error", { "allowEmptyCatch": true }],
+    "@funboxteam/no-only-tests/no-only": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/jsx-uses-react": "off"
+  },
+  "overrides": [
+    {
+      "files": [".*rc.js", ".*rc.cjs", "*.config.js", "*.config.cjs"],
+      "env": {
+        "node": true
+      }
+    }
+  ],
+  "ignorePatterns": ["dist/**", "dist-firefox-v2"],
+  "globals": {
+    "chrome": true
+  }
+}
