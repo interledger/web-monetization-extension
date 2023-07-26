@@ -7,6 +7,7 @@
   },
   "version": "0.1.1",
   "type": "module",
+  "license": "Apache-2.0",
   "scripts": {
     "build": "tsc --noEmit && vite build",
     "build:watch": "cross-env __DEV__=true vite build -w",
