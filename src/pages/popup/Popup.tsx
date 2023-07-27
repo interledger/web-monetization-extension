@@ -22,12 +22,9 @@ const Popup = () => {
       <div className="flex items-center justify-between h-10 px-4">
         <img src={logo} alt="Web Monetization Logo" className="h-6" />
         <div className="">Web Monetization</div>
-        <img
-          src={close}
-          alt="Close"
-          className="h-8 cursor-pointer translate-x-1"
-          onClick={() => window.close()}
-        />
+        <button className="p-0 border-0 translate-x-3" onClick={() => window.close()}>
+          <img src={close} alt="Close" className="h-8" />
+        </button>
       </div>
       <div>
         {monetization ? (

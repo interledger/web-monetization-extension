@@ -1,4 +1,4 @@
-import chokidar from 'chokidar'
+import { watch } from 'chokidar'
 import { WebSocket, WebSocketServer } from 'ws'
 
 import {
@@ -16,6 +16,7 @@ const clientsThatNeedToUpdate: Set<WebSocket> = new Set()
 function initReloadServer() {
   const wss = new WebSocketServer({ port: LOCAL_RELOAD_SOCKET_PORT })
 
+  // eslint-disable-next-line no-console
   wss.on('listening', () => console.log(`[HRS] Server listening at ${LOCAL_RELOAD_SOCKET_URL}`))
 
   wss.on('connection', ws => {
@@ -45,7 +46,7 @@ const debounceSrc = debounce(function (path: string) {
   )
   // Delay waiting for public assets to be copied
 }, 400)
-chokidar.watch('src').on('all', (event, path) => debounceSrc(path))
+watch('src').on('all', (event, path) => debounceSrc(path))
 
 /** CHECK:: build was completed **/
 const debounceDist = debounce(() => {
@@ -53,7 +54,7 @@ const debounceDist = debounce(() => {
     ws.send(MessageInterpreter.send({ type: UPDATE_REQUEST_MESSAGE }))
   })
 }, 100)
-chokidar.watch('dist').on('all', event => {
+watch('dist').on('all', event => {
   // Ignore unlink, unlinkDir and change events
   // that happen in beginning of build:watch and
   // that will cause ws.send() if it takes more than 400ms

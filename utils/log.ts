@@ -21,6 +21,7 @@ export default function colorLog(message: string, type?: ColorType) {
       break
   }
 
+  // eslint-disable-next-line no-console
   console.log(color, message)
 }
 

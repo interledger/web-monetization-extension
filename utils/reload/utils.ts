@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { clearTimeout } from 'timers'
 
 export function debounce<A extends unknown[]>(callback: (...args: A) => void, delay: number) {

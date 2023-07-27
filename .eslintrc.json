@@ -35,9 +35,15 @@
     "simple-import-sort",
     "@funboxteam/no-only-tests"
   ],
+  "settings": {
+    "import/resolver": {
+      "typescript": {}
+    }
+  },
   "rules": {
     "semi": "off",
     "prettier/prettier": "error",
+    "maxWarnings": "off",
     "react/self-closing-comp": [
       "error",
       {
