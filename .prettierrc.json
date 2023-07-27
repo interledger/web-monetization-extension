@@ -6,6 +6,5 @@
   "bracketSpacing": true,
   "arrowParens": "avoid",
   "bracketSameLine": true,
-  "semi": false,
-  "ignore": ["**/*.json"]
+  "semi": false
 }
