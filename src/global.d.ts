@@ -5,12 +5,12 @@ declare namespace chrome {
 }
 
 declare module 'virtual:reload-on-update-in-background-script' {
-  export const reloadOnUpdate: () => void
+  export const reloadOnUpdate: (_?: string) => void
   export default reloadOnUpdate
 }
 
 declare module 'virtual:reload-on-update-in-view' {
-  const refreshOnUpdate: () => void
+  const refreshOnUpdate: (_?: string) => void
   export default refreshOnUpdate
 }
 

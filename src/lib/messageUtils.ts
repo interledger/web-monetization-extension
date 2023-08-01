@@ -1,20 +1,23 @@
 /* eslint-disable */
-
 interface Message {
   action: string
+  type: string
+  content: any
   data?: any
 }
 
-export const sendMessage = (message, tabId = null, callback) => {
-  if (tabId === null) {
-    queryActiveTab(tab => {
-      if (tab) {
-        chrome.tabs.sendMessage(tab.id, message, callback)
-      }
-    })
-  } else {
-    chrome.tabs.sendMessage(tabId, message, callback)
-  }
+export const sendTabsMessage = (message, tabId?, callback?) => {
+  chrome.tabs.sendMessage(tabId, message, callback)
+
+  return true
+}
+
+export function sendRuntimeMessage(
+  action: string,
+  payload: any,
+  callback?: (response: any) => void,
+) {
+  chrome.runtime.sendMessage({ type: action, content: payload }, callback)
 }
 
 export const addMessageListener = (

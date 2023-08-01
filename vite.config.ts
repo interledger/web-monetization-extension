@@ -24,12 +24,12 @@ const enableHmrInBackgroundScript = true
 export default defineConfig({
   resolve: {
     alias: {
-      '@src': srcDir,
-      '@assets': assetsDir,
-      '@pages': pagesDir,
-      '@lib': resolve(srcDir, 'lib'),
-      '@utils': resolve(srcDir, 'utils'),
-      '@hooks': resolve(srcDir, 'hooks'),
+      '@/src': srcDir,
+      '@/assets': assetsDir,
+      '@/pages': pagesDir,
+      '@/lib': resolve(srcDir, 'lib'),
+      '@/utils': resolve(srcDir, 'utils'),
+      '@/hooks': resolve(srcDir, 'hooks'),
     },
   },
   plugins: [

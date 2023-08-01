@@ -1,7 +1,7 @@
 /* eslint-disable */
-import '@pages/popup/index.css'
+import '@/pages/popup/index.css'
 
-import Popup from '@pages/popup/Popup'
+import Popup from '@/pages/popup/Popup'
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import refreshOnUpdate from 'virtual:reload-on-update-in-view'
