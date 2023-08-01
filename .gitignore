@@ -12,6 +12,7 @@ dist
 dist-ssr
 dist-firefox-v2
 *.local
+coverage
 
 # Editor directories and files
 .vscode/*
