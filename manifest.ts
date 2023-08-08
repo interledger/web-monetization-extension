@@ -1,19 +1,38 @@
 import packageJson from './package.json'
 
-const manifest: chrome.runtime.ManifestV3 = {
-  manifest_version: 3,
-  name: 'Web Monetization',
-  version: packageJson.version,
-  description: packageJson.description,
-  background: {
-    service_worker: 'src/pages/background/index.js',
-    type: 'module',
-  },
-  permissions: ['scripting', 'tabs'],
-  action: {
+const isFirefox = process.env.__FIREFOX__ === 'true'
+
+const manifestVersion = isFirefox ? 2 : 3
+const background = isFirefox
+  ? { scripts: ['src/pages/background/index.js'], type: 'module' }
+  : { service_worker: 'src/pages/background/index.js', type: 'module' }
+
+const action = {
+  [isFirefox ? 'browser_action' : 'action']: {
     default_popup: 'src/pages/popup/index.html',
     default_icon: 'icon-34.png',
   },
+}
+
+const csp = isFirefox ? { content_security_policy: `script-src 'self'; object-src 'self'` } : {}
+
+const resources = [
+  'assets/js/*.js',
+  'assets/css/*.css',
+  'icon-128.png',
+  'icon-34.png',
+  'icon-active-34.png',
+  'icon-active-128.png',
+]
+
+const manifest = {
+  manifest_version: manifestVersion,
+  name: 'Web Monetization',
+  version: packageJson.version,
+  description: packageJson.description,
+  background: background,
+  permissions: ['scripting', 'tabs', 'activeTab'],
+  ...action,
   icons: {
     '34': 'icon-34.png',
     '128': 'icon-128.png',
@@ -25,19 +44,15 @@ const manifest: chrome.runtime.ManifestV3 = {
       css: ['assets/css/contentStyle<KEY>.chunk.css'],
     },
   ],
-  web_accessible_resources: [
-    {
-      resources: [
-        'assets/js/*.js',
-        'assets/css/*.css',
-        'icon-128.png',
-        'icon-34.png',
-        'icon-active-34.png',
-        'icon-active-128.png',
+  ...csp,
+  web_accessible_resources: isFirefox
+    ? resources
+    : [
+        {
+          resources,
+          matches: ['*://*/*'],
+        },
       ],
-      matches: ['*://*/*'],
-    },
-  ],
 }
 
 export default manifest

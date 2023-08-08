@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "noEmit": true,
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "allowJs": false,
     "target": "esnext",
     "module": "esnext",
@@ -10,21 +10,21 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "types": ["vite/client", "node"],
+    "types": ["vite/client", "node", "@wdio/globals/types"],
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "forceConsistentCasingInFileNames": true,
     "typeRoots": ["./src/global.d.ts"],
     "paths": {
-      "@/src/*": ["src/*"],
-      "@/assets/*": ["src/assets/*"],
-      "@/pages/*": ["src/pages/*"],
-      "@/lib/*": ["src/lib/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "virtual:reload-on-update-in-background-script": ["./src/global.d.ts"],
-      "virtual:reload-on-update-in-view": ["./src/global.d.ts"]
-    }
+      "@/src/*": ["*"],
+      "@/assets/*": ["assets/*"],
+      "@/pages/*": ["pages/*"],
+      "@/lib/*": ["lib/*"],
+      "@/hooks/*": ["hooks/*"],
+      "virtual:reload-on-update-in-background-script": ["global.d.ts"],
+      "virtual:reload-on-update-in-view": ["global.d.ts"]
+    },
   },
   "include": ["src", "utils", "vite.config.ts", "node_modules/@types"]
 }

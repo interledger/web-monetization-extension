@@ -1,22 +1,22 @@
-import { watch } from 'chokidar'
-import { clearTimeout } from 'timers'
-import { WebSocketServer } from 'ws'
+import { watch } from 'chokidar';
+import { WebSocketServer } from 'ws';
+import { clearTimeout } from 'timers';
 
-const LOCAL_RELOAD_SOCKET_PORT = 8081
-const LOCAL_RELOAD_SOCKET_URL = `ws://localhost:${LOCAL_RELOAD_SOCKET_PORT}`
-const UPDATE_PENDING_MESSAGE = 'wait_update'
-const UPDATE_REQUEST_MESSAGE = 'do_update'
-const UPDATE_COMPLETE_MESSAGE = 'done_update'
+const LOCAL_RELOAD_SOCKET_PORT = 8081;
+const LOCAL_RELOAD_SOCKET_URL = `ws://localhost:${LOCAL_RELOAD_SOCKET_PORT}`;
+const UPDATE_PENDING_MESSAGE = 'wait_update';
+const UPDATE_REQUEST_MESSAGE = 'do_update';
+const UPDATE_COMPLETE_MESSAGE = 'done_update';
 
 class MessageInterpreter {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  constructor() {}
-  static send(message) {
-    return JSON.stringify(message)
-  }
-  static receive(serializedMessage) {
-    return JSON.parse(serializedMessage)
-  }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    constructor() { }
+    static send(message) {
+        return JSON.stringify(message);
+    }
+    static receive(serializedMessage) {
+        return JSON.parse(serializedMessage);
+    }
 }
 
 /* eslint-disable */
@@ -31,7 +31,7 @@ function debounce(callback, delay) {
 const clientsThatNeedToUpdate = new Set();
 function initReloadServer() {
     const wss = new WebSocketServer({ port: LOCAL_RELOAD_SOCKET_PORT });
-     
+    // eslint-disable-next-line no-console
     wss.on('listening', () => console.log(`[HRS] Server listening at ${LOCAL_RELOAD_SOCKET_URL}`));
     wss.on('connection', ws => {
         clientsThatNeedToUpdate.add(ws);

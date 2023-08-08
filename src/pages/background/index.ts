@@ -3,12 +3,12 @@ import reloadOnUpdate from 'virtual:reload-on-update-in-background-script'
 
 import { addTabChangeListener } from '@/lib/listeners'
 import { sendTabsMessage } from '@/lib/messageUtils'
-import { addMessageListener } from '@/src/lib'
+import { addMessageListener, BrowserAPI } from '@/src/lib'
 
-const icon34 = chrome.runtime.getURL('icon-34.png')
-const icon128 = chrome.runtime.getURL('icon-128.png')
-const iconActive34 = chrome.runtime.getURL('icon-active-34.png')
-const iconActive128 = chrome.runtime.getURL('icon-active-128.png')
+const icon34 = BrowserAPI.runtime.getURL('icon-34.png')
+const icon128 = BrowserAPI.runtime.getURL('icon-128.png')
+const iconActive34 = BrowserAPI.runtime.getURL('icon-active-34.png')
+const iconActive128 = BrowserAPI.runtime.getURL('icon-active-128.png')
 
 const updateIcon = (active: boolean) => {
   const iconData = {
@@ -16,7 +16,11 @@ const updateIcon = (active: boolean) => {
     '128': active ? iconActive128 : icon128,
   }
 
-  chrome.action.setIcon({ path: iconData })
+  if (BrowserAPI.action) {
+    BrowserAPI.action.setIcon({ path: iconData })
+  } else {
+    BrowserAPI.browserAction.setIcon({ path: iconData })
+  }
 }
 
 addMessageListener(({ type, content }) => {
@@ -28,7 +32,7 @@ addMessageListener(({ type, content }) => {
 const handleTabChange = (activeInfo: chrome.tabs.TabActiveInfo) => {
   const tabId = activeInfo.tabId
 
-  chrome.tabs.get(tabId, tab => {
+  BrowserAPI.tabs.get(tabId, tab => {
     if (tab && tab.status === 'complete') {
       sendTabsMessage({ action: 'GET_MONETIZATION' }, tabId, response => {
         updateIcon(response)

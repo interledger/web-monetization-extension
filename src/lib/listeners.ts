@@ -1,4 +1,5 @@
 import { addMessageListener, sendRuntimeMessage } from '@/lib/messageUtils'
+import { BrowserAPI } from '@/lib/index'
 
 export const initListeners = () => {
   const monetization = document.querySelector('link[rel="monetization"]')
@@ -17,5 +18,5 @@ export const initListeners = () => {
 type TabChangeListener = (activeInfo: chrome.tabs.TabActiveInfo) => void
 
 export function addTabChangeListener(listener: TabChangeListener) {
-  chrome.tabs.onActivated.addListener(listener)
+  BrowserAPI.tabs.onActivated.addListener(listener)
 }

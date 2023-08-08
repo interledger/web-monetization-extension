@@ -1,4 +1,5 @@
 import initReloadClient from '../initReloadClient'
+import { BrowserAPI } from '@/src/lib'
 
 export default function addHmrIntoScript(watchPath: string) {
   initReloadClient({
@@ -6,7 +7,7 @@ export default function addHmrIntoScript(watchPath: string) {
     onUpdate: () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      chrome.runtime.reload()
+      BrowserAPI.runtime.reload()
     },
   })
 }
