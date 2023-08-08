@@ -1,5 +1,6 @@
-import initReloadClient from '../initReloadClient'
 import { BrowserAPI } from '@/src/lib'
+
+import initReloadClient from '../initReloadClient'
 
 export default function addHmrIntoScript(watchPath: string) {
   initReloadClient({

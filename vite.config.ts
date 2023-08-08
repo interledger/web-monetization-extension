@@ -69,7 +69,7 @@ export default defineConfig({
           }
           return `assets/[ext]/${name}.chunk.[ext]`
         },
-        compact: false,
+        compact: isProduction,
       },
     },
   },

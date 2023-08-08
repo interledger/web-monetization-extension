@@ -25,6 +25,7 @@
     "ecmaFeatures": { "jsx": true }
   },
   "plugins": [
+    "html",
     "prettier",
     "react",
     "node",
@@ -38,6 +39,9 @@
   "settings": {
     "import/resolver": {
       "typescript": {}
+    },
+    "react": {
+      "version": "detect"
     }
   },
   "rules": {
@@ -91,8 +95,9 @@
       }
     }
   ],
-  "ignorePatterns": ["dist/**", "dist-firefox-v2"],
+  "ignorePatterns": ["dist/**", "dist-firefox-v2/**", "coverage/**"],
   "globals": {
-    "chrome": true
+    "chrome": true,
+    "browser": true
   }
 }

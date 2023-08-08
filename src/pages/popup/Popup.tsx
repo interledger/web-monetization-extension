@@ -41,7 +41,7 @@ const Popup = () => {
           <img src={failIcon} alt="Fail" className="h-24" />
         )}
       </div>
-      <div className="flex items-center justify-center px-5 border-t basis-12 shrink-0 border-slate-200 text-slate-500 text-sm">
+      <div className="flex items-center justify-center px-5 text-sm border-t basis-12 shrink-0 border-slate-200 text-slate-500">
         {monetization ? (
           <span>This site is Web Monetization ready</span>
         ) : (

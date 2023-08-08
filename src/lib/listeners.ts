@@ -1,5 +1,5 @@
-import { addMessageListener, sendRuntimeMessage } from '@/lib/messageUtils'
 import { BrowserAPI } from '@/lib/index'
+import { addMessageListener, sendRuntimeMessage } from '@/lib/messageUtils'
 
 export const initListeners = () => {
   const monetization = document.querySelector('link[rel="monetization"]')

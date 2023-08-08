@@ -1,6 +1,6 @@
 import { watch } from 'chokidar'
-import { WebSocketServer } from 'ws'
 import { clearTimeout } from 'timers'
+import { WebSocketServer } from 'ws'
 
 const LOCAL_RELOAD_SOCKET_PORT = 8081
 const LOCAL_RELOAD_SOCKET_URL = `ws://localhost:${LOCAL_RELOAD_SOCKET_PORT}`
