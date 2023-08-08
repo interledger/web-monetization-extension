@@ -7,12 +7,14 @@ import ManifestParser from '../manifest-parser'
 
 const { resolve } = path
 
-const distDir = resolve(__dirname, '..', '..', 'dist')
+const rootDir = resolve(__dirname)
+const isFirefox = process.env.__FIREFOX__ === 'true'
+const distDir = isFirefox ? resolve(rootDir, 'dist-firefox-v2') : resolve(rootDir, 'dist')
 const publicDir = resolve(__dirname, '..', '..', 'public')
 
 export default function createManifest(
-  manifest: chrome.runtime.ManifestV3,
-  config: { isDev: boolean; contentScriptCssKey?: string },
+  manifest,
+  config: { isDev: boolean; isFirefox: boolean; contentScriptCssKey?: string },
 ): PluginOption {
   function makeManifest(to: string) {
     if (!fs.existsSync(to)) {

@@ -12,11 +12,12 @@ const rootDir = resolve(__dirname)
 const srcDir = resolve(rootDir, 'src')
 const pagesDir = resolve(srcDir, 'pages')
 const assetsDir = resolve(srcDir, 'assets')
-const outDir = resolve(rootDir, 'dist')
 const publicDir = resolve(rootDir, 'public')
 
 const isDev = process.env.__DEV__ === 'true'
 const isProduction = !isDev
+const isFirefox = process.env.__FIREFOX__ === 'true'
+const outDir = isFirefox ? resolve(rootDir, 'dist-firefox-v2') : resolve(rootDir, 'dist')
 
 // ENABLE HMR IN BACKGROUND SCRIPT
 const enableHmrInBackgroundScript = true
@@ -36,6 +37,7 @@ export default defineConfig({
     react(),
     makeManifest(manifest, {
       isDev,
+      isFirefox,
       contentScriptCssKey: regenerateCacheInvalidationKey(),
     }),
     customDynamicImport(),
@@ -67,6 +69,7 @@ export default defineConfig({
           }
           return `assets/[ext]/${name}.chunk.[ext]`
         },
+        compact: isProduction,
       },
     },
   },

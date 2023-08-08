@@ -1,4 +1,6 @@
 /* eslint-disable */
+import { BrowserAPI } from '@/lib/index'
+
 interface Message {
   action: string
   type: string
@@ -7,7 +9,7 @@ interface Message {
 }
 
 export const sendTabsMessage = (message, tabId?, callback?) => {
-  chrome.tabs.sendMessage(tabId, message, callback)
+  BrowserAPI.tabs.sendMessage(tabId, message, callback)
 
   return true
 }
@@ -17,7 +19,7 @@ export function sendRuntimeMessage(
   payload: any,
   callback?: (response: any) => void,
 ) {
-  chrome.runtime.sendMessage({ type: action, content: payload }, callback)
+  BrowserAPI.runtime.sendMessage({ type: action, content: payload }, callback)
 }
 
 export const addMessageListener = (
@@ -27,11 +29,11 @@ export const addMessageListener = (
     sendResponse: (response?: any) => void,
   ) => void,
 ) => {
-  chrome.runtime.onMessage.addListener(listener)
+  BrowserAPI.runtime.onMessage.addListener(listener)
 }
 
 export const queryActiveTab = callback => {
-  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+  BrowserAPI.tabs.query({ active: true, currentWindow: true }, tabs => {
     const activeTab = tabs[0]
     if (activeTab) {
       callback(activeTab)

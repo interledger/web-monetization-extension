@@ -1,3 +1,4 @@
+import { BrowserAPI } from '@/lib/index'
 import { addMessageListener, sendRuntimeMessage } from '@/lib/messageUtils'
 
 export const initListeners = () => {
@@ -17,5 +18,5 @@ export const initListeners = () => {
 type TabChangeListener = (activeInfo: chrome.tabs.TabActiveInfo) => void
 
 export function addTabChangeListener(listener: TabChangeListener) {
-  chrome.tabs.onActivated.addListener(listener)
+  BrowserAPI.tabs.onActivated.addListener(listener)
 }

@@ -49,13 +49,15 @@ function initReloadClient({ watchPath, onUpdate }) {
   return socket
 }
 
+const BrowserAPI = typeof browser !== 'undefined' ? browser : chrome
+
 function addHmrIntoScript(watchPath) {
   initReloadClient({
     watchPath,
     onUpdate: () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      chrome.runtime.reload()
+      BrowserAPI.runtime.reload()
     },
   })
 }

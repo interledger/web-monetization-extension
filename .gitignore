@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 dist-firefox-v2
+public/manifest.json
 *.local
 coverage
 
