@@ -16,6 +16,7 @@ const tabsMock = {
   },
 }
 // Mock the browser object with the tabsMock
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 ;(global as any).browser = {
   tabs: tabsMock,
 }

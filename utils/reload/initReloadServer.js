@@ -1,22 +1,22 @@
-import { watch } from 'chokidar';
-import { WebSocketServer } from 'ws';
-import { clearTimeout } from 'timers';
+import { watch } from 'chokidar'
+import { clearTimeout } from 'timers'
+import { WebSocketServer } from 'ws'
 
-const LOCAL_RELOAD_SOCKET_PORT = 8081;
-const LOCAL_RELOAD_SOCKET_URL = `ws://localhost:${LOCAL_RELOAD_SOCKET_PORT}`;
-const UPDATE_PENDING_MESSAGE = 'wait_update';
-const UPDATE_REQUEST_MESSAGE = 'do_update';
-const UPDATE_COMPLETE_MESSAGE = 'done_update';
+const LOCAL_RELOAD_SOCKET_PORT = 8081
+const LOCAL_RELOAD_SOCKET_URL = `ws://localhost:${LOCAL_RELOAD_SOCKET_PORT}`
+const UPDATE_PENDING_MESSAGE = 'wait_update'
+const UPDATE_REQUEST_MESSAGE = 'do_update'
+const UPDATE_COMPLETE_MESSAGE = 'done_update'
 
 class MessageInterpreter {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    constructor() { }
-    static send(message) {
-        return JSON.stringify(message);
-    }
-    static receive(serializedMessage) {
-        return JSON.parse(serializedMessage);
-    }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  constructor() {}
+  static send(message) {
+    return JSON.stringify(message)
+  }
+  static receive(serializedMessage) {
+    return JSON.parse(serializedMessage)
+  }
 }
 
 /* eslint-disable */

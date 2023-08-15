@@ -33,6 +33,7 @@ describe('Popup', () => {
 
   it('calls queryActiveTab and sendTabsMessage on mount', () => {
     // Mock queryActiveTab to simulate the behavior of a tab being found
+    // eslint-disable-next-line
     ;(queryActiveTab as jest.Mock).mockImplementation(callback => {
       callback({ id: 123 }) // Simulate that an active tab is found
     })
