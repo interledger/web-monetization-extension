@@ -16,7 +16,9 @@
     "plugin:jsx-a11y/recommended",
     "plugin:cypress/recommended",
     "plugin:tailwind/recommended",
-    "prettier"
+    "prettier",
+    "plugin:jest/recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -33,6 +35,7 @@
     "cypress",
     "@typescript-eslint",
     "jest",
+    "@typescript-eslint",
     "simple-import-sort",
     "@funboxteam/no-only-tests"
   ],

@@ -14,7 +14,13 @@ const action = {
   },
 }
 
-const csp = isFirefox ? { content_security_policy: `script-src 'self'; object-src 'self'` } : {}
+const csp = isFirefox
+  ? { content_security_policy: `script-src 'self'; object-src 'self'` }
+  : {
+      content_security_policy: {
+        extension_pages: `script-src 'self' 'wasm-unsafe-eval'; object-src 'self'`,
+      },
+    }
 
 const resources = [
   'assets/js/*.js',
@@ -23,6 +29,8 @@ const resources = [
   'icon-34.png',
   'icon-active-34.png',
   'icon-active-128.png',
+  'icon-inactive-34.png',
+  'icon-inactive-128.png',
 ]
 
 const manifest = {
@@ -41,7 +49,7 @@ const manifest = {
     {
       matches: ['http://*/*', 'https://*/*', '<all_urls>'],
       js: ['src/pages/content/index.js'],
-      css: ['assets/css/contentStyle<KEY>.chunk.css'],
+      // css: ['assets/css/contentStyle<KEY>.chunk.css'],
     },
   ],
   ...csp,
