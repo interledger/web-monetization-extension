@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "types": ["vite/client", "node", "@wdio/globals/types"],
+    "types": ["vite/client", "node", "@wdio/globals/types", "@types/node", "@types/jest"],
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "dom.iterable", "esnext"],

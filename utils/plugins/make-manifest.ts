@@ -7,10 +7,10 @@ import ManifestParser from '../manifest-parser'
 
 const { resolve } = path
 
-const rootDir = resolve(__dirname)
+const rootDir = resolve(__dirname, '..', '..')
 const isFirefox = process.env.__FIREFOX__ === 'true'
 const distDir = isFirefox ? resolve(rootDir, 'dist-firefox-v2') : resolve(rootDir, 'dist')
-const publicDir = resolve(__dirname, '..', '..', 'public')
+const publicDir = resolve(rootDir, 'public')
 
 export default function createManifest(
   manifest,

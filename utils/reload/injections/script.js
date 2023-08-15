@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BrowserAPI = typeof browser !== 'undefined' ? browser : chrome
+
 const LOCAL_RELOAD_SOCKET_PORT = 8081
 const LOCAL_RELOAD_SOCKET_URL = `ws://localhost:${LOCAL_RELOAD_SOCKET_PORT}`
 const UPDATE_PENDING_MESSAGE = 'wait_update'
@@ -48,8 +51,6 @@ function initReloadClient({ watchPath, onUpdate }) {
   }
   return socket
 }
-
-const BrowserAPI = typeof browser !== 'undefined' ? browser : chrome
 
 function addHmrIntoScript(watchPath) {
   initReloadClient({

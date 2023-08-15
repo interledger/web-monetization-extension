@@ -28,8 +28,50 @@ To build the extension for production, use the following command:
 
 `yarn build`
 
+### Building the Extension for Firefox
+
+To build the extension for Firefox, use the following command:
+
+`yarn build:firefox`
+
 This command transpiles the TypeScript code and generates a production-ready build of the extension in the dist
 directory.
+
+### Installing the Extension in Chrome
+
+To install the extension in Chrome, follow these steps:
+
+1. Extract the Files:<br/>
+   Extract the contents of the ZIP file to a folder on your computer.
+
+2. Open Chrome's Extensions Page:<br/>
+   Open Chrome, click the three dots in the top-right corner, go to "More tools," and select "Extensions."
+
+3. Enable Developer Mode:<br/>
+   Enable "Developer mode" using the toggle switch at the top-right of the Extensions page.
+
+4. Load the Extension:<br/>
+   Click the "Load unpacked" button that appears after enabling Developer mode.
+
+5. Select the Extension Folder:<br/>
+   Choose the folder containing the extracted extension files (with the manifest.json file).
+
+6. Pin the Extension:<br/>
+   Click on the puzzle piece icon in the top-right corner of Chrome, and pin the Web Monetization extension.
+
+### Installing the Extension in Firefox
+
+1. Extract the Files:<br/>
+   Extract the contents of the ZIP file to a folder on your computer.
+
+2. Open Firefox's Add-ons Page:<br/>
+   Open Firefox, click the three horizontal lines in the top-right corner, and choose "Add-ons."
+
+3. Access Extensions Settings:<br/>
+   In the Add-ons Manager, click the gear icon in the top-right corner and select "Install Add-on From File..."
+
+4. Select the Extension File:<br/>
+   Navigate to the folder where you extracted the extension files and select the manifest.json file or the main folder of the extension.
 
 ### Testing the Extension
 
