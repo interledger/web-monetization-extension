@@ -15,19 +15,28 @@ export const initListeners = () => {
 
   if (monetization) {
     const paymentPointer = monetization.getAttribute('href') || ''
-    const customEvent = new CustomEvent('monetizationStream', {
-      detail: {
-        paymentPointer,
-      },
-    })
+    monetization.dispatchEvent(new CustomEvent('load', { bubbles: true }))
 
-    monetization.addEventListener('monetizationStream', event => {
-      console.log('monetizationStream', event)
+    const customEvent = new CustomEvent('monetization', {
+      bubbles: true,
+      composed: true,
+      detail: {
+        amount: '1',
+        assetCode: 'USD',
+        assetScale: '9',
+        receipt: null,
+        amountSent: {
+          amount: '0.01',
+          currency: 'USD',
+        },
+        paymentPointer: paymentPointer,
+        incomingPayment: paymentPointer,
+      },
     })
 
     setInterval(() => {
       console.log('dispatching event')
-      document.dispatchEvent(customEvent)
+      monetization.dispatchEvent(customEvent)
     }, 1000)
   }
 }
