@@ -14,14 +14,6 @@ const action = {
   },
 }
 
-const csp = isFirefox
-  ? { content_security_policy: `script-src 'self'; object-src 'self'` }
-  : {
-      content_security_policy: {
-        extension_pages: `script-src 'self' 'wasm-unsafe-eval'; object-src 'self'`,
-      },
-    }
-
 const resources = [
   'assets/js/*.js',
   'assets/css/*.css',
@@ -50,9 +42,11 @@ const manifest = {
       matches: ['http://*/*', 'https://*/*', '<all_urls>'],
       js: ['src/pages/content/index.js'],
       // css: ['assets/css/contentStyle<KEY>.chunk.css'],
+      match_about_blank: false,
+      all_frames: true,
+      run_at: 'document_start',
     },
   ],
-  ...csp,
   web_accessible_resources: isFirefox
     ? resources
     : [

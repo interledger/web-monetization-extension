@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import path, { resolve } from 'path'
 import { defineConfig } from 'vite'
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 import manifest from './manifest'
 import addHmr from './utils/plugins/add-hmr'
@@ -28,6 +29,7 @@ export default defineConfig({
       '@/src': srcDir,
       '@/assets': assetsDir,
       '@/pages': pagesDir,
+      '@/polyfills': resolve(srcDir, 'polyfills'),
       '@/lib': resolve(srcDir, 'lib'),
       '@/utils': resolve(srcDir, 'utils'),
       '@/hooks': resolve(srcDir, 'hooks'),
@@ -43,6 +45,22 @@ export default defineConfig({
     customDynamicImport(),
     addHmr({ background: enableHmrInBackgroundScript, view: true }),
     watchRebuild(),
+    nodePolyfills({
+      // To add only specific polyfills, add them here. If no option is passed, adds all polyfills
+      include: ['path'],
+      // To exclude specific polyfills, add them to this list. Note: if include is provided, this has no effect
+      exclude: [
+        'fs', // Excludes the polyfill for `fs` and `node:fs`.
+      ],
+      // Whether to polyfill specific globals.
+      globals: {
+        Buffer: true, // can also be 'build', 'dev', or false
+        global: true,
+        process: true,
+      },
+      // Whether to polyfill `node:` protocol imports.
+      protocolImports: true,
+    }),
   ],
   publicDir,
   build: {
@@ -60,6 +78,9 @@ export default defineConfig({
         entryFileNames: 'src/pages/[name]/index.js',
         chunkFileNames: isDev ? 'assets/js/[name].js' : 'assets/js/[name].[hash].js',
         assetFileNames: assetInfo => {
+          // if (assetInfo.name === 'wm-polyfill.js') {
+          //   return 'wm-polyfill.js'
+          // }
           const { dir, name: _name } = path.parse(assetInfo.name)
           const assetFolder = dir.split('/').at(-1)
           const name = assetFolder + firstUpperCase(_name)

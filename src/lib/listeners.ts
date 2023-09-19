@@ -15,9 +15,8 @@ export const initListeners = () => {
 
   if (monetization) {
     const paymentPointer = monetization.getAttribute('href') || ''
-    monetization.dispatchEvent(new CustomEvent('load', { bubbles: true }))
 
-    const customEvent = new CustomEvent('monetization', {
+    const eventOptions = {
       bubbles: true,
       composed: true,
       detail: {
@@ -32,7 +31,12 @@ export const initListeners = () => {
         paymentPointer: paymentPointer,
         incomingPayment: paymentPointer,
       },
-    })
+    }
+    const customEvent = new CustomEvent('monetization', eventOptions)
+
+    monetization.dispatchEvent(new CustomEvent('load', eventOptions))
+    console.log('dispatching event')
+    monetization.dispatchEvent(customEvent)
 
     setInterval(() => {
       console.log('dispatching event')

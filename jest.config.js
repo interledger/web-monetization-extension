@@ -88,6 +88,7 @@ export default {
     '^@/assets(.*)$': '<rootDir>/src/assets$1',
     '^@/pages(.*)$': '<rootDir>/src/pages$1',
     '^@/lib(.*)$': '<rootDir>/src/lib$1',
+    '^@/polyfills(.*)$': '<rootDir>/src/polyfills$1',
     '^@/utils(.*)$': '<rootDir>/src/utils$1',
     '^@/hooks(.*)$': '<rootDir>/src/hooks$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
