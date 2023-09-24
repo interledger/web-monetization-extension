@@ -7,6 +7,10 @@ Web Monetization is a browser extension that detects Web Monetization on website
 creation of a payment stream from the user agent to the website. This extension is built with React, TypeScript, and
 Vite.
 
+### Contributing
+
+Please read the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
+
 ### Installation
 
 1. Clone the repository from GitHub: `git clone https://github.com/interledger/web-monetization-extension.git`
