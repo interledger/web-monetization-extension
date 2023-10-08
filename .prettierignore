@@ -1,0 +1,8 @@
+public
+generated
+dist
+yarn.lock
+*.svg
+.gitignore
+.prettierignore
+coverage
