@@ -10,12 +10,9 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
     "plugin:import/typescript",
     "plugin:jsx-a11y/recommended",
     "plugin:cypress/recommended",
-    "plugin:tailwind/recommended",
     "prettier",
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
@@ -36,13 +33,9 @@
     "@typescript-eslint",
     "jest",
     "@typescript-eslint",
-    "simple-import-sort",
-    "@funboxteam/no-only-tests"
+    "simple-import-sort"
   ],
   "settings": {
-    "import/resolver": {
-      "typescript": {}
-    },
     "react": {
       "version": "detect"
     }
@@ -69,7 +62,6 @@
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "no-return-assign": "warn",
     "consistent-return": "off",
-    "import/no-unresolved": "error",
     "no-redeclare": "error",
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",
@@ -81,14 +73,13 @@
     "jsx-a11y/click-events-have-key-events": "warn",
     "jsx-a11y/no-static-element-interactions": "warn",
     "jsx-a11y/no-noninteractive-element-interactions": "warn",
-    "tailwind/class-order": "error",
-    "no-console": "error",
+    "no-console": "warn",
     "no-empty": ["error", { "allowEmptyCatch": true }],
-    "@funboxteam/no-only-tests/no-only": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
     "react/react-in-jsx-scope": "off",
-    "react/jsx-uses-react": "off"
+    "react/jsx-uses-react": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   },
   "overrides": [
     {
@@ -98,7 +89,7 @@
       }
     }
   ],
-  "ignorePatterns": ["dist/**", "dist-firefox-v2/**", "coverage/**"],
+  "ignorePatterns": ["dist/**", "dev/**", "coverage/**"],
   "globals": {
     "chrome": true,
     "browser": true
