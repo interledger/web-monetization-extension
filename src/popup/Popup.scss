@@ -29,4 +29,43 @@ body {
       height: 96px;
     }
   }
+
+  .pointerForm {
+    display: flex;
+    padding: 0 0 16px;
+    gap: 8px;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+
+    label {
+      font-weight: 500;
+      color: #5f6368;
+      font-size: 14px;
+      padding-bottom: 5px;
+      display: block;
+    }
+
+    input {
+      width: 100%;
+      height: 32px;
+      border: 1px solid #ccc;
+      padding: 0 8px;
+      box-sizing: border-box;
+
+      &:focus {
+        outline: none;
+      }
+    }
+
+    button {
+      border: 0;
+      height: 32px;
+      padding: 0 8px;
+      font-weight: 500;
+      color: white;
+      text-transform: uppercase;
+      background-color: #1a73e8;
+    }
+  }
 }

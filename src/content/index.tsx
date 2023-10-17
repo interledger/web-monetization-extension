@@ -24,3 +24,34 @@ function inject(configure: (_script: HTMLScriptElement) => void) {
 
 loadObserver()
 initMonetizationTagManager()
+
+// testing monetization events
+const monetizationTag = document.querySelector('link[rel="monetization"]')
+if (monetizationTag) {
+  const paymentPointer = monetizationTag.getAttribute('href') || ''
+
+  const eventOptions = {
+    bubbles: true,
+    composed: true,
+    detail: {
+      amount: '1',
+      assetCode: 'USD',
+      assetScale: '2',
+      receipt: null,
+      amountSent: {
+        amount: '1',
+        currency: 'USD',
+      },
+      paymentPointer: paymentPointer,
+      incomingPayment: paymentPointer,
+    },
+  }
+  const customEvent = new CustomEvent('monetization', eventOptions)
+
+  monetizationTag.dispatchEvent(new CustomEvent('load', eventOptions))
+  monetizationTag.dispatchEvent(customEvent)
+
+  // setInterval(() => {
+  // monetizationTag.dispatchEvent(customEvent)
+  // }, 1000)
+}
