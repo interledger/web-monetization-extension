@@ -1,9 +1,9 @@
 import { action, Runtime, runtime, Tabs, tabs } from 'webextension-polyfill'
 
-const iconActive34 = runtime.getURL('assets/images/icon-active-34.png')
-const iconActive128 = runtime.getURL('assets/images/icon-active-128.png')
-const iconInactive34 = runtime.getURL('assets/images/icon-inactive-34.png')
-const iconInactive128 = runtime.getURL('assets/images/icon-inactive-128.png')
+const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
+const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
+const iconInactive34 = runtime.getURL('assets/icons/icon-inactive-34.png')
+const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
 
 /**
  * Define background script functions
@@ -96,8 +96,13 @@ class Background {
    * @param {*} changeInfo
    * @param {*} tab
    */
-  onUpdatedTab = (tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, tab: Tabs.Tab) => {
-    console.log('[===== Tab Created =====]', tabId, changeInfo, tab)
+  onUpdatedTab = async (tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoType, tab: Tabs.Tab) => {
+    if (tab.status === 'complete' && tab.url?.match(/^http/)) {
+      const response = await this.sendMessage(tab, { type: 'IS_MONETIZATION_READY' })
+      if (response.data) {
+        await this.updateIcon(response.data.monetization)
+      }
+    }
   }
 
   /**
@@ -154,14 +159,16 @@ class Background {
     }
   }
 
-  updateIcon = (active: boolean) => {
+  updateIcon = async (active: boolean) => {
     const iconData = {
       '34': active ? iconActive34 : iconInactive34,
       '128': active ? iconActive128 : iconInactive128,
     }
 
     if (action) {
-      action.setIcon({ path: iconData })
+      await action.setIcon({ path: iconData })
+    } else if (chrome.browserAction) {
+      chrome.browserAction.setIcon({ path: iconData })
     }
   }
 
@@ -169,10 +176,11 @@ class Background {
     const tabId = activeInfo.tabId
 
     const tab = await tabs.get(tabId)
-    if (tab && tab.status === 'complete') {
+    if (tab && tab.url?.includes('https') && tab.status === 'complete') {
       const response = await this.sendMessage(tab, { type: 'IS_MONETIZATION_READY' })
-      console.log('response ==== ', response)
-      this.updateIcon(response)
+      if (response?.data) {
+        this.updateIcon(response.data.monetization)
+      }
     }
   }
 }

@@ -1,15 +1,14 @@
 import { runtime } from 'webextension-polyfill'
 
+import { initMonetizationTagManager } from '@/utils/monetizationTagManager'
 import { wm2Polyfill } from '@/utils/polyfill'
 
+import { loadObserver } from './linksObserver'
 import MessageListener from './messageListener'
 
 // import "./content.css";
 
 runtime.onMessage.addListener(MessageListener)
-
-const monetizationTag = document.querySelector('link[rel="monetization"]')
-runtime.sendMessage({ type: 'SET_MONETIZATION_READY', data: { monetization: !!monetizationTag } })
 
 function inject(configure: (_script: HTMLScriptElement) => void) {
   const script = document.createElement('script')
@@ -22,3 +21,6 @@ function inject(configure: (_script: HTMLScriptElement) => void) {
 ;(function injectCode(code: string) {
   inject(script => (script.innerHTML = code))
 })(wm2Polyfill)
+
+loadObserver()
+initMonetizationTagManager()
