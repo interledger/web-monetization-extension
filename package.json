@@ -9,6 +9,7 @@
   "type": "module",
   "license": "Apache-2.0",
   "scripts": {
+    "test": "jest",
     "build": "tsc --noEmit && vite build",
     "build:firefox": "cross-env __FIREFOX__=true npm run build",
     "build:watch": "cross-env __DEV__=true vite build -w",
@@ -20,7 +21,6 @@
     "lint:prettier": "prettier \"**/*.(md|json|yml)\" --ignore-path .gitignore --check",
     "lint:type": "tsc --noEmit",
     "lint:fix": "eslint . --fix",
-    "test": "jest",
     "ci:test": "run-s \" test --ci --reporters=\"default\" --reporters=\"github-actions\" \""
   },
   "husky": {
