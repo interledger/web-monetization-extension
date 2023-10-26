@@ -25,7 +25,10 @@ export const getAxiosInstance = (
         keyId,
         base64Key: privateKey,
         request: {
-          headers: { host: new URL(config.url).host },
+          headers: {
+            host: new URL(config.url).host,
+            ...config.headers,
+          },
           method: config.method.toUpperCase(),
           url: config.url,
         },
