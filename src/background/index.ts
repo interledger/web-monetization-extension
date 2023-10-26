@@ -1,9 +1,14 @@
 import { action, Runtime, runtime, Tabs, tabs } from 'webextension-polyfill'
 
+import { initPaymentFlow } from '@/background/paymentFlow'
+
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
 const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
 const iconInactive34 = runtime.getURL('assets/icons/icon-inactive-34.png')
 const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
+
+const SENDING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/wmuser' // cel din extensie al userului
+const RECEIVING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-page' // cel din dom
 
 /**
  * Define background script functions
@@ -20,8 +25,10 @@ class Background {
    *
    * @returns {void}
    */
-  init = () => {
+  init = async () => {
     console.log('[===== Loaded Background Scripts =====]')
+
+    initPaymentFlow(SENDING_PAYMENT_POINTER_URL, RECEIVING_PAYMENT_POINTER_URL)
 
     //When extension installed
     runtime.onInstalled.addListener(this.onInstalled)
@@ -60,8 +67,15 @@ class Background {
       console.log('[===== Received message =====]', message, sender)
       switch (message.type) {
         case 'IS_MONETIZATION_READY': {
-          this.updateIcon(message.data.monetization)
+          if (message?.data) {
+            this.updateIcon(message.data.monetization)
+          }
           break
+        }
+
+        case 'SET_INCOMING_POINTER': {
+          console.log('should run payment here:', message)
+          // await runPayment(message.data.incomingPayment, message.data.paymentPointer)
         }
       }
 

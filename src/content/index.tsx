@@ -39,7 +39,7 @@ if (monetizationTag) {
       assetScale: '2',
       receipt: null,
       amountSent: {
-        amount: '1',
+        amount: '1', // 0.01
         currency: 'USD',
       },
       paymentPointer: paymentPointer,
@@ -51,7 +51,7 @@ if (monetizationTag) {
   monetizationTag.dispatchEvent(new CustomEvent('load', eventOptions))
   monetizationTag.dispatchEvent(customEvent)
 
-  // setInterval(() => {
-  // monetizationTag.dispatchEvent(customEvent)
-  // }, 1000)
+  setInterval(() => {
+    monetizationTag.dispatchEvent(customEvent)
+  }, 1000 * 60) // 1 minute
 }

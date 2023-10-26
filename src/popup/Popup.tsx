@@ -11,8 +11,9 @@ const Success = runtime.getURL('assets/images/web-monetization-success.svg')
 const Fail = runtime.getURL('assets/images/web-monetization-fail.svg')
 
 const Popup = () => {
-  const [paymentPointer, setPaymentPointer] = useState('')
+  const [sendingPaymentPointer, setSendingPaymentPointer] = useState('')
   const [isMonetizationReady, setIsMonetizationReady] = useState(false)
+  const [receivingPaymentPointer, setReceivingPaymentPointer] = useState('')
 
   useEffect(() => {
     checkMonetizationReady()
@@ -21,15 +22,29 @@ const Popup = () => {
   const checkMonetizationReady = async () => {
     const response = await sendMessageToActiveTab({ type: 'IS_MONETIZATION_READY' })
     setIsMonetizationReady(response.data.monetization)
+    setReceivingPaymentPointer(response.data.pointer)
   }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPaymentPointer(event.target.value)
+    setSendingPaymentPointer(event.target.value)
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    await sendMessage({ type: 'SET_INCOMING_POINTER', data: { paymentPointer } })
+    const data = {
+      amount: '1',
+      assetCode: 'USD',
+      assetScale: '2',
+      receipt: null,
+      amountSent: {
+        amount: '1', // 0.01
+        currency: 'USD',
+      },
+      paymentPointer: sendingPaymentPointer,
+      incomingPayment: receivingPaymentPointer,
+    }
+
+    await sendMessage({ type: 'SET_INCOMING_POINTER', data })
     window.close()
   }
 
@@ -47,7 +62,7 @@ const Popup = () => {
                 <input
                   type="text"
                   name="pointer"
-                  value={paymentPointer}
+                  value={sendingPaymentPointer}
                   onInput={handleChange}
                   placeholder="https://ilp.rafiki.money/pointer"
                   className="w-full h-8 px-2 border border-gray-300 focus:outline-0"
