@@ -111,7 +111,7 @@ export const initPaymentFlow = async (
           )
           console.log('outgoingPaymentGrant', outgoingPaymentGrant.data.interact.redirect)
 
-          // `https://localhost:3000/?hash=SKENFpVdQFenQ0rMiaHCFTkFq11SEFYSAUBhCrw8xvU%3D&interact_ref=10e7a3ab-496c-4d50-bea1-593189be4b75`
+          // `https://rafiki.money/?hash=SKENFpVdQFenQ0rMiaHCFTkFq11SEFYSAUBhCrw8xvU%3D&interact_ref=10e7a3ab-496c-4d50-bea1-593189be4b75`
           const interactRef = '10e7a3ab-496c-4d50-bea1-593189be4b75'
 
           if (outgoingPaymentGrant.data.interact.redirect) {

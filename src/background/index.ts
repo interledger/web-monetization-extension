@@ -1,14 +1,14 @@
 import { action, Runtime, runtime, Tabs, tabs } from 'webextension-polyfill'
 
-import { initPaymentFlow } from '@/background/paymentFlow'
+import { PaymentFlowService } from '@/background/grantFlow'
 
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
 const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
 const iconInactive34 = runtime.getURL('assets/icons/icon-inactive-34.png')
 const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
-
-const SENDING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/wmuser' // cel din extensie al userului
-const RECEIVING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-page' // cel din dom
+//
+// const SENDING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/wmuser' // cel din extensie al userului
+// const RECEIVING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-page' // cel din dom
 
 /**
  * Define background script functions
@@ -16,6 +16,8 @@ const RECEIVING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-page' // cel
  */
 class Background {
   _port: number
+  grantFlow: PaymentFlowService | null = null
+
   constructor() {
     this.init()
   }
@@ -27,8 +29,6 @@ class Background {
    */
   init = async () => {
     console.log('[===== Loaded Background Scripts =====]')
-
-    initPaymentFlow(SENDING_PAYMENT_POINTER_URL, RECEIVING_PAYMENT_POINTER_URL)
 
     //When extension installed
     runtime.onInstalled.addListener(this.onInstalled)
@@ -74,8 +74,35 @@ class Background {
         }
 
         case 'SET_INCOMING_POINTER': {
-          console.log('should run payment here:', message)
-          // await runPayment(message.data.incomingPayment, message.data.paymentPointer)
+          const {
+            incomingPayment: receivingPaymentPointerUrl,
+            paymentPointer: sendingPaymentPointerUrl,
+            amount,
+          } = message.data
+
+          this.grantFlow = new PaymentFlowService(
+            sendingPaymentPointerUrl,
+            receivingPaymentPointerUrl,
+            amount,
+          )
+
+          this.grantFlow.initPaymentFlow()
+          break
+        }
+
+        case 'GET_SENDING_PAYMENT_POINTER': {
+          if (this.grantFlow) {
+            const { sendingPaymentPointerUrl, amount } = this.grantFlow
+            return {
+              type: 'SUCCESS',
+              data: { sendingPaymentPointerUrl, amount },
+            }
+          }
+
+          return {
+            type: 'ERROR',
+            data: { sendingPaymentPointerUrl: '' },
+          }
         }
       }
 

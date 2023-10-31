@@ -1,5 +1,4 @@
 const listenForLinkChange = (mutationsList: MutationRecord[]) => {
-  console.log('link changed')
   if (mutationsList[0].addedNodes.length && mutationsList[0].type === 'childList') {
     const monetizationLinks = Object.values(mutationsList[0].addedNodes).reduce(
       (acc: HTMLElement[], link: HTMLElement) => {
