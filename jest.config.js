@@ -84,12 +84,15 @@ export default {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
-    '^@/src(.*)$': '<rootDir>/src$1',
-    '^@/assets(.*)$': '<rootDir>/src/assets$1',
-    '^@/pages(.*)$': '<rootDir>/src/pages$1',
-    '^@/lib(.*)$': '<rootDir>/src/lib$1',
-    '^@/utils(.*)$': '<rootDir>/src/utils$1',
-    '^@/hooks(.*)$': '<rootDir>/src/hooks$1',
+    '^utils(.*)$': '<rootDir>/utils$1',
+    '^popup(.*)$': '<rootDir>/popup$1',
+    '^background(.*)$': '<rootDir>/background$1',
+    '^content(.*)$': '<rootDir>/content$1',
+    '^assets(.*)$': '<rootDir>/assets$1',
+    '^components(.*)$': '<rootDir>/components$1',
+    '^types(.*)$': '<rootDir>/types$1',
+    '^@redux(.*)$': '<rootDir>/@redux$1',
+    '^@hooks(.*)$': '<rootDir>/@hooks$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
 

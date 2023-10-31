@@ -1,0 +1,26 @@
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 16px;
+  flex-basis: 48px;
+  flex-shrink: 0;
+  font-weight: 500;
+
+  .logo {
+    height: 24px;
+  }
+
+  .close-btn {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    img {
+      height: 32px;
+    }
+  }
+}
