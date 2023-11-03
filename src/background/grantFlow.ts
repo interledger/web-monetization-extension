@@ -2,9 +2,9 @@ import { tabs } from 'webextension-polyfill'
 
 import { getAxiosInstance } from '@/background/requestConfig'
 
-const KEY_ID = '530c7caf-47a2-4cbd-844e-b8ed53e5c0d7'
+const KEY_ID = 'f9eb6bfe-26d2-46a8-88fd-b8b6c56132ad'
 const PRIVATE_KEY =
-  'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSU1xYkZodTlNZHpjNXZROXBoVDY0aGZ4Z0pRazM2TFVyR1VqL1cwbHRTWG0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo='
+  'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSUgwcDgzZ2dmYTUyNUw1K1BJbkZ1SHoxUFdZQzRFKy9UTEl1R09NMFRMTXcKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo='
 const WM_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-monetization' // intermediarul
 
 export class PaymentFlowService {
@@ -22,6 +22,7 @@ export class PaymentFlowService {
   outgoingPaymentGrantToken: string
   continuationRequestToken: string
   interactRef: string
+  walletAddressId: string
 
   amount: string
 
@@ -37,6 +38,7 @@ export class PaymentFlowService {
 
   async initPaymentFlow() {
     await this.getClientAuth()
+    await this.getWalletAddress()
     await this.getIncomingPaymentUrlId()
     await this.getQuoteGrant()
     await this.getQuote()
@@ -76,10 +78,25 @@ export class PaymentFlowService {
     this.clientAuthToken = response.data.access_token.value
   }
 
+  async getWalletAddress() {
+    const response = await this.axiosInstance.get(
+      this.receivingPaymentPointerUrl,
+      this.getHeaders(this.clientAuthToken),
+    )
+
+    if (!response?.data?.id) {
+      throw new Error('No client auth')
+    } else {
+      this.walletAddressId = response.data.id
+    }
+  }
+
   async getIncomingPaymentUrlId() {
     const incomingPayment = await this.axiosInstance.post(
-      `${this.receivingPaymentPointerUrl}/incoming-payments`,
-      {},
+      new URL(this.receivingPaymentPointerUrl).origin + '/incoming-payments',
+      {
+        walletAddress: this.receivingPaymentPointerUrl,
+      },
       this.getHeaders(this.clientAuthToken),
     )
 
@@ -114,7 +131,9 @@ export class PaymentFlowService {
 
   async getQuote() {
     const payload = {
+      method: 'ilp',
       receiver: this.incomingPaymentUrlId,
+      walletAddress: this.sendingPaymentPointerUrl,
       debitAmount: {
         value: '1000',
         assetCode: 'USD',
@@ -123,7 +142,7 @@ export class PaymentFlowService {
     }
 
     const quote = await this.axiosInstance.post(
-      `${this.sendingPaymentPointerUrl}/quotes`,
+      new URL(this.sendingPaymentPointerUrl).origin + '/quotes',
       payload,
       this.getHeaders(this.quoteGrantToken),
     )
@@ -136,17 +155,17 @@ export class PaymentFlowService {
   }
 
   async getOutgoingPaymentGrant() {
-    const receivingPaymentPointerDetails = await this.axiosInstance.get(
-      this.receivingPaymentPointerUrl,
-    )
-    console.log('receivingPaymentPointerDetails', receivingPaymentPointerDetails)
+    // const receivingPaymentPointerDetails = await this.axiosInstance.get(
+    //   this.receivingPaymentPointerUrl,
+    // )
+    console.log('walletAddress id', this.walletAddressId)
     const payload = {
       access_token: {
         access: [
           {
             type: 'outgoing-payment',
-            actions: ['create', 'read', 'list'],
-            identifier: this.sendingPaymentPointerUrl,
+            actions: ['list', 'list-all', 'read', 'read-all', 'create'],
+            identifier: this.sendingPaymentPointerUrl, // sendingPaymentPointerUrl
             limits: {
               debitAmount: {
                 value: '2000',
@@ -169,8 +188,9 @@ export class PaymentFlowService {
     }
 
     const outgoingPaymentGrant = await this.axiosInstance.post(
-      'https://auth.rafiki.money/',
+      'https://auth.rafiki.money',
       payload,
+      this.getHeaders(this.clientAuthToken),
     )
 
     if (!outgoingPaymentGrant.data.interact.redirect) {
