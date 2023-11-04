@@ -196,7 +196,7 @@ export class PaymentFlowService {
         start: ['redirect'],
         finish: {
           method: 'redirect',
-          uri: `https://rafiki.money/`,
+          uri: `http://localhost:3035`,
           nonce: new Date().getTime().toString(),
         },
       },
@@ -216,6 +216,7 @@ export class PaymentFlowService {
   }
 
   async getContinuationRequest() {
+    console.log()
     const continuationRequest = await this.axiosInstance.post(
       this.outgoingPaymentGrantData.continue.uri,
       {
