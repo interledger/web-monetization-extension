@@ -21,7 +21,7 @@ const Popup = () => {
   const [receivingPaymentPointer, setReceivingPaymentPointer] = useState('')
   const [formData, setFormData] = useState({
     paymentPointer: sendingPaymentPointer || '',
-    amount: '',
+    amount: 20,
   })
 
   useEffect(() => {
@@ -51,7 +51,6 @@ const Popup = () => {
     }
 
     await sendMessage({ type: 'SET_INCOMING_POINTER', data })
-    setPaymentStarted(true)
     window.close()
   }
 
@@ -59,16 +58,22 @@ const Popup = () => {
     const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' })
     setSendingPaymentPointer(response.data.sendingPaymentPointerUrl)
     setPaymentStarted(response.data.paymentStarted)
-    setFormData({
-      paymentPointer: response.data.sendingPaymentPointerUrl,
-      amount: response.data.amount,
-    })
+
+    const { sendingPaymentPointerUrl: paymentPointer, amount } = response.data
+    if (paymentPointer && amount) {
+      setFormData({
+        paymentPointer: response.data.sendingPaymentPointerUrl,
+        amount: response.data.amount,
+      })
+    }
   }
 
   const listenForIncomingPayment = async () => {
     const listener = (message: any) => {
+      console.log('message', message)
       if (message.type === 'SPENT_AMOUNT') {
         setSpent(message.data.spentAmount)
+        setPaymentStarted(true)
       }
     }
 
@@ -78,9 +83,10 @@ const Popup = () => {
     }
   }
 
-  const stopPayments = async () => {
+  const stopPayments = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault()
     setPaymentStarted(false)
-    runtime.sendMessage({ type: 'STOP_PAYMENTS' })
+    await sendMessage({ type: 'STOP_PAYMENTS' })
   }
 
   return (
@@ -125,15 +131,9 @@ const Popup = () => {
               </div>
 
               <div className="actions">
-                {paymentStarted ? (
-                  <button type="button" className="stop-btn" onClick={stopPayments}>
-                    <img src={CloseIcon} alt="Check" />
-                  </button>
-                ) : (
-                  <button type="submit" className="submit-btn">
-                    <img src={CheckIcon} alt="Check" />
-                  </button>
-                )}
+                <button type="submit" className="submit-btn">
+                  <img src={CheckIcon} alt="Check" />
+                </button>
               </div>
             </form>
           </>

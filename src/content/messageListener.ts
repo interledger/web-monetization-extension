@@ -32,6 +32,33 @@ export const onRequest = async (
       paymentSender.stop()
       break
     }
+
+    case 'PAYMENT_SUCCESS': {
+      const { receiveAmount, incomingPayment, paymentPointer } = msg.data
+      const monetizationTag = document.querySelector('link[rel="monetization"]')
+      const eventOptions = {
+        bubbles: true,
+        composed: true,
+        detail: {
+          amount: '1000000',
+          assetCode: 'USD',
+          assetScale: '9',
+          receipt: null,
+          amountSent: {
+            ...receiveAmount,
+          },
+          paymentPointer,
+          incomingPayment,
+        },
+      }
+      const customEvent = new CustomEvent('monetization', eventOptions)
+
+      // monetizationTag?.dispatchEvent(new CustomEvent('load', eventOptions))
+      monetizationTag?.dispatchEvent(customEvent)
+
+      break
+    }
+
     default:
       return { type: 'SUCCESS' }
   }

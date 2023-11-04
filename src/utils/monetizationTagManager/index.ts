@@ -25,7 +25,7 @@ export const initMonetizationTagManager = () => {
     if (started) {
       // debug('sending start request', JSON.stringify(started, null, 2))
       // void this.startMonetization(started)
-      console.log('start monetization')
+      // console.log('start monetization')
     }
   }
 

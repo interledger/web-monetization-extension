@@ -301,7 +301,6 @@ export class MonetizationTagManager extends EventEmitter {
     }
 
     let started: PaymentDetails | null = this.getPaymentDetails(tag)
-    console.log('payment details', started)
     if (started.fromBody && started.tagType === 'meta') {
       const error = new Error(
         'Web-Monetization Error: <meta name="monetization"> ' + 'must be in the document head',

@@ -8,6 +8,7 @@ declare type EXTMessageType =
   | 'START_MONETIZATION'
   | 'START_PAYMENTS'
   | 'STOP_PAYMENTS'
+  | 'PAYMENT_SUCCESS'
 
 declare type EXTMessage<T = any> = {
   type: EXTMessageType

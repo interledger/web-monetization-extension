@@ -24,7 +24,7 @@ export class PaymentFlowService {
   interactRef: string
   walletAddressId: string
 
-  amount: string
+  amount: string | number
 
   sendingWalletAddress: any
   receivingWalletAddress: any
@@ -151,7 +151,7 @@ export class PaymentFlowService {
       receiver: this.incomingPaymentUrlId,
       walletAddress: this.sendingPaymentPointerUrl,
       debitAmount: {
-        value: this.amount.toString(),
+        value: '1000000', // 0.001 USD
         assetCode: 'USD',
         assetScale: 9,
       },
@@ -183,7 +183,7 @@ export class PaymentFlowService {
             identifier: this.sendingPaymentPointerUrl, // sendingPaymentPointerUrl
             limits: {
               debitAmount: {
-                value: '20000000000',
+                value: String(Number(this.amount) * 10 ** 9), // '1000000000',
                 assetScale: 9,
                 assetCode: 'USD',
               },
@@ -237,12 +237,22 @@ export class PaymentFlowService {
       quoteId: this.quoteUrlId,
     }
 
-    await this.axiosInstance.post(
+    const response = await this.axiosInstance.post(
       new URL(this.sendingPaymentPointerUrl).origin + '/outgoing-payments',
       payload,
       this.getHeaders(this.continuationRequestToken),
     )
 
+    const {
+      receiveAmount,
+      receiver: incomingPayment,
+      walletAddress: paymentPointer,
+    } = response.data
+    const currentTabId = await this.getCurrentActiveTabId()
+    await tabs.sendMessage(currentTabId ?? 0, {
+      type: 'PAYMENT_SUCCESS',
+      data: { receiveAmount, incomingPayment, paymentPointer },
+    })
     // console.log('outgoingPayment', outgoingPayment)
   }
 

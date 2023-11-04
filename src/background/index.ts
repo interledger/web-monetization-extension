@@ -111,12 +111,16 @@ class Background {
           if (this.grantFlow) {
             this.grantFlow.sendPayment()
             this.spentAmount = Number(
-              parseFloat(
-                String(this.spentAmount + Number(this.grantFlow.amount) / 10 ** 9),
-              ).toFixed(3),
+              parseFloat(String(this.spentAmount + 1000000 / 10 ** 9)).toFixed(3),
             )
             this.sendSpendAmount()
+            this.paymentStarted = true
           }
+          break
+        }
+
+        case 'STOP_PAYMENTS': {
+          this.paymentStarted = false
           break
         }
       }
