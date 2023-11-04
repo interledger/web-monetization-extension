@@ -31,8 +31,8 @@ export const getAxiosInstance = (
           },
           method: config.method.toUpperCase(),
           url: config.url,
+          body: JSON.stringify(config.data),
         },
-        body: JSON.stringify(config.data),
       }
 
       const contentAndSigHeaders = await axios.post(
