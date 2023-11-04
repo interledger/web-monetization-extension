@@ -17,6 +17,8 @@ const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
 class Background {
   _port: number
   grantFlow: PaymentFlowService | null = null
+  spentAmount: number = 0
+  paymentStarted = false
 
   constructor() {
     this.init()
@@ -95,7 +97,7 @@ class Background {
             const { sendingPaymentPointerUrl, amount } = this.grantFlow
             return {
               type: 'SUCCESS',
-              data: { sendingPaymentPointerUrl, amount },
+              data: { sendingPaymentPointerUrl, amount, started: this.paymentStarted },
             }
           }
 
@@ -103,6 +105,19 @@ class Background {
             type: 'ERROR',
             data: { sendingPaymentPointerUrl: '' },
           }
+        }
+
+        case 'RUN_PAYMENT': {
+          if (this.grantFlow) {
+            this.grantFlow.sendPayment()
+            this.spentAmount = Number(
+              parseFloat(
+                String(this.spentAmount + Number(this.grantFlow.amount) / 10 ** 9),
+              ).toFixed(3),
+            )
+            this.sendSpendAmount()
+          }
+          break
         }
       }
 
@@ -128,6 +143,13 @@ class Background {
    */
   onCreatedTab = (tab: Tabs.Tab) => {
     console.log('[===== New Tab Created =====]', tab)
+  }
+
+  sendSpendAmount() {
+    runtime.sendMessage({
+      type: 'SPENT_AMOUNT',
+      data: { spentAmount: this.spentAmount },
+    })
   }
 
   /**

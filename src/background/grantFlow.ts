@@ -46,11 +46,15 @@ export class PaymentFlowService {
     await this.getIncomingPaymentGrant()
     await this.getIncomingPaymentUrlId()
     await this.getQuoteGrant()
-    await this.createQuote()
     await this.getOutgoingPaymentGrant()
     await this.confirmPayment()
     await this.getContinuationRequest()
-    await this.runPayment()
+
+    const currentTabId = await this.getCurrentActiveTabId()
+    await tabs.sendMessage(currentTabId ?? 0, { type: 'START_PAYMENTS' })
+
+    // await this.createQuote()
+    // await this.runPayment()
   }
 
   getHeaders(gnapToken: string) {
@@ -147,7 +151,7 @@ export class PaymentFlowService {
       receiver: this.incomingPaymentUrlId,
       walletAddress: this.sendingPaymentPointerUrl,
       debitAmount: {
-        value: '6000000',
+        value: this.amount.toString(),
         assetCode: 'USD',
         assetScale: 9,
       },
@@ -233,13 +237,13 @@ export class PaymentFlowService {
       quoteId: this.quoteUrlId,
     }
 
-    const outgoingPayment = await this.axiosInstance.post(
+    await this.axiosInstance.post(
       new URL(this.sendingPaymentPointerUrl).origin + '/outgoing-payments',
       payload,
       this.getHeaders(this.continuationRequestToken),
     )
 
-    console.log('outgoingPayment', outgoingPayment)
+    // console.log('outgoingPayment', outgoingPayment)
   }
 
   async confirmPayment() {
@@ -263,6 +267,11 @@ export class PaymentFlowService {
         })
       }
     })
+  }
+
+  async sendPayment() {
+    await this.createQuote()
+    await this.runPayment()
   }
 
   async getCurrentActiveTabId() {

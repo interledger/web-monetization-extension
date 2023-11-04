@@ -10,65 +10,87 @@ import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages'
 const Success = runtime.getURL('assets/images/web-monetization-success.svg')
 const Fail = runtime.getURL('assets/images/web-monetization-fail.svg')
 const CheckIcon = runtime.getURL('assets/images/check.svg')
-const EditIcon = runtime.getURL('assets/images/edit.svg')
 const DollarIcon = runtime.getURL('assets/images/dollar.svg')
+const CloseIcon = runtime.getURL('assets/images/close.svg')
 
 const Popup = () => {
+  const [paymentStarted, setPaymentStarted] = useState(false)
+  const [spent, setSpent] = useState(0)
   const [sendingPaymentPointer, setSendingPaymentPointer] = useState('')
-  const [amount, setAmount] = useState('')
   const [isMonetizationReady, setIsMonetizationReady] = useState(false)
   const [receivingPaymentPointer, setReceivingPaymentPointer] = useState('')
-  const [isEditing, setIsEditing] = useState(!!sendingPaymentPointer)
-  const [isEditingAmount, setIsEditingAmount] = useState(!!amount)
+  const [formData, setFormData] = useState({
+    paymentPointer: sendingPaymentPointer || '',
+    amount: '',
+  })
 
   useEffect(() => {
     checkMonetizationReady()
     getSendingPaymentPointer()
+    listenForIncomingPayment()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const checkMonetizationReady = async () => {
     const response = await sendMessageToActiveTab({ type: 'IS_MONETIZATION_READY' })
     setIsMonetizationReady(response.data.monetization)
-    setReceivingPaymentPointer(response.data.pointer)
+    setReceivingPaymentPointer(response.data.paymentPointer)
   }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSendingPaymentPointer(event.target.value)
+    setFormData(prevState => ({ ...prevState, [event.target.name]: event.target.value }))
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setIsEditingAmount(false)
-    setIsEditing(false)
+
     const data = {
-      amount: amount,
-      assetCode: 'USD',
-      assetScale: '2',
-      receipt: null,
-      amountSent: {
-        amount: '1', // 0.01
-        currency: 'USD',
-      },
-      paymentPointer: sendingPaymentPointer,
+      amount: formData.amount,
+      paymentPointer: formData.paymentPointer,
       incomingPayment: receivingPaymentPointer,
     }
 
     await sendMessage({ type: 'SET_INCOMING_POINTER', data })
+    setPaymentStarted(true)
+    window.close()
   }
 
   const getSendingPaymentPointer = async () => {
     const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' })
-    console.log('response ==== ', response)
     setSendingPaymentPointer(response.data.sendingPaymentPointerUrl)
+    setPaymentStarted(response.data.paymentStarted)
+    setFormData({
+      paymentPointer: response.data.sendingPaymentPointerUrl,
+      amount: response.data.amount,
+    })
   }
 
-  const toggleEdit = () => {
-    setIsEditing(!isEditing)
+  const listenForIncomingPayment = async () => {
+    const listener = (message: any) => {
+      if (message.type === 'SPENT_AMOUNT') {
+        setSpent(message.data.spentAmount)
+      }
+    }
+
+    runtime.onMessage.addListener(listener)
+    return () => {
+      runtime.onMessage.removeListener(listener)
+    }
+  }
+
+  const stopPayments = async () => {
+    setPaymentStarted(false)
+    runtime.sendMessage({ type: 'STOP_PAYMENTS' })
   }
 
   return (
     <div className="wrapper">
       <PopupHeader />
+      {!!spent && (
+        <div className="spentAmount">
+          ${spent}/<span>$20</span>
+        </div>
+      )}
       <div className="content">
         {isMonetizationReady ? (
           <>
@@ -76,58 +98,42 @@ const Popup = () => {
 
             <form onSubmit={handleSubmit} className="pointerForm">
               <div className="input-wrapper">
-                <label htmlFor="pointer">Payment pointer</label>
-                <div
-                  className={`input ${
-                    !!sendingPaymentPointer && !isEditing ? 'input-disabled' : ''
-                  }`}>
+                <label htmlFor="paymentPointer">Payment pointer</label>
+                <div className="input">
                   <input
                     type="text"
-                    name="pointer"
-                    value={sendingPaymentPointer}
+                    name="paymentPointer"
+                    value={formData.paymentPointer}
                     onInput={handleChange}
-                    placeholder="https://ilp.rafiki.money/pointer"
+                    placeholder="https://ilp.rafiki.money/alice"
                   />
-                  {sendingPaymentPointer && !isEditing && (
-                    <button type="button" className="edit-btn" onClick={toggleEdit}>
-                      <img src={EditIcon} alt="edit" />
-                    </button>
-                  )}
-                  {(isEditing || !sendingPaymentPointer) && (
-                    <button type="submit">
-                      <img src={CheckIcon} alt="Check" />
-                    </button>
-                  )}
                 </div>
               </div>
 
               <div className="input-wrapper">
                 <label htmlFor="pointer">Amount</label>
-                <div className={`input ${!!amount && !isEditingAmount ? 'input-disabled' : ''}`}>
+                <div className="input">
                   <img src={DollarIcon} alt="dollar" />
                   <input
                     type="text"
                     name="amount"
-                    value={amount}
-                    onInput={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      setAmount(event.target.value)
-                    }
+                    value={formData.amount}
+                    onInput={handleChange}
                     placeholder="0.05"
                   />
-                  {amount && !isEditingAmount && (
-                    <button
-                      type="button"
-                      className="edit-btn"
-                      onClick={() => setIsEditingAmount(true)}>
-                      <img src={EditIcon} alt="edit" />
-                    </button>
-                  )}
-                  {(isEditingAmount || !amount) && (
-                    <button type="submit">
-                      <img src={CheckIcon} alt="Check" />
-                    </button>
-                  )}
                 </div>
+              </div>
+
+              <div className="actions">
+                {paymentStarted ? (
+                  <button type="button" className="stop-btn" onClick={stopPayments}>
+                    <img src={CloseIcon} alt="Check" />
+                  </button>
+                ) : (
+                  <button type="submit" className="submit-btn">
+                    <img src={CheckIcon} alt="Check" />
+                  </button>
+                )}
               </div>
             </form>
           </>
