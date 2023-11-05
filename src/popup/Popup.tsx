@@ -14,6 +14,7 @@ const DollarIcon = runtime.getURL('assets/images/dollar.svg')
 const CloseIcon = runtime.getURL('assets/images/close.svg')
 
 const Popup = () => {
+  const [loading, setLoading] = useState(false)
   const [paymentStarted, setPaymentStarted] = useState(false)
   const [spent, setSpent] = useState(0)
   const [sendingPaymentPointer, setSendingPaymentPointer] = useState('')
@@ -44,6 +45,7 @@ const Popup = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    setLoading(true)
     const data = {
       amount: formData.amount,
       paymentPointer: formData.paymentPointer,
@@ -51,13 +53,11 @@ const Popup = () => {
     }
 
     await sendMessage({ type: 'SET_INCOMING_POINTER', data })
-    window.close()
   }
 
   const getSendingPaymentPointer = async () => {
     const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' })
     setSendingPaymentPointer(response.data.sendingPaymentPointerUrl)
-    setPaymentStarted(response.data.paymentStarted)
 
     const { sendingPaymentPointerUrl: paymentPointer, amount } = response.data
     if (paymentPointer && amount) {
@@ -70,10 +70,13 @@ const Popup = () => {
 
   const listenForIncomingPayment = async () => {
     const listener = (message: any) => {
-      console.log('message', message)
       if (message.type === 'SPENT_AMOUNT') {
         setSpent(message.data.spentAmount)
         setPaymentStarted(true)
+      }
+
+      if (loading) {
+        setLoading(false)
       }
     }
 
@@ -86,7 +89,12 @@ const Popup = () => {
   const stopPayments = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
     setPaymentStarted(false)
-    await sendMessage({ type: 'STOP_PAYMENTS' })
+    setTimeout(() => {
+      if (loading) {
+        setLoading(false)
+      }
+    }, 1000)
+    await sendMessageToActiveTab({ type: 'STOP_PAYMENTS' })
   }
 
   return (
@@ -102,7 +110,9 @@ const Popup = () => {
           <>
             <img src={Success} alt="Success" />
 
-            <form onSubmit={handleSubmit} className="pointerForm">
+            <form
+              onSubmit={handleSubmit}
+              className={`pointerForm ${paymentStarted ? 'active' : ''}`}>
               <div className="input-wrapper">
                 <label htmlFor="paymentPointer">Payment pointer</label>
                 <div className="input">
@@ -111,6 +121,7 @@ const Popup = () => {
                     name="paymentPointer"
                     value={formData.paymentPointer}
                     onInput={handleChange}
+                    disabled={paymentStarted}
                     placeholder="https://ilp.rafiki.money/alice"
                   />
                 </div>
@@ -125,15 +136,22 @@ const Popup = () => {
                     name="amount"
                     value={formData.amount}
                     onInput={handleChange}
+                    disabled={paymentStarted}
                     placeholder="0.05"
                   />
                 </div>
               </div>
 
               <div className="actions">
-                <button type="submit" className="submit-btn">
-                  <img src={CheckIcon} alt="Check" />
-                </button>
+                {paymentStarted ? (
+                  <button type="button" className="stop-btn" onClick={stopPayments}>
+                    <img src={CloseIcon} alt="Stop" />
+                  </button>
+                ) : (
+                  <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`}>
+                    <img src={CheckIcon} alt="Check" />
+                  </button>
+                )}
               </div>
             </form>
           </>

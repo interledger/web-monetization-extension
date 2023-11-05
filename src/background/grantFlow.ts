@@ -24,6 +24,8 @@ export class PaymentFlowService {
   interactRef: string
   walletAddressId: string
 
+  manageUrl: string
+
   amount: string | number
 
   sendingWalletAddress: any
@@ -229,6 +231,7 @@ export class PaymentFlowService {
       throw new Error('No continuation request')
     }
 
+    this.manageUrl = continuationRequest.data.access_token.manage
     this.continuationRequestToken = continuationRequest.data.access_token.value
   }
 
@@ -280,9 +283,28 @@ export class PaymentFlowService {
     })
   }
 
+  async rotateToken() {
+    const response = await this.axiosInstance.post(
+      this.manageUrl,
+      undefined,
+      this.getHeaders(this.continuationRequestToken),
+    )
+
+    if (!response.data.access_token.value) {
+      throw new Error('No continuation request')
+    }
+
+    this.manageUrl = response.data.access_token.manage
+    this.continuationRequestToken = response.data.access_token.value
+  }
+
   async sendPayment() {
-    await this.createQuote()
-    await this.runPayment()
+    await this.createQuote().catch(async () => {
+      await this.rotateToken()
+    })
+    await this.runPayment().catch(async () => {
+      await this.rotateToken()
+    })
   }
 
   async getCurrentActiveTabId() {

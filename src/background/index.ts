@@ -82,13 +82,22 @@ class Background {
             amount,
           } = message.data
 
-          this.grantFlow = new PaymentFlowService(
-            sendingPaymentPointerUrl,
-            receivingPaymentPointerUrl,
-            amount,
-          )
+          if (this.grantFlow?.sendingPaymentPointerUrl === sendingPaymentPointerUrl) {
+            if (!this.paymentStarted) {
+              this.paymentStarted = true
+              const currentTabId = await this.grantFlow?.getCurrentActiveTabId()
+              await tabs.sendMessage(currentTabId ?? 0, { type: 'START_PAYMENTS' })
+            }
+          } else {
+            this.grantFlow = new PaymentFlowService(
+              sendingPaymentPointerUrl,
+              receivingPaymentPointerUrl,
+              amount,
+            )
 
-          this.grantFlow.initPaymentFlow()
+            this.grantFlow.initPaymentFlow()
+          }
+
           break
         }
 
@@ -119,7 +128,7 @@ class Background {
           break
         }
 
-        case 'STOP_PAYMENTS': {
+        case 'PAUSE_PAYMENTS': {
           this.paymentStarted = false
           break
         }

@@ -15,6 +15,7 @@ export class PaymentSender {
   }
 
   stop() {
+    sendMessage({ type: 'PAUSE_PAYMENTS' })
     clearInterval(this.sender)
   }
 
