@@ -1,5 +1,7 @@
 // language=JavaScript
 export const wm2Polyfill = `
+  var monetizationTag = document.querySelector('link[rel="monetization"]');
+  monetizationTag.dispatchEvent(new Event('load'));
   const dbg = () => {
   }
   dbg('setonmonetization property start')
@@ -80,9 +82,10 @@ export const wm2Polyfill = `
     dbg(
       'monetization-v2 event'
     )
+
     const monetizationEvent = new MonetizationEvent('monetization', event.detail)
-    event.target.dispatchEvent(monetizationEvent)
-  }, { capture: true })
+    monetizationTag.dispatchEvent(monetizationEvent)
+  }, { capture: true, bubble: true })
   window.addEventListener('onmonetization-attr-changed', (event) => {
     dbg('onmonetization-attr-changed', event.detail.attribute)
     const { attribute } = event.detail

@@ -111,6 +111,7 @@ export class PaymentFlowService {
       new URL(this.receivingPaymentPointerUrl).origin + '/incoming-payments',
       {
         walletAddress: this.receivingPaymentPointerUrl,
+        expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
       },
       this.getHeaders(this.clientAuthToken),
     )
@@ -218,7 +219,6 @@ export class PaymentFlowService {
   }
 
   async getContinuationRequest() {
-    console.log()
     const continuationRequest = await this.axiosInstance.post(
       this.outgoingPaymentGrantData.continue.uri,
       {
@@ -299,12 +299,8 @@ export class PaymentFlowService {
   }
 
   async sendPayment() {
-    await this.createQuote().catch(async () => {
-      await this.rotateToken()
-    })
-    await this.runPayment().catch(async () => {
-      await this.rotateToken()
-    })
+    await this.createQuote()
+    await this.runPayment()
   }
 
   async getCurrentActiveTabId() {

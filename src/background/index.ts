@@ -6,7 +6,7 @@ const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
 const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
 const iconInactive34 = runtime.getURL('assets/icons/icon-inactive-34.png')
 const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
-//
+
 // const SENDING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/wmuser' // cel din extensie al userului
 // const RECEIVING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-page' // cel din dom
 
