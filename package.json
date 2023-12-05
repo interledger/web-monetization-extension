@@ -105,7 +105,7 @@
         "typescript": "^5.2.2",
         "webpack-cli": "^5.1.4"
     },
-    "license": "MIT",
+    "license": "Apache-2.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/interledger/web-monetization-extension"
