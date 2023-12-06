@@ -1,0 +1,41 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+# TODO(@raducristianpopa): add lint/format checks and tests
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      fail-fast: true
+      matrix:
+        browser: [chrome, firefox, opera, edge]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: rm -rf node_modules && yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build:${{ matrix.browser }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
+          path: dist/${{ matrix.browser }}/${{ matrix.browser }}.zip
+          if-no-files-found: error
