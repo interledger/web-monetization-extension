@@ -1,0 +1,22 @@
+name: Delete PR artifacts
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  delete:
+    name: Delete artifacts
+    if: github.repository == 'interledger/web-monetization-extension'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Delete arfiacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const script = require('./scripts/delete-artifacts.cjs')
+            await script({ github, context })
