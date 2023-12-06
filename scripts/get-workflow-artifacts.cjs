@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-console */
-
 const fs = require('node:fs/promises')
 const { COLORS, TEMPLATE_VARS, BADGE } = require('./constants.cjs')
 
