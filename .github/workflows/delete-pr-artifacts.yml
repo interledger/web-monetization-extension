@@ -19,4 +19,4 @@ jobs:
         with:
           script: |
             const script = require('./scripts/delete-artifacts.cjs')
-            await script({ github, context })
+            await script({ github, context, core })

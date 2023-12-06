@@ -41,10 +41,9 @@ async function getPRArtifacts({ github, owner, repo, prNumber }) {
   return artifacts
 }
 
-module.exports = async ({ github, context }) => {
+module.exports = async ({ github, context, core }) => {
   if (context.payload.action !== 'closed') {
-    console.error('This action only works on closed PRs.')
-    process.exit(1)
+    core.setFailed('This action only works on closed PRs.')
   }
 
   const { owner, repo } = context.repo
