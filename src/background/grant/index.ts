@@ -6,6 +6,7 @@ import { getIncomingPaymentGrant } from './getIcomingPaymentGrant'
 import { getIncomingPaymentUrlId } from './getIncomingPaymentUrlId'
 import { getOutgoingPaymentGrant } from './getOutgoingPaymentGrant'
 import { getQuoteGrant } from './getQuoteGrant'
+import { rotateToken } from './rotateToken'
 
 export {
   confirmPayment,
@@ -16,4 +17,5 @@ export {
   getIncomingPaymentUrlId,
   getOutgoingPaymentGrant,
   getQuoteGrant,
+  rotateToken,
 }

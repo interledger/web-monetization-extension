@@ -86,7 +86,6 @@ export class PaymentFlowService {
     this.outgoingPaymentGrantData = outgoingData.outgoingPaymentGrantData
 
     this.interactRef = await confirmPayment(this.outgoingPaymentGrantData.interact.redirect)
-    console.log('interactRef', this.interactRef)
 
     const continuationRequest = await getContinuationRequest(
       this.outgoingPaymentGrantData.continue.uri,
@@ -139,21 +138,6 @@ export class PaymentFlowService {
       data: { receiveAmount, incomingPayment, paymentPointer },
     })
     // console.log('outgoingPayment', outgoingPayment)
-  }
-
-  async rotateToken() {
-    const response = await this.axiosInstance.post(
-      this.manageUrl,
-      undefined,
-      getHeaders(this.continuationRequestToken),
-    )
-
-    if (!response.data.access_token.value) {
-      throw new Error('No continuation request')
-    }
-
-    this.manageUrl = response.data.access_token.manage
-    this.continuationRequestToken = response.data.access_token.value
   }
 
   async sendPayment() {
