@@ -31,7 +31,8 @@ jobs:
         id: find-comment
         with:
           issue-number: ${{ steps.get-workflow-artifacts.outputs.pr_number }}
-          comment-author: 'github-actions[bot]'
+          comment-author: 'raducristianpopa'
+          body-includes: Extension builds preview
 
       - name: Add/Update comment
         uses: peter-evans/create-or-update-comment@v2
