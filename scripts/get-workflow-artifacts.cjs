@@ -44,14 +44,13 @@ function formatBytes(bytes, decimals = 2) {
 
 module.exports = async ({ github, context, core }) => {
   const { owner, repo } = context.repo
-  const workflowRun = context.payload.workflow_run
   const baseUrl = context.payload.repository.html_url
-  const suiteId = workflowRun.check_suite_id
-  const runId = workflowRun.id
-  const conclusion = workflowRun.conclusion
-  const sha = workflowRun.pull_requests[0].head.sha
-  const prNumber = workflowRun.pull_requests[0].number
-  const jobLogsUrl = `${baseUrl}/actions/runs/${workflowRun.id}`
+  const suiteId = context.payload.workflow_run.check_suite_id
+  const runId = context.payload.workflow_run.id
+  const conclusion = context.payload.workflow_run.conclusion
+  const sha = context.payload.workflow_run.pull_requests[0].head.sha
+  const prNumber = context.payload.workflow_run.pull_requests[0].number
+  const jobLogsUrl = `${baseUrl}/actions/runs/${context.payload.workflow_run.id}`
   const template = await fs.readFile('./scripts/templates/build-status.md', 'utf8')
   const tableRows = []
 
