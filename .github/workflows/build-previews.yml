@@ -8,7 +8,8 @@ on:
       - 'PR Checks'
 
 jobs:
-  build:
+  comment:
+    name: Add comment with extension preview builds
     runs-on: ubuntu-22.04
     if: github.repository == 'interledger/web-monetization-extension'
     steps:
@@ -35,6 +36,7 @@ jobs:
       - name: Add/Update comment
         uses: peter-evans/create-or-update-comment@v2
         with:
+          token: ${{ secrets.PAT }}
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ steps.get-workflow-artifacts.outputs.pr_number }}
           body: ${{ steps.get-workflow-artifacts.outputs.comment_body }}

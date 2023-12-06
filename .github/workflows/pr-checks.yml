@@ -13,7 +13,7 @@ jobs:
   build:
     name: Build
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         browser: [chrome, firefox, opera, edge]
     runs-on: ubuntu-latest

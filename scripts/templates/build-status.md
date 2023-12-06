@@ -1,4 +1,4 @@
-<img src="https://img.shields.io/badge/{{ CONCLUSION }}-{{ BADGE_COLOR }}?style=for-the-badge&label=build" alt="Badge" />
+<h2>Extension builds preview</h2>
 
 <table role="table">
 <thead>
@@ -9,12 +9,12 @@
 </thead>
 <tbody>
   <tr>
-    <td>Latest commit</td>
-    <td>{{ SHA }}</td>
+    <td align="center">Latest commit</td>
+    <td align="center">{{ SHA }}</td>
   </tr>
   <tr>
-    <td>Latest job logs</td>
-    <td>{{ JOB_LOGS }}</td>
+    <td align="center">Latest job logs</td>
+    <td align="center">{{ JOB_LOGS }}</td>
   </tr>
   {{ TABLE_BODY }}
 </tbody>

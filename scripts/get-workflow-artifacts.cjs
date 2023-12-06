@@ -2,11 +2,35 @@
 /* eslint-disable no-console */
 
 const fs = require('node:fs/promises')
-const { COLORS, TEMPLATE_VARS } = require('./constants.cjs')
+const { COLORS, TEMPLATE_VARS, BADGE } = require('./constants.cjs')
 
-function capitalizeArtifactName(artifactName) {
-  const [, browser] = artifactName.split('-')
-  return browser.charAt(0).toUpperCase() + browser.slice(1)
+const ARTIFACTS_DATA = {
+  chrome: {
+    name: 'Chrome',
+    url: null,
+    size: null,
+  },
+  firefox: {
+    name: 'Firefox',
+    url: null,
+    size: null,
+  },
+  opera: {
+    name: 'Opera',
+    url: null,
+    size: null,
+  },
+  edge: {
+    name: 'Edge',
+    url: null,
+    size: null,
+  },
+}
+
+function getBadge(conclusion, badgeColor, badgeLabel) {
+  return BADGE.replace(TEMPLATE_VARS.conslusion, conclusion)
+    .replace(TEMPLATE_VARS.badgeColor, badgeColor)
+    .replace(TEMPLATE_VARS.badgeLabel, badgeLabel)
 }
 
 function formatBytes(bytes, decimals = 2) {
@@ -19,52 +43,48 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 module.exports = async ({ github, context, core }) => {
+  const { owner, repo } = context.repo
   const workflowRun = context.payload.workflow_run
+  const baseUrl = context.payload.repository.html_url
+  const suiteId = workflowRun.check_suite_id
   const runId = workflowRun.id
   const conclusion = workflowRun.conclusion
-  const baseUrl = context.payload.repository.html_url
   const sha = workflowRun.pull_requests[0].head.sha
   const prNumber = workflowRun.pull_requests[0].number
   const jobLogsUrl = `${baseUrl}/actions/runs/${workflowRun.id}`
   const template = await fs.readFile('./scripts/templates/build-status.md', 'utf8')
   const tableRows = []
 
-  let tableBody = ''
-  let badgeColor = COLORS.red
+  const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+    owner,
+    repo,
+    run_id: runId,
+  })
 
-  if (conclusion === 'success') {
-    const { owner, repo } = context.repo
-    const suiteId = workflowRun.check_suite_id
-    badgeColor = COLORS.green
+  artifacts.data.artifacts.forEach(artifact => {
+    const [, key] = artifact.name.split('-')
+    ARTIFACTS_DATA[key].url = `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`
+    ARTIFACTS_DATA[key].size = formatBytes(artifact.size_in_bytes)
+  })
 
-    const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
-      owner,
-      repo,
-      run_id: runId,
-    })
+  Object.keys(ARTIFACTS_DATA).forEach(k => {
+    const { name, url, size } = ARTIFACTS_DATA[k]
+    if (url === null && size === null) {
+      const badgeUrl = getBadge('failure', COLORS.red, name)
+      tableRows.push(`<tr><td align="center">${badgeUrl}</td><td align="center">N/A</td></tr>`)
+    } else {
+      const badgeUrl = getBadge('success', COLORS.green, `${name} (${size})`)
+      tableRows.push(
+        `<tr><td align="center">${badgeUrl}</td><td align="center"><a href="${url}">Download</a></td></tr>`,
+      )
+    }
+  })
 
-    artifacts.data.artifacts.forEach(artifact => {
-      const browser = capitalizeArtifactName(artifact.name)
-      const artifactUrl = `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`
-      tableRows.push(`
-        <tr>
-          <td>${browser} (${formatBytes(artifact.size_in_bytes)})
-          </td>
-          <td>
-            <a href="${artifactUrl}">Download</a>
-          </td>
-        </tr>
-        `)
-    })
-
-    tableBody = tableRows.join('')
-  }
-
+  const tableBody = tableRows.join('')
   const commentBody = template
     .replace(TEMPLATE_VARS.conslusion, conclusion)
-    .replace(TEMPLATE_VARS.badgeColor, badgeColor)
     .replace(TEMPLATE_VARS.sha, sha)
-    .replace(TEMPLATE_VARS.jobLogs, `<a href="${jobLogsUrl}">${jobLogsUrl}}</a>`)
+    .replace(TEMPLATE_VARS.jobLogs, `<a href="${jobLogsUrl}">Run #${runId}</a>`)
     .replace(TEMPLATE_VARS.tableBody, tableBody)
 
   core.setOutput('comment_body', commentBody)
