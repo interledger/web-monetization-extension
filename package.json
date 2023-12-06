@@ -1,8 +1,7 @@
 {
     "name": "web-monetization-extension",
     "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website.",
-    "version": "1.0.1",
-    "main": "webpack.config.js",
+    "version": "0.2.3",
     "scripts": {
         "dev:chrome": "cross-env NODE_ENV=development TARGET=chrome webpack",
         "dev:firefox": "cross-env NODE_ENV=development TARGET=firefox webpack",
@@ -16,12 +15,7 @@
         "build:firefox": "cross-env NODE_ENV=production TARGET=firefox webpack",
         "build:opera": "cross-env NODE_ENV=production TARGET=opera webpack",
         "build:edge": "cross-env NODE_ENV=production TARGET=edge webpack",
-        "upload:chrome": "cross-env NODE_ENV=upload TARGET=chrome webpack",
-        "upload:firefox": "cross-env NODE_ENV=upload TARGET=firefox webpack",
-        "upload:opera": "cross-env NODE_ENV=upload TARGET=opera webpack",
-        "upload:edge": "cross-env NODE_ENV=upload TARGET=edge webpack",
-        "build": "yarn run build:chrome && yarn run build:firefox && yarn run build:opera && yarn run build:edge",
-        "upload": "yarn run upload:chrome && yarn run upload:firefox && yarn run upload:opera && yarn run upload:edge",
+        "build": "concurrently \"yarn:build:*\"",
         "lint": "run-p lint:*",
         "lint:fix": "eslint --ext js,jsx,ts,tsx, src --fix",
         "lint:eslint": "eslint . --ext .js,.ts,.tsx --max-warnings 0 --ignore-path .gitignore",
@@ -84,6 +78,7 @@
         "@types/zip-webpack-plugin": "^3.0.4",
         "@typescript-eslint/eslint-plugin": "^6.5.0",
         "@typescript-eslint/parser": "^6.5.0",
+        "concurrently": "^8.2.2",
         "eslint": "^8.48.0",
         "eslint-config-airbnb": "^19.0.4",
         "eslint-config-prettier": "^9.0.0",
@@ -110,7 +105,7 @@
         "typescript": "^5.2.2",
         "webpack-cli": "^5.1.4"
     },
-    "license": "SEE LICENSE IN LICENSE",
+    "license": "Apache-2.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/interledger/web-monetization-extension"
