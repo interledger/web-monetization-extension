@@ -41,7 +41,7 @@ The team will review your pull request as soon as possible.
 
 ### Working in the Web Monetization Extension repository
 
-This project uses `yarn`. A list of steps for setting up a [local development environment](https://github.com/interledger/web-monetization-extension/#development) can be found in the Readme.
+This project uses `PNPM`. A list of steps for setting up a [local development environment](https://github.com/interledger/web-monetization-extension/#development) can be found in the Readme.
 
 #### Code quality
 
