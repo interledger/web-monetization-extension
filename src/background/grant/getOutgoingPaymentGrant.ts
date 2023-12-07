@@ -1,12 +1,20 @@
 import { AxiosInstance } from 'axios'
 
-export const getOutgoingPaymentGrant = async (
-  client: string,
-  identifier: string,
-  wallet: Record<string, any>,
-  amount: string | number,
-  instance: AxiosInstance,
-) => {
+type TGetOutgoingPaymentGrant = (_params: {
+  client: string
+  identifier: string
+  wallet: Record<string, any>
+  amount: string | number
+  instance: AxiosInstance
+}) => Promise<any>
+
+export const getOutgoingPaymentGrant: TGetOutgoingPaymentGrant = async ({
+  client,
+  identifier,
+  wallet,
+  amount,
+  instance,
+}) => {
   // const receivingPaymentPointerDetails = await this.axiosInstance.get(
   //   this.receivingPaymentPointerUrl,
   // )
@@ -15,13 +23,13 @@ export const getOutgoingPaymentGrant = async (
       access: [
         {
           type: 'outgoing-payment',
-          actions: ['list', 'list-all', 'read', 'read-all', 'create'],
+          actions: ['list', 'read', 'create'],
           identifier, // sendingPaymentPointerUrl
           limits: {
             debitAmount: {
               value: String(Number(amount) * 10 ** 9), // '1000000000',
-              assetScale: 9,
-              assetCode: 'USD',
+              assetScale: wallet.assetScale, // 9
+              assetCode: wallet.assetCode, // 'USD'
             },
           },
         },

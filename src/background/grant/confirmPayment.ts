@@ -13,11 +13,17 @@ export const confirmPayment = async (url: string) => {
       tabs.create({ url }).then(tab => {
         if (tab.id) {
           tabs.onUpdated.addListener((tabId, changeInfo) => {
-            if (tabId === tab.id && changeInfo.url?.includes('interact_ref')) {
-              const interactRef = changeInfo.url.split('interact_ref=')[1]
-              tabs.update(currentTabId, { active: true })
-              tabs.remove(tab.id)
-              resolve(interactRef)
+            try {
+              const tabUrl = new URL(changeInfo.url || '')
+              const interactRef = tabUrl.searchParams.get('interact_ref')
+
+              if (tabId === tab.id && interactRef) {
+                tabs.update(currentTabId, { active: true })
+                tabs.remove(tab.id)
+                resolve(interactRef)
+              }
+            } catch (e) {
+              throw new Error('Invalid interact ref url.')
             }
           })
         }

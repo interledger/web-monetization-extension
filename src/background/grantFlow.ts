@@ -54,45 +54,45 @@ export class PaymentFlowService {
     this.sendingWalletAddress = await this.getWalletAddress(this.sendingPaymentPointerUrl)
     this.receivingWalletAddress = await this.getWalletAddress(this.receivingPaymentPointerUrl)
 
-    this.clientAuthToken = await getIncomingPaymentGrant(
-      WM_PAYMENT_POINTER_URL,
-      this.receivingPaymentPointerUrl,
-      this.receivingWalletAddress,
-      this.axiosInstance,
-    )
+    this.clientAuthToken = await getIncomingPaymentGrant({
+      client: WM_PAYMENT_POINTER_URL,
+      identifier: this.receivingPaymentPointerUrl,
+      wallet: this.receivingWalletAddress,
+      instance: this.axiosInstance,
+    })
 
-    this.incomingPaymentUrlId = await getIncomingPaymentUrlId(
-      this.receivingPaymentPointerUrl,
-      this.clientAuthToken,
-      this.axiosInstance,
-    )
+    this.incomingPaymentUrlId = await getIncomingPaymentUrlId({
+      walletAddress: this.receivingPaymentPointerUrl,
+      token: this.clientAuthToken,
+      instance: this.axiosInstance,
+    })
 
-    this.quoteGrantToken = await getQuoteGrant(
-      WM_PAYMENT_POINTER_URL,
-      this.sendingPaymentPointerUrl,
-      this.sendingWalletAddress,
-      this.axiosInstance,
-    )
+    this.quoteGrantToken = await getQuoteGrant({
+      client: WM_PAYMENT_POINTER_URL,
+      identifier: this.sendingPaymentPointerUrl,
+      wallet: this.sendingWalletAddress,
+      instance: this.axiosInstance,
+    })
 
-    const outgoingData = await getOutgoingPaymentGrant(
-      WM_PAYMENT_POINTER_URL,
-      this.sendingPaymentPointerUrl,
-      this.sendingWalletAddress,
-      this.amount,
-      this.axiosInstance,
-    )
+    const outgoingData = await getOutgoingPaymentGrant({
+      client: WM_PAYMENT_POINTER_URL,
+      identifier: this.sendingPaymentPointerUrl,
+      wallet: this.sendingWalletAddress,
+      amount: this.amount,
+      instance: this.axiosInstance,
+    })
 
     this.outgoingPaymentGrantToken = outgoingData.outgoingPaymentGrantToken
     this.outgoingPaymentGrantData = outgoingData.outgoingPaymentGrantData
 
     this.interactRef = await confirmPayment(this.outgoingPaymentGrantData.interact.redirect)
 
-    const continuationRequest = await getContinuationRequest(
-      this.outgoingPaymentGrantData.continue.uri,
-      this.interactRef,
-      this.outgoingPaymentGrantToken,
-      this.axiosInstance,
-    )
+    const continuationRequest = await getContinuationRequest({
+      url: this.outgoingPaymentGrantData.continue.uri,
+      interactRef: this.interactRef,
+      token: this.outgoingPaymentGrantToken,
+      instance: this.axiosInstance,
+    })
 
     this.manageUrl = continuationRequest.manageUrl
     this.continuationRequestToken = continuationRequest.continuationRequestToken
@@ -141,13 +141,14 @@ export class PaymentFlowService {
   }
 
   async sendPayment() {
-    this.quoteUrlId = await createQuote(
-      this.incomingPaymentUrlId,
-      this.sendingPaymentPointerUrl,
-      this.sendingPaymentPointerUrl,
-      this.quoteGrantToken,
-      this.axiosInstance,
-    )
+    this.quoteUrlId = await createQuote({
+      receiver: this.incomingPaymentUrlId,
+      walletAddress: this.sendingWalletAddress,
+      sendingUrl: this.sendingPaymentPointerUrl,
+      token: this.quoteGrantToken,
+      amount: '1000000',
+      instance: this.axiosInstance,
+    })
 
     await this.runPayment()
   }

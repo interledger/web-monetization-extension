@@ -2,12 +2,19 @@ import { AxiosInstance } from 'axios'
 
 import { getHeaders } from './getHeaders'
 
-export const getContinuationRequest = async (
-  url: string,
-  interactRef: string,
-  token: string,
-  instance: AxiosInstance,
-) => {
+type TGetContinuationRequest = (_params: {
+  url: string
+  interactRef: any
+  token: string
+  instance: AxiosInstance
+}) => Promise<any>
+
+export const getContinuationRequest: TGetContinuationRequest = async ({
+  url,
+  interactRef,
+  token,
+  instance,
+}) => {
   const continuationRequest = await instance.post(
     url,
     {

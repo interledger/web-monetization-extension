@@ -1,11 +1,18 @@
 import { AxiosInstance } from 'axios'
 
-export const getIncomingPaymentGrant = async (
-  client: string,
-  identifier: string,
-  wallet: Record<string, any>,
-  instance: AxiosInstance,
-): Promise<string> => {
+type TGetIncomingPaymentGrant = (_params: {
+  client: string
+  identifier: string
+  wallet: Record<string, any>
+  instance: AxiosInstance
+}) => Promise<any>
+
+export const getIncomingPaymentGrant: TGetIncomingPaymentGrant = async ({
+  client,
+  identifier,
+  wallet,
+  instance,
+}): Promise<string> => {
   const payload = {
     access_token: {
       access: [

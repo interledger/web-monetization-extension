@@ -2,7 +2,13 @@ import { AxiosInstance } from 'axios'
 
 import { getHeaders } from '@/background/grant/getHeaders'
 
-export const rotateToken = async (url: string, token: string, instance: AxiosInstance) => {
+type TRotateToken = (_params: {
+  url: string
+  token: string
+  instance: AxiosInstance
+}) => Promise<any>
+
+export const rotateToken: TRotateToken = async ({ url, token, instance }) => {
   const response = await instance.post(
     url, // this.manageUrl
     undefined,

@@ -1,12 +1,18 @@
-import { Axios } from 'axios'
+import { AxiosInstance } from 'axios'
 
 import { getHeaders } from './getHeaders'
 
-export const getIncomingPaymentUrlId = async (
-  walletAddress: string,
-  token: string,
-  instance: Axios,
-): Promise<string> => {
+type TGetIncomingPaymentUrlId = (_params: {
+  walletAddress: string
+  token: string
+  instance: AxiosInstance
+}) => Promise<any>
+
+export const getIncomingPaymentUrlId: TGetIncomingPaymentUrlId = async ({
+  walletAddress,
+  token,
+  instance,
+}) => {
   const incomingPayment = await instance.post(
     new URL(walletAddress).origin + '/incoming-payments',
     {

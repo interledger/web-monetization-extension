@@ -2,21 +2,31 @@ import { AxiosInstance } from 'axios'
 
 import { getHeaders } from './getHeaders'
 
-export const createQuote = async (
-  receiver: string,
-  walletAddress: string,
-  sendingUrl: string,
-  token: string,
-  instance: AxiosInstance,
-) => {
+type TCreateQuote = (_params: {
+  receiver: string
+  walletAddress: any
+  sendingUrl: string
+  token: string
+  amount: string
+  instance: AxiosInstance
+}) => Promise<any>
+
+export const createQuote: TCreateQuote = async ({
+  receiver,
+  walletAddress,
+  sendingUrl,
+  token,
+  amount,
+  instance,
+}) => {
   const payload = {
     method: 'ilp',
     receiver,
-    walletAddress,
+    walletAddress: walletAddress.id,
     debitAmount: {
-      value: '1000000', // 0.001 USD
-      assetCode: 'USD',
-      assetScale: 9,
+      value: amount, // 0.001 USD
+      assetCode: walletAddress.assetCode, // 'USD'
+      assetScale: walletAddress.assetScale, // 9
     },
   }
 

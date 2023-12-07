@@ -1,11 +1,13 @@
 import { AxiosInstance } from 'axios'
 
-export const getQuoteGrant = async (
-  client: string,
-  identifier: string,
-  wallet: Record<string, any>,
-  instance: AxiosInstance,
-): Promise<string> => {
+type TGetQuoteGrant = (_params: {
+  client: string
+  identifier: string
+  wallet: Record<string, any>
+  instance: AxiosInstance
+}) => Promise<any>
+
+export const getQuoteGrant: TGetQuoteGrant = async ({ client, identifier, wallet, instance }) => {
   const quotePayload = {
     access_token: {
       access: [
