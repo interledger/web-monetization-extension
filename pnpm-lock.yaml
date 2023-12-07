@@ -17,9 +17,6 @@ dependencies:
   core-js:
     specifier: ^3.32.1
     version: 3.34.0
-  cross-env:
-    specifier: ^7.0.3
-    version: 7.0.3
   css-loader:
     specifier: ^6.8.1
     version: 6.8.1(webpack@5.89.0)

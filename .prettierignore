@@ -1,7 +1,7 @@
 public
 generated
 dist
-yarn.lock
+pnpm-lock.yaml
 *.svg
 .gitignore
 .prettierignore

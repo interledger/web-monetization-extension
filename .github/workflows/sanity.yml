@@ -19,14 +19,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: rm -rf node_modules && yarn install --frozen-lockfile
+      - name: Environment setup
+        uses: ./.github/workflows/setup
 
       - name: Build
-        run: yarn build:${{ matrix.browser }}
+        run: pnpm build:${{ matrix.browser}}
