@@ -1,0 +1,18 @@
+name: Feature
+description: Scope out a feature implementation
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: A clear and concise description of the feature.
+    validations:
+      required: true
+
+  - type: textarea
+    id: todos
+    attributes:
+      label: Todos
+      description: List of todos to complete the feature.
+    validations:
+      required: true
