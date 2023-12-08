@@ -1,4 +1,7 @@
-<!--- Pull request titles should follow conventional commit format. -->
+<!--
+Pull request titles should follow conventional commit format.
+https://www.conventionalcommits.org/en/v1.0.0/
+-->
 
 ## Context
 
@@ -11,6 +14,8 @@ Example:
     - closes (or fixes) #<issue number>
     - closes (or fixes) #<issue number>
 -->
+
+Closes #<issue number>.
 
 ## Changes proposed in this pull request
 
