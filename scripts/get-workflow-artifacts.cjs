@@ -53,6 +53,12 @@ module.exports = async ({ github, context, core }) => {
   const template = await fs.readFile('./scripts/templates/build-status.md', 'utf8')
   const tableRows = []
 
+  core.setOutput('conclusion', conclusion)
+
+  if (conclusion === 'cancelled') {
+    return
+  }
+
   const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
     owner,
     repo,
