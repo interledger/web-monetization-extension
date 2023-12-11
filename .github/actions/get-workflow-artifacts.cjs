@@ -50,7 +50,7 @@ module.exports = async ({ github, context, core }) => {
   const sha = context.payload.workflow_run.pull_requests[0].head.sha
   const prNumber = context.payload.workflow_run.pull_requests[0].number
   const jobLogsUrl = `${baseUrl}/actions/runs/${context.payload.workflow_run.id}`
-  const template = await fs.readFile('./scripts/templates/build-status.md', 'utf8')
+  const template = await fs.readFile('./.github/actions/templates/build-status.md', 'utf8')
   const tableRows = []
 
   core.setOutput('conclusion', conclusion)

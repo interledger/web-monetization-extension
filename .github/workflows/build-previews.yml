@@ -21,7 +21,7 @@ jobs:
         id: get-workflow-artifacts
         with:
           script: |
-            const script = require('./scripts/get-workflow-artifacts.cjs')
+            const script = require('./.github/actions/get-workflow-artifacts.cjs')
             await script({ github, context, core })
 
       - name: Find comment
