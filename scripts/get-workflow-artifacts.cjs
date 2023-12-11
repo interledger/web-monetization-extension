@@ -33,7 +33,7 @@ function getBadge(conclusion, badgeColor, badgeLabel) {
 }
 
 function formatBytes(bytes, decimals = 2) {
-  if (!Number(bytes)) return '0 bytes'
+  if (!Number(bytes)) return '0B'
   const k = 1024
   const dm = decimals < 0 ? 0 : decimals
   const sizes = ['B', 'KB', 'MB', 'GB']
