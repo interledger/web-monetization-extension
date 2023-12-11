@@ -1,3 +1,4 @@
+<!-- __WM_EXTENSION_BUILD_PREVIEWS__ -->
 <h2>Extension builds preview</h2>
 
 <table role="table">

@@ -30,7 +30,7 @@ jobs:
         with:
           issue-number: ${{ steps.get-workflow-artifacts.outputs.pr_number }}
           comment-author: 'raducristianpopa'
-          body-includes: Extension builds preview
+          body-includes: '<!-- __WM_EXTENSION_BUILD_PREVIEWS__ -->'
 
       - name: Add/Update comment
         uses: peter-evans/create-or-update-comment@v2
