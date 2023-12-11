@@ -33,7 +33,7 @@ function getBadge(conclusion, badgeColor, badgeLabel) {
 }
 
 function formatBytes(bytes, decimals = 2) {
-  if (!Number(bytes)) return '0 bytes'
+  if (!Number(bytes)) return '0B'
   const k = 1024
   const dm = decimals < 0 ? 0 : decimals
   const sizes = ['B', 'KB', 'MB', 'GB']
@@ -50,8 +50,14 @@ module.exports = async ({ github, context, core }) => {
   const sha = context.payload.workflow_run.pull_requests[0].head.sha
   const prNumber = context.payload.workflow_run.pull_requests[0].number
   const jobLogsUrl = `${baseUrl}/actions/runs/${context.payload.workflow_run.id}`
-  const template = await fs.readFile('./scripts/templates/build-status.md', 'utf8')
+  const template = await fs.readFile('./.github/actions/templates/build-status.md', 'utf8')
   const tableRows = []
+
+  core.setOutput('conclusion', conclusion)
+
+  if (conclusion === 'cancelled') {
+    return
+  }
 
   const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
     owner,

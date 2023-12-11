@@ -21,18 +21,20 @@ jobs:
         id: get-workflow-artifacts
         with:
           script: |
-            const script = require('./scripts/get-workflow-artifacts.cjs')
+            const script = require('./.github/actions/get-workflow-artifacts.cjs')
             await script({ github, context, core })
 
       - name: Find comment
+        if: ${{ steps.get-workflow-artifacts.outputs.conclusion != 'cancelled' }}
         uses: peter-evans/find-comment@v2
         id: find-comment
         with:
           issue-number: ${{ steps.get-workflow-artifacts.outputs.pr_number }}
           comment-author: 'raducristianpopa'
-          body-includes: Extension builds preview
+          body-includes: '<!-- __WM_EXTENSION_BUILD_PREVIEWS__ -->'
 
       - name: Add/Update comment
+        if: ${{ steps.get-workflow-artifacts.outputs.conclusion != 'cancelled' }}
         uses: peter-evans/create-or-update-comment@v2
         with:
           token: ${{ secrets.PAT }}
