@@ -23,12 +23,7 @@
       - changed-files:
           - all-globs-to-any-file:
               - '**/*.md'
-              - '!scripts/**/*.md'
-
-'area: scripts':
-  - any:
-      - changed-files:
-          - any-glob-to-any-file: 'scripts/**/*'
+              - '!.github/actions/**/*.md'
 
 'area: tests':
   - any:
