@@ -46,8 +46,8 @@ const EnvConfig: EnvironmentConfig = {
     process.env.NODE_ENV === 'production'
       ? Directories.TEMP_DIR
       : process.env.NODE_ENV === 'upload'
-      ? Directories.DIST_DIR
-      : Directories.DEV_DIR,
+        ? Directories.DIST_DIR
+        : Directories.DEV_DIR,
   ...(process.env.NODE_ENV ? { NODE_ENV: process.env.NODE_ENV } : { NODE_ENV: 'development' }),
   ...(process.env.TARGET ? { TARGET: process.env.TARGET } : { TARGET: 'chrome' }),
 }
@@ -206,6 +206,9 @@ export const getCleanWebpackPlugins = (...dirs: string[]) => {
  */
 export const getResolves = () => {
   return {
+    fallback: {
+      events: require.resolve('events/'),
+    },
     alias: {
       '@/utils': path.resolve(__dirname, './src/utils/'),
       '@/popup': path.resolve(__dirname, './src/popup/'),

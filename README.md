@@ -15,13 +15,13 @@ Please read the [contribution guidelines](.github/CONTRIBUTING.md) before submit
 
 1. Clone the repository from GitHub: `git clone https://github.com/interledger/web-monetization-extension.git`
 2. Navigate to the project directory: `cd web-monetization-extension`
-3. Install the dependencies using Yarn: `yarn install`
+3. Install the dependencies using PNPM: `pnpm install`
 
 ### Development
 
 To run the extension in development mode with hot reload, use the following command:
 
-`yarn dev`
+`pnpm dev`
 
 This command builds the extension using Vite's hot reload feature, allowing you to see immediate changes in the browser
 as you modify the code.
@@ -30,13 +30,13 @@ as you modify the code.
 
 To build the extension for production, use the following command:
 
-`yarn build`
+`pnpm build`
 
 ### Building the Extension for Firefox
 
 To build the extension for Firefox, use the following command:
 
-`yarn build:firefox`
+`pnpm build:firefox`
 
 This command transpiles the TypeScript code and generates a production-ready build of the extension in the dist
 directory.
@@ -81,7 +81,7 @@ To install the extension in Chrome, follow these steps:
 
 To run the tests, use the following command:
 
-`yarn test`
+`pnpm test`
 
 This command runs the tests using Jest and generates a coverage report in the coverage directory.
 
