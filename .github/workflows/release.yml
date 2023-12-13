@@ -34,17 +34,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: 'yarn'
+      - name: Environment setup
+        uses: ./.github/actions/setup
 
-      - name: Install dependencies
-        run: rm -rf node_modules && yarn install --frozen-lockfile
-
-      - name: Build extension for all browsers
-        run: yarn build
+      - name: Build
+        run: pnpm build
 
       - name: Release
         uses: softprops/action-gh-release@v1

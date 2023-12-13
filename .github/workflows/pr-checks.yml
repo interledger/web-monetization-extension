@@ -1,0 +1,39 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# TODO(@raducristianpopa): add lint/format checks and tests
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, opera, edge]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build:${{ matrix.browser }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
+          path: dist/${{ matrix.browser }}/${{ matrix.browser }}.zip
+          if-no-files-found: error
