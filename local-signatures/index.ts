@@ -75,24 +75,6 @@ app.use(validatePath)
 app.use(validateMethod)
 app.use(createHeadersHandler)
 
-// app.use(async (ctx: Context<Headers>) => {
-//   const { body } = ctx.request
-//   if (!validateBody(body)) {
-//     ctx.throw('Invalid request body', 400)
-//   }
-
-//   const headers = await createHeaders({
-//     request: body,
-//     privateKey: BASE64_PRIVATE_KEY,
-//     keyId: KEY_ID,
-//   })
-
-//   delete headers['Content-Length']
-//   delete headers['Content-Type']
-
-//   ctx.body = headers
-// })
-
 app.listen(3000, () => {
   // eslint-disable-next-line no-console
   console.log(`Local signatures server started on port ${PORT}`)
