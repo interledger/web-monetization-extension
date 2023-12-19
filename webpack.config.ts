@@ -88,7 +88,7 @@ if (config.NODE_ENV === 'development') {
   plugins = [
     ...plugins,
     ...getDefinePlugins({
-      CONFIG_SIGNATURES_URL: 'http://localhost:3000',
+      SIGNATURES_URL: 'http://localhost:3000',
       WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
     }),
     ...getExtensionReloaderPlugins(),
@@ -110,7 +110,7 @@ if (config.NODE_ENV === 'profile') {
   plugins = [
     ...plugins,
     ...getDefinePlugins({
-      CONFIG_SIGNATURES_URL: 'http://localhost:3000',
+      SIGNATURES_URL: 'http://localhost:3000',
       WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
     }),
     ...getAnalyzerPlugins(),
@@ -139,7 +139,7 @@ if (config.NODE_ENV === 'production') {
   plugins = [
     ...plugins,
     ...getDefinePlugins({
-      CONFIG_SIGNATURES_URL: 'https://europe-west3-rafiki-testnet.cloudfunctions.net/function-1',
+      SIGNATURES_URL: 'https://europe-west3-rafiki-testnet.cloudfunctions.net/sign',
       WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/interledger',
     }),
 

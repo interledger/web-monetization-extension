@@ -79,12 +79,9 @@ export const getHTMLPlugins = (
  * @param config
  * @returns
  */
-export const getDefinePlugins = (config: {
-  CONFIG_SIGNATURES_URL: string
-  WM_WALLET_ADDRESS: string
-}) => [
+export const getDefinePlugins = (config: { SIGNATURES_URL: string; WM_WALLET_ADDRESS: string }) => [
   new DefinePlugin({
-    CONFIG_SIGNATURES_URL: JSON.stringify(config.CONFIG_SIGNATURES_URL),
+    CONFIG_SIGNATURES_URL: JSON.stringify(config.SIGNATURES_URL),
     CONFIG_WM_WALLET_ADDRESS: JSON.stringify(config.WM_WALLET_ADDRESS),
   }),
 ]
