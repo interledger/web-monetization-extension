@@ -29,7 +29,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build
-        run: pnpm build:${{ matrix.browser }}
+        run: pnpm build ${{ matrix.browser }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.2

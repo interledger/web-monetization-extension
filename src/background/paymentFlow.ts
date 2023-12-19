@@ -1,15 +1,11 @@
+import { WM_WALLET_ADDRESS } from '@/background/config'
 import { getAxiosInstance } from '@/background/requestConfig'
-
-const KEY_ID = '530c7caf-47a2-4cbd-844e-b8ed53e5c0d7'
-const PRIVATE_KEY =
-  'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSU1xYkZodTlNZHpjNXZROXBoVDY0aGZ4Z0pRazM2TFVyR1VqL1cwbHRTWG0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo='
-const WM_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-monetization' // intermediarul
 
 export const initPaymentFlow = async (
   sendingPaymentPointerUrl: string,
   receivingPaymentPointerUrl: string,
 ) => {
-  const axiosInstance = getAxiosInstance(KEY_ID, PRIVATE_KEY)
+  const axiosInstance = getAxiosInstance()
 
   const payload = {
     access_token: {
@@ -21,7 +17,7 @@ export const initPaymentFlow = async (
         },
       ],
     },
-    client: WM_PAYMENT_POINTER_URL,
+    client: WM_WALLET_ADDRESS,
   }
   const clientAuth = await axiosInstance.post('https://auth.rafiki.money/', payload)
 
@@ -50,7 +46,7 @@ export const initPaymentFlow = async (
             },
           ],
         },
-        client: WM_PAYMENT_POINTER_URL,
+        client: WM_WALLET_ADDRESS,
       }
       const quoteGrant = await axiosInstance.post('https://auth.rafiki.money/', quotePayload)
 
@@ -94,7 +90,7 @@ export const initPaymentFlow = async (
                 },
               ],
             },
-            client: WM_PAYMENT_POINTER_URL,
+            client: WM_WALLET_ADDRESS,
             interact: {
               start: ['redirect'],
               finish: {

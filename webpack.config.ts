@@ -63,7 +63,6 @@ let plugins: any[] = [
   ),
   ...getProgressPlugins(),
   ...getEslintPlugins(),
-  ...getDefinePlugins(),
   ...getExtensionManifestPlugins(),
   ...getHTMLPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
   ...getCopyPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
@@ -86,7 +85,14 @@ if (config.NODE_ENV === 'development') {
     },
   }
 
-  plugins = [...plugins, ...getExtensionReloaderPlugins()]
+  plugins = [
+    ...plugins,
+    ...getDefinePlugins({
+      CONFIG_SIGNATURES_URL: 'http://localhost:3000',
+      WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
+    }),
+    ...getExtensionReloaderPlugins(),
+  ]
 }
 
 if (config.NODE_ENV === 'profile') {
@@ -101,29 +107,14 @@ if (config.NODE_ENV === 'profile') {
     },
   }
 
-  plugins = [...plugins, ...getAnalyzerPlugins()]
-}
-
-if (config.NODE_ENV === 'upload') {
-  generalConfig = {
-    ...generalConfig,
-    optimization: {
-      minimize: true,
-      minimizer: [
-        new TerserPlugin({
-          parallel: true,
-          terserOptions: {
-            format: {
-              comments: false,
-            },
-          },
-          extractComments: false,
-        }),
-      ],
-    },
-  }
-
-  plugins = [...plugins]
+  plugins = [
+    ...plugins,
+    ...getDefinePlugins({
+      CONFIG_SIGNATURES_URL: 'http://localhost:3000',
+      WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
+    }),
+    ...getAnalyzerPlugins(),
+  ]
 }
 
 if (config.NODE_ENV === 'production') {
@@ -145,7 +136,15 @@ if (config.NODE_ENV === 'production') {
     },
   }
 
-  plugins = [...plugins, ...getZipPlugins(config.TARGET, Directories.DIST_DIR)]
+  plugins = [
+    ...plugins,
+    ...getDefinePlugins({
+      CONFIG_SIGNATURES_URL: 'https://europe-west3-rafiki-testnet.cloudfunctions.net/function-1',
+      WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/interledger',
+    }),
+
+    ...getZipPlugins(config.TARGET, Directories.DIST_DIR),
+  ]
 }
 
 export default [

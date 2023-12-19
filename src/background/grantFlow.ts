@@ -1,14 +1,10 @@
 import { tabs } from 'webextension-polyfill'
 
+import { WM_WALLET_ADDRESS } from '@/background/config'
 import { getAxiosInstance } from '@/background/requestConfig'
 
-const KEY_ID = '3621a46c-a4a2-4271-a8cc-9bf94419d713'
-const PRIVATE_KEY =
-  'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSUx1dzkwWE9ZZ205Yll6N2hSZWlURlAwR0t1RVV1c0srS01jaXF1cDV2c0wKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=='
-const WM_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/interledger-wm' // intermediarul
-
 export class PaymentFlowService {
-  axiosInstance = getAxiosInstance(KEY_ID, PRIVATE_KEY)
+  axiosInstance = getAxiosInstance()
 
   sendingPaymentPointerUrl: string
   receivingPaymentPointerUrl: string
@@ -92,7 +88,7 @@ export class PaymentFlowService {
           },
         ],
       },
-      client: WM_PAYMENT_POINTER_URL,
+      client: WM_WALLET_ADDRESS,
     }
 
     const response = await this.axiosInstance.post(
@@ -134,7 +130,7 @@ export class PaymentFlowService {
           },
         ],
       },
-      client: WM_PAYMENT_POINTER_URL,
+      client: WM_WALLET_ADDRESS,
     }
     const quoteGrant = await this.axiosInstance.post(
       this.sendingWalletAddress.authServer + '/',
@@ -194,7 +190,7 @@ export class PaymentFlowService {
           },
         ],
       },
-      client: WM_PAYMENT_POINTER_URL,
+      client: WM_WALLET_ADDRESS,
       interact: {
         start: ['redirect'],
         finish: {

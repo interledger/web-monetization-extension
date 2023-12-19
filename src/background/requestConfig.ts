@@ -1,10 +1,8 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
-export const getAxiosInstance = (
-  keyId: string,
-  privateKey: string,
-  timeout = 10000,
-): AxiosInstance => {
+import { SIGNATURES_URL } from '@/background/config'
+
+export const getAxiosInstance = (timeout = 10000): AxiosInstance => {
   const axiosInstance = axios.create({
     headers: {
       common: {
@@ -22,24 +20,18 @@ export const getAxiosInstance = (
       }
 
       const payload = {
-        keyId,
-        base64Key: privateKey,
-        request: {
-          headers: {
-            host: new URL(config.url).host,
-            ...config.headers,
-          },
-          method: config.method.toUpperCase(),
-          url: config.url,
-          body: JSON.stringify(config.data),
+        headers: {
+          host: new URL(config.url).host,
+          ...config.headers,
         },
+        method: config.method.toUpperCase(),
+        url: config.url,
+        body: JSON.stringify(config.data),
       }
 
-      const contentAndSigHeaders = await axios.post(
-        'https://kxu5d4mr4blcthphxomjlc4xk40rvdsx.lambda-url.eu-central-1.on.aws/', // @TODO secure lambda url
-        payload,
-        { headers: { 'Content-Type': 'application/json' } },
-      )
+      const contentAndSigHeaders = await axios.post(SIGNATURES_URL, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      })
 
       config.headers['Signature'] = contentAndSigHeaders.data['Signature']
       config.headers['Signature-Input'] = contentAndSigHeaders.data['Signature-Input']

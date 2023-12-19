@@ -79,9 +79,13 @@ export const getHTMLPlugins = (
  * @param config
  * @returns
  */
-export const getDefinePlugins = (config = {}) => [
+export const getDefinePlugins = (config: {
+  CONFIG_SIGNATURES_URL: string
+  WM_WALLET_ADDRESS: string
+}) => [
   new DefinePlugin({
-    'process.env': JSON.stringify({ ...config, ...(dotenv.parsed ?? {}) }),
+    CONFIG_SIGNATURES_URL: JSON.stringify(config.CONFIG_SIGNATURES_URL),
+    CONFIG_WM_WALLET_ADDRESS: JSON.stringify(config.WM_WALLET_ADDRESS),
   }),
 ]
 

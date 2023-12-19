@@ -36,7 +36,7 @@ To build the extension for production, use the following command:
 
 To build the extension for Firefox, use the following command:
 
-`pnpm build:firefox`
+`pnpm build firefox`
 
 This command transpiles the TypeScript code and generates a production-ready build of the extension in the dist
 directory.
