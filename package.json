@@ -9,9 +9,9 @@
     "url": "https://github.com/interledger/web-monetization-extension"
   },
   "scripts": {
-    "analyze": "sh ./scripts/analyze.sh",
-    "build": "sh ./scripts/build.sh",
-    "dev": "sh ./scripts/dev.sh",
+    "analyze": "bash ./scripts/analyze.sh",
+    "build": "bash ./scripts/build.sh",
+    "dev": "bash ./scripts/dev.sh",
     "lint": "concurrently \"lint:*\"",
     "lint:fix": "eslint --ext js,jsx,ts,tsx, src --fix",
     "lint:eslint": "eslint . --ext .js,.ts,.tsx --max-warnings 0 --ignore-path .gitignore",
