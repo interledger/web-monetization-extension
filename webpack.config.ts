@@ -17,12 +17,18 @@ import {
   getResolves,
   getZipPlugins,
 } from './webpack.config.utils'
+import path from 'path'
 
 let generalConfig: any = {
   mode:
     config.NODE_ENV === 'production' || config.NODE_ENV === 'upload' ? 'production' : 'development',
   module: {
     rules: [
+      {
+        test: /\.css$/i,
+        include: path.resolve(__dirname, 'src'),
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
       {
         test: /\.(js|jsx|ts|tsx)$/,
         use: [
