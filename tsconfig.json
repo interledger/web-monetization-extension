@@ -26,5 +26,6 @@
     },
     "typeRoots": ["node_modules/@types", "./src/types"]
   },
+  "include": ["src/**/*", "local-signature/**/*"],
   "exclude": ["dist", "dev", "temp"]
 }

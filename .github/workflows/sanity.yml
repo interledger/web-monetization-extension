@@ -23,4 +23,5 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build
-        run: pnpm build:${{ matrix.browser}}
+        shell: bash
+        run: pnpm build ${{ matrix.browser}}
