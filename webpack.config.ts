@@ -1,3 +1,4 @@
+import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 
 import {
@@ -17,7 +18,6 @@ import {
   getResolves,
   getZipPlugins,
 } from './webpack.config.utils'
-import path from 'path'
 
 let generalConfig: any = {
   mode:
@@ -27,7 +27,21 @@ let generalConfig: any = {
       {
         test: /\.css$/i,
         include: path.resolve(__dirname, 'src'),
-        use: ['style-loader', 'css-loader', 'postcss-loader'],
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: {
+                  tailwindcss: {},
+                  autoprefixer: {},
+                },
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.(js|jsx|ts|tsx)$/,
