@@ -1,3 +1,4 @@
+import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 
 import {
@@ -23,6 +24,25 @@ let generalConfig: any = {
     config.NODE_ENV === 'production' || config.NODE_ENV === 'upload' ? 'production' : 'development',
   module: {
     rules: [
+      {
+        test: /\.css$/i,
+        include: path.resolve(__dirname, 'src'),
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: {
+                  tailwindcss: {},
+                  autoprefixer: {},
+                },
+              },
+            },
+          },
+        ],
+      },
       {
         test: /\.(js|jsx|ts|tsx)$/,
         use: [
