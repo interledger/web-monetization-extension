@@ -4,6 +4,12 @@ module.exports = {
   content: ['./src/**/*.{html,js,jsx,ts,tsx}', './src/components/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
+      width: {
+        popup: 'var(--popup-width)',
+      },
+      height: {
+        popup: 'var(--popup-height)',
+      },
       textColor: {
         primary: 'rgb(var(--text-primary) / <alpha-value>)',
         weak: 'rgb(var(--text-weak) / <alpha-value>)',
@@ -24,6 +30,8 @@ module.exports = {
       },
       borderColor: {
         base: 'rgb(var(--border-base) / <alpha-value>)',
+        popup: 'rgb(var(--border-popup) / <alpha-value>)',
+        focus: 'rgb(var(--border-focus) / <alpha-value>)',
       },
     },
   },

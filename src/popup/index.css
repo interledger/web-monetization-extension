@@ -18,11 +18,16 @@
     --bg-error-hover: 254 226 226;
     --bg-button-base: 86 183 181;
     --bg-button-base-hover: 52 152 152;
-    --bg-switch-base: 152, 225, 208;
+    --bg-switch-base: 152 225 208;
     --bg-disabled: 248 250 252;
     --bg-disabled-strong: 203 213 225;
 
     /* Border colors */
-    --border-base: 203, 213, 225;
+    --border-base: 203 213 225;
+    --border-focus: 59 130 246;
+    
+    /* Popup */
+    --popup-width: 448px;
+    --popup-height: 559px;
   }
 }
