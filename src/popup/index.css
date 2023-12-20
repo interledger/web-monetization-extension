@@ -1,3 +1,28 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Text colors */
+    --text-primary: 59 130 246;
+    --text-weak: 100 116 139;
+    --text-medium: 51 65 85;
+    --text-strong: 15 23 42;
+    --text-error: 220 38 38;
+    --text-disabled: 148 163 184;
+
+    /* Background colors */
+    --bg-primary: 59 130 246;
+    --bg-error: 254 202 202;
+    --bg-error-hover: 254 226 226;
+    --bg-button-base: 86 183 181;
+    --bg-button-base-hover: 52 152 152;
+    --bg-switch-base: 152, 225, 208;
+    --bg-disabled: 248 250 252;
+    --bg-disabled-strong: 203 213 225;
+
+    /* Border colors */
+    --border-base: 203, 213, 225;
+  }
+}

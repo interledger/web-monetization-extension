@@ -98,7 +98,7 @@ const Popup = () => {
   }
 
   return (
-    <div className="wrapper text-red-500">
+    <div className="wrapper">
       <PopupHeader />
       {!!spent && (
         <div className="spentAmount">
