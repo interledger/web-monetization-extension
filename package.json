@@ -19,7 +19,7 @@
     "lint:type": "tsc --noEmit",
     "local-signatures": "pnpm tsx --watch ./local-signatures/index.ts",
     "test": "jest --maxWorkers=2 --passWithNoTests",
-    "ci:test": "run-s \" test --ci --reporters=\"default\" --reporters=\"github-actions\" \""
+    "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
     "axios": "^1.5.1",

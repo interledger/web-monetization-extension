@@ -38,3 +38,16 @@ jobs:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
           path: dist/${{ matrix.browser }}/${{ matrix.browser }}.zip
           if-no-files-found: error
+
+  test:
+    name: Test
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Test
+        run: pnpm test:ci
