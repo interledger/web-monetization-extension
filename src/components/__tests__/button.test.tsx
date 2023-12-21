@@ -47,7 +47,7 @@ describe('Button', () => {
     expect(queryByRole('button')).toHaveClass('bg-button-base')
   })
 
-  it('should have the `bg-error class when the `destructive` variant is passed', () => {
+  it('should have the `bg-error` class when the `destructive` variant is passed', () => {
     const { queryByRole } = render(
       <Button aria-label="test button" variant="destructive">
         My Button
