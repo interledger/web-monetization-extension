@@ -14,7 +14,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-button-base text-white hover:bg-button-base-hover active:bg-red-500',
+        default: 'bg-button-base text-white hover:bg-button-base-hover',
+        destructive: 'bg-error text-error hover:bg-error-hover',
       },
       size: {
         default: 'py-4 px-6 font-medium',
