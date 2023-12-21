@@ -14,8 +14,8 @@
 
     /* Background colors */
     --bg-primary: 59 130 246;
-    --bg-error: 254 202 202;
-    --bg-error-hover: 254 226 226;
+    --bg-error: 254 226 226;
+    --bg-error-hover: 254 202 202;
     --bg-button-base: 86 183 181;
     --bg-button-base-hover: 52 152 152;
     --bg-switch-base: 152 225 208;
