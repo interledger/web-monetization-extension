@@ -23,9 +23,8 @@
       "@/components/*": ["./components/*"],
       "@/types/*": ["./types/*"],
       "@/hooks/*": ["./hooks/*"]
-    },
-    "typeRoots": ["node_modules/@types", "./src/types"]
+    }
   },
-  "include": ["src/**/*", "local-signature/**/*"],
+  "include": ["./src/**/*", "local-signature/**/*", "./jest.config.ts", "./jest.setup.ts"],
   "exclude": ["dist", "dev", "temp"]
 }
