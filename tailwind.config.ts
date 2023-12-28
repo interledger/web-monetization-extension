@@ -32,6 +32,7 @@ module.exports = {
         base: 'rgb(var(--border-base) / <alpha-value>)',
         popup: 'rgb(var(--border-popup) / <alpha-value>)',
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
+        error: 'rgb(var(--border-error) / <alpha-value>)',
       },
     },
   },
