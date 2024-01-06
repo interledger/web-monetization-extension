@@ -1,6 +1,6 @@
 ## Web Monetization Extension
 
-![Github Actions CI](https://github.com/interledger/web-monetization-extension/actions/workflows/ci.yml/badge.svg?branch=main)
+![Github Actions CI](https://github.com/interledger/web-monetization-extension/actions/workflows/sanity.yml/badge.svg?branch=main)
 [![Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
 Web Monetization is a browser extension that detects Web Monetization on websites using a browser API that allows the
