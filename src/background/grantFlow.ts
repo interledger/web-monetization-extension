@@ -1,6 +1,16 @@
 import { tabs } from 'webextension-polyfill'
 
 import { WM_WALLET_ADDRESS } from '@/background/config'
+import {
+  createQuote,
+  getHeaders,
+  getIncomingPaymentGrant,
+  getIncomingPaymentUrlId,
+  getOutgoingPaymentGrant,
+  getQuoteGrant,
+} from '@/background/grant'
+import { confirmPayment } from '@/background/grant/confirmPayment'
+import { getContinuationRequest } from '@/background/grant/getContinuationRequest'
 import { getAxiosInstance } from '@/background/requestConfig'
 
 export class PaymentFlowService {
@@ -18,7 +28,6 @@ export class PaymentFlowService {
   outgoingPaymentGrantToken: string
   continuationRequestToken: string
   interactRef: string
-  walletAddressId: string
 
   manageUrl: string
 
@@ -41,26 +50,51 @@ export class PaymentFlowService {
     this.sendingWalletAddress = await this.getWalletAddress(this.sendingPaymentPointerUrl)
     this.receivingWalletAddress = await this.getWalletAddress(this.receivingPaymentPointerUrl)
 
-    await this.getIncomingPaymentGrant()
-    await this.getIncomingPaymentUrlId()
-    await this.getQuoteGrant()
-    await this.getOutgoingPaymentGrant()
-    await this.confirmPayment()
-    await this.getContinuationRequest()
+    this.clientAuthToken = await getIncomingPaymentGrant({
+      client: WM_WALLET_ADDRESS,
+      identifier: this.receivingPaymentPointerUrl,
+      wallet: this.receivingWalletAddress,
+      instance: this.axiosInstance,
+    })
+
+    this.incomingPaymentUrlId = await getIncomingPaymentUrlId({
+      walletAddress: this.receivingPaymentPointerUrl,
+      token: this.clientAuthToken,
+      instance: this.axiosInstance,
+    })
+
+    this.quoteGrantToken = await getQuoteGrant({
+      client: WM_WALLET_ADDRESS,
+      identifier: this.sendingPaymentPointerUrl,
+      wallet: this.sendingWalletAddress,
+      instance: this.axiosInstance,
+    })
+
+    const outgoingData = await getOutgoingPaymentGrant({
+      client: WM_WALLET_ADDRESS,
+      identifier: this.sendingPaymentPointerUrl,
+      wallet: this.sendingWalletAddress,
+      amount: this.amount,
+      instance: this.axiosInstance,
+    })
+
+    this.outgoingPaymentGrantToken = outgoingData.outgoingPaymentGrantToken
+    this.outgoingPaymentGrantData = outgoingData.outgoingPaymentGrantData
+
+    this.interactRef = await confirmPayment(this.outgoingPaymentGrantData.interact.redirect)
+
+    const continuationRequest = await getContinuationRequest({
+      url: this.outgoingPaymentGrantData.continue.uri,
+      interactRef: this.interactRef,
+      token: this.outgoingPaymentGrantToken,
+      instance: this.axiosInstance,
+    })
+
+    this.manageUrl = continuationRequest.manageUrl
+    this.continuationRequestToken = continuationRequest.continuationRequestToken
 
     const currentTabId = await this.getCurrentActiveTabId()
     await tabs.sendMessage(currentTabId ?? 0, { type: 'START_PAYMENTS' })
-
-    // await this.createQuote()
-    // await this.runPayment()
-  }
-
-  getHeaders(gnapToken: string) {
-    return {
-      headers: {
-        Authorization: `GNAP ${gnapToken}`,
-      },
-    }
   }
 
   async getWalletAddress(paymentPointerUrl: string) {
@@ -77,160 +111,6 @@ export class PaymentFlowService {
     return response.data
   }
 
-  async getIncomingPaymentGrant() {
-    const payload = {
-      access_token: {
-        access: [
-          {
-            type: 'incoming-payment',
-            actions: ['create', 'read', 'list'],
-            identifier: this.receivingPaymentPointerUrl,
-          },
-        ],
-      },
-      client: WM_WALLET_ADDRESS,
-    }
-
-    const response = await this.axiosInstance.post(
-      this.receivingWalletAddress.authServer + '/',
-      payload,
-    )
-
-    if (!response.data.access_token.value) {
-      throw new Error('No client auth')
-    }
-    this.clientAuthToken = response.data.access_token.value
-  }
-
-  async getIncomingPaymentUrlId() {
-    const incomingPayment = await this.axiosInstance.post(
-      new URL(this.receivingPaymentPointerUrl).origin + '/incoming-payments',
-      {
-        walletAddress: this.receivingPaymentPointerUrl,
-        expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
-      },
-      this.getHeaders(this.clientAuthToken),
-    )
-
-    if (!incomingPayment?.data?.id) {
-      throw new Error('No incoming payment id')
-    }
-
-    this.incomingPaymentUrlId = incomingPayment.data.id
-  }
-
-  async getQuoteGrant() {
-    const quotePayload = {
-      access_token: {
-        access: [
-          {
-            type: 'quote',
-            actions: ['create'],
-            identifier: this.sendingPaymentPointerUrl,
-          },
-        ],
-      },
-      client: WM_WALLET_ADDRESS,
-    }
-    const quoteGrant = await this.axiosInstance.post(
-      this.sendingWalletAddress.authServer + '/',
-      quotePayload,
-    )
-
-    if (!quoteGrant.data?.access_token?.value) {
-      throw new Error('No quote grant')
-    }
-
-    this.quoteGrantToken = quoteGrant.data.access_token.value
-  }
-
-  async createQuote() {
-    const payload = {
-      method: 'ilp',
-      receiver: this.incomingPaymentUrlId,
-      walletAddress: this.sendingPaymentPointerUrl,
-      debitAmount: {
-        value: '1000000', // 0.001 USD
-        assetCode: 'USD',
-        assetScale: 9,
-      },
-    }
-
-    const quote = await this.axiosInstance.post(
-      new URL(this.sendingPaymentPointerUrl).origin + '/quotes',
-      payload,
-      this.getHeaders(this.quoteGrantToken),
-    )
-
-    if (!quote.data.id) {
-      throw new Error('No quote url id')
-    }
-
-    this.quoteUrlId = quote.data.id
-  }
-
-  async getOutgoingPaymentGrant() {
-    // const receivingPaymentPointerDetails = await this.axiosInstance.get(
-    //   this.receivingPaymentPointerUrl,
-    // )
-    const payload = {
-      access_token: {
-        access: [
-          {
-            type: 'outgoing-payment',
-            actions: ['list', 'list-all', 'read', 'read-all', 'create'],
-            identifier: this.sendingPaymentPointerUrl, // sendingPaymentPointerUrl
-            limits: {
-              debitAmount: {
-                value: String(Number(this.amount) * 10 ** 9), // '1000000000',
-                assetScale: 9,
-                assetCode: 'USD',
-              },
-            },
-          },
-        ],
-      },
-      client: WM_WALLET_ADDRESS,
-      interact: {
-        start: ['redirect'],
-        finish: {
-          method: 'redirect',
-          uri: `http://localhost:3035`,
-          nonce: new Date().getTime().toString(),
-        },
-      },
-    }
-
-    const outgoingPaymentGrant = await this.axiosInstance.post(
-      this.sendingWalletAddress.authServer + '/',
-      payload,
-    )
-
-    if (!outgoingPaymentGrant.data.interact.redirect) {
-      throw new Error('No redirect')
-    }
-
-    this.outgoingPaymentGrantToken = outgoingPaymentGrant.data.continue.access_token.value
-    this.outgoingPaymentGrantData = outgoingPaymentGrant.data
-  }
-
-  async getContinuationRequest() {
-    const continuationRequest = await this.axiosInstance.post(
-      this.outgoingPaymentGrantData.continue.uri,
-      {
-        interact_ref: this.interactRef,
-      },
-      this.getHeaders(this.outgoingPaymentGrantToken),
-    )
-
-    if (!continuationRequest.data.access_token.value) {
-      throw new Error('No continuation request')
-    }
-
-    this.manageUrl = continuationRequest.data.access_token.manage
-    this.continuationRequestToken = continuationRequest.data.access_token.value
-  }
-
   async runPayment() {
     const payload = {
       walletAddress: this.sendingPaymentPointerUrl,
@@ -240,7 +120,7 @@ export class PaymentFlowService {
     const response = await this.axiosInstance.post(
       new URL(this.sendingPaymentPointerUrl).origin + '/outgoing-payments',
       payload,
-      this.getHeaders(this.continuationRequestToken),
+      getHeaders(this.continuationRequestToken),
     )
 
     const {
@@ -256,46 +136,16 @@ export class PaymentFlowService {
     // console.log('outgoingPayment', outgoingPayment)
   }
 
-  async confirmPayment() {
-    const currentTabId = await this.getCurrentActiveTabId()
-
-    return await new Promise(resolve => {
-      if (this.outgoingPaymentGrantData.interact.redirect) {
-        const url = this.outgoingPaymentGrantData.interact.redirect
-
-        tabs.create({ url }).then(tab => {
-          if (tab.id) {
-            tabs.onUpdated.addListener((tabId, changeInfo) => {
-              if (tabId === tab.id && changeInfo.url?.includes('interact_ref')) {
-                this.interactRef = changeInfo.url.split('interact_ref=')[1]
-                tabs.update(currentTabId, { active: true })
-                tabs.remove(tab.id)
-                resolve(true)
-              }
-            })
-          }
-        })
-      }
-    })
-  }
-
-  async rotateToken() {
-    const response = await this.axiosInstance.post(
-      this.manageUrl,
-      undefined,
-      this.getHeaders(this.continuationRequestToken),
-    )
-
-    if (!response.data.access_token.value) {
-      throw new Error('No continuation request')
-    }
-
-    this.manageUrl = response.data.access_token.manage
-    this.continuationRequestToken = response.data.access_token.value
-  }
-
   async sendPayment() {
-    await this.createQuote()
+    this.quoteUrlId = await createQuote({
+      receiver: this.incomingPaymentUrlId,
+      walletAddress: this.sendingWalletAddress,
+      sendingUrl: this.sendingPaymentPointerUrl,
+      token: this.quoteGrantToken,
+      amount: '1000000',
+      instance: this.axiosInstance,
+    })
+
     await this.runPayment()
   }
 
