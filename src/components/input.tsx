@@ -47,7 +47,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <input
         ref={ref}
         type={type}
-        className={cn(inputVariants({ loading, hasIcon: !!icon, disabled, error }), className)}
+        className={cn(inputVariants({ loading, disabled }), icon && 'pl-12', error && 'border-error', className)}
         disabled={disabled ?? loading ?? false}
         aria-disabled={disabled ?? loading ?? false}
         {...props}
