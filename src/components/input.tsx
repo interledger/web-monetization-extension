@@ -15,9 +15,6 @@ const inputVariants = cva(
       variant: {
         default: 'border-base',
       },
-      error: {
-        true: 'border-error',
-      },
       loading: {
         true: 'text-transparent',
       },
