@@ -5,16 +5,6 @@ import { cn } from '@/utils/cn'
 
 const labelVariants = cva('text-medium font-medium leading-6',
 
-  {
-    variants: {
-      variant: {
-        default: 'border-base',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-    },
-  },
 )
 
 export interface LabelProps
