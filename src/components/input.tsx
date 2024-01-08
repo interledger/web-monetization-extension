@@ -18,9 +18,6 @@ const inputVariants = cva(
       loading: {
         true: 'text-transparent',
       },
-      hasIcon: {
-        true: 'pl-12',
-      },
       disabled: {
         true: 'bg-disabled border-transparent',
       },
