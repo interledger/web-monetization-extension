@@ -35,7 +35,7 @@ export interface InputProps
   extends VariantProps<typeof inputVariants>,
     React.InputHTMLAttributes<HTMLInputElement> {
   loading?: boolean
-  error?: boolean
+  error?: string
   disabled?: boolean
   icon?: React.ReactNode
 }
