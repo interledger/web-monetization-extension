@@ -41,7 +41,6 @@ export interface InputProps
   error?: boolean
   disabled?: boolean
   icon?: React.ReactNode
-  type?: 'text' | 'password' | 'email' | 'number'
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
