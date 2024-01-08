@@ -1,5 +1,6 @@
 import { tabs } from 'webextension-polyfill'
 
+import { WM_WALLET_ADDRESS } from '@/background/config'
 import {
   createQuote,
   getHeaders,
@@ -12,13 +13,8 @@ import { confirmPayment } from '@/background/grant/confirmPayment'
 import { getContinuationRequest } from '@/background/grant/getContinuationRequest'
 import { getAxiosInstance } from '@/background/requestConfig'
 
-const KEY_ID = '3621a46c-a4a2-4271-a8cc-9bf94419d713'
-const PRIVATE_KEY =
-  'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1DNENBUUF3QlFZREsyVndCQ0lFSUx1dzkwWE9ZZ205Yll6N2hSZWlURlAwR0t1RVV1c0srS01jaXF1cDV2c0wKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=='
-const WM_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/interledger-wm' // intermediarul
-
 export class PaymentFlowService {
-  axiosInstance = getAxiosInstance(KEY_ID, PRIVATE_KEY)
+  axiosInstance = getAxiosInstance()
 
   sendingPaymentPointerUrl: string
   receivingPaymentPointerUrl: string
@@ -55,7 +51,7 @@ export class PaymentFlowService {
     this.receivingWalletAddress = await this.getWalletAddress(this.receivingPaymentPointerUrl)
 
     this.clientAuthToken = await getIncomingPaymentGrant({
-      client: WM_PAYMENT_POINTER_URL,
+      client: WM_WALLET_ADDRESS,
       identifier: this.receivingPaymentPointerUrl,
       wallet: this.receivingWalletAddress,
       instance: this.axiosInstance,
@@ -68,14 +64,14 @@ export class PaymentFlowService {
     })
 
     this.quoteGrantToken = await getQuoteGrant({
-      client: WM_PAYMENT_POINTER_URL,
+      client: WM_WALLET_ADDRESS,
       identifier: this.sendingPaymentPointerUrl,
       wallet: this.sendingWalletAddress,
       instance: this.axiosInstance,
     })
 
     const outgoingData = await getOutgoingPaymentGrant({
-      client: WM_PAYMENT_POINTER_URL,
+      client: WM_WALLET_ADDRESS,
       identifier: this.sendingPaymentPointerUrl,
       wallet: this.sendingWalletAddress,
       amount: this.amount,

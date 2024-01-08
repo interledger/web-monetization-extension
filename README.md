@@ -1,6 +1,6 @@
 ## Web Monetization Extension
 
-![Github Actions CI](https://github.com/interledger/web-monetization-extension/actions/workflows/ci.yml/badge.svg?branch=main)
+![Github Actions CI](https://github.com/interledger/web-monetization-extension/actions/workflows/sanity.yml/badge.svg?branch=main)
 [![Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
 Web Monetization is a browser extension that detects Web Monetization on websites using a browser API that allows the
@@ -36,7 +36,7 @@ To build the extension for production, use the following command:
 
 To build the extension for Firefox, use the following command:
 
-`pnpm build:firefox`
+`pnpm build firefox`
 
 This command transpiles the TypeScript code and generates a production-ready build of the extension in the dist
 directory.
