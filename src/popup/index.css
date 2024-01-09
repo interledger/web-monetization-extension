@@ -25,9 +25,17 @@
     /* Border colors */
     --border-base: 203 213 225;
     --border-focus: 59 130 246;
-    
+
     /* Popup */
     --popup-width: 448px;
     --popup-height: 559px;
   }
+}
+
+input[type='radio']:checked + label span,
+input[type='radio']:checked + span {
+  @apply bg-primary;
+  background-color: bg-primary;
+  box-shadow: 0px 0px 0px 4px white inset;
+  border-color: #3490dc;
 }
