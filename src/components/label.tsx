@@ -3,19 +3,8 @@ import React, { forwardRef } from 'react'
 
 import { cn } from '@/utils/cn'
 
-const labelVariants = cva(
-  ['text-medium font-medium leading-6 px-2 flex items-center gap-2'],
+const labelVariants = cva('text-medium font-medium leading-6',
 
-  {
-    variants: {
-      variant: {
-        default: 'border-base',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-    },
-  },
 )
 
 export interface LabelProps

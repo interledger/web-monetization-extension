@@ -43,7 +43,7 @@ describe('Input', () => {
     expect(queryByLabelText('test input')).toHaveClass('border-base')
   })
 
-  it('should have the `border-error` class when the `error` variant is passed', () => {
+  it('should have the `border-error` class when an error message is passed', () => {
     const { queryByLabelText } = render(<Input aria-label="test input" error />)
 
     expect(queryByLabelText('test input')).toBeInTheDocument()
