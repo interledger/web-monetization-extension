@@ -51,7 +51,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         {...props}
       />
       {errorMessage && (
-        <div className="absolute bottom-0 left-0 right-0 text-error text-sm mt-1">
+        <div className="absolute top-full left-0 right-0 text-error text-sm px-2">
           {errorMessage}
         </div>
       )}
