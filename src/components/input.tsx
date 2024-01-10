@@ -15,9 +15,6 @@ const inputVariants = cva(
       variant: {
         default: 'border-base',
       },
-      loading: {
-        true: 'text-transparent',
-      },
       disabled: {
         true: 'bg-disabled border-transparent',
       },
@@ -31,14 +28,13 @@ const inputVariants = cva(
 export interface InputProps
   extends VariantProps<typeof inputVariants>,
     React.InputHTMLAttributes<HTMLInputElement> {
-  loading?: boolean
-  error?: string
+  errorMessage?: string
   disabled?: boolean
   icon?: React.ReactNode
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { type = 'text', icon, loading, error, disabled, className, ...props },
+  { type = 'text', icon, errorMessage, disabled, className, ...props },
   ref,
 ) {
   return (
@@ -47,11 +43,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <input
         ref={ref}
         type={type}
-        className={cn(inputVariants({ loading, disabled }), icon && 'pl-12', error && 'border-error', className)}
-        disabled={disabled ?? loading ?? false}
-        aria-disabled={disabled ?? loading ?? false}
+        className={cn(inputVariants({ disabled }), icon && 'pl-12', className)}
+        disabled={disabled ?? false}
+        aria-disabled={disabled ?? false}
+        aria-invalid={!!errorMessage || undefined}
+        aria-describedby={errorMessage}
         {...props}
       />
+      {errorMessage && (
+        <div className="absolute bottom-0 left-0 right-0 text-error text-sm mt-1">
+          {errorMessage}
+        </div>
+      )}
     </div>
   )
 })
