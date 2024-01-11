@@ -46,7 +46,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         className={cn(inputVariants({ disabled }), icon && 'pl-12', className)}
         disabled={disabled ?? false}
         aria-disabled={disabled ?? false}
-        aria-invalid={!!errorMessage || undefined}
+        aria-invalid={!!errorMessage}
         aria-describedby={errorMessage}
         {...props}
       />
