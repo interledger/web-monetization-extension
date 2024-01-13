@@ -50,11 +50,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-describedby={errorMessage}
         {...props}
       />
-      {errorMessage && (
-        <div className="absolute top-full left-0 right-0 text-error text-sm px-2">
-          {errorMessage}
-        </div>
-      )}
+      {errorMessage && <p>{errorMessage}</p>}
     </div>
   )
 })
