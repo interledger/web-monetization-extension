@@ -10,6 +10,7 @@ const switchVariants = cva(
     'before:top-1/2 before:transform before:-translate-y-1/2 before:left-[4px]',
     'before:transition-all before:duration-300 before:ease-in-out',
     'peer-checked:before:left-[18px] peer-checked:bg-switch-base',
+    'peer-focus:outline peer-focus:outline-2 peer-focus:outline-blue-500',
   ],
 
   {
