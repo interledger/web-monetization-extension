@@ -5,7 +5,7 @@ import { cn } from '@/utils/cn'
 
 const switchVariants = cva(
   [
-    'rounded-full bg-disabled-strong relative cursor-pointer transition-all duration-300 ease-in-out',
+    'rounded-full bg-disabled-strong relative cursor-pointer transition-colors duration-300 ease-in-out',
     'before:content-[""] before:absolute before:bg-white before:rounded-full',
     'before:top-1/2 before:transform before:-translate-y-1/2 before:left-[4px]',
     'before:transition-all before:duration-300 before:ease-in-out',
