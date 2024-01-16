@@ -46,7 +46,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         ref={ref}
         type="checkbox"
         {...props}
-        className="peer absolute opacity-0 -translate-x-[100%] pointer-events-non"
+        className="peer absolute opacity-0 -translate-x-[100%] pointer-events-none"
       />
       <div className={cn(switchVariants({ size }), className)} />
     </label>
