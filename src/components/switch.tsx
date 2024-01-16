@@ -41,7 +41,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
 ) {
   return (
     <label>
-      <input ref={ref} type="checkbox" {...props} className="peer hidden" />
+      <input role="switch" ref={ref} type="checkbox" {...props} className="peer hidden" />
       <div className={cn(switchVariants({ size }), className)} />
     </label>
   )
