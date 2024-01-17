@@ -5,6 +5,7 @@ import { runtime } from 'webextension-polyfill'
 
 import PopupFooter from '@/components/Popup/PopupFooter'
 import PopupHeader from '@/components/Popup/PopupHeader'
+import { Switch } from '@/components/switch'
 import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages'
 
 const Success = runtime.getURL('assets/images/web-monetization-success.svg')
