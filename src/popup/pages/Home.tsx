@@ -9,6 +9,8 @@ const CheckIcon = runtime.getURL('assets/images/check.svg')
 const DollarIcon = runtime.getURL('assets/images/dollar.svg')
 const CloseIcon = runtime.getURL('assets/images/close.svg')
 
+// --- Temporary code until real UI implemented ---
+
 interface IProps {
   isMonetizationReady: boolean
 }
@@ -22,6 +24,8 @@ const PopupFooter: React.FC<IProps> = ({ isMonetizationReady }) => (
     )}
   </footer>
 )
+
+// --- End of Temporary code until real UI implemented ---
 
 export const Home = () => {
   const [loading, setLoading] = useState(false)

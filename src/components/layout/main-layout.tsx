@@ -3,10 +3,6 @@ import { Outlet } from 'react-router-dom'
 
 import { Header } from './header'
 
-export interface MainLayoutProps {
-  children: React.ReactNode
-}
-
 const Divider = () => {
   return <div className="mb-8 bg-divider-gradient w-100 h-1" />
 }

@@ -6,7 +6,6 @@ import { ArrowBack, Settings } from '../icons'
 import { ROUTES } from '../router-provider'
 
 const Logo = runtime.getURL('assets/images/logo.svg')
-const Close = runtime.getURL('assets/images/close.svg')
 
 const NavigationButton = () => {
   const location = useLocation()
@@ -38,9 +37,6 @@ export const Header = () => {
       </div>
       <div className="flex flex-row items-center">
         <NavigationButton />
-        <button onClick={() => window.close()}>
-          <img src={Close} alt="Close" className="h-6" />
-        </button>
       </div>
     </div>
   )
