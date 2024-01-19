@@ -36,7 +36,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.2
         with:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
-          path: pacakges/extension/dist/${{ matrix.browser }}/${{ matrix.browser }}.zip
+          path: packages/extension/dist/${{ matrix.browser }}/${{ matrix.browser }}.zip
           if-no-files-found: error
 
   test-extension:
