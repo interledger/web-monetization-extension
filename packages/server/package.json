@@ -1,0 +1,30 @@
+{
+  "name": "@interledger/wm-server",
+  "homepage": "https://github.com/interledger/web-monetization-extension/tree/main/packages/server",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:interledeger/web-monetization-extension.git",
+    "directory": "packages/server"
+  },
+  "keywords": [
+    "ilp",
+    "open payments",
+    "interledger",
+    "web monetization"
+  ],
+  "license": "Apache-2.0",
+  "author": "Interledger Tech Team <tech@interledger.org>",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@interledger/http-signature-utils": "^2.0.0",
+    "koa": "^2.14.2",
+    "koa-bodyparser": "^4.4.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+  
+}

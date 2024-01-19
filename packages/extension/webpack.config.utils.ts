@@ -22,8 +22,6 @@ const manifest = {
   edge: manifestEdge,
 }
 
-const dotenv = require('dotenv').config({ path: __dirname + '/.env' })
-
 interface EnvironmentConfig {
   NODE_ENV: string
   OUTPUT_DIR: string

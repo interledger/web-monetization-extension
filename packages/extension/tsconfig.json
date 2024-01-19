@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "lib": ["ES2020"],
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
