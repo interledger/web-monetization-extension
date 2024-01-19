@@ -24,7 +24,8 @@
     "koa-bodyparser": "^4.4.1"
   },
   "devDependencies": {
+    "@types/koa": "^2.14.0",
+    "@types/koa-bodyparser": "^4.3.12",
     "typescript": "^5.2.2"
   }
-  
 }

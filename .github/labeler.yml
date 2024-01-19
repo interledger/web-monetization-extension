@@ -1,7 +1,12 @@
+'area: server':
+  - any:
+      - changed-files:
+          - any-glob-to-any-file: 'packages/server/src/**/*'
+
 'area: background':
   - any:
       - changed-files:
-          - any-glob-to-any-file: 'src/background/**/*'
+          - any-glob-to-any-file: 'packages/extension/src/background/**/*'
 
 'area: ci':
   - any:
@@ -11,12 +16,12 @@
 'area: content':
   - any:
       - changed-files:
-          - any-glob-to-any-file: 'src/content/**/*'
+          - any-glob-to-any-file: 'packages/extension/src/content/**/*'
 
 'area: popup':
   - any:
       - changed-files:
-          - any-glob-to-any-file: 'src/popup/**/*'
+          - any-glob-to-any-file: 'packages/extension/src/popup/**/*'
 
 'area: documentation':
   - any:

@@ -9,17 +9,13 @@
   "license": "Apache-2.0",
   "author": "Interledger Tech Team <tech@interledger.org>",
   "scripts": {
-    "analyze": "bash ./scripts/analyze.sh",
-    "build": "bash ./scripts/build.sh",
-    "dev": "bash ./scripts/dev.sh",
+    "extension": "pnpm --filter @interledger/wm-extension --",
     "lint": "concurrently \"lint:*\"",
     "lint:fix": "eslint --ext js,jsx,ts,tsx, src --fix",
     "lint:eslint": "eslint . --ext .js,.ts,.tsx --max-warnings 0 --ignore-path .gitignore",
     "lint:prettier": "prettier \"**/*.(md|json|yml)\" --ignore-path .gitignore --check",
     "lint:type": "tsc --noEmit",
-    "local-signatures": "pnpm tsx --watch ./local-signatures/index.ts",
-    "test": "jest --maxWorkers=2 --passWithNoTests",
-    "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
+    "wm-server": "pnpm --filter @interledger/wm-server --"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.1.3",

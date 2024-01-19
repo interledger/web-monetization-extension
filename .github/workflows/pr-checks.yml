@@ -14,8 +14,8 @@ concurrency:
 # TODO(@raducristianpopa): add lint/format checks and tests
 
 jobs:
-  build:
-    name: Build
+  build-extension:
+    name: Build Extension
     strategy:
       fail-fast: false
       matrix:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Build
         shell: bash
-        run: pnpm build ${{ matrix.browser }}
+        run: pnpm extension build ${{ matrix.browser }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.2
@@ -39,8 +39,8 @@ jobs:
           path: dist/${{ matrix.browser }}/${{ matrix.browser }}.zip
           if-no-files-found: error
 
-  test:
-    name: Test
+  test-extension:
+    name: Test Extension
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
@@ -50,4 +50,33 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Test
-        run: pnpm test:ci
+        run: pnpm extension test:ci
+
+  build-server:
+    name: Build Server
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Build
+        shell: bash
+        run: pnpm wm-server build
+
+  # TODO: add tests for server
+  # test-server:
+  #   name: Test Server
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+
+  #     - name: Environment setup
+  #       uses: ./.github/actions/setup
+
+  #     - name: Test
+  #       shell: bash
+  #       run: pnpm wm-server test:ci
