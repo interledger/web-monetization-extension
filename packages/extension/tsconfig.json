@@ -1,28 +1,29 @@
 {
   "compilerOptions": {
     "noImplicitAny": true,
+    "composite": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
-    "baseUrl": "./src",
     "esModuleInterop": true,
     "module": "commonjs",
     "target": "es5",
     "allowJs": true,
     "jsx": "react",
     "sourceMap": true,
+    "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/utils/*": ["./utils/*"],
-      "@/popup/*": ["./popup/*"],
-      "@/background/*": ["./background/*"],
-      "@/content/*": ["./content/*"],
-      "@/assets/*": ["./assets/*"],
-      "@/components/*": ["./components/*"],
-      "@/types/*": ["./types/*"],
-      "@/hooks/*": ["./hooks/*"]
+      "@/utils/*": ["./src/utils/*"],
+      "@/popup/*": ["./src/popup/*"],
+      "@/background/*": ["./src/background/*"],
+      "@/content/*": ["./src/content/*"],
+      "@/assets/*": ["./src/assets/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/hooks/*": ["./src/hooks/*"]
     }
   },
   "include": ["./src/**/*", "local-signature/**/*", "./jest.config.ts", "./jest.setup.ts"],
