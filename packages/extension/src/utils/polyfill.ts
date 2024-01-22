@@ -99,4 +99,4 @@ export const wm2Polyfill = `
     }
   }, { capture: true })
   dbg('add coil-onmonetization-v2-attr-changed handler end')
-`
+`;

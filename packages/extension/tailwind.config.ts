@@ -1,4 +1,4 @@
-import { Config } from 'tailwindcss'
+import { Config } from 'tailwindcss';
 
 module.exports = {
   content: ['./src/**/*.{html,js,jsx,ts,tsx}', './src/components/**/*.{js,jsx,ts,tsx}'],
@@ -38,4 +38,4 @@ module.exports = {
     },
   },
   plugins: [],
-} satisfies Config
+} satisfies Config;

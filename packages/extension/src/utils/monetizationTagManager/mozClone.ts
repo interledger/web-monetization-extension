@@ -1,14 +1,14 @@
-type DefaultView = WindowProxy & typeof globalThis
-type CloneInto = (obj: unknown, _window: DefaultView | null) => typeof obj
-declare const cloneInto: CloneInto | undefined
+type DefaultView = WindowProxy & typeof globalThis;
+type CloneInto = (obj: unknown, _window: DefaultView | null) => typeof obj;
+declare const cloneInto: CloneInto | undefined;
 
-let cloneIntoRef: CloneInto | undefined
+let cloneIntoRef: CloneInto | undefined;
 try {
-  cloneIntoRef = cloneInto
+  cloneIntoRef = cloneInto;
 } catch (e) {
-  cloneIntoRef = undefined
+  cloneIntoRef = undefined;
 }
 
 export function mozClone(obj: unknown, document: Document) {
-  return cloneIntoRef ? cloneIntoRef(obj, document.defaultView) : obj
+  return cloneIntoRef ? cloneIntoRef(obj, document.defaultView) : obj;
 }

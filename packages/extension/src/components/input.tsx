@@ -1,7 +1,7 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React, { forwardRef } from 'react'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React, { forwardRef } from 'react';
 
-import { cn } from '@/utils/cn'
+import { cn } from '@/utils/cn';
 
 const inputVariants = cva(
   [
@@ -23,14 +23,14 @@ const inputVariants = cva(
       variant: 'default',
     },
   },
-)
+);
 
 export interface InputProps
   extends VariantProps<typeof inputVariants>,
     React.InputHTMLAttributes<HTMLInputElement> {
-  errorMessage?: string
-  disabled?: boolean
-  icon?: React.ReactNode
+  errorMessage?: string;
+  disabled?: boolean;
+  icon?: React.ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -52,5 +52,5 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       />
       {errorMessage && <p className="text-error text-sm px-2">{errorMessage}</p>}
     </div>
-  )
-})
+  );
+});

@@ -22,4 +22,4 @@ export default {
     '^.+\\.(ts|tsx)?$': 'ts-jest',
     '\\.(css|less|scss|sass|svg)$': 'jest-transform-stub',
   },
-}
+};

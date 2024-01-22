@@ -26,6 +26,6 @@
       "@/hooks/*": ["./hooks/*"]
     }
   },
-  "include": ["./src/**/*", "local-signature/**/*", "./jest.config.ts", "./jest.setup.ts"],
+  "include": ["./src/**/*", "./jest.config.ts", "./jest.setup.ts"],
   "exclude": ["dist", "dev", "temp"]
 }

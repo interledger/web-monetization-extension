@@ -1,9 +1,9 @@
-import React from 'react'
-import { runtime } from 'webextension-polyfill'
+import React from 'react';
+import { runtime } from 'webextension-polyfill';
 
-const Logo = runtime.getURL('assets/images/logo.svg')
-const Close = runtime.getURL('assets/images/close.svg')
-import './PopupHeader.scss'
+const Logo = runtime.getURL('assets/images/logo.svg');
+const Close = runtime.getURL('assets/images/close.svg');
+import './PopupHeader.scss';
 
 const PopupHeader: React.FC = () => {
   return (
@@ -14,7 +14,7 @@ const PopupHeader: React.FC = () => {
         <img src={Close} alt="Close" />
       </button>
     </div>
-  )
-}
+  );
+};
 
-export default PopupHeader
+export default PopupHeader;

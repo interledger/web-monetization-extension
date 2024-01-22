@@ -3,9 +3,7 @@
 ![Github Actions CI](https://github.com/interledger/web-monetization-extension/actions/workflows/sanity.yml/badge.svg?branch=main)
 [![Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
-Web Monetization is a browser extension that detects Web Monetization on websites using a browser API that allows the
-creation of a payment stream from the user agent to the website. This extension is built with React, TypeScript, and
-Vite.
+Web Monetization is a browser extension that detects Web Monetization on websites using a browser API that allows the creation of a payment stream from the user agent to the website.
 
 ### Contributing
 
@@ -19,26 +17,35 @@ Please read the [contribution guidelines](.github/CONTRIBUTING.md) before submit
 
 ### Development
 
-To run the extension in development mode with hot reload, use the following command:
+To run the extension and the Web Monetization server in development mode with hot reload, use the following command:
 
-`pnpm dev`
+```sh
+pnpm dev # default Chrome
+pnpm dev firefox # For Firefox
+pnpm dev opera # For Opera
+pnpm dev edge # For Edge
+```
 
-This command builds the extension using Vite's hot reload feature, allowing you to see immediate changes in the browser
-as you modify the code.
+### Building the extension
 
-### Building the Extension
+To build the extension for production (all browsers), use the following command:
 
-To build the extension for production, use the following command:
+```sh
+pnpm extension build
+```
 
-`pnpm build`
+### Building the extension for a specific browser
 
-### Building the Extension for Firefox
+To build the extension for a specific browser, use one of the following commands:
 
-To build the extension for Firefox, use the following command:
+```sh
+pnpm extension build chrome
+pnpm extension build firefox
+pnpm extension build opera
+pnpm extension build edge
+```
 
-`pnpm build firefox`
-
-This command transpiles the TypeScript code and generates a production-ready build of the extension in the dist
+The `build` command transpiles the TypeScript code and generates a production-ready build of the extension in the `packages/extension/dist`
 directory.
 
 ### Installing the Extension in Chrome
@@ -77,7 +84,7 @@ To install the extension in Chrome, follow these steps:
 4. Select the Extension File:<br/>
    Navigate to the folder where you extracted the extension files and select the manifest.json file or the main folder of the extension.
 
-### Testing the Extension
+### Testing
 
 To run the tests, use the following command:
 
@@ -85,11 +92,9 @@ To run the tests, use the following command:
 
 This command runs the tests using Jest and generates a coverage report in the coverage directory.
 
-### Linting and Pre-Commit Hooks
+### Linting
 
-The extension is set up with ESLint and Prettier for code linting and formatting. Husky and lint-staged are configured
-to enforce linting and formatting rules before each commit. When you commit changes, Husky will run the linting and
-formatting tasks to ensure code quality.
+The extension is set up with ESLint and Prettier for code linting and formatting.
 
 ## License
 

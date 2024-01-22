@@ -1,1 +1,1 @@
-export { default } from './PopupFooter'
+export { default } from './PopupFooter';

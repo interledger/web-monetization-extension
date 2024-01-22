@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 
-import { SIGNATURES_URL } from '@/background/config'
+import { SIGNATURES_URL } from '@/background/config';
 
 export const getAxiosInstance = (timeout = 10000): AxiosInstance => {
   const axiosInstance = axios.create({
@@ -11,12 +11,12 @@ export const getAxiosInstance = (timeout = 10000): AxiosInstance => {
       },
     },
     timeout,
-  })
+  });
 
   axiosInstance.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
       if (!config.method || !config.url) {
-        throw new Error('Cannot intercept request: url or method missing')
+        throw new Error('Cannot intercept request: url or method missing');
       }
 
       const payload = {
@@ -27,17 +27,17 @@ export const getAxiosInstance = (timeout = 10000): AxiosInstance => {
         method: config.method.toUpperCase(),
         url: config.url,
         body: JSON.stringify(config.data),
-      }
+      };
 
       const contentAndSigHeaders = await axios.post(SIGNATURES_URL, payload, {
         headers: { 'Content-Type': 'application/json' },
-      })
+      });
 
-      config.headers['Signature'] = contentAndSigHeaders.data['Signature']
-      config.headers['Signature-Input'] = contentAndSigHeaders.data['Signature-Input']
-      config.headers['Content-Digest'] = contentAndSigHeaders.data['Content-Digest']
+      config.headers['Signature'] = contentAndSigHeaders.data['Signature'];
+      config.headers['Signature-Input'] = contentAndSigHeaders.data['Signature-Input'];
+      config.headers['Content-Digest'] = contentAndSigHeaders.data['Content-Digest'];
 
-      return config
+      return config;
     },
     undefined,
     {
@@ -45,7 +45,7 @@ export const getAxiosInstance = (timeout = 10000): AxiosInstance => {
         config.method?.toLowerCase() === 'post' ||
         !!(config.headers && config.headers['Authorization']),
     },
-  )
+  );
 
-  return axiosInstance
-}
+  return axiosInstance;
+};

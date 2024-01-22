@@ -1,15 +1,15 @@
 export function whenDocumentReady(document: Document, start: () => void) {
   if (document.readyState === 'interactive' || document.readyState === 'complete') {
-    start()
+    start();
   } else {
     document.addEventListener(
       'readystatechange',
       () => {
         if (document.readyState === 'interactive') {
-          start()
+          start();
         }
       },
       { once: true },
-    )
+    );
   }
 }

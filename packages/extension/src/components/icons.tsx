@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -7,7 +7,8 @@ export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 16 16"
-      {...props}>
+      {...props}
+    >
       <path
         stroke="currentColor"
         strokeLinecap="round"
@@ -15,8 +16,8 @@ export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {
         d="M2.204 6.447A6 6 0 108 2"
       />
     </svg>
-  )
-}
+  );
+};
 
 export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -26,7 +27,8 @@ export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}>
+      {...props}
+    >
       <g id="attach_money">
         <mask
           id="mask0_140_3168"
@@ -35,7 +37,8 @@ export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
           x="0"
           y="0"
           width="24"
-          height="24">
+          height="24"
+        >
           <rect id="Bounding box" width="24" height="24" fill="#D9D9D9" />
         </mask>
         <g mask="url(#mask0_140_3168)">
@@ -47,5 +50,5 @@ export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
         </g>
       </g>
     </svg>
-  )
-}
+  );
+};

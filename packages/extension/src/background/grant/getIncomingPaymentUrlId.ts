@@ -1,12 +1,12 @@
-import { AxiosInstance } from 'axios'
+import { AxiosInstance } from 'axios';
 
-import { getHeaders } from './getHeaders'
+import { getHeaders } from './getHeaders';
 
 type TGetIncomingPaymentUrlId = (_params: {
-  walletAddress: string
-  token: string
-  instance: AxiosInstance
-}) => Promise<any>
+  walletAddress: string;
+  token: string;
+  instance: AxiosInstance;
+}) => Promise<any>;
 
 export const getIncomingPaymentUrlId: TGetIncomingPaymentUrlId = async ({
   walletAddress,
@@ -20,11 +20,11 @@ export const getIncomingPaymentUrlId: TGetIncomingPaymentUrlId = async ({
       expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
     },
     getHeaders(token),
-  )
+  );
 
   if (!incomingPayment?.data?.id) {
-    throw new Error('No incoming payment id')
+    throw new Error('No incoming payment id');
   }
 
-  return incomingPayment.data.id
-}
+  return incomingPayment.data.id;
+};

@@ -1,5 +1,5 @@
-import path from 'path'
-import TerserPlugin from 'terser-webpack-plugin'
+import path from 'path';
+import TerserPlugin from 'terser-webpack-plugin';
 
 import {
   config,
@@ -17,7 +17,7 @@ import {
   getProgressPlugins,
   getResolves,
   getZipPlugins,
-} from './webpack.config.utils'
+} from './webpack.config.utils';
 
 let generalConfig: any = {
   mode:
@@ -74,7 +74,7 @@ let generalConfig: any = {
   resolve: getResolves(),
   entry: getEntry(Directories.SRC_DIR),
   output: getOutput(config.TARGET, config.OUTPUT_DIR),
-}
+};
 
 let plugins: any[] = [
   ...getCleanWebpackPlugins(
@@ -86,7 +86,7 @@ let plugins: any[] = [
   ...getExtensionManifestPlugins(),
   ...getHTMLPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
   ...getCopyPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
-]
+];
 
 if (config.NODE_ENV === 'development') {
   generalConfig = {
@@ -103,7 +103,7 @@ if (config.NODE_ENV === 'development') {
       aggregateTimeout: 200,
       poll: 1000,
     },
-  }
+  };
 
   plugins = [
     ...plugins,
@@ -112,7 +112,7 @@ if (config.NODE_ENV === 'development') {
       WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
     }),
     ...getExtensionReloaderPlugins(),
-  ]
+  ];
 }
 
 if (config.NODE_ENV === 'profile') {
@@ -125,7 +125,7 @@ if (config.NODE_ENV === 'profile') {
       errors: true,
       hash: true,
     },
-  }
+  };
 
   plugins = [
     ...plugins,
@@ -134,7 +134,7 @@ if (config.NODE_ENV === 'profile') {
       WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
     }),
     ...getAnalyzerPlugins(),
-  ]
+  ];
 }
 
 if (config.NODE_ENV === 'production') {
@@ -154,7 +154,7 @@ if (config.NODE_ENV === 'production') {
         }),
       ],
     },
-  }
+  };
 
   plugins = [
     ...plugins,
@@ -164,7 +164,7 @@ if (config.NODE_ENV === 'production') {
     }),
 
     ...getZipPlugins(config.TARGET, Directories.DIST_DIR),
-  ]
+  ];
 }
 
 export default [
@@ -172,4 +172,4 @@ export default [
     ...generalConfig,
     plugins,
   },
-]
+];

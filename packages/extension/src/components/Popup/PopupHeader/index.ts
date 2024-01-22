@@ -1,1 +1,1 @@
-export { default } from './PopupHeader'
+export { default } from './PopupHeader';

@@ -1,8 +1,8 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React, { forwardRef } from 'react'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React, { forwardRef } from 'react';
 
-import { LoadingSpinner } from '@/components/loading-spinner'
-import { cn } from '@/utils/cn'
+import { LoadingSpinner } from '@/components/loading-spinner';
+import { cn } from '@/utils/cn';
 
 const buttonVariants = cva(
   [
@@ -32,13 +32,13 @@ const buttonVariants = cva(
       size: 'default',
     },
   },
-)
+);
 
 export interface ButtonProps
   extends VariantProps<typeof buttonVariants>,
     React.ButtonHTMLAttributes<HTMLButtonElement> {
-  loading?: boolean
-  ['aria-label']: string
+  loading?: boolean;
+  ['aria-label']: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -52,8 +52,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       className={cn(buttonVariants({ variant, size, fullWidth, loading }), className)}
       disabled={props.disabled ?? loading ?? false}
       aria-disabled={props.disabled ?? loading ?? false}
-      {...props}>
+      {...props}
+    >
       {loading ? <LoadingSpinner /> : children}
     </button>
-  )
-})
+  );
+});

@@ -1,31 +1,32 @@
-import { CleanWebpackPlugin } from 'clean-webpack-plugin'
-import CopyWebpackPlugin from 'copy-webpack-plugin'
-import ESLintPlugin from 'eslint-webpack-plugin'
-import HtmlWebpackPlugin from 'html-webpack-plugin'
-import path from 'path'
-import { DefinePlugin, ProgressPlugin } from 'webpack'
-import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
-import WebpackExtensionManifestPlugin from 'webpack-extension-manifest-plugin'
-import ZipPlugin from 'zip-webpack-plugin'
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
+import ESLintPlugin from 'eslint-webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import path from 'path';
+import { DefinePlugin, ProgressPlugin } from 'webpack';
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import WebpackExtensionManifestPlugin from 'webpack-extension-manifest-plugin';
+import ZipPlugin from 'zip-webpack-plugin';
 
-const ExtReloader = require('webpack-ext-reloader-mv3')
+import manifestChrome from './src/manifest/chrome.json';
+import manifestEdge from './src/manifest/edge.json';
+import manifestFirefox from './src/manifest/firefox.json';
+import manifestOpera from './src/manifest/opera.json';
 
-const manifestChrome = require('./src/manifest/chrome.json')
-const manifestFirefox = require('./src/manifest/firefox.json')
-const manifestOpera = require('./src/manifest/opera.json')
-const manifestEdge = require('./src/manifest/edge.json')
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const ExtReloader = require('webpack-ext-reloader-mv3');
 
 const manifest = {
   chrome: manifestChrome,
   firefox: manifestFirefox,
   opera: manifestOpera,
   edge: manifestEdge,
-}
+};
 
 interface EnvironmentConfig {
-  NODE_ENV: string
-  OUTPUT_DIR: string
-  TARGET: string
+  NODE_ENV: string;
+  OUTPUT_DIR: string;
+  TARGET: string;
 }
 
 export const Directories = {
@@ -33,7 +34,7 @@ export const Directories = {
   DIST_DIR: 'dist',
   TEMP_DIR: 'temp',
   SRC_DIR: 'src',
-}
+};
 
 /**
  * Environment Config
@@ -48,7 +49,7 @@ const EnvConfig: EnvironmentConfig = {
         : Directories.DEV_DIR,
   ...(process.env.NODE_ENV ? { NODE_ENV: process.env.NODE_ENV } : { NODE_ENV: 'development' }),
   ...(process.env.TARGET ? { TARGET: process.env.TARGET } : { TARGET: 'chrome' }),
-}
+};
 
 /**
  * Get HTML Plugins
@@ -69,7 +70,7 @@ export const getHTMLPlugins = (
     template: path.resolve(__dirname, `${sourceDir}/popup/index.html`),
     chunks: ['popup'],
   }),
-]
+];
 
 /**
  * Get DefinePlugins
@@ -82,7 +83,7 @@ export const getDefinePlugins = (config: { SIGNATURES_URL: string; WM_WALLET_ADD
     CONFIG_SIGNATURES_URL: JSON.stringify(config.SIGNATURES_URL),
     CONFIG_WM_WALLET_ADDRESS: JSON.stringify(config.WM_WALLET_ADDRESS),
   }),
-]
+];
 
 /**
  * Get Output Configurations
@@ -95,8 +96,8 @@ export const getOutput = (browserDir: string, outputDir = Directories.DEV_DIR) =
   return {
     path: path.resolve(process.cwd(), `${outputDir}/${browserDir}`),
     filename: '[name]/[name].js',
-  }
-}
+  };
+};
 
 /**
  * Get Entry Points
@@ -109,8 +110,8 @@ export const getEntry = (sourceDir = Directories.SRC_DIR) => {
     popup: [path.resolve(__dirname, `${sourceDir}/popup/index.tsx`)],
     content: [path.resolve(__dirname, `${sourceDir}/content/index.tsx`)],
     background: [path.resolve(__dirname, `${sourceDir}/background/index.ts`)],
-  }
-}
+  };
+};
 
 /**
  * Get CopyPlugins
@@ -138,8 +139,8 @@ export const getCopyPlugins = (
         },
       ],
     }),
-  ]
-}
+  ];
+};
 
 /**
  * Get ZipPlugins
@@ -164,8 +165,8 @@ export const getZipPlugins = (browserDir: string, outputDir = Directories.DIST_D
         forceZip64Format: false,
       },
     }),
-  ]
-}
+  ];
+};
 
 /**
  * Get Analyzer Plugins
@@ -177,8 +178,8 @@ export const getAnalyzerPlugins = () => {
     new BundleAnalyzerPlugin({
       analyzerMode: 'server',
     }),
-  ]
-}
+  ];
+};
 
 /**
  * Get CleanWebpackPlugins
@@ -195,8 +196,8 @@ export const getCleanWebpackPlugins = (...dirs: string[]) => {
       cleanStaleWebpackAssets: false,
       verbose: true,
     }),
-  ]
-}
+  ];
+};
 
 /**
  * Get Resolves
@@ -219,8 +220,8 @@ export const getResolves = () => {
       '@/hooks': path.resolve(__dirname, './src/hooks/'),
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
-  }
-}
+  };
+};
 
 /**
  * Get Extension Manifest Plugins
@@ -232,12 +233,12 @@ export const getExtensionManifestPlugins = () => {
     new WebpackExtensionManifestPlugin({
       config: { base: (manifest as any)[EnvConfig.TARGET] },
     }),
-  ]
-}
+  ];
+};
 
 export const eslintOptions = {
   fix: true,
-}
+};
 
 /**
  * Get Eslint Plugins
@@ -245,8 +246,8 @@ export const eslintOptions = {
  * @returns
  */
 export const getEslintPlugins = (options = eslintOptions) => {
-  return [new ESLintPlugin(options)]
-}
+  return [new ESLintPlugin(options)];
+};
 
 /**
  * Get Progress Plugins
@@ -254,14 +255,14 @@ export const getEslintPlugins = (options = eslintOptions) => {
  * @returns
  */
 export const getProgressPlugins = () => {
-  return [new ProgressPlugin()]
-}
+  return [new ProgressPlugin()];
+};
 
 /**
  * Environment Configuration Variables
  *
  */
-export const config = EnvConfig
+export const config = EnvConfig;
 
 /**
  * Get Extension Reloader Plugin
@@ -279,5 +280,5 @@ export const getExtensionReloaderPlugins = () => {
         extensionPage: ['popup', 'options'],
       },
     }),
-  ]
-}
+  ];
+};

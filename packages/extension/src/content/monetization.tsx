@@ -1,12 +1,12 @@
-import { sendMessage } from '@/utils/sendMessages'
+import { sendMessage } from '@/utils/sendMessages';
 
 export class PaymentSender {
-  sender: any
+  sender: any;
 
   start() {
     this.sender = setInterval(() => {
-      this.send()
-    }, 1000)
+      this.send();
+    }, 1000);
 
     // stop payments manually after 3 seconds
     // setTimeout(() => {
@@ -15,11 +15,11 @@ export class PaymentSender {
   }
 
   stop() {
-    sendMessage({ type: 'PAUSE_PAYMENTS' })
-    clearInterval(this.sender)
+    sendMessage({ type: 'PAUSE_PAYMENTS' });
+    clearInterval(this.sender);
   }
 
   send() {
-    sendMessage({ type: 'RUN_PAYMENT' })
+    sendMessage({ type: 'RUN_PAYMENT' });
   }
 }

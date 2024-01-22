@@ -1,15 +1,15 @@
-import { AxiosInstance } from 'axios'
+import { AxiosInstance } from 'axios';
 
-import { getHeaders } from './getHeaders'
+import { getHeaders } from './getHeaders';
 
 type TCreateQuote = (_params: {
-  receiver: string
-  walletAddress: any
-  sendingUrl: string
-  token: string
-  amount: string
-  instance: AxiosInstance
-}) => Promise<any>
+  receiver: string;
+  walletAddress: any;
+  sendingUrl: string;
+  token: string;
+  amount: string;
+  instance: AxiosInstance;
+}) => Promise<any>;
 
 export const createQuote: TCreateQuote = async ({
   receiver,
@@ -28,17 +28,17 @@ export const createQuote: TCreateQuote = async ({
       assetCode: walletAddress.assetCode, // 'USD'
       assetScale: walletAddress.assetScale, // 9
     },
-  }
+  };
 
   const quote = await instance.post(
     new URL(sendingUrl).origin + '/quotes',
     payload,
     getHeaders(token),
-  )
+  );
 
   if (!quote.data.id) {
-    throw new Error('No quote url id')
+    throw new Error('No quote url id');
   }
 
-  return quote.data.id
-}
+  return quote.data.id;
+};

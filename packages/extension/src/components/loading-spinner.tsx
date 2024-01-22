@@ -1,7 +1,7 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React from 'react'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React from 'react';
 
-import { Spinner } from '@/components/icons'
+import { Spinner } from '@/components/icons';
 
 const loadingSpinnerStyles = cva('animate-spin text-white', {
   variants: {
@@ -13,10 +13,10 @@ const loadingSpinnerStyles = cva('animate-spin text-white', {
   defaultVariants: {
     variant: 'lg',
   },
-})
+});
 
-export type LoadingIndicatorProps = VariantProps<typeof loadingSpinnerStyles>
+export type LoadingIndicatorProps = VariantProps<typeof loadingSpinnerStyles>;
 
 export const LoadingSpinner = ({ variant }: LoadingIndicatorProps) => {
-  return <Spinner className={loadingSpinnerStyles({ variant })} />
-}
+  return <Spinner className={loadingSpinnerStyles({ variant })} />;
+};

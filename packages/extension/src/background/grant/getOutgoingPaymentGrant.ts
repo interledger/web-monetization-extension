@@ -1,12 +1,12 @@
-import { AxiosInstance } from 'axios'
+import { AxiosInstance } from 'axios';
 
 type TGetOutgoingPaymentGrant = (_params: {
-  client: string
-  identifier: string
-  wallet: Record<string, any>
-  amount: string | number
-  instance: AxiosInstance
-}) => Promise<any>
+  client: string;
+  identifier: string;
+  wallet: Record<string, any>;
+  amount: string | number;
+  instance: AxiosInstance;
+}) => Promise<any>;
 
 export const getOutgoingPaymentGrant: TGetOutgoingPaymentGrant = async ({
   client,
@@ -44,16 +44,16 @@ export const getOutgoingPaymentGrant: TGetOutgoingPaymentGrant = async ({
         nonce: new Date().getTime().toString(),
       },
     },
-  }
+  };
 
-  const outgoingPaymentGrant = await instance.post(wallet.authServer + '/', payload)
+  const outgoingPaymentGrant = await instance.post(wallet.authServer + '/', payload);
 
   if (!outgoingPaymentGrant.data.interact.redirect) {
-    throw new Error('No redirect')
+    throw new Error('No redirect');
   }
 
   return {
     outgoingPaymentGrantToken: outgoingPaymentGrant.data.continue.access_token.value,
     outgoingPaymentGrantData: outgoingPaymentGrant.data,
-  }
-}
+  };
+};

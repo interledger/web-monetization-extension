@@ -1,15 +1,15 @@
 /* eslint-disable */
-import { EventEmitter } from 'events'
-import { v4 as uuidV4 } from 'uuid'
+import { EventEmitter } from 'events';
+import { v4 as uuidV4 } from 'uuid';
 
-import { CustomError } from './CustomError'
-import { mozClone } from './mozClone'
-import { resolvePaymentEndpoint } from './resolvePaymentEndpoint'
-import { whenDocumentReady } from './whenDocumentReady'
+import { CustomError } from './CustomError';
+import { mozClone } from './mozClone';
+import { resolvePaymentEndpoint } from './resolvePaymentEndpoint';
+import { whenDocumentReady } from './whenDocumentReady';
 
 const debug =
   // console.log.bind(console, 'MonetizationTagManager')
-  (..._: unknown[]) => {}
+  (..._: unknown[]) => {};
 
 export interface PaymentDetails {
   /**
@@ -17,12 +17,12 @@ export interface PaymentDetails {
    * configuration of a tag. e.g. a new href on a link will mean a new
    * requestId
    */
-  requestId: string
-  paymentPointer: string
-  initiatingUrl: string
-  fromBody: boolean
-  tagType: TagType
-  attrs: Record<string, string | null>
+  requestId: string;
+  paymentPointer: string;
+  initiatingUrl: string;
+  fromBody: boolean;
+  tagType: TagType;
+  attrs: Record<string, string | null>;
 }
 
 /**
@@ -31,95 +31,95 @@ export interface PaymentDetails {
  * On a tag[content|href] changed, both will be set
  */
 export interface PaymentDetailsChangeArguments {
-  started: PaymentDetails | null
-  stopped: PaymentDetails | null
+  started: PaymentDetails | null;
+  stopped: PaymentDetails | null;
 }
 
-export type PaymentDetailsChangeCallback = (_args: PaymentDetailsChangeArguments) => void
+export type PaymentDetailsChangeCallback = (_args: PaymentDetailsChangeArguments) => void;
 
-export type MonetizationTag = HTMLMetaElement | HTMLLinkElement
-export type MonetizationTagList = NodeListOf<MonetizationTag>
+export type MonetizationTag = HTMLMetaElement | HTMLLinkElement;
+export type MonetizationTagList = NodeListOf<MonetizationTag>;
 
-export type TagType = 'meta' | 'link'
+export type TagType = 'meta' | 'link';
 
 export function getTagType(tag: MonetizationTag): TagType {
-  return tag instanceof HTMLMetaElement ? 'meta' : 'link'
+  return tag instanceof HTMLMetaElement ? 'meta' : 'link';
 }
 
 export class DeprecatedMetaTagIgnoredError extends CustomError {}
 
 interface FireOnMonetizationChangeIfHaveAttributeParams {
-  node: HTMLElement
-  changeDetected?: boolean
+  node: HTMLElement;
+  changeDetected?: boolean;
 }
 
 export const metaDeprecatedMessage =
   'Web-Monetization Error: ' +
   'A `<link rel="monetization">` tag has been seen, so ' +
   'ignoring deprecated `<meta name="monetization">` tag and ' +
-  'using only `<link rel="monetization">` tags consistently'
+  'using only `<link rel="monetization">` tags consistently';
 
 export const MonetizationTagAttrs = {
   meta: ['content', 'name'],
   link: ['href', 'disabled', 'rel', 'crossorigin', 'type'],
-}
+};
 
-const MAX_NUMBER_META_TAGS = 1
+const MAX_NUMBER_META_TAGS = 1;
 
 function monetizationTagTypeSpecified(tag: Node, ambiguous = false): tag is MonetizationTag {
   if (tag instanceof HTMLLinkElement) {
-    return tag.rel === 'monetization' || (ambiguous && !tag.rel)
+    return tag.rel === 'monetization' || (ambiguous && !tag.rel);
   } else if (tag instanceof HTMLMetaElement) {
-    return tag.name === 'monetization' || (ambiguous && !tag.name)
+    return tag.name === 'monetization' || (ambiguous && !tag.name);
   } else {
-    return false
+    return false;
   }
 }
 
 function nodeIsPotentiallyMonetizationTag(node: Node): node is MonetizationTag {
-  return node instanceof HTMLLinkElement || node instanceof HTMLMetaElement
+  return node instanceof HTMLLinkElement || node instanceof HTMLMetaElement;
 }
 
 function getTagAttrs(tag: MonetizationTag, tagType: TagType) {
   return Object.fromEntries(
     MonetizationTagAttrs[tagType].map(attr => {
-      return [attr, tag.getAttribute(attr)]
+      return [attr, tag.getAttribute(attr)];
     }),
-  )
+  );
 }
 
 export class MonetizationTagManager extends EventEmitter {
-  private affinity: TagType = 'meta'
-  private documentObserver: MutationObserver
-  private monetizationTagAttrObserver: MutationObserver
+  private affinity: TagType = 'meta';
+  private documentObserver: MutationObserver;
+  private monetizationTagAttrObserver: MutationObserver;
 
   private monetizationTags = new Map<
     MonetizationTag,
     {
-      details: PaymentDetails
+      details: PaymentDetails;
     }
-  >()
+  >();
 
-  private linkTagsById = new Map<string, HTMLLinkElement>()
+  private linkTagsById = new Map<string, HTMLLinkElement>();
 
   dispatchEventByLinkId(id: string, event: Event) {
-    const link = this.linkTagsById.get(id)
+    const link = this.linkTagsById.get(id);
     if (link) {
-      debug('dispatchLinkEventByLinkId', id, event)
-      link.dispatchEvent(event)
+      debug('dispatchLinkEventByLinkId', id, event);
+      link.dispatchEvent(event);
     }
   }
 
   requestIds(): string[] {
-    return Array.from(this.monetizationTags.values()).map(e => e.details.requestId)
+    return Array.from(this.monetizationTags.values()).map(e => e.details.requestId);
   }
 
   linkRequests(): PaymentDetails[] {
-    return this.requests().filter(d => d.tagType === 'link')
+    return this.requests().filter(d => d.tagType === 'link');
   }
 
   requests(): PaymentDetails[] {
-    return Array.from(this.monetizationTags.values()).map(e => e.details)
+    return Array.from(this.monetizationTags.values()).map(e => e.details);
   }
 
   constructor(
@@ -128,81 +128,81 @@ export class MonetizationTagManager extends EventEmitter {
     private callback: PaymentDetailsChangeCallback,
     private throwOnIllegalState = true,
   ) {
-    super()
-    this.documentObserver = new MutationObserver(records => this._onWholeDocumentObserved(records))
+    super();
+    this.documentObserver = new MutationObserver(records => this._onWholeDocumentObserved(records));
     this.monetizationTagAttrObserver = new MutationObserver(records =>
       this._onMonetizationTagAttrsChange(records),
-    )
+    );
   }
 
   /**
    * Wait until the document is ready and formed
    */
   startWhenDocumentReady(): void {
-    whenDocumentReady(this.document, this._start.bind(this))
+    whenDocumentReady(this.document, this._start.bind(this));
   }
 
   // Though this is `public`, it's not part of the public interface, so we
   // prefix this method with `_` with no `private` modifier, in order to
   // jest.spyOn it.
   _start() {
-    const monetizationTags: MonetizationTagList = this.document.querySelectorAll('meta,link')
+    const monetizationTags: MonetizationTagList = this.document.querySelectorAll('meta,link');
     monetizationTags.forEach(tag => {
       try {
-        this._observeMonetizationTagAttrs(tag)
-        this.onAddedTag(tag)
+        this._observeMonetizationTagAttrs(tag);
+        this.onAddedTag(tag);
       } catch (e) {
         // eslint-disable-next-line no-console
-        console.error(e)
+        console.error(e);
       }
-    })
-    const onMonetizations = this.document.querySelectorAll<HTMLElement>('[onmonetization]')
+    });
+    const onMonetizations = this.document.querySelectorAll<HTMLElement>('[onmonetization]');
     onMonetizations.forEach(om => {
-      this.checkMonetizationAttr(om)
-    })
+      this.checkMonetizationAttr(om);
+    });
     this.documentObserver.observe(this.document, {
       subtree: true,
       childList: true,
       attributeFilter: ['onmonetization'],
-    })
+    });
   }
 
   _check(op: string, node: Node) {
-    debug('head node', op, node)
+    debug('head node', op, node);
     if (nodeIsPotentiallyMonetizationTag(node)) {
       if (op === 'added') {
-        this._observeMonetizationTagAttrs(node)
-        this.onAddedTag(node)
+        this._observeMonetizationTagAttrs(node);
+        this.onAddedTag(node);
       } else if (op === 'removed' && this.monetizationTags.has(node)) {
-        this._onRemovedTag(node)
+        this._onRemovedTag(node);
       }
     }
     if (op === 'added' && node instanceof HTMLElement) {
-      this.checkMonetizationAttr(node)
+      this.checkMonetizationAttr(node);
     }
   }
 
-  _checkRemoved = this._check.bind(this, 'removed')
-  _checkAdded = this._check.bind(this, 'added')
+  _checkRemoved = this._check.bind(this, 'removed');
+  _checkAdded = this._check.bind(this, 'added');
 
   _onWholeDocumentObserved(records: MutationRecord[]) {
-    debug('document mutation records.length=', records.length)
+    debug('document mutation records.length=', records.length);
 
     // Explicitly remove these first
     for (const record of records) {
-      debug('Record', record.type, record.target)
+      debug('Record', record.type, record.target);
       if (record.type === 'childList') {
-        record.removedNodes.forEach(this._checkRemoved)
+        record.removedNodes.forEach(this._checkRemoved);
       }
     }
 
     for (const record of records) {
-      debug('Record', record.type, record.target)
+      debug('Record', record.type, record.target);
       if (record.type === 'childList') {
-        record.addedNodes.forEach(this._checkAdded)
+        record.addedNodes.forEach(this._checkAdded);
       }
     }
-    this.onOnMonetizationChangeObserved(records)
+    this.onOnMonetizationChangeObserved(records);
   }
 
   /**
@@ -211,27 +211,27 @@ export class MonetizationTagManager extends EventEmitter {
    * @param records
    */
   _onMonetizationTagAttrsChange(records: MutationRecord[]) {
-    const handledTags = new Set<Node>()
+    const handledTags = new Set<Node>();
     // Check for a non specified link or meta with the type now specified and
     // just treat it as a newly seen, monetization tag
     for (const record of records) {
-      const target = record.target as MonetizationTag
+      const target = record.target as MonetizationTag;
       if (handledTags.has(target)) {
-        continue
+        continue;
       }
-      const hasTarget = this.monetizationTags.has(target)
-      const typeSpecified = monetizationTagTypeSpecified(target)
+      const hasTarget = this.monetizationTags.has(target);
+      const typeSpecified = monetizationTagTypeSpecified(target);
       // this will also handle the case of a @disabled tag that
       // is not tracked, becoming enabled
       if (!hasTarget && typeSpecified) {
-        this.onAddedTag(target)
-        handledTags.add(target)
+        this.onAddedTag(target);
+        handledTags.add(target);
       } else if (hasTarget && !typeSpecified) {
-        this._onRemovedTag(target)
-        handledTags.add(target)
+        this._onRemovedTag(target);
+        handledTags.add(target);
       } else if (!hasTarget && !typeSpecified) {
         // ignore these changes
-        handledTags.add(target)
+        handledTags.add(target);
       } else if (hasTarget && typeSpecified) {
         if (
           record.type === 'attributes' &&
@@ -240,11 +240,11 @@ export class MonetizationTagManager extends EventEmitter {
           // can't use record.target[disabled] as it's a Boolean not string
           target.getAttribute('disabled') !== record.oldValue
         ) {
-          const wasDisabled = record.oldValue !== null
-          const isDisabled = target.hasAttribute('disabled')
+          const wasDisabled = record.oldValue !== null;
+          const isDisabled = target.hasAttribute('disabled');
           if (wasDisabled != isDisabled) {
-            this._onChangedPaymentEndpoint(target, isDisabled, wasDisabled)
-            handledTags.add(target)
+            this._onChangedPaymentEndpoint(target, isDisabled, wasDisabled);
+            handledTags.add(target);
           }
         } else if (
           record.type === 'attributes' &&
@@ -252,16 +252,16 @@ export class MonetizationTagManager extends EventEmitter {
           target instanceof HTMLMetaElement &&
           target.content !== record.oldValue
         ) {
-          this._onChangedPaymentEndpoint(target)
-          handledTags.add(target)
+          this._onChangedPaymentEndpoint(target);
+          handledTags.add(target);
         } else if (
           record.type === 'attributes' &&
           record.attributeName === 'href' &&
           target instanceof HTMLLinkElement &&
           target.href !== record.oldValue
         ) {
-          this._onChangedPaymentEndpoint(target)
-          handledTags.add(target)
+          this._onChangedPaymentEndpoint(target);
+          handledTags.add(target);
         }
       }
     }
@@ -280,36 +280,36 @@ export class MonetizationTagManager extends EventEmitter {
    */
   private onAddedTag(tag: MonetizationTag) {
     if (!monetizationTagTypeSpecified(tag)) {
-      return
+      return;
     }
 
-    const type = getTagType(tag)
+    const type = getTagType(tag);
 
     // TODO:WM2 any other cases?
     if (type === 'link' && tag.hasAttribute('disabled')) {
-      return
+      return;
     }
 
     if (type != this.affinity) {
       if (type === 'link') {
-        this.affinity = 'link'
+        this.affinity = 'link';
         // @ts-ignore
         for (const tag of this.monetizationTags.keys()) {
-          this._onRemovedTag(tag)
+          this._onRemovedTag(tag);
         }
       }
     }
 
-    let started: PaymentDetails | null = this.getPaymentDetails(tag)
+    let started: PaymentDetails | null = this.getPaymentDetails(tag);
     if (started.fromBody && started.tagType === 'meta') {
       const error = new Error(
         'Web-Monetization Error: <meta name="monetization"> ' + 'must be in the document head',
-      )
-      this.emit('illegal-state-error', error)
+      );
+      this.emit('illegal-state-error', error);
       if (this.throwOnIllegalState) {
-        throw error
+        throw error;
       } else {
-        return
+        return;
       }
     }
     if (
@@ -330,92 +330,92 @@ export class MonetizationTagManager extends EventEmitter {
         // TODO:WM2, but this DOES work?
         // this won't work, may need to halt completely all the way up
         // the stack
-        return
+        return;
       }
     }
 
     if (started.tagType === 'link') {
-      started = this.checkStartedLinkForWellFormedness(started, tag)
+      started = this.checkStartedLinkForWellFormedness(started, tag);
     }
 
     if (started) {
-      this.monetizationTags.set(tag, { details: started })
-      this.callback({ stopped: null, started: started })
+      this.monetizationTags.set(tag, { details: started });
+      this.callback({ stopped: null, started: started });
     }
   }
 
   _observeMonetizationTagAttrs(tag: MonetizationTag) {
-    const attributeFilter = MonetizationTagAttrs[getTagType(tag)]
+    const attributeFilter = MonetizationTagAttrs[getTagType(tag)];
     this.monetizationTagAttrObserver.observe(tag, {
       childList: false,
       attributeOldValue: true,
       attributeFilter,
-    })
+    });
   }
 
   _onRemovedTag(tag: MonetizationTag) {
-    const entry = this.getEntry(tag, '_onRemovedTag')
-    this.monetizationTags.delete(tag)
-    this.clearLinkById(entry.details)
-    this.callback({ started: null, stopped: entry.details })
+    const entry = this.getEntry(tag, '_onRemovedTag');
+    this.monetizationTags.delete(tag);
+    this.clearLinkById(entry.details);
+    this.callback({ started: null, stopped: entry.details });
   }
 
   private getEntry(meta: MonetizationTag, caller = '') {
-    const entry = this.monetizationTags.get(meta)
+    const entry = this.monetizationTags.get(meta);
     if (!entry) {
-      throw new Error(`${caller}: tag not tracked: ${meta.outerHTML.slice(0, 200)}`)
+      throw new Error(`${caller}: tag not tracked: ${meta.outerHTML.slice(0, 200)}`);
     }
-    return entry
+    return entry;
   }
 
   _onChangedPaymentEndpoint(tag: MonetizationTag, disabled = false, wasDisabled = false) {
-    const entry = this.getEntry(tag, '_onChangedPaymentEndpoint')
-    const stopped = wasDisabled ? null : entry.details
-    this.clearLinkById(entry.details)
-    let started: PaymentDetails | null = null
+    const entry = this.getEntry(tag, '_onChangedPaymentEndpoint');
+    const stopped = wasDisabled ? null : entry.details;
+    this.clearLinkById(entry.details);
+    let started: PaymentDetails | null = null;
     if (!disabled) {
-      started = this.getPaymentDetails(tag)
-      started = this.checkStartedLinkForWellFormedness(started, tag)
+      started = this.getPaymentDetails(tag);
+      started = this.checkStartedLinkForWellFormedness(started, tag);
       if (started) {
-        entry.details = started
+        entry.details = started;
       }
     }
     if (started || stopped) {
-      this.callback({ started, stopped })
+      this.callback({ started, stopped });
     }
   }
 
   private checkStartedLinkForWellFormedness(started: PaymentDetails, tag: MonetizationTag) {
-    let returnValue: PaymentDetails | null = started
+    let returnValue: PaymentDetails | null = started;
     if (started.tagType === 'link') {
-      let error: Error | null = null
+      let error: Error | null = null;
       try {
-        resolvePaymentEndpoint(started.paymentPointer, true)
+        resolvePaymentEndpoint(started.paymentPointer, true);
       } catch (e) {
-        error = e
-        returnValue = null
+        error = e;
+        returnValue = null;
       }
       if (!error && returnValue) {
-        this.linkTagsById.set(started.requestId, tag as HTMLLinkElement)
+        this.linkTagsById.set(started.requestId, tag as HTMLLinkElement);
       } else {
-        this.emit('link-resolve-payment-endpoint-error', tag, error)
+        this.emit('link-resolve-payment-endpoint-error', tag, error);
         // const event = new ErrorEvent('error', { error })
-        const event = new Event('error')
-        tag.dispatchEvent(event)
+        const event = new Event('error');
+        tag.dispatchEvent(event);
       }
     }
-    return returnValue
+    return returnValue;
   }
 
   private clearLinkById(stopped: PaymentDetails) {
     if (stopped.tagType === 'link') {
-      this.linkTagsById.delete(stopped.requestId)
+      this.linkTagsById.delete(stopped.requestId);
     }
   }
 
   private getPaymentDetails(tag: MonetizationTag): PaymentDetails {
-    const tagType = getTagType(tag)
-    const paymentPointer = tag instanceof HTMLMetaElement ? tag.content : tag.href
+    const tagType = getTagType(tag);
+    const paymentPointer = tag instanceof HTMLMetaElement ? tag.content : tag.href;
     return {
       attrs: getTagAttrs(tag, tagType),
       requestId: uuidV4(),
@@ -425,12 +425,12 @@ export class MonetizationTagManager extends EventEmitter {
       initiatingUrl: this.window.location.href,
       tagType: getTagType(tag),
       fromBody: tag.parentElement != this.document.head,
-    }
+    };
   }
 
   private checkMonetizationAttr(node: HTMLElement) {
-    debug('checkMonetizationAttr', node)
-    this.fireOnMonetizationAttrChangedEvent({ node })
+    debug('checkMonetizationAttr', node);
+    this.fireOnMonetizationAttrChangedEvent({ node });
   }
 
   private onOnMonetizationChangeObserved(records: MutationRecord[]) {
@@ -443,7 +443,7 @@ export class MonetizationTagManager extends EventEmitter {
         this.fireOnMonetizationAttrChangedEvent({
           node: record.target,
           changeDetected: true,
-        })
+        });
       }
     }
   }
@@ -452,34 +452,34 @@ export class MonetizationTagManager extends EventEmitter {
     node,
     changeDetected = false,
   }: FireOnMonetizationChangeIfHaveAttributeParams) {
-    const attribute = node.getAttribute('onmonetization')
+    const attribute = node.getAttribute('onmonetization');
     if (attribute || changeDetected) {
       const attributeDetail = {
         attribute,
-      }
+      };
       const customEvent = new CustomEvent('onmonetization-attr-changed', {
         bubbles: true,
         detail: mozClone(attributeDetail, this.document),
-      })
-      const result = node.dispatchEvent(customEvent)
-      debug('dispatched onmonetization-attr-changed ev', result)
+      });
+      const result = node.dispatchEvent(customEvent);
+      debug('dispatched onmonetization-attr-changed ev', result);
     }
   }
 
   stop() {
-    this.documentObserver.disconnect()
-    this.monetizationTagAttrObserver.disconnect()
-    this.monetizationTags.clear()
+    this.documentObserver.disconnect();
+    this.monetizationTagAttrObserver.disconnect();
+    this.monetizationTags.clear();
   }
 
   atMostOneTagAndNoneInBody() {
-    let fromBody = false
+    let fromBody = false;
     // @ts-ignore
     for (const value of this.monetizationTags.values()) {
       if (value.details.fromBody) {
-        fromBody = true
+        fromBody = true;
       }
     }
-    return this.monetizationTags.size <= 1 && !fromBody
+    return this.monetizationTags.size <= 1 && !fromBody;
   }
 }

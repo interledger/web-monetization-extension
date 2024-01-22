@@ -1,14 +1,14 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React, { forwardRef } from 'react'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React, { forwardRef } from 'react';
 
-import { cn } from '@/utils/cn'
+import { cn } from '@/utils/cn';
 
-const labelVariants = cva('text-medium font-medium leading-6 px-2 flex items-center gap-2')
+const labelVariants = cva('text-medium font-medium leading-6 px-2 flex items-center gap-2');
 
 export interface LabelProps
   extends VariantProps<typeof labelVariants>,
     React.LabelHTMLAttributes<HTMLLabelElement> {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export const Label = forwardRef<HTMLLabelElement, LabelProps>(function Label(
@@ -19,5 +19,5 @@ export const Label = forwardRef<HTMLLabelElement, LabelProps>(function Label(
     <label ref={ref} className={cn(labelVariants(), className)} {...props}>
       {children}
     </label>
-  )
-})
+  );
+});

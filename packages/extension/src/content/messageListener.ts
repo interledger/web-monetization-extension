@@ -1,8 +1,8 @@
 // import { Runtime } from 'webextension-polyfill'
 
-import { PaymentSender } from '@/content/monetization'
+import { PaymentSender } from '@/content/monetization';
 
-const paymentSender = new PaymentSender()
+const paymentSender = new PaymentSender();
 
 export const onRequest = async (
   msg: EXTMessage,
@@ -12,7 +12,7 @@ export const onRequest = async (
 
   switch (msg.type) {
     case 'IS_MONETIZATION_READY': {
-      const monetizationTag = document.querySelector('link[rel="monetization"]')
+      const monetizationTag = document.querySelector('link[rel="monetization"]');
 
       return {
         type: 'SUCCESS',
@@ -20,21 +20,21 @@ export const onRequest = async (
           monetization: !!monetizationTag,
           paymentPointer: monetizationTag?.getAttribute('href'),
         },
-      }
+      };
     }
 
     case 'START_PAYMENTS': {
-      paymentSender.start()
-      break
+      paymentSender.start();
+      break;
     }
 
     case 'STOP_PAYMENTS': {
-      paymentSender.stop()
-      break
+      paymentSender.stop();
+      break;
     }
 
     case 'PAYMENT_SUCCESS': {
-      const { receiveAmount, incomingPayment, paymentPointer } = msg.data
+      const { receiveAmount, incomingPayment, paymentPointer } = msg.data;
 
       window.dispatchEvent(
         new CustomEvent('monetization-v2', {
@@ -51,14 +51,14 @@ export const onRequest = async (
             receipt: null,
           },
         }),
-      )
+      );
 
-      break
+      break;
     }
 
     default:
-      return { type: 'SUCCESS' }
+      return { type: 'SUCCESS' };
   }
-}
+};
 
-export default onRequest
+export default onRequest;

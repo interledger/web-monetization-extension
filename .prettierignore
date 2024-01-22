@@ -1,6 +1,8 @@
 public
 generated
 dist
+temp
+dev
 pnpm-lock.yaml
 *.svg
 .gitignore

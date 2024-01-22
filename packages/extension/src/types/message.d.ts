@@ -9,9 +9,9 @@ declare type EXTMessageType =
   | 'START_PAYMENTS'
   | 'STOP_PAYMENTS'
   | 'PAYMENT_SUCCESS'
-  | 'PAUSE_PAYMENTS'
+  | 'PAUSE_PAYMENTS';
 
 declare type EXTMessage<T = any> = {
-  type: EXTMessageType
-  data?: T
-}
+  type: EXTMessageType;
+  data?: T;
+};
