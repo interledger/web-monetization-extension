@@ -33,9 +33,6 @@ module.exports = {
         popup: 'rgb(var(--border-popup) / <alpha-value>)',
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
       },
-      boxShadow: {
-        inset: 'red',
-      },
     },
   },
   plugins: [require('@tailwindcss/forms')],

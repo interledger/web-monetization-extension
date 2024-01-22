@@ -11,6 +11,7 @@ export interface RadioProps {
   id?: string
   disabled?: boolean
   onChange?: any
+  noSelected?: boolean
 }
 
 export const Radio = ({
@@ -21,11 +22,22 @@ export const Radio = ({
   disabled,
   onChange,
   checked,
+  noSelected,
 }: RadioProps): JSX.Element => {
   const inputId = id || `id-${name}-${value}`
+  const divId = `div-${inputId}`
+
+  useEffect(() => {
+    if (checked) document.getElementById(divId)?.focus()
+  }, [checked, divId])
 
   return (
-    <div className="flex items-center">
+    <div
+      id={divId}
+      className="flex items-center"
+      tabIndex={noSelected ? 0 : checked ? 0 : -1}
+      aria-checked={checked}
+      role="radio">
       <input
         id={inputId}
         type="radio"
@@ -83,7 +95,7 @@ export const RadioGroup = ({
     if (event.code === 'ArrowRight' || event.code === 'ArrowDown') {
       event.preventDefault()
 
-      const nextIndex = (selected + 1) % items.length
+      const nextIndex = selected > 0 ? selected + (1 % items.length) : 1
       setSelected(nextIndex)
     } else if (event.code === 'ArrowLeft' || event.code === 'ArrowUp') {
       event.preventDefault()
@@ -95,6 +107,7 @@ export const RadioGroup = ({
 
   useEffect(() => {
     const handleKeyPress = (event: any) => {
+      console.log('handle key press', event)
       if (event.target.type === 'radio' && event.key === 'Enter') {
         setSelected(Number(event.target.value))
       }
@@ -107,12 +120,11 @@ export const RadioGroup = ({
   }, [])
 
   return (
-    //eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <div
-      tabIndex={0}
+      tabIndex={-1}
       className={cn(radioGroupVariants({ variant, fullWidth }), className, 'outline-none')}
       onKeyDown={handleKeyDown}
-      role="tabpanel">
+      role="radiogroup">
       {items.map((item, index) => (
         <Radio
           key={`key-${name}-${item.value}`}
@@ -120,6 +132,7 @@ export const RadioGroup = ({
           name={name}
           disabled={disabled}
           checked={selected === index}
+          noSelected={selected === -1 && index === 0}
           onChange={() => setSelected(index)}
         />
       ))}
