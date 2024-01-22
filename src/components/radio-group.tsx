@@ -107,9 +107,9 @@ export const RadioGroup = ({
 
   useEffect(() => {
     const handleKeyPress = (event: any) => {
-      console.log('handle key press', event)
-      if (event.target.type === 'radio' && event.key === 'Enter') {
-        setSelected(Number(event.target.value))
+      console.log('handle key press', event, selected)
+      if (selected === -1 && (event.code === 'Enter' || event.code === 'Space')) {
+        setSelected(0)
       }
     }
 
@@ -117,7 +117,7 @@ export const RadioGroup = ({
     return () => {
       document.removeEventListener('keypress', handleKeyPress)
     }
-  }, [])
+  }, [selected])
 
   return (
     <div
