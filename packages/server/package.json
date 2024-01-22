@@ -12,8 +12,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx --watch ./src/index.ts",
-    "lint": "eslint . --ext js,ts --max-warnings 0",
-    "lint:fix": "eslint . --ext ts --fix"
+    "lint": "eslint . --ext ts --cache --cache-location 'node_modules/.cache/.eslintcache' --max-warnings 0",
+    "lint:fix": "eslint . --ext ts --cache --cache-location 'node_modules/.cache/.eslintcache' --fix",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@interledger/http-signature-utils": "^2.0.0",

@@ -21,7 +21,6 @@ module.exports = {
   plugins: [
     'html',
     'node',
-    'cypress',
     '@typescript-eslint',
     'jest',
     '@typescript-eslint',

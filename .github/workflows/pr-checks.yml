@@ -14,6 +14,25 @@ concurrency:
 # TODO(@raducristianpopa): add lint/format checks and tests
 
 jobs:
+  checks:
+    name: ESLint, Prettier & Typecheck
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format
+        run: pnpm format
+
+      - name: Typecheck
+        run: pnpm typecheck
+
   build-extension:
     name: Build Extension
     strategy:
