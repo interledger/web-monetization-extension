@@ -25,6 +25,7 @@ module.exports = {
         'button-base': 'rgb(var(--bg-button-base) / <alpha-value>)',
         'button-base-hover': 'rgb(var(--bg-button-base-hover) / <alpha-value>)',
         'switch-base': 'rgb(var(--bg-switch-base) / <alpha-value>)',
+        'disabled-strong': 'rgb(var(--bg-disabled-strong) / <alpha-value>)',
         'disabled-base': 'rgb(var(--bg-disabled-base) / <alpha-value>)',
         'disabled-base-hover': 'rgb(var(--bg-disabled-base-hover) / <alpha-value>)',
       },
@@ -32,6 +33,7 @@ module.exports = {
         base: 'rgb(var(--border-base) / <alpha-value>)',
         popup: 'rgb(var(--border-popup) / <alpha-value>)',
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
+        error: 'rgb(var(--border-error) / <alpha-value>)',
       },
       backgroundImage: {
         'divider-gradient':
