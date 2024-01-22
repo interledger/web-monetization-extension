@@ -18,7 +18,7 @@ function validateBody(body: any): body is GenerateSignatureRequestBody {
 
 async function validatePath(ctx: Context, next: Koa.Next): Promise<void> {
   if (ctx.path !== '/') {
-    ctx.status = 404;
+    ctx.status = 403;
   } else {
     await next();
   }

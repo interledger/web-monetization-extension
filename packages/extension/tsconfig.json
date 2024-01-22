@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "noImplicitAny": true,
-    "composite": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
     "esModuleInterop": true,
@@ -10,7 +9,6 @@
     "allowJs": true,
     "jsx": "react",
     "sourceMap": true,
-    "declaration": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "allowUmdGlobalAccess": true,
@@ -26,6 +24,6 @@
       "@/hooks/*": ["./src/hooks/*"]
     }
   },
-  "include": ["./src/**/*", "local-signature/**/*", "./jest.config.ts", "./jest.setup.ts"],
+  "include": ["./src/**/*", "./jest.config.ts", "./jest.setup.ts"],
   "exclude": ["dist", "dev", "temp"]
 }

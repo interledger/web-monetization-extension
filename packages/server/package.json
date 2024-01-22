@@ -24,7 +24,6 @@
   "devDependencies": {
     "@types/koa": "^2.14.0",
     "@types/koa-bodyparser": "^4.3.12",
-    "tsx": "^4.7.0",
-    "typescript": "^5.2.2"
+    "tsx": "^4.7.0"
   }
 }
