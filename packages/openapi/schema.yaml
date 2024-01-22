@@ -1,0 +1,57 @@
+openapi: 3.1.0
+info:
+  title: Web Monetization Server
+  version: 1.0.0-beta
+  contact:
+    email: tech@interledger.org
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+
+paths:
+  /connect:
+    post:
+      security:
+        - bearer: []
+      summary: Connect a wallet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddressUrl:
+                  type: string
+                  format: uri
+                amount:
+                  type: number
+                recurring:
+                  type: boolean
+              required:
+                - walletAddressUrl
+                - amount
+                - recurring
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  interactionUrl:
+                    type: string
+                    format: uri
+                  continueUrl:
+                    type: string
+                    format: uri
+                  continueToken:
+                    type: string
+                required:
+                  - interactionUrl
+                  - continueUrl
+                  - continueToken
+
