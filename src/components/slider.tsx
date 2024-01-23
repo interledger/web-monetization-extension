@@ -47,7 +47,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         onChange={e => setInnerValue(Number(e.target.value))}
         {...props}
       />
-      {innerValue}
 
       {errorMessage && <p className="text-error text-sm px-2">{errorMessage}</p>}
     </div>
