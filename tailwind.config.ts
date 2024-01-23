@@ -35,6 +35,10 @@ module.exports = {
         focus: 'rgb(var(--border-focus) / <alpha-value>)',
         error: 'rgb(var(--border-error) / <alpha-value>)',
       },
+      backgroundImage: {
+        'divider-gradient':
+          'linear-gradient(90deg, #FF7A7F 0%, #FF7A7F 0%, #FF7A7F 14.3%, #56B7B5 14.3%, #56B7B5 28.6%, #56B7B5 28.6%, #A3BEDC 28.6%, #A3BEDC 42.9%, #A3BEDC 42.9%, #FFC8DC 42.9%, #FFC8DC 57.2%, #FFC8DC 57.2%, #FF9852 57.2%, #FF9852 71.5%, #FF9852 71.5%, #98E1D0 71.5%, #98E1D0 85.8%, #98E1D0 85.8%, #8075B3 85.8%, #8075B3 100%, #8075B3 100%)',
+      },
     },
   },
   plugins: [require('@tailwindcss/forms')],
