@@ -1,0 +1,129 @@
+openapi: 3.1.0
+info:
+  title: Web Monetization Server
+  version: 1.0.0-beta
+  contact:
+    email: tech@interledger.org
+
+paths:
+  /:
+    post:
+      security:
+        - bearer: []
+      summary: Connect a wallet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddressUrl:
+                  type: string
+                  format: uri
+                amount:
+                  type: number
+                recurring:
+                  type: boolean
+              required:
+                - walletAddressUrl
+                - amount
+                - recurring
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  interactionUrl:
+                    type: string
+                    format: uri
+                  continueUrl:
+                    type: string
+                    format: uri
+                  continueToken:
+                    type: string
+                required:
+                  - interactionUrl
+                  - continueUrl
+                  - continueToken
+
+  /incoming-payment:
+    post:
+      security:
+        - bearer: []
+      summary: Create incoming payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddressUrl:
+                  type: string
+                  format: uri
+              required:
+                - walletAddressUrl
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incomingPaymentUrl:
+                    type: string
+                    format: uri
+                required:
+                  - incomingPaymentUrl
+
+  /pay:
+    post:
+      security:
+        - bearer: []
+      summary: Pay into an incoming payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                incomingPaymentUrl:
+                  type: string
+                  format: uri
+                amount:
+                  type: number
+                accessToken:
+                  type: string
+                manageUrl:
+                  type: string
+                  format: uri
+              required:
+                - incomingPaymentUrl
+                - amount
+                - accessToken
+                - manageurl
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incomingPaymentUrl:
+                    type: string
+                    format: uri
+                required:
+                  - incomingPaymentUrl
+
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer

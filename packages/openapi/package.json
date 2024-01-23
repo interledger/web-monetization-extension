@@ -1,0 +1,23 @@
+{
+  "name": "@interledger/wm-openapi",
+  "homepage": "https://github.com/interledger/web-monetization-extension/tree/main/packages/openapi",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:interledeger/web-monetization-extension.git",
+    "directory": "packages/server"
+  },
+  "license": "Apache-2.0",
+  "author": "Interledger Tech Team <tech@interledger.org>",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx --watch ./src/index.ts",
+    "generate": "openapi-typescript ./schemas/web-monetization-server.yaml --output ./src/generated/wm-server-types.ts",
+    "lint": "eslint . --ext ts --cache --cache-location 'node_modules/.cache/.eslintcache' --max-warnings 0",
+    "lint:fix": "eslint . --ext ts --cache --cache-location 'node_modules/.cache/.eslintcache' --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^6.7.4"
+  }
+}
