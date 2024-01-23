@@ -44,13 +44,21 @@ export const Radio = ({
         disabled={disabled}
         value={value}
         name={name}
-        className="hidden"
+        className="hidden peer"
         onChange={onChange}
         checked={checked}
+        aria-checked={checked}
       />
 
-      <label htmlFor={inputId} className="flex items-center">
-        <span className="w-6 h-6 inline-block rounded-full border-2 border-base" />
+      <label htmlFor={inputId} className="group flex items-center">
+        <span
+          className={`w-6 h-6 inline-block rounded-full border-2 border-base
+          peer-checked:group-[]:bg-primary
+          peer-checked:group-[]:border-blue-500
+          peer-checked:group-[]:ring-white
+          peer-checked:group-[]:ring-inset
+          peer-checked:group-[]:ring-4`}
+        />
         {label ? <p className="text-base text-medium leading-6 ms-2">{label}</p> : ''}
       </label>
     </div>
@@ -95,7 +103,7 @@ export const RadioGroup = ({
     if (event.code === 'ArrowRight' || event.code === 'ArrowDown') {
       event.preventDefault()
 
-      const nextIndex = selected > 0 ? selected + (1 % items.length) : 1
+      const nextIndex = (selected >= 0 ? selected + 1 : 1) % items.length
       setSelected(nextIndex)
     } else if (event.code === 'ArrowLeft' || event.code === 'ArrowUp') {
       event.preventDefault()
@@ -107,7 +115,6 @@ export const RadioGroup = ({
 
   useEffect(() => {
     const handleKeyPress = (event: any) => {
-      console.log('handle key press', event, selected)
       if (selected === -1 && (event.code === 'Enter' || event.code === 'Space')) {
         setSelected(0)
       }
@@ -122,7 +129,7 @@ export const RadioGroup = ({
   return (
     <div
       tabIndex={-1}
-      className={cn(radioGroupVariants({ variant, fullWidth }), className, 'outline-none')}
+      className={cn(radioGroupVariants({ variant, fullWidth }), className)}
       onKeyDown={handleKeyDown}
       role="radiogroup">
       {items.map((item, index) => (

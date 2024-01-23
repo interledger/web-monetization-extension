@@ -14,14 +14,14 @@ describe('RadioGroup', () => {
       <RadioGroup variant="inline" items={radioItems} name="radioName" />,
     )
 
-    expect(queryByRole('tabpanel')).toBeInTheDocument()
-    expect(queryByRole('tabpanel')).toHaveClass('flex-row')
+    expect(queryByRole('radiogroup')).toBeInTheDocument()
+    expect(queryByRole('radiogroup')).toHaveClass('flex-row')
   })
 
   it('renders radio group correctly with items', () => {
     const { getByRole } = render(<RadioGroup items={radioItems} name="radioGroup" />)
 
-    const radioGroup = getByRole('tabpanel')
+    const radioGroup = getByRole('radiogroup')
     expect(radioGroup).toBeInTheDocument()
     expect(radioGroup.childNodes.length).toBe(2) // Ensure two radio buttons are rendered
   })
