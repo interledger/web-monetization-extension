@@ -114,7 +114,7 @@ export const RadioGroup = ({
   }
 
   useEffect(() => {
-    const handleKeyPress = (event: any) => {
+    const handleKeyPress = (event: KeyboardEvent) => {
       if (selected === -1 && (event.code === 'Enter' || event.code === 'Space')) {
         setSelected(0)
       }
