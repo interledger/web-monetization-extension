@@ -32,6 +32,7 @@
     "html-webpack-plugin": "^5.5.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.1",
     "sass": "^1.66.1",
     "sass-loader": "^13.3.2",
     "style-loader": "^3.3.3",
@@ -46,6 +47,7 @@
     "zip-webpack-plugin": "^4.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.7",
     "@types/chrome": "^0.0.244",
     "@types/inboxsdk": "^2.0.11",
     "@types/jest": "^29.5.5",
