@@ -99,7 +99,7 @@ export const RadioGroup = ({
   const checkedItem = useMemo(() => items.findIndex(item => item.checked), [items])
   const [selected, setSelected] = useState(checkedItem)
 
-  const handleKeyDown = (event: any) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.code === 'ArrowRight' || event.code === 'ArrowDown') {
       event.preventDefault()
 
