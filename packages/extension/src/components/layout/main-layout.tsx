@@ -1,11 +1,11 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 
-import { Header } from './header'
+import { Header } from './header';
 
 const Divider = () => {
-  return <div className="mb-8 bg-divider-gradient w-100 h-1" />
-}
+  return <div className="mb-8 bg-divider-gradient w-100 h-1" />;
+};
 
 export const MainLayout = () => {
   return (
@@ -16,5 +16,5 @@ export const MainLayout = () => {
         <Outlet />
       </main>
     </div>
-  )
-}
+  );
+};

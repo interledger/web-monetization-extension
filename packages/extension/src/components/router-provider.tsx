@@ -1,14 +1,14 @@
 /* eslint-disable simple-import-sort/imports */
-import React from 'react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
-import { Home } from '@/popup/pages/Home'
-import { Settings } from '@/popup/pages/Settings'
-import { MainLayout } from './layout/main-layout'
+import React from 'react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { Home } from '@/popup/pages/Home';
+import { Settings } from '@/popup/pages/Settings';
+import { MainLayout } from './layout/main-layout';
 
 export const ROUTES = {
   INDEX: 'index',
   SETTINGS: 'settings',
-}
+};
 
 export const RouterProvider = () => (
   <MemoryRouter basename="popup" initialEntries={['/popup/index']}>
@@ -19,4 +19,4 @@ export const RouterProvider = () => (
       </Route>
     </Routes>
   </MemoryRouter>
-)
+);

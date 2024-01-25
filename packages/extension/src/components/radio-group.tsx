@@ -1,17 +1,17 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React, { useEffect, useMemo, useState } from 'react'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React, { useEffect, useMemo, useState } from 'react';
 
-import { cn } from '@/utils/cn'
+import { cn } from '@/utils/cn';
 
 export interface RadioProps {
-  checked?: boolean
-  label?: string
-  value: string
-  name: string
-  id?: string
-  disabled?: boolean
-  onChange?: any
-  noSelected?: boolean
+  checked?: boolean;
+  label?: string;
+  value: string;
+  name: string;
+  id?: string;
+  disabled?: boolean;
+  onChange?: any;
+  noSelected?: boolean;
 }
 
 export const Radio = ({
@@ -24,12 +24,12 @@ export const Radio = ({
   checked,
   noSelected,
 }: RadioProps): JSX.Element => {
-  const inputId = id || `id-${name}-${value}`
-  const divId = `div-${inputId}`
+  const inputId = id || `id-${name}-${value}`;
+  const divId = `div-${inputId}`;
 
   useEffect(() => {
-    if (checked) document.getElementById(divId)?.focus()
-  }, [checked, divId])
+    if (checked) document.getElementById(divId)?.focus();
+  }, [checked, divId]);
 
   return (
     <div
@@ -37,7 +37,8 @@ export const Radio = ({
       className="flex items-center"
       tabIndex={noSelected ? 0 : checked ? 0 : -1}
       aria-checked={checked}
-      role="radio">
+      role="radio"
+    >
       <input
         id={inputId}
         type="radio"
@@ -62,8 +63,8 @@ export const Radio = ({
         {label ? <p className="text-base text-medium leading-6 ms-2">{label}</p> : ''}
       </label>
     </div>
-  )
-}
+  );
+};
 
 const radioGroupVariants = cva(['flex gap-3'], {
   variants: {
@@ -78,14 +79,14 @@ const radioGroupVariants = cva(['flex gap-3'], {
   defaultVariants: {
     variant: 'default',
   },
-})
+});
 
 export interface RadioGroupProps
   extends VariantProps<typeof radioGroupVariants>,
     React.InputHTMLAttributes<HTMLInputElement> {
-  disabled?: boolean
-  items: Omit<RadioProps, 'name'>[]
-  name: string
+  disabled?: boolean;
+  items: Omit<RadioProps, 'name'>[];
+  name: string;
 }
 
 export const RadioGroup = ({
@@ -96,42 +97,43 @@ export const RadioGroup = ({
   disabled,
   className,
 }: RadioGroupProps) => {
-  const checkedItem = useMemo(() => items.findIndex(item => item.checked), [items])
-  const [selected, setSelected] = useState(checkedItem)
+  const checkedItem = useMemo(() => items.findIndex(item => item.checked), [items]);
+  const [selected, setSelected] = useState(checkedItem);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.code === 'ArrowRight' || event.code === 'ArrowDown') {
-      event.preventDefault()
+      event.preventDefault();
 
-      const nextIndex = (selected >= 0 ? selected + 1 : 1) % items.length
-      setSelected(nextIndex)
+      const nextIndex = (selected >= 0 ? selected + 1 : 1) % items.length;
+      setSelected(nextIndex);
     } else if (event.code === 'ArrowLeft' || event.code === 'ArrowUp') {
-      event.preventDefault()
+      event.preventDefault();
 
-      const prevIndex = selected > 0 ? selected - 1 : items.length - 1
-      setSelected(prevIndex)
+      const prevIndex = selected > 0 ? selected - 1 : items.length - 1;
+      setSelected(prevIndex);
     }
-  }
+  };
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (selected === -1 && (event.code === 'Enter' || event.code === 'Space')) {
-        setSelected(0)
+        setSelected(0);
       }
-    }
+    };
 
-    document.addEventListener('keypress', handleKeyPress)
+    document.addEventListener('keypress', handleKeyPress);
     return () => {
-      document.removeEventListener('keypress', handleKeyPress)
-    }
-  }, [selected])
+      document.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [selected]);
 
   return (
     <div
       tabIndex={-1}
       className={cn(radioGroupVariants({ variant, fullWidth }), className)}
       onKeyDown={handleKeyDown}
-      role="radiogroup">
+      role="radiogroup"
+    >
       {items.map((item, index) => (
         <Radio
           key={`key-${name}-${item.value}`}
@@ -144,5 +146,5 @@ export const RadioGroup = ({
         />
       ))}
     </div>
-  )
-}
+  );
+};

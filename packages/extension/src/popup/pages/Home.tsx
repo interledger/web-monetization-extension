@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react'
-import { runtime } from 'webextension-polyfill'
+import React, { useEffect, useState } from 'react';
+import { runtime } from 'webextension-polyfill';
 
-import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages'
+import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages';
 
-const Success = runtime.getURL('assets/images/web-monetization-success.svg')
-const Fail = runtime.getURL('assets/images/web-monetization-fail.svg')
-const CheckIcon = runtime.getURL('assets/images/check.svg')
-const DollarIcon = runtime.getURL('assets/images/dollar.svg')
-const CloseIcon = runtime.getURL('assets/images/close.svg')
+const Success = runtime.getURL('assets/images/web-monetization-success.svg');
+const Fail = runtime.getURL('assets/images/web-monetization-fail.svg');
+const CheckIcon = runtime.getURL('assets/images/check.svg');
+const DollarIcon = runtime.getURL('assets/images/dollar.svg');
+const CloseIcon = runtime.getURL('assets/images/close.svg');
 
 // --- Temporary code until real UI implemented ---
 
 interface IProps {
-  isMonetizationReady: boolean
+  isMonetizationReady: boolean;
 }
 
 const PopupFooter: React.FC<IProps> = ({ isMonetizationReady }) => (
@@ -23,93 +23,93 @@ const PopupFooter: React.FC<IProps> = ({ isMonetizationReady }) => (
       <span>This site isn&apos;t Web Monetization ready</span>
     )}
   </footer>
-)
+);
 
 // --- End of Temporary code until real UI implemented ---
 
 export const Home = () => {
-  const [loading, setLoading] = useState(false)
-  const [paymentStarted, setPaymentStarted] = useState(false)
-  const [spent, setSpent] = useState(0)
-  const [sendingPaymentPointer, setSendingPaymentPointer] = useState('')
-  const [isMonetizationReady, setIsMonetizationReady] = useState(false)
-  const [receivingPaymentPointer, setReceivingPaymentPointer] = useState('')
+  const [loading, setLoading] = useState(false);
+  const [paymentStarted, setPaymentStarted] = useState(false);
+  const [spent, setSpent] = useState(0);
+  const [sendingPaymentPointer, setSendingPaymentPointer] = useState('');
+  const [isMonetizationReady, setIsMonetizationReady] = useState(false);
+  const [receivingPaymentPointer, setReceivingPaymentPointer] = useState('');
   const [formData, setFormData] = useState({
     paymentPointer: sendingPaymentPointer || '',
     amount: 20,
-  })
+  });
 
   useEffect(() => {
-    checkMonetizationReady()
-    getSendingPaymentPointer()
-    listenForIncomingPayment()
+    checkMonetizationReady();
+    getSendingPaymentPointer();
+    listenForIncomingPayment();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   const checkMonetizationReady = async () => {
-    const response = await sendMessageToActiveTab({ type: 'IS_MONETIZATION_READY' })
-    setIsMonetizationReady(response.data.monetization)
-    setReceivingPaymentPointer(response.data.paymentPointer)
-  }
+    const response = await sendMessageToActiveTab({ type: 'IS_MONETIZATION_READY' });
+    setIsMonetizationReady(response.data.monetization);
+    setReceivingPaymentPointer(response.data.paymentPointer);
+  };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prevState => ({ ...prevState, [event.target.name]: event.target.value }))
-  }
+    setFormData(prevState => ({ ...prevState, [event.target.name]: event.target.value }));
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
 
-    setLoading(true)
+    setLoading(true);
     const data = {
       amount: formData.amount,
       paymentPointer: formData.paymentPointer,
       incomingPayment: receivingPaymentPointer,
-    }
+    };
 
-    await sendMessage({ type: 'SET_INCOMING_POINTER', data })
-  }
+    await sendMessage({ type: 'SET_INCOMING_POINTER', data });
+  };
 
   const getSendingPaymentPointer = async () => {
-    const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' })
-    setSendingPaymentPointer(response.data.sendingPaymentPointerUrl)
+    const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' });
+    setSendingPaymentPointer(response.data.sendingPaymentPointerUrl);
 
-    const { sendingPaymentPointerUrl: paymentPointer, amount } = response.data
+    const { sendingPaymentPointerUrl: paymentPointer, amount } = response.data;
     if (paymentPointer && amount) {
       setFormData({
         paymentPointer: response.data.sendingPaymentPointerUrl,
         amount: response.data.amount,
-      })
+      });
     }
-  }
+  };
 
   const listenForIncomingPayment = async () => {
     const listener = (message: any) => {
       if (message.type === 'SPENT_AMOUNT') {
-        setSpent(message.data.spentAmount)
-        setPaymentStarted(true)
+        setSpent(message.data.spentAmount);
+        setPaymentStarted(true);
       }
 
       if (loading) {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    runtime.onMessage.addListener(listener)
+    runtime.onMessage.addListener(listener);
     return () => {
-      runtime.onMessage.removeListener(listener)
-    }
-  }
+      runtime.onMessage.removeListener(listener);
+    };
+  };
 
   const stopPayments = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault()
-    setPaymentStarted(false)
+    e.preventDefault();
+    setPaymentStarted(false);
     setTimeout(() => {
       if (loading) {
-        setLoading(false)
+        setLoading(false);
       }
-    }, 1000)
-    await sendMessageToActiveTab({ type: 'STOP_PAYMENTS' })
-  }
+    }, 1000);
+    await sendMessageToActiveTab({ type: 'STOP_PAYMENTS' });
+  };
 
   return (
     <>
@@ -125,7 +125,8 @@ export const Home = () => {
 
             <form
               onSubmit={handleSubmit}
-              className={`pointerForm ${paymentStarted ? 'active' : ''}`}>
+              className={`pointerForm ${paymentStarted ? 'active' : ''}`}
+            >
               <div className="input-wrapper">
                 <label htmlFor="paymentPointer">Payment pointer</label>
                 <div className="input">
@@ -174,5 +175,5 @@ export const Home = () => {
       </div>
       <PopupFooter isMonetizationReady={isMonetizationReady} />
     </>
-  )
-}
+  );
+};

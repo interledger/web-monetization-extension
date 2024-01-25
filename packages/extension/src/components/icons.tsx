@@ -27,7 +27,8 @@ export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
       viewBox="0 0 25 25"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}>
+      {...props}
+    >
       <mask id="mask0_169_196" maskUnits="userSpaceOnUse" x="0" y="0" width="25" height="25">
         <rect x="0.75" y="0.5" width="24" height="24" fill="#C4C4C4" />
       </mask>
@@ -38,8 +39,8 @@ export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
         />
       </g>
     </svg>
-  )
-}
+  );
+};
 
 export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -49,7 +50,8 @@ export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
       height="25"
       viewBox="0 0 25 25"
       fill="none"
-      {...props}>
+      {...props}
+    >
       <mask id="mask0_140_3136" maskUnits="userSpaceOnUse" x="0" y="0" width="25" height="25">
         <rect x="0.75" y="0.5" width="24" height="24" fill="#C4C4C4" />
       </mask>
@@ -60,8 +62,8 @@ export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
         />
       </g>
     </svg>
-  )
-}
+  );
+};
 
 export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
   return (

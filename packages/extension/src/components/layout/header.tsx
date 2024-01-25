@@ -1,14 +1,14 @@
-import React, { useMemo } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { runtime } from 'webextension-polyfill'
+import React, { useMemo } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { runtime } from 'webextension-polyfill';
 
-import { ArrowBack, Settings } from '../icons'
-import { ROUTES } from '../router-provider'
+import { ArrowBack, Settings } from '../icons';
+import { ROUTES } from '../router-provider';
 
-const Logo = runtime.getURL('assets/images/logo.svg')
+const Logo = runtime.getURL('assets/images/logo.svg');
 
 const NavigationButton = () => {
-  const location = useLocation()
+  const location = useLocation();
 
   const component = useMemo(
     () =>
@@ -23,10 +23,10 @@ const NavigationButton = () => {
       ),
 
     [location],
-  )
+  );
 
-  return component
-}
+  return component;
+};
 
 export const Header = () => {
   return (
@@ -39,5 +39,5 @@ export const Header = () => {
         <NavigationButton />
       </div>
     </div>
-  )
-}
+  );
+};

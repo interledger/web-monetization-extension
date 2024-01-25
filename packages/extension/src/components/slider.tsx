@@ -1,22 +1,22 @@
-import React, { forwardRef } from 'react'
+import React, { forwardRef } from 'react';
 
-import { cn } from '@/utils/cn'
+import { cn } from '@/utils/cn';
 
 export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  errorMessage?: string
-  disabled?: boolean
-  icon?: React.ReactNode
-  min?: number
-  max?: number
-  value?: number
-  defaultValue?: number
+  errorMessage?: string;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+  min?: number;
+  max?: number;
+  value?: number;
+  defaultValue?: number;
 }
 
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
   { errorMessage, defaultValue, value, className, disabled, ...props },
   ref,
 ) {
-  const [innerValue, setInnerValue] = React.useState<number>(value || defaultValue || 0)
+  const [innerValue, setInnerValue] = React.useState<number>(value || defaultValue || 0);
 
   return (
     <div className="w-100">
@@ -53,5 +53,5 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
 
       {errorMessage && <p className="text-error text-sm px-2">{errorMessage}</p>}
     </div>
-  )
-})
+  );
+});
