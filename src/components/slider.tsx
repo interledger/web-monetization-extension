@@ -13,7 +13,7 @@ export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement>
 }
 
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
-  { errorMessage, defaultValue, value, disabled, ...props },
+  { errorMessage, defaultValue, value, className, disabled, ...props },
   ref,
 ) {
   const [innerValue, setInnerValue] = React.useState<number>(value || defaultValue || 0)
@@ -23,8 +23,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
       <input
         ref={ref}
         type="range"
-        className={cn(
-          `[&::-webkit-slider-thumb]:appearance-none
+        className={
+          (cn(
+            `[&::-webkit-slider-thumb]:appearance-none
         [&::-webkit-slider-thumb]:w-5
         [&::-webkit-slider-thumb]:h-5
         [&::-webkit-slider-thumb]:bg-switch-base
@@ -35,9 +36,11 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         [&::-moz-range-thumb]:bg-switch-base
         [&::-moz-range-thumb]:rounded-full
         w-full h-1 bg-disabled-strong rounded-lg appearance-none cursor-pointer dark:bg-disabled-strong`,
-          innerValue === 0 &&
-            '[&::-webkit-slider-thumb]:bg-disabled-strong [&::-moz-range-thumb]:bg-disabled-strong',
-        )}
+            innerValue === 0 &&
+              '[&::-webkit-slider-thumb]:bg-disabled-strong [&::-moz-range-thumb]:bg-disabled-strong',
+          ),
+          className)
+        }
         disabled={disabled ?? false}
         aria-disabled={disabled ?? false}
         aria-invalid={!!errorMessage}
