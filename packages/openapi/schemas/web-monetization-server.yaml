@@ -8,6 +8,48 @@ info:
 paths:
   /:
     post:
+      operationId: monetization
+      security:
+        - bearer: []
+      summary: Pay into an incoming payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                incoming_payment_url:
+                  type: string
+                  format: uri
+                amount:
+                  type: number
+                access_token:
+                  type: string
+                manage_url:
+                  type: string
+                  format: uri
+              required:
+                - incoming_payment_url
+                - amount
+                - access_token
+                - manage_url
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incoming_payment_url:
+                    type: string
+                    format: uri
+                required:
+                  - incoming_payment_url
+
+  /connect:
+    post:
       operationId: connect-wallet
       security:
         - bearer: []
@@ -18,7 +60,7 @@ paths:
             schema:
               type: object
               properties:
-                walletAddressUrl:
+                wallet_address_url:
                   type: string
                   format: uri
                 amount:
@@ -26,7 +68,7 @@ paths:
                 recurring:
                   type: boolean
               required:
-                - walletAddressUrl
+                - wallet_address_url
                 - amount
                 - recurring
         required: true
@@ -38,21 +80,44 @@ paths:
               schema:
                 type: object
                 properties:
-                  interactionUrl:
+                  interaction_url:
                     type: string
                     format: uri
-                  continueUrl:
+                  continue_url:
                     type: string
                     format: uri
-                  continueToken:
+                  continue_token:
                     type: string
                 required:
                   - interactionUrl
                   - continueUrl
                   - continueToken
+        400:
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error_with_validation'
+              examples:
+                Without validation errors:
+                  value:
+                    status: 400
+                    message: 'Missing query parameter'
+                With validation errors:
+                  value:
+                    status: 400
+                    message: 'Invalid request body'
+                    validationErrors:
+                      - field: 'wallet_address'
+                        message: 'Invalid wallet address'
+                      - field: 'amount'
+                        message: 'Invalid amount'
+
+  /pay:
 
   /incoming-payment:
     post:
+      operationId: create-incoming-payment
       security:
         - bearer: []
       summary: Create incoming payment
@@ -62,11 +127,11 @@ paths:
             schema:
               type: object
               properties:
-                walletAddressUrl:
+                wallet_address_url:
                   type: string
                   format: uri
               required:
-                - walletAddressUrl
+                - wallet_address_url
         required: true
       responses:
         200:
@@ -76,48 +141,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  incomingPaymentUrl:
-                    type: string
-                    format: uri
-                required:
-                  - incomingPaymentUrl
-
-  /pay:
-    post:
-      security:
-        - bearer: []
-      summary: Pay into an incoming payment
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                incomingPaymentUrl:
-                  type: string
-                  format: uri
-                amount:
-                  type: number
-                accessToken:
-                  type: string
-                manageUrl:
-                  type: string
-                  format: uri
-              required:
-                - incomingPaymentUrl
-                - amount
-                - accessToken
-                - manageurl
-        required: true
-      responses:
-        200:
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  incomingPaymentUrl:
+                  incoming_payment_url:
                     type: string
                     format: uri
                 required:
@@ -128,3 +152,33 @@ components:
     bearer:
       type: http
       scheme: bearer
+  schemas:
+    error:
+      type: object
+      properties:
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        message:
+          type: string
+      required:
+        - status
+        - message
+    error_with_validation:
+      allOf:
+        - $ref: '#/components/schemas/error'
+        - type: object
+          properties:
+            validationErrors:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+                required:
+                  - field
+                  - message

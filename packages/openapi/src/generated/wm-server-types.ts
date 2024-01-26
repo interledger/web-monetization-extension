@@ -6,67 +6,34 @@
 
 export interface paths {
   "/": {
+    /** Pay into an incoming payment */
+    post: operations["monetization"];
+  };
+  "/connect": {
     /** Connect a wallet */
     post: operations["connect-wallet"];
   };
   "/incoming-payment": {
     /** Create incoming payment */
-    post: {
-      requestBody: {
-        content: {
-          "application/json": {
-            /** Format: uri */
-            walletAddressUrl: string;
-          };
-        };
-      };
-      responses: {
-        /** @description OK */
-        200: {
-          content: {
-            "application/json": {
-              /** Format: uri */
-              incomingPaymentUrl: string;
-            };
-          };
-        };
-      };
-    };
-  };
-  "/pay": {
-    /** Pay into an incoming payment */
-    post: {
-      requestBody: {
-        content: {
-          "application/json": {
-            /** Format: uri */
-            incomingPaymentUrl: string;
-            amount: number;
-            accessToken: string;
-            /** Format: uri */
-            manageUrl?: string;
-          };
-        };
-      };
-      responses: {
-        /** @description OK */
-        200: {
-          content: {
-            "application/json": {
-              /** Format: uri */
-              incomingPaymentUrl: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["create-incoming-payment"];
   };
 }
 
 export type webhooks = Record<string, never>;
 
 export interface components {
-  schemas: never;
+  schemas: {
+    error: {
+      status: number;
+      message: string;
+    };
+    error_with_validation: components["schemas"]["error"] & {
+      validationErrors?: {
+          field: string;
+          message: string;
+        }[];
+    };
+  };
   responses: never;
   parameters: never;
   requestBodies: never;
@@ -80,13 +47,39 @@ export type external = Record<string, never>;
 
 export interface operations {
 
+  /** Pay into an incoming payment */
+  monetization: {
+    requestBody: {
+      content: {
+        "application/json": {
+          /** Format: uri */
+          incoming_payment_url: string;
+          amount: number;
+          access_token: string;
+          /** Format: uri */
+          manage_url: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            /** Format: uri */
+            incoming_payment_url: string;
+          };
+        };
+      };
+    };
+  };
   /** Connect a wallet */
   "connect-wallet": {
     requestBody: {
       content: {
         "application/json": {
           /** Format: uri */
-          walletAddressUrl: string;
+          wallet_address_url: string;
           amount: number;
           recurring: boolean;
         };
@@ -98,10 +91,38 @@ export interface operations {
         content: {
           "application/json": {
             /** Format: uri */
-            interactionUrl: string;
+            interaction_url?: string;
             /** Format: uri */
-            continueUrl: string;
-            continueToken: string;
+            continue_url?: string;
+            continue_token?: string;
+          };
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          "application/json": components["schemas"]["error_with_validation"];
+        };
+      };
+    };
+  };
+  /** Create incoming payment */
+  "create-incoming-payment": {
+    requestBody: {
+      content: {
+        "application/json": {
+          /** Format: uri */
+          wallet_address_url: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            /** Format: uri */
+            incoming_payment_url?: string;
           };
         };
       };
