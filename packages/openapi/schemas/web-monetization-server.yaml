@@ -8,6 +8,7 @@ info:
 paths:
   /:
     post:
+      operationId: connect-wallet
       security:
         - bearer: []
       summary: Connect a wallet

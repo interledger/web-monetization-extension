@@ -7,32 +7,7 @@
 export interface paths {
   "/": {
     /** Connect a wallet */
-    post: {
-      requestBody: {
-        content: {
-          "application/json": {
-            /** Format: uri */
-            walletAddressUrl: string;
-            amount: number;
-            recurring: boolean;
-          };
-        };
-      };
-      responses: {
-        /** @description OK */
-        200: {
-          content: {
-            "application/json": {
-              /** Format: uri */
-              interactionUrl: string;
-              /** Format: uri */
-              continueUrl: string;
-              continueToken: string;
-            };
-          };
-        };
-      };
-    };
+    post: operations["connect-wallet"];
   };
   "/incoming-payment": {
     /** Create incoming payment */
@@ -103,4 +78,33 @@ export type $defs = Record<string, never>;
 
 export type external = Record<string, never>;
 
-export type operations = Record<string, never>;
+export interface operations {
+
+  /** Connect a wallet */
+  "connect-wallet": {
+    requestBody: {
+      content: {
+        "application/json": {
+          /** Format: uri */
+          walletAddressUrl: string;
+          amount: number;
+          recurring: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        content: {
+          "application/json": {
+            /** Format: uri */
+            interactionUrl: string;
+            /** Format: uri */
+            continueUrl: string;
+            continueToken: string;
+          };
+        };
+      };
+    };
+  };
+}

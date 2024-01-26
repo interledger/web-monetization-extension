@@ -2,6 +2,8 @@
   "name": "@interledger/wm-openapi",
   "homepage": "https://github.com/interledger/web-monetization-extension/tree/main/packages/openapi",
   "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "repository": {
     "type": "git",
     "url": "git@github.com:interledeger/web-monetization-extension.git",
