@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { runtime } from 'webextension-polyfill'
 
-import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages'
+import { Button } from '@/components/button'
+import { DollarSign } from '@/components/icons'
 import { Input } from '@/components/input'
 import { Label } from '@/components/label'
-import { DollarSign } from '@/components/icons'
-import { Button } from '@/components/button'
+import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages'
 
-const Success = runtime.getURL('assets/images/web-monetization-success.svg')
 const Fail = runtime.getURL('assets/images/web-monetization-fail.svg')
-const CheckIcon = runtime.getURL('assets/images/check.svg')
-const DollarIcon = runtime.getURL('assets/images/dollar.svg')
-const CloseIcon = runtime.getURL('assets/images/close.svg')
 
 // --- Temporary code until real UI implemented ---
 
@@ -42,11 +38,15 @@ export const Home = () => {
     paymentPointer: sendingPaymentPointer || '',
     amount: 20,
   })
+  const [publicKey, setPublicKey] = useState('')
 
   useEffect(() => {
     checkMonetizationReady()
     getSendingPaymentPointer()
     listenForIncomingPayment()
+    chrome.storage.local.get('publicKey', v => {
+      setPublicKey(v.publicKey)
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -125,6 +125,11 @@ export const Home = () => {
       <div className="mb-20">
         {isMonetizationReady ? (
           <>
+            {publicKey && (
+              <textarea rows={4} className="w-full">
+                {publicKey}
+              </textarea>
+            )}
             <form onSubmit={handleSubmit}>
               <div className="mb-5">
                 <Label className="text-base" htmlFor="paymentPointer">

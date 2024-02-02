@@ -16,7 +16,7 @@ export const getIncomingPaymentUrlId: TGetIncomingPaymentUrlId = async ({
   const incomingPayment = await instance.post(
     new URL(walletAddress).origin + '/incoming-payments',
     {
-      walletAddress, // receivingPaymentPointerUrl
+      walletAddress,
       expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
     },
     getHeaders(token),

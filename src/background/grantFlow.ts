@@ -1,6 +1,5 @@
 import { tabs } from 'webextension-polyfill'
 
-import { WM_WALLET_ADDRESS } from '@/background/config'
 import {
   createQuote,
   getHeaders,
@@ -51,7 +50,7 @@ export class PaymentFlowService {
     this.receivingWalletAddress = await this.getWalletAddress(this.receivingPaymentPointerUrl)
 
     this.clientAuthToken = await getIncomingPaymentGrant({
-      client: WM_WALLET_ADDRESS,
+      client: this.sendingPaymentPointerUrl,
       identifier: this.receivingPaymentPointerUrl,
       wallet: this.receivingWalletAddress,
       instance: this.axiosInstance,
@@ -64,14 +63,13 @@ export class PaymentFlowService {
     })
 
     this.quoteGrantToken = await getQuoteGrant({
-      client: WM_WALLET_ADDRESS,
-      identifier: this.sendingPaymentPointerUrl,
+      client: this.sendingPaymentPointerUrl,
       wallet: this.sendingWalletAddress,
       instance: this.axiosInstance,
     })
 
     const outgoingData = await getOutgoingPaymentGrant({
-      client: WM_WALLET_ADDRESS,
+      client: this.sendingPaymentPointerUrl,
       identifier: this.sendingPaymentPointerUrl,
       wallet: this.sendingWalletAddress,
       amount: this.amount,
@@ -133,7 +131,6 @@ export class PaymentFlowService {
       type: 'PAYMENT_SUCCESS',
       data: { receiveAmount, incomingPayment, paymentPointer },
     })
-    // console.log('outgoingPayment', outgoingPayment)
   }
 
   async sendPayment() {

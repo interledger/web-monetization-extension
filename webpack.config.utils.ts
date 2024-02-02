@@ -209,6 +209,12 @@ export const getResolves = () => {
   return {
     fallback: {
       events: require.resolve('events/'),
+      crypto: require.resolve('crypto-browserify'),
+      url: require.resolve('url/'),
+      constants: require.resolve('constants-browserify'),
+      buffer: require.resolve('buffer/'),
+      stream: require.resolve('stream-browserify'),
+      fs: false,
     },
     alias: {
       '@/utils': path.resolve(__dirname, './src/utils/'),

@@ -19,11 +19,11 @@ export const getIncomingPaymentGrant: TGetIncomingPaymentGrant = async ({
         {
           type: 'incoming-payment',
           actions: ['create', 'read', 'list'],
-          identifier, // receivingPaymentPointerUrl
+          identifier,
         },
       ],
     },
-    client, // WM_PAYMENT_POINTER_URL
+    client,
   }
 
   const response = await instance.post(wallet.authServer + '/', payload)

@@ -46,7 +46,7 @@ export const getOutgoingPaymentGrant: TGetOutgoingPaymentGrant = async ({
     },
   }
 
-  const outgoingPaymentGrant = await instance.post(wallet.authServer + '/', payload)
+  const outgoingPaymentGrant = await instance.post(wallet.authServer, payload)
 
   if (!outgoingPaymentGrant.data.interact.redirect) {
     throw new Error('No redirect')

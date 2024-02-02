@@ -7,8 +7,9 @@ const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
 const iconInactive34 = runtime.getURL('assets/icons/icon-inactive-34.png')
 const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
 
-// const SENDING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/wmuser' // cel din extensie al userului
-// const RECEIVING_PAYMENT_POINTER_URL = 'https://ilp.rafiki.money/web-page' // cel din dom
+function arrayBufferToString(buf: ArrayBuffer) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf))
+}
 
 /**
  * Define background script functions
@@ -30,8 +31,6 @@ class Background {
    * @returns {void}
    */
   init = async () => {
-    console.log('[===== Loaded Background Scripts =====]')
-
     //When extension installed
     runtime.onInstalled.addListener(this.onInstalled)
 
@@ -50,11 +49,73 @@ class Background {
 
   //TODO: Listeners
 
+  async exportPublicCryptoKey(key: CryptoKey) {
+    const publicKey = await window.crypto.subtle.exportKey('spki', key)
+    const jwk = await window.crypto.subtle.exportKey('jwk', key)
+
+    if (!jwk.x) {
+      throw new Error('Missing x coordinate')
+    }
+
+    // Used the fetch the key id from the jwks.json route
+    chrome.storage.local.set({ x: jwk.x })
+
+    const stringPublicKey = arrayBufferToString(publicKey)
+    const base64PublicKey = window.btoa(stringPublicKey)
+    const pem = `-----BEGIN PUBLIC KEY-----\n${base64PublicKey}\n-----END PUBLIC KEY-----`
+
+    return pem
+  }
+
+  async exportPrivateCryptoKey(key: CryptoKey) {
+    const privateKey = await window.crypto.subtle.exportKey('jwk', key)
+    // const stringPrivateKey = arrayBufferToString(privateKey)
+    // const base64PrivateKey = window.btoa(stringPrivateKey)
+    // const pemExported = `-----BEGIN PRIVATE KEY-----\n${base64PrivateKey}\n-----END PRIVATE KEY-----`
+
+    return privateKey
+  }
+
+  private async keyExists(): Promise<boolean> {
+    return new Promise(res => {
+      chrome.storage.local.get(['publicKey', 'privateKey', 'x'], values => {
+        if (values.publicKey && values.privateKey && values.x) {
+          res(true)
+        } else {
+          res(false)
+        }
+      })
+    })
+  }
+
   /**
    * Extension Installed
    */
-  onInstalled = () => {
-    console.log('[===== Installed Extension!] =====')
+  onInstalled = async () => {
+    chrome.storage.local.get(['publicKey', 'privateKey', 'x', 'keyId'], values => {
+      console.log({ values })
+    })
+
+    if (await this.keyExists()) return
+
+    const keys = await window.crypto.subtle.generateKey(
+      {
+        name: 'Ed25519',
+      },
+      true,
+      ['sign', 'verify'],
+    )
+
+    if (keys instanceof CryptoKey) {
+      throw new Error('Expected CryptoKeyPair. CryptoKey was generated')
+    }
+
+    const publicKey = await this.exportPublicCryptoKey(keys.publicKey)
+    const privateKey = await this.exportPrivateCryptoKey(keys.privateKey)
+
+    chrome.storage.local.set({ publicKey, privateKey }, () => {
+      console.info('Public key and private key were successfully saved.')
+    })
   }
 
   /**
@@ -81,6 +142,25 @@ class Background {
             paymentPointer: sendingPaymentPointerUrl,
             amount,
           } = message.data
+
+          chrome.storage.local.get('x', async v => {
+            const { x } = v
+            const response = await fetch('https://eu1.fynbos.me/radu/jwks.json', {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+
+            const json = (await response.json()) as { keys: (JsonWebKey & { kid: string })[] }
+
+            json.keys.forEach(j => {
+              if (j.x === x) {
+                chrome.storage.local.set({ keyId: j.kid }, () => {
+                  console.info('Fetched key id for public key - ' + j.kid)
+                })
+              }
+            })
+          })
 
           if (this.grantFlow?.sendingPaymentPointerUrl === sendingPaymentPointerUrl) {
             if (!this.paymentStarted) {

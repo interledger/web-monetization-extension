@@ -1,5 +1,6 @@
 import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
+import { ProvidePlugin } from 'webpack'
 
 import {
   config,
@@ -86,6 +87,9 @@ let plugins: any[] = [
   ...getExtensionManifestPlugins(),
   ...getHTMLPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
   ...getCopyPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
+  new ProvidePlugin({
+    Buffer: ['buffer', 'Buffer'],
+  }),
 ]
 
 if (config.NODE_ENV === 'development') {
@@ -109,7 +113,7 @@ if (config.NODE_ENV === 'development') {
     ...plugins,
     ...getDefinePlugins({
       SIGNATURES_URL: 'http://localhost:3000',
-      WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
+      WM_WALLET_ADDRESS: 'https://eu1.fynbos.me/radu',
     }),
     ...getExtensionReloaderPlugins(),
   ]
