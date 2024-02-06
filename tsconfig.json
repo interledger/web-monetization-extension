@@ -21,6 +21,7 @@
       "@/content/*": ["./content/*"],
       "@/assets/*": ["./assets/*"],
       "@/components/*": ["./components/*"],
+      "@/providers/*": ["./providers/*"],
       "@/types/*": ["./types/*"],
       "@/hooks/*": ["./hooks/*"]
     }
