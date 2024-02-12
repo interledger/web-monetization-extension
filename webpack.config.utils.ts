@@ -10,7 +10,7 @@ import ZipPlugin from 'zip-webpack-plugin'
 
 const ExtReloader = require('webpack-ext-reloader-mv3')
 
-const manifestChrome = require('./src/manifest/chrome.json')
+const manifestChrome = require('./src/manifest/chrome-v3.json')
 const manifestFirefox = require('./src/manifest/firefox.json')
 const manifestOpera = require('./src/manifest/opera.json')
 const manifestEdge = require('./src/manifest/edge.json')
@@ -49,7 +49,7 @@ const EnvConfig: EnvironmentConfig = {
         ? Directories.DIST_DIR
         : Directories.DEV_DIR,
   ...(process.env.NODE_ENV ? { NODE_ENV: process.env.NODE_ENV } : { NODE_ENV: 'development' }),
-  ...(process.env.TARGET ? { TARGET: process.env.TARGET } : { TARGET: 'chrome' }),
+  ...(process.env.TARGET ? { TARGET: process.env.TARGET } : { TARGET: 'chrome-v3' }),
 }
 
 /**
@@ -110,6 +110,7 @@ export const getEntry = (sourceDir = Directories.SRC_DIR) => {
   return {
     popup: [path.resolve(__dirname, `${sourceDir}/popup/index.tsx`)],
     content: [path.resolve(__dirname, `${sourceDir}/content/index.tsx`)],
+    contentStatic: [path.resolve(__dirname, `${sourceDir}/content/static/index.ts`)],
     background: [path.resolve(__dirname, `${sourceDir}/background/index.ts`)],
   }
 }

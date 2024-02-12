@@ -1,16 +1,15 @@
-// import { Runtime } from 'webextension-polyfill'
-
 import { PaymentSender } from '@/content/monetization'
 
 const paymentSender = new PaymentSender()
 
-export const onRequest = async (
-  msg: EXTMessage,
-  // sender: Runtime.SendMessageOptionsType,
-): Promise<EXTResponse | undefined> => {
-  // console.log('~~~~~~~', msg)
-
+export const onRequest = async (msg: EXTMessage): Promise<EXTResponse | undefined> => {
   switch (msg.type) {
+    case 'LOAD': {
+      const monetizationTag = document.querySelector('link[rel="monetization"]')
+      monetizationTag?.dispatchEvent(new Event('load'))
+      break
+    }
+
     case 'IS_MONETIZATION_READY': {
       const monetizationTag = document.querySelector('link[rel="monetization"]')
 
