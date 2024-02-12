@@ -1,20 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { fireEvent, render } from '@testing-library/react'
 import React from 'react'
 
 import { Code } from '../code'
 
 describe('Code', () => {
-  // beforeAll(() => {
-  //   ;(navigator as any).clipboard = {
-  //     writeText: jest.fn(),
-  //   }
-  // })
-  //
-  // afterAll(() => {
-  //   jest.restoreAllMocks()
-  // })
-
   it('should render the code component', () => {
     const { queryByRole, container } = render(<Code value="test" />)
     const code = container.querySelector('code')
