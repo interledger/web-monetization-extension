@@ -10,7 +10,7 @@ import ZipPlugin from 'zip-webpack-plugin'
 
 const ExtReloader = require('webpack-ext-reloader-mv3')
 
-const manifestChrome = require('./src/manifest/chrome-v3.json')
+const manifestChrome = require('./src/manifest/chrome.json')
 const manifestFirefox = require('./src/manifest/firefox.json')
 const manifestOpera = require('./src/manifest/opera.json')
 const manifestEdge = require('./src/manifest/edge.json')
