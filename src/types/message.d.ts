@@ -10,6 +10,9 @@ declare type EXTMessageType =
   | 'STOP_PAYMENTS'
   | 'PAYMENT_SUCCESS'
   | 'PAUSE_PAYMENTS'
+  | 'GET_STORAGE_DATA'
+  | 'LOAD'
+  | 'FIRE_LOAD'
 
 declare type EXTMessage<T = any> = {
   type: EXTMessageType
