@@ -3,8 +3,10 @@ import { runtime, tabs } from 'webextension-polyfill'
 import { PaymentFlowService } from '@/background/grantFlow'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
+import getStorageData from '../messageHandlers/getStorageData'
 import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
 import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
+import { defaultData } from './StorageService'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
 
 class Background {
@@ -12,6 +14,7 @@ class Background {
     isMonetizationReadyHandler,
     setIncomingPointerHandler,
     getSendingPaymentPointerHandler,
+    getStorageData,
   ]
   private subscriptions: any = []
   // TO DO: remove these from background into storage or state & use injection
@@ -19,7 +22,12 @@ class Background {
   spentAmount: number = 0
   paymentStarted = false
 
-  constructor() {}
+  constructor({ storageService }: any) {
+    storageService
+      .set('data', defaultData)
+      .then(() => console.log('Default data stored successfully'))
+      .catch((error: any) => console.error('Error storing data:', error))
+  }
 
   subscribeToMessages() {
     this.subscriptions = this.messageHandlers.map((handler: any) => {
