@@ -13,7 +13,7 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
   return (
     <div
       className={cn(
-        'flex items-center gap-x-2 rounded-xl bg-nav-active p-4 text-medium break-all',
+        'flex items-center justify-between gap-x-2 rounded-xl bg-nav-active p-4 text-medium break-all',
         className,
       )}
       {...props}>
@@ -31,9 +31,11 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
   const [hasCopied, setHasCopied] = React.useState(false)
 
   React.useEffect(() => {
-    setTimeout(() => {
-      setHasCopied(false)
-    }, 2000)
+    if (hasCopied === true) {
+      setTimeout(() => {
+        setHasCopied(false)
+      }, 2000)
+    }
   }, [hasCopied])
 
   return (
@@ -42,7 +44,7 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
       aria-label="copy"
       variant="ghost"
       size="icon"
-      className="text-primary"
+      className="text-primary rounded-sm"
       onClick={() => {
         navigator.clipboard.writeText(value)
         setHasCopied(true)
