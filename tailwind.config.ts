@@ -21,6 +21,7 @@ module.exports = {
       backgroundColor: {
         primary: 'rgb(var(--bg-primary) / <alpha-value>)',
         error: 'rgb(var(--bg-error) / <alpha-value>)',
+        'nav-active': 'rgb(var(--bg-nav-active) / <alpha-value>)',
         'error-hover': 'rgb(var(--bg-error-hover) / <alpha-value>)',
         'button-base': 'rgb(var(--bg-button-base) / <alpha-value>)',
         'button-base-hover': 'rgb(var(--bg-button-base-hover) / <alpha-value>)',
