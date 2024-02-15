@@ -221,6 +221,12 @@ export class PaymentFlowService {
 
     this.incomingPaymentUrlId = incomingPayment.id
 
+    // Revoke grant to avoid leaving users with unused, dangling grants.
+    await this.client.grant.cancel({
+      url: incomingPaymentGrant.continue.uri,
+      accessToken: incomingPaymentGrant.continue.access_token.value,
+    })
+
     const quoteAndOPGrant = await this.client.grant.request(
       {
         url: this.receivingWalletAddress.authServer,
@@ -382,7 +388,7 @@ export class PaymentFlowService {
               try {
                 const tabUrl = new URL(changeInfo.url || '')
                 const interactRef = tabUrl.searchParams.get('interact_ref')
-
+                // TODO: Verify hash
                 if (tabId === tab.id && interactRef) {
                   tabs.update(currentTabId, { active: true })
                   tabs.remove(tab.id)
