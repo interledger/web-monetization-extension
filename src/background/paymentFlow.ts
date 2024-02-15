@@ -43,22 +43,17 @@ type Headers = SignatureHeaders & Partial<ContentHeaders>
 
 export class PaymentFlowService {
   client: AuthenticatedClient
-
-  sendingPaymentPointerUrl: string
-  receivingPaymentPointerUrl: string
-
-  incomingPaymentUrlId: string
-  quoteUrlId: string
-
-  token: string
-  interactRef: string
-
-  manageUrl: string
-
-  amount: string | number
-
   sendingWalletAddress: WalletAddress
   receivingWalletAddress: WalletAddress
+  sendingPaymentPointerUrl: string
+  receivingPaymentPointerUrl: string
+  incomingPaymentUrlId: string
+  quoteUrlId: string
+  token: string
+  interactRef: string
+  manageUrl: string
+  amount: string | number
+  nonce: string | null
 
   constructor(
     sendingPaymentPointerUrl: string,
@@ -220,6 +215,7 @@ export class PaymentFlowService {
     )
 
     this.incomingPaymentUrlId = incomingPayment.id
+    this.nonce = crypto.randomUUID()
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
     await this.client.grant.cancel({
@@ -257,7 +253,7 @@ export class PaymentFlowService {
           finish: {
             method: 'redirect',
             uri: 'http://localhost:3344',
-            nonce: new Date().getTime().toString(),
+            nonce: this.nonce,
           },
         },
       },
@@ -270,6 +266,9 @@ export class PaymentFlowService {
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
     const interactRef = await this.confirmPayment(quoteAndOPGrant.interact.redirect)
+
+    // verify hash
+    //
 
     const continuation = await this.client.grant.continue(
       {
@@ -379,6 +378,14 @@ export class PaymentFlowService {
     return activeTabs[0].id
   }
 
+  // TODO: Finish verify hash
+  async verifyHash(interactRef: string, interactNonce: string, hash: string): Promise<void> {
+    const url = this.sendingWalletAddress.authServer
+    const data = new TextEncoder().encode(
+      `${this.nonce}\n${interactNonce}\n${interactRef}\n${url}/`,
+    )
+  }
+
   private async confirmPayment(url: string): Promise<string> {
     const currentTabId = await this.getCurrentActiveTabId()
 
@@ -390,7 +397,7 @@ export class PaymentFlowService {
               try {
                 const tabUrl = new URL(changeInfo.url || '')
                 const interactRef = tabUrl.searchParams.get('interact_ref')
-                // TODO: Verify hash
+
                 if (tabId === tab.id && interactRef) {
                   tabs.update(currentTabId, { active: true })
                   tabs.remove(tab.id)
