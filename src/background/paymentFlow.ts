@@ -245,7 +245,7 @@ export class PaymentFlowService {
               limits: {
                 debitAmount: {
                   value: String(Number(this.amount) * 10 ** this.sendingWalletAddress.assetScale),
-                  assetScale: this.sendingWalletAddress.assetScale, // 9
+                  assetScale: this.sendingWalletAddress.assetScale,
                   assetCode: this.sendingWalletAddress.assetCode,
                 },
               },
@@ -267,6 +267,8 @@ export class PaymentFlowService {
       throw new Error('Expected interactive grant. Received non-pending grant.')
     }
 
+    // Q: Should this be moved to continuation polling?
+    // https://github.com/interledger/open-payments/issues/385
     const interactRef = await this.confirmPayment(quoteAndOPGrant.interact.redirect)
 
     const continuation = await this.client.grant.continue(
@@ -322,9 +324,9 @@ export class PaymentFlowService {
 
   async sendPayment() {
     // (1) TODO: Use the amount that is derived from the rate of pay
-    // (2) TODO: Rotate token if it expired
+    // (2) TODO: Rotate token if it expired (example: https://github.com/interledger/open-payments-snippets/blob/main/token/token-rotate.ts)
 
-    // Notice: The same access token is utilized for both quotes and outgoing payments.
+    // Notice: The same access token is used for both quotes and outgoing payments.
     // During the grant request process, it is possible to specify multiple accesses. (see L224).
     // Employing a singular access token simplifies the process by eliminating the need to manage two separate access tokens for the sending side.
     const AMOUNT = 0.02
