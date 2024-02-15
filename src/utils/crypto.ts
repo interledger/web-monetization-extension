@@ -5,23 +5,9 @@ ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m))
 
 export function generateEd25519KeyPair() {
   const rawPrivateKey = ed.utils.randomPrivateKey()
+  // prettier-ignore
   const privateKey = new Uint8Array([
-    48,
-    46,
-    2,
-    1,
-    0,
-    48,
-    5,
-    6,
-    3,
-    43,
-    101,
-    112,
-    4,
-    34,
-    4,
-    32,
+    48, 46, 2, 1, 0, 48, 5, 6, 3, 43, 101, 112, 4, 34, 4, 32,
     ...rawPrivateKey,
   ])
   const publicKey = ed.getPublicKey(rawPrivateKey)
