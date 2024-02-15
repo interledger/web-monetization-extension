@@ -29,7 +29,7 @@ export function generateEd25519KeyPair() {
   return { privateKey, publicKey }
 }
 
-export function exportJWK(key: Uint8Array, kid: string) {
+export function exportJWK(key: Uint8Array, keyId: string) {
   const string = String.fromCharCode.apply(null, key)
 
   const base64 = btoa(string)
@@ -39,6 +39,6 @@ export function exportJWK(key: Uint8Array, kid: string) {
     kty: 'OKP',
     crv: 'Ed25519',
     x: base64Url,
-    kid,
+    kid: keyId,
   }
 }

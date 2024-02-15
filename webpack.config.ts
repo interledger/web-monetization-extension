@@ -1,6 +1,8 @@
 import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 
+import { ProvidePlugin } from 'webpack'
+
 import {
   config,
   Directories,
@@ -86,12 +88,18 @@ let plugins: any[] = [
   ...getExtensionManifestPlugins(),
   ...getHTMLPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
   ...getCopyPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
+  new ProvidePlugin({
+    Buffer: ['buffer', 'Buffer'],
+  }),
+  new ProvidePlugin({
+    process: 'process/browser',
+  }),
 ]
 
 if (config.NODE_ENV === 'development') {
   generalConfig = {
     ...generalConfig,
-    devtool: 'source-map',
+    devtool: 'cheap-module-source-map',
     stats: {
       all: false,
       builtAt: true,

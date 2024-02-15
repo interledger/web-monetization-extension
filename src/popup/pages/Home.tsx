@@ -43,6 +43,9 @@ export const Home = () => {
     checkMonetizationReady()
     getSendingPaymentPointer()
     listenForIncomingPayment()
+    chrome.storage.local.get('publicKey', v => {
+      console.log(v)
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

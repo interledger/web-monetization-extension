@@ -138,6 +138,10 @@ export const getCopyPlugins = (
           from: path.resolve(__dirname, `${sourceDir}/_locales`),
           to: path.resolve(__dirname, `${outputDir}/${browserDir}/_locales`),
         },
+        {
+          from: path.resolve(__dirname, `node_modules/@interledger/open-payments/dist/openapi`),
+          to: path.resolve(__dirname, `${outputDir}/${browserDir}/openapi`),
+        },
       ],
     }),
   ]
@@ -209,6 +213,21 @@ export const getResolves = () => {
   return {
     fallback: {
       events: require.resolve('events/'),
+      crypto: require.resolve('crypto-browserify'),
+      path: require.resolve('path-browserify'),
+      url: require.resolve('url/'),
+      util: require.resolve('util/'),
+      assert: require.resolve('assert/'),
+      querystring: require.resolve('querystring-es3'),
+      constants: require.resolve('constants-browserify'),
+      buffer: require.resolve('buffer/'),
+      zlib: require.resolve('browserify-zlib'),
+      stream: require.resolve('stream-browserify'),
+      http: require.resolve('stream-http'),
+      process: false,
+      fs: false,
+      net: false,
+      async_hooks: false,
     },
     alias: {
       '@/utils': path.resolve(__dirname, './src/utils/'),
