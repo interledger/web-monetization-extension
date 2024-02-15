@@ -13,9 +13,6 @@ import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { tabs } from 'webextension-polyfill'
 
-import { confirmPayment } from '@/background/grant/confirmPayment'
-import { getAxiosInstance } from '@/background/requestConfig'
-
 interface RequestLike extends Request {
   body?: string
 }
@@ -45,7 +42,6 @@ interface KeyInformation {
 type Headers = SignatureHeaders & Partial<ContentHeaders>
 
 export class PaymentFlowService {
-  axiosInstance = getAxiosInstance()
   client: AuthenticatedClient
 
   sendingPaymentPointerUrl: string
@@ -242,7 +238,6 @@ export class PaymentFlowService {
               identifier: this.sendingWalletAddress.id,
               limits: {
                 debitAmount: {
-                  // TODO: replace
                   value: String(Number(this.amount) * 10 ** this.sendingWalletAddress.assetScale),
                   assetScale: this.sendingWalletAddress.assetScale, // 9
                   assetCode: this.sendingWalletAddress.assetCode,
@@ -266,7 +261,7 @@ export class PaymentFlowService {
       throw new Error('Expected interactive grant. Received non-pending grant.')
     }
 
-    const interactRef = await confirmPayment(quoteAndOPGrant.interact.redirect)
+    const interactRef = await this.confirmPayment(quoteAndOPGrant.interact.redirect)
 
     const continuation = await this.client.grant.continue(
       {
@@ -279,7 +274,7 @@ export class PaymentFlowService {
     )
 
     if (!isFinalizedGrant(continuation)) {
-      throw new Error('Grant is not finalized')
+      throw new Error('Expected finalized grant. Received unfinalized grant.')
     }
 
     this.manageUrl = continuation.access_token.manage
@@ -298,7 +293,7 @@ export class PaymentFlowService {
     const json = await response.json()
 
     if (!this.isWalletAddress(json)) {
-      throw new Error('Invalid wallet address response')
+      throw new Error('Invalid wallet address response.')
     }
 
     return json
@@ -320,6 +315,7 @@ export class PaymentFlowService {
   }
 
   async sendPayment() {
+    // TODO: Use the amount that is derived from the rate of pay
     const AMOUNT = 0.02
     const quote = await this.client.quote.create(
       {
@@ -368,5 +364,32 @@ export class PaymentFlowService {
   async getCurrentActiveTabId() {
     const activeTabs = await tabs.query({ active: true, currentWindow: true })
     return activeTabs[0].id
+  }
+
+  private async confirmPayment(url: string): Promise<string> {
+    const currentTabId = await this.getCurrentActiveTabId()
+
+    return await new Promise<string>(res => {
+      if (url) {
+        tabs.create({ url }).then(tab => {
+          if (tab.id) {
+            tabs.onUpdated.addListener((tabId, changeInfo) => {
+              try {
+                const tabUrl = new URL(changeInfo.url || '')
+                const interactRef = tabUrl.searchParams.get('interact_ref')
+
+                if (tabId === tab.id && interactRef) {
+                  tabs.update(currentTabId, { active: true })
+                  tabs.remove(tab.id)
+                  res(interactRef)
+                }
+              } catch (e) {
+                // do nothing
+              }
+            })
+          }
+        })
+      }
+    })
   }
 }

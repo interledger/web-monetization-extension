@@ -28,7 +28,6 @@ class Background {
   subscribeToMessages() {
     this.subscriptions = this.messageHandlers.map((handler: any) => {
       const listener: any = async (message: EXTMessage) => {
-        console.log(handler.type, message.type)
         if (handler.type === message.type) {
           try {
             await handler.callback(message.data, this)
@@ -72,7 +71,6 @@ class Background {
   }
 
   async onInstalled() {
-    chrome.storage.local.get(['privateKey', 'publicKey', 'keyId'], console.log)
     chrome.runtime.onInstalled.addListener(async () => {
       if (await this.keyExists()) return
       const { privateKey, publicKey } = generateEd25519KeyPair()

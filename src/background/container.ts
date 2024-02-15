@@ -6,9 +6,9 @@ interface Cradle {
   background: Background
 }
 
-export const constainer = createContainer<Cradle>()
+export const container = createContainer<Cradle>()
 
-constainer.register({
+container.register({
   background: asClass(Background).singleton(),
   // TODO - add injectable services
 })
