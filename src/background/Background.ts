@@ -6,8 +6,8 @@ import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
 import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
-import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
 import runPaymentHandler from '../messageHandlers/runPaymentHandler'
+import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
 
 class Background {

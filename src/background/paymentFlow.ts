@@ -324,10 +324,10 @@ export class PaymentFlowService {
 
   async sendPayment() {
     // (1) TODO: Use the amount that is derived from the rate of pay
-    // (2) TODO: Rotate token if it expired (example: https://github.com/interledger/open-payments-snippets/blob/main/token/token-rotate.ts)
+    // (2) TODO: Rotate token if its expired (example: https://github.com/interledger/open-payments-snippets/blob/main/token/token-rotate.ts)
 
     // Notice: The same access token is used for both quotes and outgoing payments.
-    // During the grant request process, it is possible to specify multiple accesses. (see L224).
+    // During the grant request process, it is possible to specify multiple accesses. (see L230).
     // Employing a singular access token simplifies the process by eliminating the need to manage two separate access tokens for the sending side.
     const AMOUNT = 0.02
     const quote = await this.client.quote.create(
