@@ -30,7 +30,7 @@ describe('Switch', () => {
   })
 
   it('forwards checked prop to input element', () => {
-    render(<Switch checked />)
+    render(<Switch checked onChange={() => {}} />)
     const inputElement = screen.getByRole('switch')
     expect(inputElement).toBeChecked()
   })
