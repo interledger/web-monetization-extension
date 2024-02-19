@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { runtime } from 'webextension-polyfill'
 
+import RangeSlider from '@/components/range-slider'
+import { formatCurrency } from '@/utils/formatCurrency'
 import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages'
+import { getStorageKey } from '@/utils/storage'
 
 const Success = runtime.getURL('assets/images/web-monetization-success.svg')
 const Fail = runtime.getURL('assets/images/web-monetization-fail.svg')
@@ -28,6 +31,8 @@ const PopupFooter: React.FC<IProps> = ({ isMonetizationReady }) => (
 // --- End of Temporary code until real UI implemented ---
 
 export const Home = () => {
+  const [remainingBalance, setRemainingBalance] = useState(0)
+  const [rateOfPay, setRateOfPay] = useState(0.36)
   const [loading, setLoading] = useState(false)
   const [paymentStarted, setPaymentStarted] = useState(false)
   const [spent, setSpent] = useState(0)
@@ -43,8 +48,20 @@ export const Home = () => {
     checkMonetizationReady()
     getSendingPaymentPointer()
     listenForIncomingPayment()
+    getRateOfPay()
+    getRemainingBalance()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const getRateOfPay = async () => {
+    const response = await getStorageKey('rateOfPay')
+    response && setRateOfPay(response)
+  }
+
+  const getRemainingBalance = async () => {
+    const response = await getStorageKey('amount')
+    response && setRemainingBalance(response)
+  }
 
   const checkMonetizationReady = async () => {
     const response = await sendMessageToActiveTab({ type: 'IS_MONETIZATION_READY' })
@@ -71,7 +88,6 @@ export const Home = () => {
 
   const getSendingPaymentPointer = async () => {
     const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' })
-    console.log('getSendingPaymentPointer', response)
     setSendingPaymentPointer(response.data.sendingPaymentPointerUrl)
 
     const { sendingPaymentPointerUrl: paymentPointer, amount } = response.data
@@ -112,6 +128,11 @@ export const Home = () => {
     await sendMessageToActiveTab({ type: 'STOP_PAYMENTS' })
   }
 
+  const updateRateOfPay = async (value: number) => {
+    setRateOfPay(value)
+    await sendMessage({ type: 'SET_STORAGE_KEY', data: { key: 'rateOfPay', value } })
+  }
+
   return (
     <>
       {!!spent && (
@@ -120,6 +141,18 @@ export const Home = () => {
         </div>
       )}
       <div className="content">
+        <RangeSlider
+          title="Current rate of pay"
+          min={0.0}
+          max={1.2}
+          step={0.01}
+          value={rateOfPay || 0}
+          onChange={updateRateOfPay}
+        />
+        <div className="flex items-center justify-between w-full pt-4">
+          <span>{formatCurrency(rateOfPay)} per hour</span>
+          <span>Remaining balance: ${remainingBalance}</span>
+        </div>
         {isMonetizationReady ? (
           <>
             <img src={Success} alt="Success" />

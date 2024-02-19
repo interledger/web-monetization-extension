@@ -2,12 +2,12 @@ import browser from 'webextension-polyfill'
 
 const storage = browser.storage.sync || browser.storage.local
 
-const getStorageData = async () => {
+const getStorageKey = async (key: any) => {
   const data = await storage.get('data')
   return {
     type: 'SUCCESS',
-    data,
+    [key]: data?.data[key],
   }
 }
 
-export default { callback: getStorageData, type: 'GET_STORAGE_DATA' }
+export default { callback: getStorageKey, type: 'GET_STORAGE_KEY' }
