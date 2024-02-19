@@ -14,6 +14,7 @@
 
     /* Background colors */
     --bg-primary: 59 130 246;
+    --bg-nav-active: 226 232 240;
     --bg-error: 254 226 226;
     --bg-error-hover: 254 202 202;
     --bg-button-base: 86 183 181;
@@ -29,6 +30,6 @@
 
     /* Popup */
     --popup-width: 448px;
-    --popup-height: 559px;
+    --popup-height: 600px;
   }
 }

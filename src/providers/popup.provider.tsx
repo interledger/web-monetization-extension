@@ -5,6 +5,8 @@ import { getStorageData } from '@/utils/storage'
 import { PopupContextValue, TPopupContext } from './providers.interface'
 
 export const defaultData = {
+  connected: false,
+  wallet: '',
   amount: 0,
   amountType: {
     recurring: true,

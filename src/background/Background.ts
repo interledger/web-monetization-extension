@@ -1,4 +1,4 @@
-import { runtime, tabs } from 'webextension-polyfill'
+import { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
 import storage, { defaultData } from '@/utils/storage'
@@ -31,15 +31,24 @@ class Background {
 
   subscribeToMessages() {
     this.subscriptions = this.messageHandlers.map((handler: any) => {
-      const listener: any = async (message: EXTMessage) => {
+      const listener: any = (
+        message: EXTMessage,
+        sender: Runtime.MessageSender,
+        sendResponse: (res: any) => void,
+      ) => {
         if (handler.type === message.type) {
-          try {
-            return await handler.callback(message.data, this)
-          } catch (error) {
-            console.log('[===== Error in MessageListener =====]', error)
-            return { error }
-          }
+          handler
+            .callback(message.data, this)
+            .then((res: any) => {
+              sendResponse(res)
+            })
+            .catch((error: any) => {
+              console.log('[===== Error in MessageListener =====]', error)
+              sendResponse(error)
+            })
         }
+
+        return true
       }
 
       runtime.onMessage.addListener(listener)
