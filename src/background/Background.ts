@@ -1,13 +1,15 @@
-import { Runtime, runtime, tabs } from 'webextension-polyfill'
+import browser, { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
-import storage, { defaultData } from '@/utils/storage'
+import { defaultData } from '@/utils/storage'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
 import getStorageData from '../messageHandlers/getStorageData'
 import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
 import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
+
+const storage = browser.storage.local
 
 class Background {
   private messageHandlers: any = [
