@@ -107,7 +107,11 @@ export const Settings = () => {
           Get a wallet address from a provider before connecting it below. Please find a list of
           available wallets
         </p>
-        <a href="/" className="text-xs font-medium text-primary inline pl-1">
+        <a
+          href="https://webmonetization.org/docs/resources/op-wallets/"
+          className="text-xs font-medium text-primary inline pl-1"
+          target="_blank"
+          rel="noreferrer">
           here.
         </a>
       </div>
@@ -143,7 +147,12 @@ export const Settings = () => {
         className="mb-8 pl-2 mt-5"
         disabled={connected}
       />
-      <Button className="w-full" onClick={switchConnect} disabled={loading} loading={loading}>
+      <Button
+        className="w-full"
+        onClick={switchConnect}
+        disabled={loading}
+        loading={loading}
+        aria-label="connect">
         {connected ? 'Disconnect' : 'Connect'}
       </Button>
     </>
