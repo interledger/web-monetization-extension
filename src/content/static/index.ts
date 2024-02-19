@@ -4,6 +4,7 @@ function inject(configure: (_script: HTMLScriptElement) => void) {
   const script = document.createElement('script')
   configure(script)
   document.documentElement.appendChild(script)
+  document.documentElement.removeChild(script)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extra-semi

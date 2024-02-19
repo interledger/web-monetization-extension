@@ -109,7 +109,7 @@ export const getOutput = (browserDir: string, outputDir = Directories.DEV_DIR) =
 export const getEntry = (sourceDir = Directories.SRC_DIR) => {
   return {
     popup: [path.resolve(__dirname, `${sourceDir}/popup/index.tsx`)],
-    content: [path.resolve(__dirname, `${sourceDir}/content/index.tsx`)],
+    content: [path.resolve(__dirname, `${sourceDir}/content/index.ts`)],
     contentStatic: [path.resolve(__dirname, `${sourceDir}/content/static/index.ts`)],
     background: [path.resolve(__dirname, `${sourceDir}/background/index.ts`)],
   }
