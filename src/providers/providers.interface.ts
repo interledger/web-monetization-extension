@@ -6,6 +6,8 @@ export interface PopupContextValue {
 }
 
 export type TPopupContext = {
+  connected: boolean
+  wallet: string
   amount: number
   amountType: {
     recurring: boolean

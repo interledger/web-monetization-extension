@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import React, { useContext } from 'react'
 
-import { defaultData, PopupContext, PopupProvider } from '../popup-context'
+import { defaultData, PopupContext, PopupProvider } from '../popup.provider'
 
 const TestComponent = () => {
   const { data, setData } = useContext(PopupContext)

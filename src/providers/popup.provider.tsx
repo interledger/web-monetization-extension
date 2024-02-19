@@ -3,6 +3,8 @@ import React, { createContext, useState } from 'react'
 import { PopupContextValue, TPopupContext } from './providers.interface'
 
 export const defaultData = {
+  connected: false,
+  wallet: '',
   amount: 0,
   amountType: {
     recurring: true,
