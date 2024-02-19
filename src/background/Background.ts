@@ -1,17 +1,22 @@
-import { Runtime, runtime, tabs } from 'webextension-polyfill'
+import browser, { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
+import { defaultData } from '@/utils/storage'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
+import getStorageData from '../messageHandlers/getStorageData'
 import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
 import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
+
+const storage = browser.storage.local
 
 class Background {
   private messageHandlers: any = [
     isMonetizationReadyHandler,
     setIncomingPointerHandler,
     getSendingPaymentPointerHandler,
+    getStorageData,
   ]
   private subscriptions: any = []
   // TO DO: remove these from background into storage or state & use injection
@@ -19,7 +24,12 @@ class Background {
   spentAmount: number = 0
   paymentStarted = false
 
-  constructor() {}
+  constructor() {
+    storage
+      .set({ data: defaultData })
+      .then(() => console.log('Default data stored successfully'))
+      .catch((error: any) => console.error('Error storing data:', error))
+  }
 
   subscribeToMessages() {
     this.subscriptions = this.messageHandlers.map((handler: any) => {
