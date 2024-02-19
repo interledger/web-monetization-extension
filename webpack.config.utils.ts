@@ -49,7 +49,7 @@ const EnvConfig: EnvironmentConfig = {
         ? Directories.DIST_DIR
         : Directories.DEV_DIR,
   ...(process.env.NODE_ENV ? { NODE_ENV: process.env.NODE_ENV } : { NODE_ENV: 'development' }),
-  ...(process.env.TARGET ? { TARGET: process.env.TARGET } : { TARGET: 'chrome' }),
+  ...(process.env.TARGET ? { TARGET: process.env.TARGET } : { TARGET: 'chrome-v3' }),
 }
 
 /**
@@ -109,7 +109,8 @@ export const getOutput = (browserDir: string, outputDir = Directories.DEV_DIR) =
 export const getEntry = (sourceDir = Directories.SRC_DIR) => {
   return {
     popup: [path.resolve(__dirname, `${sourceDir}/popup/index.tsx`)],
-    content: [path.resolve(__dirname, `${sourceDir}/content/index.tsx`)],
+    content: [path.resolve(__dirname, `${sourceDir}/content/index.ts`)],
+    contentStatic: [path.resolve(__dirname, `${sourceDir}/content/static/index.ts`)],
     background: [path.resolve(__dirname, `${sourceDir}/background/index.ts`)],
   }
 }

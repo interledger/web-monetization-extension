@@ -94,6 +94,9 @@ export class PaymentFlowService {
     this.continuationRequestToken = continuationRequest.continuationRequestToken
 
     const currentTabId = await this.getCurrentActiveTabId()
+
+    await tabs.sendMessage(currentTabId ?? 0, { type: 'LOAD' })
+
     await tabs.sendMessage(currentTabId ?? 0, { type: 'START_PAYMENTS' })
   }
 
