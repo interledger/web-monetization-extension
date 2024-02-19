@@ -1,12 +1,12 @@
-import Background from '@/background/Background'
+import browser from 'webextension-polyfill'
 
-const getStorageData = async (background: Background) => {
-  console.log('getStorageData background', background)
+const storage = browser.storage.local
+
+const getStorageData = async () => {
+  const data = await storage.get('data')
   return {
     type: 'SUCCESS',
-    data: {
-      someData: 'data',
-    },
+    data,
   }
 }
 

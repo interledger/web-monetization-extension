@@ -1,12 +1,12 @@
 import { runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
+import storage, { defaultData } from '@/utils/storage'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
 import getStorageData from '../messageHandlers/getStorageData'
 import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
 import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
-import { defaultData } from './StorageService'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
 
 class Background {
@@ -22,9 +22,9 @@ class Background {
   spentAmount: number = 0
   paymentStarted = false
 
-  constructor({ storageService }: any) {
-    storageService
-      .set('data', defaultData)
+  constructor() {
+    storage
+      .set({ data: defaultData })
       .then(() => console.log('Default data stored successfully'))
       .catch((error: any) => console.error('Error storing data:', error))
   }
@@ -34,10 +34,10 @@ class Background {
       const listener: any = async (message: EXTMessage) => {
         if (handler.type === message.type) {
           try {
-            await handler.callback(message.data, this)
+            return await handler.callback(message.data, this)
           } catch (error) {
             console.log('[===== Error in MessageListener =====]', error)
-            return error
+            return { error }
           }
         }
       }

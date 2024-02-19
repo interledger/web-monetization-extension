@@ -71,6 +71,7 @@ export const Home = () => {
 
   const getSendingPaymentPointer = async () => {
     const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' })
+    console.log('getSendingPaymentPointer', response)
     setSendingPaymentPointer(response.data.sendingPaymentPointerUrl)
 
     const { sendingPaymentPointerUrl: paymentPointer, amount } = response.data

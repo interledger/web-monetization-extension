@@ -3,6 +3,15 @@ import React, { useContext } from 'react'
 
 import { defaultData, PopupContext, PopupProvider } from '../popup-context'
 
+jest.mock('webextension-polyfill', () => ({
+  runtime: {
+    onMessage: {
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    },
+  },
+}))
+
 const TestComponent = () => {
   const { data, setData } = useContext(PopupContext)
 
