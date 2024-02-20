@@ -39,6 +39,11 @@ interface KeyInformation {
   keyId: string
 }
 
+interface InteractionParams {
+  interactRef: string
+  hash: string
+}
+
 type Headers = SignatureHeaders & Partial<ContentHeaders>
 
 export class PaymentFlowService {
@@ -50,10 +55,9 @@ export class PaymentFlowService {
   incomingPaymentUrlId: string
   quoteUrlId: string
   token: string
-  interactRef: string
   manageUrl: string
   amount: string | number
-  nonce: string | null
+  clientNonce: string | null
 
   constructor(
     sendingPaymentPointerUrl: string,
@@ -113,7 +117,7 @@ export class PaymentFlowService {
     const { headers } = await signMessage(
       {
         name: 'sig1',
-        params: ['alg', 'keyid', 'created'],
+        params: ['keyid', 'created'],
         fields: components,
         key: signingKey,
       },
@@ -144,7 +148,7 @@ export class PaymentFlowService {
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
     this.client = await createAuthenticatedClient({
       walletAddressUrl: this.sendingWalletAddress.id,
-      requestInterceptor: async config => {
+      authenticatedRequestInterceptor: async config => {
         if (!config.method || !config.url) {
           throw new Error('Cannot intercept request: url or method missing')
         }
@@ -215,7 +219,7 @@ export class PaymentFlowService {
     )
 
     this.incomingPaymentUrlId = incomingPayment.id
-    this.nonce = crypto.randomUUID()
+    this.clientNonce = crypto.randomUUID()
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
     await this.client.grant.cancel({
@@ -253,7 +257,7 @@ export class PaymentFlowService {
           finish: {
             method: 'redirect',
             uri: 'http://localhost:3344',
-            nonce: this.nonce,
+            nonce: this.clientNonce,
           },
         },
       },
@@ -265,10 +269,9 @@ export class PaymentFlowService {
 
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
-    const interactRef = await this.confirmPayment(quoteAndOPGrant.interact.redirect)
+    const { interactRef, hash } = await this.confirmPayment(quoteAndOPGrant.interact.redirect)
 
-    // verify hash
-    //
+    await this.verifyInteractionHash(interactRef, quoteAndOPGrant.interact.finish, hash)
 
     const continuation = await this.client.grant.continue(
       {
@@ -378,18 +381,31 @@ export class PaymentFlowService {
     return activeTabs[0].id
   }
 
-  // TODO: Finish verify hash
-  async verifyHash(interactRef: string, interactNonce: string, hash: string): Promise<void> {
-    const url = this.sendingWalletAddress.authServer
+  // Fourth item- https://rafiki.dev/concepts/open-payments/grant-interaction/#endpoints
+  async verifyInteractionHash(
+    interactRef: string,
+    interactNonce: string,
+    hash: string,
+  ): Promise<void> {
+    // TODO: Update based on Rafiki Call discussion
+    // The interaction hash is not correctly calculated within Rafiki at the momenet in certain scenarios
+    const grantEndpoint = new URL(this.sendingWalletAddress.authServer).origin + '/'
     const data = new TextEncoder().encode(
-      `${this.nonce}\n${interactNonce}\n${interactRef}\n${url}/`,
+      `${this.clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`,
     )
+
+    // Reset client nonce
+    this.clientNonce = null
+
+    const digest = await crypto.subtle.digest('SHA-256', data)
+    const calculatedHash = btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+    if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
-  private async confirmPayment(url: string): Promise<string> {
+  private async confirmPayment(url: string): Promise<InteractionParams> {
     const currentTabId = await this.getCurrentActiveTabId()
 
-    return await new Promise<string>(res => {
+    return await new Promise(res => {
       if (url) {
         tabs.create({ url }).then(tab => {
           if (tab.id) {
@@ -397,11 +413,12 @@ export class PaymentFlowService {
               try {
                 const tabUrl = new URL(changeInfo.url || '')
                 const interactRef = tabUrl.searchParams.get('interact_ref')
+                const hash = tabUrl.searchParams.get('hash')
 
-                if (tabId === tab.id && interactRef) {
+                if (tabId === tab.id && interactRef && hash) {
                   tabs.update(currentTabId, { active: true })
                   tabs.remove(tab.id)
-                  res(interactRef)
+                  res({ interactRef, hash })
                 }
               } catch (e) {
                 // do nothing
