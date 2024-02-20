@@ -1,10 +1,13 @@
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
+  OpenPaymentsClientError,
 } from '@interledger/open-payments/dist/client'
 import {
   isFinalizedGrant,
   isPendingGrant,
+  OutgoingPayment,
+  Quote,
   WalletAddress,
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
@@ -331,49 +334,78 @@ export class PaymentFlowService {
     // Notice: The same access token is used for both quotes and outgoing payments.
     // During the grant request process, it is possible to specify multiple accesses. (see L230).
     // Employing a singular access token simplifies the process by eliminating the need to manage two separate access tokens for the sending side.
+
     const AMOUNT = 0.02
-    const quote = await this.client.quote.create(
-      {
-        url: this.sendingWalletAddress.resourceServer,
-        accessToken: this.token,
-      },
-      {
-        method: 'ilp',
-        receiver: this.incomingPaymentUrlId,
-        walletAddress: this.sendingWalletAddress.id,
-        debitAmount: {
-          value: String(AMOUNT * 10 ** this.sendingWalletAddress.assetScale),
-          assetScale: this.sendingWalletAddress.assetScale,
-          assetCode: this.sendingWalletAddress.assetCode,
-        },
-      },
-    )
 
-    const outgoingPayment = await this.client.outgoingPayment.create(
-      {
-        url: this.sendingWalletAddress.resourceServer,
-        accessToken: this.token,
-      },
-      {
-        walletAddress: this.sendingWalletAddress.id,
-        quoteId: quote.id,
-        metadata: {
-          source: 'Web Monetization',
-        },
-      },
-    )
+    let quote: Quote | undefined
+    let outgoingPayment: OutgoingPayment | undefined
 
-    const {
-      receiveAmount,
-      receiver: incomingPayment,
-      walletAddress: paymentPointer,
-    } = outgoingPayment
+    while (1) {
+      try {
+        if (!quote) {
+          quote = await this.client.quote.create(
+            {
+              url: this.sendingWalletAddress.resourceServer,
+              accessToken: this.token,
+            },
+            {
+              method: 'ilp',
+              receiver: this.incomingPaymentUrlId,
+              walletAddress: this.sendingWalletAddress.id,
+              debitAmount: {
+                value: String(AMOUNT * 10 ** this.sendingWalletAddress.assetScale),
+                assetScale: this.sendingWalletAddress.assetScale,
+                assetCode: this.sendingWalletAddress.assetCode,
+              },
+            },
+          )
+        }
 
-    const currentTabId = await this.getCurrentActiveTabId()
-    await tabs.sendMessage(currentTabId ?? 0, {
-      type: 'PAYMENT_SUCCESS',
-      data: { receiveAmount, incomingPayment, paymentPointer },
-    })
+        outgoingPayment = await this.client.outgoingPayment.create(
+          {
+            url: this.sendingWalletAddress.resourceServer,
+            accessToken: this.token,
+          },
+          {
+            walletAddress: this.sendingWalletAddress.id,
+            quoteId: quote.id,
+            metadata: {
+              source: 'Web Monetization',
+            },
+          },
+        )
+        break
+      } catch (e) {
+        if (e instanceof OpenPaymentsClientError) {
+          if (e.status === 403) {
+            const rotatedToken = await this.client.token.rotate({
+              accessToken: this.token,
+              url: this.manageUrl,
+            })
+
+            this.token = rotatedToken.access_token.value
+            this.manageUrl = rotatedToken.access_token.manage
+            continue
+          }
+
+          throw new Error(e.message)
+        }
+      } finally {
+        if (outgoingPayment) {
+          const {
+            receiveAmount,
+            receiver: incomingPayment,
+            walletAddress: paymentPointer,
+          } = outgoingPayment
+
+          const currentTabId = await this.getCurrentActiveTabId()
+          await tabs.sendMessage(currentTabId ?? 0, {
+            type: 'PAYMENT_SUCCESS',
+            data: { receiveAmount, incomingPayment, paymentPointer },
+          })
+        }
+      }
+    }
   }
 
   async getCurrentActiveTabId() {

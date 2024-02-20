@@ -1,7 +1,7 @@
 import path from 'path'
 import TerserPlugin from 'terser-webpack-plugin'
 
-import { ProvidePlugin } from 'webpack'
+import { IgnorePlugin, ProvidePlugin } from 'webpack'
 
 import {
   config,
@@ -93,6 +93,10 @@ let plugins: any[] = [
   }),
   new ProvidePlugin({
     process: 'process/browser',
+  }),
+  new IgnorePlugin({
+    resourceRegExp: /node-fetch/,
+    contextRegExp: /@apidevtools\/json-schema-ref-parser/,
   }),
 ]
 

@@ -57,7 +57,6 @@ class Background {
   unsubscribeFromMessages() {
     this.subscriptions.forEach((sub: any) => sub())
   }
-
   private async keyExists(): Promise<boolean> {
     return new Promise(res => {
       chrome.storage.local.get(['privateKey', 'publicKey', 'keyId'], data => {
@@ -85,5 +84,4 @@ class Background {
     })
   }
 }
-
 export default Background
