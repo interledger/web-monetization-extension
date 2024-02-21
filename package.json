@@ -22,7 +22,6 @@
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
-    "@radix-ui/react-slider": "^1.1.2",
     "awilix": "^10.0.1",
     "axios": "^1.5.1",
     "class-variance-authority": "^0.7.0",
