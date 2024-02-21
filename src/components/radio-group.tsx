@@ -86,6 +86,7 @@ export interface RadioGroupProps
   disabled?: boolean
   items: Omit<RadioProps, 'name'>[]
   name: string
+  handleChange?: (value: string) => void
 }
 
 export const RadioGroup = ({
@@ -95,8 +96,13 @@ export const RadioGroup = ({
   fullWidth,
   disabled,
   className,
+  handleChange,
+  value,
 }: RadioGroupProps) => {
-  const checkedItem = useMemo(() => items.findIndex(item => item.checked), [items])
+  const checkedItem = useMemo(
+    () => items.findIndex(item => item.checked || item.value === value),
+    [items, value],
+  )
   const [selected, setSelected] = useState(checkedItem)
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -140,7 +146,10 @@ export const RadioGroup = ({
           disabled={disabled}
           checked={selected === index}
           noSelected={selected === -1 && index === 0}
-          onChange={() => setSelected(index)}
+          onChange={() => {
+            setSelected(index)
+            if (handleChange) handleChange(item.value)
+          }}
         />
       ))}
     </div>

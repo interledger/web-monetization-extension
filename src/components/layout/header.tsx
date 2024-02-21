@@ -4,6 +4,8 @@ import { runtime } from 'webextension-polyfill'
 
 import { ArrowBack, Settings } from '../icons'
 import { ROUTES } from '../router-provider'
+import { usePopup } from '@/providers/popup.state'
+import { Switch } from '../switch'
 
 const Logo = runtime.getURL('assets/images/logo.svg')
 
@@ -29,6 +31,15 @@ const NavigationButton = () => {
 }
 
 export const Header = () => {
+  const {
+    data: { wmEnabled },
+    setData,
+  } = usePopup()
+
+  const switchWmEnabled = () => {
+    setData(prevState => ({ ...prevState, wmEnabled: !prevState.wmEnabled }))
+  }
+
   return (
     <div className="flex flex-row items-center justify-between py-8">
       <div className="flex flex-row items-center">
@@ -37,6 +48,7 @@ export const Header = () => {
       </div>
       <div className="flex flex-row items-center">
         <NavigationButton />
+        <Switch checked={wmEnabled} onChange={switchWmEnabled} className="ml-2" />
       </div>
     </div>
   )

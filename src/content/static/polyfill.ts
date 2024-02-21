@@ -1,7 +1,5 @@
 // language=JavaScript
 export const wm2Polyfill = `
-  var monetizationTag = document.querySelector('link[rel="monetization"]');
-  monetizationTag.dispatchEvent(new Event('load'));
   const dbg = () => {
   }
   dbg('setonmonetization property start')

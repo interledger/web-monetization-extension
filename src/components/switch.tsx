@@ -33,10 +33,11 @@ export interface SwitchProps
   extends VariantProps<typeof switchVariants>,
     React.HTMLAttributes<HTMLInputElement> {
   checked?: boolean
+  onChange?: (_event: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { size, className, ...props },
+  { size, className, onChange = () => {}, ...props },
   ref,
 ) {
   return (
@@ -45,6 +46,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         role="switch"
         ref={ref}
         type="checkbox"
+        checked={props.checked}
+        onChange={onChange}
         {...props}
         className="peer absolute opacity-0 -translate-x-[100%] pointer-events-none"
       />

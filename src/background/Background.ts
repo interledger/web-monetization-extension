@@ -1,19 +1,24 @@
 import { bytesToHex } from '@noble/hashes/utils'
-import { runtime, tabs } from 'webextension-polyfill'
+import browser, { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
+import { defaultData } from '@/utils/storage'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
+import getStorageData from '../messageHandlers/getStorageData'
 import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
 import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
+
+const storage = browser.storage.local
 
 class Background {
   private messageHandlers: any = [
     isMonetizationReadyHandler,
     setIncomingPointerHandler,
     getSendingPaymentPointerHandler,
+    getStorageData,
   ]
   private subscriptions: any = []
   // TO DO: remove these from background into storage or state & use injection
@@ -21,19 +26,33 @@ class Background {
   spentAmount: number = 0
   paymentStarted = false
 
-  constructor() {}
+  constructor() {
+    storage
+      .set({ data: defaultData })
+      .then(() => console.log('Default data stored successfully'))
+      .catch((error: any) => console.error('Error storing data:', error))
+  }
 
   subscribeToMessages() {
     this.subscriptions = this.messageHandlers.map((handler: any) => {
-      const listener: any = async (message: EXTMessage) => {
+      const listener: any = (
+        message: EXTMessage,
+        sender: Runtime.MessageSender,
+        sendResponse: (res: any) => void,
+      ) => {
         if (handler.type === message.type) {
-          try {
-            await handler.callback(message.data, this)
-          } catch (error) {
-            console.log('[===== Error in MessageListener =====]', error)
-            return error
-          }
+          handler
+            .callback(message.data, this)
+            .then((res: any) => {
+              sendResponse(res)
+            })
+            .catch((error: any) => {
+              console.log('[===== Error in MessageListener =====]', error)
+              sendResponse(error)
+            })
         }
+
+        return true
       }
 
       runtime.onMessage.addListener(listener)
@@ -56,6 +75,7 @@ class Background {
     this.subscriptions.forEach((sub: any) => sub())
   }
 
+  // TODO: Move to storage wrapper once available
   private async keyExists(): Promise<boolean> {
     return new Promise(res => {
       chrome.storage.local.get(['privateKey', 'publicKey', 'kid'], data => {

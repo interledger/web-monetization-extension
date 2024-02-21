@@ -1,9 +1,9 @@
-import { constainer } from './container'
+import { container } from './container'
 
 const initialize = () => {
   console.log('Start initialization')
 
-  const background = constainer.resolve('background')
+  const background = container.resolve('background')
 
   background.onInstalled()
   background.subscribeToMessages()
