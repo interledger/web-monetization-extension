@@ -1,6 +1,8 @@
+import { bytesToHex } from '@noble/hashes/utils'
 import browser, { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
+import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
 import { defaultData } from '@/utils/storage'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
@@ -71,6 +73,34 @@ class Background {
 
   unsubscribeFromMessages() {
     this.subscriptions.forEach((sub: any) => sub())
+  }
+
+  // TODO: Move to storage wrapper once available
+  private async keyExists(): Promise<boolean> {
+    return new Promise(res => {
+      chrome.storage.local.get(['privateKey', 'publicKey', 'kid'], data => {
+        if (data.privateKey && data.publicKey && data.kid) {
+          res(true)
+        } else {
+          res(false)
+        }
+      })
+    })
+  }
+
+  async onInstalled() {
+    chrome.runtime.onInstalled.addListener(async () => {
+      if (await this.keyExists()) return
+      const { privateKey, publicKey } = generateEd25519KeyPair()
+      const kid = crypto.randomUUID()
+      const jwk = exportJWK(publicKey, kid)
+
+      chrome.storage.local.set({
+        privateKey: bytesToHex(privateKey),
+        publicKey: btoa(JSON.stringify(jwk)),
+        kid,
+      })
+    })
   }
 }
 
