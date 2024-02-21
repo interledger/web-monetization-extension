@@ -1,3 +1,3 @@
-import { PopupProvider } from './popup-context'
+import { PopupProvider } from './popup.provider'
 
 export { PopupProvider }
