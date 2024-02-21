@@ -4,11 +4,11 @@ import {
   OpenPaymentsClientError,
 } from '@interledger/open-payments/dist/client'
 import {
+  type OutgoingPayment,
+  type Quote,
+  type WalletAddress,
   isFinalizedGrant,
   isPendingGrant,
-  OutgoingPayment,
-  Quote,
-  WalletAddress,
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
@@ -48,6 +48,13 @@ interface InteractionParams {
 }
 
 type Headers = SignatureHeaders & Partial<ContentHeaders>
+
+interface VerifyInteractionHashParams {
+  clientNonce: string
+  interactRef: string
+  interactNonce: string
+  hash: string
+}
 
 export class PaymentFlowService {
   client: AuthenticatedClient
@@ -124,7 +131,11 @@ export class PaymentFlowService {
         fields: components,
         key: signingKey,
       },
-      request,
+      {
+        url: request.url,
+        method: request.method,
+        headers: request.headers,
+      },
     )
 
     return {
@@ -147,7 +158,7 @@ export class PaymentFlowService {
     }
   }
 
-  async createOpenPaymentsClient() {
+  private async createOpenPaymentsClient() {
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
     this.client = await createAuthenticatedClient({
       walletAddressUrl: this.sendingWalletAddress.id,
@@ -169,7 +180,9 @@ export class PaymentFlowService {
 
         if (config.data) {
           config.headers['Content-Type'] = headers['Content-Type']
-          config.headers['Content-Length'] = headers['Content-Length']
+          // Kept receiving console errors for setting unsafe header.
+          // Keeping this as a comment for now.
+          // config.headers['Content-Length'] = headers['Content-Length']
           config.headers['Content-Digest'] = headers['Content-Digest']
         }
 
@@ -181,11 +194,7 @@ export class PaymentFlowService {
     })
   }
 
-  async initPaymentFlow() {
-    this.sendingWalletAddress = await this.getWalletAddress(this.sendingPaymentPointerUrl)
-    this.receivingWalletAddress = await this.getWalletAddress(this.receivingPaymentPointerUrl)
-    await this.createOpenPaymentsClient()
-
+  private async createIncomingPayment() {
     const incomingPaymentGrant = await this.client.grant.request(
       {
         url: this.receivingWalletAddress.authServer,
@@ -221,16 +230,17 @@ export class PaymentFlowService {
       },
     )
 
-    this.incomingPaymentUrlId = incomingPayment.id
-    this.clientNonce = crypto.randomUUID()
-
     // Revoke grant to avoid leaving users with unused, dangling grants.
     await this.client.grant.cancel({
       url: incomingPaymentGrant.continue.uri,
       accessToken: incomingPaymentGrant.continue.access_token.value,
     })
 
-    const quoteAndOPGrant = await this.client.grant.request(
+    this.incomingPaymentUrlId = incomingPayment.id
+  }
+
+  private async createQuoteAndOutgoingPaymentGrant(nonce: string) {
+    const grant = await this.client.grant.request(
       {
         url: this.receivingWalletAddress.authServer,
       },
@@ -260,26 +270,44 @@ export class PaymentFlowService {
           finish: {
             method: 'redirect',
             uri: 'http://localhost:3344',
-            nonce: this.clientNonce,
+            nonce,
           },
         },
       },
     )
 
-    if (!isPendingGrant(quoteAndOPGrant)) {
+    if (!isPendingGrant(grant)) {
       throw new Error('Expected interactive grant. Received non-pending grant.')
     }
 
+    return grant
+  }
+
+  async initPaymentFlow() {
+    this.sendingWalletAddress = await this.getWalletAddress(this.sendingPaymentPointerUrl)
+    this.receivingWalletAddress = await this.getWalletAddress(this.receivingPaymentPointerUrl)
+
+    await this.createOpenPaymentsClient()
+    await this.createIncomingPayment()
+
+    const clientNonce = crypto.randomUUID()
+    const grant = await this.createQuoteAndOutgoingPaymentGrant(clientNonce)
+
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
-    const { interactRef, hash } = await this.confirmPayment(quoteAndOPGrant.interact.redirect)
+    const { interactRef, hash } = await this.confirmPayment(grant.interact.redirect)
 
-    await this.verifyInteractionHash(interactRef, quoteAndOPGrant.interact.finish, hash)
+    await this.verifyInteractionHash({
+      clientNonce,
+      interactNonce: grant.interact.finish,
+      interactRef,
+      hash,
+    })
 
     const continuation = await this.client.grant.continue(
       {
-        url: quoteAndOPGrant.continue.uri,
-        accessToken: quoteAndOPGrant.continue.access_token.value,
+        url: grant.continue.uri,
+        accessToken: grant.continue.access_token.value,
       },
       {
         interact_ref: interactRef,
@@ -297,8 +325,8 @@ export class PaymentFlowService {
     await tabs.sendMessage(currentTabId ?? 0, { type: 'START_PAYMENTS' })
   }
 
-  async getWalletAddress(paymentPointerUrl: string): Promise<WalletAddress> {
-    const response = await fetch(paymentPointerUrl, {
+  async getWalletAddress(walletAddressUrl: string): Promise<WalletAddress> {
+    const response = await fetch(walletAddressUrl, {
       headers: {
         Accept: 'application/json',
       },
@@ -329,18 +357,17 @@ export class PaymentFlowService {
 
   async sendPayment() {
     // (1) TODO: Use the amount that is derived from the rate of pay
-    // (2) TODO: Rotate token if its expired (example: https://github.com/interledger/open-payments-snippets/blob/main/token/token-rotate.ts)
 
     // Notice: The same access token is used for both quotes and outgoing payments.
-    // During the grant request process, it is possible to specify multiple accesses. (see L230).
+    // During the grant request process, it is possible to specify multiple accesses.
     // Employing a singular access token simplifies the process by eliminating the need to manage two separate access tokens for the sending side.
-
     const AMOUNT = 0.02
 
     let quote: Quote | undefined
     let outgoingPayment: OutgoingPayment | undefined
 
-    while (1) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
       try {
         if (!quote) {
           quote = await this.client.quote.create(
@@ -360,7 +387,6 @@ export class PaymentFlowService {
             },
           )
         }
-
         outgoingPayment = await this.client.outgoingPayment.create(
           {
             url: this.sendingWalletAddress.resourceServer,
@@ -376,7 +402,14 @@ export class PaymentFlowService {
         )
         break
       } catch (e) {
+        /**
+         * Unhandled exceptions:
+         *  - Expired incoming payment: if the incoming payment is expired when
+         *    trying to create a quote, create a new incoming payment
+         *
+         */
         if (e instanceof OpenPaymentsClientError) {
+          // Status code 403 -> expired access token
           if (e.status === 403) {
             const rotatedToken = await this.client.token.rotate({
               accessToken: this.token,
@@ -414,20 +447,19 @@ export class PaymentFlowService {
   }
 
   // Fourth item- https://rafiki.dev/concepts/open-payments/grant-interaction/#endpoints
-  async verifyInteractionHash(
-    interactRef: string,
-    interactNonce: string,
-    hash: string,
-  ): Promise<void> {
-    // TODO: Update based on Rafiki Call discussion
-    // The interaction hash is not correctly calculated within Rafiki at the momenet in certain scenarios
+  private async verifyInteractionHash({
+    clientNonce,
+    interactRef,
+    interactNonce,
+    hash,
+  }: VerifyInteractionHashParams): Promise<void> {
+    // Notice: The interaction hash is not correctly calculated within Rafiki at the momenet in certain scenarios.
+    // If at one point this will throw an error check the `grantEndpoint` value.
+    // `grantEndpoint` represents the route where grants are requested.
     const grantEndpoint = new URL(this.sendingWalletAddress.authServer).origin + '/'
     const data = new TextEncoder().encode(
-      `${this.clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`,
+      `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`,
     )
-
-    // Reset client nonce
-    this.clientNonce = null
 
     const digest = await crypto.subtle.digest('SHA-256', data)
     const calculatedHash = btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
@@ -453,7 +485,7 @@ export class PaymentFlowService {
                   res({ interactRef, hash })
                 }
               } catch (e) {
-                // do nothing
+                /* do nothing */
               }
             })
           }
