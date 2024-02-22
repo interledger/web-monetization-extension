@@ -10,6 +10,7 @@ import getStorageData from '../messageHandlers/getStorageData'
 import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
 import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
+import setStorageData from '../messageHandlers/setStorageData'
 
 const storage = browser.storage.local
 
@@ -19,6 +20,7 @@ class Background {
     setIncomingPointerHandler,
     getSendingPaymentPointerHandler,
     getStorageData,
+    setStorageData,
   ]
   private subscriptions: any = []
   // TO DO: remove these from background into storage or state & use injection
