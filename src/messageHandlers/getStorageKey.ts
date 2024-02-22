@@ -2,10 +2,10 @@ import { storageApi } from '@/utils/storage'
 
 const getStorageKey = async (key: any) => {
   try {
-    const data = await storageApi.get('data')
+    const data = await storageApi.get(key)
     return {
       type: 'SUCCESS',
-      [key]: data?.data[key],
+      [key]: data?.[key],
     }
   } catch (error) {
     return {

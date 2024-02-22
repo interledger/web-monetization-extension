@@ -1,9 +1,9 @@
 import { bytesToHex } from '@noble/hashes/utils'
-import browser, { Runtime, runtime, tabs } from 'webextension-polyfill'
+import { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
-import { defaultData } from '@/utils/storage'
+import { defaultData, storageApi } from '@/utils/storage'
 
 import {
   getSendingPaymentPointerHandler,
@@ -14,8 +14,6 @@ import {
   setStorageKey,
 } from '../messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
-
-const storage = storageApi.sync || storageApi.local
 
 class Background {
   private messageHandlers: any = [
@@ -39,7 +37,7 @@ class Background {
   // TODO: to be moved to a service
   async setStorageDefaultData() {
     try {
-      await storage.set({ data: defaultData })
+      await storageApi.set({ ...defaultData })
     } catch (error) {
       console.error('Error storing data:', error)
     }

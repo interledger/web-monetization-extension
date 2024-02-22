@@ -2,8 +2,7 @@ import { storageApi } from '@/utils/storage'
 
 const setStorageKey = async ({ key, value }: { key: string; value: any }) => {
   try {
-    const storageData = await storageApi.get('data')
-    await storageApi.set({ data: { ...storageData, [key]: value } })
+    await storageApi.set({ [key]: value })
     return { type: 'SUCCESS' }
   } catch (error) {
     return { type: 'ERROR', error }

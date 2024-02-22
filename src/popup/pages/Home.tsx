@@ -55,7 +55,6 @@ export const Home = () => {
 
   const getRateOfPay = async () => {
     const response = await getStorageKey('rateOfPay')
-    console.log('response', response)
     response && setRateOfPay(response)
   }
 
