@@ -1,10 +1,11 @@
-import BackgroundContainer from './BackgroundContainer'
+import { container } from './container'
 
 const initialize = () => {
   console.log('Start initialization')
 
-  const background = BackgroundContainer.resolve('Background')
+  const background = container.resolve('background')
 
+  background.onInstalled()
   background.subscribeToMessages()
   background.subscribeToTabChanges()
 
