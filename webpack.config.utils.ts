@@ -140,8 +140,11 @@ export const getCopyPlugins = (
           to: path.resolve(__dirname, `${outputDir}/${browserDir}/_locales`),
         },
         {
-          from: path.resolve(__dirname, `node_modules/@interledger/open-payments/dist/openapi`),
+          from: path.resolve(__dirname, 'node_modules/@interledger/open-payments/dist/openapi'),
           to: path.resolve(__dirname, `${outputDir}/${browserDir}/openapi`),
+          globOptions: {
+            ignore: ['**/generated/**'],
+          },
         },
       ],
     }),
