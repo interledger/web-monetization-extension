@@ -1,12 +1,17 @@
-import browser from 'webextension-polyfill'
-
-const storage = browser.storage.sync || browser.storage.local
+import { storageApi } from '@/utils/storage'
 
 const getStorageKey = async (key: any) => {
-  const data = await storage.get('data')
-  return {
-    type: 'SUCCESS',
-    [key]: data?.data[key],
+  try {
+    const data = await storageApi.get('data')
+    return {
+      type: 'SUCCESS',
+      [key]: data?.data[key],
+    }
+  } catch (error) {
+    return {
+      type: 'ERROR',
+      error,
+    }
   }
 }
 

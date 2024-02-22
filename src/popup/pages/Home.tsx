@@ -41,7 +41,7 @@ export const Home = () => {
   const [receivingPaymentPointer, setReceivingPaymentPointer] = useState('')
   const [formData, setFormData] = useState({
     paymentPointer: sendingPaymentPointer || '',
-    amount: 20,
+    amount: 0,
   })
 
   useEffect(() => {
@@ -55,6 +55,7 @@ export const Home = () => {
 
   const getRateOfPay = async () => {
     const response = await getStorageKey('rateOfPay')
+    console.log('response', response)
     response && setRateOfPay(response)
   }
 
@@ -130,7 +131,10 @@ export const Home = () => {
 
   const updateRateOfPay = async (event: any) => {
     setRateOfPay(event.target.value)
-    // await sendMessage({ type: 'SET_STORAGE_KEY', data: { key: 'rateOfPay', value } })
+    await sendMessage({
+      type: 'SET_STORAGE_KEY',
+      data: { key: 'rateOfPay', value: event.target.value },
+    })
   }
 
   return (

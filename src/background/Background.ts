@@ -34,6 +34,7 @@ class Background {
     this.setStorageDefaultData()
   }
 
+  // TODO: to be moved to a service
   async setStorageDefaultData() {
     try {
       await storage.set({ data: defaultData })
