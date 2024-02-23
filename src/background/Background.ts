@@ -1,17 +1,19 @@
 import { bytesToHex } from '@noble/hashes/utils'
-import browser, { Runtime, runtime, tabs } from 'webextension-polyfill'
+import { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { PaymentFlowService } from '@/background/grantFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
-import { defaultData } from '@/utils/storage'
+import { defaultData, storageApi } from '@/utils/storage'
 
-import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
-import getStorageData from '../messageHandlers/getStorageData'
-import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
-import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
+import {
+  getSendingPaymentPointerHandler,
+  getStorageData,
+  getStorageKey,
+  isMonetizationReadyHandler,
+  setIncomingPointerHandler,
+  setStorageKey,
+} from '../messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
-
-const storage = browser.storage.local
 
 class Background {
   private messageHandlers: any = [
@@ -19,6 +21,8 @@ class Background {
     setIncomingPointerHandler,
     getSendingPaymentPointerHandler,
     getStorageData,
+    getStorageKey,
+    setStorageKey,
   ]
   private subscriptions: any = []
   // TO DO: remove these from background into storage or state & use injection
@@ -27,10 +31,16 @@ class Background {
   paymentStarted = false
 
   constructor() {
-    storage
-      .set({ data: defaultData })
-      .then(() => console.log('Default data stored successfully'))
-      .catch((error: any) => console.error('Error storing data:', error))
+    this.setStorageDefaultData()
+  }
+
+  // TODO: to be moved to a service
+  async setStorageDefaultData() {
+    try {
+      await storageApi.set({ ...defaultData })
+    } catch (error) {
+      console.error('Error storing data:', error)
+    }
   }
 
   subscribeToMessages() {
@@ -38,7 +48,7 @@ class Background {
       const listener: any = (
         message: EXTMessage,
         sender: Runtime.MessageSender,
-        sendResponse: (res: any) => void,
+        sendResponse: (_res: any) => void,
       ) => {
         if (handler.type === message.type) {
           handler
