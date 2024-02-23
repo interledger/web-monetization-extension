@@ -2,9 +2,10 @@ import React, { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { runtime } from 'webextension-polyfill'
 
+import { usePopup } from '@/providers/popup.state'
+
 import { ArrowBack, Settings } from '../icons'
 import { ROUTES } from '../router-provider'
-import { usePopup } from '@/providers/popup.state'
 import { Switch } from '../switch'
 
 const Logo = runtime.getURL('assets/images/logo.svg')

@@ -1,3 +1,5 @@
+import browser from 'webextension-polyfill'
+
 import { TPopupContext } from '@/providers/providers.interface'
 import { sendMessage } from '@/utils/sendMessages'
 
@@ -36,3 +38,5 @@ export const getStorageData = async () => {
     return null
   }
 }
+
+export const storageApi = browser.storage?.sync || browser.storage?.local

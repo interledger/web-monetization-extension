@@ -16,6 +16,8 @@ import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { tabs } from 'webextension-polyfill'
 
+import { storageApi } from '@/utils/storage'
+
 interface RequestLike extends Request {
   body?: string
 }
@@ -80,15 +82,11 @@ export class PaymentFlowService {
   }
 
   private async getPrivateKeyInformation(): Promise<KeyInformation> {
-    return new Promise(res => {
-      chrome.storage.local.get(['privateKey', 'keyId'], data => {
-        if (data.privateKey && data.keyId) {
-          res(data as KeyInformation)
-        } else {
-          throw new Error('Could not create OpenPayments client. Missing `privateKey` and `keyId`.')
-        }
-      })
-    })
+    const data = await storageApi.get(['privateKey', 'keyId'])
+    if (data.privateKey && data.keyId) {
+      return data as KeyInformation
+    }
+    throw new Error('Could not create OpenPayments client. Missing `privateKey` and `keyId`.')
   }
 
   private createContentHeaders(body: string): ContentHeaders {

@@ -1,9 +1,9 @@
 import { bytesToHex } from '@noble/hashes/utils'
-import { Runtime, runtime, storage as storageApi, tabs } from 'webextension-polyfill'
+import { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { type PaymentFlowService } from '@/background/paymentFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
-import { defaultData } from '@/utils/storage'
+import { defaultData, storageApi } from '@/utils/storage'
 
 import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
 import getStorageData from '../messageHandlers/getStorageData'
@@ -11,8 +11,6 @@ import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHa
 import runPaymentHandler from '../messageHandlers/runPaymentHandler'
 import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
-
-const storage = storageApi.sync || storageApi.local
 
 class Background {
   private messageHandlers: any = [
@@ -29,7 +27,7 @@ class Background {
   paymentStarted = false
 
   constructor() {
-    storage
+    storageApi
       .set({ data: defaultData })
       .then(() => console.log('Default data stored successfully'))
       .catch((error: any) => console.error('Error storing data:', error))
@@ -77,25 +75,22 @@ class Background {
     this.subscriptions.forEach((sub: any) => sub())
   }
   private async keyExists(): Promise<boolean> {
-    return new Promise(res => {
-      chrome.storage.local.get(['privateKey', 'publicKey', 'keyId'], data => {
-        if (data.privateKey && data.publicKey && data.keyId) {
-          res(true)
-        } else {
-          res(false)
-        }
-      })
-    })
+    const data = await storageApi.get(['privateKey', 'publicKey', 'keyId'])
+    if (data.privateKey && data.publicKey && data.keyId) {
+      return true
+    }
+
+    return false
   }
 
   async onInstalled() {
-    chrome.runtime.onInstalled.addListener(async () => {
+    runtime.onInstalled.addListener(async () => {
       if (await this.keyExists()) return
       const { privateKey, publicKey } = generateEd25519KeyPair()
       const keyId = crypto.randomUUID()
       const jwk = exportJWK(publicKey, keyId)
 
-      chrome.storage.local.set({
+      await storageApi.set({
         privateKey: bytesToHex(privateKey),
         publicKey: btoa(JSON.stringify(jwk)),
         keyId,
