@@ -139,6 +139,8 @@ export const getCopyPlugins = (
           from: path.resolve(__dirname, `${sourceDir}/_locales`),
           to: path.resolve(__dirname, `${outputDir}/${browserDir}/_locales`),
         },
+        // Bundle OpenAPI schemas - the Open Payments client is using them to
+        // validate responses.
         {
           from: path.resolve(__dirname, 'node_modules/@interledger/open-payments/dist/openapi'),
           to: path.resolve(__dirname, `${outputDir}/${browserDir}/openapi`),
