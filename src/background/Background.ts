@@ -5,11 +5,15 @@ import { type PaymentFlowService } from '@/background/paymentFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
 import { defaultData, storageApi } from '@/utils/storage'
 
-import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
-import getStorageData from '../messageHandlers/getStorageData'
-import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
-import runPaymentHandler from '../messageHandlers/runPaymentHandler'
-import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
+import {
+  getSendingPaymentPointerHandler,
+  getStorageData,
+  getStorageKey,
+  isMonetizationReadyHandler,
+  runPaymentHandler,
+  setIncomingPointerHandler,
+  setStorageKey,
+} from '../messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
 
 class Background {
@@ -19,6 +23,8 @@ class Background {
     getSendingPaymentPointerHandler,
     runPaymentHandler,
     getStorageData,
+    getStorageKey,
+    setStorageKey,
   ]
   private subscriptions: any = []
   // TO DO: remove these from background into storage or state & use injection
@@ -27,10 +33,16 @@ class Background {
   paymentStarted = false
 
   constructor() {
-    storageApi
-      .set({ data: defaultData })
-      .then(() => console.log('Default data stored successfully'))
-      .catch((error: any) => console.error('Error storing data:', error))
+    this.setStorageDefaultData()
+  }
+
+  // TODO: to be moved to a service
+  async setStorageDefaultData() {
+    try {
+      await storageApi.set({ ...defaultData })
+    } catch (error) {
+      console.error('Error storing data:', error)
+    }
   }
 
   subscribeToMessages() {

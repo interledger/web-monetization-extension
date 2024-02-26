@@ -3,20 +3,9 @@ import browser from 'webextension-polyfill'
 import { TPopupContext } from '@/providers/providers.interface'
 import { sendMessage } from '@/utils/sendMessages'
 
-export interface ExtensionStorageData {
-  amount: number
-  amountType: {
-    recurring: boolean
-  }
-  rateOfPay: number
-  wmEnabled: boolean
-  accessTokenQuote: string
-  accessTokenOutgoing: string
-  refreshToken: string
-  manageUrl: string
-}
-
-export const defaultData: ExtensionStorageData = {
+export const defaultData: TPopupContext = {
+  connected: false,
+  wallet: '',
   amount: 0,
   amountType: {
     recurring: true,
@@ -37,6 +26,11 @@ export const getStorageData = async () => {
     console.error('Error fetching storage data:', error)
     return null
   }
+}
+
+export const getStorageKey = async (key: string) => {
+  const response: any = await sendMessage({ type: 'GET_STORAGE_KEY', data: key })
+  return response?.[key]
 }
 
 export const storageApi = browser.storage?.sync || browser.storage?.local
