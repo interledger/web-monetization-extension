@@ -34,3 +34,24 @@ export const getStorageKey = async (key: string) => {
 }
 
 export const storageApi = browser.storage?.sync || browser.storage?.local
+
+export const setStorageDefaultData = async () => {
+  try {
+    await storageApi.set({ data: { ...defaultData } })
+  } catch (error) {
+    console.error('Error storing data:', error)
+  }
+}
+
+export const getKeys = async (): Promise<boolean> =>  {
+  const data = await storageApi.get(['privateKey', 'publicKey', 'keyId'])
+  return data.privateKey && data.publicKey && data.keyId
+}
+
+export const setKeys = async(privateKey: string, publicKey: string, keyId: string): Promise<void> => {
+  await storageApi.set({
+    privateKey,
+    publicKey,
+    keyId,
+  })
+}
