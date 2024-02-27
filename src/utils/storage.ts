@@ -21,7 +21,7 @@ export const defaultData: TPopupContext = {
 export const getStorageData = async () => {
   try {
     const response = await sendMessage({ type: 'GET_STORAGE_DATA' })
-    return response?.data as TPopupContext
+    return response.data as TPopupContext
   } catch (error) {
     console.error('Error fetching storage data:', error)
     return null

@@ -1,10 +1,9 @@
 import React, { createContext, useEffect, useState } from 'react'
 
+import { sendMessage } from '@/utils/sendMessages'
 import { defaultData, getStorageData } from '@/utils/storage'
 
 import { PopupContextValue, TPopupContext } from './providers.interface'
-import setStorageData from '../messageHandlers/setStorageData'
-import { sendMessage } from '@/utils/sendMessages'
 
 interface IProps {
   children: React.ReactNode
@@ -17,6 +16,10 @@ export const PopupContext = createContext<PopupContextValue>({
 
 export const PopupProvider: React.FC<IProps> = ({ children }) => {
   const [data, setData] = useState<TPopupContext>({ ...defaultData })
+
+  const updateStorageData = async () => {
+    await sendMessage({ type: 'SET_STORAGE_DATA', data })
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,9 +38,10 @@ export const PopupProvider: React.FC<IProps> = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (!data) return
-
-    sendMessage({ type: 'SET_STORAGE_DATA', data })
+    if (JSON.stringify(data) !== JSON.stringify(defaultData)) {
+      updateStorageData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
   return <PopupContext.Provider value={{ data, setData }}>{children}</PopupContext.Provider>
