@@ -1,7 +1,7 @@
 import { bytesToHex } from '@noble/hashes/utils'
 import { Runtime, runtime, tabs } from 'webextension-polyfill'
 
-import { PaymentFlowService } from '@/background/grantFlow'
+import { type PaymentFlowService } from '@/background/paymentFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
 import { defaultData, storageApi } from '@/utils/storage'
 
@@ -10,6 +10,7 @@ import {
   getStorageData,
   getStorageKey,
   isMonetizationReadyHandler,
+  runPaymentHandler,
   setIncomingPointerHandler,
   setStorageKey,
 } from '../messageHandlers'
@@ -20,6 +21,7 @@ class Background {
     isMonetizationReadyHandler,
     setIncomingPointerHandler,
     getSendingPaymentPointerHandler,
+    runPaymentHandler,
     getStorageData,
     getStorageKey,
     setStorageKey,
@@ -84,34 +86,28 @@ class Background {
   unsubscribeFromMessages() {
     this.subscriptions.forEach((sub: any) => sub())
   }
-
-  // TODO: Move to storage wrapper once available
   private async keyExists(): Promise<boolean> {
-    return new Promise(res => {
-      chrome.storage.local.get(['privateKey', 'publicKey', 'kid'], data => {
-        if (data.privateKey && data.publicKey && data.kid) {
-          res(true)
-        } else {
-          res(false)
-        }
-      })
-    })
+    const data = await storageApi.get(['privateKey', 'publicKey', 'keyId'])
+    if (data.privateKey && data.publicKey && data.keyId) {
+      return true
+    }
+
+    return false
   }
 
   async onInstalled() {
-    chrome.runtime.onInstalled.addListener(async () => {
+    runtime.onInstalled.addListener(async () => {
       if (await this.keyExists()) return
       const { privateKey, publicKey } = generateEd25519KeyPair()
-      const kid = crypto.randomUUID()
-      const jwk = exportJWK(publicKey, kid)
+      const keyId = crypto.randomUUID()
+      const jwk = exportJWK(publicKey, keyId)
 
-      chrome.storage.local.set({
+      await storageApi.set({
         privateKey: bytesToHex(privateKey),
         publicKey: btoa(JSON.stringify(jwk)),
-        kid,
+        keyId,
       })
     })
   }
 }
-
 export default Background

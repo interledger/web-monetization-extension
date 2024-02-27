@@ -81,6 +81,7 @@ export const wm2Polyfill = `
       'monetization-v2 event'
     )
 
+    const monetizationTag = document.querySelector('link[rel="monetization"]');
     const monetizationEvent = new MonetizationEvent('monetization', event.detail)
     monetizationTag.dispatchEvent(monetizationEvent)
   }, { capture: true, bubble: true })

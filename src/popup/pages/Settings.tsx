@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
 
+import { Button } from '@/components/button'
+import { DollarSign, WarningSign } from '@/components/icons'
 import { Input } from '@/components/input'
 import { Label } from '@/components/label'
 import { RadioGroup } from '@/components/radio-group'
-import { Button } from '@/components/button'
-import { DollarSign, WarningSign } from '@/components/icons'
-
 import { usePopup } from '@/providers/popup.state'
 
 export const Settings = () => {
