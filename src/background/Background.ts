@@ -12,6 +12,7 @@ import {
   isMonetizationReadyHandler,
   runPaymentHandler,
   setIncomingPointerHandler,
+  setStorageData,
   setStorageKey,
 } from '../messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
@@ -25,6 +26,7 @@ class Background {
     getStorageData,
     getStorageKey,
     setStorageKey,
+    setStorageData,
   ]
   private subscriptions: any = []
   // TO DO: remove these from background into storage or state & use injection
@@ -39,7 +41,7 @@ class Background {
   // TODO: to be moved to a service
   async setStorageDefaultData() {
     try {
-      await storageApi.set({ ...defaultData })
+      await storageApi.set({ data: { ...defaultData } })
     } catch (error) {
       console.error('Error storing data:', error)
     }
