@@ -42,14 +42,14 @@ export const Header = () => {
   }
 
   return (
-    <div className="flex flex-row items-center justify-between py-8">
-      <div className="flex flex-row items-center">
+    <div className="flex flex-row items-center justify-between h-8">
+      <div className="flex flex-row items-center gap-3">
         <img src={Logo} alt="Web Monetization Logo" className="h-6" />
-        <p className="ml-3 text-strong text-xl">Web Monetization</p>
+        <p className="text-strong text-xl">Web Monetization</p>
       </div>
-      <div className="flex flex-row items-center">
+      <div className="flex flex-row items-center gap-3">
         <NavigationButton />
-        <Switch checked={wmEnabled} onChange={switchWmEnabled} className="ml-2" />
+        <Switch checked={wmEnabled} onChange={switchWmEnabled} />
       </div>
     </div>
   )
