@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
 
+import { Button } from '@/components/button'
+import { DollarSign, WarningSign } from '@/components/icons'
 import { Input } from '@/components/input'
 import { Label } from '@/components/label'
 import { RadioGroup } from '@/components/radio-group'
-import { Button } from '@/components/button'
-import { DollarSign, WarningSign } from '@/components/icons'
-
 import { usePopup } from '@/providers/popup.state'
 
 export const Settings = () => {
@@ -93,9 +92,9 @@ export const Settings = () => {
 
   if (!wmEnabled)
     return (
-      <div className="flex items-center">
+      <div className="flex items-center gap-2">
         <WarningSign />
-        <p className="text-medium text-medium pl-2">Web Monetization has been turned off.</p>
+        <p className="text-base text-medium">Web Monetization has been turned off.</p>
       </div>
     )
 

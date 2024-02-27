@@ -2,9 +2,10 @@ import React, { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { runtime } from 'webextension-polyfill'
 
+import { usePopup } from '@/providers/popup.state'
+
 import { ArrowBack, Settings } from '../icons'
 import { ROUTES } from '../router-provider'
-import { usePopup } from '@/providers/popup.state'
 import { Switch } from '../switch'
 
 const Logo = runtime.getURL('assets/images/logo.svg')
@@ -41,14 +42,14 @@ export const Header = () => {
   }
 
   return (
-    <div className="flex flex-row items-center justify-between py-8">
-      <div className="flex flex-row items-center">
+    <div className="flex flex-row items-center justify-between h-8">
+      <div className="flex flex-row items-center gap-3">
         <img src={Logo} alt="Web Monetization Logo" className="h-6" />
-        <p className="ml-3 text-strong text-xl">Web Monetization</p>
+        <p className="text-strong text-xl">Web Monetization</p>
       </div>
-      <div className="flex flex-row items-center">
+      <div className="flex flex-row items-center gap-3">
         <NavigationButton />
-        <Switch checked={wmEnabled} onChange={switchWmEnabled} className="ml-2" />
+        <Switch checked={wmEnabled} onChange={switchWmEnabled} />
       </div>
     </div>
   )

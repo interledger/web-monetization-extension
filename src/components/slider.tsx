@@ -23,6 +23,7 @@ const sliderClasses = `
   [&::-moz-range-thumb]:h-5
   [&::-moz-range-thumb]:bg-switch-base
   [&::-moz-range-thumb]:rounded-full
+  [&::-webkit-slider-thumb]:disabled:bg-disabled-strong
   w-full h-1 bg-disabled-strong rounded-lg
   appearance-none cursor-pointer dark:bg-disabled-strong
 `
@@ -42,7 +43,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
           aria-disabled={disabled ?? false}
           aria-invalid={!!errorMessage}
           aria-describedby={errorMessage}
-          value={value}
+          value={disabled ? 0 : value}
           onChange={onChange}
           {...props}
         />
