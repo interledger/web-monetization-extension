@@ -16,7 +16,6 @@ import {
   setStorageKey,
 } from '../messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
-import setStorageData from '../messageHandlers/setStorageData'
 
 class Background {
   private messageHandlers: any = [
