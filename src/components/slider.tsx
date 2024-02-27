@@ -9,47 +9,45 @@ export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement>
   min?: number
   max?: number
   value?: number
-  defaultValue?: number
+  onChange?: (_event: React.ChangeEvent<HTMLInputElement>) => void
 }
 
+const sliderClasses = `
+  [&::-webkit-slider-thumb]:appearance-none
+  [&::-webkit-slider-thumb]:w-5
+  [&::-webkit-slider-thumb]:h-5
+  [&::-webkit-slider-thumb]:bg-switch-base
+  [&::-webkit-slider-thumb]:rounded-full
+  [&::-moz-range-thumb]:appearance-none
+  [&::-moz-range-thumb]:w-5
+  [&::-moz-range-thumb]:h-5
+  [&::-moz-range-thumb]:bg-switch-base
+  [&::-moz-range-thumb]:rounded-full
+  [&::-webkit-slider-thumb]:disabled:bg-disabled-strong
+  w-full h-1 bg-disabled-strong rounded-lg
+  appearance-none cursor-pointer dark:bg-disabled-strong
+`
+
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
-  { errorMessage, defaultValue, value, className, disabled, ...props },
+  { errorMessage, value = 0, className, onChange = () => {}, disabled, ...props },
   ref,
 ) {
-  const [innerValue, setInnerValue] = React.useState<number>(value || defaultValue || 0)
-
   return (
-    <div className="w-100">
-      <input
-        ref={ref}
-        type="range"
-        className={
-          (cn(
-            `[&::-webkit-slider-thumb]:appearance-none
-        [&::-webkit-slider-thumb]:w-5
-        [&::-webkit-slider-thumb]:h-5
-        [&::-webkit-slider-thumb]:bg-switch-base
-        [&::-webkit-slider-thumb]:rounded-full
-        [&::-moz-range-thumb]:appearance-none
-        [&::-moz-range-thumb]:w-5
-        [&::-moz-range-thumb]:h-5
-        [&::-moz-range-thumb]:bg-switch-base
-        [&::-moz-range-thumb]:rounded-full
-        w-full h-1 bg-disabled-strong rounded-lg appearance-none cursor-pointer dark:bg-disabled-strong`,
-            innerValue === 0 &&
-              '[&::-webkit-slider-thumb]:bg-disabled-strong [&::-moz-range-thumb]:bg-disabled-strong',
-          ),
-          className)
-        }
-        disabled={disabled ?? false}
-        aria-disabled={disabled ?? false}
-        aria-invalid={!!errorMessage}
-        aria-describedby={errorMessage}
-        defaultValue={defaultValue}
-        value={innerValue}
-        onChange={e => setInnerValue(Number(e.target.value))}
-        {...props}
-      />
+    <div className="w-full">
+      <div className="h-1 flex items-center">
+        <input
+          ref={ref}
+          type="range"
+          className={sliderClasses + cn(className)}
+          disabled={disabled ?? false}
+          aria-disabled={disabled ?? false}
+          aria-invalid={!!errorMessage}
+          aria-describedby={errorMessage}
+          value={disabled ? 0 : value}
+          onChange={onChange}
+          {...props}
+        />
+      </div>
 
       {errorMessage && <p className="text-error text-sm px-2">{errorMessage}</p>}
     </div>

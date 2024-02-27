@@ -1,7 +1,9 @@
 import { act, render, screen } from '@testing-library/react'
 import React, { useContext } from 'react'
 
-import { defaultData, PopupContext, PopupProvider } from '../popup.provider'
+import { defaultData } from '@/utils/storage'
+
+import { PopupContext, PopupProvider } from '../popup.provider'
 
 jest.mock('webextension-polyfill', () => ({
   runtime: {

@@ -1,179 +1,84 @@
-import React, { useEffect, useState } from 'react'
-import { runtime } from 'webextension-polyfill'
+import React, { useState } from 'react'
 
-import { sendMessage, sendMessageToActiveTab } from '@/utils/sendMessages'
-
-const Success = runtime.getURL('assets/images/web-monetization-success.svg')
-const Fail = runtime.getURL('assets/images/web-monetization-fail.svg')
-const CheckIcon = runtime.getURL('assets/images/check.svg')
-const DollarIcon = runtime.getURL('assets/images/dollar.svg')
-const CloseIcon = runtime.getURL('assets/images/close.svg')
-
-// --- Temporary code until real UI implemented ---
-
-interface IProps {
-  isMonetizationReady: boolean
-}
-
-const PopupFooter: React.FC<IProps> = ({ isMonetizationReady }) => (
-  <footer className="flex items-center justify-center px-4">
-    {isMonetizationReady ? (
-      <span>This site is Web Monetization ready</span>
-    ) : (
-      <span>This site isn&apos;t Web Monetization ready</span>
-    )}
-  </footer>
-)
-
-// --- End of Temporary code until real UI implemented ---
+import { Button } from '@/components/button'
+import { DollarSign, WarningSign } from '@/components/icons'
+import { Input } from '@/components/input'
+import { Label } from '@/components/label'
+import { Slider } from '@/components/slider'
+import { Switch } from '@/components/switch'
+import { usePopup } from '@/providers/popup.state'
+import { formatCurrency } from '@/utils/formatCurrency'
 
 export const Home = () => {
-  const [loading, setLoading] = useState(false)
-  const [paymentStarted, setPaymentStarted] = useState(false)
-  const [spent, setSpent] = useState(0)
-  const [sendingPaymentPointer, setSendingPaymentPointer] = useState('')
-  const [isMonetizationReady, setIsMonetizationReady] = useState(false)
-  const [receivingPaymentPointer, setReceivingPaymentPointer] = useState('')
-  const [formData, setFormData] = useState({
-    paymentPointer: sendingPaymentPointer || '',
-    amount: 20,
-  })
+  const {
+    data: { wmEnabled, rateOfPay, amount, amountType },
+    setData,
+  } = usePopup()
+  const [tipAmount, setTipAmount] = useState('')
 
-  useEffect(() => {
-    checkMonetizationReady()
-    getSendingPaymentPointer()
-    listenForIncomingPayment()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const checkMonetizationReady = async () => {
-    const response = await sendMessageToActiveTab({ type: 'IS_MONETIZATION_READY' })
-    setIsMonetizationReady(response.data.monetization)
-    setReceivingPaymentPointer(response.data.paymentPointer)
+  const updateRateOfPay = async (event: any) => {
+    setData(prevState => ({ ...prevState, rateOfPay: event.target.value }))
   }
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prevState => ({ ...prevState, [event.target.name]: event.target.value }))
+  const updateStreamType = async (event: any) => {
+    setData(prevState => ({
+      ...prevState,
+      amountType: { ...prevState.amountType, recurring: event.target.checked },
+    }))
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    setLoading(true)
-    const data = {
-      amount: formData.amount,
-      paymentPointer: formData.paymentPointer,
-      incomingPayment: receivingPaymentPointer,
-    }
-
-    await sendMessage({ type: 'SET_INCOMING_POINTER', data })
-  }
-
-  const getSendingPaymentPointer = async () => {
-    const response = await sendMessage({ type: 'GET_SENDING_PAYMENT_POINTER' })
-    console.log('getSendingPaymentPointer', response)
-    setSendingPaymentPointer(response.data.sendingPaymentPointerUrl)
-
-    const { sendingPaymentPointerUrl: paymentPointer, amount } = response.data
-    if (paymentPointer && amount) {
-      setFormData({
-        paymentPointer: response.data.sendingPaymentPointerUrl,
-        amount: response.data.amount,
-      })
-    }
-  }
-
-  const listenForIncomingPayment = async () => {
-    const listener = (message: any) => {
-      if (message.type === 'SPENT_AMOUNT') {
-        setSpent(message.data.spentAmount)
-        setPaymentStarted(true)
-      }
-
-      if (loading) {
-        setLoading(false)
-      }
-    }
-
-    runtime.onMessage.addListener(listener)
-    return () => {
-      runtime.onMessage.removeListener(listener)
-    }
-  }
-
-  const stopPayments = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault()
-    setPaymentStarted(false)
-    setTimeout(() => {
-      if (loading) {
-        setLoading(false)
-      }
-    }, 1000)
-    await sendMessageToActiveTab({ type: 'STOP_PAYMENTS' })
+  if (!wmEnabled) {
+    return (
+      <div className="flex items-center gap-2">
+        <WarningSign />
+        <p className="text-base text-medium">Web Monetization has been turned off.</p>
+      </div>
+    )
   }
 
   return (
-    <>
-      {!!spent && (
-        <div className="spentAmount">
-          ${spent}/<span>$20</span>
+    <div className="flex flex-col gap-8 basis-auto justify-center">
+      <div className="grid gap-4 w-full">
+        <div className="px-2 text-base font-medium text-medium">Current rate of pay</div>
+        <Slider
+          min={0}
+          max={1}
+          step={0.01}
+          value={rateOfPay}
+          onChange={updateRateOfPay}
+          disabled={!amountType.recurring}
+        />
+        <div className="px-2 flex items-center justify-between w-full">
+          <span>{!amountType.recurring ? '0c' : formatCurrency(rateOfPay)} per hour</span>
+          <span>Remaining balance: ${amount}</span>
         </div>
-      )}
-      <div className="content">
-        {isMonetizationReady ? (
-          <>
-            <img src={Success} alt="Success" />
-
-            <form
-              onSubmit={handleSubmit}
-              className={`pointerForm ${paymentStarted ? 'active' : ''}`}>
-              <div className="input-wrapper">
-                <label htmlFor="paymentPointer">Payment pointer</label>
-                <div className="input">
-                  <input
-                    type="text"
-                    name="paymentPointer"
-                    value={formData.paymentPointer}
-                    onInput={handleChange}
-                    disabled={paymentStarted}
-                    placeholder="https://ilp.rafiki.money/alice"
-                  />
-                </div>
-              </div>
-
-              <div className="input-wrapper">
-                <label htmlFor="pointer">Amount</label>
-                <div className="input">
-                  <img src={DollarIcon} alt="dollar" />
-                  <input
-                    type="text"
-                    name="amount"
-                    value={formData.amount}
-                    onInput={handleChange}
-                    disabled={paymentStarted}
-                    placeholder="0.05"
-                  />
-                </div>
-              </div>
-
-              <div className="actions">
-                {paymentStarted ? (
-                  <button type="button" className="stop-btn" onClick={stopPayments}>
-                    <img src={CloseIcon} alt="Stop" />
-                  </button>
-                ) : (
-                  <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`}>
-                    <img src={CheckIcon} alt="Check" />
-                  </button>
-                )}
-              </div>
-            </form>
-          </>
-        ) : (
-          <img src={Fail} alt="Fail" />
-        )}
       </div>
-      <PopupFooter isMonetizationReady={isMonetizationReady} />
-    </>
+
+      <div className="flex items-center gap-4 h-7">
+        <Switch size="small" checked={amountType.recurring} onChange={updateStreamType} />
+        <span className="text-medium text-base">Continuous payments stream</span>
+      </div>
+
+      <div className="h-px bg-nav-active" />
+
+      <div className="flex flex-col gap-4">
+        <Label className="text-base font-medium	text-medium">
+          Pay <span className="text-primary">https://alexlakatos.com/</span>
+        </Label>
+        <Input
+          value={tipAmount}
+          type="number"
+          id="amount"
+          name="amount"
+          placeholder="0.00"
+          onChange={event => setTipAmount(event.target.value)}
+          icon={<DollarSign />}
+        />
+      </div>
+
+      <Button aria-label="Send now" className="text-base font-medium">
+        Send now
+      </Button>
+    </div>
   )
 }

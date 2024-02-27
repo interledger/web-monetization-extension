@@ -13,6 +13,8 @@ declare type EXTMessageType =
   | 'LOAD'
   | 'GET_STORAGE_DATA'
   | 'SET_STORAGE_DATA'
+  | 'GET_STORAGE_KEY'
+  | 'SET_STORAGE_KEY'
 
 declare type EXTMessage<T = any> = {
   type: EXTMessageType

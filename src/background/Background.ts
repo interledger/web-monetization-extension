@@ -1,25 +1,31 @@
 import { bytesToHex } from '@noble/hashes/utils'
-import browser, { Runtime, runtime, tabs } from 'webextension-polyfill'
+import { Runtime, runtime, tabs } from 'webextension-polyfill'
 
-import { PaymentFlowService } from '@/background/grantFlow'
+import { type PaymentFlowService } from '@/background/paymentFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
-import { defaultData } from '@/utils/storage'
+import { defaultData, storageApi } from '@/utils/storage'
 
-import getSendingPaymentPointerHandler from '../messageHandlers/getSendingPaymentPointerHandler'
-import getStorageData from '../messageHandlers/getStorageData'
-import isMonetizationReadyHandler from '../messageHandlers/isMonetizationReadyHandler'
-import setIncomingPointerHandler from '../messageHandlers/setIncomingPointerHandler'
+import {
+  getSendingPaymentPointerHandler,
+  getStorageData,
+  getStorageKey,
+  isMonetizationReadyHandler,
+  runPaymentHandler,
+  setIncomingPointerHandler,
+  setStorageKey,
+} from '../messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
 import setStorageData from '../messageHandlers/setStorageData'
-
-const storage = browser.storage.local
 
 class Background {
   private messageHandlers: any = [
     isMonetizationReadyHandler,
     setIncomingPointerHandler,
     getSendingPaymentPointerHandler,
+    runPaymentHandler,
     getStorageData,
+    getStorageKey,
+    setStorageKey,
     setStorageData,
   ]
   private subscriptions: any = []
@@ -29,10 +35,16 @@ class Background {
   paymentStarted = false
 
   constructor() {
-    storage
-      .set({ data: defaultData })
-      .then(() => console.log('Default data stored successfully'))
-      .catch((error: any) => console.error('Error storing data:', error))
+    this.setStorageDefaultData()
+  }
+
+  // TODO: to be moved to a service
+  async setStorageDefaultData() {
+    try {
+      await storageApi.set({ ...defaultData })
+    } catch (error) {
+      console.error('Error storing data:', error)
+    }
   }
 
   subscribeToMessages() {
@@ -40,7 +52,7 @@ class Background {
       const listener: any = (
         message: EXTMessage,
         sender: Runtime.MessageSender,
-        sendResponse: (res: any) => void,
+        sendResponse: (_res: any) => void,
       ) => {
         if (handler.type === message.type) {
           handler
@@ -76,34 +88,28 @@ class Background {
   unsubscribeFromMessages() {
     this.subscriptions.forEach((sub: any) => sub())
   }
-
-  // TODO: Move to storage wrapper once available
   private async keyExists(): Promise<boolean> {
-    return new Promise(res => {
-      chrome.storage.local.get(['privateKey', 'publicKey', 'kid'], data => {
-        if (data.privateKey && data.publicKey && data.kid) {
-          res(true)
-        } else {
-          res(false)
-        }
-      })
-    })
+    const data = await storageApi.get(['privateKey', 'publicKey', 'keyId'])
+    if (data.privateKey && data.publicKey && data.keyId) {
+      return true
+    }
+
+    return false
   }
 
   async onInstalled() {
-    chrome.runtime.onInstalled.addListener(async () => {
+    runtime.onInstalled.addListener(async () => {
       if (await this.keyExists()) return
       const { privateKey, publicKey } = generateEd25519KeyPair()
-      const kid = crypto.randomUUID()
-      const jwk = exportJWK(publicKey, kid)
+      const keyId = crypto.randomUUID()
+      const jwk = exportJWK(publicKey, keyId)
 
-      chrome.storage.local.set({
+      await storageApi.set({
         privateKey: bytesToHex(privateKey),
         publicKey: btoa(JSON.stringify(jwk)),
-        kid,
+        keyId,
       })
     })
   }
 }
-
 export default Background
