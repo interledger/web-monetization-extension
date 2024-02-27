@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 
-import { Button } from '@/components/button'
-import { DollarSign, WarningSign } from '@/components/icons'
-import { Input } from '@/components/input'
-import { Label } from '@/components/label'
-import { RadioGroup } from '@/components/radio-group'
-import { usePopup } from '@/providers/popup.state'
+import { Button } from '@/popup/components/button'
+import { DollarSign, WarningSign } from '@/popup/components/icons'
+import { Input } from '@/popup/components/input'
+import { Label } from '@/popup/components/label'
+import { RadioGroup } from '@/popup/components/radio-group'
+import { usePopup } from '@/popup/providers/popup.state'
 
 export const Settings = () => {
   const {

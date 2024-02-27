@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 
-import { Button } from '@/components/button'
-import { DollarSign, WarningSign } from '@/components/icons'
-import { Input } from '@/components/input'
-import { Label } from '@/components/label'
-import { Slider } from '@/components/slider'
-import { Switch } from '@/components/switch'
-import { usePopup } from '@/providers/popup.state'
+import { Button } from '@/popup/components/button'
+import { DollarSign, WarningSign } from '@/popup/components/icons'
+import { Input } from '@/popup/components/input'
+import { Label } from '@/popup/components/label'
+import { Slider } from '@/popup/components/slider'
+import { Switch } from '@/popup/components/switch'
+import { usePopup } from '@/popup/providers/popup.state'
 import { formatCurrency } from '@/utils/formatCurrency'
 
 export const Home = () => {

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { runtime } from 'webextension-polyfill'
 
-import { usePopup } from '@/providers/popup.state'
+import { usePopup } from '@/popup/providers/popup.state'
 
 import { ArrowBack, Settings } from '../icons'
 import { ROUTES } from '../router-provider'

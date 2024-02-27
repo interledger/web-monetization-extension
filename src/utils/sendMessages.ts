@@ -1,5 +1,7 @@
 import { Runtime, runtime, Tabs, tabs } from 'webextension-polyfill'
 
+import { EXTMessage, EXTResponse } from './types'
+
 /**
  * Send Message to Background Script
  *

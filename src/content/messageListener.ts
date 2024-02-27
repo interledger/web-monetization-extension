@@ -1,4 +1,5 @@
 import { PaymentSender } from '@/content/monetization'
+import { EXTMessage, EXTResponse } from '@/utils/types'
 
 const paymentSender = new PaymentSender()
 

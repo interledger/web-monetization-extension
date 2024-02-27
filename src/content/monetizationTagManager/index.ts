@@ -1,4 +1,4 @@
-import { MonetizationTagManager } from '@/utils/monetizationTagManager/MonetizationTagManager'
+import { MonetizationTagManager } from '@/content/monetizationTagManager/MonetizationTagManager'
 
 interface PaymentDetailsChangeArguments {
   started: PaymentDetails | null

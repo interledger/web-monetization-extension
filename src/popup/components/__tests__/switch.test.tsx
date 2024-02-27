@@ -3,7 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 import React from 'react'
 
-import { Switch } from '@/components/switch'
+import { Switch } from '@/popup/components/switch'
 
 describe('Switch', () => {
   it('renders without crashing', () => {

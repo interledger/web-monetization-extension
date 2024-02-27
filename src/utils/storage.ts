@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 
-import { TPopupContext } from '@/providers/providers.interface'
+import { TPopupContext } from '@/popup/providers/providers.interface'
 import { sendMessage } from '@/utils/sendMessages'
 
 export const defaultData: TPopupContext = {

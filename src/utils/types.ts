@@ -1,4 +1,4 @@
-declare type EXTMessageType =
+export type EXTMessageType =
   | 'SET_MONETIZATION_READY'
   | 'IS_MONETIZATION_READY'
   | 'SET_INCOMING_POINTER'
@@ -16,7 +16,14 @@ declare type EXTMessageType =
   | 'GET_STORAGE_KEY'
   | 'SET_STORAGE_KEY'
 
-declare type EXTMessage<T = any> = {
+export type EXTMessage<T = any> = {
   type: EXTMessageType
+  data?: T
+}
+
+export type EXTResponseType = 'SUCCESS' | 'FAILED' | 'PENDING' | 'UNAUTHORIZED' | 'AUTHENTICATED'
+
+export type EXTResponse<T = any> = {
+  type: EXTResponseType
   data?: T
 }

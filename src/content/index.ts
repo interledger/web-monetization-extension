@@ -1,6 +1,6 @@
 import { runtime } from 'webextension-polyfill'
 
-import { initMonetizationTagManager } from '@/utils/monetizationTagManager'
+import { initMonetizationTagManager } from '@/content/monetizationTagManager'
 
 import { loadObserver } from './linksObserver'
 import MessageListener from './messageListener'

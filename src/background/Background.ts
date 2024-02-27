@@ -4,6 +4,7 @@ import { Runtime, runtime, tabs } from 'webextension-polyfill'
 import { type PaymentFlowService } from '@/background/paymentFlow'
 import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
 import { defaultData, storageApi } from '@/utils/storage'
+import { EXTMessage } from '@/utils/types'
 
 import {
   getSendingPaymentPointerHandler,
@@ -13,7 +14,7 @@ import {
   runPaymentHandler,
   setIncomingPointerHandler,
   setStorageKey,
-} from '../messageHandlers'
+} from './messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
 
 class Background {
