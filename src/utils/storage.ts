@@ -21,6 +21,7 @@ export const defaultData: TPopupContext = {
 export const getStorageData = async () => {
   try {
     const response = await sendMessage({ type: 'GET_STORAGE_DATA' })
+    console.log('respose', response)
     return response?.data as TPopupContext
   } catch (error) {
     console.error('Error fetching storage data:', error)
@@ -43,12 +44,16 @@ export const setStorageDefaultData = async () => {
   }
 }
 
-export const getKeys = async (): Promise<boolean> =>  {
+export const getKeys = async (): Promise<boolean> => {
   const data = await storageApi.get(['privateKey', 'publicKey', 'keyId'])
   return data.privateKey && data.publicKey && data.keyId
 }
 
-export const setKeys = async(privateKey: string, publicKey: string, keyId: string): Promise<void> => {
+export const setKeys = async (
+  privateKey: string,
+  publicKey: string,
+  keyId: string,
+): Promise<void> => {
   await storageApi.set({
     privateKey,
     publicKey,

@@ -1,4 +1,4 @@
-import { Runtime, runtime, tabs } from 'webextension-polyfill'
+import { type Browser, Runtime } from 'webextension-polyfill'
 
 import { type PaymentFlowService } from '@/background/paymentFlow'
 import { setStorageDefaultData } from '@/utils/storage'
@@ -15,6 +15,7 @@ import {
   setStorageData,
   setStorageKey,
 } from './messageHandlers'
+import { EventsService } from './services'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
 
 class Background {
@@ -34,8 +35,23 @@ class Background {
   spentAmount: number = 0
   paymentStarted = false
 
-  constructor() {
+  constructor(
+    private browser: Browser,
+    private eventsService: EventsService,
+  ) {
     setStorageDefaultData()
+  }
+
+  setupEvents() {
+    this.browser.runtime.onMessage.addListener(async (message: EXTMessage) => {
+      switch (message.type) {
+        case 'GET_STORAGE_DATA':
+          return await this.eventsService.getStorageData()
+
+        default:
+          return
+      }
+    })
   }
 
   subscribeToMessages() {
@@ -53,6 +69,7 @@ class Background {
             })
             .catch((error: any) => {
               console.log('[===== Error in MessageListener =====]', error)
+
               sendResponse(error)
             })
         }
@@ -60,24 +77,24 @@ class Background {
         return true
       }
 
-      runtime.onMessage.addListener(listener)
+      this.browser.runtime.onMessage.addListener(listener)
 
       return () => {
-        runtime.onMessage.removeListener(listener)
+        this.browser.runtime.onMessage.removeListener(listener)
       }
     })
   }
 
   subscribeToTabChanges() {
     //Add Update listener for tab
-    tabs.onUpdated.addListener(tabUpdateHandler)
+    this.browser.tabs.onUpdated.addListener(tabUpdateHandler)
 
     //Add tab change listener
-    tabs.onActivated.addListener(tabChangeHandler)
+    this.browser.tabs.onActivated.addListener(tabChangeHandler)
   }
 
   subscribeToInstall() {
-    runtime.onInstalled.addListener(generateKeysHandler)
+    this.browser.runtime.onInstalled.addListener(generateKeysHandler)
   }
 
   unsubscribeFromMessages() {

@@ -1,14 +1,37 @@
-import { asClass, createContainer } from 'awilix'
+import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
+import browser, { type Browser } from 'webextension-polyfill'
 
 import Background from './Background'
+import { EventsService } from './services'
 
 interface Cradle {
   background: Background
+  browser: Browser
+  eventsService: EventsService
 }
 
-export const container = createContainer<Cradle>()
+export const createBackgroundContainer = () => {
+  // Create container
+  const container = createContainer<Cradle>({
+    injectionMode: InjectionMode.CLASSIC,
+  })
 
-container.register({
-  background: asClass(Background).singleton(),
-  // TODO - add injectable services
-})
+  // Register services
+  container.register({
+    browser: asValue(browser),
+    background: asClass(Background).singleton(),
+    eventsService: asClass(EventsService).singleton(),
+  })
+
+  console.log('Start initialization')
+
+  const background = container.resolve('background')
+
+  // Subscribe to messages
+  background.subscribeToInstall()
+  background.setupEvents()
+  // background.subscribeToMessages()
+  background.subscribeToTabChanges()
+
+  console.log('End initialization')
+}
