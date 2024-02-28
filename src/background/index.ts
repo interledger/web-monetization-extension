@@ -5,7 +5,7 @@ const initialize = () => {
 
   const background = container.resolve('background')
 
-  background.onInstalled()
+  background.subscribeToInstall()
   background.subscribeToMessages()
   background.subscribeToTabChanges()
 

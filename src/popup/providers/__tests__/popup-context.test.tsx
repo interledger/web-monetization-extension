@@ -11,6 +11,7 @@ jest.mock('webextension-polyfill', () => ({
       addListener: jest.fn(),
       removeListener: jest.fn(),
     },
+    sendMessage: jest.fn(),
   },
 }))
 

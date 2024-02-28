@@ -1,11 +1,10 @@
 import { storageApi } from '@/utils/storage'
 
-const getStorageData = async () => {
+const setStorageData = async (data: any) => {
   try {
-    const { data } = await storageApi.get('data')
+    await storageApi.set({ data })
     return {
       type: 'SUCCESS',
-      data,
     }
   } catch (error) {
     return {
@@ -15,4 +14,4 @@ const getStorageData = async () => {
   }
 }
 
-export default { callback: getStorageData, type: 'GET_STORAGE_DATA' }
+export default { callback: setStorageData, type: 'SET_STORAGE_DATA' }
