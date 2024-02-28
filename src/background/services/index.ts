@@ -1,3 +1,2 @@
-import { EventsService } from './EventsService'
-
-export { EventsService }
+export * from './BrowserEventsService'
+export * from './EventsService'
