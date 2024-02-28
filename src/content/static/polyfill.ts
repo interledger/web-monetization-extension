@@ -1,8 +1,5 @@
 // language=JavaScript
 export const wm2Polyfill = `
-  const dbg = () => {
-  }
-  dbg('setonmonetization property start')
   const handlers = new WeakMap()
   var attributes = {
     enumerable: true,
@@ -11,7 +8,6 @@ export const wm2Polyfill = `
       return handlers.get(this) || null
     },
     set(val) {
-      dbg('set onmonetization called, with', val)
       const listener = handlers.get(this)
       if (listener && listener === val) {
         // nothing to do here ?
@@ -19,7 +15,6 @@ export const wm2Polyfill = `
       }
       const removeAnyExisting = () => {
         if (listener) {
-          dbg('removing existing listener')
           this.removeEventListener('monetization', listener)
         }
       }
@@ -59,8 +54,6 @@ export const wm2Polyfill = `
   Object.defineProperty(HTMLElement.prototype, 'onmonetization', attributes)
   Object.defineProperty(Window.prototype, 'onmonetization', attributes)
   Object.defineProperty(Document.prototype, 'onmonetization', attributes)
-  dbg('setonmonetization property end')
-  dbg('add coil-onmonetization-v2-attr-changed handler start')
 
   //
   class MonetizationEvent extends Event {
@@ -77,16 +70,12 @@ export const wm2Polyfill = `
   window.MonetizationEvent = MonetizationEvent
 
   window.addEventListener('monetization-v2', (event) => {
-    dbg(
-      'monetization-v2 event'
-    )
 
     const monetizationTag = document.querySelector('link[rel="monetization"]');
     const monetizationEvent = new MonetizationEvent('monetization', event.detail)
     monetizationTag.dispatchEvent(monetizationEvent)
   }, { capture: true, bubble: true })
   window.addEventListener('onmonetization-attr-changed', (event) => {
-    dbg('onmonetization-attr-changed', event.detail.attribute)
     const { attribute } = event.detail
     if (attribute) {
       // TODO:WM2 what are the CSP issues here?
@@ -97,5 +86,4 @@ export const wm2Polyfill = `
       event.target.onmonetization = null
     }
   }, { capture: true })
-  dbg('add coil-onmonetization-v2-attr-changed handler end')
 `
