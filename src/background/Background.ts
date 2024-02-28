@@ -1,9 +1,7 @@
-import { bytesToHex } from '@noble/hashes/utils'
 import { Runtime, runtime, tabs } from 'webextension-polyfill'
 
 import { type PaymentFlowService } from '@/background/paymentFlow'
-import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
-import { defaultData, storageApi } from '@/utils/storage'
+import { setStorageDefaultData } from '@/utils/storage'
 
 import {
   getSendingPaymentPointerHandler,
@@ -16,6 +14,7 @@ import {
   setStorageKey,
 } from '../messageHandlers'
 import { tabChangeHandler, tabUpdateHandler } from './tabHandlers'
+import { generateKeysHandler } from './installHandlers'
 
 class Background {
   private messageHandlers: any = [
@@ -35,16 +34,7 @@ class Background {
   paymentStarted = false
 
   constructor() {
-    this.setStorageDefaultData()
-  }
-
-  // TODO: to be moved to a service
-  async setStorageDefaultData() {
-    try {
-      await storageApi.set({ data: { ...defaultData } })
-    } catch (error) {
-      console.error('Error storing data:', error)
-    }
+    setStorageDefaultData()
   }
 
   subscribeToMessages() {
@@ -85,31 +75,12 @@ class Background {
     tabs.onActivated.addListener(tabChangeHandler)
   }
 
+  subscribeToInstall() {
+    runtime.onInstalled.addListener(generateKeysHandler)
+  }
+
   unsubscribeFromMessages() {
     this.subscriptions.forEach((sub: any) => sub())
-  }
-  private async keyExists(): Promise<boolean> {
-    const data = await storageApi.get(['privateKey', 'publicKey', 'keyId'])
-    if (data.privateKey && data.publicKey && data.keyId) {
-      return true
-    }
-
-    return false
-  }
-
-  async onInstalled() {
-    runtime.onInstalled.addListener(async () => {
-      if (await this.keyExists()) return
-      const { privateKey, publicKey } = generateEd25519KeyPair()
-      const keyId = crypto.randomUUID()
-      const jwk = exportJWK(publicKey, keyId)
-
-      await storageApi.set({
-        privateKey: bytesToHex(privateKey),
-        publicKey: btoa(JSON.stringify(jwk)),
-        keyId,
-      })
-    })
   }
 }
 export default Background
