@@ -27,3 +27,8 @@ export type EXTResponse<T = any> = {
   type: EXTResponseType
   data?: T
 }
+
+export interface Amount {
+  value: number
+  interval?: string // https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals
+}

@@ -33,12 +33,12 @@ const NavigationButton = () => {
 
 export const Header = () => {
   const {
-    data: { wmEnabled },
+    data: { enabled },
     setData,
   } = usePopup()
 
   const switchWmEnabled = () => {
-    setData(prevState => ({ ...prevState, wmEnabled: !prevState.wmEnabled }))
+    setData(prevState => ({ ...prevState, enabled: !prevState.enabled }))
   }
 
   return (
@@ -49,7 +49,7 @@ export const Header = () => {
       </div>
       <div className="flex flex-row items-center gap-3">
         <NavigationButton />
-        <Switch checked={wmEnabled} onChange={switchWmEnabled} />
+        <Switch checked={enabled} onChange={switchWmEnabled} />
       </div>
     </div>
   )

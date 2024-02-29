@@ -1,4 +1,4 @@
-import { action, runtime } from 'webextension-polyfill'
+import { type Browser, action, runtime } from 'webextension-polyfill'
 
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
 const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
@@ -16,4 +16,9 @@ export const updateIcon = async (active: boolean) => {
   } else if (chrome.browserAction) {
     chrome.browserAction.setIcon({ path: iconData })
   }
+}
+
+export const getCurrentActiveTabId = async (browser: Browser) => {
+  const activeTabs = await browser.tabs.query({ active: true, currentWindow: true })
+  return activeTabs[0].id
 }

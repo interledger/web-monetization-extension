@@ -1,17 +1,28 @@
+import { Amount } from '@/utils/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
 } from '@interledger/open-payments/dist/client'
-import { isPendingGrant, WalletAddress } from '@interledger/open-payments/dist/types'
+import {
+  isFinalizedGrant,
+  isPendingGrant,
+  WalletAddress,
+} from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
+import { getCurrentActiveTabId } from '../utils'
 
 interface KeyInformation {
   privateKey: string
   keyId: string
+}
+
+interface InteractionParams {
+  interactRef: string
+  hash: string
 }
 
 export interface SignatureHeaders {
@@ -126,15 +137,51 @@ export class OpenPaymentsService {
     }
   }
 
+  async initClient(walletAddressUrl: string) {
+    console.log('init client')
+    const { privateKey, keyId } = await this.getPrivateKeyInformation()
+    this.client = await createAuthenticatedClient({
+      walletAddressUrl,
+      authenticatedRequestInterceptor: async config => {
+        if (!config.method || !config.url) {
+          throw new Error('Cannot intercept request: url or method missing')
+        }
+
+        const headers = await this.createHeaders({
+          request: {
+            method: config.method,
+            url: config.url,
+            headers: JSON.parse(JSON.stringify(config.headers)),
+            body: config.data ? JSON.stringify(config.data) : undefined,
+          },
+          privateKey: ed.etc.hexToBytes(privateKey),
+          keyId,
+        })
+
+        if (config.data) {
+          config.headers['Content-Type'] = headers['Content-Type']
+          // Kept receiving console errors for setting unsafe header.
+          // Keeping this as a comment for now.
+          // config.headers['Content-Length'] = headers['Content-Length']
+          config.headers['Content-Digest'] = headers['Content-Digest']
+        }
+
+        config.headers['Signature'] = headers['Signature']
+        config.headers['Signature-Input'] = headers['Signature-Input']
+
+        return config
+      },
+    })
+  }
+
   private async createQuoteAndOutgoingPaymentGrant(
     nonce: string,
-    authServer: string,
     walletAddress: WalletAddress,
-    amount: string,
+    amount: Amount,
   ) {
     const grant = await this.client!.grant.request(
       {
-        url: authServer,
+        url: walletAddress.authServer,
       },
       {
         access_token: {
@@ -149,10 +196,11 @@ export class OpenPaymentsService {
               identifier: walletAddress.id,
               limits: {
                 debitAmount: {
-                  value: String(Number(amount) * 10 ** walletAddress.assetScale),
+                  value: String(Number(amount.value) * 10 ** walletAddress.assetScale),
                   assetScale: walletAddress.assetScale,
                   assetCode: walletAddress.assetCode,
                 },
+                interval: amount.interval,
               },
             },
           ],
@@ -196,40 +244,72 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
-  async initClient(walletAddressUrl: string) {
-    console.log('init client')
-    const { privateKey, keyId } = await this.getPrivateKeyInformation()
-    this.client = await createAuthenticatedClient({
-      walletAddressUrl,
-      authenticatedRequestInterceptor: async config => {
-        if (!config.method || !config.url) {
-          throw new Error('Cannot intercept request: url or method missing')
-        }
+  private async confirmPayment(url: string): Promise<InteractionParams> {
+    const currentTabId = await getCurrentActiveTabId(this.browser)
 
-        const headers = await this.createHeaders({
-          request: {
-            method: config.method,
-            url: config.url,
-            headers: JSON.parse(JSON.stringify(config.headers)),
-            body: config.data ? JSON.stringify(config.data) : undefined,
-          },
-          privateKey: ed.etc.hexToBytes(privateKey),
-          keyId,
+    return await new Promise(res => {
+      if (url) {
+        this.browser.tabs.create({ url }).then(tab => {
+          if (tab.id) {
+            this.browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+              try {
+                const tabUrl = new URL(changeInfo.url || '')
+                const interactRef = tabUrl.searchParams.get('interact_ref')
+                const hash = tabUrl.searchParams.get('hash')
+
+                if (tabId === tab.id && interactRef && hash) {
+                  this.browser.tabs.update(currentTabId, { active: true })
+                  this.browser.tabs.remove(tab.id)
+                  res({ interactRef, hash })
+                }
+              } catch (e) {
+                /* do nothing */
+              }
+            })
+          }
         })
-
-        if (config.data) {
-          config.headers['Content-Type'] = headers['Content-Type']
-          // Kept receiving console errors for setting unsafe header.
-          // Keeping this as a comment for now.
-          // config.headers['Content-Length'] = headers['Content-Length']
-          config.headers['Content-Digest'] = headers['Content-Digest']
-        }
-
-        config.headers['Signature'] = headers['Signature']
-        config.headers['Signature-Input'] = headers['Signature-Input']
-
-        return config
-      },
+      }
     })
+  }
+
+  async setupWalletAddress(walletAddress: WalletAddress, amount: Amount): Promise<void> {
+    const clientNonce = crypto.randomUUID()
+
+    const grant = await this.createQuoteAndOutgoingPaymentGrant(clientNonce, walletAddress, amount)
+
+    // Q: Should this be moved to continuation polling?
+    // https://github.com/interledger/open-payments/issues/385
+    const { interactRef, hash } = await this.confirmPayment(grant.interact.redirect)
+
+    await this.verifyInteractionHash({
+      clientNonce,
+      interactNonce: grant.interact.finish,
+      interactRef,
+      hash,
+      authServer: walletAddress.authServer,
+    })
+
+    const continuation = await this.client!.grant.continue(
+      {
+        url: grant.continue.uri,
+        accessToken: grant.continue.access_token.value,
+      },
+      {
+        interact_ref: interactRef,
+      },
+    )
+
+    if (!isFinalizedGrant(continuation)) {
+      throw new Error('Expected finalized grant. Received unfinalized grant.')
+    }
+
+    // TO DO: save in storage under walletAddress
+    // TO DO: save in storage under amount
+
+    // TO DO: save in storage under accessToken
+    // this.manageUrl = continuation.access_token.manage
+    // this.token = continuation.access_token.value
+
+    // TO DO: save in storage under connected
   }
 }

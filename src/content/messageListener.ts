@@ -23,15 +23,15 @@ export const onRequest = async (msg: EXTMessage): Promise<EXTResponse | undefine
       }
     }
 
-    case 'START_PAYMENTS': {
-      paymentSender.start()
-      break
-    }
+    // case 'START_PAYMENTS': {
+    //   paymentSender.start()
+    //   break
+    // }
 
-    case 'STOP_PAYMENTS': {
-      paymentSender.stop()
-      break
-    }
+    // case 'STOP_PAYMENTS': {
+    //   paymentSender.stop()
+    //   break
+    // }
 
     case 'PAYMENT_SUCCESS': {
       const { receiveAmount, incomingPayment, paymentPointer } = msg.data

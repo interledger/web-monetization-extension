@@ -18,7 +18,7 @@ class Background {
     private browserEventsService: BrowserEventsService,
     private openPaymentsService: OpenPaymentsService,
   ) {
-    setStorageDefaultData()
+    // setStorageDefaultData()
   }
 
   subscribeToEvents() {
@@ -38,7 +38,7 @@ class Background {
     })
   }
   subscribeToBrowserEvents() {
-    this.browser.runtime.onInstalled.addListener(this.browserEventsService.generateKeysHandler)
+    this.browser.runtime.onInstalled.addListener(this.browserEventsService.populateStorage)
     // TBD
     // //Add Update listener for tab
     // this.browser.tabs.onUpdated.addListener(tabUpdateHandler)

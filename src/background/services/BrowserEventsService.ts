@@ -5,9 +5,10 @@ import { exportJWK, generateEd25519KeyPair } from '@/utils/crypto'
 import { getKeys } from '@/utils/storage'
 
 export class BrowserEventsService {
+  //TO DO: add storage service
   constructor(private browser: Browser) {}
 
-  async generateKeysHandler() {
+  async populateStorage() {
     if (await getKeys()) return
 
     const { privateKey, publicKey } = generateEd25519KeyPair()
