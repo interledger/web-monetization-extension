@@ -1,8 +1,7 @@
 import { type Browser } from 'webextension-polyfill'
 
 import { type PaymentFlowService } from '@/background/paymentFlow'
-import { setStorageDefaultData } from '@/utils/storage'
-import { EXTMessage } from '@/utils/types'
+import { BackgroundMessage, PopupToBackgroundAction } from '@/utils/types'
 
 import { BrowserEventsService, EventsService, OpenPaymentsService } from './services'
 
@@ -18,19 +17,22 @@ class Background {
     private browserEventsService: BrowserEventsService,
     private openPaymentsService: OpenPaymentsService,
   ) {
-    // setStorageDefaultData()
+    chrome.storage.sync.set({ data: 'test' }, () => {
+      console.log('set')
+    })
   }
 
   subscribeToEvents() {
-    this.browser.runtime.onMessage.addListener(async (message: EXTMessage) => {
-      switch (message.type) {
-        case 'GET_STORAGE_DATA':
+    this.browser.runtime.onMessage.addListener(async (message: BackgroundMessage) => {
+      console.log({ message })
+      switch (message.action) {
+        case PopupToBackgroundAction.GET_CONTEXT_DATA:
           return await this.eventsService.getStorageData()
 
-        // case 'SUBMIT_FORM':
-        //   await this.openPaymentsService.initClient('https://ilp.rafiki.money/radu')
-        //   console.log(this.openPaymentsService.client)
-        //   return
+        case PopupToBackgroundAction.CONNECT_WALLET:
+          await this.openPaymentsService.initClient('https://ilp.rafiki.money/radu')
+          console.log(this.openPaymentsService.client)
+          return
 
         default:
           return

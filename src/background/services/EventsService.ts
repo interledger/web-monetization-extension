@@ -5,8 +5,8 @@ export class EventsService {
 
   async getStorageData() {
     try {
-      const { data } = await this.browser.storage.sync.get('data')
-
+      const data = await this.browser.storage.sync.get(['data'])
+      console.log({ data })
       return {
         type: 'SUCCESS',
         data,
