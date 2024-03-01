@@ -1,9 +1,9 @@
 import React from 'react'
 
-import { cn } from '@/utils/helpers'
+import { cn } from '@/shared/helpers'
 
-import { Button } from './button'
-import { CheckIcon, ClipboardIcon } from './icons'
+import { Button } from './Button'
+import { CheckIcon, ClipboardIcon } from '../Icons'
 
 interface CodeProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string
@@ -13,11 +13,11 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-x-2 rounded-xl bg-nav-active p-4 text-medium break-all',
+        'flex items-center justify-between  rounded-xl bg-nav-active py-4 text-medium break-all',
         className,
       )}
       {...props}>
-      <code>{value}</code>
+      <code className="px-2 text-ellipsis overflow-hidden whitespace-nowrap">{value}</code>
       <CopyButton value={value} />
     </div>
   )

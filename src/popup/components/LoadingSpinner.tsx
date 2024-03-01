@@ -1,7 +1,7 @@
 import { type VariantProps, cva } from 'class-variance-authority'
 import React from 'react'
 
-import { Spinner } from '@/popup/components/icons'
+import { Spinner } from '@/popup/components/Icons'
 
 const loadingSpinnerStyles = cva('animate-spin text-white', {
   variants: {

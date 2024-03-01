@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react'
 
-import { cn } from '@/utils/helpers'
+import { cn } from '@/shared/helpers'
 
 export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string

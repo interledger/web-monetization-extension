@@ -1,18 +1,19 @@
 import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
 import browser, { type Browser } from 'webextension-polyfill'
-
-import Background from './Background'
-import { BrowserEventsService, EventsService, OpenPaymentsService } from './services'
+import { Background } from './background'
+import { EventsService, OpenPaymentsService } from './services'
+import { StorageService } from '@/background/services/storage'
 
 interface Cradle {
-  background: Background
   browser: Browser
+  storage: StorageService
   eventsService: EventsService
-  browserEventsService: BrowserEventsService
+
   openPaymentsService: OpenPaymentsService
+  background: Background
 }
 
-export const createBackgroundContainer = () => {
+export const configureContainer = () => {
   // Create container
   const container = createContainer<Cradle>({
     injectionMode: InjectionMode.CLASSIC,
@@ -21,19 +22,11 @@ export const createBackgroundContainer = () => {
   // Register services
   container.register({
     browser: asValue(browser),
-    background: asClass(Background).singleton(),
+    storage: asClass(StorageService).singleton(),
     eventsService: asClass(EventsService).singleton(),
-    browserEventsService: asClass(BrowserEventsService).singleton(),
     openPaymentsService: asClass(OpenPaymentsService).singleton(),
+    background: asClass(Background).singleton(),
   })
 
-  console.log('Start initialization')
-
-  const background = container.resolve('background')
-
-  // Subscribe to messages
-  background.subscribeToEvents()
-  background.subscribeToBrowserEvents()
-
-  console.log('End initialization')
+  return container
 }

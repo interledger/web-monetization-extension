@@ -1,6 +1,9 @@
-import { type PopupState } from '@/popup/lib/context'
-import { PopupToBackgroundAction, type PopupToBackgroundMessage } from '@/utils/messages'
-import { MessageManager } from '@/utils/messages'
+import { PopupState } from '@/shared/types'
+import {
+  MessageManager,
+  PopupToBackgroundAction,
+  type PopupToBackgroundMessage,
+} from '@/shared/messages'
 import browser from 'webextension-polyfill'
 
 export const message = new MessageManager<PopupToBackgroundMessage>(browser)

@@ -1,27 +1,46 @@
-import { PopupContextProvider, PopupStateContext } from '@/popup/lib/context'
-import './Popup.scss'
+import { MainLayout } from '@/popup/components/layout/main-layout'
+import { PopupContextProvider } from './lib/context'
 
-import React, { useContext } from 'react'
+import React from 'react'
+import { ProtectedRoute } from '@/popup/components/ProtectedRoute'
+import { RouteObject, RouterProvider, createMemoryRouter } from 'react-router-dom'
 
-// import { RouterProvider } from '@/popup/components/router-provider'
-// import { PopupProvider } from '@/popup/providers/popup.provider'
+export const ROUTES_PATH = {
+  HOME: '/',
+  SETTINGS: '/settings',
+} as const
 
-const Popup = () => {
+export const routes = [
+  {
+    element: <MainLayout />,
+    children: [
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: ROUTES_PATH.HOME,
+            lazy: () => import('./pages/Home'),
+          },
+        ],
+      },
+      {
+        children: [
+          {
+            path: ROUTES_PATH.SETTINGS,
+            lazy: () => import('./pages/Settings'),
+          },
+        ],
+      },
+    ],
+  },
+] satisfies RouteObject[]
+
+const router = createMemoryRouter(routes)
+
+export const Popup = () => {
   return (
     <PopupContextProvider>
-      <Test />
+      <RouterProvider router={router} />
     </PopupContextProvider>
-
-    // <PopupProvider>
-    //   <RouterProvider />
-    // </PopupProvider>
   )
 }
-
-const Test = () => {
-  const { state } = useContext(PopupStateContext)
-  console.log('state', state)
-  return <>testtt</>
-}
-
-export default Popup

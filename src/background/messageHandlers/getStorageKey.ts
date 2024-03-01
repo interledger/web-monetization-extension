@@ -1,4 +1,4 @@
-import { storageApi } from '@/utils/storage'
+import { storageApi } from 'shared/storage'
 
 const getStorageKey = async (key: any) => {
   try {

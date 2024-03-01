@@ -1,3 +1,3 @@
-export * from './BrowserEventsService'
-export * from './EventsService'
-export * from './OpenPaymentsService'
+export { EventsService } from './events'
+export { OpenPaymentsService } from './openPayments'
+export { StorageService } from './storage'

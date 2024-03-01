@@ -3,7 +3,7 @@ import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import React from 'react'
 
-import { Slider } from '../slider'
+import { Slider } from '../Slider'
 
 describe('Slider Component', () => {
   it('renders without crashing', () => {

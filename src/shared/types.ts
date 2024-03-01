@@ -2,10 +2,16 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 
 export interface Amount {
   value: number
-  interval?: string // https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals
+  /** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
+  interval?: string
 }
 
-interface AccessToken {
+export interface WebsiteData {
+  url: string
+  amount: Amount
+}
+
+export interface AccessToken {
   value: string
   manage: string
 }
@@ -16,11 +22,11 @@ export interface Storage {
   /** If a wallet is connected or not */
   connected: boolean
   /** User wallet address information */
-  walletAddress?: WalletAddress
+  walletAddress: WalletAddress | undefined
   /** Overall amount */
-  amount?: Amount
+  amount?: Amount | undefined
   /** Access token for quoting & outgoing payments  */
-  token?: AccessToken
+  token?: AccessToken | undefined
   /** Exception list with websites and each specific amount */
   exceptionList: {
     [website: string]: Amount
@@ -29,4 +35,9 @@ export interface Storage {
   publicKey: string
   privateKey: string
   keyId: string
+}
+export type StorageKey = keyof Storage
+
+export type PopupState = Omit<Storage, 'privateKey' | 'keyId' | 'exceptionList'> & {
+  website: WebsiteData
 }

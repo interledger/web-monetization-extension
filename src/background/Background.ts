@@ -1,38 +1,28 @@
 import { type Browser } from 'webextension-polyfill'
+import { type ToBackgroundMessage, PopupToBackgroundAction } from '@/shared/messages'
+import type { OpenPaymentsService, StorageService } from './services'
+import { success } from '@/shared/helpers'
 
-import { type PaymentFlowService } from '@/background/paymentFlow'
-import { BackgroundMessage, PopupToBackgroundAction } from '@/utils/messages'
-
-import { BrowserEventsService, EventsService, OpenPaymentsService } from './services'
-
-class Background {
-  // TO DO: remove these from background into storage or state & use injection
-  grantFlow: PaymentFlowService | null = null
-  spentAmount: number = 0
-  paymentStarted = false
-
+export class Background {
   constructor(
     private browser: Browser,
-    private eventsService: EventsService,
-    private browserEventsService: BrowserEventsService,
     private openPaymentsService: OpenPaymentsService,
-  ) {
-    chrome.storage.sync.set({ data: 'test' }, () => {
-      console.log('set')
-    })
+    private storage: StorageService,
+  ) {}
+
+  start() {
+    this.bindOnInstalled()
+    this.bindMessageHandler()
   }
 
-  subscribeToEvents() {
-    this.browser.runtime.onMessage.addListener(async (message: BackgroundMessage) => {
-      console.log(message)
+  bindMessageHandler() {
+    this.browser.runtime.onMessage.addListener(async (message: ToBackgroundMessage) => {
       switch (message.action) {
         case PopupToBackgroundAction.GET_CONTEXT_DATA:
-          console.log('here')
-          return await this.eventsService.getStorageData()
+          return success(await this.storage.getPopupData())
 
         case PopupToBackgroundAction.CONNECT_WALLET:
           await this.openPaymentsService.initClient('https://ilp.rafiki.money/radu')
-          console.log(this.openPaymentsService.client)
           return
 
         default:
@@ -40,13 +30,13 @@ class Background {
       }
     })
   }
-  subscribeToBrowserEvents() {
-    this.browser.runtime.onInstalled.addListener(this.browserEventsService.populateStorage)
-    // TBD
-    // //Add Update listener for tab
-    // this.browser.tabs.onUpdated.addListener(tabUpdateHandler)
-    // //Add tab change listener
-    // this.browser.tabs.onActivated.addListener(tabChangeHandler)
+
+  bindOnInstalled() {
+    this.browser.runtime.onInstalled.addListener(async details => {
+      if (details.reason === 'install') {
+        await this.storage.populate()
+        await this.openPaymentsService.genererateKeys()
+      }
+    })
   }
 }
-export default Background

@@ -1,6 +1,6 @@
 import { runtime } from 'webextension-polyfill'
 
-import Background from '@/background/Background'
+import Background from '@/background/background'
 
 const runPaymentCallback = async (data: undefined, background: Background) => {
   if (background.grantFlow) {

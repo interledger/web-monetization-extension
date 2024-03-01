@@ -1,6 +1,6 @@
 import { tabs } from 'webextension-polyfill'
 
-import Background from '@/background/Background'
+import Background from '@/background/background'
 import { PaymentFlowService } from '@/background/paymentFlow'
 
 export type SetIncomingPointerData = {

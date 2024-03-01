@@ -1,4 +1,4 @@
-import { Amount } from '@/utils/types'
+import { Amount } from 'shared/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
@@ -14,6 +14,9 @@ import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
 import { getCurrentActiveTabId } from '../utils'
+import { StorageService } from '@/background/services/storage'
+import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
+import { bytesToHex } from '@noble/hashes/utils'
 
 interface KeyInformation {
   privateKey: string
@@ -58,7 +61,10 @@ interface VerifyInteractionHashParams {
 export class OpenPaymentsService {
   client?: AuthenticatedClient
 
-  constructor(private browser: Browser) {
+  constructor(
+    private browser: Browser,
+    private storage: StorageService,
+  ) {
     // TO DO: init client if wallet already connected
   }
 
@@ -272,7 +278,7 @@ export class OpenPaymentsService {
     })
   }
 
-  async setupWalletAddress(walletAddress: WalletAddress, amount: Amount): Promise<void> {
+  async connectWallet(walletAddress: WalletAddress, amount: Amount): Promise<void> {
     const clientNonce = crypto.randomUUID()
 
     const grant = await this.createQuoteAndOutgoingPaymentGrant(clientNonce, walletAddress, amount)
@@ -311,5 +317,19 @@ export class OpenPaymentsService {
     // this.token = continuation.access_token.value
 
     // TO DO: save in storage under connected
+  }
+
+  async genererateKeys() {
+    if (await this.storage.keyPairExists()) return
+
+    const { privateKey, publicKey } = await generateEd25519KeyPair()
+    const keyId = crypto.randomUUID()
+    const jwk = exportJWK(publicKey, keyId)
+
+    await this.storage.set({
+      privateKey: bytesToHex(privateKey),
+      publicKey: btoa(JSON.stringify(jwk)),
+      keyId,
+    })
   }
 }

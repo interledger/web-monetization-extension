@@ -1,4 +1,4 @@
-import Background from '@/background/Background'
+import Background from '@/background/background'
 
 const getSendingPaymentPointerCallback = async (data: undefined, background: Background) => {
   if (background.grantFlow) {

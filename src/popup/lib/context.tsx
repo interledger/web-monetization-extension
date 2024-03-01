@@ -1,11 +1,6 @@
-import { getContextData } from '@/popup/lib/messages'
-import { Amount, Storage } from '@/utils/types'
 import React from 'react'
-
-export type PopupState = Omit<Storage, 'privateKey' | 'keyId' | 'exceptionList'> & {
-  publicKey: string
-  websiteAmount: Amount
-}
+import { getContextData } from '@/popup/lib/messages'
+import { PopupState } from '@/shared/types'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
@@ -16,12 +11,12 @@ export interface PopupContext {
   dispatch: React.Dispatch<ReducerActions>
 }
 
-interface ReducerAction {
+interface ReducerActionMock {
   type: ReducerActionType
   data: any
 }
 
-interface SetDataAction extends ReducerAction {
+interface SetDataAction extends ReducerActionMock {
   type: ReducerActionType.SET_DATA
   data: PopupState
 }

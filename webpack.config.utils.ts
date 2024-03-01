@@ -236,15 +236,11 @@ export const getResolves = () => {
       async_hooks: false,
     },
     alias: {
-      '@/utils': path.resolve(__dirname, './src/utils/'),
+      '@/shared': path.resolve(__dirname, './src/shared/'),
       '@/popup': path.resolve(__dirname, './src/popup/'),
       '@/background': path.resolve(__dirname, './src/background/'),
       '@/content': path.resolve(__dirname, './src/content/'),
       '@/assets': path.resolve(__dirname, './src/assets/'),
-      '@/components': path.resolve(__dirname, './src/components/'),
-      '@/providers': path.resolve(__dirname, './src/providers/'),
-      '@/types': path.resolve(__dirname, './src/types/'),
-      '@/hooks': path.resolve(__dirname, './src/hooks/'),
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
   }

@@ -1,9 +1,6 @@
 import * as ed from '@noble/ed25519'
-import { sha512 } from '@noble/hashes/sha512'
 
-ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m))
-
-export function generateEd25519KeyPair() {
+export async function generateEd25519KeyPair() {
   const rawPrivateKey = ed.utils.randomPrivateKey()
   // PKCS#8 format (version + algorithm)
   // Adding these values upfront solves the future import of the key using
@@ -13,7 +10,7 @@ export function generateEd25519KeyPair() {
     48, 46, 2, 1, 0, 48, 5, 6, 3, 43, 101, 112, 4, 34, 4, 32,
     ...rawPrivateKey,
   ])
-  const publicKey = ed.getPublicKey(rawPrivateKey)
+  const publicKey = await ed.getPublicKeyAsync(rawPrivateKey)
 
   return { privateKey, publicKey }
 }

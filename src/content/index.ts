@@ -1,11 +1,11 @@
-import { runtime } from 'webextension-polyfill'
+// import { runtime } from 'webextension-polyfill'
 
 import { initMonetizationTagManager } from '@/content/monetizationTagManager'
 
 import { loadObserver } from './linksObserver'
-import MessageListener from './messageListener'
+// import MessageListener from './messageListener'
 
-runtime.onMessage.addListener(MessageListener)
+// runtime.onMessage.addListener(MessageListener)
 
 // DEBUG PURPOSE
 loadObserver()

@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react'
 import React from 'react'
 
-import { Code } from '../code'
+import { Code } from '../Code'
 
 describe('Code', () => {
   it('should render the code component', () => {

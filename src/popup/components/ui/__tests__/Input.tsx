@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import React from 'react'
 
-import { Input } from '@/popup/components/input'
+import { Input } from '@/popup/components/ui/Input'
 
 describe('Input', () => {
   it('should default to `type="text"`', () => {

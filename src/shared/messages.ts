@@ -2,13 +2,14 @@ import { type Browser } from 'webextension-polyfill'
 
 export interface SuccessResponse<TPayload = undefined> {
   success: true
-  payload: TPayload extends undefined ? null : TPayload
+  payload: TPayload
 }
 
 export interface ErrorResponse {
   success: false
   message: string
 }
+
 export type Response<TPayload = undefined> = SuccessResponse<TPayload> | ErrorResponse
 
 export type MessageHKT<TAction, TPayload = undefined> = TPayload extends undefined
@@ -23,11 +24,6 @@ export enum PopupToBackgroundAction {
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
   [PopupToBackgroundAction.CONNECT_WALLET]: { test: string; a: string; c: boolean }
-}
-
-export interface PopupToBackgroundResponse {
-  [PopupToBackgroundAction.GET_CONTEXT_DATA]: { a: string }
-  [PopupToBackgroundAction.CONNECT_WALLET]: { b: string }
 }
 
 export type PopupToBackgroundMessage = {
@@ -46,7 +42,7 @@ export type ContentToBackgroundMessage = {
   [K in ContentToBackgroundAction]: MessageHKT<K, ContentToBackgroundActionPayload[K]>
 }[ContentToBackgroundAction]
 
-export type BackgroundMessage = PopupToBackgroundMessage | ContentToBackgroundMessage
+export type ToBackgroundMessage = PopupToBackgroundMessage | ContentToBackgroundMessage
 
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
@@ -54,7 +50,6 @@ export class MessageManager<TMessages> {
   async send<TResponse = void>(
     message: TMessages,
   ): Promise<TResponse extends void ? void : Response<TResponse>> {
-    console.log(message)
     return await this.browser.runtime.sendMessage(message)
   }
 

@@ -1,5 +1,1 @@
-declare const CONFIG_SIGNATURES_URL: string
-declare const CONFIG_WM_WALLET_ADDRESS: string
-
-export const SIGNATURES_URL = CONFIG_SIGNATURES_URL
-export const WM_WALLET_ADDRESS = CONFIG_WM_WALLET_ADDRESS
+export const DEFAULT_AMOUNT = 0.6

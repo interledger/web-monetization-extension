@@ -1,3 +1,4 @@
+import { SuccessResponse } from '@/shared/messages'
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { cx, CxOptions } from 'class-variance-authority'
 import { twMerge } from 'tailwind-merge'
@@ -43,3 +44,8 @@ export const getWalletInformation = async (walletAddressUrl: string): Promise<Wa
 
   return json
 }
+
+export const success = <TPayload = undefined>(payload: TPayload): SuccessResponse<TPayload> => ({
+  success: true,
+  payload,
+})

@@ -1,3 +1,4 @@
-import { createBackgroundContainer } from './container'
+import { configureContainer } from './container'
 
-createBackgroundContainer()
+const container = configureContainer()
+container.resolve('background').start()

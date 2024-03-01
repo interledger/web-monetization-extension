@@ -1,7 +1,7 @@
 import { fireEvent, render } from '@testing-library/react'
 import React from 'react'
 
-import { Radio, RadioGroup } from '../radio-group'
+import { Radio, RadioGroup } from '../RadioGroup'
 
 describe('RadioGroup', () => {
   const radioItems = [
