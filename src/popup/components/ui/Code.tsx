@@ -14,10 +14,13 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
     <div
       className={cn(
         'flex items-center justify-between  rounded-xl bg-nav-active py-4 text-medium break-all',
-        className,
+        className
       )}
-      {...props}>
-      <code className="px-2 text-ellipsis overflow-hidden whitespace-nowrap">{value}</code>
+      {...props}
+    >
+      <code className="px-2 text-ellipsis overflow-hidden whitespace-nowrap">
+        {value}
+      </code>
       <CopyButton value={value} />
     </div>
   )
@@ -48,8 +51,13 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
       onClick={() => {
         navigator.clipboard.writeText(value)
         setHasCopied(true)
-      }}>
-      {hasCopied ? <CheckIcon className="h-6 w-6" /> : <ClipboardIcon className="h-6 w-6" />}
+      }}
+    >
+      {hasCopied ? (
+        <CheckIcon className="h-6 w-6" />
+      ) : (
+        <ClipboardIcon className="h-6 w-6" />
+      )}
     </Button>
   )
 }

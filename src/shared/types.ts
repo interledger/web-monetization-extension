@@ -38,6 +38,9 @@ export interface Storage {
 }
 export type StorageKey = keyof Storage
 
-export type PopupState = Omit<Storage, 'privateKey' | 'keyId' | 'exceptionList'> & {
+export type PopupState = Omit<
+  Storage,
+  'privateKey' | 'keyId' | 'exceptionList'
+> & {
   website: WebsiteData
 }

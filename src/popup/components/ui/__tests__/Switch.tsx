@@ -20,7 +20,9 @@ describe('Switch', () => {
   it('applies small size classes when size prop is small', () => {
     render(<Switch size="small" />)
     const switchElement = screen.getByRole('switch').nextSibling
-    expect(switchElement).toHaveClass('w-9 h-[22px] before:h-4 before:w-4 before:left-[3px]')
+    expect(switchElement).toHaveClass(
+      'w-9 h-[22px] before:h-4 before:w-4 before:left-[3px]'
+    )
   })
 
   it('forwards ref to input element', () => {

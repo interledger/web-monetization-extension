@@ -6,12 +6,10 @@
   },
   "extends": [
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
-    "plugin:cypress/recommended",
     "prettier",
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
@@ -28,7 +26,6 @@
     "react",
     "node",
     "react-hooks",
-    "cypress",
     "@typescript-eslint",
     "jest",
     "@typescript-eslint"

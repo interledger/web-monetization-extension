@@ -7,22 +7,22 @@ const inputVariants = cva(
   [
     'w-full h-14 rounded-xl border border-2 px-4 text-base text-medium',
     'focus:outline-none focus:border-focus',
-    'placeholder-disabled',
+    'placeholder-disabled'
   ],
 
   {
     variants: {
       variant: {
-        default: 'border-base',
+        default: 'border-base'
       },
       disabled: {
-        true: 'bg-disabled border-transparent',
-      },
+        true: 'bg-disabled border-transparent'
+      }
     },
     defaultVariants: {
-      variant: 'default',
-    },
-  },
+      variant: 'default'
+    }
+  }
 )
 
 export interface InputProps
@@ -35,7 +35,7 @@ export interface InputProps
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { type = 'text', icon, errorMessage, disabled, className, ...props },
-  ref,
+  ref
 ) {
   return (
     <div className="relative">
@@ -50,7 +50,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         aria-describedby={errorMessage}
         {...props}
       />
-      {errorMessage && <p className="text-error text-sm px-2">{errorMessage}</p>}
+      {errorMessage && (
+        <p className="text-error text-sm px-2">{errorMessage}</p>
+      )}
     </div>
   )
 })

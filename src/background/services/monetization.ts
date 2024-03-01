@@ -12,7 +12,7 @@ export class MonetizationService {
   private async createIncomingPayment() {
     const incomingPaymentGrant = await this.openPaymentsService.client!.grant.request(
       {
-        url: this.receivingWalletAddress.authServer,
+        url: this.receivingWalletAddress.authServer
       },
       {
         access_token: {
@@ -20,11 +20,11 @@ export class MonetizationService {
             {
               type: 'incoming-payment',
               actions: ['create', 'read', 'list'],
-              identifier: this.receivingWalletAddress.id,
-            },
-          ],
-        },
-      },
+              identifier: this.receivingWalletAddress.id
+            }
+          ]
+        }
+      }
     )
 
     if (isPendingGrant(incomingPaymentGrant)) {
@@ -34,21 +34,21 @@ export class MonetizationService {
     const incomingPayment = await this.openPaymentsService.client!.incomingPayment.create(
       {
         url: this.receivingWalletAddress.resourceServer,
-        accessToken: incomingPaymentGrant.access_token.value,
+        accessToken: incomingPaymentGrant.access_token.value
       },
       {
         walletAddress: this.receivingWalletAddress.id,
         expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
         metadata: {
-          source: 'Web Monetization',
-        },
-      },
+          source: 'Web Monetization'
+        }
+      }
     )
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
     await this.openPaymentsService.client!.grant.cancel({
       url: incomingPaymentGrant.continue.uri,
-      accessToken: incomingPaymentGrant.continue.access_token.value,
+      accessToken: incomingPaymentGrant.continue.access_token.value
     })
 
     this.incomingPaymentUrlId = incomingPayment.id
@@ -72,32 +72,34 @@ export class MonetizationService {
           quote = await this.client.quote.create(
             {
               url: this.sendingWalletAddress.resourceServer,
-              accessToken: this.token,
+              accessToken: this.token
             },
             {
               method: 'ilp',
               receiver: this.incomingPaymentUrlId,
               walletAddress: this.sendingWalletAddress.id,
               debitAmount: {
-                value: String(AMOUNT * 10 ** this.sendingWalletAddress.assetScale),
+                value: String(
+                  AMOUNT * 10 ** this.sendingWalletAddress.assetScale
+                ),
                 assetScale: this.sendingWalletAddress.assetScale,
-                assetCode: this.sendingWalletAddress.assetCode,
-              },
-            },
+                assetCode: this.sendingWalletAddress.assetCode
+              }
+            }
           )
         }
         outgoingPayment = await this.client.outgoingPayment.create(
           {
             url: this.sendingWalletAddress.resourceServer,
-            accessToken: this.token,
+            accessToken: this.token
           },
           {
             walletAddress: this.sendingWalletAddress.id,
             quoteId: quote.id,
             metadata: {
-              source: 'Web Monetization',
-            },
-          },
+              source: 'Web Monetization'
+            }
+          }
         )
         break
       } catch (e) {
@@ -112,7 +114,7 @@ export class MonetizationService {
           if (e.status === 403) {
             const rotatedToken = await this.client.token.rotate({
               accessToken: this.token,
-              url: this.manageUrl,
+              url: this.manageUrl
             })
 
             this.token = rotatedToken.access_token.value
@@ -127,7 +129,7 @@ export class MonetizationService {
           const {
             receiveAmount,
             receiver: incomingPayment,
-            walletAddress: paymentPointer,
+            walletAddress: paymentPointer
           } = outgoingPayment
 
           const activeTabs = await this.browser.tabs.query({ active: true, currentWindow: true })
@@ -135,7 +137,7 @@ export class MonetizationService {
           const currentTabId = activeTabs[0].id
           await this.browser.tabs.sendMessage(currentTabId ?? 0, {
             type: 'PAYMENT_SUCCESS',
-            data: { receiveAmount, incomingPayment, paymentPointer },
+            data: { receiveAmount, incomingPayment, paymentPointer }
           })
         }
       }

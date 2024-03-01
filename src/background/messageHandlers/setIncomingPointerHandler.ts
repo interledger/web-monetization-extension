@@ -9,14 +9,19 @@ export type SetIncomingPointerData = {
   amount: string
 }
 
-const setIncomingPointerCallback = async (data: SetIncomingPointerData, background: Background) => {
+const setIncomingPointerCallback = async (
+  data: SetIncomingPointerData,
+  background: Background
+) => {
   const {
     incomingPayment: receivingPaymentPointerUrl,
     paymentPointer: sendingPaymentPointerUrl,
-    amount,
+    amount
   } = data
 
-  if (background.grantFlow?.sendingPaymentPointerUrl === sendingPaymentPointerUrl) {
+  if (
+    background.grantFlow?.sendingPaymentPointerUrl === sendingPaymentPointerUrl
+  ) {
     if (!background.paymentStarted) {
       background.paymentStarted = true
       const currentTabId = await background.grantFlow?.getCurrentActiveTabId()
@@ -26,7 +31,7 @@ const setIncomingPointerCallback = async (data: SetIncomingPointerData, backgrou
     background.grantFlow = new PaymentFlowService(
       sendingPaymentPointerUrl,
       receivingPaymentPointerUrl,
-      amount,
+      amount
     )
 
     background.grantFlow.initPaymentFlow()
@@ -35,4 +40,7 @@ const setIncomingPointerCallback = async (data: SetIncomingPointerData, backgrou
   return true
 }
 
-export default { callback: setIncomingPointerCallback, type: 'SET_INCOMING_POINTER' }
+export default {
+  callback: setIncomingPointerCallback,
+  type: 'SET_INCOMING_POINTER'
+}

@@ -10,13 +10,13 @@ export class EventsService {
       return {
         success: true,
         payload: {
-          test: 'x',
-        },
+          test: 'x'
+        }
       }
     } catch (error) {
       return {
         type: 'ERROR',
-        error,
+        error
       }
     }
   }

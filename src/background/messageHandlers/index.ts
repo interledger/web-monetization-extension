@@ -15,5 +15,5 @@ export {
   runPaymentHandler,
   setIncomingPointerHandler,
   setStorageData,
-  setStorageKey,
+  setStorageKey
 }

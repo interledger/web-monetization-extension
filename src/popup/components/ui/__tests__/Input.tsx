@@ -16,7 +16,10 @@ describe('Input', () => {
 
     expect(queryByLabelText('test input')).toBeInTheDocument()
     expect(queryByLabelText('test input')).not.toHaveAttribute('disabled')
-    expect(queryByLabelText('test input')).toHaveAttribute('aria-disabled', 'false')
+    expect(queryByLabelText('test input')).toHaveAttribute(
+      'aria-disabled',
+      'false'
+    )
     expect(queryByLabelText('test input')).not.toBeDisabled()
   })
 
@@ -28,14 +31,18 @@ describe('Input', () => {
   })
 
   it('should have the `pl-12` class when the `icon` variant is passed', () => {
-    const { queryByLabelText } = render(<Input aria-label="test input" icon={<div />} />)
+    const { queryByLabelText } = render(
+      <Input aria-label="test input" icon={<div />} />
+    )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()
     expect(queryByLabelText('test input')).toHaveClass('pl-12')
   })
 
   it('should have the `bg-disabled` and `border-transparent` classes when the `disabled` variant is passed', () => {
-    const { queryByLabelText } = render(<Input aria-label="test input" disabled />)
+    const { queryByLabelText } = render(
+      <Input aria-label="test input" disabled />
+    )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()
     expect(queryByLabelText('test input')).toHaveClass('bg-disabled')
@@ -44,7 +51,7 @@ describe('Input', () => {
 
   it('should have the `aria-invalid` and `aria-describedby` attributes if errorMessage is present', () => {
     const { queryByLabelText, queryByText } = render(
-      <Input aria-label="test input" errorMessage="some error" />,
+      <Input aria-label="test input" errorMessage="some error" />
     )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()

@@ -7,23 +7,23 @@ const ARTIFACTS_DATA = {
   chrome: {
     name: 'Chrome',
     url: null,
-    size: null,
+    size: null
   },
   firefox: {
     name: 'Firefox',
     url: null,
-    size: null,
+    size: null
   },
   opera: {
     name: 'Opera',
     url: null,
-    size: null,
+    size: null
   },
   edge: {
     name: 'Edge',
     url: null,
-    size: null,
-  },
+    size: null
+  }
 }
 
 function getBadge(conclusion, badgeColor, badgeLabel) {
@@ -50,7 +50,10 @@ module.exports = async ({ github, context, core }) => {
   const sha = context.payload.workflow_run.pull_requests[0].head.sha
   const prNumber = context.payload.workflow_run.pull_requests[0].number
   const jobLogsUrl = `${baseUrl}/actions/runs/${context.payload.workflow_run.id}`
-  const template = await fs.readFile('./.github/actions/templates/build-status.md', 'utf8')
+  const template = await fs.readFile(
+    './.github/actions/templates/build-status.md',
+    'utf8'
+  )
   const tableRows = []
 
   core.setOutput('conclusion', conclusion)
@@ -62,24 +65,27 @@ module.exports = async ({ github, context, core }) => {
   const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
     owner,
     repo,
-    run_id: runId,
+    run_id: runId
   })
 
-  artifacts.data.artifacts.forEach(artifact => {
+  artifacts.data.artifacts.forEach((artifact) => {
     const [, key] = artifact.name.split('-')
-    ARTIFACTS_DATA[key].url = `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`
+    ARTIFACTS_DATA[key].url =
+      `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`
     ARTIFACTS_DATA[key].size = formatBytes(artifact.size_in_bytes)
   })
 
-  Object.keys(ARTIFACTS_DATA).forEach(k => {
+  Object.keys(ARTIFACTS_DATA).forEach((k) => {
     const { name, url, size } = ARTIFACTS_DATA[k]
     if (url === null && size === null) {
       const badgeUrl = getBadge('failure', COLORS.red, name)
-      tableRows.push(`<tr><td align="center">${badgeUrl}</td><td align="center">N/A</td></tr>`)
+      tableRows.push(
+        `<tr><td align="center">${badgeUrl}</td><td align="center">N/A</td></tr>`
+      )
     } else {
       const badgeUrl = getBadge('success', COLORS.green, `${name} (${size})`)
       tableRows.push(
-        `<tr><td align="center">${badgeUrl}</td><td align="center"><a href="${url}">Download</a></td></tr>`,
+        `<tr><td align="center">${badgeUrl}</td><td align="center"><a href="${url}">Download</a></td></tr>`
       )
     }
   })

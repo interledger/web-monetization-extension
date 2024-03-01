@@ -3,7 +3,7 @@ import { getContextData } from '@/popup/lib/messages'
 import { PopupState } from '@/shared/types'
 
 export enum ReducerActionType {
-  SET_DATA = 'SET_DATA',
+  SET_DATA = 'SET_DATA'
 }
 
 export interface PopupContext {
@@ -23,7 +23,9 @@ interface SetDataAction extends ReducerActionMock {
 
 export type ReducerActions = SetDataAction
 
-export const PopupStateContext = React.createContext<PopupContext>({} as PopupContext)
+export const PopupStateContext = React.createContext<PopupContext>(
+  {} as PopupContext
+)
 
 const reducer = (state: PopupState, action: ReducerActions): PopupState => {
   switch (action.type) {
@@ -61,6 +63,8 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
   }
 
   return (
-    <PopupStateContext.Provider value={{ state, dispatch }}>{children}</PopupStateContext.Provider>
+    <PopupStateContext.Provider value={{ state, dispatch }}>
+      {children}
+    </PopupStateContext.Provider>
   )
 }

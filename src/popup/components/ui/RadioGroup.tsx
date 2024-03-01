@@ -22,7 +22,7 @@ export const Radio = ({
   disabled,
   onChange,
   checked,
-  noSelected,
+  noSelected
 }: RadioProps): JSX.Element => {
   const inputId = id || `id-${name}-${value}`
   const divId = `div-${inputId}`
@@ -37,7 +37,8 @@ export const Radio = ({
       className="flex items-center"
       tabIndex={noSelected ? 0 : checked ? 0 : -1}
       aria-checked={checked}
-      role="radio">
+      role="radio"
+    >
       <input
         id={inputId}
         type="radio"
@@ -59,7 +60,11 @@ export const Radio = ({
           peer-checked:group-[]:ring-inset
           peer-checked:group-[]:ring-4`}
         />
-        {label ? <p className="text-base text-medium leading-6 ms-2">{label}</p> : ''}
+        {label ? (
+          <p className="text-base text-medium leading-6 ms-2">{label}</p>
+        ) : (
+          ''
+        )}
       </label>
     </div>
   )
@@ -69,15 +74,15 @@ const radioGroupVariants = cva(['flex gap-3'], {
   variants: {
     variant: {
       default: 'flex-col',
-      inline: 'flex-row',
+      inline: 'flex-row'
     },
     fullWidth: {
-      true: 'w-full',
-    },
+      true: 'w-full'
+    }
   },
   defaultVariants: {
-    variant: 'default',
-  },
+    variant: 'default'
+  }
 })
 
 export interface RadioGroupProps
@@ -97,11 +102,11 @@ export const RadioGroup = ({
   disabled,
   className,
   handleChange,
-  value,
+  value
 }: RadioGroupProps) => {
   const checkedItem = useMemo(
-    () => items.findIndex(item => item.checked || item.value === value),
-    [items, value],
+    () => items.findIndex((item) => item.checked || item.value === value),
+    [items, value]
   )
   const [selected, setSelected] = useState(checkedItem)
 
@@ -121,7 +126,10 @@ export const RadioGroup = ({
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (selected === -1 && (event.code === 'Enter' || event.code === 'Space')) {
+      if (
+        selected === -1 &&
+        (event.code === 'Enter' || event.code === 'Space')
+      ) {
         setSelected(0)
       }
     }
@@ -137,7 +145,8 @@ export const RadioGroup = ({
       tabIndex={-1}
       className={cn(radioGroupVariants({ variant, fullWidth }), className)}
       onKeyDown={handleKeyDown}
-      role="radiogroup">
+      role="radiogroup"
+    >
       {items.map((item, index) => (
         <Radio
           key={`key-${name}-${item.value}`}

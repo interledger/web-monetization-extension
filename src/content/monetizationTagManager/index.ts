@@ -32,7 +32,7 @@ export const initMonetizationTagManager = () => {
   const monetizationTagManager = new MonetizationTagManager(
     window,
     document,
-    onPaymentDetailsChange,
+    onPaymentDetailsChange
   )
 
   monetizationTagManager.startWhenDocumentReady()

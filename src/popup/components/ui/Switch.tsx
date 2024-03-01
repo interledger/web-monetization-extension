@@ -10,7 +10,7 @@ const switchVariants = cva(
     'before:top-1/2 before:transform before:-translate-y-1/2 before:left-[4px]',
     'before:transition-all before:duration-300 before:ease-in-out',
     'peer-checked:before:left-[18px] peer-checked:bg-switch-base',
-    'peer-focus:outline peer-focus:outline-2 peer-focus:outline-blue-500',
+    'peer-focus:outline peer-focus:outline-2 peer-focus:outline-blue-500'
   ],
 
   {
@@ -19,14 +19,14 @@ const switchVariants = cva(
         default: 'w-[42px] h-[26px] before:h-5 before:w-5',
         small: [
           'w-9 h-[22px] before:h-4 before:w-4 before:left-[3px]',
-          'peer-checked:before:left-4',
-        ],
-      },
+          'peer-checked:before:left-4'
+        ]
+      }
     },
     defaultVariants: {
-      size: 'default',
-    },
-  },
+      size: 'default'
+    }
+  }
 )
 
 export interface SwitchProps
@@ -38,7 +38,7 @@ export interface SwitchProps
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   { size, className, onChange = () => {}, ...props },
-  ref,
+  ref
 ) {
   return (
     <label>

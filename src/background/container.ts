@@ -16,7 +16,7 @@ interface Cradle {
 export const configureContainer = () => {
   // Create container
   const container = createContainer<Cradle>({
-    injectionMode: InjectionMode.CLASSIC,
+    injectionMode: InjectionMode.CLASSIC
   })
 
   // Register services
@@ -25,7 +25,7 @@ export const configureContainer = () => {
     storage: asClass(StorageService).singleton(),
     eventsService: asClass(EventsService).singleton(),
     openPaymentsService: asClass(OpenPaymentsService).singleton(),
-    background: asClass(Background).singleton(),
+    background: asClass(Background).singleton()
   })
 
   return container

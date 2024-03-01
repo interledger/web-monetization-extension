@@ -3,11 +3,15 @@ import { PopupContextProvider } from './lib/context'
 
 import React from 'react'
 import { ProtectedRoute } from '@/popup/components/ProtectedRoute'
-import { RouteObject, RouterProvider, createMemoryRouter } from 'react-router-dom'
+import {
+  RouteObject,
+  RouterProvider,
+  createMemoryRouter
+} from 'react-router-dom'
 
 export const ROUTES_PATH = {
   HOME: '/',
-  SETTINGS: '/settings',
+  SETTINGS: '/settings'
 } as const
 
 export const routes = [
@@ -19,20 +23,20 @@ export const routes = [
         children: [
           {
             path: ROUTES_PATH.HOME,
-            lazy: () => import('./pages/Home'),
-          },
-        ],
+            lazy: () => import('./pages/Home')
+          }
+        ]
       },
       {
         children: [
           {
             path: ROUTES_PATH.SETTINGS,
-            lazy: () => import('./pages/Settings'),
-          },
-        ],
-      },
-    ],
-  },
+            lazy: () => import('./pages/Settings')
+          }
+        ]
+      }
+    ]
+  }
 ] satisfies RouteObject[]
 
 const router = createMemoryRouter(routes)

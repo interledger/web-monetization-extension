@@ -71,7 +71,9 @@ export const ConnectWalletForm = () => {
         disabled={connected}
         placeholder="Enter your wallet address"
       />
-      <Label className="text-base font-medium	text-medium mb-4 mt-8">Amount</Label>
+      <Label className="text-base font-medium	text-medium mb-4 mt-8">
+        Amount
+      </Label>
       <Input
         value={amount}
         type="number"
@@ -86,7 +88,7 @@ export const ConnectWalletForm = () => {
         handleChange={handleChangeRecurring}
         items={[
           { label: 'Recurring monthly amount', value: 'true' },
-          { label: 'Single-use amount', value: 'false' },
+          { label: 'Single-use amount', value: 'false' }
         ]}
         name="recurring"
         id="recurring"
@@ -94,7 +96,12 @@ export const ConnectWalletForm = () => {
         className="mb-8 pl-2 mt-5"
         disabled={connected}
       />
-      <Button className="w-full" disabled={loading} loading={loading} aria-label="connect">
+      <Button
+        className="w-full"
+        disabled={loading}
+        loading={loading}
+        aria-label="connect"
+      >
         {connected ? 'Disconnect' : 'Connect'}
       </Button>
     </>

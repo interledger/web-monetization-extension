@@ -7,7 +7,7 @@ async function getBrowserArfifacts({ github, owner, repo, name }) {
   const result = await github.rest.actions.listArtifactsForRepo({
     owner,
     repo,
-    name,
+    name
   })
 
   for (let i = 0; i < result.data.total_count; i++) {
@@ -21,15 +21,15 @@ async function getPRArtifacts({ github, owner, repo, prNumber }) {
   const promises = []
   const artifacts = []
 
-  BROWSERS.forEach(browser =>
+  BROWSERS.forEach((browser) =>
     promises.push(
       getBrowserArfifacts({
         github,
         owner,
         repo,
-        name: `${prNumber}-${browser}`,
-      }),
-    ),
+        name: `${prNumber}-${browser}`
+      })
+    )
   )
 
   const data = await Promise.all(promises)
@@ -57,8 +57,8 @@ module.exports = async ({ github, context, core }) => {
       github.rest.actions.deleteArtifact({
         owner,
         repo,
-        artifact_id: artifacts[i],
-      }),
+        artifact_id: artifacts[i]
+      })
     )
   }
 
