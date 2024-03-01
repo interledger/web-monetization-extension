@@ -1,10 +1,12 @@
-// import { Message } from '@/utils/sendMessages'
+import { type PopupState } from '@/popup/lib/context'
+import { PopupToBackgroundAction, type PopupToBackgroundMessage } from '@/utils/messages'
+import { MessageManager } from '@/utils/messages'
+import browser from 'webextension-polyfill'
 
-// const message = new Message<PopupToBackgroundMessage>(browser)
+export const message = new MessageManager<PopupToBackgroundMessage>(browser)
 
-// async function connectWallet() {
-//   message.send({
-//     action: PopupToBackgroundAction.CONNECT_WALLET,
-//     payload: { test: 'test', a: 'a', c: true },
-//   })
-// }
+export const getContextData = async () => {
+  return await message.send<PopupState>({
+    action: PopupToBackgroundAction.GET_CONTEXT_DATA,
+  })
+}

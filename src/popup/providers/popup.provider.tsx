@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react'
 
-import { sendMessage } from '@/utils/sendMessages'
+import { sendMessage } from '@/utils/messages'
 import { defaultData, getStorageData } from '@/utils/storage'
 
 import { PopupContextValue, TPopupContext } from './providers.interface'

@@ -1,7 +1,7 @@
 import { type VariantProps, cva } from 'class-variance-authority'
 import React, { forwardRef } from 'react'
 
-import { cn } from '@/utils/cn'
+import { cn } from '@/utils/helpers'
 
 const switchVariants = cva(
   [

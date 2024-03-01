@@ -1,7 +1,7 @@
 import { type Browser } from 'webextension-polyfill'
 
 import { type PaymentFlowService } from '@/background/paymentFlow'
-import { BackgroundMessage, PopupToBackgroundAction } from '@/utils/types'
+import { BackgroundMessage, PopupToBackgroundAction } from '@/utils/messages'
 
 import { BrowserEventsService, EventsService, OpenPaymentsService } from './services'
 
@@ -24,9 +24,10 @@ class Background {
 
   subscribeToEvents() {
     this.browser.runtime.onMessage.addListener(async (message: BackgroundMessage) => {
-      console.log({ message })
+      console.log(message)
       switch (message.action) {
         case PopupToBackgroundAction.GET_CONTEXT_DATA:
+          console.log('here')
           return await this.eventsService.getStorageData()
 
         case PopupToBackgroundAction.CONNECT_WALLET:

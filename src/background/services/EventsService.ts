@@ -8,8 +8,10 @@ export class EventsService {
       const data = await this.browser.storage.sync.get(['data'])
       console.log({ data })
       return {
-        type: 'SUCCESS',
-        data,
+        success: true,
+        payload: {
+          test: 'x',
+        },
       }
     } catch (error) {
       return {

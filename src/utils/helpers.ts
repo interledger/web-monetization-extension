@@ -1,6 +1,19 @@
-import { type WalletAddress } from '@interledger/open-payments/dist/types'
+import { WalletAddress } from '@interledger/open-payments/dist/types'
+import { cx, CxOptions } from 'class-variance-authority'
+import { twMerge } from 'tailwind-merge'
 
-// utils function
+export const cn = (...inputs: CxOptions) => {
+  return twMerge(cx(inputs))
+}
+
+export const formatCurrency = (value: any): string => {
+  if (value < 1) {
+    return `${Math.round(value * 100)}c`
+  } else {
+    return `$${parseFloat(value).toFixed(2)}`
+  }
+}
+
 const isWalletAddress = (o: any): o is WalletAddress => {
   return (
     o.id &&
@@ -16,9 +29,7 @@ const isWalletAddress = (o: any): o is WalletAddress => {
   )
 }
 
-// to do: rename into check?
-// add validation from tag manager as well
-export const checkWalletAddress = async (walletAddressUrl: string): Promise<WalletAddress> => {
+export const getWalletInformation = async (walletAddressUrl: string): Promise<WalletAddress> => {
   const response = await fetch(walletAddressUrl, {
     headers: {
       Accept: 'application/json',

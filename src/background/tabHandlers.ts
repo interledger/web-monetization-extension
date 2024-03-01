@@ -1,6 +1,6 @@
 import { Tabs, tabs } from 'webextension-polyfill'
 
-import { sendMessageToTab } from '@/utils/sendMessages'
+import { sendMessageToTab } from '@/utils/messages'
 
 import { updateIcon } from './utils'
 

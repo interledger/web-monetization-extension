@@ -1,4 +1,4 @@
-import { sendMessage } from '@/utils/sendMessages'
+import { sendMessage } from '@/utils/messages'
 
 export class PaymentSender {
   sender: any

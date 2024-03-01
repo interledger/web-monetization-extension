@@ -1,33 +1,27 @@
+import { PopupContextProvider, PopupStateContext } from '@/popup/lib/context'
 import './Popup.scss'
 
-import React, { useEffect } from 'react'
-import browser from 'webextension-polyfill'
+import React, { useContext } from 'react'
 
 // import { RouterProvider } from '@/popup/components/router-provider'
 // import { PopupProvider } from '@/popup/providers/popup.provider'
-import { Message } from '@/utils/sendMessages'
-import { PopupToBackgroundAction, PopupToBackgroundMessage } from '@/utils/types'
 
 const Popup = () => {
-  const message = new Message<PopupToBackgroundMessage>(browser)
-
-  useEffect(() => {
-    async function test() {
-      const response = await message.send({
-        action: PopupToBackgroundAction.GET_CONTEXT_DATA,
-        payload: undefined,
-      })
-
-      console.log(response)
-    }
-    test()
-  })
   return (
-    <>test</>
+    <PopupContextProvider>
+      <Test />
+    </PopupContextProvider>
+
     // <PopupProvider>
     //   <RouterProvider />
     // </PopupProvider>
   )
+}
+
+const Test = () => {
+  const { state } = useContext(PopupStateContext)
+  console.log('state', state)
+  return <>testtt</>
 }
 
 export default Popup

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { cn } from '@/utils/cn'
+import { cn } from '@/utils/helpers'
 
 import { Button } from './button'
 import { CheckIcon, ClipboardIcon } from './icons'
