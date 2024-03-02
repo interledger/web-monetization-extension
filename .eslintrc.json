@@ -45,6 +45,7 @@
         "html": true
       }
     ],
+    "no-console": "warn",
     "react/prop-types": "off",
     "block-scoped-var": "error",
     "consistent-return": "off",

@@ -5,12 +5,14 @@ import {
 } from '@/shared/messages'
 import type { OpenPaymentsService, StorageService } from './services'
 import { success } from '@/shared/helpers'
+import { Logger } from '@/shared/logger'
 
 export class Background {
   constructor(
     private browser: Browser,
     private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService
+    private storage: StorageService,
+    private logger: Logger
   ) {}
 
   start() {
@@ -39,6 +41,8 @@ export class Background {
   }
 
   bindOnInstalled() {
+    this.logger.info('Binding onInstalled event')
+    this.logger.log('test')
     this.browser.runtime.onInstalled.addListener(async (details) => {
       if (details.reason === 'install') {
         await this.storage.populate()

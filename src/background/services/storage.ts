@@ -1,4 +1,5 @@
 import { DEFAULT_AMOUNT } from '@/background/config'
+import { Logger } from '@/shared/logger'
 import type {
   PopupState,
   Storage,
@@ -20,7 +21,10 @@ const defaultStorage = {
 } satisfies Storage
 
 export class StorageService {
-  constructor(private browser: Browser) {}
+  constructor(
+    private browser: Browser,
+    private logger: Logger
+  ) {}
 
   async get<TKey extends StorageKey>(
     keys: TKey[]
@@ -64,7 +68,7 @@ export class StorageService {
       url: '',
       amount: { value: 0 }
     }
-    console.log(tabUrl)
+
     if (!tabUrl) {
       website = {
         url: '',
@@ -73,7 +77,8 @@ export class StorageService {
     } else {
       let url = ''
       try {
-        url = new URL(tabUrl).origin
+        const parsedUrl = new URL(tabUrl)
+        url = `${parsedUrl.origin}${parsedUrl.pathname}`
       } catch (e) {
         /** noop */
       }
@@ -86,8 +91,8 @@ export class StorageService {
       enabled: data.enabled,
       connected: data.connected,
       walletAddress: data.walletAddress,
-      website,
-      publicKey: data.publicKey
+      publicKey: data.publicKey,
+      website
     }
   }
 

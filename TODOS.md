@@ -1,6 +1,6 @@
 ### Background
 
-- [ ] Custom Logger
+- [x] Custom Logger
 - [ ] Finish monetization service
 - [ ] Add handlers to update the extension icon based on WM state
 
@@ -23,6 +23,8 @@
 - [ ] Update ESLint Config
 - [ ] Add `prettier-plugin-tailwindcss`
 - [ ] Update README
+- [ ] Setup Renovate
+- [ ] Use JS/TS file to build the extension/run dev/profiler - based on Alex from TB Lunch & Learn
 
 ### Testing
 
