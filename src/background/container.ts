@@ -8,7 +8,6 @@ interface Cradle {
   browser: Browser
   storage: StorageService
   eventsService: EventsService
-
   openPaymentsService: OpenPaymentsService
   background: Background
 }

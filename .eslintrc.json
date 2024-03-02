@@ -37,7 +37,6 @@
   },
   "rules": {
     "semi": "off",
-    "prettier/prettier": "error",
     "maxWarnings": "off",
     "react/self-closing-comp": [
       "error",

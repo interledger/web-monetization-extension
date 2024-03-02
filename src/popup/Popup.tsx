@@ -1,4 +1,4 @@
-import { MainLayout } from '@/popup/components/layout/main-layout'
+import { MainLayout } from '@/popup/components/layout/MainLayout'
 import { PopupContextProvider } from './lib/context'
 
 import React from 'react'
