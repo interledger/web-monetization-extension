@@ -1,18 +1,33 @@
 // TO DO
-import { isPendingGrant } from '@interledger/open-payments/dist/types'
-import { OpenPaymentsService } from './openPayments'
+import {
+  OutgoingPayment,
+  Quote,
+  WalletAddress,
+  isPendingGrant,
+} from '@interledger/open-payments/dist/types'
+import { OpenPaymentsService, StorageService } from '.'
 import { type Browser } from 'webextension-polyfill'
+import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 
+const getWalletAddress = (): WalletAddress => {
+  // TO DO
+  return { id: '', assetCode: '', assetScale: 1, authServer: '', resourceServer: '' }
+}
 export class MonetizationService {
+  private incomingPaymentUrlId: string
+
   constructor(
     private browser: Browser,
     private openPaymentsService: OpenPaymentsService,
+    private storage: StorageService,
   ) {}
 
-  private async createIncomingPayment() {
+  async createIncomingPayment() {
+    const walletAddress: WalletAddress = getWalletAddress()
+
     const incomingPaymentGrant = await this.openPaymentsService.client!.grant.request(
       {
-        url: this.receivingWalletAddress.authServer,
+        url: walletAddress.authServer,
       },
       {
         access_token: {
@@ -20,7 +35,7 @@ export class MonetizationService {
             {
               type: 'incoming-payment',
               actions: ['create', 'read', 'list'],
-              identifier: this.receivingWalletAddress.id,
+              identifier: walletAddress.id,
             },
           ],
         },
@@ -33,11 +48,11 @@ export class MonetizationService {
 
     const incomingPayment = await this.openPaymentsService.client!.incomingPayment.create(
       {
-        url: this.receivingWalletAddress.resourceServer,
+        url: walletAddress.resourceServer,
         accessToken: incomingPaymentGrant.access_token.value,
       },
       {
-        walletAddress: this.receivingWalletAddress.id,
+        walletAddress: walletAddress.id,
         expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
         metadata: {
           source: 'Web Monetization',
@@ -55,12 +70,13 @@ export class MonetizationService {
   }
 
   async sendPayment() {
+    const storage = await this.storage.getAll()
+    if (!storage.walletAddress || !storage.token?.value || !storage.amount?.value) return
     // (1) TODO: Use the amount that is derived from the rate of pay
 
     // Notice: The same access token is used for both quotes and outgoing payments.
     // During the grant request process, it is possible to specify multiple accesses.
     // Employing a singular access token simplifies the process by eliminating the need to manage two separate access tokens for the sending side.
-    const AMOUNT = 0.02
 
     let quote: Quote | undefined
     let outgoingPayment: OutgoingPayment | undefined
@@ -69,30 +85,30 @@ export class MonetizationService {
     while (true) {
       try {
         if (!quote) {
-          quote = await this.client.quote.create(
+          quote = await this.openPaymentsService.client!.quote.create(
             {
-              url: this.sendingWalletAddress.resourceServer,
-              accessToken: this.token,
+              url: storage.walletAddress.resourceServer,
+              accessToken: storage.token.value,
             },
             {
               method: 'ilp',
               receiver: this.incomingPaymentUrlId,
-              walletAddress: this.sendingWalletAddress.id,
+              walletAddress: storage.walletAddress.id,
               debitAmount: {
-                value: String(AMOUNT * 10 ** this.sendingWalletAddress.assetScale),
-                assetScale: this.sendingWalletAddress.assetScale,
-                assetCode: this.sendingWalletAddress.assetCode,
+                value: String(storage.amount.value * 10 ** storage.walletAddress.assetScale),
+                assetScale: storage.walletAddress.assetScale,
+                assetCode: storage.walletAddress.assetCode,
               },
             },
           )
         }
-        outgoingPayment = await this.client.outgoingPayment.create(
+        outgoingPayment = await this.openPaymentsService.client!.outgoingPayment.create(
           {
-            url: this.sendingWalletAddress.resourceServer,
-            accessToken: this.token,
+            url: storage.walletAddress.resourceServer,
+            accessToken: storage.token.value,
           },
           {
-            walletAddress: this.sendingWalletAddress.id,
+            walletAddress: storage.walletAddress.id,
             quoteId: quote.id,
             metadata: {
               source: 'Web Monetization',
@@ -110,13 +126,20 @@ export class MonetizationService {
         if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
           if (e.status === 403) {
-            const rotatedToken = await this.client.token.rotate({
-              accessToken: this.token,
-              url: this.manageUrl,
+            const rotatedToken = await this.openPaymentsService.client!.token.rotate({
+              accessToken: storage.token.value,
+              url: storage.token.manage,
             })
 
-            this.token = rotatedToken.access_token.value
-            this.manageUrl = rotatedToken.access_token.manage
+            this.storage.set({
+              token: {
+                value: rotatedToken.access_token.value,
+                manage: rotatedToken.access_token.manage,
+              },
+            })
+
+            // this.token = rotatedToken.access_token.value
+            // this.manageUrl = rotatedToken.access_token.manage
             continue
           }
 
@@ -132,6 +155,7 @@ export class MonetizationService {
 
           const activeTabs = await this.browser.tabs.query({ active: true, currentWindow: true })
 
+          // TO DO: is this needed?
           const currentTabId = activeTabs[0].id
           await this.browser.tabs.sendMessage(currentTabId ?? 0, {
             type: 'PAYMENT_SUCCESS',
