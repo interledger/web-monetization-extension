@@ -1,5 +1,11 @@
 import { DEFAULT_AMOUNT } from '@/background/config'
-import type { PopupState, Storage, StorageKey, WebsiteData } from '@/shared/types'
+import { Logger } from '@/shared/logger'
+import type {
+  PopupState,
+  Storage,
+  StorageKey,
+  WebsiteData
+} from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 
 const defaultStorage = {
@@ -11,14 +17,17 @@ const defaultStorage = {
   keyId: '',
   walletAddress: undefined,
   amount: undefined,
-  token: undefined,
+  token: undefined
 } satisfies Storage
 
 export class StorageService {
-  constructor(private browser: Browser) {}
+  constructor(
+    private browser: Browser,
+    private logger: Logger
+  ) {}
 
   async get<TKey extends StorageKey>(
-    keys: TKey[],
+    keys: TKey[]
   ): Promise<{ [Key in TKey[][number]]: Storage[Key] }> {
     const data = await this.browser.storage.local.get(keys)
     return data as { [Key in TKey[][number]]: Storage[Key] }
@@ -30,7 +39,9 @@ export class StorageService {
     return data
   }
 
-  async set<TKey extends StorageKey>(data: { [K in TKey]: Storage[TKey] }): Promise<void> {
+  async set<TKey extends StorageKey>(data: {
+    [K in TKey]: Storage[TKey]
+  }): Promise<void> {
     await this.browser.storage.local.set(data)
   }
 
@@ -47,23 +58,27 @@ export class StorageService {
   }
 
   async getPopupData(): Promise<PopupState> {
-    const [{ url: tabUrl }] = await this.browser.tabs.query({ active: true, currentWindow: true })
+    const [{ url: tabUrl }] = await this.browser.tabs.query({
+      active: true,
+      currentWindow: true
+    })
     const data = await this.getAll()
 
     let website: WebsiteData = {
       url: '',
-      amount: { value: 0 },
+      amount: { value: 0 }
     }
-    console.log(tabUrl)
+
     if (!tabUrl) {
       website = {
         url: '',
-        amount: { value: 0 },
+        amount: { value: 0 }
       }
     } else {
       let url = ''
       try {
-        url = new URL(tabUrl).origin
+        const parsedUrl = new URL(tabUrl)
+        url = `${parsedUrl.origin}${parsedUrl.pathname}`
       } catch (e) {
         /** noop */
       }
@@ -76,8 +91,8 @@ export class StorageService {
       enabled: data.enabled,
       connected: data.connected,
       walletAddress: data.walletAddress,
-      website,
       publicKey: data.publicKey,
+      website
     }
   }
 

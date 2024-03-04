@@ -1,5 +1,8 @@
 export function whenDocumentReady(document: Document, start: () => void) {
-  if (document.readyState === 'interactive' || document.readyState === 'complete') {
+  if (
+    document.readyState === 'interactive' ||
+    document.readyState === 'complete'
+  ) {
     start()
   } else {
     document.addEventListener(
@@ -9,7 +12,7 @@ export function whenDocumentReady(document: Document, start: () => void) {
           start()
         }
       },
-      { once: true },
+      { once: true }
     )
   }
 }

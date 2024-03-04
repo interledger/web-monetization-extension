@@ -2,7 +2,8 @@ import React, { forwardRef } from 'react'
 
 import { cn } from '@/shared/helpers'
 
-export interface SliderProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface SliderProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string
   disabled?: boolean
   icon?: React.ReactNode
@@ -29,8 +30,15 @@ const sliderClasses = `
 `
 
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
-  { errorMessage, value = 0, className, onChange = () => {}, disabled, ...props },
-  ref,
+  {
+    errorMessage,
+    value = 0,
+    className,
+    onChange = () => {},
+    disabled,
+    ...props
+  },
+  ref
 ) {
   return (
     <div className="w-full">
@@ -49,7 +57,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         />
       </div>
 
-      {errorMessage && <p className="text-error text-sm px-2">{errorMessage}</p>}
+      {errorMessage && (
+        <p className="text-error text-sm px-2">{errorMessage}</p>
+      )}
     </div>
   )
 })

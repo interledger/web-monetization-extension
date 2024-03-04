@@ -1,6 +1,9 @@
 import Background from '@/background/background'
 
-const pausePaymentCallback = async (data: undefined, background: Background) => {
+const pausePaymentCallback = async (
+  data: undefined,
+  background: Background
+) => {
   background.paymentStarted = false
 
   return true

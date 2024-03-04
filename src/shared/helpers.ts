@@ -30,11 +30,13 @@ const isWalletAddress = (o: any): o is WalletAddress => {
   )
 }
 
-export const getWalletInformation = async (walletAddressUrl: string): Promise<WalletAddress> => {
+export const getWalletInformation = async (
+  walletAddressUrl: string
+): Promise<WalletAddress> => {
   const response = await fetch(walletAddressUrl, {
     headers: {
-      Accept: 'application/json',
-    },
+      Accept: 'application/json'
+    }
   })
   const json = await response.json()
 
@@ -45,7 +47,9 @@ export const getWalletInformation = async (walletAddressUrl: string): Promise<Wa
   return json
 }
 
-export const success = <TPayload = undefined>(payload: TPayload): SuccessResponse<TPayload> => ({
+export const success = <TPayload = undefined>(
+  payload: TPayload
+): SuccessResponse<TPayload> => ({
   success: true,
-  payload,
+  payload
 })

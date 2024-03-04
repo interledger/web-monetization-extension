@@ -3,7 +3,9 @@ import { EXTMessage, EXTResponse } from 'shared/types'
 
 const paymentSender = new PaymentSender()
 
-export const onRequest = async (msg: EXTMessage): Promise<EXTResponse | undefined> => {
+export const onRequest = async (
+  msg: EXTMessage
+): Promise<EXTResponse | undefined> => {
   switch (msg.type) {
     case 'LOAD': {
       const monetizationTag = document.querySelector('link[rel="monetization"]')
@@ -18,8 +20,8 @@ export const onRequest = async (msg: EXTMessage): Promise<EXTResponse | undefine
         type: 'SUCCESS',
         data: {
           monetization: !!monetizationTag,
-          paymentPointer: monetizationTag?.getAttribute('href'),
-        },
+          paymentPointer: monetizationTag?.getAttribute('href')
+        }
       }
     }
 
@@ -44,13 +46,14 @@ export const onRequest = async (msg: EXTMessage): Promise<EXTResponse | undefine
             assetScale: receiveAmount.assetScale as number,
             amountSent: {
               currency: receiveAmount.assetCode as string,
-              amount: (receiveAmount.value * 10 ** -receiveAmount.assetScale) as number,
+              amount: (receiveAmount.value *
+                10 ** -receiveAmount.assetScale) as number
             },
             paymentPointer: paymentPointer as string,
             incomingPayment: incomingPayment as string,
-            receipt: null,
-          },
-        }),
+            receipt: null
+          }
+        })
       )
 
       break

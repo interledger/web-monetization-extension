@@ -16,8 +16,8 @@ describe('Code', () => {
   it('calls clipboard.writeText with the correct value', () => {
     Object.assign(navigator, {
       clipboard: {
-        writeText: jest.fn(),
-      },
+        writeText: jest.fn()
+      }
     })
 
     const { getByRole } = render(<Code value="test" />)

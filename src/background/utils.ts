@@ -8,7 +8,7 @@ const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
 export const updateIcon = async (active: boolean) => {
   const iconData = {
     '34': active ? iconActive34 : iconInactive34,
-    '128': active ? iconActive128 : iconInactive128,
+    '128': active ? iconActive128 : iconInactive128
   }
 
   if (action) {
@@ -19,6 +19,9 @@ export const updateIcon = async (active: boolean) => {
 }
 
 export const getCurrentActiveTabId = async (browser: Browser) => {
-  const activeTabs = await browser.tabs.query({ active: true, currentWindow: true })
+  const activeTabs = await browser.tabs.query({
+    active: true,
+    currentWindow: true
+  })
   return activeTabs[0].id
 }

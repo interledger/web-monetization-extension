@@ -5,12 +5,12 @@ const getStorageKey = async (key: any) => {
     const data = await storageApi.get(key)
     return {
       type: 'SUCCESS',
-      [key]: data?.[key],
+      [key]: data?.[key]
     }
   } catch (error) {
     return {
       type: 'ERROR',
-      error,
+      error
     }
   }
 }

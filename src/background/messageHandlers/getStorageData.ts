@@ -5,12 +5,12 @@ const getStorageData = async () => {
     const { data } = await storageApi.get('data')
     return {
       type: 'SUCCESS',
-      data,
+      data
     }
   } catch (error) {
     return {
       type: 'ERROR',
-      error,
+      error
     }
   }
 }

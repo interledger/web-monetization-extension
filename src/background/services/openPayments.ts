@@ -1,12 +1,12 @@
 import { Amount } from 'shared/types'
 import {
   type AuthenticatedClient,
-  createAuthenticatedClient,
+  createAuthenticatedClient
 } from '@interledger/open-payments/dist/client'
 import {
   isFinalizedGrant,
   isPendingGrant,
-  WalletAddress,
+  WalletAddress
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
@@ -63,7 +63,7 @@ export class OpenPaymentsService {
 
   constructor(
     private browser: Browser,
-    private storage: StorageService,
+    private storage: StorageService
   ) {
     ;(async () => {
       const connected = await this.storage.get(['connected'])
@@ -78,14 +78,19 @@ export class OpenPaymentsService {
     if (data.privateKey && data.keyId) {
       return data as KeyInformation
     }
-    throw new Error('Could not create OpenPayments client. Missing `privateKey` and `keyId`.')
+    throw new Error(
+      'Could not create OpenPayments client. Missing `privateKey` and `keyId`.'
+    )
   }
 
   private createContentHeaders(body: string): ContentHeaders {
     return {
-      'Content-Digest': createContentDigestHeader(JSON.stringify(JSON.parse(body)), ['sha-512']),
+      'Content-Digest': createContentDigestHeader(
+        JSON.stringify(JSON.parse(body)),
+        ['sha-512']
+      ),
       'Content-Length': new TextEncoder().encode(body).length.toString(),
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     }
   }
 
@@ -95,14 +100,14 @@ export class OpenPaymentsService {
       alg: 'ed25519',
       async sign(data: Uint8Array) {
         return Buffer.from(await ed.signAsync(data, key.slice(16)))
-      },
+      }
     }
   }
 
   private async createSignatureHeaders({
     request,
     privateKey,
-    keyId,
+    keyId
   }: SignOptions): Promise<SignatureHeaders> {
     const components = ['@method', '@target-uri']
     if (request.headers['Authorization'] || request.headers['authorization']) {
@@ -119,32 +124,40 @@ export class OpenPaymentsService {
         name: 'sig1',
         params: ['keyid', 'created'],
         fields: components,
-        key: signingKey,
+        key: signingKey
       },
       {
         url: request.url,
         method: request.method,
-        headers: request.headers,
-      },
+        headers: request.headers
+      }
     )
 
     return {
       Signature: headers['Signature'] as string,
-      'Signature-Input': headers['Signature-Input'] as string,
+      'Signature-Input': headers['Signature-Input'] as string
     }
   }
 
-  private async createHeaders({ request, privateKey, keyId }: SignOptions): Promise<Headers> {
+  private async createHeaders({
+    request,
+    privateKey,
+    keyId
+  }: SignOptions): Promise<Headers> {
     if (request.body) {
       const contentHeaders = this.createContentHeaders(request.body)
       request.headers = { ...request.headers, ...contentHeaders }
     }
 
-    const signatureHeaders = await this.createSignatureHeaders({ request, privateKey, keyId })
+    const signatureHeaders = await this.createSignatureHeaders({
+      request,
+      privateKey,
+      keyId
+    })
 
     return {
       ...request.headers,
-      ...signatureHeaders,
+      ...signatureHeaders
     }
   }
 
@@ -153,7 +166,7 @@ export class OpenPaymentsService {
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
     this.client = await createAuthenticatedClient({
       walletAddressUrl,
-      authenticatedRequestInterceptor: async config => {
+      authenticatedRequestInterceptor: async (config) => {
         if (!config.method || !config.url) {
           throw new Error('Cannot intercept request: url or method missing')
         }
@@ -163,10 +176,10 @@ export class OpenPaymentsService {
             method: config.method,
             url: config.url,
             headers: JSON.parse(JSON.stringify(config.headers)),
-            body: config.data ? JSON.stringify(config.data) : undefined,
+            body: config.data ? JSON.stringify(config.data) : undefined
           },
           privateKey: ed.etc.hexToBytes(privateKey),
-          keyId,
+          keyId
         })
 
         if (config.data) {
@@ -181,25 +194,25 @@ export class OpenPaymentsService {
         config.headers['Signature-Input'] = headers['Signature-Input']
 
         return config
-      },
+      }
     })
   }
 
   private async createQuoteAndOutgoingPaymentGrant(
     nonce: string,
     walletAddress: WalletAddress,
-    amount: Amount,
+    amount: Amount
   ) {
     const grant = await this.client!.grant.request(
       {
-        url: walletAddress.authServer,
+        url: walletAddress.authServer
       },
       {
         access_token: {
           access: [
             {
               type: 'quote',
-              actions: ['create'],
+              actions: ['create']
             },
             {
               type: 'outgoing-payment',
@@ -207,24 +220,26 @@ export class OpenPaymentsService {
               identifier: walletAddress.id,
               limits: {
                 debitAmount: {
-                  value: String(Number(amount.value) * 10 ** walletAddress.assetScale),
+                  value: String(
+                    Number(amount.value) * 10 ** walletAddress.assetScale
+                  ),
                   assetScale: walletAddress.assetScale,
-                  assetCode: walletAddress.assetCode,
+                  assetCode: walletAddress.assetCode
                 },
-                interval: amount.interval,
-              },
-            },
-          ],
+                interval: amount.interval
+              }
+            }
+          ]
         },
         interact: {
           start: ['redirect'],
           finish: {
             method: 'redirect',
             uri: 'http://localhost:3344',
-            nonce,
-          },
-        },
-      },
+            nonce
+          }
+        }
+      }
     )
 
     if (!isPendingGrant(grant)) {
@@ -240,27 +255,29 @@ export class OpenPaymentsService {
     interactRef,
     interactNonce,
     hash,
-    authServer,
+    authServer
   }: VerifyInteractionHashParams): Promise<void> {
     // Notice: The interaction hash is not correctly calculated within Rafiki at the momenet in certain scenarios.
     // If at one point this will throw an error check the `grantEndpoint` value.
     // `grantEndpoint` represents the route where grants are requested.
     const grantEndpoint = new URL(authServer).origin + '/'
     const data = new TextEncoder().encode(
-      `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`,
+      `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`
     )
 
     const digest = await crypto.subtle.digest('SHA-256', data)
-    const calculatedHash = btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+    const calculatedHash = btoa(
+      String.fromCharCode.apply(null, new Uint8Array(digest))
+    )
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
   private async confirmPayment(url: string): Promise<InteractionParams> {
     const currentTabId = await getCurrentActiveTabId(this.browser)
 
-    return await new Promise(res => {
+    return await new Promise((res) => {
       if (url) {
-        this.browser.tabs.create({ url }).then(tab => {
+        this.browser.tabs.create({ url }).then((tab) => {
           if (tab.id) {
             this.browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
               try {
@@ -283,31 +300,40 @@ export class OpenPaymentsService {
     })
   }
 
-  async connectWallet(walletAddress: WalletAddress, amount: Amount): Promise<void> {
+  async connectWallet(
+    walletAddress: WalletAddress,
+    amount: Amount
+  ): Promise<void> {
     const clientNonce = crypto.randomUUID()
 
-    const grant = await this.createQuoteAndOutgoingPaymentGrant(clientNonce, walletAddress, amount)
+    const grant = await this.createQuoteAndOutgoingPaymentGrant(
+      clientNonce,
+      walletAddress,
+      amount
+    )
 
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
-    const { interactRef, hash } = await this.confirmPayment(grant.interact.redirect)
+    const { interactRef, hash } = await this.confirmPayment(
+      grant.interact.redirect
+    )
 
     await this.verifyInteractionHash({
       clientNonce,
       interactNonce: grant.interact.finish,
       interactRef,
       hash,
-      authServer: walletAddress.authServer,
+      authServer: walletAddress.authServer
     })
 
     const continuation = await this.client!.grant.continue(
       {
         url: grant.continue.uri,
-        accessToken: grant.continue.access_token.value,
+        accessToken: grant.continue.access_token.value
       },
       {
-        interact_ref: interactRef,
-      },
+        interact_ref: interactRef
+      }
     )
 
     if (!isFinalizedGrant(continuation)) {
@@ -332,7 +358,7 @@ export class OpenPaymentsService {
     await this.storage.set({
       privateKey: bytesToHex(privateKey),
       publicKey: btoa(JSON.stringify(jwk)),
-      keyId,
+      keyId
     })
   }
 }

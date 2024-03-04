@@ -10,28 +10,40 @@ export interface ErrorResponse {
   message: string
 }
 
-export type Response<TPayload = undefined> = SuccessResponse<TPayload> | ErrorResponse
+export type Response<TPayload = undefined> =
+  | SuccessResponse<TPayload>
+  | ErrorResponse
 
-export type MessageHKT<TAction, TPayload = undefined> = TPayload extends undefined
+export type MessageHKT<
+  TAction,
+  TPayload = undefined
+> = TPayload extends undefined
   ? { action: TAction }
   : { action: TAction; payload: TPayload }
 
 export enum PopupToBackgroundAction {
   GET_CONTEXT_DATA = 'GET_CONTEXT_DATA',
-  CONNECT_WALLET = 'CONNECT_WALLET',
+  CONNECT_WALLET = 'CONNECT_WALLET'
 }
 
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
-  [PopupToBackgroundAction.CONNECT_WALLET]: { test: string; a: string; c: boolean }
+  [PopupToBackgroundAction.CONNECT_WALLET]: {
+    test: string
+    a: string
+    c: boolean
+  }
 }
 
 export type PopupToBackgroundMessage = {
-  [K in PopupToBackgroundAction]: MessageHKT<K, PopupToBackgroundActionPayload[K]>
+  [K in PopupToBackgroundAction]: MessageHKT<
+    K,
+    PopupToBackgroundActionPayload[K]
+  >
 }[PopupToBackgroundAction]
 
 export enum ContentToBackgroundAction {
-  TEST_ACTION = 'TEST_ACTION',
+  TEST_ACTION = 'TEST_ACTION'
 }
 
 export interface ContentToBackgroundActionPayload {
@@ -39,31 +51,39 @@ export interface ContentToBackgroundActionPayload {
 }
 
 export type ContentToBackgroundMessage = {
-  [K in ContentToBackgroundAction]: MessageHKT<K, ContentToBackgroundActionPayload[K]>
+  [K in ContentToBackgroundAction]: MessageHKT<
+    K,
+    ContentToBackgroundActionPayload[K]
+  >
 }[ContentToBackgroundAction]
 
-export type ToBackgroundMessage = PopupToBackgroundMessage | ContentToBackgroundMessage
+export type ToBackgroundMessage =
+  | PopupToBackgroundMessage
+  | ContentToBackgroundMessage
 
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
 
   async send<TResponse = void>(
-    message: TMessages,
+    message: TMessages
   ): Promise<TResponse extends void ? void : Response<TResponse>> {
     return await this.browser.runtime.sendMessage(message)
   }
 
   async sendToTab<TResponse = void>(
     tabId: number,
-    message: TMessages,
+    message: TMessages
   ): Promise<TResponse extends void ? void : Response<TResponse>> {
     return await this.browser.tabs.sendMessage(tabId, message)
   }
 
   async sendToActiveTab<TResponse = void>(
-    message: TMessages,
+    message: TMessages
   ): Promise<TResponse extends void ? void : Response<TResponse>> {
-    const activeTabs = await this.browser.tabs.query({ active: true, currentWindow: true })
+    const activeTabs = await this.browser.tabs.query({
+      active: true,
+      currentWindow: true
+    })
     const activeTab = activeTabs[0]
     return await this.browser.tabs.sendMessage(activeTab.id as number, message)
   }

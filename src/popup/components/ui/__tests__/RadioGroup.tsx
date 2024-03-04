@@ -6,12 +6,12 @@ import { Radio, RadioGroup } from '../RadioGroup'
 describe('RadioGroup', () => {
   const radioItems = [
     { label: 'Option 1', value: 'option1', checked: true },
-    { label: 'Option 2', value: 'option2' },
+    { label: 'Option 2', value: 'option2' }
   ]
 
   it('should have the `flex-row` class when the `inline` variant is passed', () => {
     const { queryByRole } = render(
-      <RadioGroup variant="inline" items={radioItems} name="radioName" />,
+      <RadioGroup variant="inline" items={radioItems} name="radioName" />
     )
 
     expect(queryByRole('radiogroup')).toBeInTheDocument()
@@ -19,7 +19,9 @@ describe('RadioGroup', () => {
   })
 
   it('renders radio group correctly with items', () => {
-    const { getByRole } = render(<RadioGroup items={radioItems} name="radioGroup" />)
+    const { getByRole } = render(
+      <RadioGroup items={radioItems} name="radioGroup" />
+    )
 
     const radioGroup = getByRole('radiogroup')
     expect(radioGroup).toBeInTheDocument()
@@ -29,9 +31,11 @@ describe('RadioGroup', () => {
   it('renders radio group with no element checked by default', () => {
     const radioItemsNotChecked = [
       { label: 'Option 1', value: 'option1' },
-      { label: 'Option 2', value: 'option2' },
+      { label: 'Option 2', value: 'option2' }
     ]
-    const { getByLabelText } = render(<RadioGroup items={radioItemsNotChecked} name="radioGroup" />)
+    const { getByLabelText } = render(
+      <RadioGroup items={radioItemsNotChecked} name="radioGroup" />
+    )
 
     const firstRadioButton = getByLabelText('Option 1')
     const secondRadioButton = getByLabelText('Option 2')
@@ -41,7 +45,9 @@ describe('RadioGroup', () => {
   })
 
   it('handles keyboard navigation', () => {
-    const { getByLabelText } = render(<RadioGroup items={radioItems} name="radioGroup" />)
+    const { getByLabelText } = render(
+      <RadioGroup items={radioItems} name="radioGroup" />
+    )
 
     const radioGroup = getByLabelText('Option 1')
     fireEvent.keyDown(radioGroup, { key: 'ArrowRight', code: 'ArrowRight' })
@@ -62,7 +68,9 @@ describe('RadioGroup', () => {
   })
 
   it('changes selection on arrow keys', () => {
-    const { getByLabelText } = render(<RadioGroup items={radioItems} name="radioGroup" />)
+    const { getByLabelText } = render(
+      <RadioGroup items={radioItems} name="radioGroup" />
+    )
 
     const radioGroup = getByLabelText('Option 1')
     fireEvent.keyDown(radioGroup, { key: 'ArrowRight', code: 'ArrowRight' })
@@ -72,7 +80,9 @@ describe('RadioGroup', () => {
   })
 
   it('changes selection on clicking radio buttons', () => {
-    const { getByLabelText } = render(<RadioGroup items={radioItems} name="radioGroup" />)
+    const { getByLabelText } = render(
+      <RadioGroup items={radioItems} name="radioGroup" />
+    )
 
     const secondRadioButton = getByLabelText('Option 2')
     fireEvent.click(secondRadioButton)
@@ -82,7 +92,9 @@ describe('RadioGroup', () => {
 
 describe('Radio', () => {
   it('renders radio button correctly with label', () => {
-    const { getByLabelText } = render(<Radio label="Option 1" value="option1" name="radioGroup" />)
+    const { getByLabelText } = render(
+      <Radio label="Option 1" value="option1" name="radioGroup" />
+    )
 
     const radioButton = getByLabelText('Option 1')
     expect(radioButton).toBeInTheDocument()
@@ -95,7 +107,7 @@ describe('Radio', () => {
 
   it('renders disabled radio button', () => {
     const { getByLabelText } = render(
-      <Radio label="Option 1" value="option1" name="radioGroup" disabled />,
+      <Radio label="Option 1" value="option1" name="radioGroup" disabled />
     )
 
     const radioButton = getByLabelText('Option 1')

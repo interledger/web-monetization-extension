@@ -4,12 +4,12 @@ const setStorageData = async (data: any) => {
   try {
     await storageApi.set({ data })
     return {
-      type: 'SUCCESS',
+      type: 'SUCCESS'
     }
   } catch (error) {
     return {
       type: 'ERROR',
-      error,
+      error
     }
   }
 }

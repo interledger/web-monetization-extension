@@ -10,4 +10,7 @@ const isMonetizationReadyCallback = async (data: IsMonetizationReadyData) => {
   return true
 }
 
-export default { callback: isMonetizationReadyCallback, type: 'IS_MONETIZATION_READY' }
+export default {
+  callback: isMonetizationReadyCallback,
+  type: 'IS_MONETIZATION_READY'
+}

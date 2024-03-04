@@ -1,5 +1,8 @@
 const listenForLinkChange = (mutationsList: MutationRecord[]) => {
-  if (mutationsList[0].addedNodes.length && mutationsList[0].type === 'childList') {
+  if (
+    mutationsList[0].addedNodes.length &&
+    mutationsList[0].type === 'childList'
+  ) {
     const monetizationLinks = Object.values(mutationsList[0].addedNodes).reduce(
       (acc: HTMLElement[], link: HTMLElement) => {
         if (
@@ -12,7 +15,7 @@ const listenForLinkChange = (mutationsList: MutationRecord[]) => {
 
         return acc
       },
-      [],
+      []
     )
 
     if (monetizationLinks.length) {
@@ -37,7 +40,7 @@ export const loadObserver = () => {
   const observeOptions = {
     attributes: true,
     childList: true,
-    subtree: true,
+    subtree: true
   }
 
   observer.observe(document, observeOptions)

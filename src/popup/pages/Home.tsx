@@ -1,4 +1,3 @@
-import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm'
 import React from 'react'
 
 // import { Button } from '@/popup/components/ui/button'
@@ -11,6 +10,7 @@ import React from 'react'
 // import { formatCurrency } from '@/utils/formatCurrency'
 
 export const Component = () => {
+  return <>Home</>
   // const {
   //   data: { wmEnabled, rateOfPay, amount, amountType },
   //   setData,

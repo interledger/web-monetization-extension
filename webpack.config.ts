@@ -9,7 +9,6 @@ import {
   getAnalyzerPlugins,
   getCleanWebpackPlugins,
   getCopyPlugins,
-  getDefinePlugins,
   getEntry,
   getEslintPlugins,
   getExtensionManifestPlugins,
@@ -18,12 +17,14 @@ import {
   getOutput,
   getProgressPlugins,
   getResolves,
-  getZipPlugins,
+  getZipPlugins
 } from './webpack.config.utils'
 
 let generalConfig: any = {
   mode:
-    config.NODE_ENV === 'production' || config.NODE_ENV === 'upload' ? 'production' : 'development',
+    config.NODE_ENV === 'production' || config.NODE_ENV === 'upload'
+      ? 'production'
+      : 'development',
   module: {
     rules: [
       {
@@ -38,50 +39,33 @@ let generalConfig: any = {
               postcssOptions: {
                 plugins: {
                   tailwindcss: {},
-                  autoprefixer: {},
-                },
-              },
-            },
-          },
-        ],
+                  autoprefixer: {}
+                }
+              }
+            }
+          }
+        ]
       },
       {
         test: /\.(js|jsx|ts|tsx)$/,
         use: [
           {
-            loader: 'ts-loader',
-            // options: {
-            //     transpileOnly: true,
-            // },
-          },
+            loader: 'ts-loader'
+          }
         ],
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-          },
-          {
-            loader: 'sass-loader',
-          },
-        ],
-      },
-    ],
+        exclude: /node_modules/
+      }
+    ]
   },
   resolve: getResolves(),
   entry: getEntry(Directories.SRC_DIR),
-  output: getOutput(config.TARGET, config.OUTPUT_DIR),
+  output: getOutput(config.TARGET, config.OUTPUT_DIR)
 }
 
 let plugins: any[] = [
   ...getCleanWebpackPlugins(
     `${config.OUTPUT_DIR}/${config.TARGET}`,
-    `${Directories.DIST_DIR}/${config.TARGET}`,
+    `${Directories.DIST_DIR}/${config.TARGET}`
   ),
   ...getProgressPlugins(),
   ...getEslintPlugins(),
@@ -89,15 +73,15 @@ let plugins: any[] = [
   ...getHTMLPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
   ...getCopyPlugins(config.TARGET, config.OUTPUT_DIR, Directories.SRC_DIR),
   new ProvidePlugin({
-    Buffer: ['buffer', 'Buffer'],
+    Buffer: ['buffer', 'Buffer']
   }),
   new ProvidePlugin({
-    process: 'process/browser',
+    process: 'process/browser'
   }),
   new IgnorePlugin({
     resourceRegExp: /node-fetch/,
-    contextRegExp: /@apidevtools\/json-schema-ref-parser/,
-  }),
+    contextRegExp: /@apidevtools\/json-schema-ref-parser/
+  })
 ]
 
 if (config.NODE_ENV === 'development') {
@@ -108,23 +92,16 @@ if (config.NODE_ENV === 'development') {
       all: false,
       builtAt: true,
       errors: true,
-      hash: true,
+      hash: true
     },
     watch: true,
     watchOptions: {
       aggregateTimeout: 200,
-      poll: 1000,
-    },
+      poll: 1000
+    }
   }
 
-  plugins = [
-    ...plugins,
-    ...getDefinePlugins({
-      SIGNATURES_URL: 'http://localhost:3000',
-      WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
-    }),
-    ...getExtensionReloaderPlugins(),
-  ]
+  plugins = [...plugins, ...getExtensionReloaderPlugins()]
 }
 
 if (config.NODE_ENV === 'profile') {
@@ -135,18 +112,11 @@ if (config.NODE_ENV === 'profile') {
       all: false,
       builtAt: true,
       errors: true,
-      hash: true,
-    },
+      hash: true
+    }
   }
 
-  plugins = [
-    ...plugins,
-    ...getDefinePlugins({
-      SIGNATURES_URL: 'http://localhost:3000',
-      WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/wm-dev',
-    }),
-    ...getAnalyzerPlugins(),
-  ]
+  plugins = [...plugins, ...getAnalyzerPlugins()]
 }
 
 if (config.NODE_ENV === 'production') {
@@ -159,29 +129,21 @@ if (config.NODE_ENV === 'production') {
           parallel: true,
           terserOptions: {
             format: {
-              comments: false,
-            },
+              comments: false
+            }
           },
-          extractComments: false,
-        }),
-      ],
-    },
+          extractComments: false
+        })
+      ]
+    }
   }
 
-  plugins = [
-    ...plugins,
-    ...getDefinePlugins({
-      SIGNATURES_URL: 'https://europe-west3-rafiki-testnet.cloudfunctions.net/sign',
-      WM_WALLET_ADDRESS: 'https://ilp.rafiki.money/interledger',
-    }),
-
-    ...getZipPlugins(config.TARGET, Directories.DIST_DIR),
-  ]
+  plugins = [...plugins, ...getZipPlugins(config.TARGET, Directories.DIST_DIR)]
 }
 
 export default [
   {
     ...generalConfig,
-    plugins,
-  },
+    plugins
+  }
 ]

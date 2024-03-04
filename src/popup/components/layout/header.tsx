@@ -22,7 +22,7 @@ const NavigationButton = () => {
         </Link>
       ),
 
-    [location],
+    [location]
   )
 
   return component

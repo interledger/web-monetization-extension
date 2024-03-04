@@ -3,7 +3,9 @@ import React, { forwardRef } from 'react'
 
 import { cn } from '@/shared/helpers'
 
-const labelVariants = cva('text-medium font-medium leading-6 px-2 flex items-center gap-2')
+const labelVariants = cva(
+  'text-medium font-medium leading-6 px-2 flex items-center gap-2'
+)
 
 export interface LabelProps
   extends VariantProps<typeof labelVariants>,
@@ -13,7 +15,7 @@ export interface LabelProps
 
 export const Label = forwardRef<HTMLLabelElement, LabelProps>(function Label(
   { className, children, ...props },
-  ref,
+  ref
 ) {
   return (
     <label ref={ref} className={cn(labelVariants(), className)} {...props}>

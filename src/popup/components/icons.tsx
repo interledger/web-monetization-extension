@@ -7,7 +7,8 @@ export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 16 16"
-      {...props}>
+      {...props}
+    >
       <path
         stroke="currentColor"
         strokeLinecap="round"
@@ -26,8 +27,16 @@ export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
       viewBox="0 0 25 25"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}>
-      <mask id="mask0_169_196" maskUnits="userSpaceOnUse" x="0" y="0" width="25" height="25">
+      {...props}
+    >
+      <mask
+        id="mask0_169_196"
+        maskUnits="userSpaceOnUse"
+        x="0"
+        y="0"
+        width="25"
+        height="25"
+      >
         <rect x="0.75" y="0.5" width="24" height="24" fill="#C4C4C4" />
       </mask>
       <g mask="url(#mask0_169_196)">
@@ -48,8 +57,16 @@ export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
       height="25"
       viewBox="0 0 25 25"
       fill="none"
-      {...props}>
-      <mask id="mask0_140_3136" maskUnits="userSpaceOnUse" x="0" y="0" width="25" height="25">
+      {...props}
+    >
+      <mask
+        id="mask0_140_3136"
+        maskUnits="userSpaceOnUse"
+        x="0"
+        y="0"
+        width="25"
+        height="25"
+      >
         <rect x="0.75" y="0.5" width="24" height="24" fill="#C4C4C4" />
       </mask>
       <g mask="url(#mask0_140_3136)">
@@ -70,7 +87,8 @@ export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}>
+      {...props}
+    >
       <g id="attach_money">
         <mask
           id="mask0_140_3168"
@@ -79,7 +97,8 @@ export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
           x="0"
           y="0"
           width="24"
-          height="24">
+          height="24"
+        >
           <rect id="Bounding box" width="24" height="24" fill="#D9D9D9" />
         </mask>
         <g mask="url(#mask0_140_3168)">
@@ -102,7 +121,8 @@ export const WarningSign = (props: React.SVGProps<SVGSVGElement>) => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}>
+      {...props}
+    >
       <mask
         id="mask0_140_3633"
         style={{ maskType: 'alpha' }}
@@ -110,7 +130,8 @@ export const WarningSign = (props: React.SVGProps<SVGSVGElement>) => {
         x="0"
         y="0"
         width="24"
-        height="24">
+        height="24"
+      >
         <rect width="24" height="24" fill="#C4C4C4" />
       </mask>
       <g mask="url(#mask0_140_3633)">
@@ -131,7 +152,8 @@ export const ClipboardIcon = (props: React.SVGProps<SVGSVGElement>) => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}>
+      {...props}
+    >
       <path
         d="M9 18C8.45 18 7.97933 17.8043 7.588 17.413C7.196 17.021 7 16.55 7 16V4C7 3.45 7.196 2.979 7.588 2.587C7.97933 2.19567 8.45 2 9 2H18C18.55 2 19.021 2.19567 19.413 2.587C19.8043 2.979 20 3.45 20 4V16C20 16.55 19.8043 17.021 19.413 17.413C19.021 17.8043 18.55 18 18 18H9ZM9 16H18V4H9V16ZM5 22C4.45 22 3.979 21.8043 3.587 21.413C3.19567 21.021 3 20.55 3 20V6H5V20H16V22H5Z"
         fill="currentColor"
@@ -149,8 +171,13 @@ export const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => {
       strokeWidth={1.5}
       stroke="currentColor"
       className="w-6 h-6"
-      {...props}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+      {...props}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m4.5 12.75 6 6 9-13.5"
+      />
     </svg>
   )
 }

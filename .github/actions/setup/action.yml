@@ -7,7 +7,7 @@ runs:
     - name: Setup Node
       uses: actions/setup-node@v4
       with:
-        node-version: 'lts/hydrogen'
+        node-version: 'lts/iron'
 
     - name: Install PNPM
       uses: pnpm/action-setup@v2

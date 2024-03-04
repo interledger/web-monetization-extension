@@ -9,5 +9,5 @@ function inject(configure: (_script: HTMLScriptElement) => void) {
 
 // eslint-disable-next-line @typescript-eslint/no-extra-semi
 ;(function injectCode(code: string) {
-  inject(script => (script.innerHTML = code))
+  inject((script) => (script.innerHTML = code))
 })(wm2Polyfill)
