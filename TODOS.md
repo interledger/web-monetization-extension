@@ -39,3 +39,29 @@
 ### Testing
 
 - [ ] E2E Testing - Playwright/Cypress/Puppeteer
+
+---
+
+### Monetization Flow (ContentScript <> Background)
+
+1. Setup MutationObserver to detect link tags
+2. For each found tag check if the href has a valid JSON response (based on OP Spec)
+3. For each valid tag save details (Wallet Address response - `authServer`, `resourceServer` etc ... + a unique identifier - uuidv4, w/e)
+   in a map/array/something and send `START_MONETIZATION` (payload wallet JSON - opt requestId TBD) event to background script
+4. In background - call `monetizationServer.start()`
+   4.1 request incoming payment grant
+   4.2 create incoming payment - NO AMOUNT
+   4.3 try to send payment - if received status code is 403, rotate token
+   4.4 revoke grant after creating incoming payment
+   4.5 add incoming payment details to a map - (key: tabId, value: {"uuidv4" : { ...incomingPaymentDetails, active: true }, ...})
+5. Create quote with `receiveAmount = RATE_OF_PAY / 3600` to incoming payment (active: true)
+6. Create outgoing payment with quote identifier (active: true)
+7. Send "MONETIZATION_EVENT" to content script with `MonetizationEvent` payload + request id,
+   that will dispatch a `MonetizationEvent` to the link tag
+8. Watch for document visibility change
+   - on `hidden`, stop monetization
+     - send "STOP_MONETIZATION" event with payload requestId and mark active `false` for that requestId
+   - on `visible`, resume monetization
+     - send "RESUME_MONETIZATION" event with payload requestId and mark active `true` for that requestId
+     - repeat steps 5-6 - if IP expired, go back to 4.1 and update payment details instead of adding a new record
+9. Add tab listener to watch for closed tabs and remove payment details from map (step 4.5) for that specific tab

@@ -1,6 +1,6 @@
 import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
 import browser, { type Browser } from 'webextension-polyfill'
-import { Background } from '@/background/background'
+import { Background } from '@/background/services/background'
 import { EventsService, OpenPaymentsService } from './services'
 import { StorageService } from '@/background/services/storage'
 import { createLogger, Logger } from '@/shared/logger'

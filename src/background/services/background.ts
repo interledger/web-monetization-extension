@@ -3,7 +3,7 @@ import {
   type ToBackgroundMessage,
   PopupToBackgroundAction
 } from '@/shared/messages'
-import type { OpenPaymentsService, StorageService } from './services'
+import type { OpenPaymentsService, StorageService } from '.'
 import { success } from '@/shared/helpers'
 import { Logger } from '@/shared/logger'
 
