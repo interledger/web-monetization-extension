@@ -39,4 +39,12 @@ export class Background {
       }
     })
   }
+
+  bindOnTabActivated() {
+    // this.browser.tabs.onActivated.addListener()
+  }
+
+  bindOnTabUpdated() {
+    // this.browser.tabs.onUpdated.addListener()
+  }
 }

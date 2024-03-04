@@ -65,7 +65,12 @@ export class OpenPaymentsService {
     private browser: Browser,
     private storage: StorageService,
   ) {
-    // TO DO: init client if wallet already connected
+    ;(async () => {
+      const connected = await this.storage.get(['connected'])
+      if (connected) {
+        // TO DO: init client if wallet already connected
+      }
+    })()
   }
 
   private async getPrivateKeyInformation(): Promise<KeyInformation> {
@@ -309,14 +314,12 @@ export class OpenPaymentsService {
       throw new Error('Expected finalized grant. Received unfinalized grant.')
     }
 
-    // TO DO: save in storage under walletAddress
-    // TO DO: save in storage under amount
-
-    // TO DO: save in storage under accessToken
-    // this.manageUrl = continuation.access_token.manage
-    // this.token = continuation.access_token.value
-
-    // TO DO: save in storage under connected
+    this.storage.set({
+      walletAddress,
+      amount,
+      token: { value: continuation.access_token.value, manage: continuation.access_token.manage },
+      connected: true,
+    })
   }
 
   async genererateKeys() {

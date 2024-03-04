@@ -1,7 +1,16 @@
 // TO DO
+import { isPendingGrant } from '@interledger/open-payments/dist/types'
+import { OpenPaymentsService } from './openPayments'
+import { type Browser } from 'webextension-polyfill'
+
 export class MonetizationService {
+  constructor(
+    private browser: Browser,
+    private openPaymentsService: OpenPaymentsService,
+  ) {}
+
   private async createIncomingPayment() {
-    const incomingPaymentGrant = await this.client.grant.request(
+    const incomingPaymentGrant = await this.openPaymentsService.client!.grant.request(
       {
         url: this.receivingWalletAddress.authServer,
       },
@@ -22,7 +31,7 @@ export class MonetizationService {
       throw new Error('Expected non-interactive grant. Received pending grant.')
     }
 
-    const incomingPayment = await this.client.incomingPayment.create(
+    const incomingPayment = await this.openPaymentsService.client!.incomingPayment.create(
       {
         url: this.receivingWalletAddress.resourceServer,
         accessToken: incomingPaymentGrant.access_token.value,
@@ -37,17 +46,12 @@ export class MonetizationService {
     )
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
-    await this.client.grant.cancel({
+    await this.openPaymentsService.client!.grant.cancel({
       url: incomingPaymentGrant.continue.uri,
       accessToken: incomingPaymentGrant.continue.access_token.value,
     })
 
     this.incomingPaymentUrlId = incomingPayment.id
-  }
-
-  async getCurrentActiveTabId() {
-    const activeTabs = await tabs.query({ active: true, currentWindow: true })
-    return activeTabs[0].id
   }
 
   async sendPayment() {
@@ -126,8 +130,10 @@ export class MonetizationService {
             walletAddress: paymentPointer,
           } = outgoingPayment
 
-          const currentTabId = await this.getCurrentActiveTabId()
-          await tabs.sendMessage(currentTabId ?? 0, {
+          const activeTabs = await this.browser.tabs.query({ active: true, currentWindow: true })
+
+          const currentTabId = activeTabs[0].id
+          await this.browser.tabs.sendMessage(currentTabId ?? 0, {
             type: 'PAYMENT_SUCCESS',
             data: { receiveAmount, incomingPayment, paymentPointer },
           })
