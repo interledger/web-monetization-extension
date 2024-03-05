@@ -33,3 +33,7 @@
     --popup-height: 600px;
   }
 }
+
+* {
+  font-family: 'Titillium Web', sans-serif;
+}

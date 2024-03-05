@@ -13,10 +13,12 @@ import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
-import { getCurrentActiveTabId } from '../utils'
+import { getCurrentActiveTabId, toAmount } from '../utils'
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
+import { getWalletInformation } from '@/shared/helpers'
+import { ConnectWalletPayload } from '@/shared/messages'
 
 interface KeyInformation {
   privateKey: string
@@ -58,6 +60,12 @@ interface VerifyInteractionHashParams {
   authServer: string
 }
 
+interface CreateQuoteAndOutgoingPaymentGrantParams {
+  clientNonce: string
+  walletAddress: WalletAddress
+  amount: Amount
+}
+
 export class OpenPaymentsService {
   client?: AuthenticatedClient
 
@@ -66,7 +74,7 @@ export class OpenPaymentsService {
     private storage: StorageService
   ) {
     ;(async () => {
-      const connected = await this.storage.get(['connected'])
+      const connected = await this.storage.get(['connected', 'walletAddress'])
       if (connected) {
         // TO DO: init client if wallet already connected
       }
@@ -74,10 +82,12 @@ export class OpenPaymentsService {
   }
 
   private async getPrivateKeyInformation(): Promise<KeyInformation> {
-    const data = await this.browser.storage.sync.get(['privateKey', 'keyId'])
+    const data = await this.browser.storage.local.get(['privateKey', 'keyId'])
+
     if (data.privateKey && data.keyId) {
       return data as KeyInformation
     }
+
     throw new Error(
       'Could not create OpenPayments client. Missing `privateKey` and `keyId`.'
     )
@@ -162,8 +172,8 @@ export class OpenPaymentsService {
   }
 
   async initClient(walletAddressUrl: string) {
-    console.log('init client')
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
+
     this.client = await createAuthenticatedClient({
       walletAddressUrl,
       authenticatedRequestInterceptor: async (config) => {
@@ -198,11 +208,71 @@ export class OpenPaymentsService {
     })
   }
 
-  private async createQuoteAndOutgoingPaymentGrant(
-    nonce: string,
-    walletAddress: WalletAddress,
-    amount: Amount
-  ) {
+  async connectWallet({
+    walletAddressUrl,
+    amount,
+    recurring
+  }: ConnectWalletPayload) {
+    const walletAddress = await getWalletInformation(walletAddressUrl)
+    const transformedAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale
+    })
+
+    await this.initClient(walletAddress.id)
+    const clientNonce = crypto.randomUUID()
+    const grant = await this.createQuoteAndOutgoingPaymentGrant({
+      clientNonce,
+      walletAddress,
+      amount: transformedAmount
+    })
+
+    // Q: Should this be moved to continuation polling?
+    // https://github.com/interledger/open-payments/issues/385
+    const { interactRef, hash } = await this.confirmPayment(
+      grant.interact.redirect
+    )
+
+    // TODO: Check with Fynbos if the auth server routes have `/gnap` before them.
+    await this.verifyInteractionHash({
+      clientNonce,
+      interactNonce: grant.interact.finish,
+      interactRef,
+      hash,
+      authServer: walletAddress.authServer
+    })
+
+    const continuation = await this.client!.grant.continue(
+      {
+        url: grant.continue.uri,
+        accessToken: grant.continue.access_token.value
+      },
+      {
+        interact_ref: interactRef
+      }
+    )
+
+    if (!isFinalizedGrant(continuation)) {
+      throw new Error('Expected finalized grant. Received unfinalized grant.')
+    }
+
+    this.storage.set({
+      walletAddress,
+      amount: transformedAmount,
+      token: {
+        value: continuation.access_token.value,
+        manage: continuation.access_token.manage
+      },
+      connected: true
+    })
+  }
+
+  private async createQuoteAndOutgoingPaymentGrant({
+    amount,
+    walletAddress,
+    clientNonce
+  }: CreateQuoteAndOutgoingPaymentGrantParams) {
     const grant = await this.client!.grant.request(
       {
         url: walletAddress.authServer
@@ -220,9 +290,7 @@ export class OpenPaymentsService {
               identifier: walletAddress.id,
               limits: {
                 debitAmount: {
-                  value: String(
-                    Number(amount.value) * 10 ** walletAddress.assetScale
-                  ),
+                  value: amount.value,
                   assetScale: walletAddress.assetScale,
                   assetCode: walletAddress.assetCode
                 },
@@ -236,7 +304,7 @@ export class OpenPaymentsService {
           finish: {
             method: 'redirect',
             uri: 'http://localhost:3344',
-            nonce
+            nonce: clientNonce
           }
         }
       }
@@ -300,53 +368,19 @@ export class OpenPaymentsService {
     })
   }
 
-  async connectWallet(
-    walletAddress: WalletAddress,
-    amount: Amount
-  ): Promise<void> {
-    const clientNonce = crypto.randomUUID()
+  // async connectWallet(
+  //   walletAddress: WalletAddress,
+  //   amount: Amount
+  // ): Promise<void> {
+  //   const clientNonce = crypto.randomUUID()
 
-    const grant = await this.createQuoteAndOutgoingPaymentGrant(
-      clientNonce,
-      walletAddress,
-      amount
-    )
+  //   const grant = await this.createQuoteAndOutgoingPaymentGrant(
+  //     clientNonce,
+  //     walletAddress,
+  //     amount
+  //   )
 
-    // Q: Should this be moved to continuation polling?
-    // https://github.com/interledger/open-payments/issues/385
-    const { interactRef, hash } = await this.confirmPayment(
-      grant.interact.redirect
-    )
-
-    await this.verifyInteractionHash({
-      clientNonce,
-      interactNonce: grant.interact.finish,
-      interactRef,
-      hash,
-      authServer: walletAddress.authServer
-    })
-
-    const continuation = await this.client!.grant.continue(
-      {
-        url: grant.continue.uri,
-        accessToken: grant.continue.access_token.value
-      },
-      {
-        interact_ref: interactRef
-      }
-    )
-
-    if (!isFinalizedGrant(continuation)) {
-      throw new Error('Expected finalized grant. Received unfinalized grant.')
-    }
-
-    this.storage.set({
-      walletAddress,
-      amount,
-      token: { value: continuation.access_token.value, manage: continuation.access_token.manage },
-      connected: true,
-    })
-  }
+  // }
 
   async genererateKeys() {
     if (await this.storage.keyPairExists()) return

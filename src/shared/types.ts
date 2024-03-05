@@ -1,7 +1,7 @@
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 
 export interface Amount {
-  value: number
+  value: string
   /** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
   interval?: string
 }

@@ -26,13 +26,15 @@ export enum PopupToBackgroundAction {
   CONNECT_WALLET = 'CONNECT_WALLET'
 }
 
+export interface ConnectWalletPayload {
+  walletAddressUrl: string
+  amount: string
+  recurring: boolean
+}
+
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
-  [PopupToBackgroundAction.CONNECT_WALLET]: {
-    test: string
-    a: string
-    c: boolean
-  }
+  [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
 }
 
 export type PopupToBackgroundMessage = {
@@ -66,20 +68,20 @@ export class MessageManager<TMessages> {
 
   async send<TResponse = void>(
     message: TMessages
-  ): Promise<TResponse extends void ? void : Response<TResponse>> {
+  ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
     return await this.browser.runtime.sendMessage(message)
   }
 
   async sendToTab<TResponse = void>(
     tabId: number,
     message: TMessages
-  ): Promise<TResponse extends void ? void : Response<TResponse>> {
+  ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
     return await this.browser.tabs.sendMessage(tabId, message)
   }
 
   async sendToActiveTab<TResponse = void>(
     message: TMessages
-  ): Promise<TResponse extends void ? void : Response<TResponse>> {
+  ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
     const activeTabs = await this.browser.tabs.query({
       active: true,
       currentWindow: true

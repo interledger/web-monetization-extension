@@ -1,11 +1,12 @@
+/* eslint-disable no-case-declarations */
 import { type Browser } from 'webextension-polyfill'
 import {
   type ToBackgroundMessage,
   PopupToBackgroundAction
 } from '@/shared/messages'
 import type { OpenPaymentsService, StorageService } from '.'
-import { success } from '@/shared/helpers'
 import { Logger } from '@/shared/logger'
+import { failure, success } from '@/shared/helpers'
 
 export class Background {
   constructor(
@@ -23,27 +24,29 @@ export class Background {
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
       async (message: ToBackgroundMessage) => {
-        switch (message.action) {
-          case PopupToBackgroundAction.GET_CONTEXT_DATA:
-            return success(await this.storage.getPopupData())
+        try {
+          switch (message.action) {
+            case PopupToBackgroundAction.GET_CONTEXT_DATA:
+              return success(await this.storage.getPopupData())
 
-          case PopupToBackgroundAction.CONNECT_WALLET:
-            await this.openPaymentsService.initClient(
-              'https://ilp.rafiki.money/radu'
-            )
-            return
+            case PopupToBackgroundAction.CONNECT_WALLET:
+              await this.openPaymentsService.connectWallet(message.payload)
+              return
 
-          default:
-            return
+            default:
+              return
+          }
+        } catch (e) {
+          this.logger.error(message.action, e.message)
+          return failure(e.message)
         }
       }
     )
   }
 
   bindOnInstalled() {
-    this.logger.info('Binding onInstalled event')
-    this.logger.log('test')
     this.browser.runtime.onInstalled.addListener(async (details) => {
+      this.logger.info(await this.storage.getAll())
       if (details.reason === 'install') {
         await this.storage.populate()
         await this.openPaymentsService.genererateKeys()

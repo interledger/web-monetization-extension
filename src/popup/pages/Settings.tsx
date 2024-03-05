@@ -1,6 +1,4 @@
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm'
-import { Code } from '@/popup/components/ui/Code'
-import { PopupStateContext } from '@/popup/lib/context'
 import React from 'react'
 
 // import { Button } from '@/popup/components/ui/button'
@@ -10,11 +8,10 @@ import React from 'react'
 // import { RadioGroup } from '@/popup/components/ui/radio-group'
 
 export const Component = () => {
-  const { state } = React.useContext(PopupStateContext)
-
+  // const { state } = React.useContext(PopupStateContext)
+  // console.log(state)
   return (
     <div className="flex flex-col">
-      <Code className="px-2" value={state.publicKey} />
       <ConnectWalletForm />
     </div>
   )

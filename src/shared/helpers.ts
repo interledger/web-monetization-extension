@@ -53,3 +53,8 @@ export const success = <TPayload = undefined>(
   success: true,
   payload
 })
+
+export const failure = (message: string) => ({
+  success: false,
+  message
+})

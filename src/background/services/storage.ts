@@ -58,23 +58,19 @@ export class StorageService {
   }
 
   async getPopupData(): Promise<PopupState> {
+    // TODO: Improve URL management
     const [{ url: tabUrl }] = await this.browser.tabs.query({
       active: true,
       currentWindow: true
     })
     const data = await this.getAll()
 
-    let website: WebsiteData = {
+    const website: WebsiteData = {
       url: '',
-      amount: { value: 0 }
+      amount: { value: '0' }
     }
 
-    if (!tabUrl) {
-      website = {
-        url: '',
-        amount: { value: 0 }
-      }
-    } else {
+    if (tabUrl) {
       let url = ''
       try {
         const parsedUrl = new URL(tabUrl)

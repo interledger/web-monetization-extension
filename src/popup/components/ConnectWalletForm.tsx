@@ -2,31 +2,24 @@ import { DollarSign } from '@/popup/components/Icons'
 import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
-import { RadioGroup } from '@/popup/components/ui/RadioGroup'
 import { connected } from 'process'
-import React from 'react'
+import React, { useContext } from 'react'
+import { Switch } from '@/popup/components/ui/Switch'
+import { Code } from '@/popup/components/ui/Code'
+import { PopupStateContext } from '@/popup/lib/context'
+import { connectWallet } from '@/popup/lib/messages'
 
 export const ConnectWalletForm = () => {
-  const [wallet, setWallet] = React.useState<string>('')
-  const [walletError, setWalletError] = React.useState<string>('')
-  const [amount, setAmount] = React.useState<string>('')
-  const [amountError, setAmountError] = React.useState<string>('')
-  const [recurring, setRecurring] = React.useState<string>('true')
+  const { state } = useContext(PopupStateContext)
+
+  const [walletAddressUrl, setWalletAddressUrl] = React.useState('')
+  const [walletError, setWalletError] = React.useState('')
+  const [amount, setAmount] = React.useState('')
+  const [amountError, setAmountError] = React.useState('')
+  const [recurring, setRecurring] = React.useState(false)
   const [loading, setLoading] = React.useState<boolean>(false)
 
-  const handleChangeWallet = (event: any) => {
-    setWallet(event.target.value)
-  }
-
-  const handleChangeAmount = (event: any) => {
-    setAmount(event.target.value)
-  }
-
-  const handleChangeRecurring = (value: string) => {
-    setRecurring(value)
-  }
-
-  const handleConnect = () => {
+  const handleConnect = async () => {
     if (loading) return
 
     setWalletError('')
@@ -35,7 +28,7 @@ export const ConnectWalletForm = () => {
     setLoading(true)
     let errors = false
 
-    if (!wallet) {
+    if (!walletAddressUrl) {
       errors = true
       setWalletError('Please fill in wallet address')
     }
@@ -56,17 +49,37 @@ export const ConnectWalletForm = () => {
     setAmountError('')
 
     setLoading(false)
+
+    // TODO: Send amount object
+    const data = await connectWallet({
+      amount,
+      walletAddressUrl,
+      recurring
+    })
+
+    setWalletError(data.message)
   }
 
   return (
     <>
+      <div>
+        <Label className="text-base font-medium	text-medium">
+          Step 1 - Public key
+        </Label>
+        <p>
+          Get a wallet address from a provider before connecting it below.
+          Please find a list of available wallets here. Copy the public key
+          below and paste it into your wallet.
+        </p>
+        <Code className="px-2" value={state.publicKey} />
+      </div>
       <Label className="text-base font-medium	text-medium">Wallet address</Label>
 
       <Input
-        value={wallet}
+        value={walletAddressUrl}
         id="wallet"
         name="wallet"
-        onChange={handleChangeWallet}
+        onChange={(event) => setWalletAddressUrl(event.target.value)}
         errorMessage={walletError}
         disabled={connected}
         placeholder="Enter your wallet address"
@@ -79,30 +92,23 @@ export const ConnectWalletForm = () => {
         type="number"
         id="amount"
         name="amount"
-        onChange={handleChangeAmount}
+        onChange={(event) => setAmount(event.target.value)}
         disabled={connected}
         errorMessage={amountError}
         icon={<DollarSign />}
       />
-      <RadioGroup
-        handleChange={handleChangeRecurring}
-        items={[
-          { label: 'Recurring monthly amount', value: 'true' },
-          { label: 'Single-use amount', value: 'false' }
-        ]}
-        name="recurring"
-        id="recurring"
-        value={recurring}
-        className="mb-8 pl-2 mt-5"
-        disabled={connected}
+      <Switch
+        checked={recurring}
+        onChange={() => setRecurring((prev) => !prev)}
       />
       <Button
         className="w-full"
         disabled={loading}
         loading={loading}
         aria-label="connect"
+        onClick={handleConnect}
       >
-        {connected ? 'Disconnect' : 'Connect'}
+        Connect
       </Button>
     </>
   )

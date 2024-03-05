@@ -1,3 +1,4 @@
+import { Amount } from '@/shared/types'
 import { type Browser, action, runtime } from 'webextension-polyfill'
 
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
@@ -24,4 +25,22 @@ export const getCurrentActiveTabId = async (browser: Browser) => {
     currentWindow: true
   })
   return activeTabs[0].id
+}
+
+interface ToAmountParams {
+  value: string
+  recurring: boolean
+  assetScale: number
+}
+
+export const toAmount = ({
+  value,
+  recurring,
+  assetScale
+}: ToAmountParams): Amount => {
+  return {
+    value: Math.floor(parseFloat(value) * 10 ** assetScale).toString(),
+    // TODO: Create repeating interval
+    ...(recurring ? { interval: new Date().toISOString() } : {})
+  }
 }
