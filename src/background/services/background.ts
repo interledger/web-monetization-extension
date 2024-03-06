@@ -4,7 +4,11 @@ import {
   type ToBackgroundMessage,
   PopupToBackgroundAction
 } from '@/shared/messages'
-import type { OpenPaymentsService, StorageService } from '.'
+import type {
+  MonetizationService,
+  OpenPaymentsService,
+  StorageService
+} from '.'
 import { Logger } from '@/shared/logger'
 import { failure, success } from '@/shared/helpers'
 
@@ -12,6 +16,7 @@ export class Background {
   constructor(
     private browser: Browser,
     private openPaymentsService: OpenPaymentsService,
+    private monetizationService: MonetizationService,
     private storage: StorageService,
     private logger: Logger
   ) {}
@@ -35,6 +40,10 @@ export class Background {
 
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
+              return
+
+            case PopupToBackgroundAction.TOGGLE_WM:
+              await this.monetizationService.toggleWM()
               return
 
             default:

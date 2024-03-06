@@ -1,7 +1,8 @@
-import React from 'react'
+import { PopupStateContext } from '@/popup/lib/context'
+import React, { useContext } from 'react'
 
 // import { Button } from '@/popup/components/ui/button'
-// import { DollarSign, WarningSign } from '@/popup/components/icons'
+import { WarningSign } from '@/popup/components/Icons'
 // import { Input } from '@/popup/components/ui/input'
 // import { Label } from '@/popup/components/ui/label'
 // import { Slider } from '@/popup/components/ui/slider'
@@ -10,6 +11,18 @@ import React from 'react'
 // import { formatCurrency } from '@/utils/formatCurrency'
 
 export const Component = () => {
+  const { state } = useContext(PopupStateContext)
+  if (!state.enabled) {
+    return (
+      <div className="flex items-center gap-2">
+        <WarningSign />
+        <p className="text-base text-medium">
+          Web Monetization has been turned off.
+        </p>
+      </div>
+    )
+  }
+
   return <>Home</>
   // const {
   //   data: { wmEnabled, rateOfPay, amount, amountType },

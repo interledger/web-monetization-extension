@@ -3,7 +3,8 @@ import { getContextData } from '@/popup/lib/messages'
 import { PopupState } from '@/shared/types'
 
 export enum ReducerActionType {
-  SET_DATA = 'SET_DATA'
+  SET_DATA = 'SET_DATA',
+  TOGGLE_WM = 'TOGGLE_WM'
 }
 
 export interface PopupContext {
@@ -13,7 +14,7 @@ export interface PopupContext {
 
 interface ReducerActionMock {
   type: ReducerActionType
-  data: any
+  data?: any
 }
 
 interface SetDataAction extends ReducerActionMock {
@@ -21,7 +22,11 @@ interface SetDataAction extends ReducerActionMock {
   data: PopupState
 }
 
-export type ReducerActions = SetDataAction
+interface ToggleWMAction extends ReducerActionMock {
+  type: ReducerActionType.TOGGLE_WM
+}
+
+export type ReducerActions = SetDataAction | ToggleWMAction
 
 export const PopupStateContext = React.createContext<PopupContext>(
   {} as PopupContext
@@ -31,6 +36,12 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
   switch (action.type) {
     case ReducerActionType.SET_DATA: {
       return action.data
+    }
+    case ReducerActionType.TOGGLE_WM: {
+      return {
+        ...state,
+        enabled: !state.enabled
+      }
     }
     default:
       return state

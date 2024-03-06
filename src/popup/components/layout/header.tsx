@@ -4,7 +4,8 @@ import browser from 'webextension-polyfill'
 import { ArrowBack, Settings } from '../Icons'
 import { Switch } from '../ui/Switch'
 import { ROUTES_PATH } from '@/popup/Popup'
-import { PopupStateContext } from '@/popup/lib/context'
+import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
+import { toggleWM } from '@/popup/lib/messages'
 
 const Logo = browser.runtime.getURL('assets/images/logo.svg')
 
@@ -31,6 +32,11 @@ const NavigationButton = () => {
 }
 
 export const Header = () => {
+  const { state, dispatch } = useContext(PopupStateContext)
+  const onChange = async () => {
+    await toggleWM()
+    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
+  }
   return (
     <header className="flex flex-row items-center justify-between h-8">
       <div className="flex flex-row items-center gap-3">
@@ -39,7 +45,7 @@ export const Header = () => {
       </div>
       <div className="flex flex-row items-center gap-3">
         <NavigationButton />
-        <Switch checked={true} />
+        <Switch checked={state.enabled} onChange={onChange} />
       </div>
     </header>
   )

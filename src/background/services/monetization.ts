@@ -8,6 +8,7 @@ import {
 import { OpenPaymentsService, StorageService } from '.'
 import { type Browser } from 'webextension-polyfill'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
+import { Logger } from '@/shared/logger'
 
 const getWalletAddress = (): WalletAddress => {
   // TO DO
@@ -23,10 +24,16 @@ export class MonetizationService {
   private incomingPaymentUrlId: string
 
   constructor(
+    private logger: Logger,
     private browser: Browser,
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService
   ) {}
+
+  async toggleWM() {
+    const { enabled } = await this.storage.get(['enabled'])
+    await this.storage.set({ enabled: !enabled })
+  }
 
   async createIncomingPayment() {
     const walletAddress: WalletAddress = getWalletAddress()

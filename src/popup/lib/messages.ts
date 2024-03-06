@@ -30,3 +30,9 @@ export const disconnectWallet = async () => {
     action: PopupToBackgroundAction.DISCONNECT_WALLET
   })
 }
+
+export const toggleWM = async () => {
+  return await message.send({
+    action: PopupToBackgroundAction.TOGGLE_WM
+  })
+}
