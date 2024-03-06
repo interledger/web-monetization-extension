@@ -33,6 +33,10 @@ export class Background {
               await this.openPaymentsService.connectWallet(message.payload)
               return
 
+            case PopupToBackgroundAction.DISCONNECT_WALLET:
+              await this.openPaymentsService.disconnectWallet()
+              return
+
             default:
               return
           }

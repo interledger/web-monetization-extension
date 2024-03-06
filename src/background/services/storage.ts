@@ -17,7 +17,8 @@ const defaultStorage = {
   keyId: '',
   walletAddress: undefined,
   amount: undefined,
-  token: undefined
+  token: undefined,
+  grant: undefined
 } satisfies Storage
 
 export class StorageService {
@@ -46,7 +47,7 @@ export class StorageService {
   }
 
   async clear(): Promise<void> {
-    await this.browser.storage.local.clear()
+    await this.browser.storage.local.set(defaultStorage)
   }
 
   async populate(): Promise<void> {
@@ -86,6 +87,7 @@ export class StorageService {
     return {
       enabled: data.enabled,
       connected: data.connected,
+      amount: data.amount,
       walletAddress: data.walletAddress,
       publicKey: data.publicKey,
       website

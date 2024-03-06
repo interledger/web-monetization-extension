@@ -8,7 +8,8 @@
 
 ### Popup
 
-- [ ] Custom Logger
+- [ ] TBD - Generate new public key when the user disconnects the wallet or keep the same public key
+- [ ] Improve error handling and discuss where certain error messages should be display in `ConnectWalletForm` and `WalletInformation`
 
 ### Content
 

@@ -30,9 +30,9 @@ describe('Input', () => {
     expect(queryByLabelText('test input')).toHaveClass('border-base')
   })
 
-  it('should have the `pl-12` class when the `icon` variant is passed', () => {
+  it('should have the `pl-10` class when the `addOn` variant is passed', () => {
     const { queryByLabelText } = render(
-      <Input aria-label="test input" icon={<div />} />
+      <Input aria-label="test input" addOn="$" />
     )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()

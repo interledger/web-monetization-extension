@@ -23,7 +23,8 @@ export type MessageHKT<
 
 export enum PopupToBackgroundAction {
   GET_CONTEXT_DATA = 'GET_CONTEXT_DATA',
-  CONNECT_WALLET = 'CONNECT_WALLET'
+  CONNECT_WALLET = 'CONNECT_WALLET',
+  DISCONNECT_WALLET = 'DISCONNECT_WALLET'
 }
 
 export interface ConnectWalletPayload {
@@ -35,6 +36,7 @@ export interface ConnectWalletPayload {
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
   [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
+  [PopupToBackgroundAction.DISCONNECT_WALLET]: undefined
 }
 
 export type PopupToBackgroundMessage = {

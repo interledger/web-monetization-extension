@@ -74,9 +74,12 @@ export class OpenPaymentsService {
     private storage: StorageService
   ) {
     ;(async () => {
-      const connected = await this.storage.get(['connected', 'walletAddress'])
-      if (connected) {
-        // TO DO: init client if wallet already connected
+      const { connected, walletAddress } = await this.storage.get([
+        'connected',
+        'walletAddress'
+      ])
+      if (connected === true && walletAddress) {
+        this.initClient(walletAddress.id)
       }
     })()
   }
@@ -264,6 +267,10 @@ export class OpenPaymentsService {
         value: continuation.access_token.value,
         manage: continuation.access_token.manage
       },
+      grant: {
+        accessToken: continuation.continue.access_token.value,
+        continueUri: continuation.continue.uri
+      },
       connected: true
     })
   }
@@ -368,19 +375,17 @@ export class OpenPaymentsService {
     })
   }
 
-  // async connectWallet(
-  //   walletAddress: WalletAddress,
-  //   amount: Amount
-  // ): Promise<void> {
-  //   const clientNonce = crypto.randomUUID()
+  async disconnectWallet() {
+    const { grant } = await this.storage.get(['grant'])
 
-  //   const grant = await this.createQuoteAndOutgoingPaymentGrant(
-  //     clientNonce,
-  //     walletAddress,
-  //     amount
-  //   )
-
-  // }
+    if (grant) {
+      await this.client!.grant.cancel({
+        url: grant.continueUri,
+        accessToken: grant.accessToken
+      })
+      await this.storage.clear()
+    }
+  }
 
   async genererateKeys() {
     if (await this.storage.keyPairExists()) return

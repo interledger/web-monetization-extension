@@ -1,29 +1,31 @@
-import React, { useMemo } from 'react'
+import React, { useContext, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import browser from 'webextension-polyfill'
 import { ArrowBack, Settings } from '../Icons'
 import { Switch } from '../ui/Switch'
 import { ROUTES_PATH } from '@/popup/Popup'
+import { PopupStateContext } from '@/popup/lib/context'
 
 const Logo = browser.runtime.getURL('assets/images/logo.svg')
 
 const NavigationButton = () => {
   const location = useLocation()
+  const {
+    state: { connected }
+  } = useContext(PopupStateContext)
+  const component = useMemo(() => {
+    if (!connected) return null
 
-  const component = useMemo(
-    () =>
-      location.pathname === `/${ROUTES_PATH.SETTINGS}` ? (
-        <Link to={ROUTES_PATH.HOME}>
-          <ArrowBack className="h-6" />
-        </Link>
-      ) : (
-        <Link to={ROUTES_PATH.SETTINGS}>
-          <Settings className="h-6" />
-        </Link>
-      ),
-
-    [location]
-  )
+    return location.pathname === `${ROUTES_PATH.SETTINGS}` ? (
+      <Link to={ROUTES_PATH.HOME}>
+        <ArrowBack className="h-6" />
+      </Link>
+    ) : (
+      <Link to={ROUTES_PATH.SETTINGS}>
+        <Settings className="h-6" />
+      </Link>
+    )
+  }, [location, connected])
 
   return component
 }

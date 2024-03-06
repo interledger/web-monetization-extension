@@ -16,6 +16,11 @@ export interface AccessToken {
   manage: string
 }
 
+export interface GrantDetails {
+  accessToken: string
+  continueUri: string
+}
+
 export interface Storage {
   /** If web monetization is enabled */
   enabled: boolean
@@ -27,6 +32,8 @@ export interface Storage {
   amount?: Amount | undefined
   /** Access token for quoting & outgoing payments  */
   token?: AccessToken | undefined
+  /** Grant details - continue access token & uri for canceling the grant */
+  grant?: GrantDetails | undefined
   /** Exception list with websites and each specific amount */
   exceptionList: {
     [website: string]: Amount
@@ -40,7 +47,7 @@ export type StorageKey = keyof Storage
 
 export type PopupState = Omit<
   Storage,
-  'privateKey' | 'keyId' | 'exceptionList'
+  'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
 > & {
   website: WebsiteData
 }

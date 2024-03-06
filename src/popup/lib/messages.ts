@@ -24,3 +24,9 @@ export const connectWallet = async (
     payload
   })
 }
+
+export const disconnectWallet = async () => {
+  return await message.send({
+    action: PopupToBackgroundAction.DISCONNECT_WALLET
+  })
+}

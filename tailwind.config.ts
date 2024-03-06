@@ -29,10 +29,9 @@ module.exports = {
         'button-base': 'rgb(var(--bg-button-base) / <alpha-value>)',
         'button-base-hover': 'rgb(var(--bg-button-base-hover) / <alpha-value>)',
         'switch-base': 'rgb(var(--bg-switch-base) / <alpha-value>)',
-        'disabled-strong': 'rgb(var(--bg-disabled-strong) / <alpha-value>)',
-        'disabled-base': 'rgb(var(--bg-disabled-base) / <alpha-value>)',
-        'disabled-base-hover':
-          'rgb(var(--bg-disabled-base-hover) / <alpha-value>)'
+        disabled: 'rgb(var(--bg-disabled) / <alpha-value>)',
+        'disabled-hover': 'rgb(var(--bg-disabled-base-hover) / <alpha-value>)',
+        'disabled-strong': 'rgb(var(--bg-disabled-strong) / <alpha-value>)'
       },
       borderColor: {
         base: 'rgb(var(--border-base) / <alpha-value>)',

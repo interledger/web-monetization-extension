@@ -5,6 +5,8 @@
 - Should users also have the option to define their rate of pay when setting up their wallet?
 - Probably we need a rates service for correct conversion???
 
+A: FX Rates Service - TBD
+
 2. How do we handle scenarios where the wallet's asset scale is low (for example, 2)? Should we opt for sending the minimum amount, like 0.02, and avoid sending it every second? What is going to happen if the user reloads the page - will we send the minimum amount again?
 
 3. Do we need to handle multiple link tags for V1?
@@ -56,3 +58,7 @@ What does the `interval` property represent?
 
    - valid JSON response - dispatch `load` event at link tag
    - not a valid JSON response - dispatch `error` event at link tag
+
+8. How do we want to display error messages in the popup - the design that we have now does not take error messages into consideration - for form fields or a general form error.
+
+9. When we disconnect a wallet, do we generate a new key pair or keep the old one? How do we notify the users that it's the same public key or a new one?

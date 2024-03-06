@@ -9,7 +9,7 @@
     --text-weak: 100 116 139;
     --text-medium: 51 65 85;
     --text-strong: 15 23 42;
-    --text-error: 220 38 38;
+    --text-error: 239 68 68;
     --text-disabled: 148 163 184;
 
     /* Background colors */
@@ -32,8 +32,10 @@
     --popup-width: 448px;
     --popup-height: 600px;
   }
+
+  body {
+    @apply text-base text-medium bg-white
+  }
 }
 
-* {
-  font-family: 'Titillium Web', sans-serif;
-}
+

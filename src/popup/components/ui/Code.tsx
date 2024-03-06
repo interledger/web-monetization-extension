@@ -13,12 +13,12 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
   return (
     <div
       className={cn(
-        'flex items-center justify-between  rounded-xl bg-nav-active py-4 text-medium break-all',
+        'flex items-center justify-between text-sm rounded-xl px-4 bg-nav-active py-4 text-medium break-all',
         className
       )}
       {...props}
     >
-      <code className="px-2 text-ellipsis overflow-hidden whitespace-nowrap">
+      <code className="text-ellipsis overflow-hidden whitespace-nowrap">
         {value}
       </code>
       <CopyButton value={value} />

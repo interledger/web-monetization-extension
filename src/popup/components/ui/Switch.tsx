@@ -5,7 +5,7 @@ import { cn } from '@/shared/helpers'
 
 const switchVariants = cva(
   [
-    'rounded-full bg-disabled-strong relative cursor-pointer transition-colors duration-300 ease-in-out',
+    'inline-block rounded-full bg-disabled-strong relative cursor-pointer transition-colors duration-300 ease-in-out',
     'before:content-[""] before:absolute before:bg-white before:rounded-full',
     'before:top-1/2 before:transform before:-translate-y-1/2 before:left-[4px]',
     'before:transition-all before:duration-300 before:ease-in-out',
@@ -33,15 +33,16 @@ export interface SwitchProps
   extends VariantProps<typeof switchVariants>,
     React.HTMLAttributes<HTMLInputElement> {
   checked?: boolean
-  onChange?: (_event: React.ChangeEvent<HTMLInputElement>) => void
+  label?: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { size, className, onChange = () => {}, ...props },
+  { size, label, className, onChange = () => {}, ...props },
   ref
 ) {
   return (
-    <label>
+    <label className="flex items-center gap-x-4">
       <input
         role="switch"
         ref={ref}
@@ -52,6 +53,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         className="peer absolute opacity-0 -translate-x-[100%] pointer-events-none"
       />
       <div className={cn(switchVariants({ size }), className)} />
+      {label ? <span className="font-normal">{label}</span> : null}
     </label>
   )
 })
