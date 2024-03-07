@@ -1,7 +1,7 @@
 import React, { useContext, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import browser from 'webextension-polyfill'
-import { ArrowBack, Settings } from '../Icons'
+import { ArrowBack, Settings } from '../icons'
 import { Switch } from '../ui/Switch'
 import { ROUTES_PATH } from '@/popup/Popup'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
@@ -14,7 +14,7 @@ const NavigationButton = () => {
   const {
     state: { connected }
   } = useContext(PopupStateContext)
-  const component = useMemo(() => {
+  return useMemo(() => {
     if (!connected) return null
 
     return location.pathname === `${ROUTES_PATH.SETTINGS}` ? (
@@ -27,8 +27,6 @@ const NavigationButton = () => {
       </Link>
     )
   }, [location, connected])
-
-  return component
 }
 
 export const Header = () => {

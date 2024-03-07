@@ -1,7 +1,7 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 
-import { Header } from './Header'
+import { Header } from './header'
 
 const Divider = () => {
   return <div className="bg-divider-gradient w-100 h-1" />

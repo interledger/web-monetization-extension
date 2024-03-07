@@ -2,7 +2,7 @@ import { PopupStateContext } from '@/popup/lib/context'
 import React, { useContext } from 'react'
 
 // import { Button } from '@/popup/components/ui/button'
-import { WarningSign } from '@/popup/components/Icons'
+import { WarningSign } from '@/popup/components/icons'
 // import { Input } from '@/popup/components/ui/input'
 // import { Label } from '@/popup/components/ui/label'
 // import { Slider } from '@/popup/components/ui/slider'
