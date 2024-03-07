@@ -1,4 +1,4 @@
-1. What will the default amount be for wallets not using USD, such as BTC?
+<!-- 1. What will the default amount be for wallets not using USD, such as BTC?
 
 - BTC Scale - scale 8 -> 0.00000060BTC ~~ $0.04 <<< $0.60
 - XRP Scale - scale 6 - 0.000060XRP ~~ $0.000039 <<<<<< $0.60
@@ -14,7 +14,7 @@ BTC WALLET - $0.01 -> BTC & $1 -> BTC - for every non USD wallet
 - on a interval
 - if the currency conversion is between 0.8 & 1.5 we do not do currency conversion
   - ex: EUR, GBP -> we keep the original currency
-- max asset scale of 4 truncated and show a little tooltip with all the decimals if the wallet has an asset scale greater than 4 for the rate of pay slider (hovering over the green dot or on the amount in the bottom left)
+- max asset scale of 4 truncated and show a little tooltip with all the decimals if the wallet has an asset scale greater than 4 for the rate of pay slider (hovering over the green dot or on the amount in the bottom left) -->
 
 2. How do we handle scenarios where the wallet's asset scale is low (for example, 2)? Should we opt for sending the minimum amount, like 0.02, and avoid sending it every second? What is going to happen if the user reloads the page - will we send the minimum amount again?
 

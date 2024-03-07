@@ -7,7 +7,7 @@ import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
 import { getWalletInformation } from '@/shared/helpers'
-import { getCurrencySymbol } from '@/popup/lib/utils'
+import { charIsNumber, getCurrencySymbol } from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
 
@@ -113,9 +113,20 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         label="Step 3 - Amount"
         description="Enter the amount to use from your wallet."
         placeholder="5.00"
+        onKeyDown={(e) => {
+          if (
+            !charIsNumber(e.key) &&
+            e.key !== 'Backspace' &&
+            e.key !== 'Delete' &&
+            e.key !== 'Tab'
+          ) {
+            e.preventDefault()
+          }
+        }}
         errorMessage={errors.amount?.message}
         {...register('amount', {
           required: { value: true, message: 'Amount is required.' },
+          valueAsNumber: false,
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             setValue(
               'amount',

@@ -20,3 +20,7 @@ export const transformBalance = (amount: string, scale: number): string => {
 
   return `${integerPart}.${fractionalPart}`
 }
+
+export function charIsNumber(char?: string) {
+  return !!(char || '').match(/\d|\./)
+}
