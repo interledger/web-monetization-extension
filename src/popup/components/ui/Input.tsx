@@ -1,13 +1,12 @@
 import { type VariantProps, cva } from 'class-variance-authority'
 import React, { forwardRef } from 'react'
-
 import { cn } from '@/shared/helpers'
 import { Label } from '@/popup/components/ui/Label'
 
 const inputVariants = cva(
   [
-    'w-full h-14 rounded-xl border border-2 px-4 text-base text-medium',
-    'focus:outline-none focus:border-focus',
+    'h-14 w-full rounded-xl border border-2 px-4 text-base text-medium',
+    'focus:border-focus focus:outline-none',
     'placeholder-disabled'
   ],
 
@@ -17,7 +16,7 @@ const inputVariants = cva(
         default: 'border-base'
       },
       disabled: {
-        true: 'bg-disabled border-transparent'
+        true: 'border-transparent bg-disabled'
       }
     },
     defaultVariants: {
@@ -53,10 +52,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
-      {description ? <p className="text-xs px-2">{description}</p> : null}
+      {description ? <p className="px-2 text-xs">{description}</p> : null}
       <div className="relative">
         {addOn ? (
-          <div className="pointer-events-none w-10 absolute font-medium inset-y-0 left-0 flex items-center justify-center text-sm">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-sm font-medium">
             {addOn}
           </div>
         ) : null}
@@ -67,6 +66,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           className={cn(
             inputVariants({ disabled }),
             addOn && 'pl-10',
+            errorMessage && 'border-error',
             className
           )}
           disabled={disabled ?? false}
@@ -77,7 +77,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         />
       </div>
       {errorMessage && (
-        <p className="text-error text-sm px-2">{errorMessage}</p>
+        <p className="px-2 text-sm text-error">{errorMessage}</p>
       )}
     </div>
   )

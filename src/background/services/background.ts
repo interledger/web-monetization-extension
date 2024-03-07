@@ -11,6 +11,8 @@ import type {
 } from '.'
 import { Logger } from '@/shared/logger'
 import { failure, success } from '@/shared/helpers'
+import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
+import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 
 export class Background {
   constructor(
@@ -50,6 +52,11 @@ export class Background {
               return
           }
         } catch (e) {
+          if (e instanceof OpenPaymentsClientError) {
+            this.logger.error(message.action, e.message, e.description)
+            return failure(OPEN_PAYMENTS_ERRORS[e.description] ?? e.description)
+          }
+
           this.logger.error(message.action, e.message)
           return failure(e.message)
         }
@@ -59,7 +66,7 @@ export class Background {
 
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
-      this.logger.info(await this.storage.getAll())
+      this.logger.info(await this.storage.get())
       if (details.reason === 'install') {
         await this.storage.populate()
         await this.openPaymentsService.genererateKeys()

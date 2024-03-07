@@ -4,7 +4,7 @@ import React, { forwardRef } from 'react'
 import { cn } from '@/shared/helpers'
 
 const labelVariants = cva(
-  'text-medium font-medium leading-6 px-2 flex items-center'
+  'flex items-center px-2 font-medium leading-6 text-medium'
 )
 
 export interface LabelProps

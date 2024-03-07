@@ -44,3 +44,8 @@ export const toAmount = ({
     ...(recurring ? { interval: new Date().toISOString() } : {})
   }
 }
+
+export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
+  'invalid client':
+    'Please make sure that you uploaded the public key for your desired wallet address.'
+}

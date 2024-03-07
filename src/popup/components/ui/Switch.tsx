@@ -5,20 +5,20 @@ import { cn } from '@/shared/helpers'
 
 const switchVariants = cva(
   [
-    'inline-block rounded-full bg-disabled-strong relative cursor-pointer transition-colors duration-300 ease-in-out',
-    'before:content-[""] before:absolute before:bg-white before:rounded-full',
-    'before:top-1/2 before:transform before:-translate-y-1/2 before:left-[4px]',
+    'relative inline-block cursor-pointer rounded-full bg-disabled-strong transition-colors duration-300 ease-in-out',
+    'before:absolute before:rounded-full before:bg-white before:content-[""]',
+    'before:left-[4px] before:top-1/2 before:-translate-y-1/2 before:transform',
     'before:transition-all before:duration-300 before:ease-in-out',
-    'peer-checked:before:left-[18px] peer-checked:bg-switch-base',
+    'peer-checked:bg-switch-base peer-checked:before:left-[18px]',
     'peer-focus:outline peer-focus:outline-2 peer-focus:outline-blue-500'
   ],
 
   {
     variants: {
       size: {
-        default: 'w-[42px] h-[26px] before:h-5 before:w-5',
+        default: 'h-[26px] w-[42px] before:h-5 before:w-5',
         small: [
-          'w-9 h-[22px] before:h-4 before:w-4 before:left-[3px]',
+          'h-[22px] w-9 before:left-[3px] before:h-4 before:w-4',
           'peer-checked:before:left-4'
         ]
       }
@@ -50,7 +50,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         checked={props.checked}
         onChange={onChange}
         {...props}
-        className="peer absolute opacity-0 -translate-x-[100%] pointer-events-none"
+        className="peer pointer-events-none absolute -translate-x-[100%] opacity-0"
       />
       <div className={cn(switchVariants({ size }), className)} />
       {label ? <span className="font-normal">{label}</span> : null}

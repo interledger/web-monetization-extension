@@ -36,10 +36,10 @@ export const Header = () => {
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
   }
   return (
-    <header className="flex flex-row items-center justify-between h-8">
+    <header className="flex h-8 flex-row items-center justify-between">
       <div className="flex flex-row items-center gap-3">
         <img src={Logo} alt="Web Monetization Logo" className="h-6" />
-        <p className="text-strong text-xl">Web Monetization</p>
+        <p className="text-xl text-strong">Web Monetization</p>
       </div>
       <div className="flex flex-row items-center gap-3">
         <NavigationButton />

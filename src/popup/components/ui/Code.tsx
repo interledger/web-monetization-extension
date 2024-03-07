@@ -13,12 +13,12 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
   return (
     <div
       className={cn(
-        'flex items-center justify-between text-sm rounded-xl px-4 bg-nav-active py-4 text-medium break-all',
+        'flex items-center justify-between break-all rounded-xl bg-nav-active px-4 py-4 text-sm text-medium',
         className
       )}
       {...props}
     >
-      <code className="text-ellipsis overflow-hidden whitespace-nowrap">
+      <code className="overflow-hidden text-ellipsis whitespace-nowrap">
         {value}
       </code>
       <CopyButton value={value} />
@@ -47,7 +47,7 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
       aria-label="copy"
       variant="ghost"
       size="icon"
-      className="text-primary rounded-sm"
+      className="rounded-sm text-primary"
       onClick={() => {
         navigator.clipboard.writeText(value)
         setHasCopied(true)

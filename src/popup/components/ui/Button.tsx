@@ -19,7 +19,7 @@ const buttonVariants = cva(
         ghost: ''
       },
       size: {
-        default: 'py-4 px-6 font-medium',
+        default: 'px-6 py-4 font-medium',
         icon: 'h-6 w-6'
       },
       fullWidth: {

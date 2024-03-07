@@ -42,7 +42,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
 ) {
   return (
     <div className="w-full">
-      <div className="h-1 flex items-center">
+      <div className="flex h-1 items-center">
         <input
           ref={ref}
           type="range"
@@ -58,7 +58,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
       </div>
 
       {errorMessage && (
-        <p className="text-error text-sm px-2">{errorMessage}</p>
+        <p className="px-2 text-sm text-error">{errorMessage}</p>
       )}
     </div>
   )

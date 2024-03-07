@@ -5,7 +5,7 @@ import React from 'react'
 
 export const Component = () => {
   const { state } = React.useContext(PopupStateContext)
-
+  console.log(state)
   if (state.connected) {
     return <WalletInformation info={state} />
   } else {

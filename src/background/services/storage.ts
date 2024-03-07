@@ -12,14 +12,11 @@ const defaultStorage = {
   connected: false,
   enabled: true,
   exceptionList: {},
-  publicKey: '',
-  privateKey: '',
-  keyId: '',
   walletAddress: undefined,
   amount: undefined,
   token: undefined,
   grant: undefined
-} satisfies Storage
+} satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
   constructor(
@@ -28,16 +25,10 @@ export class StorageService {
   ) {}
 
   async get<TKey extends StorageKey>(
-    keys: TKey[]
+    keys?: TKey[]
   ): Promise<{ [Key in TKey[][number]]: Storage[Key] }> {
     const data = await this.browser.storage.local.get(keys)
     return data as { [Key in TKey[][number]]: Storage[Key] }
-  }
-
-  async getAll(): Promise<Storage> {
-    const keys = Object.keys(defaultStorage) as StorageKey[]
-    const data = await this.get(keys)
-    return data
   }
 
   async set<TKey extends StorageKey>(data: {
@@ -47,7 +38,7 @@ export class StorageService {
   }
 
   async clear(): Promise<void> {
-    await this.browser.storage.local.set(defaultStorage)
+    await this.set(defaultStorage)
   }
 
   async populate(): Promise<void> {
@@ -64,7 +55,14 @@ export class StorageService {
       active: true,
       currentWindow: true
     })
-    const data = await this.getAll()
+    const data = await this.get([
+      'enabled',
+      'connected',
+      'amount',
+      'exceptionList',
+      'walletAddress',
+      'publicKey'
+    ])
 
     const website: WebsiteData = {
       url: '',

@@ -34,8 +34,6 @@
   }
 
   body {
-    @apply text-base text-medium bg-white
+    @apply bg-white text-base text-medium;
   }
 }
-
-

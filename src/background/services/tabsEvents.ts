@@ -23,7 +23,7 @@ export class TabEventsService {
   tabUpdateHandler = async (
     tabId: number,
     changeInfo: Tabs.OnUpdatedChangeInfoType,
-    tab: Tabs.Tab,
+    tab: Tabs.Tab
   ) => {
     if (tab.status === 'complete' && tab.url?.match(/^http/)) {
       // try {
