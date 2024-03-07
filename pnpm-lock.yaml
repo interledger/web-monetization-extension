@@ -724,7 +724,7 @@ packages:
     dependencies:
       http-message-signatures: 1.0.4
       httpbis-digest-headers: 1.0.0
-      jose: 4.15.4
+      jose: 4.15.5
       uuid: 9.0.1
     dev: false
 
@@ -5314,8 +5314,8 @@ packages:
     hasBin: true
     dev: true
 
-  /jose@4.15.4:
-    resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
+  /jose@4.15.5:
+    resolution: {integrity: sha512-jc7BFxgKPKi94uOvEmzlSWFFe2+vASyXaKUpdQKatWAESU2MWjDfFf0fdfc83CDKcA5QecabZeNLyfhe3yKNkg==}
     dev: false
 
   /js-tokens@4.0.0:
