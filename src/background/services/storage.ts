@@ -1,4 +1,4 @@
-import { DEFAULT_AMOUNT } from '@/background/config'
+import { DEFAULT_AMOUNT, DEFAULT_INTERVAL_MS } from '@/background/config'
 import { Logger } from '@/shared/logger'
 import type {
   PopupState,
@@ -66,7 +66,7 @@ export class StorageService {
 
     const website: WebsiteData = {
       url: '',
-      amount: { value: '0' }
+      amount: { value: '0', interval: DEFAULT_INTERVAL_MS }
     }
 
     if (tabUrl) {
@@ -79,7 +79,10 @@ export class StorageService {
       }
 
       website.url = url
-      website.amount = data.exceptionList[url] ?? { value: DEFAULT_AMOUNT }
+      website.amount = data.exceptionList[url] ?? {
+        value: DEFAULT_AMOUNT,
+        interval: DEFAULT_INTERVAL_MS
+      }
     }
 
     return {

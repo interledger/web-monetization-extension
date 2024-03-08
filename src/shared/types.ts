@@ -1,9 +1,16 @@
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 
-export interface Amount {
+/** Wallet amount */
+export interface WalletAmount {
   value: string
   /** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
   interval?: string
+}
+
+/** Amount interface - used in the `exceptionList` */
+export interface Amount {
+  value: string
+  interval: number
 }
 
 export interface WebsiteData {
@@ -29,7 +36,7 @@ export interface Storage {
   /** User wallet address information */
   walletAddress: WalletAddress | undefined
   /** Overall amount */
-  amount?: Amount | undefined
+  amount?: WalletAmount | undefined
   /** Access token for quoting & outgoing payments  */
   token?: AccessToken | undefined
   /** Grant details - continue access token & uri for canceling the grant */

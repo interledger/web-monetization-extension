@@ -6,16 +6,17 @@ import { getCurrencySymbol, transformBalance } from '@/popup/lib/utils'
 import { PopupState } from '@/shared/types'
 import { Button } from '@/popup/components/ui/Button'
 import { disconnectWallet } from '@/popup/lib/messages'
+import { useForm } from 'react-hook-form'
 
 interface WalletInformationProps {
   info: PopupState
 }
 
 export const WalletInformation = ({ info }: WalletInformationProps) => {
-  const test = async () => {
-    await disconnectWallet()
-    window.location.reload()
-  }
+  const {
+    handleSubmit,
+    formState: { isSubmitting }
+  } = useForm()
 
   return (
     <div className="space-y-4">
@@ -44,14 +45,24 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
           info.walletAddress?.assetScale ?? 2
         )}
       />
-      <Button
-        onClick={test}
-        variant="destructive"
-        className="w-full"
-        aria-label="Connect your wallet"
+      {/* TODO: Improve error handling */}
+      <form
+        onSubmit={handleSubmit(async () => {
+          await disconnectWallet()
+          window.location.reload()
+        })}
       >
-        Disconnect
-      </Button>
+        <Button
+          type="submit"
+          variant="destructive"
+          className="w-full"
+          aria-label="Connect your wallet"
+          disabled={isSubmitting}
+          loading={isSubmitting}
+        >
+          Disconnect
+        </Button>
+      </form>
     </div>
   )
 }
