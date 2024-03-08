@@ -1,7 +1,7 @@
 import React, { useContext, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import browser from 'webextension-polyfill'
-import { ArrowBack, Settings } from '../icons'
+import { ArrowBack, Settings } from '../Icons'
 import { Switch } from '../ui/Switch'
 import { ROUTES_PATH } from '@/popup/Popup'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
