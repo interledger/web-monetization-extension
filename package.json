@@ -70,7 +70,7 @@
     "@types/chrome": "^0.0.244",
     "@types/inboxsdk": "^2.0.11",
     "@types/jest": "^29.5.5",
-    "@types/jquery": "^3.5.18",
+    "@types/jquery": "^3.5.29",
     "@types/lodash": "^4.14.197",
     "@types/node": "^20.8.4",
     "@types/react": "^18.2.21",
