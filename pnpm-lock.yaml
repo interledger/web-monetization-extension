@@ -143,7 +143,7 @@ devDependencies:
     specifier: ^0.0.244
     version: 0.0.244
   '@types/inboxsdk':
-    specifier: ^2.0.11
+    specifier: ^2.0.14
     version: 2.0.14
   '@types/jest':
     specifier: ^29.5.5
