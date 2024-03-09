@@ -170,7 +170,7 @@ devDependencies:
     specifier: ^3.6.31
     version: 3.6.31
   '@types/uuid':
-    specifier: ^9.0.5
+    specifier: ^9.0.8
     version: 9.0.8
   '@types/webextension-polyfill':
     specifier: ^0.10.7
