@@ -146,7 +146,7 @@ devDependencies:
     specifier: ^2.0.11
     version: 2.0.14
   '@types/jest':
-    specifier: ^29.5.5
+    specifier: ^29.5.12
     version: 29.5.12
   '@types/jquery':
     specifier: ^3.5.18
