@@ -1,4 +1,3 @@
-import { PopupState } from '@/shared/types'
 import {
   MessageManager,
   PopupToBackgroundAction,
@@ -6,6 +5,7 @@ import {
   type PopupToBackgroundMessage
 } from '@/shared/messages'
 import browser from 'webextension-polyfill'
+import { PopupState } from '@/popup/lib/context'
 
 export const message = new MessageManager<PopupToBackgroundMessage>(browser)
 
@@ -34,5 +34,14 @@ export const disconnectWallet = async () => {
 export const toggleWM = async () => {
   return await message.send({
     action: PopupToBackgroundAction.TOGGLE_WM
+  })
+}
+
+export const payWebsite = async (
+  payload: PopupToBackgroundActionPayload[PopupToBackgroundAction.PAY_WEBSITE]
+) => {
+  return await message.send({
+    action: PopupToBackgroundAction.PAY_WEBSITE,
+    payload
   })
 }

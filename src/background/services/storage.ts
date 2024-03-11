@@ -1,7 +1,7 @@
 import { DEFAULT_AMOUNT, DEFAULT_INTERVAL_MS } from '@/background/config'
 import { Logger } from '@/shared/logger'
 import type {
-  PopupState,
+  PopupStore,
   Storage,
   StorageKey,
   WebsiteData
@@ -49,7 +49,7 @@ export class StorageService {
     }
   }
 
-  async getPopupData(): Promise<PopupState> {
+  async getPopupData(): Promise<PopupStore> {
     // TODO: Improve URL management
     const [{ url: tabUrl }] = await this.browser.tabs.query({
       active: true,
@@ -73,8 +73,12 @@ export class StorageService {
       let url = ''
       try {
         const parsedUrl = new URL(tabUrl)
+        if (parsedUrl.protocol !== 'https:') {
+          throw new Error('Only https websites allowed')
+        }
         url = `${parsedUrl.origin}${parsedUrl.pathname}`
       } catch (e) {
+        this.logger.error(e.message)
         /** noop */
       }
 

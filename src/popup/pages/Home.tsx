@@ -1,18 +1,14 @@
+import React from 'react'
 import { PopupStateContext } from '@/popup/lib/context'
-import React, { useContext } from 'react'
-
-// import { Button } from '@/popup/components/ui/button'
-import { WarningSign } from '@/popup/components/icons'
-// import { Input } from '@/popup/components/ui/input'
-// import { Label } from '@/popup/components/ui/label'
-// import { Slider } from '@/popup/components/ui/slider'
-// import { Switch } from '@/popup/components/ui/switch'
-// import { usePopup } from '@/popup/providers/popup.state'
-// import { formatCurrency } from '@/utils/formatCurrency'
+import { WarningSign } from '@/popup/components/Icons'
+import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm'
 
 export const Component = () => {
-  const { state } = useContext(PopupStateContext)
-  if (!state.enabled) {
+  const {
+    state: { enabled, website }
+  } = React.useContext(PopupStateContext)
+
+  if (!enabled) {
     return (
       <div className="flex items-center gap-2">
         <WarningSign />
@@ -23,7 +19,18 @@ export const Component = () => {
     )
   }
 
-  return <>Home</>
+  if (website.url === '') {
+    return (
+      <div className="flex items-center gap-2">
+        <WarningSign />
+        <p className="text-base text-medium">
+          This website does not support Web Monetization.
+        </p>
+      </div>
+    )
+  }
+
+  return <PayWebsiteForm />
   // const {
   //   data: { wmEnabled, rateOfPay, amount, amountType },
   //   setData,

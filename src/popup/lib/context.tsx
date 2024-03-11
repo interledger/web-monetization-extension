@@ -1,14 +1,16 @@
 import React from 'react'
 import { getContextData } from '@/popup/lib/messages'
-import { PopupState } from '@/shared/types'
+import { PopupStore } from '@/shared/types'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
   TOGGLE_WM = 'TOGGLE_WM'
 }
 
+export type PopupState = Required<NonNullable<PopupStore>>
+
 export interface PopupContext {
-  state: PopupState
+  state: Required<NonNullable<PopupState>>
   dispatch: React.Dispatch<ReducerActions>
 }
 

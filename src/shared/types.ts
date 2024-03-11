@@ -34,7 +34,7 @@ export interface Storage {
   /** If a wallet is connected or not */
   connected: boolean
   /** User wallet address information */
-  walletAddress: WalletAddress | undefined
+  walletAddress?: WalletAddress | undefined
   /** Overall amount */
   amount?: WalletAmount | undefined
   /** Access token for quoting & outgoing payments  */
@@ -52,7 +52,7 @@ export interface Storage {
 }
 export type StorageKey = keyof Storage
 
-export type PopupState = Omit<
+export type PopupStore = Omit<
   Storage,
   'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
 > & {

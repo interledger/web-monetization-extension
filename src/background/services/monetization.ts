@@ -85,7 +85,7 @@ export class MonetizationService {
   }
 
   async sendPayment() {
-    const storage = await this.storage.getAll()
+    const storage = await this.storage.get()
     if (
       !storage.walletAddress ||
       !storage.token?.value ||

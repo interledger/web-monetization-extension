@@ -48,6 +48,13 @@ export class Background {
               await this.monetizationService.toggleWM()
               return
 
+            case PopupToBackgroundAction.PAY_WEBSITE:
+              this.logger.debug(
+                PopupToBackgroundAction.PAY_WEBSITE,
+                message.payload
+              )
+              throw new Error('Not implemented')
+
             default:
               return
           }
