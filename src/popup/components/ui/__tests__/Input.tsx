@@ -36,7 +36,7 @@ describe('Input', () => {
     )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()
-    expect(queryByLabelText('test input')).toHaveClass('pl-12')
+    expect(queryByLabelText('test input')).toHaveClass('pl-10')
   })
 
   it('should have the `bg-disabled` and `border-transparent` classes when the `disabled` variant is passed', () => {
