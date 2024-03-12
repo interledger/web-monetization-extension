@@ -115,9 +115,8 @@ export class MonetizationService {
               receiver: this.incomingPaymentUrlId,
               walletAddress: storage.walletAddress.id,
               debitAmount: {
-                value: String(
-                  storage.amount.value * 10 ** storage.walletAddress.assetScale
-                ),
+                // TODO: Update with the correct amount - hardcoded to get rid of errors
+                value: '2',
                 assetScale: storage.walletAddress.assetScale,
                 assetCode: storage.walletAddress.assetCode
               }

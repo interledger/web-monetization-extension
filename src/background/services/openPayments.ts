@@ -1,4 +1,4 @@
-import { Amount } from 'shared/types'
+import { WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient
@@ -63,7 +63,7 @@ interface VerifyInteractionHashParams {
 interface CreateQuoteAndOutgoingPaymentGrantParams {
   clientNonce: string
   walletAddress: WalletAddress
-  amount: Amount
+  amount: WalletAmount
 }
 
 export class OpenPaymentsService {
