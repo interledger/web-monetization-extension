@@ -1,15 +1,4 @@
-import { container } from './container'
+import { configureContainer } from './container'
 
-const initialize = () => {
-  console.log('Start initialization')
-
-  const background = container.resolve('background')
-
-  background.subscribeToInstall()
-  background.subscribeToMessages()
-  background.subscribeToTabChanges()
-
-  console.log('End initialization')
-}
-
-initialize()
+const container = configureContainer()
+container.resolve('background').start()

@@ -1,47 +1,53 @@
 {
-    "name": "__MSG_appName__",
-    "version": "1.0.1",
-    "manifest_version": 3,
-    "description": "__MSG_appDescription__",
-    "icons": {
-        "34": "assets/icons/icon-34.png",
-        "128": "assets/icons/icon-128.png"
-    },
-    "default_locale": "en",
-    "content_scripts": [
-        {
-            "matches": ["http://*/*", "https://*/*"],
-            "js": ["content/content.js"]
-        }
-    ],
-    "background": {
-        "scripts": ["background/background.js"],
-        "type": "module"
-    },
-    "permissions": ["tabs", "storage"],
-    "host_permissions": ["http://*/*", "https://*/*"],
-    "options_ui": {
-        "page": "options/index.html",
-        "browser_style": false
-    },
-    "action": {
-        "default_icon": {
-            "16": "assets/icons/icon-16.png",
-            "48": "assets/icons/icon-48.png"
-        },
-        "default_title": "Web Monetization",
-        "default_popup": "popup/index.html",
-        "browser_style": false
-    },
-    "web_accessible_resources": [
-        {
-            "resources": ["assets/*", "content/*", "options/*", "popup/*", "background/*"],
-            "matches": ["<all_urls>"]
-        }
-    ],
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "web-extension@interledger.com"
-        }
+  "name": "__MSG_appName__",
+  "version": "1.0.1",
+  "manifest_version": 3,
+  "description": "__MSG_appDescription__",
+  "icons": {
+    "34": "assets/icons/icon-34.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "default_locale": "en",
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content/content.js"]
     }
+  ],
+  "background": {
+    "scripts": ["background/background.js"],
+    "type": "module"
+  },
+  "permissions": ["tabs", "storage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "options_ui": {
+    "page": "options/index.html",
+    "browser_style": false
+  },
+  "action": {
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "48": "assets/icons/icon-48.png"
+    },
+    "default_title": "Web Monetization",
+    "default_popup": "popup/index.html",
+    "browser_style": false
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*",
+        "content/*",
+        "options/*",
+        "popup/*",
+        "background/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "web-extension@interledger.com"
+    }
+  }
 }

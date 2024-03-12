@@ -3,7 +3,7 @@ import CopyWebpackPlugin from 'copy-webpack-plugin'
 import ESLintPlugin from 'eslint-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import path from 'path'
-import { DefinePlugin, ProgressPlugin } from 'webpack'
+import { ProgressPlugin } from 'webpack'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 import WebpackExtensionManifestPlugin from 'webpack-extension-manifest-plugin'
 import ZipPlugin from 'zip-webpack-plugin'
@@ -19,10 +19,8 @@ const manifest = {
   chrome: manifestChrome,
   firefox: manifestFirefox,
   opera: manifestOpera,
-  edge: manifestEdge,
+  edge: manifestEdge
 }
-
-const dotenv = require('dotenv').config({ path: __dirname + '/.env' })
 
 interface EnvironmentConfig {
   NODE_ENV: string
@@ -34,7 +32,7 @@ export const Directories = {
   DEV_DIR: 'dev',
   DIST_DIR: 'dist',
   TEMP_DIR: 'temp',
-  SRC_DIR: 'src',
+  SRC_DIR: 'src'
 }
 
 /**
@@ -48,8 +46,12 @@ const EnvConfig: EnvironmentConfig = {
       : process.env.NODE_ENV === 'upload'
         ? Directories.DIST_DIR
         : Directories.DEV_DIR,
-  ...(process.env.NODE_ENV ? { NODE_ENV: process.env.NODE_ENV } : { NODE_ENV: 'development' }),
-  ...(process.env.TARGET ? { TARGET: process.env.TARGET } : { TARGET: 'chrome-v3' }),
+  ...(process.env.NODE_ENV
+    ? { NODE_ENV: process.env.NODE_ENV }
+    : { NODE_ENV: 'development' }),
+  ...(process.env.TARGET
+    ? { TARGET: process.env.TARGET }
+    : { TARGET: 'chrome-v3' })
 }
 
 /**
@@ -63,14 +65,17 @@ const EnvConfig: EnvironmentConfig = {
 export const getHTMLPlugins = (
   browserDir: string,
   outputDir = Directories.DEV_DIR,
-  sourceDir = Directories.SRC_DIR,
+  sourceDir = Directories.SRC_DIR
 ) => [
   new HtmlWebpackPlugin({
     title: 'Popup',
-    filename: path.resolve(__dirname, `${outputDir}/${browserDir}/popup/index.html`),
+    filename: path.resolve(
+      __dirname,
+      `${outputDir}/${browserDir}/popup/index.html`
+    ),
     template: path.resolve(__dirname, `${sourceDir}/popup/index.html`),
-    chunks: ['popup'],
-  }),
+    chunks: ['popup']
+  })
 ]
 
 /**
@@ -79,12 +84,7 @@ export const getHTMLPlugins = (
  * @param config
  * @returns
  */
-export const getDefinePlugins = (config: { SIGNATURES_URL: string; WM_WALLET_ADDRESS: string }) => [
-  new DefinePlugin({
-    CONFIG_SIGNATURES_URL: JSON.stringify(config.SIGNATURES_URL),
-    CONFIG_WM_WALLET_ADDRESS: JSON.stringify(config.WM_WALLET_ADDRESS),
-  }),
-]
+export const getDefinePlugins = () => []
 
 /**
  * Get Output Configurations
@@ -93,10 +93,13 @@ export const getDefinePlugins = (config: { SIGNATURES_URL: string; WM_WALLET_ADD
  * @param outputDir
  * @returns
  */
-export const getOutput = (browserDir: string, outputDir = Directories.DEV_DIR) => {
+export const getOutput = (
+  browserDir: string,
+  outputDir = Directories.DEV_DIR
+) => {
   return {
     path: path.resolve(process.cwd(), `${outputDir}/${browserDir}`),
-    filename: '[name]/[name].js',
+    filename: '[name]/[name].js'
   }
 }
 
@@ -110,8 +113,10 @@ export const getEntry = (sourceDir = Directories.SRC_DIR) => {
   return {
     popup: [path.resolve(__dirname, `${sourceDir}/popup/index.tsx`)],
     content: [path.resolve(__dirname, `${sourceDir}/content/index.ts`)],
-    contentStatic: [path.resolve(__dirname, `${sourceDir}/content/static/index.ts`)],
-    background: [path.resolve(__dirname, `${sourceDir}/background/index.ts`)],
+    contentStatic: [
+      path.resolve(__dirname, `${sourceDir}/content/static/index.ts`)
+    ],
+    background: [path.resolve(__dirname, `${sourceDir}/background/index.ts`)]
   }
 }
 
@@ -126,30 +131,33 @@ export const getEntry = (sourceDir = Directories.SRC_DIR) => {
 export const getCopyPlugins = (
   browserDir: string,
   outputDir = Directories.DEV_DIR,
-  sourceDir = Directories.SRC_DIR,
+  sourceDir = Directories.SRC_DIR
 ) => {
   return [
     new CopyWebpackPlugin({
       patterns: [
         {
           from: path.resolve(__dirname, `${sourceDir}/assets`),
-          to: path.resolve(__dirname, `${outputDir}/${browserDir}/assets`),
+          to: path.resolve(__dirname, `${outputDir}/${browserDir}/assets`)
         },
         {
           from: path.resolve(__dirname, `${sourceDir}/_locales`),
-          to: path.resolve(__dirname, `${outputDir}/${browserDir}/_locales`),
+          to: path.resolve(__dirname, `${outputDir}/${browserDir}/_locales`)
         },
         // Bundle OpenAPI schemas - the Open Payments client is using them to
         // validate responses.
         {
-          from: path.resolve(__dirname, 'node_modules/@interledger/open-payments/dist/openapi'),
+          from: path.resolve(
+            __dirname,
+            'node_modules/@interledger/open-payments/dist/openapi'
+          ),
           to: path.resolve(__dirname, `${outputDir}/${browserDir}/openapi`),
           globOptions: {
-            ignore: ['**/generated/**'],
-          },
-        },
-      ],
-    }),
+            ignore: ['**/generated/**']
+          }
+        }
+      ]
+    })
   ]
 }
 
@@ -160,7 +168,10 @@ export const getCopyPlugins = (
  * @param outputDir
  * @returns
  */
-export const getZipPlugins = (browserDir: string, outputDir = Directories.DIST_DIR) => {
+export const getZipPlugins = (
+  browserDir: string,
+  outputDir = Directories.DIST_DIR
+) => {
   return [
     new ZipPlugin({
       path: path.resolve(process.cwd(), `${outputDir}/${browserDir}`),
@@ -170,12 +181,12 @@ export const getZipPlugins = (browserDir: string, outputDir = Directories.DIST_D
         mtime: new Date(),
         mode: 0o100664,
         compress: true,
-        forceZip64Format: false,
+        forceZip64Format: false
       },
       zipOptions: {
-        forceZip64Format: false,
-      },
-    }),
+        forceZip64Format: false
+      }
+    })
   ]
 }
 
@@ -187,8 +198,8 @@ export const getZipPlugins = (browserDir: string, outputDir = Directories.DIST_D
 export const getAnalyzerPlugins = () => {
   return [
     new BundleAnalyzerPlugin({
-      analyzerMode: 'server',
-    }),
+      analyzerMode: 'server'
+    })
   ]
 }
 
@@ -202,11 +213,11 @@ export const getCleanWebpackPlugins = (...dirs: string[]) => {
   return [
     new CleanWebpackPlugin({
       cleanOnceBeforeBuildPatterns: [
-        ...(dirs ? dirs.map(dir => path.join(process.cwd(), `${dir}`)) : []),
+        ...(dirs ? dirs.map((dir) => path.join(process.cwd(), `${dir}`)) : [])
       ],
       cleanStaleWebpackAssets: false,
-      verbose: true,
-    }),
+      verbose: true
+    })
   ]
 }
 
@@ -233,20 +244,16 @@ export const getResolves = () => {
       process: false,
       fs: false,
       net: false,
-      async_hooks: false,
+      async_hooks: false
     },
     alias: {
-      '@/utils': path.resolve(__dirname, './src/utils/'),
+      '@/shared': path.resolve(__dirname, './src/shared/'),
       '@/popup': path.resolve(__dirname, './src/popup/'),
       '@/background': path.resolve(__dirname, './src/background/'),
       '@/content': path.resolve(__dirname, './src/content/'),
-      '@/assets': path.resolve(__dirname, './src/assets/'),
-      '@/components': path.resolve(__dirname, './src/components/'),
-      '@/providers': path.resolve(__dirname, './src/providers/'),
-      '@/types': path.resolve(__dirname, './src/types/'),
-      '@/hooks': path.resolve(__dirname, './src/hooks/'),
+      '@/assets': path.resolve(__dirname, './src/assets/')
     },
-    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx']
   }
 }
 
@@ -258,13 +265,13 @@ export const getResolves = () => {
 export const getExtensionManifestPlugins = () => {
   return [
     new WebpackExtensionManifestPlugin({
-      config: { base: (manifest as any)[EnvConfig.TARGET] },
-    }),
+      config: { base: (manifest as any)[EnvConfig.TARGET] }
+    })
   ]
 }
 
 export const eslintOptions = {
-  fix: true,
+  fix: true
 }
 
 /**
@@ -304,8 +311,8 @@ export const getExtensionReloaderPlugins = () => {
       entries: {
         contentScript: ['content'],
         background: 'background',
-        extensionPage: ['popup', 'options'],
-      },
-    }),
+        extensionPage: ['popup', 'options']
+      }
+    })
   ]
 }

@@ -6,13 +6,10 @@
   },
   "extends": [
     "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:import/typescript",
     "plugin:jsx-a11y/recommended",
-    "plugin:cypress/recommended",
     "prettier",
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
@@ -29,11 +26,9 @@
     "react",
     "node",
     "react-hooks",
-    "cypress",
     "@typescript-eslint",
     "jest",
-    "@typescript-eslint",
-    "simple-import-sort"
+    "@typescript-eslint"
   ],
   "settings": {
     "react": {
@@ -42,7 +37,6 @@
   },
   "rules": {
     "semi": "off",
-    "prettier/prettier": "error",
     "maxWarnings": "off",
     "react/self-closing-comp": [
       "error",
@@ -51,20 +45,10 @@
         "html": true
       }
     ],
+    "no-console": "warn",
     "react/prop-types": "off",
-    "no-param-reassign": "error",
-    "no-use-before-define": "off",
-    "no-underscore-dangle": "off",
-    "no-implicit-coercion": ["error", { "allow": ["!!"] }],
     "block-scoped-var": "error",
-    "no-shadow": "warn",
-    "no-unsafe-optional-chaining": ["error", { "disallowArithmeticOperators": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
-    "no-return-assign": "warn",
     "consistent-return": "off",
-    "no-redeclare": "error",
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error",
     "react/jsx-props-no-spreading": "off",
     "import/prefer-default-export": "off",
     "jsx-a11y/anchor-is-valid": "warn",
@@ -80,8 +64,6 @@
     "jsx-a11y/click-events-have-key-events": "warn",
     "jsx-a11y/no-static-element-interactions": "warn",
     "jsx-a11y/no-noninteractive-element-interactions": "warn",
-    "no-console": "warn",
-    "no-empty": ["error", { "allowEmptyCatch": true }],
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
     "react/react-in-jsx-scope": "off",

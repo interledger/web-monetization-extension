@@ -15,17 +15,13 @@
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/utils/*": ["./utils/*"],
+      "@/shared/*": ["./shared/*"],
       "@/popup/*": ["./popup/*"],
       "@/background/*": ["./background/*"],
       "@/content/*": ["./content/*"],
-      "@/assets/*": ["./assets/*"],
-      "@/components/*": ["./components/*"],
-      "@/providers/*": ["./providers/*"],
-      "@/types/*": ["./types/*"],
-      "@/hooks/*": ["./hooks/*"]
+      "@/assets/*": ["./assets/*"]
     }
   },
-  "include": ["./src/**/*", "local-signature/**/*", "./jest.config.ts", "./jest.setup.ts"],
+  "include": ["./src/**/*", "./jest.config.ts", "./jest.setup.ts"],
   "exclude": ["dist", "dev", "temp"]
 }
