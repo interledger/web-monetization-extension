@@ -58,3 +58,8 @@ export type PopupStore = Omit<
 > & {
   website: WebsiteData
 }
+
+export type DeepNonNullable<T> = {
+        [P in keyof T]?: NonNullable<T[P]>;
+}
+
