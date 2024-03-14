@@ -3,16 +3,16 @@ import { type Browser } from 'webextension-polyfill'
 import {
   type ToBackgroundMessage,
   PopupToBackgroundAction
-} from '@shared/messages'
+} from '@/shared/messages'
 import type {
   MonetizationService,
   OpenPaymentsService,
   StorageService
 } from '.'
-import { Logger } from '@shared/logger'
-import { failure, success } from '@shared/helpers'
+import { Logger } from '@/shared/logger'
+import { failure, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
-import { OPEN_PAYMENTS_ERRORS } from '@background/utils'
+import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 
 export class Background {
   constructor(

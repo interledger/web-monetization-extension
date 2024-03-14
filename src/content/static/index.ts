@@ -1,4 +1,4 @@
-import { wm2Polyfill } from '@content/static/polyfill'
+import { wm2Polyfill } from '@/content/static/polyfill'
 
 function inject(configure: (_script: HTMLScriptElement) => void) {
   const script = document.createElement('script')

@@ -72,15 +72,15 @@ export const mainConfig: Configuration = {
       async_hooks: false
     },
     alias: {
-      '@shared': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/shared/`),
-      '@popup': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/popup/`),
-      '@background': path.resolve(
+      '@/shared': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/shared/`),
+      '@/popup': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/popup/`),
+      '@/background': path.resolve(
         __dirname,
         '..',
         `${DIRECTORIES.SRC}/background/`
       ),
-      '@content': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/content/`),
-      '@assets': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/assets/`)
+      '@/content': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/content/`),
+      '@/assets': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/assets/`)
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   },

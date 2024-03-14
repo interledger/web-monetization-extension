@@ -1,11 +1,11 @@
-import { DEFAULT_AMOUNT, DEFAULT_INTERVAL_MS } from '@background/config'
-import { Logger } from '@shared/logger'
+import { DEFAULT_AMOUNT, DEFAULT_INTERVAL_MS } from '@/background/config'
+import { Logger } from '@/shared/logger'
 import type {
   PopupStore,
   Storage,
   StorageKey,
   WebsiteData
-} from '@shared/types'
+} from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 
 const defaultStorage = {

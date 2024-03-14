@@ -8,7 +8,7 @@ import {
 import { OpenPaymentsService, StorageService } from '.'
 import { type Browser } from 'webextension-polyfill'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
-import { Logger } from '@shared/logger'
+import { Logger } from '@/shared/logger'
 
 const getWalletAddress = (): WalletAddress => {
   // TO DO

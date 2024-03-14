@@ -14,11 +14,11 @@ import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
 import { getCurrentActiveTabId, toAmount } from '../utils'
-import { StorageService } from '@background/services/storage'
-import { exportJWK, generateEd25519KeyPair } from '@shared/crypto'
+import { StorageService } from '@/background/services/storage'
+import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation } from '@shared/helpers'
-import { ConnectWalletPayload } from '@shared/messages'
+import { getWalletInformation } from '@/shared/helpers'
+import { ConnectWalletPayload } from '@/shared/messages'
 
 interface KeyInformation {
   privateKey: string

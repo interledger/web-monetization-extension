@@ -1,11 +1,11 @@
-import { Input } from '@popup/components/ui/Input'
-import { Label } from '@popup/components/ui/Label'
+import { Input } from '@/popup/components/ui/Input'
+import { Label } from '@/popup/components/ui/Label'
 import React from 'react'
-import { Code } from '@popup/components/ui/Code'
-import { getCurrencySymbol, transformBalance } from '@popup/lib/utils'
-import { PopupStore } from '@shared/types'
-import { Button } from '@popup/components/ui/Button'
-import { disconnectWallet } from '@popup/lib/messages'
+import { Code } from '@/popup/components/ui/Code'
+import { getCurrencySymbol, transformBalance } from '@/popup/lib/utils'
+import { PopupStore } from '@/shared/types'
+import { Button } from '@/popup/components/ui/Button'
+import { disconnectWallet } from '@/popup/lib/messages'
 import { useForm } from 'react-hook-form'
 
 interface WalletInformationProps {

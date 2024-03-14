@@ -16,11 +16,11 @@
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
     "paths": {
-      "@shared/*": ["./shared/*"],
-      "@popup/*": ["./popup/*"],
-      "@background/*": ["./background/*"],
-      "@content/*": ["./content/*"],
-      "@assets/*": ["./assets/*"]
+      "@/shared/*": ["./shared/*"],
+      "@/popup/*": ["./popup/*"],
+      "@/background/*": ["./background/*"],
+      "@/content/*": ["./content/*"],
+      "@/assets/*": ["./assets/*"]
     }
   },
   "include": ["./src/**/*", "./jest.config.ts", "./jest.setup.ts"],

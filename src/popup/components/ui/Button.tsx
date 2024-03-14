@@ -1,8 +1,8 @@
 import { type VariantProps, cva } from 'class-variance-authority'
 import React, { forwardRef } from 'react'
 
-import { LoadingSpinner } from '@popup/components/LoadingSpinner'
-import { cn } from '@shared/helpers'
+import { LoadingSpinner } from '@/popup/components/LoadingSpinner'
+import { cn } from '@/shared/helpers'
 
 const buttonVariants = cva(
   [
