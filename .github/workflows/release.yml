@@ -49,5 +49,5 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            ./dist/chrome/chrome.zip
-            ./dist/firefox/firefox.zip
+            ./dist/chrome.zip
+            ./dist/firefox.zip
