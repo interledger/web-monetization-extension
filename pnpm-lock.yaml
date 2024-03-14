@@ -188,8 +188,8 @@ devDependencies:
     specifier: ^12.0.0
     version: 12.0.0(eslint@8.57.0)
   eslint-webpack-plugin:
-    specifier: ^4.0.1
-    version: 4.0.1(eslint@8.57.0)(webpack@5.90.3)
+    specifier: ^4.1.0
+    version: 4.1.0(eslint@8.57.0)(webpack@5.90.3)
   html-webpack-plugin:
     specifier: ^5.6.0
     version: 5.6.0(webpack@5.90.3)
@@ -3798,8 +3798,8 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
-  /eslint-webpack-plugin@4.0.1(eslint@8.57.0)(webpack@5.90.3):
-    resolution: {integrity: sha512-fUFcXpui/FftGx3NzvWgLZXlLbu+m74sUxGEgxgoxYcUtkIQbS6SdNNZkS99m5ycb23TfoNYrDpp1k/CK5j6Hw==}
+  /eslint-webpack-plugin@4.1.0(eslint@8.57.0)(webpack@5.90.3):
+    resolution: {integrity: sha512-C3wAG2jyockIhN0YRLuKieKj2nx/gnE/VHmoHemD5ifnAtY6ZU+jNPfzPoX4Zd6RIbUyWTiZUh/ofUlBhoAX7w==}
     engines: {node: '>= 14.15.0'}
     peerDependencies:
       eslint: ^8.0.0
