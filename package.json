@@ -9,14 +9,14 @@
     "url": "https://github.com/interledger/web-monetization-extension"
   },
   "scripts": {
-    "analyze": "bash ./scripts/analyze.sh",
-    "build": "bash ./scripts/build.sh",
-    "dev": "bash ./scripts/dev.sh",
+    "build": "tsx ./scripts/build.ts",
+    "dev": "tsx ./scripts/dev.ts",
     "lint": "concurrently \"pnpm:lint:*\"",
     "lint:fix": "eslint --ext js,jsx,ts,tsx, src --fix",
     "lint:eslint": "eslint . --ext .js,.ts,.tsx --max-warnings 0 --ignore-path .gitignore",
     "lint:prettier": "prettier \"**/*.(md|json|yml)\" --ignore-path .gitignore --check",
     "lint:type": "tsc --noEmit",
+    "profiler": "tsx ./scripts/profiler.ts",
     "test": "jest --maxWorkers=2 --passWithNoTests",
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },

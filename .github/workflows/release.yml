@@ -51,5 +51,3 @@ jobs:
           files: |
             ./dist/chrome/chrome.zip
             ./dist/firefox/firefox.zip
-            ./dist/opera/opera.zip
-            ./dist/edge/edge.zip

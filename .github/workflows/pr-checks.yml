@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox, opera, edge]
+        browser: [chrome, firefox]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository

@@ -2,6 +2,7 @@
 import path from 'node:path'
 import { Configuration } from 'webpack'
 
+export const TARGETS = ['chrome', 'firefox'] as const
 export const ROOT_DIR = path.resolve(__dirname, '..')
 export const DIRECTORIES = {
   DEV: './dev',
@@ -102,3 +103,5 @@ export const mainConfig: Configuration = {
     ]
   }
 }
+
+export type Target = (typeof TARGETS)[number]

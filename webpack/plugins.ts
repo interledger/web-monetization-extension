@@ -1,15 +1,14 @@
 import path from 'node:path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import { MANIFEST_PATH, DIRECTORIES, ROOT_DIR } from './config'
+import { MANIFEST_PATH, DIRECTORIES, ROOT_DIR, Target } from './config'
 import { ProgressPlugin, ProvidePlugin, IgnorePlugin } from 'webpack'
 import CopyWebpackPlugin from 'copy-webpack-plugin'
 import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 
-export const getMainPlugins = (outputDir: string, target: string): any[] => [
+export const getMainPlugins = (outputDir: string, target: Target): any[] => [
   new CleanWebpackPlugin({
     cleanOnceBeforeBuildPatterns: [
-      path.resolve(ROOT_DIR, `${DIRECTORIES.DEV}/${target}`),
-      path.resolve(ROOT_DIR, `${DIRECTORIES.DIST}/${target}`)
+      path.resolve(ROOT_DIR, `${outputDir}/${target}`)
     ],
     cleanStaleWebpackAssets: false,
     verbose: true
@@ -33,7 +32,13 @@ export const getMainPlugins = (outputDir: string, target: string): any[] => [
       },
       {
         from: MANIFEST_PATH,
-        to: path.resolve(ROOT_DIR, `${outputDir}/${target}`)
+        to: path.resolve(ROOT_DIR, `${outputDir}/${target}`),
+        transform: (content: Buffer) => {
+          if (target === 'firefox') {
+            // TODO: Update manifest for Firefox (V3)
+          }
+          return content
+        }
       },
       // Bundle OpenAPI schemas - the Open Payments client is using them to
       // validate responses.
