@@ -1,8 +1,8 @@
-import { MainLayout } from '@/popup/components/layout/MainLayout'
+import { MainLayout } from '@popup/components/layout/MainLayout'
 import { PopupContextProvider } from './lib/context'
 
 import React from 'react'
-import { ProtectedRoute } from '@/popup/components/ProtectedRoute'
+import { ProtectedRoute } from '@popup/components/ProtectedRoute'
 import {
   RouteObject,
   RouterProvider,

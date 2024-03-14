@@ -1,4 +1,4 @@
-import { WalletAmount } from '@/shared/types'
+import { WalletAmount } from '@shared/types'
 import { type Browser, action, runtime } from 'webextension-polyfill'
 
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')

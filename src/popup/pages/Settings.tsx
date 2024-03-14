@@ -1,6 +1,6 @@
-import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm'
-import { WalletInformation } from '@/popup/components/WalletInformation'
-import { PopupStateContext } from '@/popup/lib/context'
+import { ConnectWalletForm } from '@popup/components/ConnectWalletForm'
+import { WalletInformation } from '@popup/components/WalletInformation'
+import { PopupStateContext } from '@popup/lib/context'
 import React from 'react'
 
 export const Component = () => {

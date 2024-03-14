@@ -1,4 +1,4 @@
-import { SuccessResponse } from '@/shared/messages'
+import { SuccessResponse } from '@shared/messages'
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { cx, CxOptions } from 'class-variance-authority'
 import { twMerge } from 'tailwind-merge'

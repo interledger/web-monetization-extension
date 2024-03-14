@@ -1,12 +1,12 @@
 import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
 import browser, { type Browser } from 'webextension-polyfill'
-import { Background } from '@/background/services/background'
+import { Background } from '@background/services/background'
 import {
   OpenPaymentsService,
   StorageService,
   MonetizationService
 } from './services'
-import { createLogger, Logger } from '@/shared/logger'
+import { createLogger, Logger } from '@shared/logger'
 
 interface Cradle {
   logger: Logger

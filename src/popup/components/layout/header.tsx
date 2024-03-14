@@ -3,9 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 import browser from 'webextension-polyfill'
 import { ArrowBack, Settings } from '../Icons'
 import { Switch } from '../ui/Switch'
-import { ROUTES_PATH } from '@/popup/Popup'
-import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
-import { toggleWM } from '@/popup/lib/messages'
+import { ROUTES_PATH } from '@popup/Popup'
+import { PopupStateContext, ReducerActionType } from '@popup/lib/context'
+import { toggleWM } from '@popup/lib/messages'
 
 const Logo = browser.runtime.getURL('assets/images/logo.svg')
 

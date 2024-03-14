@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react'
 import React from 'react'
 
-import { Button } from '@/popup/components/ui/Button'
+import { Button } from '@popup/components/ui/Button'
 
 describe('Button', () => {
   it('should render a button with the `aria-label` attribute', () => {

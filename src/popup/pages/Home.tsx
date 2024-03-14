@@ -1,7 +1,7 @@
 import React from 'react'
-import { PopupStateContext } from '@/popup/lib/context'
-import { WarningSign } from '@/popup/components/Icons'
-import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm'
+import { PopupStateContext } from '@popup/lib/context'
+import { WarningSign } from '@popup/components/Icons'
+import { PayWebsiteForm } from '@popup/components/PayWebsiteForm'
 
 export const Component = () => {
   const {

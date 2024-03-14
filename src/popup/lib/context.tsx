@@ -1,6 +1,6 @@
 import React from 'react'
-import { getContextData } from '@/popup/lib/messages'
-import { PopupStore } from '@/shared/types'
+import { getContextData } from '@popup/lib/messages'
+import { PopupStore } from '@shared/types'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',

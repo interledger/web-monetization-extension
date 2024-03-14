@@ -10,17 +10,17 @@ import ZipPlugin from 'zip-webpack-plugin'
 
 const ExtReloader = require('webpack-ext-reloader-mv3')
 
-const manifestChrome = require('./src/manifest/chrome.json')
-const manifestFirefox = require('./src/manifest/firefox.json')
-const manifestOpera = require('./src/manifest/opera.json')
-const manifestEdge = require('./src/manifest/edge.json')
+// const manifestChrome = require('./src/manifest/chrome.json')
+// const manifestFirefox = require('./src/manifest/firefox.json')
+// const manifestOpera = require('./src/manifest/opera.json')
+// const manifestEdge = require('./src/manifest/edge.json')
 
-const manifest = {
-  chrome: manifestChrome,
-  firefox: manifestFirefox,
-  opera: manifestOpera,
-  edge: manifestEdge
-}
+// const manifest = {
+//   chrome: manifestChrome,
+//   firefox: manifestFirefox,
+//   opera: manifestOpera,
+//   edge: manifestEdge
+// }
 
 interface EnvironmentConfig {
   NODE_ENV: string
@@ -247,11 +247,11 @@ export const getResolves = () => {
       async_hooks: false
     },
     alias: {
-      '@/shared': path.resolve(__dirname, './src/shared/'),
-      '@/popup': path.resolve(__dirname, './src/popup/'),
-      '@/background': path.resolve(__dirname, './src/background/'),
-      '@/content': path.resolve(__dirname, './src/content/'),
-      '@/assets': path.resolve(__dirname, './src/assets/')
+      '@shared': path.resolve(__dirname, './src/shared/'),
+      '@popup': path.resolve(__dirname, './src/popup/'),
+      '@background': path.resolve(__dirname, './src/background/'),
+      '@content': path.resolve(__dirname, './src/content/'),
+      '@assets': path.resolve(__dirname, './src/assets/')
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   }
@@ -265,7 +265,7 @@ export const getResolves = () => {
 export const getExtensionManifestPlugins = () => {
   return [
     new WebpackExtensionManifestPlugin({
-      config: { base: (manifest as any)[EnvConfig.TARGET] }
+      config: { base: './src/manifest.ts' }
     })
   ]
 }
