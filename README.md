@@ -4,26 +4,59 @@
 [![Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
 Web Monetization is a browser extension that detects Web Monetization on websites using a browser API that allows the
-creation of a payment stream from the user agent to the website. This extension is built with React, TypeScript, and
-Vite.
+creation of a payment stream from the user agent to the website. This extension is built with React and TypeScript.
 
-### Contributing
+## Contributing
 
 Please read the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
 
-### Installation
+## Local Development Environment
+
+### Prerequisites
+
+- [NVM](https://github.com/nvm-sh/nvm) - or another Node Version Manager
+- [PNPM](https://pnpm.io/)
 
 1. Clone the repository from GitHub: `git clone https://github.com/interledger/web-monetization-extension.git`
 2. Navigate to the project directory: `cd web-monetization-extension`
 3. Install the dependencies using PNPM: `pnpm install`
 
+### Setup
+
+### Environment Setup
+
+```sh
+# Install Node 20
+nvm install lts/iron
+nvm use lts/iron
+
+# Install pnpm using Corepack
+corepack enable
+```
+
+If you do not have `corepack` installed locally you can use `npm` or `yarn` to install `pnpm`:
+
+```sh
+npm install -g pnpm
+# or
+yarn install -g pnpm
+```
+
+For alternative methods of installing `pnpm`, you can refer to the [official `pnpm` documentation](https://pnpm.io/installation).
+
+To install dependencies, execute:
+
+```sh
+pnpm i
+```
+
 ### Development
 
-To run the extension in development mode with hot reload, use the following command:
+To run the extension in development mode, from the root of the project execute:
 
 `pnpm dev`
 
-This command builds the extension using Vite's hot reload feature, allowing you to see immediate changes in the browser
+This command builds the extension using Webpack, allowing you to see immediate changes in the browser
 as you modify the code.
 
 ### Building the Extension
