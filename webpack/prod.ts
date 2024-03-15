@@ -1,4 +1,4 @@
-import { Configuration } from 'webpack'
+import { Configuration, DefinePlugin } from 'webpack'
 import { DIRECTORIES, ROOT_DIR, Target, mainConfig } from './config'
 import path from 'node:path'
 import { getMainPlugins } from './plugins'
@@ -21,6 +21,7 @@ export const getProdConfig = (target: Target): Configuration => {
         new TerserPlugin({
           parallel: true,
           terserOptions: {
+            mangle: false,
             format: {
               comments: false
             }
@@ -43,6 +44,9 @@ export const getProdConfig = (target: Target): Configuration => {
         zipOptions: {
           forceZip64Format: false
         }
+      }),
+      new DefinePlugin({
+        CONFIG_LOG_LEVEL: JSON.stringify('WARN')
       })
     ])
   }

@@ -15,6 +15,5 @@ if (TARGET !== 'firefox' && TARGET !== 'chrome') {
 const config = getDevConfig(TARGET)
 
 webpack(config, (_, s) => {
-  console.log(_)
   console.log('Compilation complete', `${s?.endTime - s?.startTime}ms`)
 })

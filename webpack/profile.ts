@@ -1,4 +1,4 @@
-import { Configuration } from 'webpack'
+import { Configuration, DefinePlugin } from 'webpack'
 import { DIRECTORIES, ROOT_DIR, Target, mainConfig } from './config'
 import path from 'node:path'
 import { getMainPlugins } from './plugins'
@@ -23,6 +23,9 @@ export const getProfileConfig = (target: Target): Configuration => {
     plugins: getMainPlugins(DIRECTORIES.DEV, target).concat([
       new BundleAnalyzerPlugin({
         analyzerMode: 'server'
+      }),
+      new DefinePlugin({
+        CONFIG_LOG_LEVEL: JSON.stringify('DEBUG')
       })
     ])
   }

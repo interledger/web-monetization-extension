@@ -3,7 +3,9 @@ import { webpack } from 'webpack'
 import { TARGETS, Target } from '../webpack/config'
 import { getProdConfig } from '../webpack/prod'
 
-const TARGET: Target | null = (process.argv[2].toLowerCase() as Target) ?? null
+const TARGET: Target | null = process.argv[2]
+  ? (process.argv[2] as Target)
+  : null
 
 if (TARGET !== null && !TARGETS.includes(TARGET)) {
   console.log('Invalid target. Please use "chrome" or "firefox" as target.')
@@ -18,8 +20,8 @@ if (TARGET !== null && !TARGETS.includes(TARGET)) {
 
 // If no target is specified, build for all available targets
 if (TARGET === null) {
+  console.log(`Building extension for all available targets...`)
   TARGETS.forEach((target) => {
-    console.log(`Building extension for all available targets...`)
     const config = getProdConfig(target)
     webpack(config).run((_, s) => {
       console.log('Compilation complete', `${s?.endTime - s?.startTime}ms`)
