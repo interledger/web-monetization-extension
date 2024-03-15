@@ -24,7 +24,7 @@ export const mainConfig: Configuration = {
     rules: [
       {
         test: /\.css$/i,
-        include: path.resolve(__dirname, '..', DIRECTORIES.SRC),
+        include: path.resolve(ROOT_DIR, DIRECTORIES.SRC),
         use: [
           'style-loader',
           'css-loader',
@@ -72,34 +72,22 @@ export const mainConfig: Configuration = {
       async_hooks: false
     },
     alias: {
-      '@/shared': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/shared/`),
-      '@/popup': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/popup/`),
-      '@/background': path.resolve(
-        __dirname,
-        '..',
-        `${DIRECTORIES.SRC}/background/`
-      ),
-      '@/content': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/content/`),
-      '@/assets': path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/assets/`)
+      '@/shared': path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/shared/`),
+      '@/popup': path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/popup/`),
+      '@/background': path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/background/`),
+      '@/content': path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/content/`),
+      '@/assets': path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/assets/`)
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   },
   entry: {
-    popup: [
-      path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/popup/index.tsx`)
-    ],
-    content: [
-      path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/content/index.ts`)
-    ],
+    popup: [path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/popup/index.tsx`)],
+    content: [path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/content/index.ts`)],
     contentStatic: [
-      path.resolve(
-        __dirname,
-        '..',
-        `${DIRECTORIES.SRC}/content/static/index.ts`
-      )
+      path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/content/static/index.ts`)
     ],
     background: [
-      path.resolve(__dirname, '..', `${DIRECTORIES.SRC}/background/index.ts`)
+      path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/background/index.ts`)
     ]
   }
 }
