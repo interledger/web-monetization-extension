@@ -26,7 +26,7 @@ jobs:
 
       - name: Find comment
         if: ${{ steps.get-workflow-artifacts.outputs.conclusion != 'cancelled' }}
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v3
         id: find-comment
         with:
           issue-number: ${{ steps.get-workflow-artifacts.outputs.pr_number }}
