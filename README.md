@@ -3,9 +3,7 @@
 ![Github Actions CI](https://github.com/interledger/web-monetization-extension/actions/workflows/sanity.yml/badge.svg?branch=main)
 [![Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
-</center>
-Web Monetization is a browser extension that detects Web Monetization on websites using a browser API that allows the
-creation of a payment stream from the user agent to the website. This extension is built with React and TypeScript.
+The Web Monetization browser extension is an open source implementation of the Web Monetization draft specification - learn more [here](https://webmonetization.org/specification/). The extension is built with React and TypeScript.
 
 ## Local Development Environment
 
