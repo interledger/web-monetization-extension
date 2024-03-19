@@ -35,7 +35,7 @@ jobs:
 
       - name: Add/Update comment
         if: ${{ steps.get-workflow-artifacts.outputs.conclusion != 'cancelled' }}
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
