@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox, opera, edge]
+        browser: [chrome, firefox]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
@@ -36,7 +36,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.3
         with:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
-          path: dist/${{ matrix.browser }}/${{ matrix.browser }}.zip
+          path: dist/${{ matrix.browser }}.zip
           if-no-files-found: error
 
   test:

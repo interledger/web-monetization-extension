@@ -13,16 +13,6 @@ const ARTIFACTS_DATA = {
     name: 'Firefox',
     url: null,
     size: null
-  },
-  opera: {
-    name: 'Opera',
-    url: null,
-    size: null
-  },
-  edge: {
-    name: 'Edge',
-    url: null,
-    size: null
   }
 }
 
