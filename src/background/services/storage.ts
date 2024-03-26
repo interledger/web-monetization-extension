@@ -12,10 +12,10 @@ const defaultStorage = {
   connected: false,
   enabled: true,
   exceptionList: {},
-  walletAddress: undefined,
-  amount: undefined,
-  token: undefined,
-  grant: undefined
+  walletAddress: null,
+  amount: null,
+  token: null,
+  grant: null,
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
