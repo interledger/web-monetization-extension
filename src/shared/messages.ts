@@ -1,3 +1,4 @@
+import { WalletAddress } from '@interledger/open-payments'
 import { type Browser } from 'webextension-polyfill'
 
 export interface SuccessResponse<TPayload = undefined> {
@@ -55,11 +56,22 @@ export type PopupToBackgroundMessage = {
 }[PopupToBackgroundAction]
 
 export enum ContentToBackgroundAction {
-  TEST_ACTION = 'TEST_ACTION'
+  CHECK_WALLET_ADDRESS_URL = 'CHECK_WALLET_ADDRESS_URL',
+  START_MONETIZATION = 'START_MONETIZATION'
+}
+
+export interface CheckWalletAddressUrlPayload {
+  walletAddressUrl: string
+}
+
+export interface StartMonetizationPayload {
+  walletAddress: WalletAddress
+  requestId: string
 }
 
 export interface ContentToBackgroundActionPayload {
-  [ContentToBackgroundAction.TEST_ACTION]: { a: string }
+  [ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL]: CheckWalletAddressUrlPayload
+  [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload
 }
 
 export type ContentToBackgroundMessage = {

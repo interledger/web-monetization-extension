@@ -1,6 +1,9 @@
 export class PaymentEndpointError extends Error {}
 
-export function resolvePaymentEndpoint(pointerOrUrl: string, urlOnly = false) {
+export function checkWalletAddressUrlFormat(
+  pointerOrUrl: string,
+  urlOnly = false
+) {
   const httpUrl = urlOnly
     ? pointerOrUrl
     : pointerOrUrl.replace(/^\$/, 'https://')
