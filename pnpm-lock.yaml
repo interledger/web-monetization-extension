@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@interledger/open-payments':
-    specifier: ^6.7.0
-    version: 6.7.0
+    specifier: ^6.8.1
+    version: 6.8.1
   '@noble/ed25519':
     specifier: ^2.0.0
     version: 2.0.0
@@ -708,11 +708,11 @@ packages:
       uuid: 9.0.1
     dev: false
 
-  /@interledger/open-payments@6.7.0:
-    resolution: {integrity: sha512-ibIpNHNZknhYWCy/SqUNWybwDkkhaM/H9lIXruEKsBogkh5l/ouXw78DrOYuzTTIb+3T4x6LlTJk/PGBht8S8Q==}
+  /@interledger/open-payments@6.8.1:
+    resolution: {integrity: sha512-/E79BtNe4APX8Xi2xoIWGRfI6EjzsoX8ByPHHsa0RI1OUCKctxnx2wJRx+COnWfh1KJCgZfi06ViGZ1mT3YrAA==}
     dependencies:
       '@interledger/http-signature-utils': 2.0.2
-      '@interledger/openapi': 1.2.1
+      '@interledger/openapi': 2.0.0
       axios: 1.6.7
       base64url: 3.0.1
       http-message-signatures: 0.1.2
@@ -723,8 +723,8 @@ packages:
       - supports-color
     dev: false
 
-  /@interledger/openapi@1.2.1:
-    resolution: {integrity: sha512-CVEMjLH94svT5ikaojplgZ3YlZAe7ml6G6bt0ZCbqkbwHszUwY1E6RexZZejiGju5QvwS/6Jl/Op5ymv/ECaLg==}
+  /@interledger/openapi@2.0.0:
+    resolution: {integrity: sha512-sbLDW0EJuo8+xjHlhh1FUmkJ3J1GZPsQcrk18nLHbdl13EscBTos3g1Mjs++RerZ4chI6xD+7SAOua5Y1VukNA==}
     dependencies:
       '@apidevtools/json-schema-ref-parser': 10.1.0
       ajv: 8.12.0
