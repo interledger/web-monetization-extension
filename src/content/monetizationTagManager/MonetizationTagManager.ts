@@ -38,7 +38,7 @@ export type PaymentDetailsChangeCallback = (
   _args: PaymentDetailsChangeArguments
 ) => void
 
-export type MonetizationTag = HTMLMetaElement | HTMLLinkElement
+export type MonetizationTag = HTMLLinkElement
 export type MonetizationTagList = NodeListOf<MonetizationTag>
 
 export type TagType = 'meta' | 'link'
@@ -156,6 +156,7 @@ export class MonetizationTagManager extends EventEmitter {
   _start() {
     const monetizationTags: MonetizationTagList =
       this.document.querySelectorAll('meta,link')
+
     monetizationTags.forEach((tag) => {
       try {
         this._observeMonetizationTagAttrs(tag)
@@ -165,6 +166,7 @@ export class MonetizationTagManager extends EventEmitter {
         console.error(e)
       }
     })
+
     const onMonetizations =
       this.document.querySelectorAll<HTMLElement>('[onmonetization]')
     onMonetizations.forEach((om) => {
