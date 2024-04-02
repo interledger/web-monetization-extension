@@ -8,12 +8,15 @@ import {
 import type {
   MonetizationService,
   OpenPaymentsService,
-  StorageService
+  StorageService,
+  StreamsService
 } from '.'
 import { Logger } from '@/shared/logger'
 import { failure, getWalletInformation, success } from '@/shared/helpers'
+import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
+import { sendMonetizationEvent } from '@/background/lib/messages'
 
 export class Background {
   constructor(
@@ -21,12 +24,21 @@ export class Background {
     private openPaymentsService: OpenPaymentsService,
     private monetizationService: MonetizationService,
     private storage: StorageService,
-    private logger: Logger
+    private logger: Logger,
+    private streamsService: StreamsService
   ) {}
 
-  start() {
+  async start() {
     this.bindOnInstalled()
     this.bindMessageHandler()
+
+    // @TODO: Remove this - testing monetization event from background
+    await sendMonetizationEvent({
+      requestId: '123',
+      payload: {
+        amount: '100'
+      }
+    })
   }
 
   bindMessageHandler() {
@@ -50,11 +62,13 @@ export class Background {
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
-              this.logger.debug(
-                PopupToBackgroundAction.PAY_WEBSITE,
-                message.payload
-              )
-              throw new Error('Not implemented')
+              await this.monetizationService.start()
+              return
+            // this.logger.debug(
+            //   PopupToBackgroundAction.PAY_WEBSITE,
+            //   message.payload
+            // )
+            // throw new Error('Not implemented')
 
             case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
               return success(
@@ -62,7 +76,20 @@ export class Background {
               )
 
             case ContentToBackgroundAction.START_MONETIZATION:
-              // start from monetization service
+              const { requestId, walletAddress } = message.payload
+              this.streamsService.streams[requestId as string] = {
+                ...(walletAddress as WalletAddress)
+              }
+              return
+
+            case ContentToBackgroundAction.STOP_MONETIZATION:
+              // const { requestId } = message.payload
+              // @TODO update this to stop the stream
+              return
+
+            case ContentToBackgroundAction.RESUME_MONETIZATION:
+              // const { requestId } = message.payload
+              // @TODO update this to resume the stream
               return
 
             default:

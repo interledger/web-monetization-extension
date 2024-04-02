@@ -1,10 +1,11 @@
 import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
 import browser, { type Browser } from 'webextension-polyfill'
-import { Background } from '@/background/services/background'
 import {
   OpenPaymentsService,
   StorageService,
-  MonetizationService
+  MonetizationService,
+  StreamsService,
+  Background
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 
@@ -15,6 +16,7 @@ interface Cradle {
   openPaymentsService: OpenPaymentsService
   monetizationService: MonetizationService
   background: Background
+  streamsService: StreamsService
 }
 
 export const configureContainer = () => {
@@ -47,6 +49,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('background:main')
+      })),
+    streamsService: asClass(StreamsService)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('background:stream-service')
       }))
   })
 

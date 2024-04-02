@@ -9,19 +9,14 @@ import { OpenPaymentsService, StorageService } from '.'
 import { type Browser } from 'webextension-polyfill'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { Logger } from '@/shared/logger'
+import { getWalletInformation } from '@/shared/helpers'
 
-const getWalletAddress = (): WalletAddress => {
-  // TO DO
-  return {
-    id: '',
-    assetCode: '',
-    assetScale: 1,
-    authServer: '',
-    resourceServer: ''
-  }
-}
 export class MonetizationService {
   private incomingPaymentUrlId: string
+  clients = [
+    'https://ilp.rafiki.money/web-page',
+    'https://ilp.rafiki.money/wmuser'
+  ]
 
   constructor(
     private logger: Logger,
@@ -30,13 +25,19 @@ export class MonetizationService {
     private storage: StorageService
   ) {}
 
+  async start() {
+    await this.createIncomingPayment('https://ilp.rafiki.money/web-page')
+    await this.sendPayment()
+  }
+
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled'])
     await this.storage.set({ enabled: !enabled })
   }
 
-  async createIncomingPayment() {
-    const walletAddress: WalletAddress = getWalletAddress()
+  async createIncomingPayment(walletAddressUrl: string) {
+    const walletAddress: WalletAddress =
+      await getWalletInformation(walletAddressUrl)
 
     const incomingPaymentGrant =
       await this.openPaymentsService.client!.grant.request(
@@ -116,7 +117,9 @@ export class MonetizationService {
               walletAddress: storage.walletAddress.id,
               debitAmount: {
                 // TODO: Update with the correct amount - hardcoded to get rid of errors
-                value: '2',
+                value: String(
+                  Number(storage.amount.value) / Number(storage.amount.interval)
+                ),
                 assetScale: storage.walletAddress.assetScale,
                 assetCode: storage.walletAddress.assetCode
               }
