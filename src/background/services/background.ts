@@ -35,7 +35,7 @@ export class Background {
     // @TODO: Remove this - testing monetization event from background
     await sendMonetizationEvent({
       requestId: '123',
-      payload: {
+      details: {
         amount: '100'
       }
     })

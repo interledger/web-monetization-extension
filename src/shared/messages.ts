@@ -62,10 +62,6 @@ export enum ContentToBackgroundAction {
   RESUME_MONETIZATION = 'RESUME_MONETIZATION'
 }
 
-export enum BackgroundToContentAction {
-  MONETIZATION_EVENT = 'MONETIZATION_EVENT'
-}
-
 export interface CheckWalletAddressUrlPayload {
   walletAddressUrl: string
 }
@@ -108,16 +104,22 @@ export interface BackgroundToContentActionPayload {
   [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
 }
 
-export interface MonetizationEventPayload {
-  requestId: string
-  payload: Record<string, any> // @TODO: Update any to a more specific type
-}
-
 export type ToBackgroundMessage =
   | PopupToBackgroundMessage
   | ContentToBackgroundMessage
   | BackgroundToContentMessage
 
+export enum BackgroundToContentAction {
+  MONETIZATION_EVENT = 'MONETIZATION_EVENT'
+}
+
+export interface MonetizationEventPayload {
+  requestId: string
+  details: any
+}
+export interface BackgroundToContentActionPayload {
+  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
+}
 export type BackgroundToContentBackgroundMessage = {
   [K in BackgroundToContentAction]: MessageHKT<
     K,
