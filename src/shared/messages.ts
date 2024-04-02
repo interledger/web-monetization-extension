@@ -118,18 +118,6 @@ export type ToBackgroundMessage =
   | ContentToBackgroundMessage
   | BackgroundToContentMessage
 
-export enum BackgroundToContentAction {
-  MONETIZATION_EVENT = 'MONETIZATION_EVENT'
-}
-
-export interface MonetizationEventPayload {
-  requestId: string
-  details: any
-}
-export interface BackgroundToContentActionPayload {
-  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
-}
-
 export type BackgroundToContentBackgroundMessage = {
   [K in BackgroundToContentAction]: MessageHKT<
     K,
