@@ -34,13 +34,13 @@ export interface Storage {
   /** If a wallet is connected or not */
   connected: boolean
   /** User wallet address information */
-  walletAddress?: WalletAddress | undefined
+  walletAddress?: WalletAddress | undefined | null
   /** Overall amount */
-  amount?: WalletAmount | undefined
+  amount?: WalletAmount | undefined | null
   /** Access token for quoting & outgoing payments  */
-  token?: AccessToken | undefined
+  token?: AccessToken | undefined | null
   /** Grant details - continue access token & uri for canceling the grant */
-  grant?: GrantDetails | undefined
+  grant?: GrantDetails | undefined | null
   /** Exception list with websites and each specific amount */
   exceptionList: {
     [website: string]: Amount
@@ -58,3 +58,8 @@ export type PopupStore = Omit<
 > & {
   website: WebsiteData
 }
+
+export type DeepNonNullable<T> = {
+        [P in keyof T]?: NonNullable<T[P]>;
+}
+
