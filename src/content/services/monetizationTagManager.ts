@@ -7,9 +7,13 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
+  resumeMonetization,
   startMonetization,
   stopMonetization
 } from '../lib/messages'
+import { type Browser } from 'webextension-polyfill'
+import { BackgroundToContentAction, ToContentMessage } from '@/shared/messages'
+import { failure } from '@/shared/helpers'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -24,9 +28,8 @@ export class MonetizationTagManager extends EventEmitter {
 
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
-  private monetizationTagsIds = new Map<string, MonetizationTag>()
-
   constructor(
+    private browser: Browser,
     private document: Document,
     private logger: Logger
   ) {
@@ -37,6 +40,55 @@ export class MonetizationTagManager extends EventEmitter {
     this.monetizationTagAttrObserver = new MutationObserver((records) =>
       this.onMonetizationTagAttrsChange(records)
     )
+
+    document.addEventListener('visibilitychange', () => {
+      document.visibilityState === 'visible'
+        ? this.resumeAllMonetization()
+        : this.stopAllMonetization()
+    })
+  }
+
+  bindMessageHandler() {
+    this.browser.runtime.onMessage.addListener(
+      async (message: ToContentMessage) => {
+        try {
+          switch (message.action) {
+            case BackgroundToContentAction.MONETIZATION_EVENT:
+              this.monetizationTags.forEach((tagDetails, tag) => {
+                if (tagDetails.requestId !== message.payload.requestId) return
+
+                const customEvent = new CustomEvent('monetization', {
+                  bubbles: true,
+                  detail: mozClone(message.payload.details, this.document)
+                })
+
+                tag.dispatchEvent(customEvent)
+              })
+              return
+
+            default:
+              return
+          }
+        } catch (e) {
+          this.logger.error(message.action, e.message)
+          return failure(e.message)
+        }
+      }
+    )
+  }
+
+  private resumeAllMonetization() {
+    this.monetizationTags.forEach((value) => {
+      if (value.requestId && value.walletAddress)
+        resumeMonetization({ requestId: value.requestId })
+    })
+  }
+
+  private stopAllMonetization() {
+    this.monetizationTags.forEach((value) => {
+      if (value.requestId && value.walletAddress)
+        stopMonetization({ requestId: value.requestId })
+    })
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
@@ -59,7 +111,6 @@ export class MonetizationTagManager extends EventEmitter {
     this.onOnMonetizationChangeObserved(records)
   }
 
-  // TO DO
   async onMonetizationTagAttrsChange(records: MutationRecord[]) {
     const handledTags = new Set<Node>()
 
@@ -89,13 +140,12 @@ export class MonetizationTagManager extends EventEmitter {
           record.type === 'attributes' &&
           record.attributeName === 'disabled' &&
           target instanceof HTMLLinkElement &&
-          // can't use record.target[disabled] as it's a Boolean not string
           target.getAttribute('disabled') !== record.oldValue
         ) {
           const wasDisabled = record.oldValue !== null
           const isDisabled = target.hasAttribute('disabled')
           if (wasDisabled != isDisabled) {
-            this._onChangedWalletAddressUrl(target, wasDisabled)
+            this.onChangedWalletAddressUrl(target, wasDisabled)
             handledTags.add(target)
           }
         } else if (
@@ -104,14 +154,13 @@ export class MonetizationTagManager extends EventEmitter {
           target instanceof HTMLLinkElement &&
           target.href !== record.oldValue
         ) {
-          this._onChangedWalletAddressUrl(target)
+          this.onChangedWalletAddressUrl(target)
           handledTags.add(target)
         }
       }
     }
   }
 
-  // TO DO
   async check(op: string, node: Node) {
     this.logger.info('head node', op, node)
 
@@ -149,11 +198,8 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   // If wallet address changed, remove old tag and add new one
-  async _onChangedWalletAddressUrlTag(
-    tag: MonetizationTag,
-    wasDisabled = false
-  ) {
-    const { requestId } = this.getTagDetails(tag, '_onChangedWalletAddressUrl')
+  async onChangedWalletAddressUrl(tag: MonetizationTag, wasDisabled = false) {
+    const { requestId } = this.getTagDetails(tag, 'onChangedWalletAddressUrl')
 
     if (!wasDisabled) {
       this.onRemovedTag(tag)
@@ -196,25 +242,25 @@ export class MonetizationTagManager extends EventEmitter {
     this.logger.info('dispatched onmonetization-attr-changed ev', result)
   }
 
-  init(): void {
+  start(): void {
     if (
       document.readyState === 'interactive' ||
       document.readyState === 'complete'
     )
-      this.start()
+      this.run()
 
     document.addEventListener(
       'readystatechange',
       () => {
         if (document.readyState === 'interactive') {
-          this.start()
+          this.run()
         }
       },
       { once: true }
     )
   }
 
-  private start() {
+  private run() {
     const monetizationTags: NodeListOf<MonetizationTag> =
       this.document.querySelectorAll('link')
 
@@ -241,14 +287,12 @@ export class MonetizationTagManager extends EventEmitter {
     })
   }
 
-  // TO DO
   stop() {
     this.documentObserver.disconnect()
     this.monetizationTagAttrObserver.disconnect()
     this.monetizationTags.clear()
   }
 
-  // TO DO
   // Remove tag from list & stop monetization
   private onRemovedTag(tag: MonetizationTag) {
     const { requestId } = this.getTagDetails(tag, 'onRemovedTag')
@@ -256,7 +300,6 @@ export class MonetizationTagManager extends EventEmitter {
     stopMonetization({ requestId })
   }
 
-  // TO DO
   // Add tag to list & start monetization
   private async onAddedTag(tag: MonetizationTag, crtRequestId?: string) {
     const walletAddress = await this.checkTag(tag)
@@ -265,13 +308,9 @@ export class MonetizationTagManager extends EventEmitter {
     const details: MonetizationTagDetails = {
       walletAddress,
       requestId
-      // started: true,
-      // paused: false,
-      // stopped: false
     }
 
     this.monetizationTags.set(tag, details)
-    this.monetizationTagsIds.set(requestId, tag)
 
     if (walletAddress) startMonetization({ requestId, walletAddress })
   }

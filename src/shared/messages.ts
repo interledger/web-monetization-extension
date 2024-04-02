@@ -97,6 +97,26 @@ export type ToBackgroundMessage =
   | PopupToBackgroundMessage
   | ContentToBackgroundMessage
 
+export enum BackgroundToContentAction {
+  MONETIZATION_EVENT = 'MONETIZATION_EVENT'
+}
+
+export interface MonetizationEventPayload {
+  requestId: string
+  details: any
+}
+export interface BackgroundToContentActionPayload {
+  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
+}
+
+export type BackgroundToContentBackgroundMessage = {
+  [K in BackgroundToContentAction]: MessageHKT<
+    K,
+    BackgroundToContentActionPayload[K]
+  >
+}[BackgroundToContentAction]
+
+export type ToContentMessage = BackgroundToContentBackgroundMessage
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
 

@@ -5,8 +5,5 @@ export type MonetizationTagList = NodeListOf<MonetizationTag>
 
 export type MonetizationTagDetails = {
   walletAddress: WalletAddress | null
-  // started: boolean
-  // paused: boolean
-  // stopped: boolean
   requestId: string
 }
