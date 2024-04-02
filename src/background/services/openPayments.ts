@@ -17,8 +17,9 @@ import { getCurrentActiveTabId, toAmount } from '../utils'
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation } from '@/shared/helpers'
+import { getExchangeRates, getWalletInformation } from '@/shared/helpers'
 import { ConnectWalletPayload } from '@/shared/messages'
+import { DEFAULT_SCALE, MAX_RATE_OF_PAY, MIN_RATE_OF_PAY } from '../config'
 
 interface KeyInformation {
   privateKey: string
@@ -217,6 +218,34 @@ export class OpenPaymentsService {
     recurring
   }: ConnectWalletPayload) {
     const walletAddress = await getWalletInformation(walletAddressUrl)
+    const exchangeRates = await getExchangeRates()
+
+    let minRateOfPay = MIN_RATE_OF_PAY
+    let maxRateOfPay = MAX_RATE_OF_PAY
+
+    walletAddress.assetCode = 'BTC'
+    walletAddress.assetScale = 8
+
+    if (!exchangeRates.rates[walletAddress.assetCode]) {
+      throw new Error(`Exchange rate for ${walletAddress.assetCode} not found.`)
+    }
+
+    const rate = exchangeRates.rates[walletAddress.assetCode]
+    if (rate < 0.8 || rate > 1.5) {
+      minRateOfPay = BigInt(
+        Math.round(
+          (Number(MIN_RATE_OF_PAY) / rate) * 10 ** walletAddress.assetScale
+        ) /
+          10 ** walletAddress.assetScale
+      ).toString()
+      maxRateOfPay = BigInt(
+        Math.round(
+          (Number(MAX_RATE_OF_PAY) / rate) * 10 ** walletAddress.assetScale
+        ) /
+          10 ** walletAddress.assetScale
+      ).toString()
+    }
+
     const transformedAmount = toAmount({
       value: amount,
       recurring,
@@ -262,6 +291,8 @@ export class OpenPaymentsService {
 
     this.storage.set({
       walletAddress,
+      minRateOfPay,
+      maxRateOfPay,
       amount: transformedAmount,
       token: {
         value: continuation.access_token.value,
