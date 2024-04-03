@@ -92,7 +92,7 @@
     "postcss": "^8.4.38",
     "postcss-loader": "^8.1.1",
     "prettier": "^3.2.5",
-    "prettier-plugin-tailwindcss": "^0.5.12",
+    "prettier-plugin-tailwindcss": "^0.5.13",
     "react-router-dom": "^6.22.3",
     "style-loader": "^3.3.4",
     "tailwindcss": "^3.4.1",
