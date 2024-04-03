@@ -9,8 +9,8 @@ dependencies:
     specifier: ^6.7.0
     version: 6.7.0
   '@noble/ed25519':
-    specifier: ^2.0.0
-    version: 2.0.0
+    specifier: ^2.1.0
+    version: 2.1.0
   '@noble/hashes':
     specifier: ^1.4.0
     version: 1.4.0
@@ -1239,8 +1239,8 @@ packages:
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
     dev: false
 
-  /@noble/ed25519@2.0.0:
-    resolution: {integrity: sha512-/extjhkwFupyopDrt80OMWKdLgP429qLZj+z6sYJz90rF2Iz0gjZh2ArMKPImUl13Kx+0EXI2hN9T/KJV0/Zng==}
+  /@noble/ed25519@2.1.0:
+    resolution: {integrity: sha512-KM4qTyXPinyCgMzeYJH/UudpdL+paJXtY3CHtHYZQtBkS8MZoPr4rOikZllIutJe0d06QDQKisyn02gxZ8TcQA==}
     dev: false
 
   /@noble/hashes@1.4.0:

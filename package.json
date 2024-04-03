@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@interledger/open-payments": "^6.7.0",
-    "@noble/ed25519": "^2.0.0",
+    "@noble/ed25519": "^2.1.0",
     "@noble/hashes": "^1.4.0",
     "assert": "^2.1.0",
     "awilix": "^10.0.1",
