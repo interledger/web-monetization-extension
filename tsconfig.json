@@ -10,6 +10,7 @@
     "allowJs": true,
     "jsx": "react",
     "sourceMap": true,
+    "skipLibCheck": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "allowUmdGlobalAccess": true,

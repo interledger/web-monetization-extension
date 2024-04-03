@@ -85,9 +85,13 @@ export class StorageService {
       }
 
       website.url = url
-      website.amount = data.exceptionList[url] ?? {
-        value: DEFAULT_AMOUNT,
-        interval: DEFAULT_INTERVAL_MS
+      if (data.exceptionList && data.exceptionList[url]) {
+        website.amount = data.exceptionList[url]
+      } else {
+        website.amount = {
+          value: DEFAULT_AMOUNT,
+          interval: DEFAULT_INTERVAL_MS
+        }
       }
     }
 
