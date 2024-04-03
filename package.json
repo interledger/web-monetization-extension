@@ -52,7 +52,7 @@
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
     "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
+    "@testing-library/react": "^14.2.2",
     "@types/chrome": "^0.0.263",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.3",
