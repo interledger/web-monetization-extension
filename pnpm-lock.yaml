@@ -63,7 +63,7 @@ dependencies:
     specifier: ^18.2.0
     version: 18.2.0(react@18.2.0)
   react-hook-form:
-    specifier: ^7.51.1
+    specifier: ^7.51.2
     version: 7.51.2(react@18.2.0)
   react-number-format:
     specifier: ^5.3.4
