@@ -13,13 +13,13 @@ import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
-import { getCurrentActiveTabId, toAmount } from '../utils'
+import { getCurrentActiveTabId, getRateOfPay, toAmount } from '../utils'
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
 import { getExchangeRates, getWalletInformation } from '@/shared/helpers'
 import { ConnectWalletPayload } from '@/shared/messages'
-import { DEFAULT_SCALE, MAX_RATE_OF_PAY, MIN_RATE_OF_PAY } from '../config'
+import { MAX_RATE_OF_PAY, MIN_RATE_OF_PAY } from '../config'
 
 interface KeyInformation {
   privateKey: string
@@ -232,18 +232,16 @@ export class OpenPaymentsService {
 
     const rate = exchangeRates.rates[walletAddress.assetCode]
     if (rate < 0.8 || rate > 1.5) {
-      minRateOfPay = BigInt(
-        Math.round(
-          (Number(MIN_RATE_OF_PAY) / rate) * 10 ** walletAddress.assetScale
-        ) /
-          10 ** walletAddress.assetScale
-      ).toString()
-      maxRateOfPay = BigInt(
-        Math.round(
-          (Number(MAX_RATE_OF_PAY) / rate) * 10 ** walletAddress.assetScale
-        ) /
-          10 ** walletAddress.assetScale
-      ).toString()
+      minRateOfPay = getRateOfPay({
+        defaultRate: MIN_RATE_OF_PAY,
+        rate,
+        assetScale: walletAddress.assetScale
+      })
+      maxRateOfPay = getRateOfPay({
+        defaultRate: MAX_RATE_OF_PAY,
+        rate,
+        assetScale: walletAddress.assetScale
+      })
     }
 
     const transformedAmount = toAmount({

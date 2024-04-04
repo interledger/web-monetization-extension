@@ -49,3 +49,20 @@ export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
   'invalid client':
     'Please make sure that you uploaded the public key for your desired wallet address.'
 }
+
+export interface GetRateOfPayParams {
+  defaultRate: string
+  rate: number
+  assetScale: number
+}
+
+export const getRateOfPay = ({
+  defaultRate,
+  rate,
+  assetScale
+}: GetRateOfPayParams) => {
+  return BigInt(
+    Math.round((Number(defaultRate) / rate) * 10 ** assetScale) /
+      10 ** assetScale
+  ).toString()
+}
