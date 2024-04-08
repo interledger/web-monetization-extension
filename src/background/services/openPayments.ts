@@ -19,7 +19,11 @@ import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
 import { getExchangeRates, getWalletInformation } from '@/shared/helpers'
 import { ConnectWalletPayload } from '@/shared/messages'
-import { MAX_RATE_OF_PAY, MIN_RATE_OF_PAY } from '../config'
+import {
+  DEFAULT_RATE_OF_PAY,
+  MAX_RATE_OF_PAY,
+  MIN_RATE_OF_PAY
+} from '../config'
 
 interface KeyInformation {
   privateKey: string
@@ -220,11 +224,9 @@ export class OpenPaymentsService {
     const walletAddress = await getWalletInformation(walletAddressUrl)
     const exchangeRates = await getExchangeRates()
 
+    let defaultRateOfPay = DEFAULT_RATE_OF_PAY
     let minRateOfPay = MIN_RATE_OF_PAY
     let maxRateOfPay = MAX_RATE_OF_PAY
-
-    walletAddress.assetCode = 'BTC'
-    walletAddress.assetScale = 8
 
     if (!exchangeRates.rates[walletAddress.assetCode]) {
       throw new Error(`Exchange rate for ${walletAddress.assetCode} not found.`)
@@ -232,6 +234,11 @@ export class OpenPaymentsService {
 
     const rate = exchangeRates.rates[walletAddress.assetCode]
     if (rate < 0.8 || rate > 1.5) {
+      defaultRateOfPay = getRateOfPay({
+        defaultRate: DEFAULT_RATE_OF_PAY,
+        rate,
+        assetScale: walletAddress.assetScale
+      })
       minRateOfPay = getRateOfPay({
         defaultRate: MIN_RATE_OF_PAY,
         rate,
@@ -289,6 +296,7 @@ export class OpenPaymentsService {
 
     this.storage.set({
       walletAddress,
+      defaultRateOfPay,
       minRateOfPay,
       maxRateOfPay,
       amount: transformedAmount,

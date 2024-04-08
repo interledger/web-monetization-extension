@@ -1,4 +1,4 @@
-import { DEFAULT_AMOUNT, DEFAULT_INTERVAL_MS } from '@/background/config'
+import { DEFAULT_RATE_OF_PAY, DEFAULT_INTERVAL_MS } from '@/background/config'
 import { Logger } from '@/shared/logger'
 import type {
   PopupStore,
@@ -16,6 +16,7 @@ const defaultStorage = {
   amount: null,
   token: null,
   grant: null,
+  defaultRateOfPay: null,
   minRateOfPay: null,
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
@@ -89,7 +90,7 @@ export class StorageService {
         website.amount = data.exceptionList[url]
       } else {
         website.amount = {
-          value: DEFAULT_AMOUNT,
+          value: DEFAULT_RATE_OF_PAY,
           interval: DEFAULT_INTERVAL_MS
         }
       }

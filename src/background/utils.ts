@@ -1,5 +1,6 @@
 import { WalletAmount } from '@/shared/types'
 import { type Browser, action, runtime } from 'webextension-polyfill'
+import { DEFAULT_SCALE } from './config'
 
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
 const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
@@ -61,8 +62,8 @@ export const getRateOfPay = ({
   rate,
   assetScale
 }: GetRateOfPayParams) => {
-  return BigInt(
-    Math.round((Number(defaultRate) / rate) * 10 ** assetScale) /
-      10 ** assetScale
-  ).toString()
+  const scaleDiff = assetScale - DEFAULT_SCALE
+  const scaledExchangeRate = (1 / rate) * 10 ** scaleDiff
+
+  return BigInt(Math.round(Number(defaultRate) * scaledExchangeRate)).toString()
 }
