@@ -1,12 +1,35 @@
 import React from 'react'
-import { PopupStateContext } from '@/popup/lib/context'
+import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
-import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm'
+import { Slider } from '../components/ui/Slider'
+import { updateRateOfPay } from '../lib/messages'
 
 export const Component = () => {
   const {
-    state: { enabled, website }
+    state: {
+      enabled,
+      defaultRateOfPay,
+      minRateOfPay,
+      maxRateOfPay,
+      walletAddress
+    },
+    dispatch
   } = React.useContext(PopupStateContext)
+
+  // TODO: Use a debounce
+  const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const rateOfPay = event.currentTarget.value
+    const response = await updateRateOfPay({
+      rateOfPay
+    })
+    if (!response.success) return
+    dispatch({
+      type: ReducerActionType.UPDATE_RATE_OF_PAY,
+      data: {
+        rateOfPay
+      }
+    })
+  }
 
   if (!enabled) {
     return (
@@ -19,18 +42,23 @@ export const Component = () => {
     )
   }
 
-  if (website.url === '') {
-    return (
-      <div className="flex items-center gap-2">
-        <WarningSign />
-        <p className="text-base text-medium">
-          This website does not support Web Monetization.
-        </p>
+  return (
+    <div>
+      <div className="px-2 text-base font-medium text-medium">
+        Current rate of pay
       </div>
-    )
-  }
-
-  return <PayWebsiteForm />
+      <Slider
+        onChange={onRateChange}
+        min={Number(minRateOfPay)}
+        max={Number(maxRateOfPay)}
+        step={Number(minRateOfPay)}
+        value={Number(defaultRateOfPay)}
+      />
+      <div className="flex w-full items-center justify-between px-2">
+        <span>{defaultRateOfPay}</span>
+      </div>
+    </div>
+  )
   // const {
   //   data: { wmEnabled, rateOfPay, amount, amountType },
   //   setData,
@@ -65,10 +93,10 @@ export const Component = () => {
   //         onChange={updateRateOfPay}
   //         disabled={!amountType.recurring}
   //       />
-  //       <div className="px-2 flex items-center justify-between w-full">
-  //         <span>{!amountType.recurring ? '0c' : formatCurrency(rateOfPay)} per hour</span>
-  //         <span>Remaining balance: ${amount}</span>
-  //       </div>
+  // <div className="px-2 flex items-center justify-between w-full">
+  //   <span>{!amountType.recurring ? '0c' : formatCurrency(rateOfPay)} per hour</span>
+  //   <span>Remaining balance: ${amount}</span>
+  // </div>
   //     </div>
   //     <div className="flex items-center gap-4 h-7">
   //       <Switch size="small" checked={amountType.recurring} onChange={updateStreamType} />

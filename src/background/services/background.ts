@@ -55,6 +55,13 @@ export class Background {
               )
               throw new Error('Not implemented')
 
+            case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
+              return success(
+                await this.storage.set({
+                  defaultRateOfPay: message.payload.rateOfPay
+                })
+              )
+
             default:
               return
           }
