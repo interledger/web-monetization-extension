@@ -224,10 +224,21 @@ export class OpenPaymentsService {
     const walletAddress = await getWalletInformation(walletAddressUrl)
     const exchangeRates = await getExchangeRates()
 
-    let defaultRateOfPay = DEFAULT_RATE_OF_PAY
-    let minRateOfPay = MIN_RATE_OF_PAY
-    let maxRateOfPay = MAX_RATE_OF_PAY
-
+    let defaultRateOfPay = getRateOfPay({
+      defaultRate: DEFAULT_RATE_OF_PAY,
+      rate: 1,
+      assetScale: walletAddress.assetScale
+    })
+    let minRateOfPay = getRateOfPay({
+      defaultRate: MIN_RATE_OF_PAY,
+      rate: 1,
+      assetScale: walletAddress.assetScale
+    })
+    let maxRateOfPay = getRateOfPay({
+      defaultRate: MAX_RATE_OF_PAY,
+      rate: 1,
+      assetScale: walletAddress.assetScale
+    })
     if (!exchangeRates.rates[walletAddress.assetCode]) {
       throw new Error(`Exchange rate for ${walletAddress.assetCode} not found.`)
     }

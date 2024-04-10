@@ -1,7 +1,6 @@
 import React from 'react'
 import { getContextData } from '@/popup/lib/messages'
 import { DeepNonNullable, PopupStore } from '@/shared/types'
-import { Redirect } from 'react-router-dom'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',

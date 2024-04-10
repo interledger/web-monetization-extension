@@ -3,6 +3,8 @@ import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
 import { updateRateOfPay } from '../lib/messages'
+import { Label } from '../components/ui/Label'
+import { getCurrencySymbol, roundWithPrecision } from '../lib/utils'
 
 export const Component = () => {
   const {
@@ -15,6 +17,15 @@ export const Component = () => {
     },
     dispatch
   } = React.useContext(PopupStateContext)
+
+  const rate = React.useMemo(() => {
+    const r = Number(defaultRateOfPay) / 10 ** walletAddress.assetScale
+    if (roundWithPrecision(r, 2) > 0) {
+      return r.toFixed(2)
+    }
+
+    return r.toExponential()
+  }, [defaultRateOfPay, walletAddress.assetScale])
 
   // TODO: Use a debounce
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,83 +54,24 @@ export const Component = () => {
   }
 
   return (
-    <div>
-      <div className="px-2 text-base font-medium text-medium">
-        Current rate of pay
-      </div>
-      <Slider
-        onChange={onRateChange}
-        min={Number(minRateOfPay)}
-        max={Number(maxRateOfPay)}
-        step={Number(minRateOfPay)}
-        value={Number(defaultRateOfPay)}
-      />
-      <div className="flex w-full items-center justify-between px-2">
-        <span>{defaultRateOfPay}</span>
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label className="px-2 text-base font-medium text-medium">
+          Current rate of pay
+        </Label>
+        <Slider
+          onChange={onRateChange}
+          min={Number(minRateOfPay)}
+          max={Number(maxRateOfPay)}
+          step={Number(minRateOfPay)}
+          value={Number(defaultRateOfPay)}
+        />
+        <div className="flex w-full items-center justify-between px-2">
+          <span className="text-sm">
+            {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour
+          </span>
+        </div>
       </div>
     </div>
   )
-  // const {
-  //   data: { wmEnabled, rateOfPay, amount, amountType },
-  //   setData,
-  // } = usePopup()
-  // const [tipAmount, setTipAmount] = useState('')
-  // const updateRateOfPay = async (event: any) => {
-  //   setData(prevState => ({ ...prevState, rateOfPay: event.target.value }))
-  // }
-  // const updateStreamType = async (event: any) => {
-  //   setData(prevState => ({
-  //     ...prevState,
-  //     amountType: { ...prevState.amountType, recurring: event.target.checked },
-  //   }))
-  // }
-  // if (!wmEnabled) {
-  //   return (
-  //     <div className="flex items-center gap-2">
-  //       <WarningSign />
-  //       <p className="text-base text-medium">Web Monetization has been turned off.</p>
-  //     </div>
-  //   )
-  // }
-  // return (
-  //   <div className="flex flex-col gap-8 basis-auto justify-center">
-  //     <div className="grid gap-4 w-full">
-  //       <div className="px-2 text-base font-medium text-medium">Current rate of pay</div>
-  //       <Slider
-  //         min={0}
-  //         max={1}
-  //         step={0.01}
-  //         value={rateOfPay}
-  //         onChange={updateRateOfPay}
-  //         disabled={!amountType.recurring}
-  //       />
-  // <div className="px-2 flex items-center justify-between w-full">
-  //   <span>{!amountType.recurring ? '0c' : formatCurrency(rateOfPay)} per hour</span>
-  //   <span>Remaining balance: ${amount}</span>
-  // </div>
-  //     </div>
-  //     <div className="flex items-center gap-4 h-7">
-  //       <Switch size="small" checked={amountType.recurring} onChange={updateStreamType} />
-  //       <span className="text-medium text-base">Continuous payments stream</span>
-  //     </div>
-  //     <div className="h-px bg-nav-active" />
-  //     <div className="flex flex-col gap-4">
-  //       <Label className="text-base font-medium	text-medium">
-  //         Pay <span className="text-primary">https://alexlakatos.com/</span>
-  //       </Label>
-  //       <Input
-  //         value={tipAmount}
-  //         type="number"
-  //         id="amount"
-  //         name="amount"
-  //         placeholder="0.00"
-  //         onChange={event => setTipAmount(event.target.value)}
-  //         icon={<DollarSign />}
-  //       />
-  //     </div>
-  //     <Button aria-label="Send now" className="text-base font-medium">
-  //       Send now
-  //     </Button>
-  //   </div>
-  // )
 }
