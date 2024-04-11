@@ -6,28 +6,84 @@ import {
   isPendingGrant
 } from '@interledger/open-payments/dist/types'
 import { OpenPaymentsService, StorageService } from '.'
-import { type Browser } from 'webextension-polyfill'
+import { Runtime, type Browser } from 'webextension-polyfill'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { Logger } from '@/shared/logger'
 import { getWalletInformation } from '@/shared/helpers'
+import {
+  StartMonetizationPayload,
+  StopMonetizationPayload
+} from '@/shared/messages'
+import { PaymentSession } from './paymentSession'
 
 export class MonetizationService {
-  private incomingPaymentUrlId: string
-  clients = [
-    'https://ilp.rafiki.money/web-page',
-    'https://ilp.rafiki.money/wmuser'
-  ]
+  private sessions: {
+    [tabId: number]: Map<string, PaymentSession>
+  }
 
   constructor(
     private logger: Logger,
     private browser: Browser,
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService
-  ) {}
+  ) {
+    this.sessions = {}
+  }
 
-  async start() {
-    await this.createIncomingPayment('https://ilp.rafiki.money/web-page')
-    await this.sendPayment()
+  stopMonetization(
+    payload: StopMonetizationPayload,
+    sender: Runtime.MessageSender
+  ) {
+    const { requestId } = payload
+    const tabId = sender.tab?.id
+    const frameId = sender.frameId
+
+    if (tabId == null) {
+      this.logger.debug('Tab ID is missing.')
+      return
+    }
+
+    if (frameId == null) {
+      this.logger.debug('Frame ID is missing.')
+      return
+    }
+
+    this.sessions[tabId].get(requestId)?.stop()
+  }
+
+  async startPaymentSession(
+    payload: StartMonetizationPayload,
+    sender: Runtime.MessageSender
+  ) {
+    const { requestId, walletAddress } = payload
+    const tabId = sender.tab?.id
+    const frameId = sender.frameId
+
+    if (tabId == null) {
+      this.logger.debug('Tab ID is missing.')
+      return
+    }
+
+    if (frameId == null) {
+      this.logger.debug('Frame ID is missing.')
+      return
+    }
+
+    if (this.sessions[tabId] == null) {
+      this.sessions[tabId] = new Map()
+    }
+
+    const session = new PaymentSession(
+      walletAddress,
+      requestId,
+      tabId,
+      frameId,
+      '60',
+      this.openPaymentsService,
+      this.storage
+    )
+    this.sessions[tabId].set(requestId, session)
+    void session.start()
   }
 
   async toggleWM() {
@@ -82,7 +138,7 @@ export class MonetizationService {
       accessToken: incomingPaymentGrant.continue.access_token.value
     })
 
-    this.incomingPaymentUrlId = incomingPayment.id
+    return incomingPayment
   }
 
   async sendPayment() {
@@ -157,7 +213,7 @@ export class MonetizationService {
                 url: storage.token.manage
               })
 
-            this.storage.set({
+            await this.storage.set({
               token: {
                 value: rotatedToken.access_token.value,
                 manage: rotatedToken.access_token.manage

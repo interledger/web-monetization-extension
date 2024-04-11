@@ -1,5 +1,4 @@
 export { OpenPaymentsService } from './openPayments'
 export { StorageService } from './storage'
 export { MonetizationService } from './monetization'
-export { StreamsService } from './streams'
 export { Background } from './background'

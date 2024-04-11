@@ -8,15 +8,12 @@ import {
 import type {
   MonetizationService,
   OpenPaymentsService,
-  StorageService,
-  StreamsService
+  StorageService
 } from '.'
 import { Logger } from '@/shared/logger'
 import { failure, getWalletInformation, success } from '@/shared/helpers'
-import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
-import { sendMonetizationEvent } from '@/background/lib/messages'
 
 export class Background {
   constructor(
@@ -24,26 +21,18 @@ export class Background {
     private openPaymentsService: OpenPaymentsService,
     private monetizationService: MonetizationService,
     private storage: StorageService,
-    private logger: Logger,
-    private streamsService: StreamsService
+    private logger: Logger
   ) {}
 
   async start() {
     this.bindOnInstalled()
     this.bindMessageHandler()
-
-    // @TODO: Remove this - testing monetization event from background
-    await sendMonetizationEvent({
-      requestId: '123',
-      details: {
-        amount: '100'
-      }
-    })
   }
 
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
-      async (message: ToBackgroundMessage) => {
+      async (message: ToBackgroundMessage, sender) => {
+        this.logger.debug('Received message', message)
         try {
           switch (message.action) {
             case PopupToBackgroundAction.GET_CONTEXT_DATA:
@@ -61,30 +50,24 @@ export class Background {
               await this.monetizationService.toggleWM()
               return
 
-            case PopupToBackgroundAction.PAY_WEBSITE:
-              await this.monetizationService.start()
-              return
-            // this.logger.debug(
-            //   PopupToBackgroundAction.PAY_WEBSITE,
-            //   message.payload
-            // )
-            // throw new Error('Not implemented')
-
             case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
               return success(
                 await getWalletInformation(message.payload.walletAddressUrl)
               )
 
             case ContentToBackgroundAction.START_MONETIZATION:
-              const { requestId, walletAddress } = message.payload
-              this.streamsService.streams[requestId as string] = {
-                ...(walletAddress as WalletAddress)
-              }
+              await this.monetizationService.startPaymentSession(
+                message.payload,
+                sender
+              )
+              console.log('after start')
               return
 
             case ContentToBackgroundAction.STOP_MONETIZATION:
-              // const { requestId } = message.payload
-              // @TODO update this to stop the stream
+              await this.monetizationService.stopMonetization(
+                message.payload,
+                sender
+              )
               return
 
             case ContentToBackgroundAction.RESUME_MONETIZATION:

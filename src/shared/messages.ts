@@ -139,9 +139,10 @@ export class MessageManager<TMessages> {
 
   async sendToTab<TResponse = void>(
     tabId: number,
+    frameId: number,
     message: TMessages
   ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
-    return await this.browser.tabs.sendMessage(tabId, message)
+    return await this.browser.tabs.sendMessage(tabId, message, { frameId })
   }
 
   async sendToActiveTab<TResponse = void>(

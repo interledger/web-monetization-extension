@@ -4,7 +4,6 @@ import {
   OpenPaymentsService,
   StorageService,
   MonetizationService,
-  StreamsService,
   Background
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
@@ -16,7 +15,6 @@ interface Cradle {
   openPaymentsService: OpenPaymentsService
   monetizationService: MonetizationService
   background: Background
-  streamsService: StreamsService
 }
 
 export const configureContainer = () => {
@@ -50,11 +48,6 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('background:main')
       })),
-    streamsService: asClass(StreamsService)
-      .singleton()
-      .inject(() => ({
-        logger: logger.getLogger('background:stream-service')
-      }))
   })
 
   return container
