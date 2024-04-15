@@ -7,6 +7,7 @@ import {
   Background
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
+import { LOG_LEVEL } from '@/shared/defines'
 
 interface Cradle {
   logger: Logger
@@ -23,7 +24,7 @@ export const configureContainer = () => {
     injectionMode: InjectionMode.CLASSIC
   })
 
-  const logger = createLogger()
+  const logger = createLogger(LOG_LEVEL)
 
   container.register({
     logger: asValue(logger),

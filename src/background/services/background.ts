@@ -83,7 +83,6 @@ export class Background {
             this.logger.error(message.action, e.message, e.description)
             return failure(OPEN_PAYMENTS_ERRORS[e.description] ?? e.description)
           }
-
           this.logger.error(message.action, e.message)
           return failure(e.message)
         }
