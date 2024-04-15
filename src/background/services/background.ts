@@ -64,7 +64,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.STOP_MONETIZATION:
-              await this.monetizationService.stopMonetization(
+              this.monetizationService.stopMonetization(
                 message.payload,
                 sender
               )

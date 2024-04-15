@@ -18,7 +18,7 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
-    private defaultRate: string,
+    private rate: string,
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService
   ) {}
@@ -112,7 +112,6 @@ export class PaymentSession {
           const {
             receiveAmount,
             receiver: incomingPayment,
-            walletAddress: paymentPointer
           } = outgoingPayment
 
           quote = undefined
@@ -123,7 +122,7 @@ export class PaymentSession {
             details: {
               receiveAmount,
               incomingPayment,
-              paymentPointer
+              paymentPointer: this.walletAddress.id
             }
           })
 
