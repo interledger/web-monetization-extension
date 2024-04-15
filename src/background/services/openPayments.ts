@@ -224,7 +224,7 @@ export class OpenPaymentsService {
     const walletAddress = await getWalletInformation(walletAddressUrl)
     const exchangeRates = await getExchangeRates()
 
-    let defaultRateOfPay = getRateOfPay({
+    let rateOfPay= getRateOfPay({
       defaultRate: DEFAULT_RATE_OF_PAY,
       rate: 1,
       assetScale: walletAddress.assetScale
@@ -245,7 +245,7 @@ export class OpenPaymentsService {
 
     const rate = exchangeRates.rates[walletAddress.assetCode]
     if (rate < 0.8 || rate > 1.5) {
-      defaultRateOfPay = getRateOfPay({
+      rateOfPay = getRateOfPay({
         defaultRate: DEFAULT_RATE_OF_PAY,
         rate,
         assetScale: walletAddress.assetScale
@@ -307,7 +307,7 @@ export class OpenPaymentsService {
 
     this.storage.set({
       walletAddress,
-      defaultRateOfPay,
+      rateOfPay,
       minRateOfPay,
       maxRateOfPay,
       amount: transformedAmount,

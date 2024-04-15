@@ -10,7 +10,7 @@ const defaultStorage = {
   amount: null,
   token: null,
   grant: null,
-  defaultRateOfPay: null,
+  rateOfPay: null,
   minRateOfPay: null,
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
@@ -52,7 +52,7 @@ export class StorageService {
       'enabled',
       'connected',
       'amount',
-      'defaultRateOfPay',
+      'rateOfPay',
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',

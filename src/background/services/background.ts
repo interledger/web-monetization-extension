@@ -58,7 +58,7 @@ export class Background {
             case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
               return success(
                 await this.storage.set({
-                  defaultRateOfPay: message.payload.rateOfPay
+                  rateOfPay: message.payload.rateOfPay
                 })
               )
 

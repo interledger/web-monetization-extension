@@ -10,7 +10,7 @@ export const Component = () => {
   const {
     state: {
       enabled,
-      defaultRateOfPay,
+      rateOfPay,
       minRateOfPay,
       maxRateOfPay,
       walletAddress
@@ -19,13 +19,13 @@ export const Component = () => {
   } = React.useContext(PopupStateContext)
 
   const rate = React.useMemo(() => {
-    const r = Number(defaultRateOfPay) / 10 ** walletAddress.assetScale
+    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale
     if (roundWithPrecision(r, 2) > 0) {
       return r.toFixed(2)
     }
 
     return r.toExponential()
-  }, [defaultRateOfPay, walletAddress.assetScale])
+  }, [rateOfPay, walletAddress.assetScale])
 
   // TODO: Use a debounce
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,7 +64,7 @@ export const Component = () => {
           min={Number(minRateOfPay)}
           max={Number(maxRateOfPay)}
           step={Number(minRateOfPay)}
-          value={Number(defaultRateOfPay)}
+          value={Number(rateOfPay)}
         />
         <div className="flex w-full items-center justify-between px-2">
           <span className="text-sm">

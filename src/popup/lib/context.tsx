@@ -59,7 +59,7 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
     case ReducerActionType.UPDATE_RATE_OF_PAY: {
       return {
         ...state,
-        defaultRateOfPay: action.data.rateOfPay
+        rateOfPay: action.data.rateOfPay
       }
     }
     default:
