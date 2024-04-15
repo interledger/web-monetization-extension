@@ -18,8 +18,8 @@ dependencies:
     specifier: ^2.1.0
     version: 2.1.0
   awilix:
-    specifier: ^10.0.1
-    version: 10.0.1
+    specifier: ^10.0.2
+    version: 10.0.2
   browserify-zlib:
     specifier: ^0.2.0
     version: 0.2.0
@@ -2415,8 +2415,8 @@ packages:
     dependencies:
       possible-typed-array-names: 1.0.0
 
-  /awilix@10.0.1:
-    resolution: {integrity: sha512-+ylXK26rx4BVfzAB9AXQE+k/nomshpW8ISR+vZN2QecMiCoaT8km4DaIO0nazYSCX6nZCHYOFnoeCa5cE13NEA==}
+  /awilix@10.0.2:
+    resolution: {integrity: sha512-hFatb7eZFdtiWjjmGRSm/K/uxZpmcBlM+YoeMB3VpOPXk3xa6+7zctg3LRbUzoimom5bwGrePF0jXReO6b4zNQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
       camel-case: 4.1.2
