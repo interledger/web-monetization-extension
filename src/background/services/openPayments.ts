@@ -224,40 +224,29 @@ export class OpenPaymentsService {
     const walletAddress = await getWalletInformation(walletAddressUrl)
     const exchangeRates = await getExchangeRates()
 
-    let rateOfPay= getRateOfPay({
-      defaultRate: DEFAULT_RATE_OF_PAY,
-      rate: 1,
-      assetScale: walletAddress.assetScale
-    })
-    let minRateOfPay = getRateOfPay({
-      defaultRate: MIN_RATE_OF_PAY,
-      rate: 1,
-      assetScale: walletAddress.assetScale
-    })
-    let maxRateOfPay = getRateOfPay({
-      defaultRate: MAX_RATE_OF_PAY,
-      rate: 1,
-      assetScale: walletAddress.assetScale
-    })
+    let rateOfPay = DEFAULT_RATE_OF_PAY
+    let minRateOfPay = MIN_RATE_OF_PAY
+    let maxRateOfPay = MAX_RATE_OF_PAY
+
     if (!exchangeRates.rates[walletAddress.assetCode]) {
       throw new Error(`Exchange rate for ${walletAddress.assetCode} not found.`)
     }
 
-    const rate = exchangeRates.rates[walletAddress.assetCode]
-    if (rate < 0.8 || rate > 1.5) {
+    const exchangeRate = exchangeRates.rates[walletAddress.assetCode]
+    if (exchangeRate < 0.8 || exchangeRate > 1.5) {
       rateOfPay = getRateOfPay({
-        defaultRate: DEFAULT_RATE_OF_PAY,
-        rate,
+        rate: DEFAULT_RATE_OF_PAY,
+        exchangeRate,
         assetScale: walletAddress.assetScale
       })
       minRateOfPay = getRateOfPay({
-        defaultRate: MIN_RATE_OF_PAY,
-        rate,
+        rate: MIN_RATE_OF_PAY,
+        exchangeRate,
         assetScale: walletAddress.assetScale
       })
       maxRateOfPay = getRateOfPay({
-        defaultRate: MAX_RATE_OF_PAY,
-        rate,
+        rate: MAX_RATE_OF_PAY,
+        exchangeRate,
         assetScale: walletAddress.assetScale
       })
     }

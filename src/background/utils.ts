@@ -52,18 +52,18 @@ export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
 }
 
 export interface GetRateOfPayParams {
-  defaultRate: string
-  rate: number
+  rate: string
+  exchangeRate: number
   assetScale: number
 }
 
 export const getRateOfPay = ({
-  defaultRate,
   rate,
+  exchangeRate,
   assetScale
 }: GetRateOfPayParams) => {
   const scaleDiff = assetScale - DEFAULT_SCALE
-  const scaledExchangeRate = (1 / rate) * 10 ** scaleDiff
+  const scaledExchangeRate = (1 / exchangeRate) * 10 ** scaleDiff
 
-  return BigInt(Math.round(Number(defaultRate) * scaledExchangeRate)).toString()
+  return BigInt(Math.round(Number(rate) * scaledExchangeRate)).toString()
 }
