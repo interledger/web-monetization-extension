@@ -34,7 +34,7 @@ export interface Storage {
   /** If a wallet is connected or not */
   connected: boolean
 
-  defaultRateOfPay?: string | undefined | null
+  rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null
   maxRateOfPay?: string | undefined | null
 
