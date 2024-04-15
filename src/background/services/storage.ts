@@ -6,6 +6,7 @@ import type {
   StorageKey,
   WebsiteData
 } from '@/shared/types'
+import EventEmitter from 'events'
 import { type Browser } from 'webextension-polyfill'
 
 const defaultStorage = {
@@ -18,11 +19,13 @@ const defaultStorage = {
   grant: null,
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
-export class StorageService {
+export class StorageService extends EventEmitter {
   constructor(
     private browser: Browser,
     private logger: Logger
-  ) {}
+  ) {
+      super()
+  }
 
   async get<TKey extends StorageKey>(
     keys?: TKey[]
@@ -117,5 +120,9 @@ export class StorageService {
     }
 
     return false
+  }
+
+  test() {
+      this.emit('rate-update')
   }
 }

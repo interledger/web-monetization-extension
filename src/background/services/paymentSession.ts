@@ -8,6 +8,7 @@ import {
 import { StorageService } from './storage'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
+import { sleep } from '@/shared/helpers'
 
 export class PaymentSession {
   private active: boolean = false
@@ -24,7 +25,7 @@ export class PaymentSession {
   ) {}
 
   async stop() {
-      this.active = false
+    this.active = false
   }
 
   async start() {
@@ -109,24 +110,26 @@ export class PaymentSession {
         }
       } finally {
         if (outgoingPayment) {
-          const {
-            receiveAmount,
-            receiver: incomingPayment,
-          } = outgoingPayment
+          const { receiveAmount, receiver: incomingPayment } = outgoingPayment
 
           quote = undefined
           outgoingPayment = undefined
 
-          sendMonetizationEvent(this.tabId, this.frameId, {
-            requestId: this.requestId,
-            details: {
-              receiveAmount,
-              incomingPayment,
-              paymentPointer: this.walletAddress.id
+          sendMonetizationEvent({
+            tabId: this.tabId,
+            frameId: this.frameId,
+            payload: {
+              requestId: this.requestId,
+              details: {
+                receiveAmount,
+                incomingPayment,
+                paymentPointer: this.walletAddress.id
+              }
             }
           })
 
-          await new Promise(r => setTimeout(r, 1000));
+          // TODO: This is only the default wait time
+          sleep(1000)
         }
       }
     }
