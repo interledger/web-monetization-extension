@@ -4,7 +4,8 @@ import { DeepNonNullable, PopupStore } from '@/shared/types'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
-  TOGGLE_WM = 'TOGGLE_WM'
+  TOGGLE_WM = 'TOGGLE_WM',
+  UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
 
 export type PopupState = Required<DeepNonNullable<PopupStore>>
@@ -28,7 +29,17 @@ interface ToggleWMAction extends ReducerActionMock {
   type: ReducerActionType.TOGGLE_WM
 }
 
-export type ReducerActions = SetDataAction | ToggleWMAction
+interface UpdateRateOfPayAction extends ReducerActionMock {
+  type: ReducerActionType.UPDATE_RATE_OF_PAY
+  data: {
+    rateOfPay: string
+  }
+}
+
+export type ReducerActions =
+  | SetDataAction
+  | ToggleWMAction
+  | UpdateRateOfPayAction
 
 export const PopupStateContext = React.createContext<PopupContext>(
   {} as PopupContext
@@ -43,6 +54,12 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
       return {
         ...state,
         enabled: !state.enabled
+      }
+    }
+    case ReducerActionType.UPDATE_RATE_OF_PAY: {
+      return {
+        ...state,
+        rateOfPay: action.data.rateOfPay
       }
     }
     default:

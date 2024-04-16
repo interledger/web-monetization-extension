@@ -60,9 +60,7 @@ export type StorageKey = keyof Storage
 export type PopupStore = Omit<
   Storage,
   'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
-> & {
-  website: WebsiteData
-}
+>
 
 export type DeepNonNullable<T> = {
   [P in keyof T]?: NonNullable<T[P]>
