@@ -27,7 +27,8 @@ export enum PopupToBackgroundAction {
   CONNECT_WALLET = 'CONNECT_WALLET',
   DISCONNECT_WALLET = 'DISCONNECT_WALLET',
   TOGGLE_WM = 'TOGGLE_WM',
-  PAY_WEBSITE = 'PAY_WEBSITE'
+  PAY_WEBSITE = 'PAY_WEBSITE',
+  UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
 
 export interface ConnectWalletPayload {
@@ -40,12 +41,17 @@ export interface PayWebsitePayload {
   amount: string
 }
 
+export interface UpdateRateOfPayPayload {
+  rateOfPay: string
+}
+
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
   [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
   [PopupToBackgroundAction.DISCONNECT_WALLET]: undefined
   [PopupToBackgroundAction.TOGGLE_WM]: undefined
   [PopupToBackgroundAction.PAY_WEBSITE]: PayWebsitePayload
+  [PopupToBackgroundAction.UPDATE_RATE_OF_PAY]: UpdateRateOfPayPayload
 }
 
 export type PopupToBackgroundMessage = {

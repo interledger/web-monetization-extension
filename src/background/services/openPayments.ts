@@ -13,12 +13,17 @@ import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
-import { getCurrentActiveTabId, toAmount } from '../utils'
+import { getCurrentActiveTabId, getRateOfPay, toAmount } from '../utils'
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation } from '@/shared/helpers'
+import { getExchangeRates, getWalletInformation } from '@/shared/helpers'
 import { ConnectWalletPayload } from '@/shared/messages'
+import {
+  DEFAULT_RATE_OF_PAY,
+  MAX_RATE_OF_PAY,
+  MIN_RATE_OF_PAY
+} from '../config'
 
 interface KeyInformation {
   privateKey: string
@@ -217,6 +222,35 @@ export class OpenPaymentsService {
     recurring
   }: ConnectWalletPayload) {
     const walletAddress = await getWalletInformation(walletAddressUrl)
+    const exchangeRates = await getExchangeRates()
+
+    let rateOfPay = DEFAULT_RATE_OF_PAY
+    let minRateOfPay = MIN_RATE_OF_PAY
+    let maxRateOfPay = MAX_RATE_OF_PAY
+
+    if (!exchangeRates.rates[walletAddress.assetCode]) {
+      throw new Error(`Exchange rate for ${walletAddress.assetCode} not found.`)
+    }
+
+    const exchangeRate = exchangeRates.rates[walletAddress.assetCode]
+    if (exchangeRate < 0.8 || exchangeRate > 1.5) {
+      rateOfPay = getRateOfPay({
+        rate: DEFAULT_RATE_OF_PAY,
+        exchangeRate,
+        assetScale: walletAddress.assetScale
+      })
+      minRateOfPay = getRateOfPay({
+        rate: MIN_RATE_OF_PAY,
+        exchangeRate,
+        assetScale: walletAddress.assetScale
+      })
+      maxRateOfPay = getRateOfPay({
+        rate: MAX_RATE_OF_PAY,
+        exchangeRate,
+        assetScale: walletAddress.assetScale
+      })
+    }
+
     const transformedAmount = toAmount({
       value: amount,
       recurring,
@@ -262,6 +296,9 @@ export class OpenPaymentsService {
 
     this.storage.set({
       walletAddress,
+      rateOfPay,
+      minRateOfPay,
+      maxRateOfPay,
       amount: transformedAmount,
       token: {
         value: continuation.access_token.value,

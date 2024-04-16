@@ -65,6 +65,13 @@ export class Background {
               // start from monetization service
               return
 
+            case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
+              return success(
+                await this.storage.set({
+                  rateOfPay: message.payload.rateOfPay
+                })
+              )
+
             default:
               return
           }
@@ -73,7 +80,6 @@ export class Background {
             this.logger.error(message.action, e.message, e.description)
             return failure(OPEN_PAYMENTS_ERRORS[e.description] ?? e.description)
           }
-
           this.logger.error(message.action, e.message)
           return failure(e.message)
         }
