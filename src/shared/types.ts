@@ -33,6 +33,11 @@ export interface Storage {
   enabled: boolean
   /** If a wallet is connected or not */
   connected: boolean
+
+  rateOfPay?: string | undefined | null
+  minRateOfPay?: string | undefined | null
+  maxRateOfPay?: string | undefined | null
+
   /** User wallet address information */
   walletAddress?: WalletAddress | undefined | null
   /** Overall amount */
@@ -60,6 +65,5 @@ export type PopupStore = Omit<
 }
 
 export type DeepNonNullable<T> = {
-        [P in keyof T]?: NonNullable<T[P]>;
+  [P in keyof T]?: NonNullable<T[P]>
 }
-

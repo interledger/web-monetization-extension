@@ -58,3 +58,25 @@ export const failure = (message: string) => ({
   success: false,
   message
 })
+
+interface ExchangeRates {
+  base: string
+  rates: Record<string, number>
+}
+
+export const getExchangeRates = async (): Promise<ExchangeRates> => {
+  const response = await fetch(
+    'https://telemetry-exchange-rates.s3.amazonaws.com/exchange-rates-usd.json'
+  )
+  if (!response.ok) {
+    throw new Error(
+      `Could not fetch exchange rates. [Status code: ${response.status}]`
+    )
+  }
+  const rates = await response.json()
+  if (!rates.base || !rates.rates) {
+    throw new Error('Invalid rates format')
+  }
+
+  return rates
+}
