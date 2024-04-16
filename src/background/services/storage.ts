@@ -1,3 +1,4 @@
+import { DEFAULT_RATE_OF_PAY, DEFAULT_INTERVAL_MS } from '@/background/config'
 import { Logger } from '@/shared/logger'
 import type { PopupStore, Storage, StorageKey } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
