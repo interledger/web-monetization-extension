@@ -42,6 +42,15 @@ export const toggleWM = async () => {
   })
 }
 
+export const updateRateOfPay = async (
+  payload: PopupToBackgroundActionPayload[PopupToBackgroundAction.UPDATE_RATE_OF_PAY]
+) => {
+  return await message.send({
+    action: PopupToBackgroundAction.UPDATE_RATE_OF_PAY,
+    payload
+  })
+}
+
 export const payWebsite = async (
   payload: PopupToBackgroundActionPayload[PopupToBackgroundAction.PAY_WEBSITE]
 ) => {

@@ -75,6 +75,13 @@ export class Background {
               // @TODO update this to resume the stream
               return
 
+            case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
+              return success(
+                await this.storage.set({
+                  rateOfPay: message.payload.rateOfPay
+                })
+              )
+
             default:
               return
           }

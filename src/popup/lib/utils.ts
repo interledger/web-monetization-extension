@@ -24,3 +24,8 @@ export const transformBalance = (amount: string, scale: number): string => {
 export function charIsNumber(char?: string) {
   return !!(char || '').match(/\d|\./)
 }
+
+export function roundWithPrecision(num: number, precision: number) {
+  const multiplier = Math.pow(10, precision)
+  return Math.round(num * multiplier) / multiplier
+}

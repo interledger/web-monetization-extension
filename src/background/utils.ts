@@ -1,5 +1,6 @@
 import { WalletAmount } from '@/shared/types'
-import browser, { type Browser, action, runtime } from 'webextension-polyfill'
+import { type Browser, action, runtime } from 'webextension-polyfill'
+import { DEFAULT_SCALE } from './config'
 
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
 const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
@@ -48,4 +49,21 @@ export const toAmount = ({
 export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
   'invalid client':
     'Please make sure that you uploaded the public key for your desired wallet address.'
+}
+
+export interface GetRateOfPayParams {
+  rate: string
+  exchangeRate: number
+  assetScale: number
+}
+
+export const getRateOfPay = ({
+  rate,
+  exchangeRate,
+  assetScale
+}: GetRateOfPayParams) => {
+  const scaleDiff = assetScale - DEFAULT_SCALE
+  const scaledExchangeRate = (1 / exchangeRate) * 10 ** scaleDiff
+
+  return BigInt(Math.round(Number(rate) * scaledExchangeRate)).toString()
 }

@@ -13,7 +13,7 @@ interface PayWebsiteFormProps {
 
 export const PayWebsiteForm = () => {
   const {
-    state: { walletAddress, website }
+    state: { walletAddress }
   } = React.useContext(PopupStateContext)
   const {
     register,
@@ -34,7 +34,7 @@ export const PayWebsiteForm = () => {
         addOn={getCurrencySymbol(walletAddress.assetCode)}
         label={
           <div>
-            Pay <span className="text-primary">{website.url}</span>
+            Pay <span className="text-primary">URL</span>
           </div>
         }
         placeholder="0.00"

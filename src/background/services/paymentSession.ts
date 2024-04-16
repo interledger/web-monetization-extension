@@ -129,7 +129,7 @@ export class PaymentSession {
           })
 
           // TODO: This is only the default wait time
-          sleep(1000)
+          await sleep(1000)
         }
       }
     }
