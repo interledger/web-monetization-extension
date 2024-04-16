@@ -233,23 +233,21 @@ export class OpenPaymentsService {
     }
 
     const exchangeRate = exchangeRates.rates[walletAddress.assetCode]
-    if (exchangeRate < 0.8 || exchangeRate > 1.5) {
-      rateOfPay = getRateOfPay({
-        rate: DEFAULT_RATE_OF_PAY,
-        exchangeRate,
-        assetScale: walletAddress.assetScale
-      })
-      minRateOfPay = getRateOfPay({
-        rate: MIN_RATE_OF_PAY,
-        exchangeRate,
-        assetScale: walletAddress.assetScale
-      })
-      maxRateOfPay = getRateOfPay({
-        rate: MAX_RATE_OF_PAY,
-        exchangeRate,
-        assetScale: walletAddress.assetScale
-      })
-    }
+    rateOfPay = getRateOfPay({
+      rate: DEFAULT_RATE_OF_PAY,
+      exchangeRate,
+      assetScale: walletAddress.assetScale
+    })
+    minRateOfPay = getRateOfPay({
+      rate: MIN_RATE_OF_PAY,
+      exchangeRate,
+      assetScale: walletAddress.assetScale
+    })
+    maxRateOfPay = getRateOfPay({
+      rate: MAX_RATE_OF_PAY,
+      exchangeRate,
+      assetScale: walletAddress.assetScale
+    })
 
     const transformedAmount = toAmount({
       value: amount,

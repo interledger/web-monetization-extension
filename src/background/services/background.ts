@@ -1,4 +1,3 @@
-/* eslint-disable no-case-declarations */
 import { type Browser } from 'webextension-polyfill'
 import {
   type ToBackgroundMessage,
@@ -14,6 +13,7 @@ import { Logger } from '@/shared/logger'
 import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
+import { TabEvents } from './tabEvents'
 
 export class Background {
   constructor(
@@ -21,12 +21,18 @@ export class Background {
     private openPaymentsService: OpenPaymentsService,
     private monetizationService: MonetizationService,
     private storage: StorageService,
-    private logger: Logger
+    private logger: Logger,
+    private tabEvents: TabEvents
   ) {}
 
   async start() {
     this.bindOnInstalled()
     this.bindMessageHandler()
+    this.bindTabHandlers()
+  }
+
+  bindTabHandlers() {
+    this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
   }
 
   bindMessageHandler() {
@@ -60,14 +66,10 @@ export class Background {
                 message.payload,
                 sender
               )
-              console.log('after start')
               return
 
             case ContentToBackgroundAction.STOP_MONETIZATION:
-              this.monetizationService.stopMonetization(
-                message.payload,
-                sender
-              )
+              this.monetizationService.stopMonetization(message.payload, sender)
               return
 
             case ContentToBackgroundAction.RESUME_MONETIZATION:

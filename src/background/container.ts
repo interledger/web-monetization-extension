@@ -4,7 +4,8 @@ import {
   OpenPaymentsService,
   StorageService,
   MonetizationService,
-  Background
+  Background,
+  TabEvents
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
@@ -15,6 +16,7 @@ interface Cradle {
   storage: StorageService
   openPaymentsService: OpenPaymentsService
   monetizationService: MonetizationService
+  tabEvents: TabEvents
   background: Background
 }
 
@@ -44,11 +46,12 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('background:monetization-service')
       })),
+    tabEvents: asClass(TabEvents).singleton(),
     background: asClass(Background)
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('background:main')
-      })),
+      }))
   })
 
   return container

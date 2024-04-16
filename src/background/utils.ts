@@ -63,7 +63,11 @@ export const getRateOfPay = ({
   assetScale
 }: GetRateOfPayParams) => {
   const scaleDiff = assetScale - DEFAULT_SCALE
-  const scaledExchangeRate = (1 / exchangeRate) * 10 ** scaleDiff
 
-  return BigInt(Math.round(Number(rate) * scaledExchangeRate)).toString()
+  if (exchangeRate < 0.8 || exchangeRate > 1.5) {
+    const scaledExchangeRate = (1 / exchangeRate) * 10 ** scaleDiff
+    return BigInt(Math.round(Number(rate) * scaledExchangeRate)).toString()
+  }
+
+  return (Number(rate) * 10 ** scaleDiff).toString()
 }

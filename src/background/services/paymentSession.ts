@@ -13,28 +13,40 @@ import { sleep } from '@/shared/helpers'
 export class PaymentSession {
   private active: boolean = false
   private incomingPaymentUrl: string
+  private amount: string
 
   constructor(
-    private walletAddress: WalletAddress,
+    private receiver: WalletAddress,
     private requestId: string,
     private tabId: number,
     private frameId: number,
     private rate: string,
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService
-  ) {}
+  ) {
+    this.calculateDebitAmount()
+  }
 
-  async stop() {
+  private calculateDebitAmount() {
+    // This is only follows the happy path (scale 9)
+    this.amount = (Number(this.rate) / 3600).toFixed(0)
+  }
+
+  stop() {
     this.active = false
+  }
+
+  resume() {
+    this.active = true
   }
 
   async start() {
     this.active = true
 
-    const { token, walletAddress } = await this.storage.get([
-      'token',
-      'walletAddress'
-    ])
+    const data = await this.storage.get(['token', 'walletAddress'])
+
+    let token = data.token
+    const walletAddress = data.walletAddress
 
     if (token == null || walletAddress == null) {
       return
@@ -58,10 +70,9 @@ export class PaymentSession {
               receiver: this.incomingPaymentUrl,
               walletAddress: walletAddress.id,
               debitAmount: {
-                // TODO: Update with the correct amount - hardcoded to get rid of errors
-                value: '1000000',
-                assetScale: 9,
-                assetCode: 'USD'
+                value: this.amount,
+                assetScale: walletAddress.assetScale,
+                assetCode: walletAddress.assetCode
               }
             }
           )
@@ -96,7 +107,12 @@ export class PaymentSession {
                 url: token.manage
               })
 
-            await this.storage.set({
+            token = {
+              value: rotatedToken.access_token.value,
+              manage: rotatedToken.access_token.manage
+            }
+
+            void this.storage.set({
               token: {
                 value: rotatedToken.access_token.value,
                 manage: rotatedToken.access_token.manage
@@ -123,7 +139,7 @@ export class PaymentSession {
               details: {
                 receiveAmount,
                 incomingPayment,
-                paymentPointer: this.walletAddress.id
+                paymentPointer: this.receiver.id
               }
             }
           })
@@ -139,7 +155,7 @@ export class PaymentSession {
     const incomingPaymentGrant =
       await this.openPaymentsService.client!.grant.request(
         {
-          url: this.walletAddress.authServer
+          url: this.receiver.authServer
         },
         {
           access_token: {
@@ -147,7 +163,7 @@ export class PaymentSession {
               {
                 type: 'incoming-payment',
                 actions: ['create', 'read', 'list'],
-                identifier: this.walletAddress.id
+                identifier: this.receiver.id
               }
             ]
           }
@@ -161,11 +177,11 @@ export class PaymentSession {
     const incomingPayment =
       await this.openPaymentsService.client!.incomingPayment.create(
         {
-          url: this.walletAddress.resourceServer,
+          url: this.receiver.resourceServer,
           accessToken: incomingPaymentGrant.access_token.value
         },
         {
-          walletAddress: this.walletAddress.id,
+          walletAddress: this.receiver.id,
           expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
           metadata: {
             source: 'Web Monetization'
