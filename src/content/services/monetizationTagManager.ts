@@ -11,9 +11,7 @@ import {
   startMonetization,
   stopMonetization
 } from '../lib/messages'
-import { type Browser } from 'webextension-polyfill'
-import { BackgroundToContentAction, ToContentMessage } from '@/shared/messages'
-import { failure } from '@/shared/helpers'
+import { MonetizationEventPayload } from '@/shared/messages'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -29,7 +27,6 @@ export class MonetizationTagManager extends EventEmitter {
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
   constructor(
-    private browser: Browser,
     private document: Document,
     private logger: Logger
   ) {
@@ -48,33 +45,18 @@ export class MonetizationTagManager extends EventEmitter {
     })
   }
 
-  bindMessageHandler() {
-    this.browser.runtime.onMessage.addListener(
-      async (message: ToContentMessage) => {
-        try {
-          switch (message.action) {
-            case BackgroundToContentAction.MONETIZATION_EVENT:
-              this.monetizationTags.forEach((tagDetails, tag) => {
-                if (tagDetails.requestId !== message.payload.requestId) return
+  dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
+    this.monetizationTags.forEach((tagDetails, tag) => {
+      if (tagDetails.requestId !== requestId) return
 
-                const customEvent = new CustomEvent('monetization', {
-                  bubbles: true,
-                  detail: mozClone(message.payload.details, this.document)
-                })
+      const customEvent = new CustomEvent('monetization', {
+        bubbles: true,
+        detail: mozClone(details, this.document)
+      })
 
-                tag.dispatchEvent(customEvent)
-              })
-              return
-
-            default:
-              return
-          }
-        } catch (e) {
-          this.logger.error(message.action, e.message)
-          return failure(e.message)
-        }
-      }
-    )
+      tag.dispatchEvent(customEvent)
+    })
+    return
   }
 
   private resumeAllMonetization() {

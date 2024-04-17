@@ -1,11 +1,8 @@
 import { Logger } from '@/shared/logger'
 import { MonetizationTagManager } from './monetizationTagManager'
-import {
-  BackgroundToContentAction,
-  ToBackgroundMessage
-} from '@/shared/messages'
+import { type Browser } from 'webextension-polyfill'
+import { BackgroundToContentAction, ToContentMessage } from '@/shared/messages'
 import { failure } from '@/shared/helpers'
-import { Browser } from 'webextension-polyfill'
 
 export class ContentScript {
   constructor(
@@ -23,14 +20,17 @@ export class ContentScript {
   }
 
   bindMessageHandler() {
-    console.log('bindMessageHandler')
     this.browser.runtime.onMessage.addListener(
-      async (message: ToBackgroundMessage) => {
-        console.log('bindMessageHandler')
+      async (message: ToContentMessage) => {
         try {
           switch (message.action) {
             case BackgroundToContentAction.MONETIZATION_EVENT:
-              console.log('MONETIZATION_EVENT', message.payload)
+              this.monetizationTagManager.dispatchMonetizationEvent(
+                message.payload
+              )
+              return
+
+            default:
               return
           }
         } catch (e) {
