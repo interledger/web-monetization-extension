@@ -33,6 +33,7 @@ export class Background {
 
   bindTabHandlers() {
     this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
+    // this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
   }
 
   bindMessageHandler() {
@@ -69,12 +70,17 @@ export class Background {
               return
 
             case ContentToBackgroundAction.STOP_MONETIZATION:
-              this.monetizationService.stopMonetization(message.payload, sender)
+              this.monetizationService.stopPaymentSession(
+                message.payload,
+                sender
+              )
               return
 
             case ContentToBackgroundAction.RESUME_MONETIZATION:
-              // const { requestId } = message.payload
-              // @TODO update this to resume the stream
+              this.monetizationService.resumePaymentSession(
+                message.payload,
+                sender
+              )
               return
 
             case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:

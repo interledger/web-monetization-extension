@@ -1,12 +1,13 @@
-import { Browser } from 'webextension-polyfill'
 import { MonetizationService } from './monetization'
 
 export class TabEvents {
-  constructor(
-    private monetizationService: MonetizationService
-  ) {}
+  constructor(private monetizationService: MonetizationService) {}
 
   onRemovedTab = (tabId: number) => {
-    this.monetizationService.clearTabSession(tabId)
+    this.monetizationService.clearTabSessions(tabId)
   }
+
+  // onUpdatedTab = (tabId: number) => {
+  //   this.monetizationService.clearTabSessions(tabId)
+  // }
 }

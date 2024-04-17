@@ -21,7 +21,6 @@ interface Cradle {
 }
 
 export const configureContainer = () => {
-  // Create container
   const container = createContainer<Cradle>({
     injectionMode: InjectionMode.CLASSIC
   })
@@ -34,23 +33,23 @@ export const configureContainer = () => {
     storage: asClass(StorageService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:storage')
+        logger: logger.getLogger('storage')
       })),
     openPaymentsService: asClass(OpenPaymentsService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:open-payments')
+        logger: logger.getLogger('open-payments')
       })),
     monetizationService: asClass(MonetizationService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:monetization-service')
+        logger: logger.getLogger('monetization-service')
       })),
     tabEvents: asClass(TabEvents).singleton(),
     background: asClass(Background)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:main')
+        logger: logger.getLogger('main')
       }))
   })
 

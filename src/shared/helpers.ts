@@ -59,26 +59,15 @@ export const failure = (message: string) => ({
   message
 })
 
-interface ExchangeRates {
-  base: string
-  rates: Record<string, number>
-}
-
-export const getExchangeRates = async (): Promise<ExchangeRates> => {
-  const response = await fetch(
-    'https://telemetry-exchange-rates.s3.amazonaws.com/exchange-rates-usd.json'
-  )
-  if (!response.ok) {
-    throw new Error(
-      `Could not fetch exchange rates. [Status code: ${response.status}]`
-    )
-  }
-  const rates = await response.json()
-  if (!rates.base || !rates.rates) {
-    throw new Error('Invalid rates format')
-  }
-
-  return rates
-}
-
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+export const notNullOrUndef = <T>(
+  t: T | null | undefined,
+  name = '<unknown>'
+): T | never => {
+  if (t == null) {
+    throw new Error(`Expecting not null for ${name}`)
+  } else {
+    return t
+  }
+}

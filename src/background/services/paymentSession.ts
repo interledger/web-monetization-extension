@@ -37,10 +37,11 @@ export class PaymentSession {
   }
 
   resume() {
-    this.active = true
+    this.start()
   }
 
   async start() {
+    if (this.active) return
     this.active = true
 
     const data = await this.storage.get(['token', 'walletAddress'])

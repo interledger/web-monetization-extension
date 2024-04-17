@@ -1,12 +1,13 @@
-// TO DO
 import { OpenPaymentsService, StorageService } from '.'
 import { Runtime } from 'webextension-polyfill'
 import { Logger } from '@/shared/logger'
 import {
+  ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
+import { getSender, getTabId } from '../utils'
 
 export class MonetizationService {
   private sessions: {
@@ -21,41 +22,16 @@ export class MonetizationService {
     this.sessions = {}
   }
 
-  clearTabSession(tabId: number) {
-    const sessions = this.sessions[tabId]
-
-    if (!sessions) return
-
-    for (const session of sessions.values()) {
-      session.stop()
-    }
-
-    delete this.sessions[tabId]
-  }
-
   async startPaymentSession(
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
     const { requestId, walletAddress } = payload
-    const tabId = sender.tab?.id
-    const frameId = sender.frameId
-
-    if (tabId == null) {
-      this.logger.debug('Tab ID is missing.')
-      return
-    }
-
-    if (frameId == null) {
-      this.logger.debug('Frame ID is missing.')
-      return
-    }
+    const { tabId, frameId } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
     }
-
-    this.logger.debug({ tabId, frameId, payload })
 
     const { rateOfPay: rate } = await this.storage.get(['rateOfPay'])
 
@@ -75,14 +51,9 @@ export class MonetizationService {
       this.openPaymentsService,
       this.storage
     )
+
     this.sessions[tabId].set(requestId, session)
-
     void session.start()
-  }
-
-  async toggleWM() {
-    const { enabled } = await this.storage.get(['enabled'])
-    await this.storage.set({ enabled: !enabled })
   }
 
   stopPaymentSession(
@@ -90,19 +61,40 @@ export class MonetizationService {
     sender: Runtime.MessageSender
   ) {
     const { requestId } = payload
-    const tabId = sender.tab?.id
-    const frameId = sender.frameId
-
-    if (tabId == null) {
-      this.logger.debug('Tab ID is missing.')
-      return
-    }
-
-    if (frameId == null) {
-      this.logger.debug('Frame ID is missing.')
-      return
-    }
+    const tabId = getTabId(sender)
 
     this.sessions[tabId].get(requestId)?.stop()
+  }
+
+  resumePaymentSession(
+    payload: ResumeMonetizationPayload,
+    sender: Runtime.MessageSender
+  ) {
+    const { requestId } = payload
+    const tabId = getTabId(sender)
+
+    this.sessions[tabId].get(requestId)?.resume()
+  }
+
+  async toggleWM() {
+    const { enabled } = await this.storage.get(['enabled'])
+    await this.storage.set({ enabled: !enabled })
+  }
+
+  clearTabSessions(tabId: number) {
+    this.logger.debug(`Attempting to clear sessions for tab ${tabId}.`)
+    const sessions = this.sessions[tabId]
+
+    if (!sessions) {
+      this.logger.debug(`No active sessions found for tab ${tabId}.`)
+      return
+    }
+
+    for (const session of sessions.values()) {
+      session.stop()
+    }
+
+    delete this.sessions[tabId]
+    this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }
 }

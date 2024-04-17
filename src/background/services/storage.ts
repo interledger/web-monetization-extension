@@ -1,10 +1,5 @@
 import { Logger } from '@/shared/logger'
-import type {
-  PopupStore,
-  Storage,
-  StorageKey,
-  WebsiteData
-} from '@/shared/types'
+import type { PopupStore, Storage, StorageKey } from '@/shared/types'
 import EventEmitter from 'events'
 import { type Browser } from 'webextension-polyfill'
 
@@ -21,6 +16,10 @@ const defaultStorage = {
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
+// TODO: Emit events when certain values are updated:
+// Eg:
+// - rate of pay - we should recalculate the amount for every payment session
+// - enabling/disabling WM
 export class StorageService extends EventEmitter {
   constructor(
     private browser: Browser,
@@ -86,7 +85,4 @@ export class StorageService extends EventEmitter {
     return false
   }
 
-  test() {
-    this.emit('rate-update')
-  }
 }
