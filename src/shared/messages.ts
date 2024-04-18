@@ -65,7 +65,8 @@ export enum ContentToBackgroundAction {
   CHECK_WALLET_ADDRESS_URL = 'CHECK_WALLET_ADDRESS_URL',
   START_MONETIZATION = 'START_MONETIZATION',
   STOP_MONETIZATION = 'STOP_MONETIZATION',
-  RESUME_MONETIZATION = 'RESUME_MONETIZATION'
+  RESUME_MONETIZATION = 'RESUME_MONETIZATION',
+  IS_TAB_MONETIZED = 'IS_TAB_MONETIZED'
 }
 
 export interface CheckWalletAddressUrlPayload {
@@ -85,11 +86,16 @@ export interface ResumeMonetizationPayload {
   requestId: string
 }
 
+export interface IsTabMonetizedPayload {
+  value: boolean
+}
+
 export interface ContentToBackgroundActionPayload {
   [ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL]: CheckWalletAddressUrlPayload
   [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload
   [ContentToBackgroundAction.STOP_MONETIZATION]: StopMonetizationPayload
   [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload
+  [ContentToBackgroundAction.IS_TAB_MONETIZED]: IsTabMonetizedPayload
 }
 
 export type ContentToBackgroundMessage = {

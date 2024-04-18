@@ -44,3 +44,12 @@ export const resumeMonetization = async (
     payload
   })
 }
+
+export const isTabMonetized = async (
+  payload: ContentToBackgroundActionPayload[ContentToBackgroundAction.IS_TAB_MONETIZED]
+) => {
+  return await message.send({
+    action: ContentToBackgroundAction.IS_TAB_MONETIZED,
+    payload
+  })
+}

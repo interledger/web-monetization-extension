@@ -19,13 +19,13 @@ export const Component = () => {
   } = React.useContext(PopupStateContext)
 
   const rate = React.useMemo(() => {
-    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale
+    const r = Number(rateOfPay) / 10 ** walletAddress?.assetScale
     if (roundWithPrecision(r, 2) > 0) {
       return r.toFixed(2)
     }
 
     return r.toExponential()
-  }, [rateOfPay, walletAddress.assetScale])
+  }, [rateOfPay, walletAddress?.assetScale])
 
   // TODO: Use a debounce
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,7 +68,7 @@ export const Component = () => {
         />
         <div className="flex w-full items-center justify-between px-2">
           <span className="text-sm">
-            {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour
+            {rate} {getCurrencySymbol(walletAddress?.assetCode)} per hour
           </span>
         </div>
       </div>

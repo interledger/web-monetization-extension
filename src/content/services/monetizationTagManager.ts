@@ -7,6 +7,7 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
+  isTabMonetized,
   resumeMonetization,
   startMonetization,
   stopMonetization
@@ -60,10 +61,17 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private resumeAllMonetization() {
+    let validTagsCount = 0;
+
     this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress)
+      if (value.requestId && value.walletAddress) {
+        console.log(value.requestId, value.walletAddress);
         resumeMonetization({ requestId: value.requestId })
+        ++validTagsCount;
+      }
     })
+    
+    isTabMonetized({ value: validTagsCount > 0 })
   }
 
   private stopAllMonetization() {
@@ -185,7 +193,6 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (!wasDisabled) {
       this.onRemovedTag(tag)
-      stopMonetization({ requestId })
     }
 
     this.onAddedTag(tag, requestId)
@@ -246,7 +253,7 @@ export class MonetizationTagManager extends EventEmitter {
     const monetizationTags: NodeListOf<MonetizationTag> =
       this.document.querySelectorAll('link')
 
-    monetizationTags.forEach(async (tag) => {
+      monetizationTags.forEach(async (tag) => {
       try {
         this.observeMonetizationTagAttrs(tag)
         await this.onAddedTag(tag)
@@ -254,6 +261,8 @@ export class MonetizationTagManager extends EventEmitter {
         this.logger.error(e)
       }
     })
+
+    this.checkIsTabMonetized();
 
     const onMonetizations: NodeListOf<HTMLElement> =
       this.document.querySelectorAll('[onmonetization]')
@@ -280,6 +289,19 @@ export class MonetizationTagManager extends EventEmitter {
     const { requestId } = this.getTagDetails(tag, 'onRemovedTag')
     this.monetizationTags.delete(tag)
     stopMonetization({ requestId })
+
+    // Check if tab still monetized
+    this.checkIsTabMonetized();
+  }
+
+  private checkIsTabMonetized() {
+    let validTagsCount = 0;
+
+    this.monetizationTags.forEach((value) => {
+      if (value.requestId && value.walletAddress) ++validTagsCount;
+    })
+
+    isTabMonetized({value: validTagsCount > 0})
   }
 
   // Add tag to list & start monetization
@@ -294,7 +316,10 @@ export class MonetizationTagManager extends EventEmitter {
 
     this.monetizationTags.set(tag, details)
 
-    if (walletAddress) startMonetization({ requestId, walletAddress })
+    if (walletAddress) {
+      startMonetization({ requestId, walletAddress })
+      isTabMonetized({ value: true });
+    }
   }
 
   // Check tag to be enabled and for valid wallet address

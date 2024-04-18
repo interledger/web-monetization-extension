@@ -32,8 +32,8 @@ export class Background {
   }
 
   bindTabHandlers() {
+    console.log('activate tabs')
     this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
-    // this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
   }
 
   bindMessageHandler() {
@@ -55,6 +55,8 @@ export class Background {
 
             case PopupToBackgroundAction.TOGGLE_WM:
               await this.monetizationService.toggleWM()
+
+              this.tabEvents.onUpdatedTab();
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
@@ -77,7 +79,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.STOP_MONETIZATION:
-              this.monetizationService.stopPaymentSession(
+              await this.monetizationService.stopPaymentSession(
                 message.payload,
                 sender
               )
@@ -96,6 +98,10 @@ export class Background {
                   rateOfPay: message.payload.rateOfPay
                 })
               )
+
+            case ContentToBackgroundAction.IS_TAB_MONETIZED:
+              this.tabEvents.onUpdatedTab(message.payload)
+              return
 
             default:
               return
@@ -120,13 +126,5 @@ export class Background {
         await this.openPaymentsService.genererateKeys()
       }
     })
-  }
-
-  bindOnTabActivated() {
-    // this.browser.tabs.onActivated.addListener()
-  }
-
-  bindOnTabUpdated() {
-    // this.browser.tabs.onUpdated.addListener()
   }
 }

@@ -31,7 +31,7 @@ export const PayWebsiteForm = () => {
       <Input
         type="text"
         inputMode="numeric"
-        addOn={getCurrencySymbol(walletAddress.assetCode)}
+        addOn={getCurrencySymbol(walletAddress?.assetCode)}
         label={
           <div>
             Pay <span className="text-primary">URL</span>
@@ -66,7 +66,7 @@ export const PayWebsiteForm = () => {
                 thousandSeparator: ',',
                 thousandsGroupStyle: 'thousand',
                 fixedDecimalScale: true,
-                decimalScale: walletAddress.assetScale
+                decimalScale: walletAddress?.assetScale
               })
             )
           }
