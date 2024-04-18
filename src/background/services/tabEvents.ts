@@ -30,14 +30,14 @@ export class TabEvents {
     }
 
     if (payload) {
-      const {value} = payload;
+      const { value } = payload;
       
-      if (value) {
+      if (value)
         iconData = {
           '34': iconActive34,
           '128': iconActive128
         }
-      }
+    
     } else {
       const { enabled } = await this.storage.get(['enabled'])
 
@@ -45,6 +45,7 @@ export class TabEvents {
         '34': enabled ? iconActive34 : iconWarning34,
         '128': enabled ? iconActive128 : iconWarning128
       }
+    }
 
     if (this.browser.action) {
       await this.browser.action.setIcon({ path: iconData })

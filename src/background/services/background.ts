@@ -32,7 +32,6 @@ export class Background {
   }
 
   bindTabHandlers() {
-    console.log('activate tabs')
     this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
   }
 
