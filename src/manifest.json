@@ -28,6 +28,9 @@
     "default_title": "Web Monetization",
     "default_popup": "popup/index.html"
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "web_accessible_resources": [
     {
       "resources": [

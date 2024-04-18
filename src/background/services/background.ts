@@ -26,6 +26,35 @@ export class Background {
   start() {
     this.bindOnInstalled()
     this.bindMessageHandler()
+    console.log('here')
+    ;(async () => {
+      await this.openPaymentsService.initClient(
+        'https://ilp.rafiki.money/radu-wm'
+      )
+      const wa = await this.openPaymentsService.client!.walletAddress.get({
+        url: 'https://ilp.rafiki.money/radu-wm'
+      })
+
+      console.log(wa)
+
+      const grant = await this.openPaymentsService.client!.grant.request(
+        {
+          url: wa.authServer
+        },
+        {
+          access_token: {
+            access: [
+              {
+                type: 'incoming-payment',
+                actions: ['read', 'create', 'list']
+              }
+            ]
+          }
+        }
+      )
+      console.log(grant)
+      // this.storage.clear()
+    })()
   }
 
   bindMessageHandler() {

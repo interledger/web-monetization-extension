@@ -92,6 +92,7 @@ export class MonetizationService {
       !storage.amount?.value
     )
       return
+
     // (1) TODO: Use the amount that is derived from the rate of pay
 
     // Notice: The same access token is used for both quotes and outgoing payments.

@@ -178,35 +178,52 @@ export class OpenPaymentsService {
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
 
     this.client = await createAuthenticatedClient({
+      validateResponses: false,
       walletAddressUrl,
-      authenticatedRequestInterceptor: async (config) => {
-        if (!config.method || !config.url) {
+      authenticatedRequestInterceptor: async (request) => {
+        if (!request.method || !request.url) {
           throw new Error('Cannot intercept request: url or method missing')
+        }
+
+        const originalRequest = request.clone()
+        let body
+        try {
+          body = await request.json()
+        } catch (e) {
+          // noop
         }
 
         const headers = await this.createHeaders({
           request: {
-            method: config.method,
-            url: config.url,
-            headers: JSON.parse(JSON.stringify(config.headers)),
-            body: config.data ? JSON.stringify(config.data) : undefined
+            method: request.method,
+            url: request.url,
+            headers: JSON.parse(
+              JSON.stringify(Object.fromEntries(request.headers))
+            ),
+            body: body ? JSON.stringify(body) : undefined
           },
           privateKey: ed.etc.hexToBytes(privateKey),
           keyId
         })
 
-        if (config.data) {
-          config.headers['Content-Type'] = headers['Content-Type']
+        if (body) {
+          originalRequest.headers.set('Content-Type', headers['Content-Type']!)
           // Kept receiving console errors for setting unsafe header.
           // Keeping this as a comment for now.
-          // config.headers['Content-Length'] = headers['Content-Length']
-          config.headers['Content-Digest'] = headers['Content-Digest']
+          // request.headers['Content-Length'] = headers['Content-Length']
+          originalRequest.headers.set(
+            'Content-Digest',
+            headers['Content-Digest']!
+          )
         }
 
-        config.headers['Signature'] = headers['Signature']
-        config.headers['Signature-Input'] = headers['Signature-Input']
+        originalRequest.headers.set('Signature', headers['Signature'])
+        originalRequest.headers.set(
+          'Signature-Input',
+          headers['Signature-Input']
+        )
 
-        return config
+        return originalRequest
       }
     })
   }
@@ -230,6 +247,8 @@ export class OpenPaymentsService {
       walletAddress,
       amount: transformedAmount
     })
+
+    console.log(isPendingGrant(grant))
 
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
