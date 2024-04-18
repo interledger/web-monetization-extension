@@ -126,6 +126,7 @@ export interface MonetizationEventPayload {
 export interface BackgroundToContentActionPayload {
   [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
 }
+
 export type BackgroundToContentBackgroundMessage = {
   [K in BackgroundToContentAction]: MessageHKT<
     K,
