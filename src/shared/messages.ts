@@ -1,3 +1,4 @@
+import { WalletAddress } from '@interledger/open-payments'
 import { type Browser } from 'webextension-polyfill'
 
 export interface SuccessResponse<TPayload = undefined> {
@@ -61,11 +62,34 @@ export type PopupToBackgroundMessage = {
 }[PopupToBackgroundAction]
 
 export enum ContentToBackgroundAction {
-  TEST_ACTION = 'TEST_ACTION'
+  CHECK_WALLET_ADDRESS_URL = 'CHECK_WALLET_ADDRESS_URL',
+  START_MONETIZATION = 'START_MONETIZATION',
+  STOP_MONETIZATION = 'STOP_MONETIZATION',
+  RESUME_MONETIZATION = 'RESUME_MONETIZATION'
+}
+
+export interface CheckWalletAddressUrlPayload {
+  walletAddressUrl: string
+}
+
+export interface StartMonetizationPayload {
+  walletAddress: WalletAddress
+  requestId: string
+}
+
+export interface StopMonetizationPayload {
+  requestId: string
+}
+
+export interface ResumeMonetizationPayload {
+  requestId: string
 }
 
 export interface ContentToBackgroundActionPayload {
-  [ContentToBackgroundAction.TEST_ACTION]: { a: string }
+  [ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL]: CheckWalletAddressUrlPayload
+  [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload
+  [ContentToBackgroundAction.STOP_MONETIZATION]: StopMonetizationPayload
+  [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload
 }
 
 export type ContentToBackgroundMessage = {
@@ -79,6 +103,26 @@ export type ToBackgroundMessage =
   | PopupToBackgroundMessage
   | ContentToBackgroundMessage
 
+export enum BackgroundToContentAction {
+  MONETIZATION_EVENT = 'MONETIZATION_EVENT'
+}
+
+export interface MonetizationEventPayload {
+  requestId: string
+  details: any
+}
+export interface BackgroundToContentActionPayload {
+  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
+}
+
+export type BackgroundToContentBackgroundMessage = {
+  [K in BackgroundToContentAction]: MessageHKT<
+    K,
+    BackgroundToContentActionPayload[K]
+  >
+}[BackgroundToContentAction]
+
+export type ToContentMessage = BackgroundToContentBackgroundMessage
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
 

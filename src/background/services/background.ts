@@ -2,7 +2,8 @@
 import { type Browser } from 'webextension-polyfill'
 import {
   type ToBackgroundMessage,
-  PopupToBackgroundAction
+  PopupToBackgroundAction,
+  ContentToBackgroundAction
 } from '@/shared/messages'
 import type {
   MonetizationService,
@@ -10,7 +11,7 @@ import type {
   StorageService
 } from '.'
 import { Logger } from '@/shared/logger'
-import { failure, success } from '@/shared/helpers'
+import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 
@@ -54,6 +55,15 @@ export class Background {
                 message.payload
               )
               throw new Error('Not implemented')
+
+            case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
+              return success(
+                await getWalletInformation(message.payload.walletAddressUrl)
+              )
+
+            case ContentToBackgroundAction.START_MONETIZATION:
+              // start from monetization service
+              return
 
             case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
               return success(
