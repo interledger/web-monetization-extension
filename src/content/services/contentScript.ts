@@ -6,8 +6,8 @@ import { failure } from '@/shared/helpers'
 
 export class ContentScript {
   constructor(
-    private logger: Logger,
     private browser: Browser,
+    private logger: Logger,
     private monetizationTagManager: MonetizationTagManager
   ) {
     this.bindMessageHandler()

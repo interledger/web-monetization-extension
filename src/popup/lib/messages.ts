@@ -1,4 +1,7 @@
 import {
+  BackgroundToContentAction,
+  BackgroundToContentActionPayload,
+  BackgroundToContentMessage,
   MessageManager,
   PopupToBackgroundAction,
   PopupToBackgroundActionPayload,
@@ -7,7 +10,9 @@ import {
 import browser from 'webextension-polyfill'
 import { PopupState } from '@/popup/lib/context'
 
-export const message = new MessageManager<PopupToBackgroundMessage>(browser)
+export const message = new MessageManager<
+  PopupToBackgroundMessage | BackgroundToContentMessage
+>(browser)
 
 export const getContextData = async () => {
   return await message.send<PopupState>({

@@ -1,10 +1,11 @@
 import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
 import browser, { type Browser } from 'webextension-polyfill'
-import { Background } from '@/background/services/background'
 import {
   OpenPaymentsService,
   StorageService,
-  MonetizationService
+  MonetizationService,
+  Background,
+  TabEvents
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
@@ -15,11 +16,11 @@ interface Cradle {
   storage: StorageService
   openPaymentsService: OpenPaymentsService
   monetizationService: MonetizationService
+  tabEvents: TabEvents
   background: Background
 }
 
 export const configureContainer = () => {
-  // Create container
   const container = createContainer<Cradle>({
     injectionMode: InjectionMode.CLASSIC
   })
@@ -32,22 +33,23 @@ export const configureContainer = () => {
     storage: asClass(StorageService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:storage')
+        logger: logger.getLogger('storage')
       })),
     openPaymentsService: asClass(OpenPaymentsService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:open-payments')
+        logger: logger.getLogger('open-payments')
       })),
     monetizationService: asClass(MonetizationService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:monetization-service')
+        logger: logger.getLogger('monetization-service')
       })),
+    tabEvents: asClass(TabEvents).singleton(),
     background: asClass(Background)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('background:main')
+        logger: logger.getLogger('main')
       }))
   })
 

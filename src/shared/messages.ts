@@ -99,9 +99,21 @@ export type ContentToBackgroundMessage = {
   >
 }[ContentToBackgroundAction]
 
+export type BackgroundToContentMessage = {
+  [K in BackgroundToContentAction]: MessageHKT<
+    K,
+    BackgroundToContentActionPayload[K]
+  >
+}[BackgroundToContentAction]
+
+export interface BackgroundToContentActionPayload {
+  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
+}
+
 export type ToBackgroundMessage =
   | PopupToBackgroundMessage
   | ContentToBackgroundMessage
+  | BackgroundToContentMessage
 
 export enum BackgroundToContentAction {
   MONETIZATION_EVENT = 'MONETIZATION_EVENT'
@@ -134,9 +146,10 @@ export class MessageManager<TMessages> {
 
   async sendToTab<TResponse = void>(
     tabId: number,
+    frameId: number,
     message: TMessages
   ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
-    return await this.browser.tabs.sendMessage(tabId, message)
+    return await this.browser.tabs.sendMessage(tabId, message, { frameId })
   }
 
   async sendToActiveTab<TResponse = void>(

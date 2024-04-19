@@ -24,7 +24,11 @@ export const configureContainer = () => {
     logger: asValue(logger),
     browser: asValue(browser),
     document: asValue(document),
-    monetizationTagManager: asClass(MonetizationTagManager).singleton(),
+    monetizationTagManager: asClass(MonetizationTagManager)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('content-script:tagManager')
+      })),
     contentScript: asClass(ContentScript)
       .singleton()
       .inject(() => ({

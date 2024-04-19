@@ -1,6 +1,6 @@
-import { DEFAULT_RATE_OF_PAY, DEFAULT_INTERVAL_MS } from '@/background/config'
 import { Logger } from '@/shared/logger'
 import type { PopupStore, Storage, StorageKey } from '@/shared/types'
+import EventEmitter from 'events'
 import { type Browser } from 'webextension-polyfill'
 
 const defaultStorage = {
@@ -16,11 +16,17 @@ const defaultStorage = {
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
-export class StorageService {
+// TODO: Emit events when certain values are updated:
+// Eg:
+// - rate of pay - we should recalculate the amount for every payment session
+// - enabling/disabling WM
+export class StorageService extends EventEmitter {
   constructor(
     private browser: Browser,
     private logger: Logger
-  ) {}
+  ) {
+    super()
+  }
 
   async get<TKey extends StorageKey>(
     keys?: TKey[]
@@ -78,4 +84,5 @@ export class StorageService {
 
     return false
   }
+
 }

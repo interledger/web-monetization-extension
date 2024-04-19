@@ -1,4 +1,3 @@
-/* eslint-disable no-case-declarations */
 import { type Browser } from 'webextension-polyfill'
 import {
   type ToBackgroundMessage,
@@ -14,6 +13,7 @@ import { Logger } from '@/shared/logger'
 import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
+import { TabEvents } from './tabEvents'
 
 export class Background {
   constructor(
@@ -21,17 +21,25 @@ export class Background {
     private openPaymentsService: OpenPaymentsService,
     private monetizationService: MonetizationService,
     private storage: StorageService,
-    private logger: Logger
+    private logger: Logger,
+    private tabEvents: TabEvents
   ) {}
 
-  start() {
+  async start() {
     this.bindOnInstalled()
     this.bindMessageHandler()
+    this.bindTabHandlers()
+  }
+
+  bindTabHandlers() {
+    this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
+    // this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
   }
 
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
-      async (message: ToBackgroundMessage) => {
+      async (message: ToBackgroundMessage, sender) => {
+        this.logger.debug('Received message', message)
         try {
           switch (message.action) {
             case PopupToBackgroundAction.GET_CONTEXT_DATA:
@@ -62,7 +70,24 @@ export class Background {
               )
 
             case ContentToBackgroundAction.START_MONETIZATION:
-              // start from monetization service
+              await this.monetizationService.startPaymentSession(
+                message.payload,
+                sender
+              )
+              return
+
+            case ContentToBackgroundAction.STOP_MONETIZATION:
+              this.monetizationService.stopPaymentSession(
+                message.payload,
+                sender
+              )
+              return
+
+            case ContentToBackgroundAction.RESUME_MONETIZATION:
+              this.monetizationService.resumePaymentSession(
+                message.payload,
+                sender
+              )
               return
 
             case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
