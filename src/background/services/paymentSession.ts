@@ -99,6 +99,7 @@ export class PaymentSession {
          *    trying to create a quote, create a new incoming payment
          *
          */
+         console.log(e)
         if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
           if (e.status === 403) {
@@ -107,6 +108,7 @@ export class PaymentSession {
                 accessToken: token.value,
                 url: token.manage
               })
+              console.log
 
             token = {
               value: rotatedToken.access_token.value,
