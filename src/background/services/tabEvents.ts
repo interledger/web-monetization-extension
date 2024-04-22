@@ -1,7 +1,7 @@
-import { type Browser, runtime } from 'webextension-polyfill';
+import { type Browser, runtime } from 'webextension-polyfill'
 import { MonetizationService } from './monetization'
-import { StorageService } from './storage';
-import { IsTabMonetizedPayload } from '@/shared/messages';
+import { StorageService } from './storage'
+import { IsTabMonetizedPayload } from '@/shared/messages'
 
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
 const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
@@ -15,29 +15,28 @@ export class TabEvents {
     private monetizationService: MonetizationService,
     private storage: StorageService,
     private browser: Browser
-) {}
-
+  ) {}
+  // TODO: This is not ideal. Find a better way to clear the sessions for a specific tab.
+  // When closing the tab, we receive the STOP_MONETIZATION message as well.
+  // Maybe check if the tab is closed in the content script?
   onRemovedTab = (tabId: number) => {
     this.monetizationService.clearTabSessions(tabId)
   }
 
-  onUpdatedTab = async (
-    payload?: IsTabMonetizedPayload,
-  ) => {
+  onUpdatedTab = async (payload?: IsTabMonetizedPayload) => {
     let iconData = {
       '34': iconInactive34,
       '128': iconInactive128
     }
 
     if (payload) {
-      const { value } = payload;
-      
+      const { value } = payload
+
       if (value)
         iconData = {
           '34': iconActive34,
           '128': iconActive128
         }
-    
     } else {
       const { enabled } = await this.storage.get(['enabled'])
 

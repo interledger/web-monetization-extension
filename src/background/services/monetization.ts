@@ -26,6 +26,14 @@ export class MonetizationService {
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
+    // TODO: This is not ideal. We should not receive monetization events
+    // from the content script if WM is disabled or a wallet is not connected.
+    const { connected, enabled } = await this.storage.get([
+      'enabled',
+      'connected'
+    ])
+    if (connected === false || enabled === false) return
+
     const { requestId, walletAddress } = payload
     const { tabId, frameId } = getSender(sender)
 
@@ -62,6 +70,12 @@ export class MonetizationService {
   ) {
     const { requestId } = payload
     const tabId = getTabId(sender)
+    const sessions = this.sessions[tabId]
+
+    if (!sessions) {
+      this.logger.debug(`No active sessions found for tab ${tabId}.`)
+      return
+    }
 
     this.sessions[tabId].get(requestId)?.stop()
   }
@@ -72,6 +86,12 @@ export class MonetizationService {
   ) {
     const { requestId } = payload
     const tabId = getTabId(sender)
+    const sessions = this.sessions[tabId]
+
+    if (!sessions) {
+      this.logger.debug(`No active sessions found for tab ${tabId}.`)
+      return
+    }
 
     this.sessions[tabId].get(requestId)?.resume()
   }

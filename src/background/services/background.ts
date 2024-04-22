@@ -55,7 +55,7 @@ export class Background {
             case PopupToBackgroundAction.TOGGLE_WM:
               await this.monetizationService.toggleWM()
 
-              this.tabEvents.onUpdatedTab();
+              this.tabEvents.onUpdatedTab()
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
@@ -78,7 +78,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.STOP_MONETIZATION:
-              await this.monetizationService.stopPaymentSession(
+              this.monetizationService.stopPaymentSession(
                 message.payload,
                 sender
               )

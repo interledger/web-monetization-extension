@@ -61,15 +61,15 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private resumeAllMonetization() {
-    let validTagsCount = 0;
+    let validTagsCount = 0
 
     this.monetizationTags.forEach((value) => {
       if (value.requestId && value.walletAddress) {
         resumeMonetization({ requestId: value.requestId })
-        ++validTagsCount;
+        ++validTagsCount
       }
     })
-    
+
     isTabMonetized({ value: validTagsCount > 0 })
   }
 
@@ -252,7 +252,7 @@ export class MonetizationTagManager extends EventEmitter {
     const monetizationTags: NodeListOf<MonetizationTag> =
       this.document.querySelectorAll('link')
 
-      monetizationTags.forEach(async (tag) => {
+    monetizationTags.forEach(async (tag) => {
       try {
         this.observeMonetizationTagAttrs(tag)
         await this.onAddedTag(tag)
@@ -261,7 +261,7 @@ export class MonetizationTagManager extends EventEmitter {
       }
     })
 
-    this.checkIsTabMonetized();
+    this.checkIsTabMonetized()
 
     const onMonetizations: NodeListOf<HTMLElement> =
       this.document.querySelectorAll('[onmonetization]')
@@ -290,17 +290,17 @@ export class MonetizationTagManager extends EventEmitter {
     stopMonetization({ requestId })
 
     // Check if tab still monetized
-    this.checkIsTabMonetized();
+    this.checkIsTabMonetized()
   }
 
   private checkIsTabMonetized() {
-    let validTagsCount = 0;
+    let validTagsCount = 0
 
     this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress) ++validTagsCount;
+      if (value.requestId && value.walletAddress) ++validTagsCount
     })
 
-    isTabMonetized({value: validTagsCount > 0})
+    isTabMonetized({ value: validTagsCount > 0 })
   }
 
   // Add tag to list & start monetization
@@ -317,7 +317,7 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (walletAddress) {
       startMonetization({ requestId, walletAddress })
-      isTabMonetized({ value: true });
+      isTabMonetized({ value: true })
     }
   }
 
