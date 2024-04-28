@@ -98,8 +98,8 @@ devDependencies:
     specifier: ^14.2.2
     version: 14.2.2(react-dom@18.2.0)(react@18.2.0)
   '@types/chrome':
-    specifier: ^0.0.266
-    version: 0.0.266
+    specifier: ^0.0.267
+    version: 0.0.267
   '@types/jest':
     specifier: ^29.5.12
     version: 29.5.12
@@ -1439,8 +1439,8 @@ packages:
       '@types/har-format': 1.2.15
     dev: true
 
-  /@types/chrome@0.0.266:
-    resolution: {integrity: sha512-QSQWJTL7NjZElvq/6/E5C1+pHgEP8UAJzwoz7M4vSJ7AECt6NNehJ+tU6snnvuTqZOBjFCivvitYo5+8tNPmhg==}
+  /@types/chrome@0.0.267:
+    resolution: {integrity: sha512-vnCWPpYjazSPRMNmybRH+0q4f738F+Pbbls4ZPFsPr9/4TTNJyK1OLZDpSnghnEWb4stfmIUtq/GegnlfD4sPA==}
     dependencies:
       '@types/filesystem': 0.0.35
       '@types/har-format': 1.2.15
