@@ -33,7 +33,10 @@ export class Background {
 
   bindTabHandlers() {
     this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
-    // this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
+    // this.browser.webNavigation.onCommitted.addListener((details) => {
+    //     console.log(details)
+    // })
+    this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
   }
 
   bindMessageHandler() {
@@ -58,11 +61,8 @@ export class Background {
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
-              this.logger.debug(
-                PopupToBackgroundAction.PAY_WEBSITE,
-                message.payload
-              )
-              throw new Error('Not implemented')
+              await this.monetizationService.pay(message.payload.amount)
+              return
 
             case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
               return success(
@@ -120,13 +120,5 @@ export class Background {
         await this.openPaymentsService.genererateKeys()
       }
     })
-  }
-
-  bindOnTabActivated() {
-    // this.browser.tabs.onActivated.addListener()
-  }
-
-  bindOnTabUpdated() {
-    // this.browser.tabs.onUpdated.addListener()
   }
 }

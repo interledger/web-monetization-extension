@@ -38,7 +38,7 @@ export interface ConnectWalletPayload {
 }
 
 export interface PayWebsitePayload {
-  amount: string
+  amount: number
 }
 
 export interface UpdateRateOfPayPayload {

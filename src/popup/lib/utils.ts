@@ -1,3 +1,5 @@
+import browser from 'webextension-polyfill';
+
 export const getCurrencySymbol = (assetCode: string): string => {
   return new Intl.NumberFormat('en-US', {
     currency: assetCode,
@@ -29,3 +31,9 @@ export function roundWithPrecision(num: number, precision: number) {
   const multiplier = Math.pow(10, precision)
   return Math.round(num * multiplier) / multiplier
 }
+
+export async function getCurrentTabURL(): Promise<string | undefined> {
+    const tab = await browser.tabs.query({active: true, currentWindow: true})
+    return tab[0].url
+}
+

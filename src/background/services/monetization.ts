@@ -1,5 +1,5 @@
 import { OpenPaymentsService, StorageService } from '.'
-import { Runtime } from 'webextension-polyfill'
+import { type Browser, type Runtime } from 'webextension-polyfill'
 import { Logger } from '@/shared/logger'
 import {
   ResumeMonetizationPayload,
@@ -7,7 +7,7 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
-import { getSender, getTabId } from '../utils'
+import { getCurrentActiveTab, getSender, getTabId } from '../utils'
 
 export class MonetizationService {
   private sessions: {
@@ -17,7 +17,8 @@ export class MonetizationService {
   constructor(
     private logger: Logger,
     private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService
+    private storage: StorageService,
+    private browser: Browser
   ) {
     this.sessions = {}
   }
@@ -26,13 +27,12 @@ export class MonetizationService {
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
-      // TODO: This is not ideal. We should not receive monetization events
-      // from the content script if WM is disabled or a wallet is not connected.
+    // TODO: This is not ideal. We should not receive monetization events
+    // from the content script if WM is disabled or a wallet is not connected.
     const { connected, enabled } = await this.storage.get([
       'enabled',
       'connected'
     ])
-    if (connected === false || enabled === false) return
 
     const { requestId, walletAddress } = payload
     const { tabId, frameId } = getSender(sender)
@@ -61,7 +61,10 @@ export class MonetizationService {
     )
 
     this.sessions[tabId].set(requestId, session)
-    void session.start()
+
+    if (connected === true && enabled === true) {
+      void session.start()
+    }
   }
 
   stopPaymentSession(
@@ -116,5 +119,18 @@ export class MonetizationService {
 
     delete this.sessions[tabId]
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
+  }
+
+  async pay(amount: number) {
+    const tab = await getCurrentActiveTab(this.browser)
+    if (!tab || !tab.id) return
+
+    const sessions = this.sessions[tab.id]
+    const splitAmount = amount / sessions.size
+
+    for (const session of sessions.values()) {
+      session.pay(splitAmount)
+    }
+
   }
 }

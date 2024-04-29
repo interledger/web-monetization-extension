@@ -2,7 +2,10 @@ import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { PopupStateContext } from '@/popup/lib/context'
 import { payWebsite } from '@/popup/lib/messages'
-import { getCurrencySymbol, charIsNumber } from '@/popup/lib/utils'
+import {
+  getCurrencySymbol,
+  charIsNumber,
+} from '@/popup/lib/utils'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
@@ -13,7 +16,7 @@ interface PayWebsiteFormProps {
 
 export const PayWebsiteForm = () => {
   const {
-    state: { walletAddress }
+    state: { walletAddress, url }
   } = React.useContext(PopupStateContext)
   const {
     register,
@@ -34,7 +37,7 @@ export const PayWebsiteForm = () => {
         addOn={getCurrencySymbol(walletAddress.assetCode)}
         label={
           <div>
-            Pay <span className="text-primary">URL</span>
+            Pay <span className="text-primary">{url}</span>
           </div>
         }
         placeholder="0.00"
@@ -79,7 +82,7 @@ export const PayWebsiteForm = () => {
         loading={isSubmitting}
         aria-label="Connect your wallet"
       >
-        Connect
+        Pay
       </Button>
     </form>
   )

@@ -14,7 +14,7 @@ import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
 import {
-  getCurrentActiveTabId,
+  getCurrentActiveTab,
   getExchangeRates,
   getRateOfPay,
   toAmount
@@ -388,7 +388,7 @@ export class OpenPaymentsService {
   }
 
   private async confirmPayment(url: string): Promise<InteractionParams> {
-    const currentTabId = await getCurrentActiveTabId(this.browser)
+    const currentTab = await getCurrentActiveTab(this.browser)
 
     return await new Promise((res) => {
       if (url) {
@@ -401,7 +401,7 @@ export class OpenPaymentsService {
                 const hash = tabUrl.searchParams.get('hash')
 
                 if (tabId === tab.id && interactRef && hash) {
-                  this.browser.tabs.update(currentTabId, { active: true })
+                  this.browser.tabs.update(currentTab.id, { active: true })
                   this.browser.tabs.remove(tab.id)
                   res({ interactRef, hash })
                 }
