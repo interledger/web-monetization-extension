@@ -31,9 +31,3 @@ export function roundWithPrecision(num: number, precision: number) {
   const multiplier = Math.pow(10, precision)
   return Math.round(num * multiplier) / multiplier
 }
-
-export async function getCurrentTabURL(): Promise<string | undefined> {
-    const tab = await browser.tabs.query({active: true, currentWindow: true})
-    return tab[0].url
-}
-

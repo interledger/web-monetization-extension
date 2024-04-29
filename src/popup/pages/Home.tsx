@@ -44,34 +44,36 @@ export const Component = () => {
     })
   }
 
+  if (!enabled) {
+    return (
+      <div className="flex items-center gap-2">
+        <WarningSign />
+        <p className="text-base text-medium">
+          Web Monetization has been turned off.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
-      {!enabled ? (
-        <div className="flex items-center gap-2">
-          <WarningSign />
-          <p className="text-base text-medium">
-            Web Monetization has been turned off.
-          </p>
+      <div className="space-y-2">
+        <Label className="px-2 text-base font-medium text-medium">
+          Current rate of pay
+        </Label>
+        <Slider
+          onChange={onRateChange}
+          min={Number(minRateOfPay)}
+          max={Number(maxRateOfPay)}
+          step={Number(minRateOfPay)}
+          value={Number(rateOfPay)}
+        />
+        <div className="flex w-full items-center justify-between px-2">
+          <span className="text-sm">
+            {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour test
+          </span>
         </div>
-      ) : (
-        <div className="space-y-2">
-          <Label className="px-2 text-base font-medium text-medium">
-            Current rate of pay
-          </Label>
-          <Slider
-            onChange={onRateChange}
-            min={Number(minRateOfPay)}
-            max={Number(maxRateOfPay)}
-            step={Number(minRateOfPay)}
-            value={Number(rateOfPay)}
-          />
-          <div className="flex w-full items-center justify-between px-2">
-            <span className="text-sm">
-              {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour test
-            </span>
-          </div>
-        </div>
-      )}
+      </div>
       {url ? <PayWebsiteForm /> : null}
     </div>
   )

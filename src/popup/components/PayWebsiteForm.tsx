@@ -2,10 +2,7 @@ import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { PopupStateContext } from '@/popup/lib/context'
 import { payWebsite } from '@/popup/lib/messages'
-import {
-  getCurrencySymbol,
-  charIsNumber,
-} from '@/popup/lib/utils'
+import { getCurrencySymbol, charIsNumber } from '@/popup/lib/utils'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
@@ -57,7 +54,7 @@ export const PayWebsiteForm = () => {
         errorMessage={errors.amount?.message}
         {...register('amount', {
           required: { value: true, message: 'Amount is required.' },
-          valueAsNumber: false,
+          valueAsNumber: true,
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             setValue(
               'amount',

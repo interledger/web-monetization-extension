@@ -27,8 +27,6 @@ export class MonetizationService {
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
-    // TODO: This is not ideal. We should not receive monetization events
-    // from the content script if WM is disabled or a wallet is not connected.
     const { connected, enabled } = await this.storage.get([
       'enabled',
       'connected'
@@ -121,16 +119,15 @@ export class MonetizationService {
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }
 
-  async pay(amount: number) {
+  async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
     if (!tab || !tab.id) return
 
     const sessions = this.sessions[tab.id]
-    const splitAmount = amount / sessions.size
+    const splitAmount = Number(amount) / sessions.size
 
     for (const session of sessions.values()) {
       session.pay(splitAmount)
     }
-
   }
 }

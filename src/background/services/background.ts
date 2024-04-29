@@ -33,9 +33,6 @@ export class Background {
 
   bindTabHandlers() {
     this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
-    // this.browser.webNavigation.onCommitted.addListener((details) => {
-    //     console.log(details)
-    // })
     this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
   }
 
