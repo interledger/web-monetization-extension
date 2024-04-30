@@ -22,10 +22,11 @@ export const toAmount = ({
   recurring,
   assetScale
 }: ToAmountParams): WalletAmount => {
+  const interval = `R/${new Date().toISOString()}/P1M`
+
   return {
     value: Math.floor(parseFloat(value) * 10 ** assetScale).toString(),
-    // TODO: Create repeating interval
-    ...(recurring ? { interval: new Date().toISOString() } : {})
+    ...(recurring ? { interval } : {})
   }
 }
 
