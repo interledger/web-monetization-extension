@@ -34,6 +34,8 @@ export class FrameManager {
         'data',
         event.data
       )
+      if (event.origin === this.window.location.href) return
+
       const { message } = event.data
       const frame = this.findIframe(event.source)
 
@@ -45,12 +47,12 @@ export class FrameManager {
           return
         case 'isAllowed':
           if (frame.allow === 'monetization') {
-            const { requestId, walletAddress, id } = event.data
+            const { requestId, walletAddress, id, eventName } = event.data
             this.logger.info('source', event.origin, event)
 
             event.source.postMessage(
               {
-                message: 'startMonetization',
+                message: eventName,
                 requestId,
                 walletAddress,
                 id
@@ -108,6 +110,14 @@ export class FrameManager {
       const typeSpecified =
         target instanceof HTMLIFrameElement && target.allow === 'monetization'
 
+      this.logger.info(
+        'hasTarget',
+        hasTarget,
+        'typeSpecified',
+        typeSpecified,
+        target
+      )
+
       if (!hasTarget && typeSpecified) {
         await this.onAddedFrame(target)
         handledTags.add(target)
@@ -127,14 +137,21 @@ export class FrameManager {
 
   private async onRemovedFrame(frame: HTMLIFrameElement) {
     const frameId = this.frames.get(frame)
-    frame.contentWindow?.postMessage({
-      message: 'stopMonetization',
-      id: frameId
-    })
+    this.logger.info('frameId', frameId, frame)
+
+    frame.contentWindow?.postMessage(
+      {
+        message: 'stopMonetization',
+        id: frameId
+      },
+      '*'
+    )
     this.frames.delete(frame)
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
+    this.logger.log('on whole doc')
+
     for (const record of records) {
       if (record.type === 'childList') {
         record.removedNodes.forEach((node) => this.check('removed', node))

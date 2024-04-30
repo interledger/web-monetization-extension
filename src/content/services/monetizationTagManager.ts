@@ -68,15 +68,18 @@ export class MonetizationTagManager extends EventEmitter {
         if (event.origin === window.location.href || event.data.id !== this.id)
           return
         this.logger.log('iframe', event.data)
+        const { requestId, walletAddress } = event.data
 
         switch (event.data.message) {
           case 'startMonetization':
-            const { requestId, walletAddress } = event.data
-
             startMonetization({ requestId, walletAddress })
             return
+          case 'resumeMonetization':
+            resumeMonetization({ requestId })
+            return
           case 'stopMonetization':
-            // this.stopAllMonetization()
+            this.logger.info('stopMonetization')
+            this.stopAllMonetization()
             return
           default:
             return
@@ -101,8 +104,21 @@ export class MonetizationTagManager extends EventEmitter {
 
   private resumeAllMonetization() {
     this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress)
-        resumeMonetization({ requestId: value.requestId })
+      if (value.requestId && value.walletAddress) {
+        if (this.isTopFrame) {
+          resumeMonetization({ requestId: value.requestId })
+        } else if (this.isFirstLevelFrame) {
+          this.window.parent.postMessage(
+            {
+              message: 'isAllowed',
+              id: this.id,
+              requestId: value.requestId,
+              eventName: 'resumeMonetization'
+            },
+            '*'
+          )
+        }
+      }
     })
   }
 
@@ -356,7 +372,8 @@ export class MonetizationTagManager extends EventEmitter {
             message: 'isAllowed',
             id: this.id,
             walletAddress,
-            requestId
+            requestId,
+            eventName: 'startMonetization'
           },
           '*'
         )
