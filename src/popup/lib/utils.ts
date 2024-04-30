@@ -1,5 +1,4 @@
 export const getCurrencySymbol = (assetCode: string): string => {
-  if (!assetCode) return '';
   return new Intl.NumberFormat('en-US', {
     currency: assetCode,
     style: 'currency',

@@ -49,8 +49,8 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       const url = new URL(walletAddressUrl)
       const walletAddress = await getWalletInformation(url.toString())
       setCurrencySymbol({
-        symbol: getCurrencySymbol(walletAddress?.assetCode),
-        scale: walletAddress?.assetScale
+        symbol: getCurrencySymbol(walletAddress.assetCode),
+        scale: walletAddress.assetScale
       })
     } catch (e) {
       setError('walletAddressUrl', {
