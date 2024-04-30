@@ -3,18 +3,24 @@ import { MonetizationTagManager } from './monetizationTagManager'
 import { type Browser } from 'webextension-polyfill'
 import { BackgroundToContentAction, ToContentMessage } from '@/shared/messages'
 import { failure } from '@/shared/helpers'
+import { FrameManager } from './frameManager'
 
 export class ContentScript {
   constructor(
     private browser: Browser,
+    private window: Window,
     private logger: Logger,
-    private monetizationTagManager: MonetizationTagManager
+    private monetizationTagManager: MonetizationTagManager,
+    private frameManager: FrameManager
   ) {
     this.bindMessageHandler()
+    this.frameManager.isTopFrame = window === window.top
+    this.frameManager.isFirstLevelFrame = window.parent === window.top
   }
 
   start() {
     this.logger.info('Content script started')
+    this.frameManager.start()
 
     this.monetizationTagManager.start()
   }

@@ -4,12 +4,15 @@ import { createLogger, Logger } from '@/shared/logger'
 import { ContentScript } from './services/contentScript'
 import { MonetizationTagManager } from './services/monetizationTagManager'
 import { LOG_LEVEL } from '@/shared/defines'
+import { FrameManager } from './services/frameManager'
 
 interface Cradle {
   logger: Logger
   browser: Browser
   document: Document
+  window: Window
   monetizationTagManager: MonetizationTagManager
+  frameManager: FrameManager
   contentScript: ContentScript
 }
 
@@ -24,6 +27,12 @@ export const configureContainer = () => {
     logger: asValue(logger),
     browser: asValue(browser),
     document: asValue(document),
+    window: asValue(window),
+    frameManager: asClass(FrameManager)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('content-script:frameManager')
+      })),
     monetizationTagManager: asClass(MonetizationTagManager)
       .singleton()
       .inject(() => ({

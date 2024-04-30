@@ -21,12 +21,16 @@ interface FireOnMonetizationChangeIfHaveAttributeParams {
 }
 
 export class MonetizationTagManager extends EventEmitter {
+  private isTopFrame: boolean
+  private isFirstLevelFrame: boolean
   private documentObserver: MutationObserver
   private monetizationTagAttrObserver: MutationObserver
+  private id: string
 
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
   constructor(
+    private window: Window,
     private document: Document,
     private logger: Logger
   ) {
@@ -43,6 +47,42 @@ export class MonetizationTagManager extends EventEmitter {
         ? this.resumeAllMonetization()
         : this.stopAllMonetization()
     })
+
+    this.isTopFrame = window === window.top
+    this.isFirstLevelFrame = window.parent === window.top
+    this.id = crypto.randomUUID()
+
+    if (!this.isTopFrame && this.isFirstLevelFrame) {
+      this.logger.log('setup', window.location.href, window)
+      window.addEventListener('message', (event) => {
+        this.logger.log(
+          'monetization origin',
+          event.origin,
+          'crtLocation',
+          this.window.location.href,
+          'data',
+          event.data
+        )
+
+        this.logger.info(event.origin, window.location.href)
+        if (event.origin === window.location.href || event.data.id !== this.id)
+          return
+        this.logger.log('iframe', event.data)
+
+        switch (event.data.message) {
+          case 'startMonetization':
+            const { requestId, walletAddress } = event.data
+
+            startMonetization({ requestId, walletAddress })
+            return
+          case 'stopMonetization':
+            // this.stopAllMonetization()
+            return
+          default:
+            return
+        }
+      })
+    }
   }
 
   dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
@@ -74,21 +114,18 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
-    this.logger.info('document mutation records.length=', records.length)
-
     for (const record of records) {
-      this.logger.info('Record', record.type, record.target)
       if (record.type === 'childList') {
         record.removedNodes.forEach((node) => this.check('removed', node))
       }
     }
 
-    for (const record of records) {
-      this.logger.info('Record', record.type, record.target)
-      if (record.type === 'childList') {
-        record.addedNodes.forEach((node) => this.check('added', node))
+    if (this.isTopFrame)
+      for (const record of records) {
+        if (record.type === 'childList') {
+          record.addedNodes.forEach((node) => this.check('added', node))
+        }
       }
-    }
 
     this.onOnMonetizationChangeObserved(records)
   }
@@ -144,8 +181,6 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   async check(op: string, node: Node) {
-    this.logger.info('head node', op, node)
-
     if (node instanceof HTMLLinkElement) {
       if (op === 'added') {
         this.observeMonetizationTagAttrs(node)
@@ -219,12 +254,13 @@ export class MonetizationTagManager extends EventEmitter {
       detail: mozClone({ attribute }, this.document)
     })
 
-    const result = node.dispatchEvent(customEvent)
-
-    this.logger.info('dispatched onmonetization-attr-changed ev', result)
+    node.dispatchEvent(customEvent)
   }
 
   start(): void {
+    // Ignore all nested iframe
+    if (!this.isFirstLevelFrame) return
+
     if (
       document.readyState === 'interactive' ||
       document.readyState === 'complete'
@@ -243,9 +279,26 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private run() {
-    const monetizationTags: NodeListOf<MonetizationTag> =
-      this.document.querySelectorAll('link')
+    // send init confirmation to parent frame
+    if (!this.isTopFrame && this.isFirstLevelFrame) {
+      this.window.parent.postMessage(
+        {
+          message: 'init',
+          id: this.id
+        },
+        '*'
+      )
+    }
 
+    let monetizationTags: NodeListOf<MonetizationTag> | MonetizationTag[]
+
+    if (this.isTopFrame)
+      monetizationTags = this.document.querySelectorAll('link')
+    else {
+      const monetizationTag: MonetizationTag | null =
+        this.document.querySelector('head link[rel="monetization"]')
+      monetizationTags = monetizationTag ? [monetizationTag] : []
+    }
     monetizationTags.forEach(async (tag) => {
       try {
         this.observeMonetizationTagAttrs(tag)
@@ -294,7 +347,21 @@ export class MonetizationTagManager extends EventEmitter {
 
     this.monetizationTags.set(tag, details)
 
-    if (walletAddress) startMonetization({ requestId, walletAddress })
+    if (walletAddress) {
+      if (this.isTopFrame) {
+        startMonetization({ requestId, walletAddress })
+      } else if (this.isFirstLevelFrame) {
+        this.window.parent.postMessage(
+          {
+            message: 'isAllowed',
+            id: this.id,
+            walletAddress,
+            requestId
+          },
+          '*'
+        )
+      }
+    }
   }
 
   // Check tag to be enabled and for valid wallet address
