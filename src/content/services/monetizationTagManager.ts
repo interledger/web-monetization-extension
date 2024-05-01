@@ -12,6 +12,7 @@ import {
   stopMonetization
 } from '../lib/messages'
 import { MonetizationEventPayload } from '@/shared/messages'
+import { ContentToContentAction } from '../messages'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -53,38 +54,7 @@ export class MonetizationTagManager extends EventEmitter {
     this.id = crypto.randomUUID()
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
-      this.logger.log('setup', window.location.href, window)
-      window.addEventListener('message', (event) => {
-        this.logger.log(
-          'monetization origin',
-          event.origin,
-          'crtLocation',
-          this.window.location.href,
-          'data',
-          event.data
-        )
-
-        this.logger.info(event.origin, window.location.href)
-        if (event.origin === window.location.href || event.data.id !== this.id)
-          return
-        this.logger.log('iframe', event.data)
-        const { requestId, walletAddress } = event.data
-
-        switch (event.data.message) {
-          case 'startMonetization':
-            startMonetization({ requestId, walletAddress })
-            return
-          case 'resumeMonetization':
-            resumeMonetization({ requestId })
-            return
-          case 'stopMonetization':
-            this.logger.info('stopMonetization')
-            this.stopAllMonetization()
-            return
-          default:
-            return
-        }
-      })
+      this.bindMessageHandler()
     }
   }
 
@@ -110,10 +80,9 @@ export class MonetizationTagManager extends EventEmitter {
         } else if (this.isFirstLevelFrame) {
           this.window.parent.postMessage(
             {
-              message: 'isAllowed',
+              message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
               id: this.id,
-              requestId: value.requestId,
-              eventName: 'resumeMonetization'
+              payload: { requestId: value.requestId }
             },
             '*'
           )
@@ -124,8 +93,20 @@ export class MonetizationTagManager extends EventEmitter {
 
   private stopAllMonetization() {
     this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress)
-        stopMonetization({ requestId: value.requestId })
+      if (value.requestId && value.walletAddress) {
+        if (this.isTopFrame) {
+          stopMonetization({ requestId: value.requestId })
+        } else if (this.isFirstLevelFrame) {
+          this.window.parent.postMessage(
+            {
+              message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_STOP,
+              id: this.id,
+              payload: { requestId: value.requestId }
+            },
+            '*'
+          )
+        }
+      }
     })
   }
 
@@ -274,9 +255,6 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   start(): void {
-    // Ignore all nested iframe
-    if (!this.isFirstLevelFrame) return
-
     if (
       document.readyState === 'interactive' ||
       document.readyState === 'complete'
@@ -295,11 +273,10 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private run() {
-    // send init confirmation to parent frame
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.parent.postMessage(
         {
-          message: 'init',
+          message: ContentToContentAction.INITILIZE_IFRAME,
           id: this.id
         },
         '*'
@@ -315,6 +292,7 @@ export class MonetizationTagManager extends EventEmitter {
         this.document.querySelector('head link[rel="monetization"]')
       monetizationTags = monetizationTag ? [monetizationTag] : []
     }
+
     monetizationTags.forEach(async (tag) => {
       try {
         this.observeMonetizationTagAttrs(tag)
@@ -369,11 +347,12 @@ export class MonetizationTagManager extends EventEmitter {
       } else if (this.isFirstLevelFrame) {
         this.window.parent.postMessage(
           {
-            message: 'isAllowed',
+            message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
             id: this.id,
-            walletAddress,
-            requestId,
-            eventName: 'startMonetization'
+            payload: {
+              walletAddress,
+              requestId
+            }
           },
           '*'
         )
@@ -431,5 +410,27 @@ export class MonetizationTagManager extends EventEmitter {
 
       return null
     }
+  }
+
+  private bindMessageHandler() {
+    this.window.addEventListener('message', (event) => {
+      const { message, id, payload } = event.data
+
+      if (event.origin === window.location.href || id !== this.id) return
+
+      switch (message) {
+        case ContentToContentAction.START_MONETIZATION:
+          startMonetization(payload)
+          return
+        case ContentToContentAction.RESUME_MONETIZATION:
+          resumeMonetization(payload)
+          return
+        case ContentToContentAction.STOP_MONETIZATION:
+          stopMonetization(payload)
+          return
+        default:
+          return
+      }
+    })
   }
 }

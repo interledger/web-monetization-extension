@@ -1,20 +1,20 @@
 import { Logger } from '@/shared/logger'
+import { stopMonetization } from '../lib/messages'
+import { ContentToContentAction } from '../messages'
 
 export class FrameManager {
-  isTopFrame: boolean
-  isFirstLevelFrame: boolean
   private documentObserver: MutationObserver
   private frameAllowAttrObserver: MutationObserver
-  frames = new Map<HTMLIFrameElement, string>()
+  private frames = new Map<
+    HTMLIFrameElement,
+    { frameId: string | null; requestIds: string[] }
+  >()
 
   constructor(
     private window: Window,
     private document: Document,
     private logger: Logger
   ) {
-    this.isTopFrame = window === window.top
-    this.isFirstLevelFrame = window.parent === window.top
-
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records)
     )
@@ -22,50 +22,6 @@ export class FrameManager {
     this.frameAllowAttrObserver = new MutationObserver((records) =>
       this.onFrameAllowAttrChange(records)
     )
-
-    if (!this.isTopFrame) return
-
-    window.addEventListener('message', (event: any) => {
-      this.logger.log(
-        'origin',
-        event.origin,
-        'crtLocation',
-        window.location.href,
-        'data',
-        event.data
-      )
-      if (event.origin === this.window.location.href) return
-
-      const { message } = event.data
-      const frame = this.findIframe(event.source)
-
-      if (!frame) return
-
-      switch (message) {
-        case 'init':
-          this.frames.set(frame, event.data.id)
-          return
-        case 'isAllowed':
-          if (frame.allow === 'monetization') {
-            const { requestId, walletAddress, id, eventName } = event.data
-            this.logger.info('source', event.origin, event)
-
-            event.source.postMessage(
-              {
-                message: eventName,
-                requestId,
-                walletAddress,
-                id
-              },
-              '*'
-            )
-          }
-          return
-
-        default:
-          return
-      }
-    })
   }
 
   private findIframe(sourceWindow: Window): HTMLIFrameElement | null {
@@ -110,14 +66,6 @@ export class FrameManager {
       const typeSpecified =
         target instanceof HTMLIFrameElement && target.allow === 'monetization'
 
-      this.logger.info(
-        'hasTarget',
-        hasTarget,
-        'typeSpecified',
-        typeSpecified,
-        target
-      )
-
       if (!hasTarget && typeSpecified) {
         await this.onAddedFrame(target)
         handledTags.add(target)
@@ -132,38 +80,33 @@ export class FrameManager {
   }
 
   private async onAddedFrame(frame: HTMLIFrameElement) {
-    this.frames.set(frame, '')
+    this.frames.set(frame, { frameId: null, requestIds: [] })
   }
 
   private async onRemovedFrame(frame: HTMLIFrameElement) {
-    const frameId = this.frames.get(frame)
-    this.logger.info('frameId', frameId, frame)
+    this.logger.info('onRemovedFrame', frame)
 
-    frame.contentWindow?.postMessage(
-      {
-        message: 'stopMonetization',
-        id: frameId
-      },
-      '*'
+    const frameDetails = this.frames.get(frame)
+
+    frameDetails?.requestIds.forEach((requestId) =>
+      stopMonetization({ requestId })
     )
+
     this.frames.delete(frame)
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
-    this.logger.log('on whole doc')
-
     for (const record of records) {
       if (record.type === 'childList') {
         record.removedNodes.forEach((node) => this.check('removed', node))
       }
     }
 
-    if (this.isTopFrame)
-      for (const record of records) {
-        if (record.type === 'childList') {
-          record.addedNodes.forEach((node) => this.check('added', node))
-        }
+    for (const record of records) {
+      if (record.type === 'childList') {
+        record.addedNodes.forEach((node) => this.check('added', node))
       }
+    }
   }
 
   async check(op: string, node: Node) {
@@ -178,10 +121,7 @@ export class FrameManager {
   }
 
   start(): void {
-    // Ignore all nested iframe
-    if (!this.isTopFrame) return
-
-    this.logger.info('start frame manager', this.window.location.href)
+    this.bindMessageHandler()
 
     if (
       document.readyState === 'interactive' ||
@@ -212,6 +152,79 @@ export class FrameManager {
         this.logger.error(e)
       }
     })
+
     this.observeDocumentForFrames()
+  }
+
+  private bindMessageHandler() {
+    this.window.addEventListener('message', (event: any) => {
+      if (event.origin === this.window.location.href) return
+
+      const { message, payload, id } = event.data
+      const frame = this.findIframe(event.source)
+
+      if (!frame) return
+
+      const frameDetails = this.frames.get(frame)
+
+      switch (message) {
+        case ContentToContentAction.INITILIZE_IFRAME:
+          this.frames.set(frame, { frameId: id, requestIds: [] })
+          return
+
+        case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START:
+          if (frame.allow === 'monetization') {
+            this.frames.set(frame, {
+              frameId: id,
+              requestIds: [payload.requestId]
+            })
+
+            event.source.postMessage(
+              {
+                message: ContentToContentAction.START_MONETIZATION,
+                id,
+                payload
+              },
+              '*'
+            )
+          }
+
+          return
+
+        case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME:
+          if (frame.allow === 'monetization') {
+            this.frames.set(frame, {
+              frameId: id,
+              requestIds: [payload.requestId]
+            })
+
+            event.source.postMessage(
+              {
+                message: ContentToContentAction.RESUME_MONETIZATION,
+                id,
+                payload
+              },
+              '*'
+            )
+          }
+          return
+
+        case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_STOP:
+          if (frameDetails?.requestIds.length) {
+            event.source.postMessage(
+              {
+                message: ContentToContentAction.STOP_MONETIZATION,
+                id,
+                payload
+              },
+              '*'
+            )
+          }
+
+          return
+        default:
+          return
+      }
+    })
   }
 }

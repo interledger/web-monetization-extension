@@ -6,6 +6,9 @@ import { failure } from '@/shared/helpers'
 import { FrameManager } from './frameManager'
 
 export class ContentScript {
+  private isFirstLevelFrame: boolean
+  private isTopFrame: boolean
+
   constructor(
     private browser: Browser,
     private window: Window,
@@ -13,16 +16,20 @@ export class ContentScript {
     private monetizationTagManager: MonetizationTagManager,
     private frameManager: FrameManager
   ) {
+    this.isTopFrame = window === window.top
+    this.isFirstLevelFrame = window.parent === window.top
+
     this.bindMessageHandler()
-    this.frameManager.isTopFrame = window === window.top
-    this.frameManager.isFirstLevelFrame = window.parent === window.top
   }
 
   start() {
-    this.logger.info('Content script started')
-    this.frameManager.start()
+    if (this.isFirstLevelFrame) {
+      this.logger.info('Content script started')
 
-    this.monetizationTagManager.start()
+      if (this.isTopFrame) this.frameManager.start()
+
+      this.monetizationTagManager.start()
+    }
   }
 
   bindMessageHandler() {
