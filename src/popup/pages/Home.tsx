@@ -56,7 +56,7 @@ export const Component = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <div className="space-y-2">
         <Label className="px-2 text-base font-medium text-medium">
           Current rate of pay
@@ -74,6 +74,9 @@ export const Component = () => {
           </span>
         </div>
       </div>
+
+      <hr />
+
       {url ? <PayWebsiteForm /> : null}
     </div>
   )

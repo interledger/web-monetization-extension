@@ -27,15 +27,15 @@ export const PayWebsiteForm = () => {
   })
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
+    <form onSubmit={onSubmit}>
       <Input
         type="text"
         inputMode="numeric"
         addOn={getCurrencySymbol(walletAddress.assetCode)}
         label={
-          <div>
-            Pay <span className="text-primary">{url}</span>
-          </div>
+          <p className="mb-4">
+            Pay <span className="text-wrap break-all text-primary">{url}</span>
+          </p>
         }
         placeholder="0.00"
         onKeyDown={(e) => {
@@ -74,12 +74,12 @@ export const PayWebsiteForm = () => {
       />
       <Button
         type="submit"
-        className="w-full"
+        className="mt-8 w-full"
         disabled={isSubmitting}
         loading={isSubmitting}
         aria-label="Connect your wallet"
       >
-        Pay
+        Send now
       </Button>
     </form>
   )
