@@ -8,6 +8,7 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { success } from '@/shared/helpers'
 
 export class MonetizationService {
   private sessions: {
@@ -124,10 +125,28 @@ export class MonetizationService {
     if (!tab || !tab.id) return
 
     const sessions = this.sessions[tab.id]
+
+    if (!sessions) {
+      throw new Error('This website is not monetized.')
+    }
+
+    let totalSentAmount = BigInt(0)
     const splitAmount = Number(amount) / sessions.size
+    const promises = []
 
     for (const session of sessions.values()) {
-      session.pay(splitAmount)
+      promises.push(session.pay(splitAmount))
     }
+
+    ;(await Promise.allSettled(promises)).forEach((p) => {
+      if (p.status === 'fulfilled') {
+        totalSentAmount += BigInt(p.value?.value ?? 0)
+      }
+    })
+
+    if (totalSentAmount === BigInt(0)) {
+      throw new Error('Could not facilitate payment for current website.')
+    }
+
   }
 }

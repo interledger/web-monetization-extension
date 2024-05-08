@@ -19,22 +19,27 @@ export const PayWebsiteForm = () => {
     register,
     formState: { errors, isSubmitting },
     setValue,
-    handleSubmit
+    handleSubmit,
+    ...form
   } = useForm<PayWebsiteFormProps>()
 
   const onSubmit = handleSubmit(async (data) => {
-    await payWebsite(data)
+    const response = await payWebsite(data)
+    if (!response.success) {
+      form.setError('root', { message: response.message })
+    }
   })
 
   return (
     <form onSubmit={onSubmit}>
+      {errors.root ? <p>{errors.root.message}</p> : 'no message'}
       <Input
         type="text"
         inputMode="numeric"
         addOn={getCurrencySymbol(walletAddress.assetCode)}
         label={
-          <p className="mb-4">
-            Pay <span className="text-wrap break-all text-primary">{url}</span>
+          <p className="mb-4 overflow-hidden text-ellipsis whitespace-nowrap">
+            Pay <span className="text-ellipsis text-primary">{url}</span>
           </p>
         }
         placeholder="0.00"

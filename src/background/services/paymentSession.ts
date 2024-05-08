@@ -282,14 +282,10 @@ export class PaymentSession {
           })
         }
 
-        throw new Error(e.message)
       }
     } finally {
       if (outgoingPayment) {
         const { receiveAmount, receiver: incomingPayment } = outgoingPayment
-
-        quote = undefined
-        outgoingPayment = undefined
 
         sendMonetizationEvent({
           tabId: this.tabId,
@@ -305,5 +301,7 @@ export class PaymentSession {
         })
       }
     }
+
+    return outgoingPayment?.debitAmount
   }
 }

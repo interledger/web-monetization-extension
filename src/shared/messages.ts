@@ -135,6 +135,7 @@ export type BackgroundToContentBackgroundMessage = {
 }[BackgroundToContentAction]
 
 export type ToContentMessage = BackgroundToContentBackgroundMessage
+
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
 

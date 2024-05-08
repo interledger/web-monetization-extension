@@ -58,8 +58,9 @@ export class Background {
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
-              await this.monetizationService.pay(message.payload.amount)
-              return
+              return success(
+                await this.monetizationService.pay(message.payload.amount)
+              )
 
             case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
               return success(
