@@ -3,15 +3,29 @@ import { Input } from '@/popup/components/ui/Input'
 import { PopupStateContext } from '@/popup/lib/context'
 import { payWebsite } from '@/popup/lib/messages'
 import { getCurrencySymbol, charIsNumber } from '@/popup/lib/utils'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
+import { AnimatePresence, m } from 'framer-motion'
+import { Spinner } from './Icons'
+import { cn } from '@/shared/helpers'
 
 interface PayWebsiteFormProps {
   amount: string
 }
 
+const BUTTON_STATE = {
+  idle: 'Send now',
+  loading: <Spinner className="w-6 animate-spin" />,
+  success: 'Payment successful'
+}
+
 export const PayWebsiteForm = () => {
+  const [buttonState, setButtonState] =
+    React.useState<keyof typeof BUTTON_STATE>('idle')
+  const isIdle = useMemo(() => {
+    return buttonState === 'idle'
+  }, [buttonState])
   const {
     state: { walletAddress, url }
   } = React.useContext(PopupStateContext)
@@ -24,15 +38,26 @@ export const PayWebsiteForm = () => {
   } = useForm<PayWebsiteFormProps>()
 
   const onSubmit = handleSubmit(async (data) => {
+    if (buttonState !== 'idle') return
+
+    setButtonState('loading')
+
     const response = await payWebsite(data)
+
     if (!response.success) {
+      setButtonState('idle')
       form.setError('root', { message: response.message })
+    } else {
+      setButtonState('success')
+      form.reset()
+      setTimeout(() => {
+        setButtonState('idle')
+      }, 2000)
     }
   })
 
   return (
     <form onSubmit={onSubmit}>
-      {errors.root ? <p>{errors.root.message}</p> : 'no message'}
       <Input
         type="text"
         inputMode="numeric"
@@ -77,14 +102,30 @@ export const PayWebsiteForm = () => {
           }
         })}
       />
+      {errors.root ? (
+        <m.p className="m-2 mr-0 text-red-500">{errors.root.message}</m.p>
+      ) : null}
       <Button
         type="submit"
-        className="mt-8 w-full"
-        disabled={isSubmitting}
-        loading={isSubmitting}
-        aria-label="Connect your wallet"
+        className={cn(
+          'mt-8 w-full',
+          !isIdle ? 'cursor-not-allowed' : null,
+          !isIdle && !isSubmitting ? 'disabled:opacity-100' : null
+        )}
+        disabled={isSubmitting || !isIdle}
+        aria-label="Send now"
       >
-        Send now
+        <AnimatePresence mode="popLayout" initial={false}>
+          <m.span
+            transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
+            initial={{ opacity: 0, y: -25 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 25 }}
+            key={buttonState}
+          >
+            {BUTTON_STATE[buttonState]}
+          </m.span>
+        </AnimatePresence>
       </Button>
     </form>
   )

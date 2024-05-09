@@ -8,7 +8,6 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { getCurrentActiveTab, getSender, getTabId } from '../utils'
-import { success } from '@/shared/helpers'
 
 export class MonetizationService {
   private sessions: {
@@ -147,6 +146,5 @@ export class MonetizationService {
     if (totalSentAmount === BigInt(0)) {
       throw new Error('Could not facilitate payment for current website.')
     }
-
   }
 }

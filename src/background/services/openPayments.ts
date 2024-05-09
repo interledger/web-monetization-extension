@@ -188,6 +188,7 @@ export class OpenPaymentsService {
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
 
     this.client = await createAuthenticatedClient({
+      validateResponses: false,
       walletAddressUrl,
       authenticatedRequestInterceptor: async (request) => {
         if (!request.method || !request.url) {
