@@ -13,7 +13,7 @@ export class ContentScript {
     this.bindMessageHandler()
   }
 
-  start() {
+  async start() {
     this.logger.info('Content script started')
 
     this.monetizationTagManager.start()
@@ -28,6 +28,11 @@ export class ContentScript {
               this.monetizationTagManager.dispatchMonetizationEvent(
                 message.payload
               )
+              return
+
+            case BackgroundToContentAction.EMIT_TOGGLE_WM:
+              this.monetizationTagManager.toggleWM(message.payload)
+
               return
 
             default:

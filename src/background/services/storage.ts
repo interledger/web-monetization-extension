@@ -69,6 +69,12 @@ export class StorageService extends EventEmitter {
     return data
   }
 
+  async getWMEnabled(): Promise<boolean> {
+    const { enabled } = await this.get(['enabled'])
+
+    return enabled
+  }
+
   async keyPairExists(): Promise<boolean> {
     const keys = await this.get(['privateKey', 'publicKey', 'keyId'])
     if (
@@ -84,5 +90,4 @@ export class StorageService extends EventEmitter {
 
     return false
   }
-
 }

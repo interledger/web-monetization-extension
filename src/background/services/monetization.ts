@@ -8,6 +8,7 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { getSender, getTabId } from '../utils'
+import { emitToggleWM } from '../lib/messages'
 
 export class MonetizationService {
   private sessions: {
@@ -26,14 +27,6 @@ export class MonetizationService {
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
-    // TODO: This is not ideal. We should not receive monetization events
-    // from the content script if WM is disabled or a wallet is not connected.
-    const { connected, enabled } = await this.storage.get([
-      'enabled',
-      'connected'
-    ])
-    if (connected === false || enabled === false) return
-
     const { requestId, walletAddress } = payload
     const { tabId, frameId } = getSender(sender)
 
@@ -61,6 +54,15 @@ export class MonetizationService {
     )
 
     this.sessions[tabId].set(requestId, session)
+
+    // TODO: This is not ideal. We should not receive monetization events
+    // from the content script if WM is disabled or a wallet is not connected.
+    const { connected, enabled } = await this.storage.get([
+      'enabled',
+      'connected'
+    ])
+    if (connected === false || enabled === false) return
+
     void session.start()
   }
 
@@ -99,6 +101,7 @@ export class MonetizationService {
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled'])
     await this.storage.set({ enabled: !enabled })
+    emitToggleWM({ enabled: !enabled })
   }
 
   clearTabSessions(tabId: number) {

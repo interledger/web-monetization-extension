@@ -8,11 +8,15 @@ import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
   isTabMonetized,
+  isWMEnabled,
   resumeMonetization,
   startMonetization,
   stopMonetization
 } from '../lib/messages'
-import { MonetizationEventPayload } from '@/shared/messages'
+import {
+  EmitToggleWMPayload,
+  MonetizationEventPayload
+} from '@/shared/messages'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -39,10 +43,10 @@ export class MonetizationTagManager extends EventEmitter {
       this.onMonetizationTagAttrsChange(records)
     )
 
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener('visibilitychange', async () => {
       document.visibilityState === 'visible'
-        ? this.resumeAllMonetization()
-        : this.stopAllMonetization()
+        ? await this.resumeAllMonetization()
+        : await this.stopAllMonetization()
     })
   }
 
@@ -60,17 +64,21 @@ export class MonetizationTagManager extends EventEmitter {
     return
   }
 
-  private resumeAllMonetization() {
-    let validTagsCount = 0
+  private async resumeAllMonetization() {
+    const response = await isWMEnabled()
 
-    this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress) {
-        resumeMonetization({ requestId: value.requestId })
-        ++validTagsCount
-      }
-    })
+    if (response.success && response.payload) {
+      let validTagsCount = 0
 
-    isTabMonetized({ value: validTagsCount > 0 })
+      this.monetizationTags.forEach((value) => {
+        if (value.requestId && value.walletAddress) {
+          resumeMonetization({ requestId: value.requestId })
+          ++validTagsCount
+        }
+      })
+
+      isTabMonetized({ value: validTagsCount > 0 })
+    }
   }
 
   private stopAllMonetization() {
@@ -370,6 +378,14 @@ export class MonetizationTagManager extends EventEmitter {
       tag.dispatchEvent(event)
 
       return null
+    }
+  }
+
+  async toggleWM({ enabled }: EmitToggleWMPayload) {
+    if (enabled) {
+      await this.resumeAllMonetization()
+    } else {
+      await this.stopAllMonetization()
     }
   }
 }

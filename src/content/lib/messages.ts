@@ -53,3 +53,9 @@ export const isTabMonetized = async (
     payload
   })
 }
+
+export const isWMEnabled = async () => {
+  return await message.send<boolean>({
+    action: ContentToBackgroundAction.IS_WM_ENABLED
+  })
+}

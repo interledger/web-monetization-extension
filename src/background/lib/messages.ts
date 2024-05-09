@@ -24,3 +24,12 @@ export const sendMonetizationEvent = async ({
     payload
   })
 }
+
+export const emitToggleWM = async (
+  payload: BackgroundToContentActionPayload[BackgroundToContentAction.EMIT_TOGGLE_WM]
+) => {
+  return await message.sendToActiveTab({
+    action: BackgroundToContentAction.EMIT_TOGGLE_WM,
+    payload
+  })
+}

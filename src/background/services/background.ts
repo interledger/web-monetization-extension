@@ -33,6 +33,8 @@ export class Background {
 
   bindTabHandlers() {
     this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
+    this.browser.tabs.onCreated.addListener(this.tabEvents.onCreatedTab)
+    this.browser.tabs.onActivated.addListener(this.tabEvents.onActivatedTab)
   }
 
   bindMessageHandler() {
@@ -101,6 +103,9 @@ export class Background {
             case ContentToBackgroundAction.IS_TAB_MONETIZED:
               this.tabEvents.onUpdatedTab(message.payload)
               return
+
+            case ContentToBackgroundAction.IS_WM_ENABLED:
+              return success(await this.storage.getWMEnabled())
 
             default:
               return
