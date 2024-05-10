@@ -14,7 +14,8 @@ const defaultStorage = {
   grant: null,
   rateOfPay: null,
   minRateOfPay: null,
-  maxRateOfPay: null
+  maxRateOfPay: null,
+  enabledContinousPayment: true
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 // TODO: Emit events when certain values are updated:
@@ -65,7 +66,8 @@ export class StorageService extends EventEmitter {
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
-      'publicKey'
+      'publicKey',
+      'enabledContinousPayment'
     ])
 
     const tab = await getCurrentActiveTab(this.browser)

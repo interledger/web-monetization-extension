@@ -40,6 +40,12 @@ export const toggleWM = async () => {
   })
 }
 
+export const toggleContinousPayment = async () => {
+  return await message.send({
+    action: PopupToBackgroundAction.TOGGLE_CONTINOUS_PAYMENT
+  })
+}
+
 export const updateRateOfPay = async (
   payload: PopupToBackgroundActionPayload[PopupToBackgroundAction.UPDATE_RATE_OF_PAY]
 ) => {

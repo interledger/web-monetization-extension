@@ -2,10 +2,11 @@ import React from 'react'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
-import { updateRateOfPay } from '../lib/messages'
+import { toggleContinousPayment, updateRateOfPay } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import { getCurrencySymbol, roundWithPrecision } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
+import { Switch } from '../components/ui/Switch'
 
 export const Component = () => {
   const {
@@ -15,7 +16,8 @@ export const Component = () => {
       minRateOfPay,
       maxRateOfPay,
       walletAddress,
-      url
+      url,
+      enabledContinousPayment
     },
     dispatch
   } = React.useContext(PopupStateContext)
@@ -43,6 +45,10 @@ export const Component = () => {
       }
     })
   }
+  const onChangeContinousPayment = async () => {
+    await toggleContinousPayment()
+    dispatch({ type: ReducerActionType.TOGGLE_CONTINOUS_PAYMENT, data: {} })
+  }
 
   return (
     <div className="space-y-8">
@@ -57,12 +63,19 @@ export const Component = () => {
             max={Number(maxRateOfPay)}
             step={Number(minRateOfPay)}
             value={Number(rateOfPay)}
+            disabled={!enabledContinousPayment}
           />
           <div className="flex w-full items-center justify-between px-2">
             <span className="text-sm">
-              {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour test
+              {enabledContinousPayment ? rate : 0}{' '}
+              {getCurrencySymbol(walletAddress.assetCode)} per hour test
             </span>
           </div>
+          <Switch
+            checked={enabledContinousPayment}
+            onChange={onChangeContinousPayment}
+            label="Continous payment stream"
+          />
         </div>
       ) : (
         <div className="flex items-center gap-2">

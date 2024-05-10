@@ -33,6 +33,8 @@ export interface Storage {
   enabled: boolean
   /** If a wallet is connected or not */
   connected: boolean
+  /** If continous payment is enabled */
+  enabledContinousPayment: boolean
 
   rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null
@@ -61,7 +63,7 @@ export type PopupStore = Omit<
   Storage,
   'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
 > & {
-    url: string | undefined
+  url: string | undefined
 }
 
 export type DeepNonNullable<T> = {

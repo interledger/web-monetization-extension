@@ -27,10 +27,12 @@ export class MonetizationService {
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
-    const { connected, enabled } = await this.storage.get([
-      'enabled',
-      'connected'
-    ])
+    const { connected, enabled, enabledContinousPayment } =
+      await this.storage.get([
+        'enabled',
+        'connected',
+        'enabledContinousPayment'
+      ])
 
     const { requestId, walletAddress } = payload
     const { tabId, frameId } = getSender(sender)
@@ -60,7 +62,11 @@ export class MonetizationService {
 
     this.sessions[tabId].set(requestId, session)
 
-    if (connected === true && enabled === true) {
+    if (
+      connected === true &&
+      enabled === true &&
+      enabledContinousPayment === true
+    ) {
       void session.start()
     }
   }
@@ -100,6 +106,15 @@ export class MonetizationService {
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled'])
     await this.storage.set({ enabled: !enabled })
+  }
+
+  async toggleContinousPayment() {
+    const { enabledContinousPayment } = await this.storage.get([
+      'enabledContinousPayment'
+    ])
+    await this.storage.set({
+      enabledContinousPayment: !enabledContinousPayment
+    })
   }
 
   clearTabSessions(tabId: number) {

@@ -57,6 +57,10 @@ export class Background {
               await this.monetizationService.toggleWM()
               return
 
+            case PopupToBackgroundAction.TOGGLE_CONTINOUS_PAYMENT:
+              await this.monetizationService.toggleContinousPayment()
+              return
+
             case PopupToBackgroundAction.PAY_WEBSITE:
               return success(
                 await this.monetizationService.pay(message.payload.amount)
