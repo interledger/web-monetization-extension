@@ -40,7 +40,7 @@ dependencies:
     version: 3.3.0
   framer-motion:
     specifier: ^11.1.9
-    version: 11.1.9(react-dom@18.2.0)(react@18.2.0)
+    version: 11.1.9(react-dom@18.3.1)(react@18.3.1)
   http-message-signatures:
     specifier: ^1.0.4
     version: 1.0.4
@@ -4463,7 +4463,7 @@ packages:
     resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
     dev: true
 
-  /framer-motion@11.1.9(react-dom@18.2.0)(react@18.2.0):
+  /framer-motion@11.1.9(react-dom@18.3.1)(react@18.3.1):
     resolution: {integrity: sha512-flECDIPV4QDNcOrDafVFiIazp8X01HFpzc01eDKJsdNH/wrATcYydJSH9JbPWMS8UD5lZlw+J1sK8LG2kICgqw==}
     peerDependencies:
       '@emotion/is-prop-valid': '*'
@@ -4477,8 +4477,8 @@ packages:
       react-dom:
         optional: true
     dependencies:
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       tslib: 2.6.2
     dev: false
 
