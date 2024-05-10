@@ -28,6 +28,7 @@ interface FireOnMonetizationChangeIfHaveAttributeParams {
 export class MonetizationTagManager extends EventEmitter {
   private documentObserver: MutationObserver
   private monetizationTagAttrObserver: MutationObserver
+  private iconUpdated: boolean
 
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
@@ -89,6 +90,8 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
+    this.iconUpdated = false
+
     this.logger.info('document mutation records.length=', records.length)
 
     for (const record of records) {
@@ -109,6 +112,8 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   async onMonetizationTagAttrsChange(records: MutationRecord[]) {
+    this.iconUpdated = false
+
     const handledTags = new Set<Node>()
 
     // Check for a non specified link with the type now specified and
@@ -156,6 +161,8 @@ export class MonetizationTagManager extends EventEmitter {
         }
       }
     }
+
+    this.emitUpdateIcon()
   }
 
   async check(op: string, node: Node) {
@@ -257,6 +264,8 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private run() {
+    this.iconUpdated = false
+
     const monetizationTags: NodeListOf<MonetizationTag> =
       this.document.querySelectorAll('link')
 
@@ -325,7 +334,11 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (walletAddress) {
       startMonetization({ requestId, walletAddress })
-      isTabMonetized({ value: true })
+
+      if (!this.iconUpdated) {
+        isTabMonetized({ value: true })
+        this.iconUpdated = true
+      }
     }
   }
 

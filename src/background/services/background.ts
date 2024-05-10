@@ -105,7 +105,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.IS_WM_ENABLED:
-              return success(await this.storage.getWMEnabled())
+              return success(await this.storage.getWMState())
 
             default:
               return

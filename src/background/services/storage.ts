@@ -69,7 +69,7 @@ export class StorageService extends EventEmitter {
     return data
   }
 
-  async getWMEnabled(): Promise<boolean> {
+  async getWMState(): Promise<boolean> {
     const { enabled } = await this.get(['enabled'])
 
     return enabled
