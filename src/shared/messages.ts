@@ -149,12 +149,13 @@ export type BackgroundToContentBackgroundMessage = {
 }[BackgroundToContentAction]
 
 export type ToContentMessage = BackgroundToContentBackgroundMessage
+
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
 
-  async send<TResponse = void>(
+  async send<TResponse = undefined>(
     message: TMessages
-  ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
+  ): Promise<Response<TResponse>> {
     return await this.browser.runtime.sendMessage(message)
   }
 

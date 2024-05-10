@@ -61,11 +61,9 @@ export class Background {
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
-              this.logger.debug(
-                PopupToBackgroundAction.PAY_WEBSITE,
-                message.payload
+              return success(
+                await this.monetizationService.pay(message.payload.amount)
               )
-              throw new Error('Not implemented')
 
             case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
               return success(

@@ -3,12 +3,12 @@ import { type Browser, Runtime } from 'webextension-polyfill'
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config'
 import { notNullOrUndef } from '@/shared/helpers'
 
-export const getCurrentActiveTabId = async (browser: Browser) => {
+export const getCurrentActiveTab = async (browser: Browser) => {
   const activeTabs = await browser.tabs.query({
     active: true,
     currentWindow: true
   })
-  return activeTabs[0].id
+  return activeTabs[0]
 }
 
 interface ToAmountParams {

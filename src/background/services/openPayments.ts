@@ -14,7 +14,7 @@ import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser } from 'webextension-polyfill'
 import {
-  getCurrentActiveTabId,
+  getCurrentActiveTab,
   getExchangeRates,
   getRateOfPay,
   toAmount
@@ -188,35 +188,48 @@ export class OpenPaymentsService {
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
 
     this.client = await createAuthenticatedClient({
+      validateResponses: false,
       walletAddressUrl,
-      authenticatedRequestInterceptor: async (config) => {
-        if (!config.method || !config.url) {
+      authenticatedRequestInterceptor: async (request) => {
+        if (!request.method || !request.url) {
           throw new Error('Cannot intercept request: url or method missing')
         }
 
+        const initialRequest = request.clone()
+
         const headers = await this.createHeaders({
           request: {
-            method: config.method,
-            url: config.url,
-            headers: JSON.parse(JSON.stringify(config.headers)),
-            body: config.data ? JSON.stringify(config.data) : undefined
+            method: request.method,
+            url: request.url,
+            headers: JSON.parse(
+              JSON.stringify(Object.fromEntries(request.headers))
+            ),
+            body: request.body
+              ? JSON.stringify(await request.json())
+              : undefined
           },
           privateKey: ed.etc.hexToBytes(privateKey),
           keyId
         })
 
-        if (config.data) {
-          config.headers['Content-Type'] = headers['Content-Type']
-          // Kept receiving console errors for setting unsafe header.
-          // Keeping this as a comment for now.
-          // config.headers['Content-Length'] = headers['Content-Length']
-          config.headers['Content-Digest'] = headers['Content-Digest']
+        if (request.body) {
+          initialRequest.headers.set(
+            'Content-Type',
+            headers['Content-Type'] as string
+          )
+          initialRequest.headers.set(
+            'Content-Digest',
+            headers['Content-Digest'] as string
+          )
         }
 
-        config.headers['Signature'] = headers['Signature']
-        config.headers['Signature-Input'] = headers['Signature-Input']
+        initialRequest.headers.set('Signature', headers['Signature'])
+        initialRequest.headers.set(
+          'Signature-Input',
+          headers['Signature-Input']
+        )
 
-        return config
+        return initialRequest
       }
     })
   }
@@ -388,7 +401,7 @@ export class OpenPaymentsService {
   }
 
   private async confirmPayment(url: string): Promise<InteractionParams> {
-    const currentTabId = await getCurrentActiveTabId(this.browser)
+    const currentTab = await getCurrentActiveTab(this.browser)
 
     return await new Promise((res) => {
       if (url) {
@@ -401,7 +414,7 @@ export class OpenPaymentsService {
                 const hash = tabUrl.searchParams.get('hash')
 
                 if (tabId === tab.id && interactRef && hash) {
-                  this.browser.tabs.update(currentTabId, { active: true })
+                  this.browser.tabs.update(currentTab.id, { active: true })
                   this.browser.tabs.remove(tab.id)
                   res({ interactRef, hash })
                 }

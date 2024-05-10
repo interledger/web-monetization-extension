@@ -1,5 +1,6 @@
 import { OpenPaymentsService } from './openPayments'
 import {
+  IncomingPayment,
   OutgoingPayment,
   Quote,
   WalletAddress,
@@ -53,7 +54,7 @@ export class PaymentSession {
       return
     }
 
-    await this.createIncomingPayment()
+    await this.setIncomingPaymentUrl()
 
     while (this.active) {
       let quote: Quote | undefined
@@ -152,7 +153,12 @@ export class PaymentSession {
     }
   }
 
-  async createIncomingPayment() {
+  async setIncomingPaymentUrl() {
+    const incomingPayment = await this.createIncomingPayment()
+    this.incomingPaymentUrl = incomingPayment.id
+  }
+
+  async createIncomingPayment(): Promise<IncomingPayment> {
     const incomingPaymentGrant =
       await this.openPaymentsService.client!.grant.request(
         {
@@ -163,7 +169,7 @@ export class PaymentSession {
             access: [
               {
                 type: 'incoming-payment',
-                actions: ['create', 'read', 'list'],
+                actions: ['create'],
                 identifier: this.receiver.id
               }
             ]
@@ -196,6 +202,107 @@ export class PaymentSession {
       accessToken: incomingPaymentGrant.continue.access_token.value
     })
 
-    this.incomingPaymentUrl = incomingPayment.id
+    return incomingPayment
+  }
+
+  // TODO: Needs refactoring - breaks DRY
+  async pay(amount: number) {
+    const incomingPayment = await this.createIncomingPayment()
+    const data = await this.storage.get(['token', 'walletAddress'])
+
+    let token = data.token
+    const walletAddress = data.walletAddress
+
+    if (token == null || walletAddress == null) {
+      return
+    }
+
+    let quote: Quote | undefined
+    let outgoingPayment: OutgoingPayment | undefined
+
+    try {
+      if (!quote) {
+        quote = await this.openPaymentsService.client!.quote.create(
+          {
+            url: walletAddress.resourceServer,
+            accessToken: token.value
+          },
+          {
+            method: 'ilp',
+            receiver: incomingPayment.id,
+            walletAddress: walletAddress.id,
+            debitAmount: {
+              value: (amount * 10 ** walletAddress.assetScale).toFixed(0),
+              assetScale: walletAddress.assetScale,
+              assetCode: walletAddress.assetCode
+            }
+          }
+        )
+      }
+
+      outgoingPayment =
+        await this.openPaymentsService.client!.outgoingPayment.create(
+          {
+            url: walletAddress.resourceServer,
+            accessToken: token.value
+          },
+          {
+            walletAddress: walletAddress.id,
+            quoteId: quote.id,
+            metadata: {
+              source: 'Web Monetization'
+            }
+          }
+        )
+    } catch (e) {
+      /**
+       * Unhandled exceptions:
+       *  - Expired incoming payment: if the incoming payment is expired when
+       *    trying to create a quote, create a new incoming payment
+       *
+       */
+      if (e instanceof OpenPaymentsClientError) {
+        // Status code 403 -> expired access token
+        if (e.status === 403) {
+          const rotatedToken =
+            await this.openPaymentsService.client!.token.rotate({
+              accessToken: token.value,
+              url: token.manage
+            })
+
+          token = {
+            value: rotatedToken.access_token.value,
+            manage: rotatedToken.access_token.manage
+          }
+
+          void this.storage.set({
+            token: {
+              value: rotatedToken.access_token.value,
+              manage: rotatedToken.access_token.manage
+            }
+          })
+        }
+
+      }
+    } finally {
+      if (outgoingPayment) {
+        const { receiveAmount, receiver: incomingPayment } = outgoingPayment
+
+        sendMonetizationEvent({
+          tabId: this.tabId,
+          frameId: this.frameId,
+          payload: {
+            requestId: this.requestId,
+            details: {
+              receiveAmount,
+              incomingPayment,
+              paymentPointer: this.receiver.id
+            }
+          }
+        })
+      }
+    }
+
+    return outgoingPayment?.debitAmount
   }
 }
