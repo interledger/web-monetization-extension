@@ -5,6 +5,7 @@ import { Slider } from '../components/ui/Slider'
 import { updateRateOfPay } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import { getCurrencySymbol, roundWithPrecision } from '../lib/utils'
+import { PayWebsiteForm } from '../components/PayWebsiteForm'
 
 export const Component = () => {
   const {
@@ -13,7 +14,8 @@ export const Component = () => {
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
-      walletAddress
+      walletAddress,
+      url
     },
     dispatch
   } = React.useContext(PopupStateContext)
@@ -42,36 +44,38 @@ export const Component = () => {
     })
   }
 
-  if (!enabled) {
-    return (
-      <div className="flex items-center gap-2">
-        <WarningSign />
-        <p className="text-base text-medium">
-          Web Monetization has been turned off.
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label className="px-2 text-base font-medium text-medium">
-          Current rate of pay
-        </Label>
-        <Slider
-          onChange={onRateChange}
-          min={Number(minRateOfPay)}
-          max={Number(maxRateOfPay)}
-          step={Number(minRateOfPay)}
-          value={Number(rateOfPay)}
-        />
-        <div className="flex w-full items-center justify-between px-2">
-          <span className="text-sm">
-            {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour
-          </span>
+    <div className="space-y-8">
+      {enabled ? (
+        <div className="space-y-2">
+          <Label className="px-2 text-base font-medium text-medium">
+            Current rate of pay
+          </Label>
+          <Slider
+            onChange={onRateChange}
+            min={Number(minRateOfPay)}
+            max={Number(maxRateOfPay)}
+            step={Number(minRateOfPay)}
+            value={Number(rateOfPay)}
+          />
+          <div className="flex w-full items-center justify-between px-2">
+            <span className="text-sm">
+              {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour test
+            </span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <WarningSign />
+          <p className="text-base text-medium">
+            Web Monetization has been turned off.
+          </p>
+        </div>
+      )}
+
+      <hr />
+
+      {url ? <PayWebsiteForm /> : null}
     </div>
   )
 }

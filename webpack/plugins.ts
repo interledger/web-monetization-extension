@@ -45,9 +45,9 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
       {
         from: path.resolve(
           ROOT_DIR,
-          'node_modules/@interledger/open-payments/dist/openapi'
+          'node_modules/@interledger/open-payments/dist/openapi/specs'
         ),
-        to: path.resolve(ROOT_DIR, `${outputDir}/${target}/openapi`),
+        to: path.resolve(ROOT_DIR, `${outputDir}/${target}/specs`),
         globOptions: {
           ignore: ['**/generated/**']
         }

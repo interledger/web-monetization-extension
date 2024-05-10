@@ -21,12 +21,12 @@ export const updateIcon = async (active: boolean) => {
   }
 }
 
-export const getCurrentActiveTabId = async (browser: Browser) => {
+export const getCurrentActiveTab = async (browser: Browser) => {
   const activeTabs = await browser.tabs.query({
     active: true,
     currentWindow: true
   })
-  return activeTabs[0].id
+  return activeTabs[0]
 }
 
 interface ToAmountParams {

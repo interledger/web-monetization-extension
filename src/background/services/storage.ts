@@ -2,6 +2,7 @@ import { Logger } from '@/shared/logger'
 import type { PopupStore, Storage, StorageKey } from '@/shared/types'
 import EventEmitter from 'events'
 import { type Browser } from 'webextension-polyfill'
+import { getCurrentActiveTab } from '../utils'
 
 const defaultStorage = {
   connected: false,
@@ -55,6 +56,7 @@ export class StorageService extends EventEmitter {
 
   // TODO: Exception list (post-v1) - return data for the current website
   async getPopupData(): Promise<PopupStore> {
+    let url: string | undefined
     const data = await this.get([
       'enabled',
       'connected',
@@ -66,7 +68,21 @@ export class StorageService extends EventEmitter {
       'publicKey'
     ])
 
-    return data
+    const tab = await getCurrentActiveTab(this.browser)
+
+    if (tab && tab.url) {
+      try {
+        const tabUrl = new URL(tab.url)
+        if (tabUrl.protocol === 'https:') {
+          // Do not include search params
+          url = `${tabUrl.origin}${tabUrl.pathname}`
+        }
+      } catch (_) {
+        // noop
+      }
+    }
+
+    return { ...data, url }
   }
 
   async keyPairExists(): Promise<boolean> {
@@ -84,5 +100,4 @@ export class StorageService extends EventEmitter {
 
     return false
   }
-
 }
