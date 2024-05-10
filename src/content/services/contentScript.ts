@@ -13,7 +13,7 @@ export class ContentScript {
     this.bindMessageHandler()
   }
 
-  async start() {
+  start() {
     this.logger.info('Content script started')
 
     this.monetizationTagManager.start()

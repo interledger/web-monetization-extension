@@ -36,7 +36,7 @@ export class TabEvents {
     if (this.browser.action) {
       await this.browser.action.setIcon({ path: iconData })
     } else if (chrome.browserAction) {
-      await chrome.browserAction.setIcon({ path: iconData })
+      chrome.browserAction.setIcon({ path: iconData })
     }
   }
 
@@ -70,7 +70,7 @@ export class TabEvents {
     if (this.browser.action) {
       await this.browser.action.setIcon({ path: iconData })
     } else if (chrome.browserAction) {
-      await chrome.browserAction.setIcon({ path: iconData })
+      chrome.browserAction.setIcon({ path: iconData })
     }
   }
 }
