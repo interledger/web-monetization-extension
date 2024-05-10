@@ -7,7 +7,7 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
-import { emitToggleWM } from '../lib/messages'
+import { emitToggleWM, emitToggleContinousPayment } from '../lib/messages'
 import { getCurrentActiveTab, getSender, getTabId } from '../utils'
 
 export class MonetizationService {
@@ -115,6 +115,9 @@ export class MonetizationService {
       'enabledContinousPayment'
     ])
     await this.storage.set({
+      enabledContinousPayment: !enabledContinousPayment
+    })
+    emitToggleContinousPayment({
       enabledContinousPayment: !enabledContinousPayment
     })
   }

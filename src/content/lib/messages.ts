@@ -59,3 +59,9 @@ export const isWMEnabled = async () => {
     action: ContentToBackgroundAction.IS_WM_ENABLED
   })
 }
+
+export const isContinousPaymentEnabled = async () => {
+  return await message.send<boolean>({
+    action: ContentToBackgroundAction.IS_CONTINOUS_PAYMENT_ENABLED
+  })
+}

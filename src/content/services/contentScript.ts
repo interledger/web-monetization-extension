@@ -32,9 +32,13 @@ export class ContentScript {
 
             case BackgroundToContentAction.EMIT_TOGGLE_WM:
               this.monetizationTagManager.toggleWM(message.payload)
-
               return
 
+            case BackgroundToContentAction.EMIT_TOGGLE_CONTINOUS_PAYMENT:
+              this.monetizationTagManager.toggleContinousPayment(
+                message.payload
+              )
+              return
             default:
               return
           }

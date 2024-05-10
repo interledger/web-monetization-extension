@@ -93,6 +93,14 @@ export class StorageService extends EventEmitter {
     return enabled
   }
 
+  async getContinousPaymentState(): Promise<boolean> {
+    const { enabledContinousPayment } = await this.get([
+      'enabledContinousPayment'
+    ])
+
+    return enabledContinousPayment
+  }
+
   async keyPairExists(): Promise<boolean> {
     const keys = await this.get(['privateKey', 'publicKey', 'keyId'])
     if (

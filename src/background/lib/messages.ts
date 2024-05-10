@@ -33,3 +33,12 @@ export const emitToggleWM = async (
     payload
   })
 }
+
+export const emitToggleContinousPayment = async (
+  payload: BackgroundToContentActionPayload[BackgroundToContentAction.EMIT_TOGGLE_CONTINOUS_PAYMENT]
+) => {
+  return await message.sendToActiveTab({
+    action: BackgroundToContentAction.EMIT_TOGGLE_CONTINOUS_PAYMENT,
+    payload
+  })
+}

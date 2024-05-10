@@ -109,6 +109,9 @@ export class Background {
             case ContentToBackgroundAction.IS_WM_ENABLED:
               return success(await this.storage.getWMState())
 
+            case ContentToBackgroundAction.IS_CONTINOUS_PAYMENT_ENABLED:
+              return success(await this.storage.getContinousPaymentState())
+
             default:
               return
           }

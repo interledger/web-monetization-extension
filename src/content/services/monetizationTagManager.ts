@@ -7,6 +7,7 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
+  isContinousPaymentEnabled,
   isTabMonetized,
   isWMEnabled,
   resumeMonetization,
@@ -14,6 +15,7 @@ import {
   stopMonetization
 } from '../lib/messages'
 import {
+  EmitToggleContinousPaymentPayload,
   EmitToggleWMPayload,
   MonetizationEventPayload
 } from '@/shared/messages'
@@ -66,9 +68,15 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private async resumeAllMonetization() {
-    const response = await isWMEnabled()
+    const isWMEnabledResponse = await isWMEnabled()
+    const isContinousPaymentEnabledResponse = await isContinousPaymentEnabled()
 
-    if (response.success && response.payload) {
+    if (
+      isWMEnabledResponse.success &&
+      isWMEnabledResponse.payload &&
+      isContinousPaymentEnabledResponse.success &&
+      isContinousPaymentEnabledResponse.payload
+    ) {
       let validTagsCount = 0
 
       this.monetizationTags.forEach((value) => {
@@ -396,7 +404,17 @@ export class MonetizationTagManager extends EventEmitter {
     if (enabled) {
       await this.resumeAllMonetization()
     } else {
-      await this.stopAllMonetization()
+      this.stopAllMonetization()
+    }
+  }
+
+  async toggleContinousPayment({
+    enabledContinousPayment
+  }: EmitToggleContinousPaymentPayload) {
+    if (enabledContinousPayment) {
+      await this.resumeAllMonetization()
+    } else {
+      this.stopAllMonetization()
     }
   }
 }

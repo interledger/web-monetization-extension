@@ -69,7 +69,8 @@ export enum ContentToBackgroundAction {
   STOP_MONETIZATION = 'STOP_MONETIZATION',
   RESUME_MONETIZATION = 'RESUME_MONETIZATION',
   IS_TAB_MONETIZED = 'IS_TAB_MONETIZED',
-  IS_WM_ENABLED = 'IS_WM_ENABLED'
+  IS_WM_ENABLED = 'IS_WM_ENABLED',
+  IS_CONTINOUS_PAYMENT_ENABLED = 'IS_CONTINOUS_PAYMENT_ENABLED'
 }
 
 export interface CheckWalletAddressUrlPayload {
@@ -100,6 +101,7 @@ export interface ContentToBackgroundActionPayload {
   [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload
   [ContentToBackgroundAction.IS_TAB_MONETIZED]: IsTabMonetizedPayload
   [ContentToBackgroundAction.IS_WM_ENABLED]: undefined
+  [ContentToBackgroundAction.IS_CONTINOUS_PAYMENT_ENABLED]: undefined
 }
 
 export type ContentToBackgroundMessage = {
@@ -127,7 +129,8 @@ export type ToBackgroundMessage =
 
 export enum BackgroundToContentAction {
   MONETIZATION_EVENT = 'MONETIZATION_EVENT',
-  EMIT_TOGGLE_WM = 'EMIT_TOGGLE_WM'
+  EMIT_TOGGLE_WM = 'EMIT_TOGGLE_WM',
+  EMIT_TOGGLE_CONTINOUS_PAYMENT = 'EMIT_TOGGLE_CONTINOUS_PAYMENT'
 }
 
 export interface MonetizationEventPayload {
@@ -139,9 +142,14 @@ export interface EmitToggleWMPayload {
   enabled: boolean
 }
 
+export interface EmitToggleContinousPaymentPayload {
+  enabledContinousPayment: boolean
+}
+
 export interface BackgroundToContentActionPayload {
   [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
   [BackgroundToContentAction.EMIT_TOGGLE_WM]: EmitToggleWMPayload
+  [BackgroundToContentAction.EMIT_TOGGLE_CONTINOUS_PAYMENT]: EmitToggleContinousPaymentPayload
 }
 export type BackgroundToContentBackgroundMessage = {
   [K in BackgroundToContentAction]: MessageHKT<
