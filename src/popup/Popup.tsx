@@ -43,7 +43,7 @@ const router = createMemoryRouter(routes)
 
 export const Popup = () => {
   return (
-    <LazyMotion features={domAnimation}>
+    <LazyMotion features={domAnimation} strict>
       <PopupContextProvider>
         <RouterProvider router={router} />
       </PopupContextProvider>

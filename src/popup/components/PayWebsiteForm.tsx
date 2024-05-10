@@ -7,8 +7,9 @@ import React, { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
 import { AnimatePresence, m } from 'framer-motion'
-import { Spinner, XIcon } from './Icons'
+import { Spinner } from './Icons'
 import { cn } from '@/shared/helpers'
+import { ErrorMessage } from './ErrorMessage'
 
 interface PayWebsiteFormProps {
   amount: string
@@ -23,9 +24,7 @@ const BUTTON_STATE = {
 export const PayWebsiteForm = () => {
   const [buttonState, setButtonState] =
     React.useState<keyof typeof BUTTON_STATE>('idle')
-  const isIdle = useMemo(() => {
-    return buttonState === 'idle'
-  }, [buttonState])
+  const isIdle = useMemo(() => buttonState === 'idle', [buttonState])
   const {
     state: { walletAddress, url }
   } = React.useContext(PopupStateContext)
@@ -71,10 +70,7 @@ export const PayWebsiteForm = () => {
             className="overflow-hidden"
             key="form-error"
           >
-            <div className="break-word mb-4 flex items-center gap-2 rounded-xl border border-red-300 bg-red-500/10 px-3 py-2">
-              <XIcon className="size-8 text-red-500" />
-              <span>{errors.root.message}</span>
-            </div>
+            <ErrorMessage error={errors.root.message} />
           </m.div>
         ) : null}
       </AnimatePresence>

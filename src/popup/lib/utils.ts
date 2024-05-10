@@ -1,5 +1,3 @@
-import browser from 'webextension-polyfill';
-
 export const getCurrencySymbol = (assetCode: string): string => {
   return new Intl.NumberFormat('en-US', {
     currency: assetCode,
