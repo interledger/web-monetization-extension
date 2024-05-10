@@ -10,35 +10,21 @@
   "default_locale": "en",
   "content_scripts": [
     {
-      "matches": [
-        "http://*/*",
-        "https://*/*",
-        "<all_urls>"
-      ],
-      "js": [
-        "content/content.js"
-      ]
+      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
+      "js": ["content/content.js"]
     },
     {
       "run_at": "document_start",
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ],
-      "js": [
-        "contentStatic/contentStatic.js"
-      ]
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["contentStatic/contentStatic.js"]
     }
   ],
   "background": {
-    "scripts": [
-      "background/background.js"
-    ]
+    "scripts": ["background/background.js"]
   },
   "permissions": [
     "tabs",
     "storage",
-    "webNavigation",
     "https://telemetry-exchange-rates.s3.amazonaws.com/exchange-rates-usd.json"
   ],
   "browser_action": {
@@ -54,9 +40,7 @@
     "background/*",
     "openapi/*"
   ],
-  "host_permissions": [
-    "https://*"
-  ],
+  "host_permissions": ["https://*"],
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "browser_specific_settings": {
     "gecko": {
