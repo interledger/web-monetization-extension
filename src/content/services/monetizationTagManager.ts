@@ -7,11 +7,16 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
+  isTabMonetized,
+  isWMEnabled,
   resumeMonetization,
   startMonetization,
   stopMonetization
 } from '../lib/messages'
-import { MonetizationEventPayload } from '@/shared/messages'
+import {
+  EmitToggleWMPayload,
+  MonetizationEventPayload
+} from '@/shared/messages'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -23,6 +28,7 @@ interface FireOnMonetizationChangeIfHaveAttributeParams {
 export class MonetizationTagManager extends EventEmitter {
   private documentObserver: MutationObserver
   private monetizationTagAttrObserver: MutationObserver
+  private iconUpdated: boolean
 
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
@@ -38,10 +44,10 @@ export class MonetizationTagManager extends EventEmitter {
       this.onMonetizationTagAttrsChange(records)
     )
 
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener('visibilitychange', async () => {
       document.visibilityState === 'visible'
-        ? this.resumeAllMonetization()
-        : this.stopAllMonetization()
+        ? await this.resumeAllMonetization()
+        : await this.stopAllMonetization()
     })
   }
 
@@ -59,11 +65,21 @@ export class MonetizationTagManager extends EventEmitter {
     return
   }
 
-  private resumeAllMonetization() {
-    this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress)
-        resumeMonetization({ requestId: value.requestId })
-    })
+  private async resumeAllMonetization() {
+    const response = await isWMEnabled()
+
+    if (response.success && response.payload) {
+      let validTagsCount = 0
+
+      this.monetizationTags.forEach((value) => {
+        if (value.requestId && value.walletAddress) {
+          resumeMonetization({ requestId: value.requestId })
+          ++validTagsCount
+        }
+      })
+
+      isTabMonetized({ value: validTagsCount > 0 })
+    }
   }
 
   private stopAllMonetization() {
@@ -74,6 +90,8 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
+    this.iconUpdated = false
+
     this.logger.info('document mutation records.length=', records.length)
 
     for (const record of records) {
@@ -94,6 +112,8 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   async onMonetizationTagAttrsChange(records: MutationRecord[]) {
+    this.iconUpdated = false
+
     const handledTags = new Set<Node>()
 
     // Check for a non specified link with the type now specified and
@@ -185,7 +205,6 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (!wasDisabled) {
       this.onRemovedTag(tag)
-      stopMonetization({ requestId })
     }
 
     this.onAddedTag(tag, requestId)
@@ -243,6 +262,8 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private run() {
+    this.iconUpdated = false
+
     const monetizationTags: NodeListOf<MonetizationTag> =
       this.document.querySelectorAll('link')
 
@@ -254,6 +275,8 @@ export class MonetizationTagManager extends EventEmitter {
         this.logger.error(e)
       }
     })
+
+    this.checkIsTabMonetized()
 
     const onMonetizations: NodeListOf<HTMLElement> =
       this.document.querySelectorAll('[onmonetization]')
@@ -280,6 +303,19 @@ export class MonetizationTagManager extends EventEmitter {
     const { requestId } = this.getTagDetails(tag, 'onRemovedTag')
     this.monetizationTags.delete(tag)
     stopMonetization({ requestId })
+
+    // Check if tab still monetized
+    this.checkIsTabMonetized()
+  }
+
+  private checkIsTabMonetized() {
+    let validTagsCount = 0
+
+    this.monetizationTags.forEach((value) => {
+      if (value.requestId && value.walletAddress) ++validTagsCount
+    })
+
+    isTabMonetized({ value: validTagsCount > 0 })
   }
 
   // Add tag to list & start monetization
@@ -294,7 +330,14 @@ export class MonetizationTagManager extends EventEmitter {
 
     this.monetizationTags.set(tag, details)
 
-    if (walletAddress) startMonetization({ requestId, walletAddress })
+    if (walletAddress) {
+      startMonetization({ requestId, walletAddress })
+
+      if (!this.iconUpdated) {
+        isTabMonetized({ value: true })
+        this.iconUpdated = true
+      }
+    }
   }
 
   // Check tag to be enabled and for valid wallet address
@@ -346,6 +389,14 @@ export class MonetizationTagManager extends EventEmitter {
       tag.dispatchEvent(event)
 
       return null
+    }
+  }
+
+  async toggleWM({ enabled }: EmitToggleWMPayload) {
+    if (enabled) {
+      await this.resumeAllMonetization()
+    } else {
+      await this.stopAllMonetization()
     }
   }
 }

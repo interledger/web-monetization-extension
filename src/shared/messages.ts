@@ -67,7 +67,9 @@ export enum ContentToBackgroundAction {
   CHECK_WALLET_ADDRESS_URL = 'CHECK_WALLET_ADDRESS_URL',
   START_MONETIZATION = 'START_MONETIZATION',
   STOP_MONETIZATION = 'STOP_MONETIZATION',
-  RESUME_MONETIZATION = 'RESUME_MONETIZATION'
+  RESUME_MONETIZATION = 'RESUME_MONETIZATION',
+  IS_TAB_MONETIZED = 'IS_TAB_MONETIZED',
+  IS_WM_ENABLED = 'IS_WM_ENABLED'
 }
 
 export interface CheckWalletAddressUrlPayload {
@@ -87,11 +89,17 @@ export interface ResumeMonetizationPayload {
   requestId: string
 }
 
+export interface IsTabMonetizedPayload {
+  value: boolean
+}
+
 export interface ContentToBackgroundActionPayload {
   [ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL]: CheckWalletAddressUrlPayload
   [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload
   [ContentToBackgroundAction.STOP_MONETIZATION]: StopMonetizationPayload
   [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload
+  [ContentToBackgroundAction.IS_TAB_MONETIZED]: IsTabMonetizedPayload
+  [ContentToBackgroundAction.IS_WM_ENABLED]: undefined
 }
 
 export type ContentToBackgroundMessage = {
@@ -118,17 +126,23 @@ export type ToBackgroundMessage =
   | BackgroundToContentMessage
 
 export enum BackgroundToContentAction {
-  MONETIZATION_EVENT = 'MONETIZATION_EVENT'
+  MONETIZATION_EVENT = 'MONETIZATION_EVENT',
+  EMIT_TOGGLE_WM = 'EMIT_TOGGLE_WM'
 }
 
 export interface MonetizationEventPayload {
   requestId: string
   details: any
 }
-export interface BackgroundToContentActionPayload {
-  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
+
+export interface EmitToggleWMPayload {
+  enabled: boolean
 }
 
+export interface BackgroundToContentActionPayload {
+  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
+  [BackgroundToContentAction.EMIT_TOGGLE_WM]: EmitToggleWMPayload
+}
 export type BackgroundToContentBackgroundMessage = {
   [K in BackgroundToContentAction]: MessageHKT<
     K,

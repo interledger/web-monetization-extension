@@ -87,6 +87,12 @@ export class StorageService extends EventEmitter {
     return { ...data, url }
   }
 
+  async getWMState(): Promise<boolean> {
+    const { enabled } = await this.get(['enabled'])
+
+    return enabled
+  }
+
   async keyPairExists(): Promise<boolean> {
     const keys = await this.get(['privateKey', 'publicKey', 'keyId'])
     if (
