@@ -239,6 +239,7 @@ export class PaymentSession {
           }
         )
       }
+
       outgoingPayment =
         await this.openPaymentsService.client!.outgoingPayment.create(
           {

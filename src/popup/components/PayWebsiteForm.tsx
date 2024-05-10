@@ -7,7 +7,7 @@ import React, { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
 import { AnimatePresence, m } from 'framer-motion'
-import { Spinner } from './Icons'
+import { Spinner, XIcon } from './Icons'
 import { cn } from '@/shared/helpers'
 
 interface PayWebsiteFormProps {
@@ -58,12 +58,32 @@ export const PayWebsiteForm = () => {
 
   return (
     <form onSubmit={onSubmit}>
+      <AnimatePresence mode="sync">
+        {errors.root ? (
+          <m.div
+            transition={{
+              duration: 0.3,
+              bounce: 0
+            }}
+            initial={{ height: 0 }}
+            animate={{ height: 'auto' }}
+            exit={{ height: 0 }}
+            className="overflow-hidden"
+            key="form-error"
+          >
+            <div className="break-word mb-4 flex items-center gap-2 rounded-xl border border-red-300 bg-red-500/10 px-3 py-2">
+              <XIcon className="size-8 text-red-500" />
+              <span>{errors.root.message}</span>
+            </div>
+          </m.div>
+        ) : null}
+      </AnimatePresence>
       <Input
         type="text"
         inputMode="numeric"
         addOn={getCurrencySymbol(walletAddress.assetCode)}
         label={
-          <p className="mb-4 overflow-hidden text-ellipsis whitespace-nowrap">
+          <p className="overflow-hidden text-ellipsis whitespace-nowrap">
             Pay <span className="text-ellipsis text-primary">{url}</span>
           </p>
         }
@@ -102,9 +122,6 @@ export const PayWebsiteForm = () => {
           }
         })}
       />
-      {errors.root ? (
-        <m.p className="m-2 mr-0 text-red-500">{errors.root.message}</m.p>
-      ) : null}
       <Button
         type="submit"
         className={cn(
