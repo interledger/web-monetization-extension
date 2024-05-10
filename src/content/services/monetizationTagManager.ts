@@ -161,8 +161,6 @@ export class MonetizationTagManager extends EventEmitter {
         }
       }
     }
-
-    this.emitUpdateIcon()
   }
 
   async check(op: string, node: Node) {
