@@ -30,6 +30,11 @@ export class ContentScript {
               )
               return
 
+            case BackgroundToContentAction.EMIT_TOGGLE_WM:
+              this.monetizationTagManager.toggleWM(message.payload)
+
+              return
+
             default:
               return
           }

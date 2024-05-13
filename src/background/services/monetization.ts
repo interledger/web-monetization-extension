@@ -7,6 +7,7 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
+import { emitToggleWM } from '../lib/messages'
 import { getCurrentActiveTab, getSender, getTabId } from '../utils'
 
 export class MonetizationService {
@@ -100,6 +101,7 @@ export class MonetizationService {
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled'])
     await this.storage.set({ enabled: !enabled })
+    emitToggleWM({ enabled: !enabled })
   }
 
   clearTabSessions(tabId: number) {
