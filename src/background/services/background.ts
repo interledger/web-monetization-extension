@@ -33,7 +33,8 @@ export class Background {
 
   bindTabHandlers() {
     this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
-    // this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
+    this.browser.tabs.onCreated.addListener(this.tabEvents.onCreatedTab)
+    this.browser.tabs.onActivated.addListener(this.tabEvents.onActivatedTab)
   }
 
   bindMessageHandler() {
@@ -55,14 +56,14 @@ export class Background {
 
             case PopupToBackgroundAction.TOGGLE_WM:
               await this.monetizationService.toggleWM()
+
+              this.tabEvents.onUpdatedTab()
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
-              this.logger.debug(
-                PopupToBackgroundAction.PAY_WEBSITE,
-                message.payload
+              return success(
+                await this.monetizationService.pay(message.payload.amount)
               )
-              throw new Error('Not implemented')
 
             case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
               return success(
@@ -97,6 +98,13 @@ export class Background {
                 })
               )
 
+            case ContentToBackgroundAction.IS_TAB_MONETIZED:
+              this.tabEvents.onUpdatedTab(message.payload)
+              return
+
+            case ContentToBackgroundAction.IS_WM_ENABLED:
+              return success(await this.storage.getWMState())
+
             default:
               return
           }
@@ -120,13 +128,5 @@ export class Background {
         await this.openPaymentsService.genererateKeys()
       }
     })
-  }
-
-  bindOnTabActivated() {
-    // this.browser.tabs.onActivated.addListener()
-  }
-
-  bindOnTabUpdated() {
-    // this.browser.tabs.onUpdated.addListener()
   }
 }

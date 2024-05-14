@@ -1,5 +1,5 @@
 import { OpenPaymentsService, StorageService } from '.'
-import { Runtime } from 'webextension-polyfill'
+import { type Browser, type Runtime } from 'webextension-polyfill'
 import { Logger } from '@/shared/logger'
 import {
   ResumeMonetizationPayload,
@@ -7,7 +7,8 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
-import { getSender, getTabId } from '../utils'
+import { emitToggleWM } from '../lib/messages'
+import { getCurrentActiveTab, getSender, getTabId } from '../utils'
 
 export class MonetizationService {
   private sessions: {
@@ -17,7 +18,8 @@ export class MonetizationService {
   constructor(
     private logger: Logger,
     private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService
+    private storage: StorageService,
+    private browser: Browser
   ) {
     this.sessions = {}
   }
@@ -26,13 +28,10 @@ export class MonetizationService {
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
-      // TODO: This is not ideal. We should not receive monetization events
-      // from the content script if WM is disabled or a wallet is not connected.
     const { connected, enabled } = await this.storage.get([
       'enabled',
       'connected'
     ])
-    if (connected === false || enabled === false) return
 
     const { requestId, walletAddress } = payload
     const { tabId, frameId } = getSender(sender)
@@ -61,7 +60,10 @@ export class MonetizationService {
     )
 
     this.sessions[tabId].set(requestId, session)
-    void session.start()
+
+    if (connected === true && enabled === true) {
+      void session.start()
+    }
   }
 
   stopPaymentSession(
@@ -99,6 +101,7 @@ export class MonetizationService {
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled'])
     await this.storage.set({ enabled: !enabled })
+    emitToggleWM({ enabled: !enabled })
   }
 
   clearTabSessions(tabId: number) {
@@ -116,5 +119,34 @@ export class MonetizationService {
 
     delete this.sessions[tabId]
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
+  }
+
+  async pay(amount: string) {
+    const tab = await getCurrentActiveTab(this.browser)
+    if (!tab || !tab.id) return
+
+    const sessions = this.sessions[tab.id]
+
+    if (!sessions) {
+      throw new Error('This website is not monetized.')
+    }
+
+    let totalSentAmount = BigInt(0)
+    const splitAmount = Number(amount) / sessions.size
+    const promises = []
+
+    for (const session of sessions.values()) {
+      promises.push(session.pay(splitAmount))
+    }
+
+    ;(await Promise.allSettled(promises)).forEach((p) => {
+      if (p.status === 'fulfilled') {
+        totalSentAmount += BigInt(p.value?.value ?? 0)
+      }
+    })
+
+    if (totalSentAmount === BigInt(0)) {
+      throw new Error('Could not facilitate payment for current website.')
+    }
   }
 }

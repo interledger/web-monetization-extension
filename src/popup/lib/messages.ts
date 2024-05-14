@@ -1,6 +1,4 @@
 import {
-  BackgroundToContentAction,
-  BackgroundToContentActionPayload,
   BackgroundToContentMessage,
   MessageManager,
   PopupToBackgroundAction,

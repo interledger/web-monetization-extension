@@ -157,74 +157,82 @@ export class FrameManager {
   }
 
   private bindMessageHandler() {
-    this.window.addEventListener('message', (event: any) => {
-      if (event.origin === this.window.location.href) return
+    this.window.addEventListener(
+      'message',
+      (event: any) => {
+        if (event.origin === this.window.location.href) return
 
-      const { message, payload, id } = event.data
-      const frame = this.findIframe(event.source)
+        const { message, payload, id } = event.data
+        const frame = this.findIframe(event.source)
 
-      if (!frame) return
+        if (!frame) return
 
-      const frameDetails = this.frames.get(frame)
+        const frameDetails = this.frames.get(frame)
 
-      switch (message) {
-        case ContentToContentAction.INITILIZE_IFRAME:
-          this.frames.set(frame, { frameId: id, requestIds: [] })
-          return
+        switch (message) {
+          case ContentToContentAction.INITILIZE_IFRAME:
+            event.stopPropagation()
+            this.frames.set(frame, { frameId: id, requestIds: [] })
+            return
 
-        case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START:
-          if (frame.allow === 'monetization') {
-            this.frames.set(frame, {
-              frameId: id,
-              requestIds: [payload.requestId]
-            })
+          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START:
+            event.stopPropagation()
+            if (frame.allow === 'monetization') {
+              this.frames.set(frame, {
+                frameId: id,
+                requestIds: [payload.requestId]
+              })
 
-            event.source.postMessage(
-              {
-                message: ContentToContentAction.START_MONETIZATION,
-                id,
-                payload
-              },
-              '*'
-            )
-          }
+              event.source.postMessage(
+                {
+                  message: ContentToContentAction.START_MONETIZATION,
+                  id,
+                  payload
+                },
+                '*'
+              )
+            }
 
-          return
+            return
 
-        case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME:
-          if (frame.allow === 'monetization') {
-            this.frames.set(frame, {
-              frameId: id,
-              requestIds: [payload.requestId]
-            })
+          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME:
+            event.stopPropagation()
+            if (frame.allow === 'monetization') {
+              this.frames.set(frame, {
+                frameId: id,
+                requestIds: [payload.requestId]
+              })
 
-            event.source.postMessage(
-              {
-                message: ContentToContentAction.RESUME_MONETIZATION,
-                id,
-                payload
-              },
-              '*'
-            )
-          }
-          return
+              event.source.postMessage(
+                {
+                  message: ContentToContentAction.RESUME_MONETIZATION,
+                  id,
+                  payload
+                },
+                '*'
+              )
+            }
+            return
 
-        case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_STOP:
-          if (frameDetails?.requestIds.length) {
-            event.source.postMessage(
-              {
-                message: ContentToContentAction.STOP_MONETIZATION,
-                id,
-                payload
-              },
-              '*'
-            )
-          }
+          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_STOP:
+            event.stopPropagation()
+            if (frameDetails?.requestIds.length) {
+              event.source.postMessage(
+                {
+                  message: ContentToContentAction.STOP_MONETIZATION,
+                  id,
+                  payload
+                },
+                '*'
+              )
+            }
 
-          return
-        default:
-          return
-      }
-    })
+            return
+          default:
+            return
+        }
+      },
+      { capture: true }
+    )
   }
 }

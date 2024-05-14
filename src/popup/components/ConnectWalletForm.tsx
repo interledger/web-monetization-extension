@@ -74,7 +74,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       className="space-y-4"
     >
       <div className="space-y-2">
-        <Label className="text-base font-medium">Step 1 - Public key</Label>
+        <Label className="text-base font-medium">Public key</Label>
         <p className="px-2 text-xs">
           Get a wallet address from a provider before connecting it below.
           Please find a list of available wallets{' '}
@@ -94,7 +94,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       </div>
       <Input
         type="url"
-        label="Step 2 - Wallet address"
+        label="Wallet address"
         disabled={connected}
         placeholder="https://ilp.rafiki.money/johndoe"
         errorMessage={errors.walletAddressUrl?.message}
@@ -110,7 +110,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         inputMode="numeric"
         disabled={connected}
         addOn={currencySymbol.symbol}
-        label="Step 3 - Amount"
+        label="Amount"
         description="Enter the amount to use from your wallet."
         placeholder="5.00"
         onKeyDown={(e) => {
