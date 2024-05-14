@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import path from 'node:path'
-import { Configuration } from 'webpack'
+import { Configuration, Stats } from 'webpack'
 
 export const TARGETS = ['chrome', 'firefox'] as const
 export const ROOT_DIR = path.resolve(__dirname, '..')
@@ -90,6 +90,14 @@ export const mainConfig: Configuration = {
       path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/background/index.ts`)
     ]
   }
+}
+
+export const callbackFn = (_: Error | null, stats: Stats | undefined) => {
+  if (!stats) return
+  if (stats.hasErrors()) {
+    console.log(stats.compilation.errors)
+  }
+  console.log('Compilation complete', `${stats.endTime - stats.startTime}ms`)
 }
 
 export type Target = (typeof TARGETS)[number]
