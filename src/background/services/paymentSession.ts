@@ -1,15 +1,14 @@
 import { OpenPaymentsService } from './openPayments'
 import {
-  IncomingPayment,
-  OutgoingPayment,
-  Quote,
-  WalletAddress,
+  type IncomingPayment,
+  type WalletAddress,
   isPendingGrant
 } from '@interledger/open-payments/dist/types'
 import { StorageService } from './storage'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { sleep } from '@/shared/helpers'
+import type { Storage } from '@/shared/types'
 
 export class PaymentSession {
   private active: boolean = false
@@ -46,10 +45,8 @@ export class PaymentSession {
     this.active = true
 
     const data = await this.storage.get(['token', 'walletAddress'])
-
-    let token = data.token
-    const walletAddress = data.walletAddress
-
+    const { walletAddress } = data
+    let { token } = data
     if (token == null || walletAddress == null) {
       return
     }
@@ -57,99 +54,102 @@ export class PaymentSession {
     await this.setIncomingPaymentUrl()
 
     while (this.active) {
-      let quote: Quote | undefined
-      let outgoingPayment: OutgoingPayment | undefined
-
-      try {
-        if (!quote) {
-          quote = await this.openPaymentsService.client!.quote.create(
-            {
-              url: walletAddress.resourceServer,
-              accessToken: token.value
-            },
-            {
-              method: 'ilp',
-              receiver: this.incomingPaymentUrl,
-              walletAddress: walletAddress.id,
-              debitAmount: {
-                value: this.amount,
-                assetScale: walletAddress.assetScale,
-                assetCode: walletAddress.assetCode
-              }
+      const res = await this.createOutgoingPayment({
+        debitAmountValue: this.amount,
+        token,
+        walletAddress,
+        receiver: this.incomingPaymentUrl
+      })
+      if (res.type === 'success') {
+        const { receiveAmount, receiver: incomingPayment } = res.outgoingPayment
+        sendMonetizationEvent({
+          tabId: this.tabId,
+          frameId: this.frameId,
+          payload: {
+            requestId: this.requestId,
+            details: {
+              receiveAmount,
+              incomingPayment,
+              paymentPointer: this.receiver.id
             }
-          )
+          }
+        })
+
+        // TODO: This is only the default wait time
+        await sleep(1000)
+      } else if (res.type === 'failure' && res.token) {
+        token = res.token
+      }
+    }
+  }
+
+  private async createOutgoingPayment(params: {
+    debitAmountValue: string
+    token: NonNullable<Storage['token']>
+    walletAddress: NonNullable<Storage['walletAddress']>
+    receiver: string
+  }) {
+    const { debitAmountValue, token, walletAddress, receiver } = params
+    const client = this.openPaymentsService.client!
+    try {
+      const quote = await client.quote.create(
+        {
+          url: walletAddress.resourceServer,
+          accessToken: token.value
+        },
+        {
+          method: 'ilp',
+          receiver: receiver,
+          walletAddress: walletAddress.id,
+          debitAmount: {
+            value: debitAmountValue,
+            assetScale: walletAddress.assetScale,
+            assetCode: walletAddress.assetCode
+          }
         }
-        outgoingPayment =
-          await this.openPaymentsService.client!.outgoingPayment.create(
-            {
-              url: walletAddress.resourceServer,
-              accessToken: token.value
-            },
-            {
-              walletAddress: walletAddress.id,
-              quoteId: quote.id,
-              metadata: {
-                source: 'Web Monetization'
-              }
-            }
-          )
-      } catch (e) {
-        /**
-         * Unhandled exceptions:
-         *  - Expired incoming payment: if the incoming payment is expired when
-         *    trying to create a quote, create a new incoming payment
-         *
-         */
-        if (e instanceof OpenPaymentsClientError) {
-          // Status code 403 -> expired access token
-          if (e.status === 403) {
-            const rotatedToken =
-              await this.openPaymentsService.client!.token.rotate({
-                accessToken: token.value,
-                url: token.manage
-              })
-
-            token = {
-              value: rotatedToken.access_token.value,
-              manage: rotatedToken.access_token.manage
-            }
-
-            void this.storage.set({
-              token: {
-                value: rotatedToken.access_token.value,
-                manage: rotatedToken.access_token.manage
-              }
+      )
+      const outgoingPayment = await client.outgoingPayment.create(
+        {
+          url: walletAddress.resourceServer,
+          accessToken: token.value
+        },
+        {
+          walletAddress: walletAddress.id,
+          quoteId: quote.id,
+          metadata: {
+            source: 'Web Monetization'
+          }
+        }
+      )
+      return { type: 'success' as const, outgoingPayment }
+    } catch (e) {
+      /**
+       * Unhandled exceptions:
+       *  - Expired incoming payment: if the incoming payment is expired when
+       *    trying to create a quote, create a new incoming payment
+       *z`
+       */
+      if (e instanceof OpenPaymentsClientError) {
+        // Status code 403 -> expired access token
+        if (e.status === 403) {
+          const rotatedToken =
+            await this.openPaymentsService.client!.token.rotate({
+              accessToken: token.value,
+              url: token.manage
             })
 
-            continue
+          const newToken = {
+            value: rotatedToken.access_token.value,
+            manage: rotatedToken.access_token.manage
           }
+          void this.storage.set({ token: newToken })
 
-          throw new Error(e.message)
+          return { type: 'failure' as const, token }
         }
-      } finally {
-        if (outgoingPayment) {
-          const { receiveAmount, receiver: incomingPayment } = outgoingPayment
 
-          quote = undefined
-          outgoingPayment = undefined
-
-          sendMonetizationEvent({
-            tabId: this.tabId,
-            frameId: this.frameId,
-            payload: {
-              requestId: this.requestId,
-              details: {
-                receiveAmount,
-                incomingPayment,
-                paymentPointer: this.receiver.id
-              }
-            }
-          })
-
-          // TODO: This is only the default wait time
-          await sleep(1000)
-        }
+        throw new Error(e.message)
       }
+      return { type: 'failure' as const, error: e }
     }
   }
 
@@ -205,11 +205,8 @@ export class PaymentSession {
     return incomingPayment
   }
 
-  // TODO: Needs refactoring - breaks DRY
   async pay(amount: number) {
-    const incomingPayment = await this.createIncomingPayment()
     const data = await this.storage.get(['token', 'walletAddress'])
-
     let token = data.token
     const walletAddress = data.walletAddress
 
@@ -217,92 +214,34 @@ export class PaymentSession {
       return
     }
 
-    let quote: Quote | undefined
-    let outgoingPayment: OutgoingPayment | undefined
+    const incomingPayment = await this.createIncomingPayment()
+    const debitAmountValue = amount * 10 ** walletAddress.assetScale
+    const res = await this.createOutgoingPayment({
+      debitAmountValue: debitAmountValue.toFixed(0),
+      token,
+      walletAddress,
+      receiver: incomingPayment.id
+    })
 
-    try {
-      if (!quote) {
-        quote = await this.openPaymentsService.client!.quote.create(
-          {
-            url: walletAddress.resourceServer,
-            accessToken: token.value
-          },
-          {
-            method: 'ilp',
-            receiver: incomingPayment.id,
-            walletAddress: walletAddress.id,
-            debitAmount: {
-              value: (amount * 10 ** walletAddress.assetScale).toFixed(0),
-              assetScale: walletAddress.assetScale,
-              assetCode: walletAddress.assetCode
-            }
+    if (res.type === 'success' && res.outgoingPayment) {
+      const { receiveAmount, receiver: incomingPayment } = res.outgoingPayment
+
+      sendMonetizationEvent({
+        tabId: this.tabId,
+        frameId: this.frameId,
+        payload: {
+          requestId: this.requestId,
+          details: {
+            receiveAmount,
+            incomingPayment,
+            paymentPointer: this.receiver.id
           }
-        )
-      }
-
-      outgoingPayment =
-        await this.openPaymentsService.client!.outgoingPayment.create(
-          {
-            url: walletAddress.resourceServer,
-            accessToken: token.value
-          },
-          {
-            walletAddress: walletAddress.id,
-            quoteId: quote.id,
-            metadata: {
-              source: 'Web Monetization'
-            }
-          }
-        )
-    } catch (e) {
-      /**
-       * Unhandled exceptions:
-       *  - Expired incoming payment: if the incoming payment is expired when
-       *    trying to create a quote, create a new incoming payment
-       *
-       */
-      if (e instanceof OpenPaymentsClientError) {
-        // Status code 403 -> expired access token
-        if (e.status === 403) {
-          const rotatedToken =
-            await this.openPaymentsService.client!.token.rotate({
-              accessToken: token.value,
-              url: token.manage
-            })
-
-          token = {
-            value: rotatedToken.access_token.value,
-            manage: rotatedToken.access_token.manage
-          }
-
-          void this.storage.set({
-            token: {
-              value: rotatedToken.access_token.value,
-              manage: rotatedToken.access_token.manage
-            }
-          })
         }
+      })
 
-      }
-    } finally {
-      if (outgoingPayment) {
-        const { receiveAmount, receiver: incomingPayment } = outgoingPayment
-
-        sendMonetizationEvent({
-          tabId: this.tabId,
-          frameId: this.frameId,
-          payload: {
-            requestId: this.requestId,
-            details: {
-              receiveAmount,
-              incomingPayment,
-              paymentPointer: this.receiver.id
-            }
-          }
-        })
-      }
+      return res.outgoingPayment.debitAmount
+    } else if (res.type === 'failure' && res.token) {
+      token = res.token
     }
-
-    return outgoingPayment?.debitAmount
   }
 }
