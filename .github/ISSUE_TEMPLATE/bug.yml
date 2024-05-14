@@ -2,6 +2,7 @@ name: Bug report
 description: File a bug report
 title: '[BUG] '
 labels: ['bug', 'triage']
+projects: ['https://github.com/interledger/web-monetization-extension']
 body:
   - type: markdown
     attributes:
