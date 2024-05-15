@@ -127,7 +127,6 @@ export class PaymentSession {
        * Unhandled exceptions:
        *  - Expired incoming payment: if the incoming payment is expired when
        *    trying to create a quote, create a new incoming payment
-       *z`
        */
       if (e instanceof OpenPaymentsClientError) {
         // Status code 403 -> expired access token
