@@ -96,8 +96,10 @@ export const callbackFn = (_: Error | null, stats: Stats | undefined) => {
   if (!stats) return
   if (stats.hasErrors()) {
     console.log(stats.compilation.errors)
+    process.exit(1)
+  } else {
+    console.log('Compilation complete', `${stats.endTime - stats.startTime}ms`)
   }
-  console.log('Compilation complete', `${stats.endTime - stats.startTime}ms`)
 }
 
 export type Target = (typeof TARGETS)[number]
