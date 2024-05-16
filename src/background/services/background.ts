@@ -62,6 +62,8 @@ export class Background {
 
             case PopupToBackgroundAction.TOGGLE_CONTINOUS_PAYMENT:
               await this.monetizationService.toggleContinousPayment()
+
+              this.tabEvents.onUpdatedTab()
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:

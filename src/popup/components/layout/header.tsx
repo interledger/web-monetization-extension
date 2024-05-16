@@ -2,10 +2,10 @@ import React, { useContext, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import browser from 'webextension-polyfill'
 import { ArrowBack, Settings } from '../Icons'
-import { Switch } from '../ui/Switch'
+// import { Switch } from '../ui/Switch'
 import { ROUTES_PATH } from '@/popup/Popup'
-import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
-import { toggleWM } from '@/popup/lib/messages'
+import { PopupStateContext } from '@/popup/lib/context'
+// import { toggleWM } from '@/popup/lib/messages'
 
 const Logo = browser.runtime.getURL('assets/images/logo.svg')
 
@@ -30,11 +30,12 @@ const NavigationButton = () => {
 }
 
 export const Header = () => {
-  const { state, dispatch } = useContext(PopupStateContext)
-  const onChange = async () => {
-    await toggleWM()
-    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
-  }
+  // TO DO - uncomment when decision about global monetization vs continous payment made
+  // const { state, dispatch } = useContext(PopupStateContext)
+  // const onChange = async () => {
+  //   await toggleWM()
+  //   dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
+  // }
   return (
     <header className="flex h-8 flex-row items-center justify-between">
       <div className="flex flex-row items-center gap-3">
@@ -43,7 +44,7 @@ export const Header = () => {
       </div>
       <div className="flex flex-row items-center gap-3">
         <NavigationButton />
-        <Switch checked={state.enabled} onChange={onChange} />
+        {/* <Switch checked={state.enabled} onChange={onChange} /> */}
       </div>
     </header>
   )

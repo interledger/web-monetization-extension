@@ -39,6 +39,7 @@ export class ContentScript {
                 message.payload
               )
               return
+
             default:
               return
           }

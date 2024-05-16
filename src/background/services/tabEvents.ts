@@ -26,11 +26,17 @@ export class TabEvents {
   }
 
   private changeIcon = async () => {
-    const { enabled } = await this.storage.get(['enabled'])
+    console.log('changeIcon')
+
+    const { enabledContinousPayment } = await this.storage.get([
+      'enabledContinousPayment'
+    ])
+
+    console.log('enabledContinousPayment', enabledContinousPayment)
 
     const iconData = {
-      '34': enabled ? icon34 : iconWarning34,
-      '128': enabled ? icon128 : iconWarning128
+      '34': enabledContinousPayment ? icon34 : iconWarning34,
+      '128': enabledContinousPayment ? icon128 : iconWarning128
     }
 
     if (this.browser.action) {
@@ -49,14 +55,19 @@ export class TabEvents {
   }
 
   onUpdatedTab = async (payload?: IsTabMonetizedPayload) => {
-    const { enabled } = await this.storage.get(['enabled'])
+    console.log('onUpdatedTab')
+
+    const { enabledContinousPayment } = await this.storage.get([
+      'enabledContinousPayment'
+    ])
+    console.log('enabledContinousPayment', enabledContinousPayment)
 
     let iconData = {
-      '34': enabled ? icon34 : iconWarning34,
-      '128': enabled ? icon34 : iconWarning128
+      '34': enabledContinousPayment ? icon34 : iconWarning34,
+      '128': enabledContinousPayment ? icon34 : iconWarning128
     }
 
-    if (enabled) {
+    if (enabledContinousPayment) {
       if (payload) {
         const { value } = payload
 
