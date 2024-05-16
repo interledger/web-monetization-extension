@@ -54,7 +54,7 @@
     "@tailwindcss/forms": "^0.5.7",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.2",
-    "@types/chrome": "^0.0.267",
+    "@types/chrome": "^0.0.268",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.4",
     "@types/react": "^18.3.1",
