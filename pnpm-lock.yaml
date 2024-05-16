@@ -164,8 +164,8 @@ devDependencies:
     specifier: ^2.15.1
     version: 2.15.1(eslint@8.57.0)
   eslint-plugin-html:
-    specifier: ^8.0.0
-    version: 8.0.0
+    specifier: ^8.1.1
+    version: 8.1.1
   eslint-plugin-import:
     specifier: ^2.29.1
     version: 2.29.1(@typescript-eslint/parser@7.9.0)(eslint@8.57.0)
@@ -3964,8 +3964,8 @@ packages:
       regexpp: 3.2.0
     dev: true
 
-  /eslint-plugin-html@8.0.0:
-    resolution: {integrity: sha512-NINLBAXM3mLa3k5Ezr/kNLHAJJwbot6lS7Ro+SUftDw4cA51KMmcDuCf98GP6Q6kTVPY1hIggzskxAdxfUPXSA==}
+  /eslint-plugin-html@8.1.1:
+    resolution: {integrity: sha512-6qmlJsc40D2m3Dn9oEH+0PAOkJhxVu0f5sVItqpCE0YWgYnyP4xCjBc3UWTHaJcY9ARkWOLIIuXLq0ndRnQOHw==}
     engines: {node: '>=16.0.0'}
     dependencies:
       htmlparser2: 9.1.0
