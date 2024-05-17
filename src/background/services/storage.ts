@@ -3,6 +3,7 @@ import type { PopupStore, Storage, StorageKey } from '@/shared/types'
 import EventEmitter from 'events'
 import { type Browser } from 'webextension-polyfill'
 import { getCurrentActiveTab } from '../utils'
+import { EventsService } from './events'
 
 const defaultStorage = {
   connected: false,
@@ -24,6 +25,7 @@ const defaultStorage = {
 export class StorageService extends EventEmitter {
   constructor(
     private browser: Browser,
+    private events: EventsService,
     private logger: Logger
   ) {
     super()
@@ -105,5 +107,10 @@ export class StorageService extends EventEmitter {
     }
 
     return false
+  }
+
+  async updateRate(rate: string): Promise<void> {
+    await this.set({ rateOfPay: rate })
+    this.events.emit('storage.rate_of_pay_update', { rate })
   }
 }
