@@ -161,8 +161,8 @@ devDependencies:
     specifier: ^5.3.1
     version: 5.3.1(eslint@8.57.0)
   eslint-plugin-cypress:
-    specifier: ^2.15.1
-    version: 2.15.1(eslint@8.57.0)
+    specifier: ^3.2.0
+    version: 3.2.0(eslint@8.57.0)
   eslint-plugin-html:
     specifier: ^8.1.1
     version: 8.1.1
@@ -3877,10 +3877,10 @@ packages:
       eslint-rule-composer: 0.3.0
     dev: true
 
-  /eslint-plugin-cypress@2.15.1(eslint@8.57.0):
-    resolution: {integrity: sha512-eLHLWP5Q+I4j2AWepYq0PgFEei9/s5LvjuSqWrxurkg1YZ8ltxdvMNmdSf0drnsNo57CTgYY/NIHHLRSWejR7w==}
+  /eslint-plugin-cypress@3.2.0(eslint@8.57.0):
+    resolution: {integrity: sha512-HaxMz6BoU4ay+K4WrG9ZJC1NdX06FqSlAwtRDStjM0ORFT7zCNPNuRJ+kUPc17Rt2AMUBSqeD9L0zTR3uZhPpw==}
     peerDependencies:
-      eslint: '>= 3.2.1'
+      eslint: '>=7'
     dependencies:
       eslint: 8.57.0
       globals: 13.24.0
