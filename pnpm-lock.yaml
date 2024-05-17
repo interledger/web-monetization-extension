@@ -53,9 +53,6 @@ dependencies:
   path-browserify:
     specifier: ^1.0.1
     version: 1.0.1
-  pnpm:
-    specifier: 9.1.1
-    version: 9.1.1
   process:
     specifier: ^0.11.10
     version: 0.11.10
@@ -6616,12 +6613,6 @@ packages:
     dependencies:
       find-up: 4.1.0
     dev: true
-
-  /pnpm@9.1.1:
-    resolution: {integrity: sha512-FOkVdZwR936sB/q6TQGcGT7IY3Ip5i7Jnu+3zzw7dcZER4grfEhRQkUe46a0CAWc37e3+gNBuXXxLQ92KccRlQ==}
-    engines: {node: '>=18.12'}
-    hasBin: true
-    dev: false
 
   /possible-typed-array-names@1.0.0:
     resolution: {integrity: sha512-d7Uw+eZoloe0EHDIYoe+bQ5WXnGMOpmiZFTuMWCwpjzzkL2nTjcKiAk4hh8TjnGye2TwWOk3UXucZ+3rbmBa8Q==}
