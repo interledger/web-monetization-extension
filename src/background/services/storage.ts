@@ -25,9 +25,7 @@ export class StorageService {
   constructor(
     private browser: Browser,
     private events: EventsService,
-    private logger: Logger
   ) {
-    super()
   }
 
   async get<TKey extends StorageKey>(
@@ -110,6 +108,5 @@ export class StorageService {
 
   async updateRate(rate: string): Promise<void> {
     await this.set({ rateOfPay: rate })
-    this.events.emit('storage.rate_of_pay_update', { rate })
   }
 }
