@@ -7,7 +7,6 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
-  isTabMonetized,
   isWMEnabled,
   resumeMonetization,
   startMonetization,
@@ -17,6 +16,7 @@ import {
   EmitToggleWMPayload,
   MonetizationEventPayload
 } from '@/shared/messages'
+import { ContentToContentAction } from '../messages'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -26,13 +26,17 @@ interface FireOnMonetizationChangeIfHaveAttributeParams {
 }
 
 export class MonetizationTagManager extends EventEmitter {
+  private isTopFrame: boolean
+  private isFirstLevelFrame: boolean
   private documentObserver: MutationObserver
   private monetizationTagAttrObserver: MutationObserver
+  private id: string
   private iconUpdated: boolean
 
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
   constructor(
+    private window: Window,
     private document: Document,
     private logger: Logger
   ) {
@@ -49,6 +53,14 @@ export class MonetizationTagManager extends EventEmitter {
         ? await this.resumeAllMonetization()
         : await this.stopAllMonetization()
     })
+
+    this.isTopFrame = window === window.top
+    this.isFirstLevelFrame = window.parent === window.top
+    this.id = crypto.randomUUID()
+
+    if (!this.isTopFrame && this.isFirstLevelFrame) {
+      this.bindMessageHandler()
+    }
   }
 
   dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
@@ -70,43 +82,81 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (response.success && response.payload) {
       let validTagsCount = 0
-
       this.monetizationTags.forEach((value) => {
         if (value.requestId && value.walletAddress) {
-          resumeMonetization({ requestId: value.requestId })
+          if (this.isTopFrame) {
+            resumeMonetization({ requestId: value.requestId })
+          } else if (this.isFirstLevelFrame) {
+            this.window.parent.postMessage(
+              {
+                message:
+                  ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
+                id: this.id,
+                payload: { requestId: value.requestId }
+              },
+              '*'
+            )
+          }
           ++validTagsCount
         }
       })
 
-      isTabMonetized({ value: validTagsCount > 0 })
+      if (this.isTopFrame) {
+        this.window.postMessage(
+          {
+            message: ContentToContentAction.IS_FRAME_MONETIZED,
+            id: this.id,
+            payload: { isMonetized: validTagsCount > 0 }
+          },
+          '*'
+        )
+      } else if (this.isFirstLevelFrame) {
+        this.window.parent.postMessage(
+          {
+            message: ContentToContentAction.IS_FRAME_MONETIZED,
+            id: this.id,
+            payload: { isMonetized: validTagsCount > 0 }
+          },
+          '*'
+        )
+      }
     }
   }
 
   private stopAllMonetization() {
     this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress)
-        stopMonetization({ requestId: value.requestId })
+      if (value.requestId && value.walletAddress) {
+        if (this.isTopFrame) {
+          stopMonetization({ requestId: value.requestId })
+        } else if (this.isFirstLevelFrame) {
+          this.window.parent.postMessage(
+            {
+              message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_STOP,
+              id: this.id,
+              payload: { requestId: value.requestId }
+            },
+            '*'
+          )
+        }
+      }
     })
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
     this.iconUpdated = false
 
-    this.logger.info('document mutation records.length=', records.length)
-
     for (const record of records) {
-      this.logger.info('Record', record.type, record.target)
       if (record.type === 'childList') {
         record.removedNodes.forEach((node) => this.check('removed', node))
       }
     }
 
-    for (const record of records) {
-      this.logger.info('Record', record.type, record.target)
-      if (record.type === 'childList') {
-        record.addedNodes.forEach((node) => this.check('added', node))
+    if (this.isTopFrame)
+      for (const record of records) {
+        if (record.type === 'childList') {
+          record.addedNodes.forEach((node) => this.check('added', node))
+        }
       }
-    }
 
     this.onOnMonetizationChangeObserved(records)
   }
@@ -164,8 +214,6 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   async check(op: string, node: Node) {
-    this.logger.info('head node', op, node)
-
     if (node instanceof HTMLLinkElement) {
       if (op === 'added') {
         this.observeMonetizationTagAttrs(node)
@@ -238,9 +286,7 @@ export class MonetizationTagManager extends EventEmitter {
       detail: mozClone({ attribute }, this.document)
     })
 
-    const result = node.dispatchEvent(customEvent)
-
-    this.logger.info('dispatched onmonetization-attr-changed ev', result)
+    node.dispatchEvent(customEvent)
   }
 
   start(): void {
@@ -262,10 +308,27 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private run() {
-    this.iconUpdated = false
+    if (!this.isTopFrame && this.isFirstLevelFrame) {
+      this.window.parent.postMessage(
+        {
+          message: ContentToContentAction.INITILIZE_IFRAME,
+          id: this.id
+        },
+        '*'
+      )
+    }
 
-    const monetizationTags: NodeListOf<MonetizationTag> =
-      this.document.querySelectorAll('link')
+    let monetizationTags: NodeListOf<MonetizationTag> | MonetizationTag[]
+
+    if (this.isTopFrame) {
+      monetizationTags = this.document.querySelectorAll('link')
+    } else {
+      const monetizationTag: MonetizationTag | null =
+        this.document.querySelector('head link[rel="monetization"]')
+      monetizationTags = monetizationTag ? [monetizationTag] : []
+    }
+
+    this.iconUpdated = false
 
     monetizationTags.forEach(async (tag) => {
       try {
@@ -315,7 +378,25 @@ export class MonetizationTagManager extends EventEmitter {
       if (value.requestId && value.walletAddress) ++validTagsCount
     })
 
-    isTabMonetized({ value: validTagsCount > 0 })
+    if (this.isTopFrame) {
+      this.window.postMessage(
+        {
+          message: ContentToContentAction.IS_FRAME_MONETIZED,
+          id: this.id,
+          payload: { isMonetized: validTagsCount > 0 }
+        },
+        '*'
+      )
+    } else if (this.isFirstLevelFrame) {
+      this.window.parent.postMessage(
+        {
+          message: ContentToContentAction.IS_FRAME_MONETIZED,
+          id: this.id,
+          payload: { isMonetized: validTagsCount > 0 }
+        },
+        '*'
+      )
+    }
   }
 
   // Add tag to list & start monetization
@@ -331,11 +412,42 @@ export class MonetizationTagManager extends EventEmitter {
     this.monetizationTags.set(tag, details)
 
     if (walletAddress) {
-      startMonetization({ requestId, walletAddress })
-
-      if (!this.iconUpdated) {
-        isTabMonetized({ value: true })
-        this.iconUpdated = true
+      if (this.isTopFrame) {
+        startMonetization({ requestId, walletAddress })
+        if (!this.iconUpdated) {
+          this.window.postMessage(
+            {
+              message: ContentToContentAction.IS_FRAME_MONETIZED,
+              id: this.id,
+              payload: { isMonetized: true }
+            },
+            '*'
+          )
+          this.iconUpdated = true
+        }
+      } else if (this.isFirstLevelFrame) {
+        this.window.parent.postMessage(
+          {
+            message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
+            id: this.id,
+            payload: {
+              walletAddress,
+              requestId
+            }
+          },
+          '*'
+        )
+        if (!this.iconUpdated) {
+          this.window.parent.postMessage(
+            {
+              message: ContentToContentAction.IS_FRAME_MONETIZED,
+              id: this.id,
+              payload: { isMonetized: true }
+            },
+            '*'
+          )
+          this.iconUpdated = true
+        }
       }
     }
   }
@@ -390,6 +502,28 @@ export class MonetizationTagManager extends EventEmitter {
 
       return null
     }
+  }
+
+  private bindMessageHandler() {
+    this.window.addEventListener('message', (event) => {
+      const { message, id, payload } = event.data
+
+      if (event.origin === window.location.href || id !== this.id) return
+
+      switch (message) {
+        case ContentToContentAction.START_MONETIZATION:
+          startMonetization(payload)
+          return
+        case ContentToContentAction.RESUME_MONETIZATION:
+          resumeMonetization(payload)
+          return
+        case ContentToContentAction.STOP_MONETIZATION:
+          stopMonetization(payload)
+          return
+        default:
+          return
+      }
+    })
   }
 
   async toggleWM({ enabled }: EmitToggleWMPayload) {

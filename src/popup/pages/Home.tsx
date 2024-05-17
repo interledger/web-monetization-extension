@@ -5,8 +5,8 @@ import { Slider } from '../components/ui/Slider'
 import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import { getCurrencySymbol, roundWithPrecision } from '../lib/utils'
-import { debounceAsync } from '@/shared/helpers'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
+import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 
 const updateRateOfPay = debounceAsync(updateRateOfPay_, 500)
