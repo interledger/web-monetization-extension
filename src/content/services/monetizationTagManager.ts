@@ -7,7 +7,6 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
-  isTabMonetized,
   isWMEnabled,
   resumeMonetization,
   startMonetization,
