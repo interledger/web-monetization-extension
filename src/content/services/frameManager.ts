@@ -1,13 +1,14 @@
 import { Logger } from '@/shared/logger'
-import { stopMonetization } from '../lib/messages'
+import { isTabMonetized, stopMonetization } from '../lib/messages'
 import { ContentToContentAction } from '../messages'
 
 export class FrameManager {
   private documentObserver: MutationObserver
   private frameAllowAttrObserver: MutationObserver
+  private isFrameMonetized: boolean
   private frames = new Map<
     HTMLIFrameElement,
-    { frameId: string | null; requestIds: string[] }
+    { frameId: string | null; requestIds: string[]; isFrameMonetized?: boolean }
   >()
 
   constructor(
@@ -80,7 +81,11 @@ export class FrameManager {
   }
 
   private async onAddedFrame(frame: HTMLIFrameElement) {
-    this.frames.set(frame, { frameId: null, requestIds: [] })
+    this.frames.set(frame, {
+      frameId: null,
+      requestIds: [],
+      isFrameMonetized: false
+    })
   }
 
   private async onRemovedFrame(frame: HTMLIFrameElement) {
@@ -93,6 +98,14 @@ export class FrameManager {
     )
 
     this.frames.delete(frame)
+
+    let isMonetized = false
+
+    this.frames.forEach((value) => {
+      if (value.isFrameMonetized) isMonetized = true
+    })
+
+    isTabMonetized({ value: isMonetized || this.isFrameMonetized })
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
@@ -160,19 +173,37 @@ export class FrameManager {
     this.window.addEventListener(
       'message',
       (event: any) => {
-        if (event.origin === this.window.location.href) return
-
         const { message, payload, id } = event.data
         const frame = this.findIframe(event.source)
 
-        if (!frame) return
+        if (!frame) {
+          if (message === ContentToContentAction.IS_FRAME_MONETIZED) {
+            event.stopPropagation()
+
+            let isMonetized = false
+
+            this.isFrameMonetized = payload.isMonetized
+            this.frames.forEach((value) => {
+              if (value.isFrameMonetized) isMonetized = true
+            })
+
+            isTabMonetized({ value: isMonetized || this.isFrameMonetized })
+          }
+          return
+        }
+
+        if (event.origin === this.window.location.href) return
 
         const frameDetails = this.frames.get(frame)
 
         switch (message) {
           case ContentToContentAction.INITILIZE_IFRAME:
             event.stopPropagation()
-            this.frames.set(frame, { frameId: id, requestIds: [] })
+            this.frames.set(frame, {
+              frameId: id,
+              requestIds: [],
+              isFrameMonetized: false
+            })
             return
 
           case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START:
@@ -180,7 +211,8 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: [payload.requestId]
+                requestIds: [payload.requestId],
+                isFrameMonetized: true
               })
 
               event.source.postMessage(
@@ -200,7 +232,8 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: [payload.requestId]
+                requestIds: [payload.requestId],
+                isFrameMonetized: true
               })
 
               event.source.postMessage(
@@ -228,6 +261,24 @@ export class FrameManager {
             }
 
             return
+
+          case ContentToContentAction.IS_FRAME_MONETIZED: {
+            event.stopPropagation()
+            let isMonetized = false
+            if (!frameDetails) return
+
+            this.frames.set(frame, {
+              ...frameDetails,
+              isFrameMonetized: payload.isMonetized
+            })
+            this.frames.forEach((value) => {
+              if (value.isFrameMonetized) isMonetized = true
+            })
+
+            isTabMonetized({ value: isMonetized || this.isFrameMonetized })
+
+            return
+          }
           default:
             return
         }

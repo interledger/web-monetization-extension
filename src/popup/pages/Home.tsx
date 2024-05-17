@@ -2,10 +2,14 @@ import React from 'react'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
-import { updateRateOfPay } from '../lib/messages'
+import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import { getCurrencySymbol, roundWithPrecision } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
+import { debounceAsync } from '@/shared/helpers'
+import { Switch } from '../components/ui/Switch'
+
+const updateRateOfPay = debounceAsync(updateRateOfPay_, 500)
 
 export const Component = () => {
   const {
@@ -29,19 +33,23 @@ export const Component = () => {
     return r.toExponential()
   }, [rateOfPay, walletAddress.assetScale])
 
-  // TODO: Use a debounce
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const rateOfPay = event.currentTarget.value
-    const response = await updateRateOfPay({
-      rateOfPay
-    })
-    if (!response.success) return
     dispatch({
       type: ReducerActionType.UPDATE_RATE_OF_PAY,
       data: {
         rateOfPay
       }
     })
+    const response = await updateRateOfPay({ rateOfPay })
+    if (!response.success) {
+      // TODO: Maybe reset to old state, but not while user is active (avoid jank)
+    }
+  }
+
+  const onChangeWM = () => {
+    toggleWM()
+    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
   }
 
   return (
@@ -72,6 +80,11 @@ export const Component = () => {
           </p>
         </div>
       )}
+      <Switch
+        checked={enabled}
+        onChange={onChangeWM}
+        label="Continous payment stream"
+      />
 
       <hr />
 

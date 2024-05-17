@@ -13,11 +13,11 @@ import {
   startMonetization,
   stopMonetization
 } from '../lib/messages'
-import { ContentToContentAction } from '../messages'
 import {
   EmitToggleWMPayload,
   MonetizationEventPayload
 } from '@/shared/messages'
+import { ContentToContentAction } from '../messages'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -80,6 +80,7 @@ export class MonetizationTagManager extends EventEmitter {
 
   private async resumeAllMonetization() {
     const response = await isWMEnabled()
+
     if (response.success && response.payload) {
       let validTagsCount = 0
       this.monetizationTags.forEach((value) => {
@@ -100,7 +101,26 @@ export class MonetizationTagManager extends EventEmitter {
           ++validTagsCount
         }
       })
-      isTabMonetized({ value: validTagsCount > 0 })
+
+      if (this.isTopFrame) {
+        this.window.postMessage(
+          {
+            message: ContentToContentAction.IS_FRAME_MONETIZED,
+            id: this.id,
+            payload: { isMonetized: validTagsCount > 0 }
+          },
+          '*'
+        )
+      } else if (this.isFirstLevelFrame) {
+        this.window.parent.postMessage(
+          {
+            message: ContentToContentAction.IS_FRAME_MONETIZED,
+            id: this.id,
+            payload: { isMonetized: validTagsCount > 0 }
+          },
+          '*'
+        )
+      }
     }
   }
 
@@ -359,7 +379,25 @@ export class MonetizationTagManager extends EventEmitter {
       if (value.requestId && value.walletAddress) ++validTagsCount
     })
 
-    isTabMonetized({ value: validTagsCount > 0 })
+    if (this.isTopFrame) {
+      this.window.postMessage(
+        {
+          message: ContentToContentAction.IS_FRAME_MONETIZED,
+          id: this.id,
+          payload: { isMonetized: validTagsCount > 0 }
+        },
+        '*'
+      )
+    } else if (this.isFirstLevelFrame) {
+      this.window.parent.postMessage(
+        {
+          message: ContentToContentAction.IS_FRAME_MONETIZED,
+          id: this.id,
+          payload: { isMonetized: validTagsCount > 0 }
+        },
+        '*'
+      )
+    }
   }
 
   // Add tag to list & start monetization
@@ -377,6 +415,17 @@ export class MonetizationTagManager extends EventEmitter {
     if (walletAddress) {
       if (this.isTopFrame) {
         startMonetization({ requestId, walletAddress })
+        if (!this.iconUpdated) {
+          this.window.postMessage(
+            {
+              message: ContentToContentAction.IS_FRAME_MONETIZED,
+              id: this.id,
+              payload: { isMonetized: true }
+            },
+            '*'
+          )
+          this.iconUpdated = true
+        }
       } else if (this.isFirstLevelFrame) {
         this.window.parent.postMessage(
           {
@@ -389,11 +438,17 @@ export class MonetizationTagManager extends EventEmitter {
           },
           '*'
         )
-      }
-
-      if (!this.iconUpdated) {
-        isTabMonetized({ value: true })
-        this.iconUpdated = true
+        if (!this.iconUpdated) {
+          this.window.parent.postMessage(
+            {
+              message: ContentToContentAction.IS_FRAME_MONETIZED,
+              id: this.id,
+              payload: { isMonetized: true }
+            },
+            '*'
+          )
+          this.iconUpdated = true
+        }
       }
     }
   }
