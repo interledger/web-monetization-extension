@@ -71,3 +71,19 @@ export const notNullOrUndef = <T>(
     return t
   }
 }
+
+export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
+  func: (...args: T) => R,
+  wait: number
+) {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  return function (...args: T) {
+    return new Promise<Awaited<R>>((resolve) => {
+      if (timeout != null) clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        timeout = null
+        void Promise.resolve(func(...args)).then(resolve)
+      }, wait)
+    })
+  }
+}
