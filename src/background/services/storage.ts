@@ -1,6 +1,5 @@
 import { Logger } from '@/shared/logger'
 import type { PopupStore, Storage, StorageKey } from '@/shared/types'
-import EventEmitter from 'events'
 import { type Browser } from 'webextension-polyfill'
 import { getCurrentActiveTab } from '../utils'
 import { EventsService } from './events'
@@ -22,7 +21,7 @@ const defaultStorage = {
 // Eg:
 // - rate of pay - we should recalculate the amount for every payment session
 // - enabling/disabling WM
-export class StorageService extends EventEmitter {
+export class StorageService {
   constructor(
     private browser: Browser,
     private events: EventsService,
