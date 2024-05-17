@@ -2,13 +2,14 @@ import React from 'react'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
-import { updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
+import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import { getCurrencySymbol, roundWithPrecision } from '../lib/utils'
 import { debounceAsync } from '@/shared/helpers'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
+import { Switch } from '../components/ui/Switch'
 
-const updateRateOfPay = debounceAsync(updateRateOfPay_, 500);
+const updateRateOfPay = debounceAsync(updateRateOfPay_, 500)
 
 export const Component = () => {
   const {
@@ -46,6 +47,11 @@ export const Component = () => {
     }
   }
 
+  const onChangeWM = () => {
+    toggleWM()
+    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
+  }
+
   return (
     <div className="space-y-8">
       {enabled ? (
@@ -74,6 +80,11 @@ export const Component = () => {
           </p>
         </div>
       )}
+      <Switch
+        checked={enabled}
+        onChange={onChangeWM}
+        label="Continous payment stream"
+      />
 
       <hr />
 
