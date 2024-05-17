@@ -224,8 +224,8 @@ devDependencies:
     specifier: ^6.22.3
     version: 6.22.3(react-dom@18.3.1)(react@18.3.1)
   style-loader:
-    specifier: ^3.3.4
-    version: 3.3.4(webpack@5.91.0)
+    specifier: ^4.0.0
+    version: 4.0.0(webpack@5.91.0)
   tailwindcss:
     specifier: ^3.4.3
     version: 3.4.3(ts-node@10.9.2)
@@ -7738,11 +7738,11 @@ packages:
     engines: {node: '>= 14', npm: '>=6'}
     dev: false
 
-  /style-loader@3.3.4(webpack@5.91.0):
-    resolution: {integrity: sha512-0WqXzrsMTyb8yjZJHDqwmnwRJvhALK9LfRtRc6B4UTWe8AijYLZYZ9thuJTZc2VfQWINADW/j+LiJnfy2RoC1w==}
-    engines: {node: '>= 12.13.0'}
+  /style-loader@4.0.0(webpack@5.91.0):
+    resolution: {integrity: sha512-1V4WqhhZZgjVAVJyt7TdDPZoPBPNHbekX4fWnCJL1yQukhCeZhJySUL+gL9y6sNdN95uEOS83Y55SqHcP7MzLA==}
+    engines: {node: '>= 18.12.0'}
     peerDependencies:
-      webpack: ^5.0.0
+      webpack: ^5.27.0
     dependencies:
       webpack: 5.91.0(webpack-cli@5.1.4)
     dev: true
