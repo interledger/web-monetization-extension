@@ -267,8 +267,6 @@ export class MonetizationTagManager extends EventEmitter {
     const monetizationTags: NodeListOf<MonetizationTag> =
       this.document.querySelectorAll('link')
 
-    console.log(monetizationTags)
-
     monetizationTags.forEach(async (tag) => {
       try {
         this.observeMonetizationTagAttrs(tag)

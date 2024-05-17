@@ -11,14 +11,14 @@ export class EventsService extends EventEmitter {
     super()
   }
 
-  on<TEvent extends Extract<keyof BackgroundEvents, string>>(
+  on<TEvent extends keyof BackgroundEvents>(
     eventName: TEvent,
     listener: (param: BackgroundEvents[TEvent]) => void
   ): this {
     return super.on(eventName, listener)
   }
 
-  once<TEvent extends Extract<keyof BackgroundEvents, string>>(
+  once<TEvent extends keyof BackgroundEvents>(
     eventName: TEvent,
     listener: (param: BackgroundEvents[TEvent]) => void
   ): this {
