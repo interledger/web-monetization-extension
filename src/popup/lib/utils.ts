@@ -30,7 +30,11 @@ export function roundWithPrecision(num: number, precision: number) {
   return Math.round(num * multiplier) / multiplier
 }
 
-export function formatNumber(value: number, scale: number): string {
+export function formatNumber(
+  value: number,
+  scale: number,
+  allowExponential = false
+): string {
   if (
     scale <= 2 ||
     (value * 100 >= 1 && value * 100 - Math.floor(value * 100) === 0)
@@ -39,8 +43,15 @@ export function formatNumber(value: number, scale: number): string {
   } else if (scale >= 3 && scale <= 4) {
     return value.toString()
   } else {
-    if (value * 10 ** 4 >= 1) {
-      return value.toString()
+    if (value * 10 ** 4 >= 1 || !allowExponential) {
+      let fixedScale = 5
+      while (
+        value * 10 ** fixedScale - Math.floor(value * 10 ** fixedScale) > 0 &&
+        fixedScale < scale
+      ) {
+        ++fixedScale
+      }
+      return value.toFixed(fixedScale).toString()
     } else return value.toExponential()
   }
 }

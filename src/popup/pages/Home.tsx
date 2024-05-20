@@ -27,13 +27,12 @@ export const Component = () => {
     },
     dispatch
   } = React.useContext(PopupStateContext)
-  console.log(walletAddress)
 
   const rate = React.useMemo(() => {
     const r = Number(rateOfPay) / 10 ** walletAddress.assetScale
     const roundedR = roundWithPrecision(r, walletAddress.assetScale)
 
-    return formatNumber(roundedR, walletAddress.assetScale)
+    return formatNumber(roundedR, walletAddress.assetScale, true)
   }, [rateOfPay, walletAddress.assetScale])
 
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
