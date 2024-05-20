@@ -29,3 +29,18 @@ export function roundWithPrecision(num: number, precision: number) {
   const multiplier = Math.pow(10, precision)
   return Math.round(num * multiplier) / multiplier
 }
+
+export function formatNumber(value: number, scale: number): string {
+  if (
+    scale <= 2 ||
+    (value * 100 >= 1 && value * 100 - Math.floor(value * 100) === 0)
+  ) {
+    return value.toFixed(2).toString()
+  } else if (scale >= 3 && scale <= 4) {
+    return value.toString()
+  } else {
+    if (value * 10 ** 4 >= 1) {
+      return value.toString()
+    } else return value.toExponential()
+  }
+}

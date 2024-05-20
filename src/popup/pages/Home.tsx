@@ -4,7 +4,11 @@ import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
 import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
 import { Label } from '../components/ui/Label'
-import { getCurrencySymbol, roundWithPrecision } from '../lib/utils'
+import {
+  formatNumber,
+  getCurrencySymbol,
+  roundWithPrecision
+} from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
@@ -23,14 +27,13 @@ export const Component = () => {
     },
     dispatch
   } = React.useContext(PopupStateContext)
+  console.log(walletAddress)
 
   const rate = React.useMemo(() => {
     const r = Number(rateOfPay) / 10 ** walletAddress.assetScale
-    if (roundWithPrecision(r, 2) > 0) {
-      return r.toFixed(2)
-    }
+    const roundedR = roundWithPrecision(r, walletAddress.assetScale)
 
-    return r.toExponential()
+    return formatNumber(roundedR, walletAddress.assetScale)
   }, [rateOfPay, walletAddress.assetScale])
 
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
