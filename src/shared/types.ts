@@ -61,7 +61,7 @@ export type PopupStore = Omit<
   Storage,
   'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
 > & {
-    url: string | undefined
+  url: string | undefined
 }
 
 export type DeepNonNullable<T> = {
