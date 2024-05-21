@@ -33,7 +33,6 @@ export class Background {
   }
 
   bindWindowHandlers() {
-    this.logger.debug('binding window')
     this.browser.windows.onFocusChanged.addListener(async () => {
       const windows = await this.browser.windows.getAll({
         windowTypes: ['normal', 'panel', 'popup']
