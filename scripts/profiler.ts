@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { webpack } from 'webpack'
-import { Target } from '../webpack/config'
+import { Target, callbackFn } from '../webpack/config'
 import { getProfileConfig } from '../webpack/profile'
 
 const TARGET = (process.argv[2] as Target) || 'chrome'
@@ -15,6 +15,4 @@ if (TARGET !== 'firefox' && TARGET !== 'chrome') {
 
 const config = getProfileConfig(TARGET)
 
-webpack(config, (_, s) => {
-  console.log('Compilation complete', `${s?.endTime - s?.startTime}ms`)
-})
+webpack(config, callbackFn)

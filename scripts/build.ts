@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { webpack } from 'webpack'
-import { TARGETS, Target } from '../webpack/config'
+import { TARGETS, Target, callbackFn } from '../webpack/config'
 import { getProdConfig } from '../webpack/prod'
 
 const TARGET: Target | null = process.argv[2]
@@ -23,14 +23,10 @@ if (TARGET === null) {
   console.log(`Building extension for all available targets...`)
   TARGETS.forEach((target) => {
     const config = getProdConfig(target)
-    webpack(config).run((_, s) => {
-      console.log('Compilation complete', `${s?.endTime - s?.startTime}ms`)
-    })
+    webpack(config, callbackFn)
   })
 } else {
   const config = getProdConfig(TARGET)
   console.log(`Building extension for ${TARGET.toUpperCase()}...`)
-  webpack(config).run((_, s) => {
-    console.log('Compilation complete', `${s?.endTime - s?.startTime}ms`)
-  })
+  webpack(config, callbackFn)
 }
