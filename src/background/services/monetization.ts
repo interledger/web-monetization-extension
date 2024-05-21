@@ -72,6 +72,19 @@ export class MonetizationService {
     }
   }
 
+  stopPaymentSessionsByTabId(tabId: number) {
+    const sessions = this.sessions[tabId]
+
+    if (!sessions) {
+      this.logger.debug(`No active sessions found for tab ${tabId}.`)
+      return
+    }
+
+    for (const session of sessions.values()) {
+      session.stop()
+    }
+  }
+
   stopPaymentSession(
     payload: StopMonetizationPayload,
     sender: Runtime.MessageSender
@@ -102,6 +115,19 @@ export class MonetizationService {
     }
 
     this.sessions[tabId].get(requestId)?.resume()
+  }
+
+  resumePaymentSessionsByTabId(tabId: number) {
+    const sessions = this.sessions[tabId]
+
+    if (!sessions) {
+      this.logger.debug(`No active sessions found for tab ${tabId}.`)
+      return
+    }
+
+    for (const session of sessions.values()) {
+      session.resume()
+    }
   }
 
   async toggleWM() {
