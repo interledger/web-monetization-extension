@@ -28,29 +28,35 @@ export class MonetizationService {
     payload: StartMonetizationPayload,
     sender: Runtime.MessageSender
   ) {
-    const { connected, enabled } = await this.storage.get([
+    const {
+      connected,
+      enabled,
+      rateOfPay: rate,
+      walletAddress: connectedWallet
+    } = await this.storage.get([
       'enabled',
-      'connected'
+      'connected',
+      'rateOfPay',
+      'walletAddress'
     ])
 
-    const { requestId, walletAddress } = payload
+    if (!rate || !connectedWallet) {
+      this.logger.error(
+        `Did not find rate of pay or connect wallet information. Received rate=${rate}, wallet=${connectedWallet}. Payment session will not be initialized.`
+      )
+      return
+    }
+
+    const { requestId, walletAddress: receiver } = payload
     const { tabId, frameId } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
     }
 
-    const { rateOfPay: rate } = await this.storage.get(['rateOfPay'])
-
-    if (!rate) {
-      this.logger.error(
-        'Rate of pay not found. Payment session will not be initialized.'
-      )
-      return
-    }
-
     const session = new PaymentSession(
-      walletAddress,
+      receiver,
+      connectedWallet,
       requestId,
       tabId,
       frameId,

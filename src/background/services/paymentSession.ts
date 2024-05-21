@@ -11,13 +11,19 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { sleep } from '@/shared/helpers'
 
+const DEFAULT_INTERVAL_IN_MS = 1000
+const HOUR_IN_MS = 3600 * 1000
+const MIN_SEND_AMOUNT = BigInt(1) // 1 unit
+
 export class PaymentSession {
   private active: boolean = false
   private incomingPaymentUrl: string
   private amount: string
+  private intervalInMs: number
 
   constructor(
     private receiver: WalletAddress,
+    private sender: WalletAddress,
     private requestId: string,
     private tabId: number,
     private frameId: number,
@@ -29,8 +35,50 @@ export class PaymentSession {
   }
 
   private calculateDebitAmount() {
-    // This is only follows the happy path (scale 9)
-    this.amount = (Number(this.rate) / 3600).toFixed(0)
+    const senderAssetScale = this.sender.assetScale
+    const receiverAssetScale = this.receiver.assetScale
+
+    // The rate is already stored in the users scale:
+    //  - rate: 600000000 (scale 9) => $0.60
+    const amountToSend = BigInt(this.rate) / BigInt(3600)
+    if (amountToSend === BigInt(0)) {
+      // If amountToSend = 0, it means that the user wallet is not
+      // able to send a payment every second to facilitate the rate of pay
+      // and we need to use the minimum amount (1 unit) and recalculate the interval..
+      //
+      // Eg:
+      //   - scale: 2
+      //   - rate: 60 ($0.60)
+      //   - amount: 60n / 3600n = 0n => amountToSend = 1n (@interledger/pay)
+      //   - interval: 2 minutes
+
+      // We have to add 1n to the MIN_SEND_AMOUNT.
+      // @interledger/pay substracts 1 unit when using a debit amount.
+      // Can be removed once there is a solution for this in Rafiki/library.
+      this.amount = (MIN_SEND_AMOUNT + BigInt(1)).toString() // adding +1 - cause: (@interledger/pay)
+      this.intervalInMs =
+        ((Number(MIN_SEND_AMOUNT + BigInt(1)) * HOUR_IN_MS) /
+          Number(this.rate)) *
+        Math.pow(10, senderAssetScale - receiverAssetScale)
+      return
+    }
+
+    const amountInSendersScale = Number(amountToSend) * 10 ** -senderAssetScale
+    const amountInReceiversScale = Number(amountInSendersScale.toFixed(2))
+
+    if (amountInReceiversScale === 0) {
+      this.amount = (
+        Number(MIN_SEND_AMOUNT) *
+        10 ** (senderAssetScale - receiverAssetScale)
+      ).toString()
+      this.intervalInMs =
+        ((Number(MIN_SEND_AMOUNT + BigInt(1)) * HOUR_IN_MS) /
+          Number(this.rate)) *
+        Math.pow(10, senderAssetScale - receiverAssetScale)
+    } else {
+      this.amount = amountToSend.toString()
+      this.intervalInMs = Number(DEFAULT_INTERVAL_IN_MS)
+    }
   }
 
   stop() {
@@ -147,7 +195,7 @@ export class PaymentSession {
           })
 
           // TODO: This is only the default wait time
-          await sleep(1000)
+          await sleep(this.intervalInMs)
         }
       }
     }
@@ -282,7 +330,6 @@ export class PaymentSession {
             }
           })
         }
-
       }
     } finally {
       if (outgoingPayment) {
