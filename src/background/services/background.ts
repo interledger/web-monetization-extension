@@ -29,6 +29,33 @@ export class Background {
     this.bindOnInstalled()
     this.bindMessageHandler()
     this.bindTabHandlers()
+    this.bindWindowHandlers()
+  }
+
+  bindWindowHandlers() {
+    this.browser.windows.onFocusChanged.addListener(async () => {
+      const windows = await this.browser.windows.getAll({
+        windowTypes: ['normal', 'panel', 'popup']
+      })
+      windows.forEach(async (w) => {
+        const activeTab = (
+          await this.browser.tabs.query({ windowId: w.id, active: true })
+        )[0]
+        if (!activeTab?.id) return
+
+        if (w.focused) {
+          this.logger.debug(
+            `Trying to resume monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
+          )
+          this.monetizationService.resumePaymentSessionsByTabId(activeTab.id)
+        } else {
+          this.logger.debug(
+            `Trying to pause monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
+          )
+          this.monetizationService.stopPaymentSessionsByTabId(activeTab.id)
+        }
+      })
+    })
   }
 
   bindTabHandlers() {
