@@ -35,23 +35,27 @@ export function formatNumber(
   scale: number,
   allowExponential = false
 ): string {
-  if (
-    scale <= 2 ||
-    (value * 100 >= 1 && value * 100 - Math.floor(value * 100) === 0)
-  ) {
-    return value.toFixed(2).toString()
+  // TO DO: handle scale 0
+
+  if (!value) return '0.00'
+  // to avoid floating point issues on multiplication
+  const pow2 = +(value * 100).toFixed(9)
+  const pow4 = +(value * 10 ** 4).toFixed(9)
+
+  if (scale <= 2 || (pow2 >= 1 && pow2 - Math.floor(pow2) === 0)) {
+    return value.toFixed(2)
   } else if (scale >= 3 && scale <= 4) {
     return value.toString()
   } else {
-    if (value * 10 ** 4 >= 1 || !allowExponential) {
+    if (pow4 >= 1 || !allowExponential) {
       let fixedScale = 5
-      while (
-        value * 10 ** fixedScale - Math.floor(value * 10 ** fixedScale) > 0 &&
-        fixedScale < scale
-      ) {
+      let powN = +(value * 10 ** fixedScale).toFixed(9)
+      while (powN - Math.floor(powN) > 0 && fixedScale < scale) {
         ++fixedScale
+        powN = +(value * 10 ** fixedScale).toFixed(9)
       }
-      return value.toFixed(fixedScale).toString()
+
+      return value.toFixed(fixedScale)
     } else return value.toExponential()
   }
 }
