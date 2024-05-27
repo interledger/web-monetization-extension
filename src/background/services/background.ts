@@ -123,9 +123,7 @@ export class Background {
 
             case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
               return success(
-                await this.storage.set({
-                  rateOfPay: message.payload.rateOfPay
-                })
+                await this.storage.updateRate(message.payload.rateOfPay)
               )
 
             case ContentToBackgroundAction.IS_TAB_MONETIZED:

@@ -2,7 +2,11 @@ import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { PopupStateContext } from '@/popup/lib/context'
 import { payWebsite } from '@/popup/lib/messages'
-import { getCurrencySymbol, charIsNumber } from '@/popup/lib/utils'
+import {
+  getCurrencySymbol,
+  charIsNumber,
+  formatNumber
+} from '@/popup/lib/utils'
 import React, { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
@@ -104,16 +108,7 @@ export const PayWebsiteForm = () => {
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             setValue(
               'amount',
-              numericFormatter(e.currentTarget.value, {
-                allowNegative: false,
-                valueIsNumericString: true,
-                allowLeadingZeros: false,
-                decimalSeparator: '.',
-                thousandSeparator: ',',
-                thousandsGroupStyle: 'thousand',
-                fixedDecimalScale: true,
-                decimalScale: walletAddress.assetScale
-              })
+              formatNumber(+e.currentTarget.value, walletAddress.assetScale)
             )
           }
         })}

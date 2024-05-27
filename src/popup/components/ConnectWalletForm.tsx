@@ -7,7 +7,11 @@ import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
 import { getWalletInformation } from '@/shared/helpers'
-import { charIsNumber, getCurrencySymbol } from '@/popup/lib/utils'
+import {
+  charIsNumber,
+  formatNumber,
+  getCurrencySymbol
+} from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
 import { numericFormatter } from 'react-number-format'
 
@@ -130,16 +134,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             setValue(
               'amount',
-              numericFormatter(e.currentTarget.value, {
-                allowNegative: false,
-                valueIsNumericString: true,
-                allowLeadingZeros: false,
-                decimalSeparator: '.',
-                thousandSeparator: ',',
-                thousandsGroupStyle: 'thousand',
-                fixedDecimalScale: true,
-                decimalScale: currencySymbol.scale
-              })
+              formatNumber(+e.currentTarget.value, currencySymbol.scale)
             )
           }
         })}
