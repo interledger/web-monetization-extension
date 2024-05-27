@@ -47,19 +47,20 @@ export class Background {
           this.logger.debug(
             `Trying to resume monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
           )
-          this.monetizationService.resumePaymentSessionsByTabId(activeTab.id)
+          void this.monetizationService.resumePaymentSessionsByTabId(activeTab.id)
         } else {
           this.logger.debug(
             `Trying to pause monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
           )
-          this.monetizationService.stopPaymentSessionsByTabId(activeTab.id)
+          void this.monetizationService.stopPaymentSessionsByTabId(activeTab.id)
         }
       })
     })
   }
 
   bindTabHandlers() {
-    this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
+    this.browser.tabs.onRemoved.addListener(this.tabEvents.clearSessionsOnRemovedTab)
+    this.browser.tabs.onRemoved.addListener(this.tabEvents.clearSessionsOnUpdatedTab)
     this.browser.tabs.onCreated.addListener(this.tabEvents.onCreatedTab)
     this.browser.tabs.onActivated.addListener(this.tabEvents.onActivatedTab)
   }

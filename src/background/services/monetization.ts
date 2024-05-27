@@ -72,7 +72,10 @@ export class MonetizationService {
     }
   }
 
-  stopPaymentSessionsByTabId(tabId: number) {
+  async stopPaymentSessionsByTabId(tabId: number) {
+    const { enabled, connected } = await this.storage.get(['connected', 'enabled'])
+    if(connected === false || enabled === false) return
+
     const sessions = this.sessions[tabId]
 
     if (!sessions) {
@@ -117,7 +120,11 @@ export class MonetizationService {
     this.sessions[tabId].get(requestId)?.resume()
   }
 
-  resumePaymentSessionsByTabId(tabId: number) {
+  async resumePaymentSessionsByTabId(tabId: number) {
+    const { enabled, connected } = await this.storage.get(['connected', 'enabled'])
+    if(connected === false || enabled === false) return
+
+
     const sessions = this.sessions[tabId]
 
     if (!sessions) {
