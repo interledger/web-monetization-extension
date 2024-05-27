@@ -47,7 +47,9 @@ export class Background {
           this.logger.debug(
             `Trying to resume monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
           )
-          void this.monetizationService.resumePaymentSessionsByTabId(activeTab.id)
+          void this.monetizationService.resumePaymentSessionsByTabId(
+            activeTab.id
+          )
         } else {
           this.logger.debug(
             `Trying to pause monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
@@ -59,8 +61,8 @@ export class Background {
   }
 
   bindTabHandlers() {
-    this.browser.tabs.onRemoved.addListener(this.tabEvents.clearSessionsOnRemovedTab)
-    this.browser.tabs.onRemoved.addListener(this.tabEvents.clearSessionsOnUpdatedTab)
+    this.browser.tabs.onRemoved.addListener(this.tabEvents.clearTabSessions)
+    this.browser.tabs.onUpdated.addListener(this.tabEvents.clearTabSessions)
     this.browser.tabs.onCreated.addListener(this.tabEvents.onCreatedTab)
     this.browser.tabs.onActivated.addListener(this.tabEvents.onActivatedTab)
   }

@@ -13,70 +13,62 @@ const iconWarning34 = runtime.getURL('assets/icons/icon-warning-34.png')
 const iconWarning128 = runtime.getURL('assets/icons/icon-warning-128.png')
 
 export class TabEvents {
-    constructor(
-        private monetizationService: MonetizationService,
-        private storage: StorageService,
-        private browser: Browser
-    ) { }
-    // TODO: This is not ideal. Find a better way to clear the sessions for a specific tab.
-    // When closing the tab, we receive the STOP_MONETIZATION message as well.
-    // Maybe check if the tab is closed in the content script?
-    clearSessionsOnRemovedTab = (tabId: number) => {
-        this.monetizationService.clearTabSessions(tabId)
+  constructor(
+    private monetizationService: MonetizationService,
+    private storage: StorageService,
+    private browser: Browser
+  ) {}
+
+  clearTabSessions = (tabId: number) => {
+    this.monetizationService.clearTabSessions(tabId)
+  }
+
+  private changeIcon = async () => {
+    const { enabled } = await this.storage.get(['enabled'])
+
+    const iconData = {
+      '34': enabled ? icon34 : iconWarning34,
+      '128': enabled ? icon128 : iconWarning128
     }
 
-    clearSessionsOnUpdatedTab = (tabId: number) => {
-        this.monetizationService.clearTabSessions(tabId)
+    if (this.browser.action) {
+      await this.browser.action.setIcon({ path: iconData })
+    } else if (chrome.browserAction) {
+      chrome.browserAction.setIcon({ path: iconData })
+    }
+  }
+
+  onActivatedTab = async () => {
+    await this.changeIcon()
+  }
+
+  onCreatedTab = async () => {
+    await this.changeIcon()
+  }
+
+  onUpdatedTab = async (payload?: IsTabMonetizedPayload) => {
+    const { enabled } = await this.storage.get(['enabled'])
+
+    let iconData = {
+      '34': enabled ? icon34 : iconWarning34,
+      '128': enabled ? icon34 : iconWarning128
     }
 
+    if (enabled) {
+      if (payload) {
+        const { value } = payload
 
-
-    private changeIcon = async () => {
-        const { enabled } = await this.storage.get(['enabled'])
-
-        const iconData = {
-            '34': enabled ? icon34 : iconWarning34,
-            '128': enabled ? icon128 : iconWarning128
+        iconData = {
+          '34': value ? iconActive34 : iconInactive34,
+          '128': value ? iconActive128 : iconInactive128
         }
-
-        if (this.browser.action) {
-            await this.browser.action.setIcon({ path: iconData })
-        } else if (chrome.browserAction) {
-            chrome.browserAction.setIcon({ path: iconData })
-        }
+      }
     }
 
-    onActivatedTab = async () => {
-        await this.changeIcon()
+    if (this.browser.action) {
+      await this.browser.action.setIcon({ path: iconData })
+    } else if (chrome.browserAction) {
+      chrome.browserAction.setIcon({ path: iconData })
     }
-
-    onCreatedTab = async () => {
-        await this.changeIcon()
-    }
-
-    onUpdatedTab = async (payload?: IsTabMonetizedPayload) => {
-        const { enabled } = await this.storage.get(['enabled'])
-
-        let iconData = {
-            '34': enabled ? icon34 : iconWarning34,
-            '128': enabled ? icon34 : iconWarning128
-        }
-
-        if (enabled) {
-            if (payload) {
-                const { value } = payload
-
-                iconData = {
-                    '34': value ? iconActive34 : iconInactive34,
-                    '128': value ? iconActive128 : iconInactive128
-                }
-            }
-        }
-
-        if (this.browser.action) {
-            await this.browser.action.setIcon({ path: iconData })
-        } else if (chrome.browserAction) {
-            chrome.browserAction.setIcon({ path: iconData })
-        }
-    }
+  }
 }
