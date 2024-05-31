@@ -9,12 +9,11 @@ import {
 import { StorageService } from './storage'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
-import { sleep } from '@/shared/helpers'
-import { DEFAULT_SCALE } from '../config'
+import { convert, sleep } from '@/shared/helpers'
 
-const DEFAULT_INTERVAL_IN_MS = 1000
-const HOUR_IN_MS = 3600 * 1000
-const MIN_SEND_AMOUNT = BigInt(1) // 1 unit
+const DEFAULT_INTERVAL_MS = 1000
+const HOUR_MS = 3600 * 1000
+const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
   private active: boolean = false
@@ -32,10 +31,24 @@ export class PaymentSession {
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService
   ) {
-    this.evaluateSessionAmount()
+    this.adjustSessionAmount()
   }
 
-  evaluateSessionAmount(): void {
+  // Only tested for same-currency transactions (USD mostly).
+  // What to do for cross-currency? Will the sending part lose money (ASE),
+  // when performing FX, since the receive amount will be ceiled?
+  adjustSessionAmount(rate?: string): void {
+    if (this.sender.assetCode !== this.receiver.assetCode) {
+      throw new Error(
+        `NOT IMPLEMENTED\nCross-currency transactions not supported`
+      )
+    }
+
+    // TODO: When we will batch all the wallet addresses that are found in the page,
+    // this is not going to be the rate, but `RATE_OF_PAY / No. of WA` (which
+    // should be passed directly to the PaymentSession class when initializing it).
+    if (rate) this.rate = rate
+
     const senderAssetScale = this.sender.assetScale
     const receiverAssetScale = this.receiver.assetScale
 
@@ -45,53 +58,53 @@ export class PaymentSession {
       )
     }
 
-    // This can work without any issues if we are sending between two Rafiki
-    // nodes that are peered, since the `maxPacketAmount` can be adjusted.
-    // When the sender and the receiver are on the same node, the
-    // `maxPacketAmount` is equal to MAX_INT64 by default, which is causing
-    // a database error when creating the quote, because it receives really
-    // big numbers for the estimated exchange rates.
+    // GitHub issue: https://github.com/interledger/rafiki/issues/2747
+    // We would be able to test this in about 2 weeks (next Rafiki release)
+    // and we will have to wait for the Test Wallet to use the latest version.
     //
-    // TODO: Keep in touch with the Rafiki team and remove this check when
-    // we can send from a low scale to a high scale. This might require
-    // changes to the code below.
+    // Current implementation should work for current scenario as well.
     if (senderAssetScale < receiverAssetScale) {
       throw new Error(
         `NOT IMPLEMENTED\nSender asset scale is less than receiver asset scale.`
       )
     }
 
-    // The rate is already stored in the users scale
-    const amountToSend = BigInt(this.rate) / BigInt(3600)
+    // The amount that needs to be sent every second.
+    // In senders asset scale already.
+    const amountToSend = BigInt(this.rate) / 3600n
 
-    // If amountToSend is 0, it means that the user wallet is not
-    // able to send a payment every second to facilitate the rate of pay.
-    // We need to use the minimum amount (1 unit) and adjust the interval.
-    if (amountToSend === BigInt(0)) {
-      if (senderAssetScale === receiverAssetScale) {
-        this.setAmount(MIN_SEND_AMOUNT + BigInt(1), senderAssetScale)
+    if (amountToSend <= MIN_SEND_AMOUNT) {
+      if (senderAssetScale <= receiverAssetScale) {
+        this.setAmount(MIN_SEND_AMOUNT + 1n)
         return
       }
 
       if (senderAssetScale > receiverAssetScale) {
-        this.setAmount(MIN_SEND_AMOUNT, senderAssetScale)
+        this.setAmount(MIN_SEND_AMOUNT)
         return
       }
     }
 
-    // If amountToSend is 1, we can send from a high asset scale to a low asset
-    // scale without running into the `debitAmount` issue, but not if the
-    // scales are equal or the sending asset scale is less than the
-    // receiving scale.
-    if (amountToSend === BigInt(1)) {
-      if (senderAssetScale === receiverAssetScale) {
-        this.setAmount(MIN_SEND_AMOUNT + BigInt(1), senderAssetScale)
+    if (senderAssetScale > receiverAssetScale) {
+      const amountInReceiversScale = convert(
+        amountToSend,
+        senderAssetScale,
+        receiverAssetScale
+      )
+
+      if (amountInReceiversScale === 0n) {
+        const amount = convert(
+          MIN_SEND_AMOUNT,
+          receiverAssetScale,
+          senderAssetScale
+        )
+        this.setAmount(amount)
         return
       }
     }
 
     this.amount = amountToSend.toString()
-    this.intervalInMs = DEFAULT_INTERVAL_IN_MS
+    this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
   stop() {
@@ -371,11 +384,8 @@ export class PaymentSession {
     return outgoingPayment?.debitAmount
   }
 
-  private setAmount(amount: bigint, scale: number): void {
+  private setAmount(amount: bigint): void {
     this.amount = amount.toString()
-    this.intervalInMs = Math.floor(
-      ((Number(amount) * HOUR_IN_MS) / Number(this.rate)) *
-        Math.pow(10, scale - DEFAULT_SCALE)
-    )
+    this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
   }
 }

@@ -1,9 +1,7 @@
 import { EventEmitter } from 'events'
 
 interface BackgroundEvents {
-  'storage.rate_of_pay_update': {
-    rate: string
-  }
+  'storage.rate_of_pay_update': { rate: string }
 }
 
 export class EventsService extends EventEmitter {

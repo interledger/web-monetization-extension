@@ -87,3 +87,11 @@ export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
     })
   }
 }
+
+export function convert(value: bigint, source: number, target: number) {
+  const scaleDiff = target - source
+  if (scaleDiff > 0) {
+    return value * BigInt(Math.pow(10, scaleDiff))
+  }
+  return value / BigInt(Math.pow(10, -scaleDiff))
+}
