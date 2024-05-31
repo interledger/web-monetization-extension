@@ -52,17 +52,11 @@ export class PaymentSession {
     const senderAssetScale = this.sender.assetScale
     const receiverAssetScale = this.receiver.assetScale
 
-    if (senderAssetScale < 2) {
-      throw new Error(
-        `NOT IMPLEMENTED\nAsset scale less than 2 not supported at the moment.`
-      )
-    }
-
     // GitHub issue: https://github.com/interledger/rafiki/issues/2747
     // We would be able to test this in about 2 weeks (next Rafiki release)
     // and we will have to wait for the Test Wallet to use the latest version.
     //
-    // Current implementation should work for current scenario as well.
+    // Current implementation should work for this scenario as well.
     if (senderAssetScale < receiverAssetScale) {
       throw new Error(
         `NOT IMPLEMENTED\nSender asset scale is less than receiver asset scale.`
@@ -74,17 +68,24 @@ export class PaymentSession {
     const amountToSend = BigInt(this.rate) / 3600n
 
     if (amountToSend <= MIN_SEND_AMOUNT) {
+      // We need to add another unit when using a debit amount, since
+      // @interledger/pay substracts one unit.
       if (senderAssetScale <= receiverAssetScale) {
         this.setAmount(MIN_SEND_AMOUNT + 1n)
         return
       }
 
+      // If the sender scale is greater than the receiver scale, the unit issue
+      // will not be present.
       if (senderAssetScale > receiverAssetScale) {
         this.setAmount(MIN_SEND_AMOUNT)
         return
       }
     }
 
+    // If the sender can facilitate the rate, but the amount can not be
+    // represented in the receiver's scale we need to send the minimum amount
+    // for the receiver (1 unit, but in the sender's asset scale)
     if (senderAssetScale > receiverAssetScale) {
       const amountInReceiversScale = convert(
         amountToSend,

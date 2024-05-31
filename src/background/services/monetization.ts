@@ -72,7 +72,7 @@ export class MonetizationService {
 
     this.sessions[tabId].set(requestId, session)
 
-    if (connected === true && enabled === true) {
+    if (enabled === true) {
       void session.start()
     }
   }
