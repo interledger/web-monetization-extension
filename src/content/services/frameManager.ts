@@ -1,6 +1,11 @@
 import { Logger } from '@/shared/logger'
 import { isTabMonetized, stopMonetization } from '../lib/messages'
 import { ContentToContentAction } from '../messages'
+import {
+  ResumeMonetizationPayload,
+  StartMonetizationPayload,
+  StopMonetizationPayload
+} from '@/shared/messages'
 
 export class FrameManager {
   private documentObserver: MutationObserver
@@ -93,9 +98,12 @@ export class FrameManager {
 
     const frameDetails = this.frames.get(frame)
 
-    frameDetails?.requestIds.forEach((requestId) =>
-      stopMonetization({ requestId })
-    )
+    const stopMonetizationTags: StopMonetizationPayload[] =
+      frameDetails?.requestIds.map((requestId) => ({
+        requestId,
+        remove: true
+      })) || []
+    stopMonetization(stopMonetizationTags)
 
     this.frames.delete(frame)
 
@@ -211,10 +219,11 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: [payload.requestId],
+                requestIds: payload.map(
+                  (p: StartMonetizationPayload) => p.requestId
+                ),
                 isFrameMonetized: true
               })
-
               event.source.postMessage(
                 {
                   message: ContentToContentAction.START_MONETIZATION,
@@ -232,10 +241,11 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: [payload.requestId],
+                requestIds: payload.map(
+                  (p: ResumeMonetizationPayload) => p.requestId
+                ),
                 isFrameMonetized: true
               })
-
               event.source.postMessage(
                 {
                   message: ContentToContentAction.RESUME_MONETIZATION,
@@ -245,21 +255,6 @@ export class FrameManager {
                 '*'
               )
             }
-            return
-
-          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_STOP:
-            event.stopPropagation()
-            if (frameDetails?.requestIds.length) {
-              event.source.postMessage(
-                {
-                  message: ContentToContentAction.STOP_MONETIZATION,
-                  id,
-                  payload
-                },
-                '*'
-              )
-            }
-
             return
 
           case ContentToContentAction.IS_FRAME_MONETIZED: {

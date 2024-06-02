@@ -14,7 +14,10 @@ import {
 } from '../lib/messages'
 import {
   EmitToggleWMPayload,
-  MonetizationEventPayload
+  MonetizationEventPayload,
+  ResumeMonetizationPayload,
+  StartMonetizationPayload,
+  StopMonetizationPayload
 } from '@/shared/messages'
 import { ContentToContentAction } from '../messages'
 
@@ -31,7 +34,6 @@ export class MonetizationTagManager extends EventEmitter {
   private documentObserver: MutationObserver
   private monetizationTagAttrObserver: MutationObserver
   private id: string
-  private iconUpdated: boolean
 
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
@@ -51,7 +53,7 @@ export class MonetizationTagManager extends EventEmitter {
     document.addEventListener('visibilitychange', async () => {
       document.visibilityState === 'visible'
         ? await this.resumeAllMonetization()
-        : await this.stopAllMonetization()
+        : await this.stopAllMonetization(false)
     })
 
     this.isTopFrame = window === window.top
@@ -81,90 +83,75 @@ export class MonetizationTagManager extends EventEmitter {
     const response = await isWMEnabled()
 
     if (response.success && response.payload) {
-      let validTagsCount = 0
+      const resumeMonetizationTags: ResumeMonetizationPayload[] = []
+
       this.monetizationTags.forEach((value) => {
         if (value.requestId && value.walletAddress) {
-          if (this.isTopFrame) {
-            resumeMonetization({ requestId: value.requestId })
-          } else if (this.isFirstLevelFrame) {
-            this.window.parent.postMessage(
-              {
-                message:
-                  ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
-                id: this.id,
-                payload: { requestId: value.requestId }
-              },
-              '*'
-            )
-          }
-          ++validTagsCount
+          resumeMonetizationTags.push({ requestId: value.requestId })
         }
       })
 
-      if (this.isTopFrame) {
-        this.window.postMessage(
-          {
-            message: ContentToContentAction.IS_FRAME_MONETIZED,
-            id: this.id,
-            payload: { isMonetized: validTagsCount > 0 }
-          },
-          '*'
-        )
-      } else if (this.isFirstLevelFrame) {
-        this.window.parent.postMessage(
-          {
-            message: ContentToContentAction.IS_FRAME_MONETIZED,
-            id: this.id,
-            payload: { isMonetized: validTagsCount > 0 }
-          },
-          '*'
-        )
-      }
+      this.sendResumeMonetization(resumeMonetizationTags)
     }
   }
 
-  private stopAllMonetization() {
+  private stopAllMonetization(remove?: boolean) {
+    const stopMonetizationTags: StopMonetizationPayload[] = []
     this.monetizationTags.forEach((value) => {
       if (value.requestId && value.walletAddress) {
-        if (this.isTopFrame) {
-          stopMonetization({ requestId: value.requestId })
-        } else if (this.isFirstLevelFrame) {
-          this.window.parent.postMessage(
-            {
-              message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_STOP,
-              id: this.id,
-              payload: { requestId: value.requestId }
-            },
-            '*'
-          )
-        }
+        stopMonetizationTags.push({ requestId: value.requestId, remove })
       }
     })
+
+    this.sendStopMonetization(stopMonetizationTags)
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
-    this.iconUpdated = false
+    const startMonetizationTagsPromises: Promise<StartMonetizationPayload | null>[] =
+      []
+    const stopMonetizationTags: StopMonetizationPayload[] = []
 
     for (const record of records) {
       if (record.type === 'childList') {
-        record.removedNodes.forEach((node) => this.check('removed', node))
+        record.removedNodes.forEach(async (node) => {
+          const stopMonetizationTag = this.checkRemoved(node)
+          if (stopMonetizationTag)
+            stopMonetizationTags.push(stopMonetizationTag)
+        })
       }
     }
 
-    if (this.isTopFrame)
+    this.sendStopMonetization(stopMonetizationTags)
+
+    if (this.isTopFrame) {
       for (const record of records) {
         if (record.type === 'childList') {
-          record.addedNodes.forEach((node) => this.check('added', node))
+          record.addedNodes.forEach(async (node) => {
+            const startMonetizationTag = this.checkAdded(node)
+            startMonetizationTagsPromises.push(startMonetizationTag)
+          })
         }
       }
+
+      Promise.allSettled(startMonetizationTagsPromises).then((result) => {
+        const startMonetizationTags: StartMonetizationPayload[] = []
+        result.forEach((res) => {
+          if (res.status === 'fulfilled' && res.value) {
+            startMonetizationTags.push(res.value)
+          }
+        })
+
+        this.sendStartMonetization(startMonetizationTags)
+      })
+    }
 
     this.onOnMonetizationChangeObserved(records)
   }
 
   async onMonetizationTagAttrsChange(records: MutationRecord[]) {
-    this.iconUpdated = false
-
     const handledTags = new Set<Node>()
+    const startMonetizationTags: StartMonetizationPayload[] = []
+    const stopMonetizationTags: StopMonetizationPayload[] = []
 
     // Check for a non specified link with the type now specified and
     // just treat it as a newly seen, monetization tag
@@ -179,10 +166,15 @@ export class MonetizationTagManager extends EventEmitter {
       // this will also handle the case of a @disabled tag that
       // is not tracked, becoming enabled
       if (!hasTarget && typeSpecified) {
-        await this.onAddedTag(target)
+        const startMonetizationTag = await this.onAddedTag(target)
+        if (startMonetizationTag)
+          startMonetizationTags.push(startMonetizationTag)
+
         handledTags.add(target)
       } else if (hasTarget && !typeSpecified) {
-        this.onRemovedTag(target)
+        const stopMonetizationTag = this.onRemovedTag(target, true)
+        stopMonetizationTags.push(stopMonetizationTag)
+
         handledTags.add(target)
       } else if (!hasTarget && !typeSpecified) {
         // ignore these changes
@@ -197,7 +189,13 @@ export class MonetizationTagManager extends EventEmitter {
           const wasDisabled = record.oldValue !== null
           const isDisabled = target.hasAttribute('disabled')
           if (wasDisabled != isDisabled) {
-            this.onChangedWalletAddressUrl(target, wasDisabled)
+            const { startMonetizationTag, stopMonetizationTag } =
+              await this.onChangedWalletAddressUrl(target, wasDisabled)
+            if (startMonetizationTag)
+              startMonetizationTags.push(startMonetizationTag)
+            if (stopMonetizationTag)
+              stopMonetizationTags.push(stopMonetizationTag)
+
             handledTags.add(target)
           }
         } else if (
@@ -206,25 +204,39 @@ export class MonetizationTagManager extends EventEmitter {
           target instanceof HTMLLinkElement &&
           target.href !== record.oldValue
         ) {
-          this.onChangedWalletAddressUrl(target)
+          const { startMonetizationTag, stopMonetizationTag } =
+            await this.onChangedWalletAddressUrl(target)
+          if (startMonetizationTag)
+            startMonetizationTags.push(startMonetizationTag)
+          if (stopMonetizationTag)
+            stopMonetizationTags.push(stopMonetizationTag)
+
           handledTags.add(target)
         }
       }
     }
+
+    this.sendStartMonetization(startMonetizationTags)
+    this.sendStopMonetization(stopMonetizationTags)
   }
 
-  async check(op: string, node: Node) {
-    if (node instanceof HTMLLinkElement) {
-      if (op === 'added') {
-        this.observeMonetizationTagAttrs(node)
-        await this.onAddedTag(node)
-      } else if (op === 'removed' && this.monetizationTags.has(node)) {
-        this.onRemovedTag(node)
-      }
-    }
-    if (op === 'added' && node instanceof HTMLElement) {
+  private async checkAdded(node: Node) {
+    if (node instanceof HTMLElement) {
       this.fireOnMonetizationAttrChangedEvent({ node })
     }
+
+    if (node instanceof HTMLLinkElement) {
+      this.observeMonetizationTagAttrs(node)
+      return await this.onAddedTag(node)
+    }
+
+    return null
+  }
+
+  private checkRemoved(node: Node) {
+    return node instanceof HTMLLinkElement && this.monetizationTags.has(node)
+      ? this.onRemovedTag(node, true)
+      : null
   }
 
   private observeMonetizationTagAttrs(tag: MonetizationTag) {
@@ -250,12 +262,15 @@ export class MonetizationTagManager extends EventEmitter {
   // If wallet address changed, remove old tag and add new one
   async onChangedWalletAddressUrl(tag: MonetizationTag, wasDisabled = false) {
     const { requestId } = this.getTagDetails(tag, 'onChangedWalletAddressUrl')
+    let stopMonetizationTag = null
 
     if (!wasDisabled) {
-      this.onRemovedTag(tag)
+      stopMonetizationTag = await this.onRemovedTag(tag, false)
     }
 
-    this.onAddedTag(tag, requestId)
+    const startMonetizationTag = await this.onAddedTag(tag, requestId)
+
+    return { startMonetizationTag, stopMonetizationTag }
   }
 
   private onOnMonetizationChangeObserved(records: MutationRecord[]) {
@@ -328,18 +343,29 @@ export class MonetizationTagManager extends EventEmitter {
       monetizationTags = monetizationTag ? [monetizationTag] : []
     }
 
-    this.iconUpdated = false
+    const startMonetizationTagsPromises: Promise<StartMonetizationPayload | null>[] =
+      []
 
     monetizationTags.forEach(async (tag) => {
       try {
         this.observeMonetizationTagAttrs(tag)
-        await this.onAddedTag(tag)
+        const startMonetizationTag = this.onAddedTag(tag)
+        startMonetizationTagsPromises.push(startMonetizationTag)
       } catch (e) {
         this.logger.error(e)
       }
     })
 
-    this.checkIsTabMonetized()
+    Promise.allSettled(startMonetizationTagsPromises).then((result) => {
+      const startMonetizationTags: StartMonetizationPayload[] = []
+      result.forEach((res) => {
+        if (res.status === 'fulfilled' && res.value) {
+          startMonetizationTags.push(res.value)
+        }
+      })
+
+      this.sendStartMonetization(startMonetizationTags)
+    })
 
     const onMonetizations: NodeListOf<HTMLElement> =
       this.document.querySelectorAll('[onmonetization]')
@@ -362,93 +388,110 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   // Remove tag from list & stop monetization
-  private onRemovedTag(tag: MonetizationTag) {
+  private onRemovedTag(
+    tag: MonetizationTag,
+    remove: boolean
+  ): StopMonetizationPayload {
     const { requestId } = this.getTagDetails(tag, 'onRemovedTag')
     this.monetizationTags.delete(tag)
-    stopMonetization({ requestId })
 
-    // Check if tab still monetized
-    this.checkIsTabMonetized()
-  }
-
-  private checkIsTabMonetized() {
-    let validTagsCount = 0
-
-    this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress) ++validTagsCount
-    })
-
-    if (this.isTopFrame) {
-      this.window.postMessage(
-        {
-          message: ContentToContentAction.IS_FRAME_MONETIZED,
-          id: this.id,
-          payload: { isMonetized: validTagsCount > 0 }
-        },
-        '*'
-      )
-    } else if (this.isFirstLevelFrame) {
-      this.window.parent.postMessage(
-        {
-          message: ContentToContentAction.IS_FRAME_MONETIZED,
-          id: this.id,
-          payload: { isMonetized: validTagsCount > 0 }
-        },
-        '*'
-      )
-    }
+    return { requestId, remove } as StopMonetizationPayload
   }
 
   // Add tag to list & start monetization
-  private async onAddedTag(tag: MonetizationTag, crtRequestId?: string) {
+  private async onAddedTag(
+    tag: MonetizationTag,
+    crtRequestId?: string
+  ): Promise<StartMonetizationPayload | null> {
     const walletAddress = await this.checkTag(tag)
     const requestId = crtRequestId ?? crypto.randomUUID()
-
     const details: MonetizationTagDetails = {
       walletAddress,
       requestId
     }
 
     this.monetizationTags.set(tag, details)
+    return walletAddress ? { walletAddress, requestId } : null
+  }
 
-    if (walletAddress) {
-      if (this.isTopFrame) {
-        startMonetization({ requestId, walletAddress })
-        if (!this.iconUpdated) {
-          this.window.postMessage(
-            {
-              message: ContentToContentAction.IS_FRAME_MONETIZED,
-              id: this.id,
-              payload: { isMonetized: true }
-            },
-            '*'
-          )
-          this.iconUpdated = true
-        }
-      } else if (this.isFirstLevelFrame) {
-        this.window.parent.postMessage(
-          {
-            message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
-            id: this.id,
-            payload: {
-              walletAddress,
-              requestId
-            }
-          },
-          '*'
-        )
-        if (!this.iconUpdated) {
-          this.window.parent.postMessage(
-            {
-              message: ContentToContentAction.IS_FRAME_MONETIZED,
-              id: this.id,
-              payload: { isMonetized: true }
-            },
-            '*'
-          )
-          this.iconUpdated = true
-        }
-      }
+  private sendStartMonetization(tags: StartMonetizationPayload[]) {
+    if (!tags.length) return
+
+    const isFrameMonetizedMessage = {
+      message: ContentToContentAction.IS_FRAME_MONETIZED,
+      id: this.id,
+      payload: { isMonetized: true }
+    }
+
+    if (this.isTopFrame) {
+      startMonetization(tags)
+
+      // Update icon
+      this.window.postMessage(isFrameMonetizedMessage, '*')
+    } else if (this.isFirstLevelFrame) {
+      this.window.parent.postMessage(
+        {
+          message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
+          id: this.id,
+          payload: tags
+        },
+        '*'
+      )
+      // Update icon
+      this.window.parent.postMessage(isFrameMonetizedMessage, '*')
+    }
+  }
+
+  private sendStopMonetization(tags: StopMonetizationPayload[]) {
+    if (!tags.length) return
+
+    stopMonetization(tags)
+
+    // Check if tab still monetized
+    let validTagsCount = 0
+
+    this.monetizationTags.forEach((value) => {
+      if (value.requestId && value.walletAddress) ++validTagsCount
+    })
+    const isFrameMonetizedMessage = {
+      message: ContentToContentAction.IS_FRAME_MONETIZED,
+      id: this.id,
+      payload: { isMonetized: validTagsCount > 0 }
+    }
+
+    if (this.isTopFrame) {
+      this.window.postMessage(isFrameMonetizedMessage, '*')
+    } else if (this.isFirstLevelFrame) {
+      this.window.parent.postMessage(isFrameMonetizedMessage, '*')
+    }
+  }
+
+  private sendResumeMonetization(tags: ResumeMonetizationPayload[]) {
+    if (!tags.length) return
+
+    const isFrameMonetizedMessage = {
+      message: ContentToContentAction.IS_FRAME_MONETIZED,
+      id: this.id,
+      payload: { isMonetized: tags.length > 0 }
+    }
+
+    if (this.isTopFrame) {
+      resumeMonetization(tags)
+
+      // Update icon
+      this.window.postMessage(isFrameMonetizedMessage, '*')
+    } else if (this.isFirstLevelFrame) {
+      this.window.parent.postMessage(
+        {
+          message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
+          id: this.id,
+          payload: tags
+        },
+        '*'
+      )
+
+      // Update icon
+      this.window.parent.postMessage(isFrameMonetizedMessage, '*')
     }
   }
 
@@ -517,9 +560,6 @@ export class MonetizationTagManager extends EventEmitter {
         case ContentToContentAction.RESUME_MONETIZATION:
           resumeMonetization(payload)
           return
-        case ContentToContentAction.STOP_MONETIZATION:
-          stopMonetization(payload)
-          return
         default:
           return
       }
@@ -530,7 +570,7 @@ export class MonetizationTagManager extends EventEmitter {
     if (enabled) {
       await this.resumeAllMonetization()
     } else {
-      await this.stopAllMonetization()
+      await this.stopAllMonetization(true)
     }
   }
 }
