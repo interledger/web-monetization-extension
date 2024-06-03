@@ -9,15 +9,21 @@ import {
 import { StorageService } from './storage'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
-import { sleep } from '@/shared/helpers'
+import { convert, sleep } from '@/shared/helpers'
+
+const DEFAULT_INTERVAL_MS = 1000
+const HOUR_MS = 3600 * 1000
+const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
   private active: boolean = false
   private incomingPaymentUrl: string
   private amount: string
+  private intervalInMs: number
 
   constructor(
     private receiver: WalletAddress,
+    private sender: WalletAddress,
     private requestId: string,
     private tabId: number,
     private frameId: number,
@@ -25,12 +31,81 @@ export class PaymentSession {
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService
   ) {
-    this.calculateDebitAmount()
+    this.adjustSessionAmount()
   }
 
-  private calculateDebitAmount() {
-    // This is only follows the happy path (scale 9)
-    this.amount = (Number(this.rate) / 3600).toFixed(0)
+  // Only tested for same-currency transactions (USD mostly).
+  // What to do for cross-currency? Will the sending part lose money (ASE),
+  // when performing FX, since the receive amount will be ceiled?
+  adjustSessionAmount(rate?: string): void {
+    if (this.sender.assetCode !== this.receiver.assetCode) {
+      throw new Error(
+        `NOT IMPLEMENTED\nCross-currency transactions not supported`
+      )
+    }
+
+    // TODO: When we will batch all the wallet addresses that are found in the page,
+    // this is not going to be the rate, but `RATE_OF_PAY / No. of WA` (which
+    // should be passed directly to the PaymentSession class when initializing it).
+    if (rate) this.rate = rate
+
+    const senderAssetScale = this.sender.assetScale
+    const receiverAssetScale = this.receiver.assetScale
+
+    // GitHub issue: https://github.com/interledger/rafiki/issues/2747
+    // We would be able to test this in about 2 weeks (next Rafiki release)
+    // and we will have to wait for the Test Wallet to use the latest version.
+    //
+    // Current implementation should work for this scenario as well.
+    if (senderAssetScale < receiverAssetScale) {
+      throw new Error(
+        `NOT IMPLEMENTED\nSender asset scale is less than receiver asset scale.`
+      )
+    }
+
+    // The amount that needs to be sent every second.
+    // In senders asset scale already.
+    const amountToSend = BigInt(this.rate) / 3600n
+
+    if (amountToSend <= MIN_SEND_AMOUNT) {
+      // We need to add another unit when using a debit amount, since
+      // @interledger/pay substracts one unit.
+      if (senderAssetScale <= receiverAssetScale) {
+        this.setAmount(MIN_SEND_AMOUNT + 1n)
+        return
+      }
+
+      // If the sender scale is greater than the receiver scale, the unit issue
+      // will not be present.
+      if (senderAssetScale > receiverAssetScale) {
+        this.setAmount(MIN_SEND_AMOUNT)
+        return
+      }
+    }
+
+    // If the sender can facilitate the rate, but the amount can not be
+    // represented in the receiver's scale we need to send the minimum amount
+    // for the receiver (1 unit, but in the sender's asset scale)
+    if (senderAssetScale > receiverAssetScale) {
+      const amountInReceiversScale = convert(
+        amountToSend,
+        senderAssetScale,
+        receiverAssetScale
+      )
+
+      if (amountInReceiversScale === 0n) {
+        const amount = convert(
+          MIN_SEND_AMOUNT,
+          receiverAssetScale,
+          senderAssetScale
+        )
+        this.setAmount(amount)
+        return
+      }
+    }
+
+    this.amount = amountToSend.toString()
+    this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
   stop() {
@@ -94,12 +169,6 @@ export class PaymentSession {
             }
           )
       } catch (e) {
-        /**
-         * Unhandled exceptions:
-         *  - Expired incoming payment: if the incoming payment is expired when
-         *    trying to create a quote, create a new incoming payment
-         *
-         */
         if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
           if (e.status === 403) {
@@ -124,6 +193,16 @@ export class PaymentSession {
             continue
           }
 
+          // Is there a better way to handle this - expired incoming
+          // payment?
+          if (e.status === 400 && quote === undefined) {
+            await this.setIncomingPaymentUrl()
+            continue
+          }
+
+          // TODO: Check what Rafiki returns when there is no amount
+          // left in the grant.
+
           throw new Error(e.message)
         }
       } finally {
@@ -146,19 +225,20 @@ export class PaymentSession {
             }
           })
 
-          // TODO: This is only the default wait time
-          await sleep(1000)
+          await sleep(this.intervalInMs)
         }
       }
     }
   }
 
-  async setIncomingPaymentUrl() {
+  private async setIncomingPaymentUrl() {
+    if (this.incomingPaymentUrl) return
+
     const incomingPayment = await this.createIncomingPayment()
     this.incomingPaymentUrl = incomingPayment.id
   }
 
-  async createIncomingPayment(): Promise<IncomingPayment> {
+  private async createIncomingPayment(): Promise<IncomingPayment> {
     const incomingPaymentGrant =
       await this.openPaymentsService.client!.grant.request(
         {
@@ -282,7 +362,6 @@ export class PaymentSession {
             }
           })
         }
-
       }
     } finally {
       if (outgoingPayment) {
@@ -304,5 +383,10 @@ export class PaymentSession {
     }
 
     return outgoingPayment?.debitAmount
+  }
+
+  private setAmount(amount: bigint): void {
+    this.amount = amount.toString()
+    this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
   }
 }

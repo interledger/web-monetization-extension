@@ -24,9 +24,8 @@ const defaultStorage = {
 export class StorageService {
   constructor(
     private browser: Browser,
-    private events: EventsService,
-  ) {
-  }
+    private events: EventsService
+  ) {}
 
   async get<TKey extends StorageKey>(
     keys?: TKey[]
@@ -108,5 +107,6 @@ export class StorageService {
 
   async updateRate(rate: string): Promise<void> {
     await this.set({ rateOfPay: rate })
+    this.events.emit('storage.rate_of_pay_update', { rate })
   }
 }
