@@ -9,6 +9,7 @@ import {
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { EventsService } from './events'
 
 export class MonetizationService {
   private sessions: {
@@ -19,24 +20,32 @@ export class MonetizationService {
     private logger: Logger,
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService,
-    private browser: Browser
+    private browser: Browser,
+    private events: EventsService
   ) {
     this.sessions = {}
+    this.registerEventListeners()
   }
 
   async startPaymentSession(
     payload: StartMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    const { connected, enabled } = await this.storage.get([
+    const {
+      connected,
+      enabled,
+      rateOfPay: rate,
+      walletAddress: connectedWallet
+    } = await this.storage.get([
       'enabled',
-      'connected'
+      'connected',
+      'rateOfPay',
+      'walletAddress'
     ])
-    const { rateOfPay: rate } = await this.storage.get(['rateOfPay'])
 
-    if (!rate) {
+    if (!rate || !connectedWallet) {
       this.logger.error(
-        'Rate of pay not found. Payment session will not be initialized.'
+        `Did not find rate of pay or connect wallet information. Received rate=${rate}, wallet=${connectedWallet}. Payment session will not be initialized.`
       )
       return
     }
@@ -45,11 +54,14 @@ export class MonetizationService {
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
     }
+
     payload.forEach((p) => {
-      const { requestId, walletAddress } = p
+      const { requestId, walletAddress: receiver } = p
+      // TODO: Split monetization amount (needs batching)
 
       const session = new PaymentSession(
-        walletAddress,
+        receiver,
+        connectedWallet,
         requestId,
         tabId,
         frameId,
@@ -60,13 +72,19 @@ export class MonetizationService {
 
       this.sessions[tabId].set(requestId, session)
 
-      if (connected === true && enabled === true) {
+      if (enabled === true) {
         void session.start()
       }
     })
   }
 
-  stopPaymentSessionsByTabId(tabId: number) {
+  async stopPaymentSessionsByTabId(tabId: number) {
+    const { enabled, connected } = await this.storage.get([
+      'connected',
+      'enabled'
+    ])
+    if (connected === false || enabled === false) return
+
     const sessions = this.sessions[tabId]
 
     if (!sessions) {
@@ -117,7 +135,13 @@ export class MonetizationService {
     })
   }
 
-  resumePaymentSessionsByTabId(tabId: number) {
+  async resumePaymentSessionsByTabId(tabId: number) {
+    const { enabled, connected } = await this.storage.get([
+      'connected',
+      'enabled'
+    ])
+    if (connected === false || enabled === false) return
+
     const sessions = this.sessions[tabId]
 
     if (!sessions) {
@@ -180,5 +204,22 @@ export class MonetizationService {
     if (totalSentAmount === BigInt(0)) {
       throw new Error('Could not facilitate payment for current website.')
     }
+  }
+
+  private registerEventListeners() {
+    this.onRateOfPayUpdate()
+  }
+
+  private onRateOfPayUpdate() {
+    this.events.on('storage.rate_of_pay_update', ({ rate }) => {
+      this.logger.debug("Recevied event='storage.rate_of_pay_update'")
+      Object.keys(this.sessions).forEach((tabId) => {
+        const tabSessions = this.sessions[tabId as unknown as number]
+        this.logger.debug(`Re-evaluating sessions amount for tab=${tabId}`)
+        for (const session of tabSessions.values()) {
+          session.adjustSessionAmount(rate)
+        }
+      })
+    })
   }
 }

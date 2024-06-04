@@ -1,4 +1,4 @@
-import { type Browser, runtime } from 'webextension-polyfill'
+import { type Browser, runtime, Tabs } from 'webextension-polyfill'
 import { MonetizationService } from './monetization'
 import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
@@ -18,11 +18,16 @@ export class TabEvents {
     private storage: StorageService,
     private browser: Browser
   ) {}
-  // TODO: This is not ideal. Find a better way to clear the sessions for a specific tab.
-  // When closing the tab, we receive the STOP_MONETIZATION message as well.
-  // Maybe check if the tab is closed in the content script?
-  onRemovedTab = (tabId: number) => {
-    this.monetizationService.clearTabSessions(tabId)
+  clearTabSessions = (
+    tabId: number,
+    changeInfo: Tabs.OnUpdatedChangeInfoType | Tabs.OnRemovedRemoveInfoType
+  ) => {
+    if (
+      ('status' in changeInfo && changeInfo.status === 'loading') ||
+      'isWindowClosing' in changeInfo
+    ) {
+      this.monetizationService.clearTabSessions(tabId)
+    }
   }
 
   private changeIcon = async () => {

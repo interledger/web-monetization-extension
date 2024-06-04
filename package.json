@@ -32,7 +32,7 @@
     "constants-browserify": "^1.0.0",
     "crypto-browserify": "^3.12.0",
     "events": "^3.3.0",
-    "framer-motion": "^11.1.9",
+    "framer-motion": "^11.2.10",
     "http-message-signatures": "^1.0.4",
     "httpbis-digest-headers": "^1.0.0",
     "loglevel": "^1.9.1",
@@ -53,7 +53,7 @@
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.7",
     "@testing-library/jest-dom": "^6.4.5",
-    "@testing-library/react": "^14.3.1",
+    "@testing-library/react": "^15.0.7",
     "@types/chrome": "^0.0.268",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.4",
@@ -63,8 +63,8 @@
     "@types/webextension-polyfill": "^0.10.7",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@types/zip-webpack-plugin": "^3.0.6",
-    "@typescript-eslint/eslint-plugin": "^7.9.0",
-    "@typescript-eslint/parser": "^7.9.0",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
     "autoprefixer": "^10.4.19",
     "clean-webpack-plugin": "^4.0.0",
     "concurrently": "^8.2.2",
@@ -101,7 +101,7 @@
     "ts-jest": "^29.1.2",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.10.2",
+    "tsx": "^4.11.2",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
     "webpack-bundle-analyzer": "^4.10.2",
@@ -111,10 +111,10 @@
     "zip-webpack-plugin": "^4.0.1"
   },
   "engines": {
-    "pnpm": "^8.15.8",
+    "pnpm": "^9.1.4",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "20"
   },
-  "packageManager": "pnpm@8.15.8"
+  "packageManager": "pnpm@9.1.4"
 }
