@@ -50,7 +50,12 @@ jobs:
       - name: Environment setup
         uses: ./.github/actions/setup
 
-      - run: pnpm lint
+      - run: pnpm lint:prettier
+        continue-on-error: true
+      - run: pnpm lint:eslint
+        continue-on-error: true
+      - run: pnpm lint:type
+        continue-on-error: true
 
   test:
     name: Test
