@@ -41,6 +41,8 @@ jobs:
     name: Lint
     runs-on: ubuntu-22.04
     continue-on-error: true
+    env:
+      FORCE_COLOR: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,10 +50,9 @@ jobs:
       - name: Environment setup
         uses: ./.github/actions/setup
 
-      - name: Lint
-        run: pnpm lint
-        env:
-          FORCE_COLOR: true
+      - run: pnpm lint:prettier
+      - run: pnpm lint:eslint
+      - run: pnpm lint:type
 
   test:
     name: Test
