@@ -81,6 +81,7 @@ export interface StartMonetizationPayload {
 
 export interface StopMonetizationPayload {
   requestId: string
+  remove?: boolean
 }
 
 export interface ResumeMonetizationPayload {
@@ -93,9 +94,9 @@ export interface IsTabMonetizedPayload {
 
 export interface ContentToBackgroundActionPayload {
   [ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL]: CheckWalletAddressUrlPayload
-  [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload
-  [ContentToBackgroundAction.STOP_MONETIZATION]: StopMonetizationPayload
-  [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload
+  [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload[]
+  [ContentToBackgroundAction.STOP_MONETIZATION]: StopMonetizationPayload[]
+  [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload[]
   [ContentToBackgroundAction.IS_TAB_MONETIZED]: IsTabMonetizedPayload
   [ContentToBackgroundAction.IS_WM_ENABLED]: undefined
 }
