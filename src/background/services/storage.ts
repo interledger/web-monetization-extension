@@ -1,4 +1,3 @@
-import { Logger } from '@/shared/logger'
 import type { PopupStore, Storage, StorageKey } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { getCurrentActiveTab } from '../utils'

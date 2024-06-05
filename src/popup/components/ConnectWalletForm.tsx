@@ -13,7 +13,6 @@ import {
   getCurrencySymbol
 } from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
-import { numericFormatter } from 'react-number-format'
 
 interface ConnectWalletFormInputs {
   walletAddressUrl: string

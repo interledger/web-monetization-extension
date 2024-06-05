@@ -9,7 +9,6 @@ import {
 } from '@/popup/lib/utils'
 import React, { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-import { numericFormatter } from 'react-number-format'
 import { AnimatePresence, m } from 'framer-motion'
 import { Spinner } from './Icons'
 import { cn } from '@/shared/helpers'
