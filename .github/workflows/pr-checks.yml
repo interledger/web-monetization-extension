@@ -51,11 +51,11 @@ jobs:
         uses: ./.github/actions/setup
 
       - run: pnpm lint:prettier
-        continue-on-error: true
+        if: always()
       - run: pnpm lint:eslint
-        continue-on-error: true
+        if: always()
       - run: pnpm lint:type
-        continue-on-error: true
+        if: always()
 
   test:
     name: Test
