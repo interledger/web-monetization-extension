@@ -50,9 +50,7 @@ jobs:
       - name: Environment setup
         uses: ./.github/actions/setup
 
-      - run: pnpm lint:prettier
-      - run: pnpm lint:eslint
-      - run: pnpm lint:type
+      - run: pnpm lint
 
   test:
     name: Test
