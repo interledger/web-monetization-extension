@@ -11,7 +11,7 @@
   "scripts": {
     "build": "tsx ./scripts/build.ts",
     "dev": "tsx ./scripts/dev.ts",
-    "lint": "concurrently \"pnpm:lint:*\"",
+    "lint": "pnpm run '/^lint:(?!(fix)$).*/'",
     "lint:fix": "eslint --ext js,jsx,ts,tsx, src --fix",
     "lint:eslint": "eslint . --ext .js,.ts,.tsx --max-warnings 0 --ignore-path .gitignore",
     "lint:prettier": "prettier \"**/*.(md|json|yml)\" --ignore-path .gitignore --check",
