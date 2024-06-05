@@ -4,7 +4,6 @@ import {
     createAuthenticatedClient
 } from '@interledger/open-payments/dist/client'
 import {
-    CreateQuoteArgs,
     isFinalizedGrant,
     isPendingGrant,
     OutgoingPayment,
@@ -32,6 +31,7 @@ import {
     MAX_RATE_OF_PAY,
     MIN_RATE_OF_PAY
 } from '../config'
+import { Deduplicator } from './deduplicator'
 
 interface KeyInformation {
     privateKey: string
@@ -79,26 +79,28 @@ interface CreateQuoteAndOutgoingPaymentGrantParams {
     amount: WalletAmount
 }
 
-interface OPAmount {
-    value: string,
-    assetCode: string,
-    assetScale: number
+interface CreateQuoteParams {
+    walletAddress: WalletAddress
+    receiver: string
+    amount: string
 }
 
-interface CreateQuoteParams {
-    walletAddress: WalletAddress,
-    receiver: string,
-    debitAmount: OPAmount
+interface CreateOutgoingPaymentParams {
+    walletAddress: WalletAddress
+    quoteId: string
 }
 
 export class OpenPaymentsService {
     client?: AuthenticatedClient
+
     private token: AccessToken
 
     constructor(
         private browser: Browser,
-        private storage: StorageService
+        private storage: StorageService,
+        private deduplicator: Deduplicator
     ) {
+        console.log(this.token)
         void this.initialize()
     }
 
@@ -108,8 +110,9 @@ export class OpenPaymentsService {
             'walletAddress',
             'token'
         ])
+
         if (connected === true && walletAddress && token) {
-            void this.initClient(walletAddress.id)
+            await this.initClient(walletAddress.id)
             this.token = token
         }
     }
@@ -330,16 +333,19 @@ export class OpenPaymentsService {
             throw new Error('Expected finalized grant. Received unfinalized grant.')
         }
 
+        const token = {
+                value: continuation.access_token.value,
+                manage: continuation.access_token.manage
+        }
+
+        this.token = token
         this.storage.set({
             walletAddress,
             rateOfPay,
             minRateOfPay,
             maxRateOfPay,
             amount: transformedAmount,
-            token: {
-                value: continuation.access_token.value,
-                manage: continuation.access_token.manage
-            },
+            token,
             grant: {
                 accessToken: continuation.continue.access_token.value,
                 continueUri: continuation.continue.uri
@@ -397,7 +403,6 @@ export class OpenPaymentsService {
         return grant
     }
 
-    // Fourth item- https://rafiki.dev/concepts/open-payments/grant-interaction/#endpoints
     private async verifyInteractionHash({
         clientNonce,
         interactRef,
@@ -405,9 +410,6 @@ export class OpenPaymentsService {
         hash,
         authServer
     }: VerifyInteractionHashParams): Promise<void> {
-        // Notice: The interaction hash is not correctly calculated within Rafiki at the momenet in certain scenarios.
-        // If at one point this will throw an error check the `grantEndpoint` value.
-        // `grantEndpoint` represents the route where grants are requested.
         const grantEndpoint = new URL(authServer).origin + '/'
         const data = new TextEncoder().encode(
             `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`
@@ -457,6 +459,10 @@ export class OpenPaymentsService {
                 accessToken: grant.accessToken
             })
             await this.storage.clear()
+            this.token = {
+                value: '',
+                manage: ''
+            }
         }
     }
 
@@ -474,26 +480,68 @@ export class OpenPaymentsService {
         })
     }
 
-    async createQuote({ walletAddress, receiver, debitAmount }: CreateQuoteParams): Promise<Quote> {
-        const quote = await this.client!.quote.create({
-            accessToken: this.token.value,
-            url: walletAddress.resourceServer
-        }, {
-            method: 'ilp',
-            walletAddress: walletAddress.id,
-            receiver,
-            debitAmount
-        })
+    async createQuote({
+        walletAddress,
+        receiver,
+        amount
+    }: CreateQuoteParams): Promise<Quote> {
+        console.log('createQuote token value', this.token)
+        const quote = await this.client!.quote.create(
+            {
+                accessToken: this.token.value,
+                url: walletAddress.resourceServer
+            },
+            {
+                method: 'ilp',
+                walletAddress: walletAddress.id,
+                receiver,
+                debitAmount: {
+                    value: amount,
+                    assetCode: walletAddress.assetCode,
+                    assetScale: walletAddress.assetScale
+                }
+            }
+        )
 
         return quote
     }
 
-    async createOutgoingPayment( {walletAddress} ) : Promise<OutgoingPayment> {
-        const outgoingPayment = await this.client!.outgoingPayment.create({
-            accessToken: this.token.value,
-            url: walletAddress.resourceServer
-        }, {
-            quoteId
+    async createOutgoingPayment({
+        walletAddress,
+        quoteId
+    }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
+        return await this.client!.outgoingPayment.create(
+            {
+                accessToken: this.token.value,
+                url: walletAddress.resourceServer
+            },
+            {
+                quoteId,
+                walletAddress: walletAddress.id,
+                metadata: {
+                    source: 'Web Monetization'
+                }
+            }
+        )
+    }
+
+    async rotateToken() {
+        const rotate = this.deduplicator.dedupe(this.client!.token.rotate, { cacheFnArgs: false })
+        const token = await rotate({
+            url: this.token.manage,
+            accessToken: this.token.value
         })
+        console.log('rotateToken token', token)
+        const newToken = {
+            value: token.access_token.value,
+            manage: token.access_token.manage
+        }
+        await this.storage.set({
+            token: newToken
+        })
+        this.token = newToken
+
+        console.log('storage', await this.storage.get(['token']), 'opservice', this.token)
+
     }
 }

@@ -10,11 +10,13 @@ import {
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
 import { EventsService } from './services/events'
+import { Deduplicator } from './services/deduplicator'
 
 interface Cradle {
   logger: Logger
   browser: Browser
   events: EventsService
+  deduplicator: Deduplicator
   storage: StorageService
   openPaymentsService: OpenPaymentsService
   monetizationService: MonetizationService
@@ -33,6 +35,7 @@ export const configureContainer = () => {
     logger: asValue(logger),
     browser: asValue(browser),
     events: asClass(EventsService).singleton(),
+    deduplicator: asClass(Deduplicator).singleton(),
     storage: asClass(StorageService)
       .singleton()
       .inject(() => ({
