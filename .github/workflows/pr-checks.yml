@@ -50,6 +50,8 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+        env:
+          FORCE_COLOR: true
 
   test:
     name: Test
