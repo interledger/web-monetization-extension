@@ -11,8 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# TODO(@raducristianpopa): add lint/format checks and tests
-
 jobs:
   build:
     name: Build
@@ -38,6 +36,20 @@ jobs:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
           path: dist/${{ matrix.browser }}.zip
           if-no-files-found: error
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Lint
+        run: pnpm lint
 
   test:
     name: Test
