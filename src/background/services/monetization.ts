@@ -113,6 +113,10 @@ export class MonetizationService {
       const { requestId } = p
 
       this.sessions[tabId].get(requestId)?.stop()
+
+      if (p.remove) {
+        this.sessions[tabId].delete(requestId)
+      }
     })
   }
 
