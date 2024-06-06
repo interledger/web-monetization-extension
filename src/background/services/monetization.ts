@@ -8,7 +8,7 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
-import { getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { EventsService } from './events'
 
 export class MonetizationService {
@@ -32,9 +32,8 @@ export class MonetizationService {
     sender: Runtime.MessageSender
   ) {
     const {
-      connected,
       enabled,
-      rateOfPay: rate,
+      rateOfPay,
       walletAddress: connectedWallet
     } = await this.storage.get([
       'enabled',
@@ -43,9 +42,9 @@ export class MonetizationService {
       'walletAddress'
     ])
 
-    if (!rate || !connectedWallet) {
+    if (!rateOfPay || !connectedWallet) {
       this.logger.error(
-        `Did not find rate of pay or connect wallet information. Received rate=${rate}, wallet=${connectedWallet}. Payment session will not be initialized.`
+        `Did not find rate of pay or connect wallet information. Received rate=${rateOfPay}, wallet=${connectedWallet}. Payment session will not be initialized.`
       )
       return
     }
@@ -55,9 +54,17 @@ export class MonetizationService {
       this.sessions[tabId] = new Map()
     }
 
+    const sessionsCount = this.sessions[tabId].size + payload.length
+    const rate = computeRate(rateOfPay, sessionsCount)
+
+    // Adjust rate of payment for existing sessions
+    this.sessions[tabId].forEach((session) => {
+      session.adjustSessionAmount(rate)
+    })
+
+    // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
-      // TODO: Split monetization amount (needs batching)
 
       const session = new PaymentSession(
         receiver,

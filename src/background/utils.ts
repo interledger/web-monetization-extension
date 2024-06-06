@@ -85,3 +85,6 @@ export const getSender = (sender: Runtime.MessageSender) => {
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId')
   return { tabId, frameId }
 }
+
+export const computeRate = (rate: string, sessionsCount: number) =>
+  (+rate / sessionsCount).toString()
