@@ -28,7 +28,7 @@ export class MonetizationService {
   }
 
   async startPaymentSession(
-    payload: StartMonetizationPayload,
+    payload: StartMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
     const {
@@ -49,31 +49,32 @@ export class MonetizationService {
       )
       return
     }
-
-    const { requestId, walletAddress: receiver } = payload
     const { tabId, frameId } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
     }
 
-    // TODO: Split monetization amount (needs batching)
+    payload.forEach((p) => {
+      const { requestId, walletAddress: receiver } = p
+      // TODO: Split monetization amount (needs batching)
 
-    const session = new PaymentSession(
-      receiver,
-      connectedWallet,
-      requestId,
-      tabId,
-      frameId,
-      rate,
-      this.openPaymentsService
-    )
+      const session = new PaymentSession(
+        receiver,
+        connectedWallet,
+        requestId,
+        tabId,
+        frameId,
+        rate,
+        this.openPaymentsService
+      )
 
-    this.sessions[tabId].set(requestId, session)
+      this.sessions[tabId].set(requestId, session)
 
-    if (connected === true && enabled === true) {
-      void session.start()
-    }
+      if (connected === true && enabled === true) {
+        void session.start()
+      }
+    })
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
@@ -96,10 +97,9 @@ export class MonetizationService {
   }
 
   stopPaymentSession(
-    payload: StopMonetizationPayload,
+    payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    const { requestId } = payload
     const tabId = getTabId(sender)
     const sessions = this.sessions[tabId]
 
@@ -108,14 +108,17 @@ export class MonetizationService {
       return
     }
 
-    this.sessions[tabId].get(requestId)?.stop()
+    payload.forEach((p) => {
+      const { requestId } = p
+
+      this.sessions[tabId].get(requestId)?.stop()
+    })
   }
 
   resumePaymentSession(
-    payload: ResumeMonetizationPayload,
+    payload: ResumeMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    const { requestId } = payload
     const tabId = getTabId(sender)
     const sessions = this.sessions[tabId]
 
@@ -124,7 +127,11 @@ export class MonetizationService {
       return
     }
 
-    this.sessions[tabId].get(requestId)?.resume()
+    payload.forEach((p) => {
+      const { requestId } = p
+
+      this.sessions[tabId].get(requestId)?.resume()
+    })
   }
 
   async resumePaymentSessionsByTabId(tabId: number) {
