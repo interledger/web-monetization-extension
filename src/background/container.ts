@@ -35,7 +35,11 @@ export const configureContainer = () => {
     logger: asValue(logger),
     browser: asValue(browser),
     events: asClass(EventsService).singleton(),
-    deduplicator: asClass(Deduplicator).singleton(),
+    deduplicator: asClass(Deduplicator)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('deduplicator')
+      })),
     storage: asClass(StorageService)
       .singleton()
       .inject(() => ({

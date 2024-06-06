@@ -100,7 +100,6 @@ export class OpenPaymentsService {
     private storage: StorageService,
     private deduplicator: Deduplicator
   ) {
-    console.log(this.token)
     void this.initialize()
   }
 
@@ -338,8 +337,7 @@ export class OpenPaymentsService {
       manage: continuation.access_token.manage
     }
 
-    this.token = token
-    this.storage.set({
+    await this.storage.set({
       walletAddress,
       rateOfPay,
       minRateOfPay,
@@ -352,6 +350,7 @@ export class OpenPaymentsService {
       },
       connected: true
     })
+    this.token = token
   }
 
   private async createQuoteAndOutgoingPaymentGrant({
@@ -366,6 +365,8 @@ export class OpenPaymentsService {
       {
         access_token: {
           access: [
+            // TODO: Can be removed when the Test Wallet will be upgraded
+            // to the latest Rafiki version (or at least alpha.10)
             {
               type: 'quote',
               actions: ['create']
@@ -485,8 +486,7 @@ export class OpenPaymentsService {
     receiver,
     amount
   }: CreateQuoteParams): Promise<Quote> {
-    console.log('createQuote token value', this.token)
-    const quote = await this.client!.quote.create(
+    return await this.client!.quote.create(
       {
         accessToken: this.token.value,
         url: walletAddress.resourceServer
@@ -502,8 +502,6 @@ export class OpenPaymentsService {
         }
       }
     )
-
-    return quote
   }
 
   async createOutgoingPayment({
@@ -533,21 +531,15 @@ export class OpenPaymentsService {
       url: this.token.manage,
       accessToken: this.token.value
     })
-    console.log('rotateToken token', token)
-    const newToken = {
+    await this.storage.set({
+      token: {
+        value: token.access_token.value,
+        manage: token.access_token.manage
+      }
+    })
+    this.token = {
       value: token.access_token.value,
       manage: token.access_token.manage
     }
-    await this.storage.set({
-      token: newToken
-    })
-    this.token = newToken
-
-    console.log(
-      'storage',
-      await this.storage.get(['token']),
-      'opservice',
-      this.token
-    )
   }
 }

@@ -131,10 +131,10 @@ export class PaymentSession {
         //
         // Note: Under the hood, Rafiki is still quoting.
 
-        throw new OpenPaymentsClientError('testing rotate', {
-          status: 403,
-          description: 'test'
-        })
+        // throw new OpenPaymentsClientError('testing rotate', {
+        //   status: 403,
+        //   description: 'test'
+        // })
         if (!quote) {
           quote = await this.openPaymentsService.createQuote({
             walletAddress: this.sender,
