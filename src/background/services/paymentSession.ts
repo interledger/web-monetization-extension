@@ -130,12 +130,7 @@ export class PaymentSession {
         // making the quoting unnecessary through OP.
         //
         // Note: Under the hood, Rafiki is still quoting.
-
-        // throw new OpenPaymentsClientError('testing rotate', {
-        //   status: 403,
-        //   description: 'test'
-        // })
-        if (!quote) {
+       if (!quote) {
           quote = await this.openPaymentsService.createQuote({
             walletAddress: this.sender,
             receiver: this.incomingPaymentUrl,
@@ -144,7 +139,6 @@ export class PaymentSession {
         }
         outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
-          //@ts-ignore
           quoteId: quote.id
         })
       } catch (e) {
@@ -152,7 +146,6 @@ export class PaymentSession {
           // Status code 403 -> expired access token
           if (e.status === 403) {
             await this.openPaymentsService.rotateToken()
-            console.log('token rotated for', this.receiver)
             continue
           }
 
@@ -165,7 +158,6 @@ export class PaymentSession {
 
           // TODO: Check what Rafiki returns when there is no amount
           // left in the grant.
-
           throw new Error(e.message)
         }
       } finally {
