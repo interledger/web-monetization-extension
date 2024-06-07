@@ -1,4 +1,4 @@
-import { WalletAmount } from 'shared/types'
+import { AccessToken, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient
@@ -6,6 +6,8 @@ import {
 import {
   isFinalizedGrant,
   isPendingGrant,
+  OutgoingPayment,
+  Quote,
   WalletAddress
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
@@ -29,6 +31,7 @@ import {
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY
 } from '../config'
+import { Deduplicator } from './deduplicator'
 
 interface KeyInformation {
   privateKey: string
@@ -76,22 +79,41 @@ interface CreateQuoteAndOutgoingPaymentGrantParams {
   amount: WalletAmount
 }
 
+interface CreateQuoteParams {
+  walletAddress: WalletAddress
+  receiver: string
+  amount: string
+}
+
+interface CreateOutgoingPaymentParams {
+  walletAddress: WalletAddress
+  quoteId: string
+}
+
 export class OpenPaymentsService {
   client?: AuthenticatedClient
 
+  private token: AccessToken
+
   constructor(
     private browser: Browser,
-    private storage: StorageService
+    private storage: StorageService,
+    private deduplicator: Deduplicator
   ) {
-    ;(async () => {
-      const { connected, walletAddress } = await this.storage.get([
-        'connected',
-        'walletAddress'
-      ])
-      if (connected === true && walletAddress) {
-        this.initClient(walletAddress.id)
-      }
-    })()
+    void this.initialize()
+  }
+
+  private async initialize() {
+    const { token, connected, walletAddress } = await this.storage.get([
+      'connected',
+      'walletAddress',
+      'token'
+    ])
+
+    if (connected === true && walletAddress && token) {
+      await this.initClient(walletAddress.id)
+      this.token = token
+    }
   }
 
   private async getPrivateKeyInformation(): Promise<KeyInformation> {
@@ -310,22 +332,25 @@ export class OpenPaymentsService {
       throw new Error('Expected finalized grant. Received unfinalized grant.')
     }
 
-    this.storage.set({
+    const token = {
+      value: continuation.access_token.value,
+      manage: continuation.access_token.manage
+    }
+
+    await this.storage.set({
       walletAddress,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
       amount: transformedAmount,
-      token: {
-        value: continuation.access_token.value,
-        manage: continuation.access_token.manage
-      },
+      token,
       grant: {
         accessToken: continuation.continue.access_token.value,
         continueUri: continuation.continue.uri
       },
       connected: true
     })
+    this.token = token
   }
 
   private async createQuoteAndOutgoingPaymentGrant({
@@ -340,6 +365,8 @@ export class OpenPaymentsService {
       {
         access_token: {
           access: [
+            // TODO: Can be removed when the Test Wallet will be upgraded
+            // to the latest Rafiki version (or at least alpha.10)
             {
               type: 'quote',
               actions: ['create']
@@ -377,7 +404,6 @@ export class OpenPaymentsService {
     return grant
   }
 
-  // Fourth item- https://rafiki.dev/concepts/open-payments/grant-interaction/#endpoints
   private async verifyInteractionHash({
     clientNonce,
     interactRef,
@@ -385,9 +411,6 @@ export class OpenPaymentsService {
     hash,
     authServer
   }: VerifyInteractionHashParams): Promise<void> {
-    // Notice: The interaction hash is not correctly calculated within Rafiki at the momenet in certain scenarios.
-    // If at one point this will throw an error check the `grantEndpoint` value.
-    // `grantEndpoint` represents the route where grants are requested.
     const grantEndpoint = new URL(authServer).origin + '/'
     const data = new TextEncoder().encode(
       `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`
@@ -437,6 +460,10 @@ export class OpenPaymentsService {
         accessToken: grant.accessToken
       })
       await this.storage.clear()
+      this.token = {
+        value: '',
+        manage: ''
+      }
     }
   }
 
@@ -452,5 +479,63 @@ export class OpenPaymentsService {
       publicKey: btoa(JSON.stringify(jwk)),
       keyId
     })
+  }
+
+  async createQuote({
+    walletAddress,
+    receiver,
+    amount
+  }: CreateQuoteParams): Promise<Quote> {
+    return await this.client!.quote.create(
+      {
+        accessToken: this.token.value,
+        url: walletAddress.resourceServer
+      },
+      {
+        method: 'ilp',
+        walletAddress: walletAddress.id,
+        receiver,
+        debitAmount: {
+          value: amount,
+          assetCode: walletAddress.assetCode,
+          assetScale: walletAddress.assetScale
+        }
+      }
+    )
+  }
+
+  async createOutgoingPayment({
+    walletAddress,
+    quoteId
+  }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
+    return await this.client!.outgoingPayment.create(
+      {
+        accessToken: this.token.value,
+        url: walletAddress.resourceServer
+      },
+      {
+        quoteId,
+        walletAddress: walletAddress.id,
+        metadata: {
+          source: 'Web Monetization'
+        }
+      }
+    )
+  }
+
+  async rotateToken() {
+    const rotate = this.deduplicator.dedupe(this.client!.token.rotate)
+    const newToken = await rotate({
+      url: this.token.manage,
+      accessToken: this.token.value
+    })
+    const token = {
+      value: newToken.access_token.value,
+      manage: newToken.access_token.manage
+    }
+    await this.storage.set({
+      token
+    })
+    this.token = token
   }
 }
