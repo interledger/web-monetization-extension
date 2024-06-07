@@ -50,11 +50,11 @@ jobs:
       - name: Environment setup
         uses: ./.github/actions/setup
 
-      - run: pnpm lint:prettier
+      - run: pnpm format
         if: always()
-      - run: pnpm lint:eslint
+      - run: pnpm lint
         if: always()
-      - run: pnpm lint:type
+      - run: pnpm typecheck
         if: always()
 
   test:

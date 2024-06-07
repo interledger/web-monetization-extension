@@ -11,11 +11,11 @@
   "scripts": {
     "build": "tsx ./scripts/build.ts",
     "dev": "tsx ./scripts/dev.ts",
-    "lint": "concurrently \"pnpm:lint:*(!fix)\"",
-    "lint:fix": "eslint --ext js,jsx,ts,tsx, src --fix",
-    "lint:eslint": "eslint . --ext .js,.ts,.tsx --max-warnings 0 --ignore-path .gitignore",
-    "lint:prettier": "prettier \"**/*.(md|json|yml)\" --ignore-path .gitignore --check",
-    "lint:type": "tsc --noEmit",
+    "lint": "eslint . --cache --cache-location 'node_modules/.cache/eslintcache' --max-warnings 0",
+    "lint:fix": "eslint . --fix --cache --cache-location 'node_modules/.cache/eslintcache' --max-warnings 0",
+    "format": "prettier . --check --cache --cache-location='node_modules/.cache/prettiercache'",
+    "format:fix": "prettier . --write --cache --cache-location='node_modules/.cache/prettiercache' --log-level=warn",
+    "typecheck": "tsc --noEmit",
     "profiler": "tsx ./scripts/profiler.ts",
     "test": "jest --maxWorkers=2 --passWithNoTests",
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
