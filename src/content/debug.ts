@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const listenForLinkChange = (mutationsList: MutationRecord[]) => {
   if (
     mutationsList[0].addedNodes.length &&
