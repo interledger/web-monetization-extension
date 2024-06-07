@@ -10,9 +10,13 @@ export const DIRECTORIES = {
   TEMP: './temp',
   SRC: './src'
 }
-export const MANIFEST_PATH = path.resolve(
+export const MANIFEST_V2_PATH = path.resolve(
   ROOT_DIR,
   `${DIRECTORIES.SRC}/manifest.json`
+)
+export const MANIFEST_PATH = path.resolve(
+  ROOT_DIR,
+  `${DIRECTORIES.SRC}/manifestv3.json`
 )
 export const OUTPUT_DIR =
   process.env.NODE_ENV === 'production'

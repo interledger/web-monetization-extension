@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/chrome-manifest",
   "name": "__MSG_appName__",
   "version": "1.0.1",
   "manifest_version": 3,
@@ -11,19 +12,20 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["content/content.js"]
+      "js": ["content/content.js"],
+      "all_frames": true
     },
     {
       "run_at": "document_start",
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["contentStatic/contentStatic.js"]
+      "js": ["contentStatic/contentStatic.js"],
+      "all_frames": true
     }
   ],
   "background": {
     "service_worker": "background/background.js"
   },
   "permissions": ["tabs", "storage"],
-  "host_permissions": ["http://*/*", "https://*/*"],
   "action": {
     "default_title": "Web Monetization",
     "default_popup": "popup/index.html"
@@ -35,9 +37,19 @@
         "content/*",
         "options/*",
         "popup/*",
-        "background/*"
+        "background/*",
+        "specs/*"
       ],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tech@interledger.com"
+    }
+  }
 }

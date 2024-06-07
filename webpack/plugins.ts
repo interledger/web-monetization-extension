@@ -1,7 +1,7 @@
 import path from 'node:path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import { MANIFEST_PATH, DIRECTORIES, ROOT_DIR, Target } from './config'
-import { ProgressPlugin, ProvidePlugin, IgnorePlugin } from 'webpack'
+import { MANIFEST_PATH, DIRECTORIES, ROOT_DIR, type Target } from './config'
+import { ProgressPlugin, ProvidePlugin, IgnorePlugin, optimize } from 'webpack'
 import CopyWebpackPlugin from 'copy-webpack-plugin'
 import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 
@@ -14,6 +14,9 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
     verbose: true
   }),
   new ProgressPlugin(),
+  new optimize.LimitChunkCountPlugin({
+    maxChunks: 1
+  }),
   new HtmlWebpackPlugin({
     title: 'Popup',
     filename: path.resolve(ROOT_DIR, `${outputDir}/${target}/popup/index.html`),
@@ -32,12 +35,21 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
       },
       {
         from: MANIFEST_PATH,
-        to: path.resolve(ROOT_DIR, `${outputDir}/${target}`),
-        transform: (content: Buffer) => {
+        to() {
+          return path.resolve(ROOT_DIR, `${outputDir}/${target}/manifest.json`)
+        },
+        transform(content: Buffer) {
+          const json = JSON.parse(content.toString())
+          delete json['$schema']
           if (target === 'firefox') {
-            // TODO: Update manifest for Firefox (V3)
+            json.background = {
+              scripts: [json.background.service_worker]
+            }
           }
-          return content
+          if (target !== 'firefox') {
+            delete json['browser_specific_settings']
+          }
+          return JSON.stringify(json, null, 2)
         }
       },
       // Bundle OpenAPI schemas - the Open Payments client is using them to
