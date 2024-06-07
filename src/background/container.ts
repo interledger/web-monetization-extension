@@ -5,12 +5,12 @@ import {
   StorageService,
   MonetizationService,
   Background,
-  TabEvents
+  TabEvents,
+  EventsService,
+  Deduplicator
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
-import { EventsService } from './services/events'
-import { Deduplicator } from './services/deduplicator'
 
 interface Cradle {
   logger: Logger

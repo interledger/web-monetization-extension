@@ -8,25 +8,25 @@ interface CacheEntry {
 
 interface DedupeOptions {
   cacheFnArgs: boolean
+  wait: number
 }
 
 export class Deduplicator {
   private cache: Map<string, CacheEntry> = new Map()
-  private readonly duration = 5000
 
   constructor(private logger: Logger) {}
 
   dedupe<T extends AsyncFn<any>>(
     fn: T,
-    options: DedupeOptions = { cacheFnArgs: false }
+    { cacheFnArgs = false, wait = 5000 }: Partial<DedupeOptions> = {}
   ): T {
     return ((...args: Parameters<T>): ReturnType<T> => {
-      const key = this.generateCacheKey(fn, args, options.cacheFnArgs)
+      const key = this.generateCacheKey(fn, args, cacheFnArgs)
       const entry = this.cache.get(key)
 
       if (entry) {
         this.logger.debug(
-          `Deduping function=${fn.name}, ${options.cacheFnArgs ? 'args=' + JSON.stringify(args) : 'without args'}`
+          `Deduping function=${fn.name}, ${cacheFnArgs ? 'args=' + JSON.stringify(args) : 'without args'}`
         )
         return entry.promise as ReturnType<T>
       }
@@ -42,7 +42,7 @@ export class Deduplicator {
         .catch((err) => {
           throw err
         })
-        .finally(() => this.scheduleCacheClear(key))
+        .finally(() => this.scheduleCacheClear(key, wait))
 
       return promise as ReturnType<T>
     }) as unknown as T
@@ -60,7 +60,7 @@ export class Deduplicator {
     return key
   }
 
-  private scheduleCacheClear(key: string): void {
+  private scheduleCacheClear(key: string, wait: number): void {
     setTimeout(() => {
       this.logger.debug(`Attempting to remove key=${key} from cache.`)
       const entry = this.cache.get(key)
@@ -68,6 +68,6 @@ export class Deduplicator {
         this.logger.debug(`Removing key=${key} from cache.`)
         this.cache.delete(key)
       }
-    }, this.duration)
+    }, wait)
   }
 }

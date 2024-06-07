@@ -120,23 +120,24 @@ export class PaymentSession {
 
     await this.setIncomingPaymentUrl()
 
-    while (this.active) {
-      let quote: Quote | undefined
-      let outgoingPayment: OutgoingPayment | undefined
+    let quote: Quote | undefined
+    let outgoingPayment: OutgoingPayment | undefined
 
+    while (this.active) {
       try {
         // Quote can be removed once the Test Wallet upgrades to alpha-10.
         // We will be able to create an outgoing payment with an incoming payment,
         // making the quoting unnecessary through OP.
         //
         // Note: Under the hood, Rafiki is still quoting.
-       if (!quote) {
+        if (!quote) {
           quote = await this.openPaymentsService.createQuote({
             walletAddress: this.sender,
             receiver: this.incomingPaymentUrl,
             amount: this.amount
           })
         }
+
         outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
           quoteId: quote.id

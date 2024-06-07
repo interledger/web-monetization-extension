@@ -524,22 +524,18 @@ export class OpenPaymentsService {
   }
 
   async rotateToken() {
-    const rotate = this.deduplicator.dedupe(this.client!.token.rotate, {
-      cacheFnArgs: false
-    })
-    const token = await rotate({
+    const rotate = this.deduplicator.dedupe(this.client!.token.rotate)
+    const newToken = await rotate({
       url: this.token.manage,
       accessToken: this.token.value
     })
-    await this.storage.set({
-      token: {
-        value: token.access_token.value,
-        manage: token.access_token.manage
-      }
-    })
-    this.token = {
-      value: token.access_token.value,
-      manage: token.access_token.manage
+    const token = {
+      value: newToken.access_token.value,
+      manage: newToken.access_token.manage
     }
+    await this.storage.set({
+      token
+    })
+    this.token = token
   }
 }
