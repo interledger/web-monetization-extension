@@ -6,7 +6,7 @@ interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> {
   error?: string
 }
 export const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
-  ({ error, className, ...props }, ref) => {
+  ({ error, className, children, ...props }, ref) => {
     if (!error) return null
 
     return (
@@ -19,7 +19,9 @@ export const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
         )}
       >
         <XIcon className="size-8 text-red-500" />
-        <span>{error}</span>
+        <span>
+          {error} {children}
+        </span>
       </div>
     )
   }

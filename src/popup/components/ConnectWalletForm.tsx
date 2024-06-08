@@ -1,3 +1,4 @@
+import browser from 'webextension-polyfill'
 import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
@@ -5,6 +6,7 @@ import { connected } from 'process'
 import React from 'react'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
+import { ErrorMessage } from '@/popup/components/ErrorMessage'
 import { connectWallet } from '@/popup/lib/messages'
 import { getWalletInformation } from '@/shared/helpers'
 import {
@@ -45,6 +47,15 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     scale: number
   }>({ symbol: '$', scale: 2 })
 
+  React.useEffect(() => {
+    browser.permissions.contains(HOSTS_PERMISSION).then((permissionOk) => {
+      if (!permissionOk) {
+        const message = browser.i18n.getMessage('hostsPermissionsNeeded')
+        setError('root', { type: 'permission:hosts', message })
+      }
+    })
+  }, [setError])
+
   const getWalletCurrency = async (walletAddressUrl: string): Promise<void> => {
     clearErrors('walletAddressUrl')
     if (!walletAddressUrl) return
@@ -66,6 +77,16 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
+        const permissionOk =
+          await browser.permissions.contains(HOSTS_PERMISSION)
+        if (!permissionOk) {
+          setError('root', {
+            type: 'permission:hosts',
+            message: browser.i18n.getMessage('hostsPermissionsNeeded')
+          })
+          return
+        }
+
         const response = await connectWallet(data)
         if (!response.success) {
           setError('walletAddressUrl', {
@@ -76,6 +97,31 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       })}
       className="space-y-4"
     >
+      {errors.root && (
+        <ErrorMessage
+          error={errors.root.message}
+          className="text-sm text-red-700"
+        >
+          {errors.root?.type === 'permission:hosts' && (
+            <button
+              type="button"
+              className="inline-flex shrink-0 font-semibold text-red-800 underline"
+              onClick={async () => {
+                await browser.permissions
+                  .request(HOSTS_PERMISSION)
+                  .then((granted) => {
+                    if (granted) {
+                      clearErrors('root')
+                    }
+                  })
+              }}
+            >
+              Grant permission
+            </button>
+          )}
+        </ErrorMessage>
+      )}
+
       <div className="space-y-2">
         <Label className="text-base font-medium">Public key</Label>
         <p className="px-2 text-xs">
@@ -144,7 +190,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       <Button
         type="submit"
         className="w-full"
-        disabled={isSubmitting}
+        disabled={isSubmitting || errors.root?.type === 'permission:hosts'}
         loading={isSubmitting}
         aria-label="Connect your wallet"
       >
@@ -153,3 +199,5 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     </form>
   )
 }
+
+const HOSTS_PERMISSION = { origins: ['http://*/*', 'https://*/*'] }
