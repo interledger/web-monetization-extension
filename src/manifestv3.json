@@ -19,6 +19,7 @@
       "run_at": "document_start",
       "matches": ["http://*/*", "https://*/*"],
       "js": ["contentStatic/contentStatic.js"],
+      "world": "MAIN",
       "all_frames": true
     }
   ],

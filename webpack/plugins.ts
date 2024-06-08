@@ -45,6 +45,10 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
             json.background = {
               scripts: [json.background.service_worker]
             }
+            json.content_scripts.forEach((cscript) => {
+              // firefox doesn't support execution context yet
+              cscript.world = undefined
+            })
           }
           if (target !== 'firefox') {
             delete json['browser_specific_settings']
