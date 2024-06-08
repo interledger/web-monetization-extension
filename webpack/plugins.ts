@@ -14,9 +14,14 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
     verbose: true
   }),
   new ProgressPlugin(),
+
+  // Force Webpack to create self-contained bundles. Otherwise, it uses dynamic
+  // script loading with document.createElement('script'), and `document` isn't
+  // defined in MV3 background service workers, which results in fatal crash.
   new optimize.LimitChunkCountPlugin({
     maxChunks: 1
   }),
+
   new HtmlWebpackPlugin({
     title: 'Popup',
     filename: path.resolve(ROOT_DIR, `${outputDir}/${target}/popup/index.html`),
@@ -40,7 +45,10 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
         },
         transform(content: Buffer) {
           const json = JSON.parse(content.toString())
-          delete json['$schema']
+          // Transform manifest as targets have different expectations
+
+          delete json['$schema'] // Only for IDE. No target accepts it.
+
           if (target === 'firefox') {
             json.background = {
               scripts: [json.background.service_worker]

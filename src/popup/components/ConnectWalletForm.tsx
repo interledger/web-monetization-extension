@@ -106,13 +106,11 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
               type="button"
               className="inline-flex shrink-0 font-semibold text-red-800 underline"
               onClick={async () => {
-                await browser.permissions
-                  .request(HOSTS_PERMISSION)
-                  .then((granted) => {
-                    if (granted) {
-                      clearErrors('root')
-                    }
-                  })
+                if (await browser.permissions.request(HOSTS_PERMISSION)) {
+                  // Should only disable the permission:hosts error, but that's
+                  // the only error on root right now, so TODO sometime.
+                  clearErrors('root')
+                }
               }}
             >
               Grant permission
