@@ -48,13 +48,19 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   }>({ symbol: '$', scale: 2 })
 
   React.useEffect(() => {
-    browser.permissions.contains(HOSTS_PERMISSION).then((permissionOk) => {
-      if (!permissionOk) {
-        const message = browser.i18n.getMessage('hostsPermissionsNeeded')
-        setError('root', { type: 'permission:hosts', message })
-      }
-    })
-  }, [setError])
+    void ensureHostPermission()
+  })
+
+  const ensureHostPermission = async () => {
+    const permissionOk = await browser.permissions.contains(HOSTS_PERMISSION)
+    if (!permissionOk) {
+      setError('root', {
+        type: 'permission:hosts',
+        message: browser.i18n.getMessage('hostsPermissionsNeeded')
+      })
+    }
+    return permissionOk
+  }
 
   const getWalletCurrency = async (walletAddressUrl: string): Promise<void> => {
     clearErrors('walletAddressUrl')
@@ -77,15 +83,8 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        const permissionOk =
-          await browser.permissions.contains(HOSTS_PERMISSION)
-        if (!permissionOk) {
-          setError('root', {
-            type: 'permission:hosts',
-            message: browser.i18n.getMessage('hostsPermissionsNeeded')
-          })
-          return
-        }
+        const permissionOk = await ensureHostPermission()
+        if (!permissionOk) return
 
         const response = await connectWallet(data)
         if (!response.success) {
