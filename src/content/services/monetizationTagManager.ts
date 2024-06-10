@@ -106,7 +106,7 @@ export class MonetizationTagManager extends EventEmitter {
     this.sendStopMonetization(stopMonetizationTags)
   }
 
-  private onWholeDocumentObserved(records: MutationRecord[]) {
+  private async onWholeDocumentObserved(records: MutationRecord[]) {
     const startMonetizationTagsPromises: Promise<StartMonetizationPayload | null>[] =
       []
     const stopMonetizationTags: StopMonetizationPayload[] = []
@@ -121,7 +121,7 @@ export class MonetizationTagManager extends EventEmitter {
       }
     }
 
-    this.sendStopMonetization(stopMonetizationTags)
+    await this.sendStopMonetization(stopMonetizationTags)
 
     if (this.isTopFrame) {
       for (const record of records) {
@@ -216,7 +216,7 @@ export class MonetizationTagManager extends EventEmitter {
       }
     }
 
-    this.sendStopMonetization(stopMonetizationTags)
+    await this.sendStopMonetization(stopMonetizationTags)
     this.sendStartMonetization(startMonetizationTags)
   }
 
@@ -442,10 +442,10 @@ export class MonetizationTagManager extends EventEmitter {
     }
   }
 
-  private sendStopMonetization(tags: StopMonetizationPayload[]) {
+  private async sendStopMonetization(tags: StopMonetizationPayload[]) {
     if (!tags.length) return
 
-    stopMonetization(tags)
+    await stopMonetization(tags)
 
     // Check if tab still monetized
     let validTagsCount = 0
