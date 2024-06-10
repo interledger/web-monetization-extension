@@ -107,3 +107,5 @@ export const callbackFn = (_: Error | null, stats: Stats | undefined) => {
 }
 
 export type Target = (typeof TARGETS)[number]
+
+export type ManifestVersion = 2 | 3;

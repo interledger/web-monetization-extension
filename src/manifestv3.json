@@ -11,13 +11,13 @@
   "default_locale": "en",
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["https://*/*"],
       "js": ["content/content.js"],
       "all_frames": true
     },
     {
       "run_at": "document_start",
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["https://*/*"],
       "js": ["contentStatic/contentStatic.js"],
       "world": "MAIN",
       "all_frames": true
@@ -47,7 +47,7 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "host_permissions": ["https://*/*"],
   "browser_specific_settings": {
     "gecko": {
       "id": "tech@interledger.com"

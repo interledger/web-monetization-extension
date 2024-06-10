@@ -6,6 +6,7 @@ import TerserPlugin from 'terser-webpack-plugin'
 import ZipPlugin from 'zip-webpack-plugin'
 
 export const getProdConfig = (target: Target): Configuration => {
+  process.env.NODE_ENV = 'production'
   return {
     ...mainConfig,
     output: {

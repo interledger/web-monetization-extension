@@ -7,6 +7,7 @@ import { getMainPlugins } from './plugins'
 const ExtentionReloader = require('webpack-ext-reloader-mv3')
 
 export const getDevConfig = (target: Target): Configuration => {
+  process.env.NODE_ENV = 'development'
   return {
     ...mainConfig,
     output: {
