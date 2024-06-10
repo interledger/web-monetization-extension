@@ -62,6 +62,12 @@ export const getMainPlugins = (
 
           delete json['$schema'] // Only for IDE. No target accepts it.
 
+          json.content_scripts.forEach((cscript) => {
+            if (!isProduction && !cscript.matches.includes('http://*/*')) {
+              cscript.matches.push('http://*/*')
+            }
+          })
+
           if (target === 'firefox') {
             json.background = {
               scripts: [json.background.service_worker]
@@ -69,9 +75,6 @@ export const getMainPlugins = (
             json.content_scripts.forEach((cscript) => {
               // firefox doesn't support execution context yet
               cscript.world = undefined
-              if (!isProduction && !cscript.matches.includes('http://*/*')) {
-                cscript.matches.push('http://*/*')
-              }
             })
           }
           if (target !== 'firefox') {
