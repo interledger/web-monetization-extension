@@ -2,7 +2,7 @@ import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
 import { connected } from 'process'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
@@ -58,23 +58,26 @@ export const ConnectWalletForm = ({
     scale: number
   }>({ symbol: '$', scale: 2 })
 
-  const getWalletCurrency = async (walletAddressUrl: string): Promise<void> => {
-    clearErrors('walletAddressUrl')
-    if (!walletAddressUrl) return
-    try {
-      const url = new URL(walletAddressUrl)
-      const walletAddress = await getWalletInformation(url.toString())
-      setCurrencySymbol({
-        symbol: getCurrencySymbol(walletAddress.assetCode),
-        scale: walletAddress.assetScale
-      })
-    } catch (e) {
-      setError('walletAddressUrl', {
-        type: 'validate',
-        message: 'Invalid wallet address URL.'
-      })
-    }
-  }
+  const getWalletCurrency = useCallback(
+    async (walletAddressUrl: string): Promise<void> => {
+      clearErrors('walletAddressUrl')
+      if (!walletAddressUrl) return
+      try {
+        const url = new URL(walletAddressUrl)
+        const walletAddress = await getWalletInformation(url.toString())
+        setCurrencySymbol({
+          symbol: getCurrencySymbol(walletAddress.assetCode),
+          scale: walletAddress.assetScale
+        })
+      } catch (e) {
+        setError('walletAddressUrl', {
+          type: 'validate',
+          message: 'Invalid wallet address URL.'
+        })
+      }
+    },
+    [clearErrors, setError]
+  )
 
   const handleOnChangeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
     const amountValue = formatNumber(
@@ -121,7 +124,6 @@ export const ConnectWalletForm = ({
       onSubmit={handleSubmit(async (data) => {
         const response = await connectWallet(data)
         if (!response.success) {
-          console.log(response)
           setError('walletAddressUrl', {
             type: 'validate',
             message: response.message
