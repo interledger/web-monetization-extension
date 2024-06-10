@@ -50,12 +50,12 @@ export class MonetizationService {
       return
     }
     const { tabId, frameId } = getSender(sender)
-    const sessions = this.sessions[tabId]
 
-    if (sessions == null) {
+    if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
     }
 
+    const sessions = this.sessions[tabId]
     const sessionsCount = sessions.size + payload.length
     const rate = computeRate(rateOfPay, sessionsCount)
 
