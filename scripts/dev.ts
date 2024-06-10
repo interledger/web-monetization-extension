@@ -4,6 +4,7 @@ import { getDevConfig } from '../webpack/dev'
 import { callbackFn } from '../webpack/config'
 
 const TARGET = process.argv[2] || 'chrome'
+const MANIFEST_VERSION = process.argv.slice(2).includes('--mv2') ? 2 : 3
 
 if (TARGET !== 'firefox' && TARGET !== 'chrome') {
   console.log('Invalid target. Please use "chrome" or "firefox" as target.')
@@ -13,6 +14,8 @@ if (TARGET !== 'firefox' && TARGET !== 'chrome') {
   process.exit(1)
 }
 
-const config = getDevConfig(TARGET)
+process.env.NODE_ENV = 'development'
+
+const config = getDevConfig(TARGET, MANIFEST_VERSION)
 
 webpack(config, callbackFn)

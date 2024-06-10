@@ -1,11 +1,20 @@
 import { Configuration, DefinePlugin } from 'webpack'
-import { DIRECTORIES, ROOT_DIR, Target, mainConfig } from './config'
+import {
+  DIRECTORIES,
+  ROOT_DIR,
+  mainConfig,
+  type Target,
+  type ManifestVersion
+} from './config'
 import path from 'node:path'
 import { getMainPlugins } from './plugins'
 import TerserPlugin from 'terser-webpack-plugin'
 import ZipPlugin from 'zip-webpack-plugin'
 
-export const getProdConfig = (target: Target): Configuration => {
+export const getProdConfig = (
+  target: Target,
+  manifestVersion: ManifestVersion
+): Configuration => {
   process.env.NODE_ENV = 'production'
   return {
     ...mainConfig,
@@ -31,7 +40,7 @@ export const getProdConfig = (target: Target): Configuration => {
         })
       ]
     },
-    plugins: getMainPlugins(DIRECTORIES.DIST, target).concat([
+    plugins: getMainPlugins(DIRECTORIES.DIST, target, manifestVersion).concat([
       new ZipPlugin({
         path: path.resolve(ROOT_DIR, `${DIRECTORIES.DIST}`),
         filename: target,
