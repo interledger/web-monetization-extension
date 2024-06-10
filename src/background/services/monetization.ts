@@ -73,13 +73,12 @@ export class MonetizationService {
         tabId,
         frameId,
         rate,
-        this.openPaymentsService,
-        this.storage
+        this.openPaymentsService
       )
 
       this.sessions[tabId].set(requestId, session)
 
-      if (enabled === true) {
+      if (connected === true && enabled === true) {
         void session.start()
       }
     })

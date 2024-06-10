@@ -6,7 +6,6 @@ import {
   WalletAddress,
   isPendingGrant
 } from '@interledger/open-payments/dist/types'
-import { StorageService } from './storage'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
@@ -28,8 +27,7 @@ export class PaymentSession {
     private tabId: number,
     private frameId: number,
     private rate: string,
-    private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService
+    private openPaymentsService: OpenPaymentsService
   ) {
     this.adjustSessionAmount()
   }
@@ -120,76 +118,35 @@ export class PaymentSession {
     if (this.active) return
     this.active = true
 
-    const data = await this.storage.get(['token', 'walletAddress'])
-
-    let token = data.token
-    const walletAddress = data.walletAddress
-
-    if (token == null || walletAddress == null) {
-      return
-    }
-
     await this.setIncomingPaymentUrl()
 
-    while (this.active) {
-      let quote: Quote | undefined
-      let outgoingPayment: OutgoingPayment | undefined
+    let quote: Quote | undefined
+    let outgoingPayment: OutgoingPayment | undefined
 
+    while (this.active) {
       try {
+        // Quote can be removed once the Test Wallet upgrades to alpha-10.
+        // We will be able to create an outgoing payment with an incoming payment,
+        // making the quoting unnecessary through OP.
+        //
+        // Note: Under the hood, Rafiki is still quoting.
         if (!quote) {
-          quote = await this.openPaymentsService.client!.quote.create(
-            {
-              url: walletAddress.resourceServer,
-              accessToken: token.value
-            },
-            {
-              method: 'ilp',
-              receiver: this.incomingPaymentUrl,
-              walletAddress: walletAddress.id,
-              debitAmount: {
-                value: this.amount,
-                assetScale: walletAddress.assetScale,
-                assetCode: walletAddress.assetCode
-              }
-            }
-          )
+          quote = await this.openPaymentsService.createQuote({
+            walletAddress: this.sender,
+            receiver: this.incomingPaymentUrl,
+            amount: this.amount
+          })
         }
-        outgoingPayment =
-          await this.openPaymentsService.client!.outgoingPayment.create(
-            {
-              url: walletAddress.resourceServer,
-              accessToken: token.value
-            },
-            {
-              walletAddress: walletAddress.id,
-              quoteId: quote.id,
-              metadata: {
-                source: 'Web Monetization'
-              }
-            }
-          )
+
+        outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
+          walletAddress: this.sender,
+          quoteId: quote.id
+        })
       } catch (e) {
         if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
           if (e.status === 403) {
-            const rotatedToken =
-              await this.openPaymentsService.client!.token.rotate({
-                accessToken: token.value,
-                url: token.manage
-              })
-
-            token = {
-              value: rotatedToken.access_token.value,
-              manage: rotatedToken.access_token.manage
-            }
-
-            void this.storage.set({
-              token: {
-                value: rotatedToken.access_token.value,
-                manage: rotatedToken.access_token.manage
-              }
-            })
-
+            await this.openPaymentsService.rotateToken()
             continue
           }
 
@@ -202,7 +159,6 @@ export class PaymentSession {
 
           // TODO: Check what Rafiki returns when there is no amount
           // left in the grant.
-
           throw new Error(e.message)
         }
       } finally {
@@ -288,52 +244,23 @@ export class PaymentSession {
   // TODO: Needs refactoring - breaks DRY
   async pay(amount: number) {
     const incomingPayment = await this.createIncomingPayment()
-    const data = await this.storage.get(['token', 'walletAddress'])
-
-    let token = data.token
-    const walletAddress = data.walletAddress
-
-    if (token == null || walletAddress == null) {
-      return
-    }
 
     let quote: Quote | undefined
     let outgoingPayment: OutgoingPayment | undefined
 
     try {
       if (!quote) {
-        quote = await this.openPaymentsService.client!.quote.create(
-          {
-            url: walletAddress.resourceServer,
-            accessToken: token.value
-          },
-          {
-            method: 'ilp',
-            receiver: incomingPayment.id,
-            walletAddress: walletAddress.id,
-            debitAmount: {
-              value: (amount * 10 ** walletAddress.assetScale).toFixed(0),
-              assetScale: walletAddress.assetScale,
-              assetCode: walletAddress.assetCode
-            }
-          }
-        )
+        quote = await this.openPaymentsService.createQuote({
+          walletAddress: this.sender,
+          receiver: incomingPayment.id,
+          amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
+        })
       }
 
-      outgoingPayment =
-        await this.openPaymentsService.client!.outgoingPayment.create(
-          {
-            url: walletAddress.resourceServer,
-            accessToken: token.value
-          },
-          {
-            walletAddress: walletAddress.id,
-            quoteId: quote.id,
-            metadata: {
-              source: 'Web Monetization'
-            }
-          }
-        )
+      outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
+        walletAddress: this.sender,
+        quoteId: quote.id
+      })
     } catch (e) {
       /**
        * Unhandled exceptions:
@@ -344,23 +271,7 @@ export class PaymentSession {
       if (e instanceof OpenPaymentsClientError) {
         // Status code 403 -> expired access token
         if (e.status === 403) {
-          const rotatedToken =
-            await this.openPaymentsService.client!.token.rotate({
-              accessToken: token.value,
-              url: token.manage
-            })
-
-          token = {
-            value: rotatedToken.access_token.value,
-            manage: rotatedToken.access_token.manage
-          }
-
-          void this.storage.set({
-            token: {
-              value: rotatedToken.access_token.value,
-              manage: rotatedToken.access_token.manage
-            }
-          })
+          await this.openPaymentsService.rotateToken()
         }
       }
     } finally {
