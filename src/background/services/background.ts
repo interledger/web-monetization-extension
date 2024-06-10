@@ -76,6 +76,9 @@ export class Background {
             case PopupToBackgroundAction.GET_CONTEXT_DATA:
               return success(await this.storage.getPopupData())
 
+            case PopupToBackgroundAction.SET_CONTEXT_DATA:
+              return success(await this.storage.setPartial(message.payload))
+
             case PopupToBackgroundAction.CONNECT_WALLET:
               await this.openPaymentsService.connectWallet(message.payload)
               return

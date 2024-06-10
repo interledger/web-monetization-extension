@@ -24,6 +24,7 @@ export type MessageHKT<
 
 export enum PopupToBackgroundAction {
   GET_CONTEXT_DATA = 'GET_CONTEXT_DATA',
+  SET_CONTEXT_DATA = 'SET_CONTEXT_DATA',
   CONNECT_WALLET = 'CONNECT_WALLET',
   DISCONNECT_WALLET = 'DISCONNECT_WALLET',
   TOGGLE_WM = 'TOGGLE_WM',
@@ -45,8 +46,15 @@ export interface UpdateRateOfPayPayload {
   rateOfPay: string
 }
 
+export interface SetPopupDataPayload {
+  walletAddressUrl?: string
+  amountValue?: string
+  recurring?: boolean
+}
+
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
+  [PopupToBackgroundAction.SET_CONTEXT_DATA]: SetPopupDataPayload
   [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
   [PopupToBackgroundAction.DISCONNECT_WALLET]: undefined
   [PopupToBackgroundAction.TOGGLE_WM]: undefined

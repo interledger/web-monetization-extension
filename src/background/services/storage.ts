@@ -13,7 +13,10 @@ const defaultStorage = {
   grant: null,
   rateOfPay: null,
   minRateOfPay: null,
-  maxRateOfPay: null
+  maxRateOfPay: null,
+  walletAddressUrl: '',
+  amountValue: '',
+  recurring: false
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 // TODO: Emit events when certain values are updated:
@@ -62,9 +65,11 @@ export class StorageService {
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
-      'publicKey'
+      'publicKey',
+      'walletAddressUrl',
+      'amountValue',
+      'recurring'
     ])
-
     const tab = await getCurrentActiveTab(this.browser)
 
     if (tab && tab.url) {
@@ -80,6 +85,27 @@ export class StorageService {
     }
 
     return { ...data, url }
+  }
+
+  async setPartial<TKey extends Partial<StorageKey>>(
+    data: Partial<{
+      [K in TKey]: Storage[TKey]
+    }>
+  ): Promise<void> {
+    const storageData = await this.get([
+      'enabled',
+      'connected',
+      'amount',
+      'rateOfPay',
+      'minRateOfPay',
+      'maxRateOfPay',
+      'walletAddress',
+      'publicKey',
+      'walletAddressUrl',
+      'amountValue',
+      'recurring'
+    ])
+    await this.browser.storage.local.set({ ...storageData, ...data })
   }
 
   async getWMState(): Promise<boolean> {

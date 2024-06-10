@@ -1,9 +1,16 @@
 import React from 'react'
-import { getContextData } from '@/popup/lib/messages'
+import {
+  getContextData,
+  setContextData as setContextData_
+} from '@/popup/lib/messages'
 import { DeepNonNullable, PopupStore } from '@/shared/types'
+import { debounceAsync } from '@/shared/helpers'
+
+const setContextData = debounceAsync(setContextData_, 100)
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
+  SET_PARTIAL_DATA = 'SET_PARTIAL_DATA',
   TOGGLE_WM = 'TOGGLE_WM',
   UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
@@ -36,10 +43,20 @@ interface UpdateRateOfPayAction extends ReducerActionMock {
   }
 }
 
+interface SetPartialDataAction extends ReducerActionMock {
+  type: ReducerActionType.SET_PARTIAL_DATA
+  data: {
+    amountValue?: string
+    walletAddressUrl?: string
+    recurring?: boolean
+  }
+}
+
 export type ReducerActions =
   | SetDataAction
   | ToggleWMAction
   | UpdateRateOfPayAction
+  | SetPartialDataAction
 
 export const PopupStateContext = React.createContext<PopupContext>(
   {} as PopupContext
@@ -61,6 +78,11 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
         ...state,
         rateOfPay: action.data.rateOfPay
       }
+    }
+    case ReducerActionType.SET_PARTIAL_DATA: {
+      setContextData(action.data)
+
+      return { ...state, ...action.data }
     }
     default:
       return state

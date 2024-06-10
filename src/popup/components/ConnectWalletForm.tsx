@@ -2,7 +2,7 @@ import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
 import { connected } from 'process'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
@@ -13,6 +13,7 @@ import {
   getCurrencySymbol
 } from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
+import { PopupStateContext, ReducerActionType } from '../lib/context'
 
 interface ConnectWalletFormInputs {
   walletAddressUrl: string
@@ -22,9 +23,19 @@ interface ConnectWalletFormInputs {
 
 interface ConnectWalletFormProps {
   publicKey: string
+  walletAddressUrl?: string
+  amountValue?: string
+  recurring?: boolean
 }
 
-export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
+export const ConnectWalletForm = ({
+  publicKey,
+  walletAddressUrl,
+  recurring,
+  amountValue
+}: ConnectWalletFormProps) => {
+  const { dispatch } = React.useContext(PopupStateContext)
+
   const {
     register,
     handleSubmit,
@@ -37,7 +48,9 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
     defaultValues: {
-      recurring: false
+      recurring,
+      amount: amountValue,
+      walletAddressUrl
     }
   })
   const [currencySymbol, setCurrencySymbol] = React.useState<{
@@ -63,11 +76,52 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     }
   }
 
+  const handleOnChangeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const amountValue = formatNumber(
+      +e.currentTarget.value,
+      currencySymbol.scale
+    )
+    dispatch({
+      type: ReducerActionType.SET_PARTIAL_DATA,
+      data: {
+        amountValue
+      }
+    })
+  }
+
+  const handleOnChangeWalletAddressUrl = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const walletAddressUrl = e.currentTarget.value
+
+    dispatch({
+      type: ReducerActionType.SET_PARTIAL_DATA,
+      data: {
+        walletAddressUrl
+      }
+    })
+  }
+
+  const handleOnChangeRecurring = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch({
+      type: ReducerActionType.SET_PARTIAL_DATA,
+      data: {
+        recurring: e.currentTarget.checked
+      }
+    })
+  }
+
+  useEffect(() => {
+    if (!walletAddressUrl) return
+    getWalletCurrency(walletAddressUrl)
+  }, [walletAddressUrl, getWalletCurrency])
+
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
         const response = await connectWallet(data)
         if (!response.success) {
+          console.log(response)
           setError('walletAddressUrl', {
             type: 'validate',
             message: response.message
@@ -105,7 +159,8 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
           required: { value: true, message: 'Wallet address URL is required.' },
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             getWalletCurrency(e.currentTarget.value)
-          }
+          },
+          onChange: handleOnChangeWalletAddressUrl
         })}
       />
       <Input
@@ -135,11 +190,17 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
               'amount',
               formatNumber(+e.currentTarget.value, currencySymbol.scale)
             )
-          }
+          },
+          onChange: handleOnChangeAmount
         })}
       />
       <div className="px-2">
-        <Switch {...register('recurring')} label="Renew amount monthly" />
+        <Switch
+          {...register('recurring', {
+            onChange: handleOnChangeRecurring
+          })}
+          label="Renew amount monthly"
+        />
       </div>
       <Button
         type="submit"
