@@ -2,8 +2,8 @@
 import { webpack } from 'webpack'
 import {
   TARGETS,
-  Target,
   callbackFn,
+  type Target,
   type ManifestVersion
 } from '../webpack/config'
 import { getProdConfig } from '../webpack/prod'
