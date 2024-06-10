@@ -62,11 +62,16 @@ export const getMainPlugins = (
 
           delete json['$schema'] // Only for IDE. No target accepts it.
 
-          json.content_scripts.forEach((cscript) => {
-            if (!isProduction && !cscript.matches.includes('http://*/*')) {
-              cscript.matches.push('http://*/*')
+          if (!isProduction) {
+            if (!json.host_permissions.includes('http://*/*')) {
+              json.host_permissions.push('http://*/*')
             }
-          })
+            json.content_scripts.forEach((cscript) => {
+              if (!cscript.matches.includes('http://*/*')) {
+                cscript.matches.push('http://*/*')
+              }
+            })
+          }
 
           if (target === 'firefox') {
             json.background = {
@@ -80,11 +85,7 @@ export const getMainPlugins = (
           if (target !== 'firefox') {
             delete json['browser_specific_settings']
           }
-          if (!isProduction) {
-            if (!json.host_permissions.includes('http://*/*')) {
-              json.host_permissions.push('http://*/*')
-            }
-          }
+
           return JSON.stringify(json, null, 2)
         }
       },
