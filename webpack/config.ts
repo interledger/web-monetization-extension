@@ -12,11 +12,11 @@ export const DIRECTORIES = {
 }
 export const MANIFEST_V2_PATH = path.resolve(
   ROOT_DIR,
-  `${DIRECTORIES.SRC}/manifest.json`
+  `${DIRECTORIES.SRC}/manifest_v2.json`
 )
 export const MANIFEST_PATH = path.resolve(
   ROOT_DIR,
-  `${DIRECTORIES.SRC}/manifestv3.json`
+  `${DIRECTORIES.SRC}/manifest.json`
 )
 export const OUTPUT_DIR =
   process.env.NODE_ENV === 'production'
@@ -108,4 +108,4 @@ export const callbackFn = (_: Error | null, stats: Stats | undefined) => {
 
 export type Target = (typeof TARGETS)[number]
 
-export type ManifestVersion = 2 | 3;
+export type ManifestVersion = 2 | 3
