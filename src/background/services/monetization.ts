@@ -34,6 +34,7 @@ export class MonetizationService {
     const {
       enabled,
       rateOfPay,
+      connected,
       walletAddress: connectedWallet
     } = await this.storage.get([
       'enabled',
@@ -49,16 +50,17 @@ export class MonetizationService {
       return
     }
     const { tabId, frameId } = getSender(sender)
+    const sessions = this.sessions[tabId]
 
-    if (this.sessions[tabId] == null) {
+    if (sessions == null) {
       this.sessions[tabId] = new Map()
     }
 
-    const sessionsCount = this.sessions[tabId].size + payload.length
+    const sessionsCount = sessions.size + payload.length
     const rate = computeRate(rateOfPay, sessionsCount)
 
     // Adjust rate of payment for existing sessions
-    this.sessions[tabId].forEach((session) => {
+    sessions.forEach((session) => {
       session.adjustSessionAmount(rate)
     })
 
@@ -76,7 +78,7 @@ export class MonetizationService {
         this.openPaymentsService
       )
 
-      this.sessions[tabId].set(requestId, session)
+      sessions.set(requestId, session)
 
       if (connected === true && enabled === true) {
         void session.start()
@@ -103,7 +105,7 @@ export class MonetizationService {
     }
   }
 
-  stopPaymentSession(
+  async stopPaymentSession(
     payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
@@ -118,11 +120,20 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId } = p
 
-      this.sessions[tabId].get(requestId)?.stop()
+      sessions.get(requestId)?.stop()
 
       if (p.remove) {
-        this.sessions[tabId].delete(requestId)
+        sessions.delete(requestId)
       }
+    })
+
+    const { rateOfPay } = await this.storage.get(['rateOfPay'])
+    if (!rateOfPay) return
+
+    const rate = computeRate(rateOfPay, sessions.size)
+    // Adjust rate of payment for existing sessions
+    sessions.forEach((session) => {
+      session.adjustSessionAmount(rate)
     })
   }
 
@@ -141,7 +152,7 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId } = p
 
-      this.sessions[tabId].get(requestId)?.resume()
+      sessions.get(requestId)?.resume()
     })
   }
 

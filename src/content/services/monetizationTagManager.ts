@@ -216,8 +216,8 @@ export class MonetizationTagManager extends EventEmitter {
       }
     }
 
-    this.sendStartMonetization(startMonetizationTags)
     this.sendStopMonetization(stopMonetizationTags)
+    this.sendStartMonetization(startMonetizationTags)
   }
 
   private async checkAdded(node: Node) {
