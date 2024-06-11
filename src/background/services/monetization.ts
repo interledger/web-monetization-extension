@@ -8,7 +8,7 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
-import { getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { EventsService } from './events'
 
 export class MonetizationService {
@@ -32,9 +32,9 @@ export class MonetizationService {
     sender: Runtime.MessageSender
   ) {
     const {
-      connected,
       enabled,
-      rateOfPay: rate,
+      rateOfPay,
+      connected,
       walletAddress: connectedWallet
     } = await this.storage.get([
       'enabled',
@@ -43,9 +43,9 @@ export class MonetizationService {
       'walletAddress'
     ])
 
-    if (!rate || !connectedWallet) {
+    if (!rateOfPay || !connectedWallet) {
       this.logger.error(
-        `Did not find rate of pay or connect wallet information. Received rate=${rate}, wallet=${connectedWallet}. Payment session will not be initialized.`
+        `Did not find rate of pay or connect wallet information. Received rate=${rateOfPay}, wallet=${connectedWallet}. Payment session will not be initialized.`
       )
       return
     }
@@ -55,9 +55,18 @@ export class MonetizationService {
       this.sessions[tabId] = new Map()
     }
 
+    const sessions = this.sessions[tabId]
+    const sessionsCount = sessions.size + payload.length
+    const rate = computeRate(rateOfPay, sessionsCount)
+
+    // Adjust rate of payment for existing sessions
+    sessions.forEach((session) => {
+      session.adjustSessionAmount(rate)
+    })
+
+    // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
-      // TODO: Split monetization amount (needs batching)
 
       const session = new PaymentSession(
         receiver,
@@ -69,7 +78,7 @@ export class MonetizationService {
         this.openPaymentsService
       )
 
-      this.sessions[tabId].set(requestId, session)
+      sessions.set(requestId, session)
 
       if (connected === true && enabled === true) {
         void session.start()
@@ -96,7 +105,7 @@ export class MonetizationService {
     }
   }
 
-  stopPaymentSession(
+  async stopPaymentSession(
     payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
@@ -111,7 +120,20 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId } = p
 
-      this.sessions[tabId].get(requestId)?.stop()
+      sessions.get(requestId)?.stop()
+
+      if (p.remove) {
+        sessions.delete(requestId)
+      }
+    })
+
+    const { rateOfPay } = await this.storage.get(['rateOfPay'])
+    if (!rateOfPay) return
+
+    const rate = computeRate(rateOfPay, sessions.size)
+    // Adjust rate of payment for existing sessions
+    sessions.forEach((session) => {
+      session.adjustSessionAmount(rate)
     })
   }
 
@@ -130,7 +152,7 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId } = p
 
-      this.sessions[tabId].get(requestId)?.resume()
+      sessions.get(requestId)?.resume()
     })
   }
 
