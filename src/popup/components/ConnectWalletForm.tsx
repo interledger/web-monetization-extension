@@ -1,4 +1,3 @@
-import browser from 'webextension-polyfill'
 import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
@@ -47,21 +46,6 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     scale: number
   }>({ symbol: '$', scale: 2 })
 
-  const ensureHostPermission = React.useCallback(async () => {
-    const permissionOk = await browser.permissions.contains(HOSTS_PERMISSION)
-    if (!permissionOk) {
-      setError('root', {
-        type: 'permission:hosts',
-        message: browser.i18n.getMessage('hostsPermissionsNeeded')
-      })
-    }
-    return permissionOk
-  }, [setError])
-
-  React.useEffect(() => {
-    void ensureHostPermission()
-  }, [ensureHostPermission])
-
   const getWalletCurrency = async (walletAddressUrl: string): Promise<void> => {
     clearErrors('walletAddressUrl')
     if (!walletAddressUrl) return
@@ -83,9 +67,6 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        const permissionOk = await ensureHostPermission()
-        if (!permissionOk) return
-
         const response = await connectWallet(data)
         if (!response.success) {
           setError('walletAddressUrl', {
@@ -100,23 +81,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         <ErrorMessage
           error={errors.root.message}
           className="text-sm text-red-700"
-        >
-          {errors.root?.type === 'permission:hosts' && (
-            <button
-              type="button"
-              className="inline-flex shrink-0 font-semibold text-red-800 underline"
-              onClick={async () => {
-                if (await browser.permissions.request(HOSTS_PERMISSION)) {
-                  // Should only disable the permission:hosts error, but that's
-                  // the only error on root right now, so TODO sometime.
-                  clearErrors('root')
-                }
-              }}
-            >
-              Grant permission
-            </button>
-          )}
-        </ErrorMessage>
+        />
       )}
 
       <div className="space-y-2">
@@ -196,5 +161,3 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     </form>
   )
 }
-
-const HOSTS_PERMISSION = { origins: ['http://*/*', 'https://*/*'] }

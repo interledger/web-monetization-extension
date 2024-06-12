@@ -19,9 +19,10 @@ export const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
         )}
       >
         <XIcon className="size-8 text-red-500" />
-        <span>
-          {error} {children}
-        </span>
+        <div>
+          <span>{error}</span>
+          {children}
+        </div>
       </div>
     )
   }
