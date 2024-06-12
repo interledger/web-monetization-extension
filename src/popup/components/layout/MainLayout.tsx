@@ -18,9 +18,7 @@ export const MainLayout = () => {
   React.useEffect(() => {
     const checkPermissions = async () => {
       try {
-        console.log('checking permissions')
         const status = await browser.permissions.contains(PERMISSION_HOSTS)
-        console.log({ ok: status })
         setHasHostPermission(status)
       } catch (error) {
         console.error(error)
@@ -31,7 +29,6 @@ export const MainLayout = () => {
     browser.permissions.onRemoved.addListener(checkPermissions)
 
     return () => {
-      console.log('removing listener')
       browser.permissions.onAdded.removeListener(checkPermissions)
       browser.permissions.onRemoved.removeListener(checkPermissions)
     }
