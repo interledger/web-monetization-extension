@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 import React from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 
 import { PERMISSION_HOSTS } from '@/shared/constants'
 
@@ -13,7 +13,6 @@ const Divider = () => {
 
 export const MainLayout = () => {
   const [hasHostPermission, setHasHostPermission] = React.useState(true)
-  const location = useLocation()
 
   React.useEffect(() => {
     const checkPermissions = async () => {
@@ -33,7 +32,7 @@ export const MainLayout = () => {
       browser.permissions.onAdded.removeListener(checkPermissions)
       browser.permissions.onRemoved.removeListener(checkPermissions)
     }
-  }, [location])
+  }, [])
 
   return (
     <div className="h-popup w-popup space-y-4 border-base px-6 py-4">
