@@ -1,19 +1,10 @@
 import { Configuration, DefinePlugin } from 'webpack'
-import {
-  DIRECTORIES,
-  ROOT_DIR,
-  mainConfig,
-  type Target,
-  type ManifestVersion
-} from './config'
+import { DIRECTORIES, ROOT_DIR, mainConfig, type Target } from './config'
 import path from 'node:path'
 import { getMainPlugins } from './plugins'
 import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 
-export const getProfileConfig = (
-  target: Target,
-  manifestVersion: ManifestVersion
-): Configuration => {
+export const getProfileConfig = (target: Target): Configuration => {
   return {
     ...mainConfig,
     output: {
@@ -29,7 +20,7 @@ export const getProfileConfig = (
       errors: true,
       hash: true
     },
-    plugins: getMainPlugins(DIRECTORIES.DEV, target, manifestVersion).concat([
+    plugins: getMainPlugins(DIRECTORIES.DEV, target).concat([
       new BundleAnalyzerPlugin({
         analyzerMode: 'server'
       }),

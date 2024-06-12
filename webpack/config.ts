@@ -10,10 +10,7 @@ export const DIRECTORIES = {
   TEMP: './temp',
   SRC: './src'
 }
-export const MANIFEST_V2_PATH = path.resolve(
-  ROOT_DIR,
-  `${DIRECTORIES.SRC}/manifest_v2.json`
-)
+
 export const MANIFEST_PATH = path.resolve(
   ROOT_DIR,
   `${DIRECTORIES.SRC}/manifest.json`
@@ -107,5 +104,3 @@ export const callbackFn = (_: Error | null, stats: Stats | undefined) => {
 }
 
 export type Target = (typeof TARGETS)[number]
-
-export type ManifestVersion = 2 | 3

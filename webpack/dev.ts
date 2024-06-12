@@ -1,21 +1,12 @@
 import { Configuration, DefinePlugin } from 'webpack'
-import {
-  DIRECTORIES,
-  ROOT_DIR,
-  mainConfig,
-  type Target,
-  type ManifestVersion
-} from './config'
+import { DIRECTORIES, ROOT_DIR, mainConfig, type Target } from './config'
 import path from 'node:path'
 import { getMainPlugins } from './plugins'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ExtentionReloader = require('webpack-ext-reloader-mv3')
 
-export const getDevConfig = (
-  target: Target,
-  manifestVersion: ManifestVersion
-): Configuration => {
+export const getDevConfig = (target: Target): Configuration => {
   return {
     ...mainConfig,
     output: {
@@ -36,7 +27,7 @@ export const getDevConfig = (
       aggregateTimeout: 200,
       poll: 1000
     },
-    plugins: getMainPlugins(DIRECTORIES.DEV, target, manifestVersion).concat(
+    plugins: getMainPlugins(DIRECTORIES.DEV, target).concat(
       [
         new ExtentionReloader({
           port: 9090,

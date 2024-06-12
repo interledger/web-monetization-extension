@@ -1,13 +1,6 @@
 import path from 'node:path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import {
-  MANIFEST_PATH,
-  MANIFEST_V2_PATH,
-  DIRECTORIES,
-  ROOT_DIR,
-  type Target,
-  type ManifestVersion
-} from './config'
+import { MANIFEST_PATH, DIRECTORIES, ROOT_DIR, type Target } from './config'
 import { ProgressPlugin, ProvidePlugin, IgnorePlugin, optimize } from 'webpack'
 import CopyWebpackPlugin from 'copy-webpack-plugin'
 import { CleanWebpackPlugin } from 'clean-webpack-plugin'
@@ -15,7 +8,6 @@ import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 export const getMainPlugins = (
   outputDir: string,
   target: Target,
-  manifestVersion: ManifestVersion = 3,
   isProduction = process.env.NODE_ENV === 'production'
 ): any[] => [
   new CleanWebpackPlugin({
@@ -51,7 +43,6 @@ export const getMainPlugins = (
         to: path.resolve(ROOT_DIR, `${outputDir}/${target}/_locales`)
       },
       {
-        filter: () => manifestVersion === 3,
         from: MANIFEST_PATH,
         to() {
           return path.resolve(ROOT_DIR, `${outputDir}/${target}/manifest.json`)
@@ -87,19 +78,6 @@ export const getMainPlugins = (
           }
 
           return JSON.stringify(json, null, 2)
-        }
-      },
-      {
-        filter: () => manifestVersion === 2,
-        from: MANIFEST_V2_PATH,
-        to() {
-          return path.resolve(ROOT_DIR, `${outputDir}/${target}/manifest.json`)
-        },
-        transform(content: Buffer) {
-          if (target === 'firefox') {
-            // TODO: Update manifest for Firefox (V3)
-          }
-          return content
         }
       },
       // Bundle OpenAPI schemas - the Open Payments client is using them to
