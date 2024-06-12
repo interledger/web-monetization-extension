@@ -21,6 +21,7 @@ export const MainLayout = () => {
         const status = await browser.permissions.contains(PERMISSION_HOSTS)
         setHasHostPermission(status)
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(error)
       }
     }
