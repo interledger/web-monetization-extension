@@ -81,24 +81,6 @@ export class StorageService {
     return { ...data, url }
   }
 
-  async setPartial<TKey extends Partial<StorageKey>>(
-    data: Partial<{
-      [K in TKey]: Storage[TKey]
-    }>
-  ): Promise<void> {
-    const storageData = await this.get([
-      'enabled',
-      'connected',
-      'amount',
-      'rateOfPay',
-      'minRateOfPay',
-      'maxRateOfPay',
-      'walletAddress',
-      'publicKey'
-    ])
-    await this.browser.storage.local.set({ ...storageData, ...data })
-  }
-
   async getWMState(): Promise<boolean> {
     const { enabled } = await this.get(['enabled'])
 
