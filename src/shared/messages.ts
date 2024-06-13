@@ -45,12 +45,6 @@ export interface UpdateRateOfPayPayload {
   rateOfPay: string
 }
 
-export interface SetPopupDataPayload {
-  walletAddressUrl?: string
-  amountValue?: string
-  recurring?: boolean
-}
-
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
   [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
