@@ -6,6 +6,7 @@ import { EventsService } from './events'
 const defaultStorage = {
   connected: false,
   enabled: true,
+  hasHostPermissions: false,
   exceptionList: {},
   walletAddress: null,
   amount: null,
@@ -57,6 +58,7 @@ export class StorageService {
     const data = await this.get([
       'enabled',
       'connected',
+      'hasHostPermissions',
       'amount',
       'rateOfPay',
       'minRateOfPay',
@@ -102,6 +104,14 @@ export class StorageService {
     }
 
     return false
+  }
+
+  async setHostPermissionStatus(status: boolean): Promise<void> {
+    const { hasHostPermissions } = await this.get(['hasHostPermissions'])
+    if (hasHostPermissions !== status) {
+      await this.set({ hasHostPermissions: status })
+      this.events.emit('storage.host_permissions_update', { status })
+    }
   }
 
   async updateRate(rate: string): Promise<void> {

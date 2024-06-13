@@ -33,6 +33,8 @@ export interface Storage {
   enabled: boolean
   /** If a wallet is connected or not */
   connected: boolean
+  /** Whether extension can inject scripts, and fetch resources from any host */
+  hasHostPermissions: boolean
 
   rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null

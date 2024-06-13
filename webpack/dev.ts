@@ -30,7 +30,7 @@ export const getDevConfig = (target: Target): Configuration => {
     plugins: getMainPlugins(DIRECTORIES.DEV, target).concat(
       [
         new ExtentionReloader({
-          port: 9090,
+          port: target === 'firefox' ? 9090 : 9091,
           reloadPage: true,
           entries: {
             contentScript: ['content'],
