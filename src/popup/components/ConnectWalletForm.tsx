@@ -2,11 +2,11 @@ import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
 import { connected } from 'process'
-import React from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
-import { getWalletInformation } from '@/shared/helpers'
+import { debounceSync, getWalletInformation } from '@/shared/helpers'
 import {
   charIsNumber,
   formatNumber,
@@ -37,7 +37,9 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
     defaultValues: {
-      recurring: false
+      recurring: localStorage?.getItem('recurring') === 'true' || false,
+      amount: localStorage?.getItem('amountValue') || undefined,
+      walletAddressUrl: localStorage?.getItem('walletAddressUrl') || undefined
     }
   })
   const [currencySymbol, setCurrencySymbol] = React.useState<{
@@ -45,23 +47,62 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     scale: number
   }>({ symbol: '$', scale: 2 })
 
-  const getWalletCurrency = async (walletAddressUrl: string): Promise<void> => {
-    clearErrors('walletAddressUrl')
-    if (!walletAddressUrl) return
-    try {
-      const url = new URL(walletAddressUrl)
-      const walletAddress = await getWalletInformation(url.toString())
-      setCurrencySymbol({
-        symbol: getCurrencySymbol(walletAddress.assetCode),
-        scale: walletAddress.assetScale
-      })
-    } catch (e) {
-      setError('walletAddressUrl', {
-        type: 'validate',
-        message: 'Invalid wallet address URL.'
-      })
-    }
+  const getWalletCurrency = useCallback(
+    async (walletAddressUrl: string): Promise<void> => {
+      clearErrors('walletAddressUrl')
+      if (!walletAddressUrl) return
+      try {
+        const url = new URL(walletAddressUrl)
+        const walletAddress = await getWalletInformation(url.toString())
+        setCurrencySymbol({
+          symbol: getCurrencySymbol(walletAddress.assetCode),
+          scale: walletAddress.assetScale
+        })
+      } catch (e) {
+        setError('walletAddressUrl', {
+          type: 'validate',
+          message: 'Invalid wallet address URL.'
+        })
+      }
+    },
+    [clearErrors, setError]
+  )
+
+  const handleOnChangeAmount = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const amountValue = formatNumber(
+      +e.currentTarget.value,
+      currencySymbol.scale
+    )
+    debounceSync(() => {
+      localStorage?.setItem('amountValue', amountValue)
+    }, 100)()
   }
+
+  const handleOnChangeWalletAddressUrl = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const walletAddressUrl = e.currentTarget.value
+    debounceSync(() => {
+      localStorage?.setItem('walletAddressUrl', walletAddressUrl)
+    }, 100)()
+  }
+
+  const handleOnChangeRecurring = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const recurring = e.currentTarget.checked
+    debounceSync(
+      () => localStorage?.setItem('recurring', `${recurring}`),
+      100
+    )()
+  }
+
+  useEffect(() => {
+    const walletAddressUrl =
+      localStorage?.getItem('walletAddressUrl') || undefined
+    if (!walletAddressUrl) return
+    getWalletCurrency(walletAddressUrl)
+  }, [getWalletCurrency])
 
   return (
     <form
@@ -105,7 +146,8 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
           required: { value: true, message: 'Wallet address URL is required.' },
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             getWalletCurrency(e.currentTarget.value)
-          }
+          },
+          onChange: handleOnChangeWalletAddressUrl
         })}
       />
       <Input
@@ -135,11 +177,17 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
               'amount',
               formatNumber(+e.currentTarget.value, currencySymbol.scale)
             )
-          }
+          },
+          onChange: handleOnChangeAmount
         })}
       />
       <div className="px-2">
-        <Switch {...register('recurring')} label="Renew amount monthly" />
+        <Switch
+          {...register('recurring', {
+            onChange: handleOnChangeRecurring
+          })}
+          label="Renew amount monthly"
+        />
       </div>
       <Button
         type="submit"

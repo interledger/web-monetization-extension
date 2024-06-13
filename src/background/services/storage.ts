@@ -64,7 +64,6 @@ export class StorageService {
       'walletAddress',
       'publicKey'
     ])
-
     const tab = await getCurrentActiveTab(this.browser)
 
     if (tab && tab.url) {
