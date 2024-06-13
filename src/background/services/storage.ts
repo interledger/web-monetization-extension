@@ -13,10 +13,7 @@ const defaultStorage = {
   grant: null,
   rateOfPay: null,
   minRateOfPay: null,
-  maxRateOfPay: null,
-  walletAddressUrl: '',
-  amountValue: '',
-  recurring: false
+  maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 // TODO: Emit events when certain values are updated:
@@ -65,10 +62,7 @@ export class StorageService {
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
-      'publicKey',
-      'walletAddressUrl',
-      'amountValue',
-      'recurring'
+      'publicKey'
     ])
     const tab = await getCurrentActiveTab(this.browser)
 
@@ -100,10 +94,7 @@ export class StorageService {
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
-      'publicKey',
-      'walletAddressUrl',
-      'amountValue',
-      'recurring'
+      'publicKey'
     ])
     await this.browser.storage.local.set({ ...storageData, ...data })
   }

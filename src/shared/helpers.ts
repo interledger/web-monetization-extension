@@ -88,6 +88,26 @@ export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
   }
 }
 
+export function debounceSync<T extends unknown[], R>(
+  func: (...args: T) => R,
+  wait: number
+) {
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  console.log('debounceSync')
+
+  return function (...args: T) {
+    return new Promise<R>((resolve) => {
+      console.log('promise')
+      if (timeout != null) clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        timeout = null
+        console.log('timeout')
+        resolve(func(...args))
+      }, wait)
+    })
+  }
+}
+
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source
   if (scaleDiff > 0) {

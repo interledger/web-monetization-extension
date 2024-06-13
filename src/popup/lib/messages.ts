@@ -18,15 +18,6 @@ export const getContextData = async () => {
   })
 }
 
-export const setContextData = async (
-  payload: PopupToBackgroundActionPayload[PopupToBackgroundAction.SET_CONTEXT_DATA]
-) => {
-  return await message.send<PopupState>({
-    action: PopupToBackgroundAction.SET_CONTEXT_DATA,
-    payload
-  })
-}
-
 // TBD: Save error message in storage and to discuss other alternatives
 export const connectWallet = async (
   payload: PopupToBackgroundActionPayload[PopupToBackgroundAction.CONNECT_WALLET]

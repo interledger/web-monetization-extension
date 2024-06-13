@@ -6,14 +6,13 @@ import React, { useCallback, useEffect } from 'react'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
-import { getWalletInformation } from '@/shared/helpers'
+import { debounceSync, getWalletInformation } from '@/shared/helpers'
 import {
   charIsNumber,
   formatNumber,
   getCurrencySymbol
 } from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
-import { PopupStateContext, ReducerActionType } from '../lib/context'
 
 interface ConnectWalletFormInputs {
   walletAddressUrl: string
@@ -23,19 +22,9 @@ interface ConnectWalletFormInputs {
 
 interface ConnectWalletFormProps {
   publicKey: string
-  walletAddressUrl?: string
-  amountValue?: string
-  recurring?: boolean
 }
 
-export const ConnectWalletForm = ({
-  publicKey,
-  walletAddressUrl,
-  recurring,
-  amountValue
-}: ConnectWalletFormProps) => {
-  const { dispatch } = React.useContext(PopupStateContext)
-
+export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   const {
     register,
     handleSubmit,
@@ -48,9 +37,9 @@ export const ConnectWalletForm = ({
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
     defaultValues: {
-      recurring,
-      amount: amountValue,
-      walletAddressUrl
+      recurring: localStorage?.getItem('recurring') === 'true' || false,
+      amount: localStorage?.getItem('amountValue') || undefined,
+      walletAddressUrl: localStorage?.getItem('walletAddressUrl') || undefined
     }
   })
   const [currencySymbol, setCurrencySymbol] = React.useState<{
@@ -79,45 +68,38 @@ export const ConnectWalletForm = ({
     [clearErrors, setError]
   )
 
-  const handleOnChangeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleOnChangeAmount = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const amountValue = formatNumber(
       +e.currentTarget.value,
       currencySymbol.scale
     )
-    dispatch({
-      type: ReducerActionType.SET_PARTIAL_DATA,
-      data: {
-        amountValue
-      }
-    })
+    debounceSync(() => {
+      localStorage.setItem('amountValue', amountValue)
+    }, 100)()
   }
 
   const handleOnChangeWalletAddressUrl = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const walletAddressUrl = e.currentTarget.value
-
-    dispatch({
-      type: ReducerActionType.SET_PARTIAL_DATA,
-      data: {
-        walletAddressUrl
-      }
-    })
+    debounceSync(() => {
+      localStorage.setItem('walletAddressUrl', walletAddressUrl)
+    }, 100)()
   }
 
   const handleOnChangeRecurring = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch({
-      type: ReducerActionType.SET_PARTIAL_DATA,
-      data: {
-        recurring: e.currentTarget.checked
-      }
-    })
+    const recurring = e.currentTarget.checked
+    debounceSync(() => localStorage.setItem('recurring', `${recurring}`), 100)()
   }
 
   useEffect(() => {
+    const walletAddressUrl =
+      localStorage?.getItem('walletAddressUrl') || undefined
     if (!walletAddressUrl) return
     getWalletCurrency(walletAddressUrl)
-  }, [walletAddressUrl, getWalletCurrency])
+  }, [getWalletCurrency])
 
   return (
     <form

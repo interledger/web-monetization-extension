@@ -33,12 +33,6 @@ export interface Storage {
   enabled: boolean
   /** If a wallet is connected or not */
   connected: boolean
-  /** Wallet address url to be connected */
-  walletAddressUrl?: string | undefined | null
-  /** Amount value to be used */
-  amountValue?: string | undefined | null
-  /** If amount should be recurring  */
-  recurring?: boolean
 
   rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null
