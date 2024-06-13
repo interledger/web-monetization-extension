@@ -76,7 +76,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       currencySymbol.scale
     )
     debounceSync(() => {
-      localStorage.setItem('amountValue', amountValue)
+      localStorage?.setItem('amountValue', amountValue)
     }, 100)()
   }
 
@@ -85,13 +85,16 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   ) => {
     const walletAddressUrl = e.currentTarget.value
     debounceSync(() => {
-      localStorage.setItem('walletAddressUrl', walletAddressUrl)
+      localStorage?.setItem('walletAddressUrl', walletAddressUrl)
     }, 100)()
   }
 
   const handleOnChangeRecurring = (e: React.ChangeEvent<HTMLInputElement>) => {
     const recurring = e.currentTarget.checked
-    debounceSync(() => localStorage.setItem('recurring', `${recurring}`), 100)()
+    debounceSync(
+      () => localStorage?.setItem('recurring', `${recurring}`),
+      100
+    )()
   }
 
   useEffect(() => {
