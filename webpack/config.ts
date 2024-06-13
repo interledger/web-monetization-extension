@@ -10,6 +10,7 @@ export const DIRECTORIES = {
   TEMP: './temp',
   SRC: './src'
 }
+
 export const MANIFEST_PATH = path.resolve(
   ROOT_DIR,
   `${DIRECTORIES.SRC}/manifest.json`

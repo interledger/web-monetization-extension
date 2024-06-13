@@ -10,5 +10,9 @@
   "btnTooltip": {
     "message": "Web Monetization",
     "description": "..."
+  },
+  "hostsPermissionsNeeded": {
+    "message": "Permission to access your data for all websites is required to use Web Monetization.",
+    "description": "..."
   }
 }

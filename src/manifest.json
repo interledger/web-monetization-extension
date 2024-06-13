@@ -1,7 +1,8 @@
 {
+  "$schema": "https://json.schemastore.org/chrome-manifest",
   "name": "__MSG_appName__",
   "version": "1.0.1",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "description": "__MSG_appDescription__",
   "icons": {
     "34": "assets/icons/icon-34.png",
@@ -10,40 +11,43 @@
   "default_locale": "en",
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*", "<all_urls>"],
+      "matches": ["https://*/*"],
       "js": ["content/content.js"],
       "all_frames": true
     },
     {
       "run_at": "document_start",
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["https://*/*"],
       "js": ["contentStatic/contentStatic.js"],
+      "world": "MAIN",
       "all_frames": true
     }
   ],
   "background": {
-    "scripts": ["background/background.js"]
+    "service_worker": "background/background.js"
   },
-  "permissions": [
-    "tabs",
-    "storage",
-    "https://telemetry-exchange-rates.s3.amazonaws.com/exchange-rates-usd.json"
-  ],
-  "browser_action": {
-    "default_icon": "assets/icons/icon-34.png",
+  "permissions": ["tabs", "storage"],
+  "action": {
     "default_title": "Web Monetization",
     "default_popup": "popup/index.html"
   },
   "web_accessible_resources": [
-    "assets/*",
-    "content/*",
-    "options/*",
-    "popup/*",
-    "background/*",
-    "openapi/*"
+    {
+      "resources": [
+        "assets/*",
+        "content/*",
+        "options/*",
+        "popup/*",
+        "background/*",
+        "specs/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ],
-  "host_permissions": ["https://*"],
-  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "host_permissions": ["https://*/*"],
   "browser_specific_settings": {
     "gecko": {
       "id": "tech@interledger.com"

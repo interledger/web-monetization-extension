@@ -1,11 +1,15 @@
 import path from 'node:path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
-import { MANIFEST_PATH, DIRECTORIES, ROOT_DIR, Target } from './config'
-import { ProgressPlugin, ProvidePlugin, IgnorePlugin } from 'webpack'
+import { MANIFEST_PATH, DIRECTORIES, ROOT_DIR, type Target } from './config'
+import { ProgressPlugin, ProvidePlugin, IgnorePlugin, optimize } from 'webpack'
 import CopyWebpackPlugin from 'copy-webpack-plugin'
 import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 
-export const getMainPlugins = (outputDir: string, target: Target): any[] => [
+export const getMainPlugins = (
+  outputDir: string,
+  target: Target,
+  isProduction = process.env.NODE_ENV === 'production'
+): any[] => [
   new CleanWebpackPlugin({
     cleanOnceBeforeBuildPatterns: [
       path.resolve(ROOT_DIR, `${outputDir}/${target}`)
@@ -14,6 +18,14 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
     verbose: true
   }),
   new ProgressPlugin(),
+
+  // Force Webpack to create self-contained bundles. Otherwise, it uses dynamic
+  // script loading with document.createElement('script'), and `document` isn't
+  // defined in MV3 background service workers, which results in fatal crash.
+  new optimize.LimitChunkCountPlugin({
+    maxChunks: 1
+  }),
+
   new HtmlWebpackPlugin({
     title: 'Popup',
     filename: path.resolve(ROOT_DIR, `${outputDir}/${target}/popup/index.html`),
@@ -32,12 +44,40 @@ export const getMainPlugins = (outputDir: string, target: Target): any[] => [
       },
       {
         from: MANIFEST_PATH,
-        to: path.resolve(ROOT_DIR, `${outputDir}/${target}`),
-        transform: (content: Buffer) => {
-          if (target === 'firefox') {
-            // TODO: Update manifest for Firefox (V3)
+        to() {
+          return path.resolve(ROOT_DIR, `${outputDir}/${target}/manifest.json`)
+        },
+        transform(content: Buffer) {
+          const json = JSON.parse(content.toString())
+          // Transform manifest as targets have different expectations
+
+          delete json['$schema'] // Only for IDE. No target accepts it.
+
+          if (!isProduction) {
+            if (!json.host_permissions.includes('http://*/*')) {
+              json.host_permissions.push('http://*/*')
+            }
+            json.content_scripts.forEach((cscript) => {
+              if (!cscript.matches.includes('http://*/*')) {
+                cscript.matches.push('http://*/*')
+              }
+            })
           }
-          return content
+
+          if (target === 'firefox') {
+            json.background = {
+              scripts: [json.background.service_worker]
+            }
+            json.content_scripts.forEach((cscript) => {
+              // firefox doesn't support execution context yet
+              cscript.world = undefined
+            })
+          }
+          if (target !== 'firefox') {
+            delete json['browser_specific_settings']
+          }
+
+          return JSON.stringify(json, null, 2)
         }
       },
       // Bundle OpenAPI schemas - the Open Payments client is using them to
