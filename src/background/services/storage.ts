@@ -2,6 +2,7 @@ import type { PopupStore, Storage, StorageKey } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { getCurrentActiveTab } from '../utils'
 import { EventsService } from './events'
+import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 
 const defaultStorage = {
   connected: false,
@@ -17,10 +18,6 @@ const defaultStorage = {
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
-// TODO: Emit events when certain values are updated:
-// Eg:
-// - rate of pay - we should recalculate the amount for every payment session
-// - enabling/disabling WM
 export class StorageService {
   constructor(
     private browser: Browser,
@@ -71,7 +68,7 @@ export class StorageService {
     if (tab && tab.url) {
       try {
         const tabUrl = new URL(tab.url)
-        if (tabUrl.protocol === 'http:') {
+        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
           // Do not include search params
           url = `${tabUrl.origin}${tabUrl.pathname}`
         }
