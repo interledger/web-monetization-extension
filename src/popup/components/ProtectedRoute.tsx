@@ -9,7 +9,7 @@ export const ProtectedRoute = () => {
   if (!state.hasHostPermissions) {
     return <Navigate to={ROUTES_PATH.MISSING_HOST_PERMISSION} />
   }
-  if (state.connected === false) {
+  if (!state.connected) {
     return <Navigate to={ROUTES_PATH.SETTINGS} />
   }
 
