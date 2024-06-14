@@ -5,12 +5,11 @@
     "node": true
   },
   "extends": [
-    "plugin:@typescript-eslint/recommended",
     "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
     "plugin:jsx-a11y/recommended",
-    "prettier",
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
   ],
@@ -20,16 +19,7 @@
     "ecmaVersion": 2020,
     "ecmaFeatures": { "jsx": true }
   },
-  "plugins": [
-    "html",
-    "prettier",
-    "react",
-    "node",
-    "react-hooks",
-    "@typescript-eslint",
-    "jest",
-    "@typescript-eslint"
-  ],
+  "plugins": ["html"],
   "settings": {
     "react": {
       "version": "detect"
@@ -37,6 +27,7 @@
   },
   "rules": {
     "semi": "off",
+    "no-extra-semi": "off",
     "maxWarnings": "off",
     "react/self-closing-comp": [
       "error",

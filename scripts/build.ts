@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { webpack } from 'webpack'
-import { TARGETS, Target, callbackFn } from '../webpack/config'
+import { TARGETS, callbackFn, type Target } from '../webpack/config'
 import { getProdConfig } from '../webpack/prod'
 
 const TARGET: Target | null = process.argv[2]
@@ -17,6 +17,8 @@ if (TARGET !== null && !TARGETS.includes(TARGET)) {
   )
   process.exit(1)
 }
+
+process.env.NODE_ENV ||= 'production'
 
 // If no target is specified, build for all available targets
 if (TARGET === null) {

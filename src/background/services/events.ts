@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 
 interface BackgroundEvents {
   'storage.rate_of_pay_update': { rate: string }
+  'storage.host_permissions_update': { status: boolean }
 }
 
 export class EventsService extends EventEmitter {

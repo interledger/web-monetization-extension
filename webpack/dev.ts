@@ -1,5 +1,5 @@
 import { Configuration, DefinePlugin } from 'webpack'
-import { DIRECTORIES, ROOT_DIR, Target, mainConfig } from './config'
+import { DIRECTORIES, ROOT_DIR, mainConfig, type Target } from './config'
 import path from 'node:path'
 import { getMainPlugins } from './plugins'
 
@@ -30,7 +30,7 @@ export const getDevConfig = (target: Target): Configuration => {
     plugins: getMainPlugins(DIRECTORIES.DEV, target).concat(
       [
         new ExtentionReloader({
-          port: 9090,
+          port: target === 'firefox' ? 9090 : 9091,
           reloadPage: true,
           entries: {
             contentScript: ['content'],

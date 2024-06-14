@@ -1,8 +1,9 @@
-import { type Browser, runtime, Tabs } from 'webextension-polyfill'
+import browser, { type Browser, type Tabs } from 'webextension-polyfill'
 import { MonetizationService } from './monetization'
 import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
 
+const runtime = browser.runtime
 const icon34 = runtime.getURL('assets/icons/icon-34.png')
 const icon128 = runtime.getURL('assets/icons/icon-128.png')
 const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')

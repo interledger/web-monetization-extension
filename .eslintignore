@@ -1,2 +1,6 @@
 !.github
 node_modules/
+dev/
+temp/
+dist/
+build/

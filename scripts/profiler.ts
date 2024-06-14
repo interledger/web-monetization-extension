@@ -13,6 +13,7 @@ if (TARGET !== 'firefox' && TARGET !== 'chrome') {
   process.exit(1)
 }
 
+process.env.NODE_ENV = 'development'
 const config = getProfileConfig(TARGET)
 
 webpack(config, callbackFn)

@@ -11,7 +11,8 @@ import {
 
 export const ROUTES_PATH = {
   HOME: '/',
-  SETTINGS: '/settings'
+  SETTINGS: '/settings',
+  MISSING_HOST_PERMISSION: '/missing-host-permission'
 } as const
 
 export const routes = [
@@ -29,6 +30,10 @@ export const routes = [
       },
       {
         children: [
+          {
+            path: ROUTES_PATH.MISSING_HOST_PERMISSION,
+            lazy: () => import('./pages/MissingHostPermission')
+          },
           {
             path: ROUTES_PATH.SETTINGS,
             lazy: () => import('./pages/Settings')
