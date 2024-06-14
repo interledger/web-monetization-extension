@@ -85,7 +85,7 @@
     "jest-transform-stub": "^2.0.0",
     "postcss": "^8.4.38",
     "postcss-loader": "^8.1.1",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.4",
     "react-router-dom": "^6.23.1",
     "style-loader": "^4.0.0",
