@@ -47,7 +47,9 @@ export const getProdConfig = (target: Target): Configuration => {
         }
       }),
       new DefinePlugin({
-        CONFIG_LOG_LEVEL: JSON.stringify('WARN')
+        CONFIG_LOG_LEVEL: JSON.stringify('WARN'),
+        CONFIG_PERMISSION_HOSTS: JSON.stringify({ origins: ['https://*/*'] }),
+        CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['https:'])
       })
     ])
   }
