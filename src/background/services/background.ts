@@ -15,7 +15,7 @@ import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 import { TabEvents } from './tabEvents'
-import { PERMISSION_HOSTS } from '@/shared/constants'
+import { PERMISSION_HOSTS } from '@/shared/defines'
 
 export class Background {
   constructor(
@@ -153,19 +153,8 @@ export class Background {
   }
 
   bindPermissionsHandler() {
-    const permissions = this.browser.permissions
-    const checkPermissions = async () => {
-      try {
-        const status = await permissions.contains(PERMISSION_HOSTS)
-        this.storage.setHostPermissionStatus(status)
-      } catch (error) {
-        this.logger.error(error)
-      }
-    }
-
-    void checkPermissions()
-    permissions.onAdded.addListener(checkPermissions)
-    permissions.onRemoved.addListener(checkPermissions)
+    this.browser.permissions.onAdded.addListener(this.checkPermissions)
+    this.browser.permissions.onRemoved.addListener(this.checkPermissions)
     this.events.on('storage.host_permissions_update', async ({ status }) => {
       this.logger.info('permission changed', { status })
       // TODO: change icon here in future
@@ -179,6 +168,17 @@ export class Background {
         await this.storage.populate()
         await this.openPaymentsService.genererateKeys()
       }
+      await this.checkPermissions()
     })
+  }
+
+  checkPermissions = async () => {
+    try {
+      this.logger.debug('checking hosts permission')
+      const status = await this.browser.permissions.contains(PERMISSION_HOSTS)
+      this.storage.setHostPermissionStatus(status)
+    } catch (error) {
+      this.logger.error(error)
+    }
   }
 }

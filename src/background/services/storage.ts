@@ -6,7 +6,7 @@ import { EventsService } from './events'
 const defaultStorage = {
   connected: false,
   enabled: true,
-  hasHostPermissions: false,
+  hasHostPermissions: true,
   exceptionList: {},
   walletAddress: null,
   amount: null,
