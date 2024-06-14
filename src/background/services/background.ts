@@ -168,7 +168,7 @@ export class Background {
         await this.storage.populate()
         await this.openPaymentsService.genererateKeys()
       }
-      this.checkPermissions()
+      await this.checkPermissions()
     })
   }
 
