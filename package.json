@@ -61,8 +61,8 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/webextension-polyfill": "^0.10.7",
     "@types/zip-webpack-plugin": "^3.0.6",
-    "@typescript-eslint/eslint-plugin": "^7.11.0",
-    "@typescript-eslint/parser": "^7.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
     "autoprefixer": "^10.4.19",
     "clean-webpack-plugin": "^4.0.0",
     "concurrently": "^8.2.2",
@@ -83,7 +83,7 @@
     "jest-transform-stub": "^2.0.0",
     "postcss": "^8.4.38",
     "postcss-loader": "^8.1.1",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.4",
     "react-router-dom": "^6.23.1",
     "style-loader": "^4.0.0",
@@ -92,19 +92,19 @@
     "ts-jest": "^29.1.4",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.11.2",
+    "tsx": "^4.15.4",
     "typescript": "^5.4.5",
-    "webpack": "^5.91.0",
+    "webpack": "^5.92.0",
     "webpack-cli": "^5.1.4",
     "webpack-ext-reloader-mv3": "^2.1.1",
     "webpack-extension-manifest-plugin": "^0.8.0",
     "zip-webpack-plugin": "^4.0.1"
   },
   "engines": {
-    "pnpm": "^9.1.4",
+    "pnpm": "^9.3.0",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "20"
   },
-  "packageManager": "pnpm@9.1.4"
+  "packageManager": "pnpm@9.3.0"
 }
