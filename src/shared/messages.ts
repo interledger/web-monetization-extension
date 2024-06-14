@@ -171,9 +171,10 @@ export class MessageManager<TMessages> {
   async sendToActiveTab<TResponse = void>(
     message: TMessages
   ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
+    const window = await this.browser.windows.getCurrent();
     const activeTabs = await this.browser.tabs.query({
       active: true,
-      currentWindow: true
+      windowId: window.id
     })
     const activeTab = activeTabs[0]
     return await this.browser.tabs.sendMessage(activeTab.id as number, message)

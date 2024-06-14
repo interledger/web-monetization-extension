@@ -71,7 +71,7 @@ export class StorageService {
     if (tab && tab.url) {
       try {
         const tabUrl = new URL(tab.url)
-        if (tabUrl.protocol === 'https:') {
+        if (tabUrl.protocol === 'http:') {
           // Do not include search params
           url = `${tabUrl.origin}${tabUrl.pathname}`
         }
