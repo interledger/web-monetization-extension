@@ -1,6 +1,6 @@
 import React from 'react'
 import browser from 'webextension-polyfill'
-import { PERMISSION_HOSTS } from '@/shared/constants'
+import { PERMISSION_HOSTS } from '@/shared/defines'
 import { WarningSign } from '@/popup/components/Icons'
 
 export const Component = () => {

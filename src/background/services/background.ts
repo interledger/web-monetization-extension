@@ -15,7 +15,7 @@ import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 import { TabEvents } from './tabEvents'
-import { PERMISSION_HOSTS } from '@/shared/constants'
+import { PERMISSION_HOSTS } from '@/shared/defines'
 
 export class Background {
   constructor(
