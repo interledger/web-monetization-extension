@@ -1,4 +1,4 @@
-import { WalletAddress } from '@interledger/open-payments'
+import type { WalletAddress, OutgoingPayment } from '@interledger/open-payments'
 import { type Browser } from 'webextension-polyfill'
 
 export interface SuccessResponse<TPayload = undefined> {
@@ -131,7 +131,11 @@ export enum BackgroundToContentAction {
 
 export interface MonetizationEventPayload {
   requestId: string
-  details: any
+  details: {
+    receiveAmount: OutgoingPayment['receiveAmount']
+    incomingPayment: OutgoingPayment['receiver']
+    paymentPointer: WalletAddress['id']
+  }
 }
 
 export interface EmitToggleWMPayload {

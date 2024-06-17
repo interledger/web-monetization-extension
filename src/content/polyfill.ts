@@ -77,8 +77,8 @@
         console.warn(msg)
         eventDetailDeprecationEmitted = true
       }
-      const { receiveAmount, incomingPayment, paymentPointer } = this
-      return { receiveAmount, incomingPayment, paymentPointer }
+      const { amountSent, incomingPayment, paymentPointer } = this
+      return { amountSent, incomingPayment, paymentPointer }
     }
   }
 
