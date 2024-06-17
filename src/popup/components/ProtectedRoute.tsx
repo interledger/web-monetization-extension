@@ -12,6 +12,9 @@ export const ProtectedRoute = () => {
   if (state.connected === false) {
     return <Navigate to={ROUTES_PATH.SETTINGS} />
   }
+  if (!state.isSiteMonetized) {
+    return <Navigate to={ROUTES_PATH.SITE_NOT_MONETIZED} />
+  }
 
   return <Outlet />
 }
