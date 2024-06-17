@@ -22,6 +22,7 @@ export const Component = () => {
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
+      isSiteMonetized,
       walletAddress,
       url
     },
@@ -90,7 +91,11 @@ export const Component = () => {
 
       <hr />
 
-      {url ? <PayWebsiteForm /> : null}
+      {isSiteMonetized && url ? (
+        <PayWebsiteForm />
+      ) : (
+        <p>This site is not monetized</p>
+      )}
     </div>
   )
 }

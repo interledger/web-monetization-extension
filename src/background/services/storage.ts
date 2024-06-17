@@ -1,6 +1,5 @@
 import type { PopupStore, Storage, StorageKey } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
-import { getCurrentActiveTab } from '../utils'
 import { EventsService } from './events'
 
 const defaultStorage = {
@@ -53,8 +52,7 @@ export class StorageService {
   }
 
   // TODO: Exception list (post-v1) - return data for the current website
-  async getPopupData(): Promise<PopupStore> {
-    let url: string | undefined
+  async getPopupData(): Promise<Omit<PopupStore, 'isSiteMonetized' | 'url'>> {
     const data = await this.get([
       'enabled',
       'connected',
@@ -66,21 +64,7 @@ export class StorageService {
       'walletAddress',
       'publicKey'
     ])
-    const tab = await getCurrentActiveTab(this.browser)
-
-    if (tab && tab.url) {
-      try {
-        const tabUrl = new URL(tab.url)
-        if (tabUrl.protocol === 'https:') {
-          // Do not include search params
-          url = `${tabUrl.origin}${tabUrl.pathname}`
-        }
-      } catch (_) {
-        // noop
-      }
-    }
-
-    return { ...data, url }
+    return data
   }
 
   async getWMState(): Promise<boolean> {
