@@ -69,12 +69,10 @@ export class MonetizationTagManager extends EventEmitter {
     this.monetizationTags.forEach((tagDetails, tag) => {
       if (tagDetails.requestId !== requestId) return
 
-      const customEvent = new CustomEvent('monetization', {
-        bubbles: true,
-        detail: mozClone(details, this.document)
-      })
-
-      tag.dispatchEvent(customEvent)
+      const detail = mozClone(details, this.document)
+      tag.dispatchEvent(
+        new CustomEvent('__wm_ext_monetization', { detail, bubbles: true })
+      )
     })
     return
   }

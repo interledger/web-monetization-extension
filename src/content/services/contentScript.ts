@@ -23,6 +23,7 @@ export class ContentScript {
   }
 
   start() {
+    this.injectPolyfill()
     if (this.isFirstLevelFrame) {
       this.logger.info('Content script started')
 
@@ -57,5 +58,15 @@ export class ContentScript {
         }
       }
     )
+  }
+
+  // TODO: When Firefox supports `world: MAIN`, inject this directly via
+  // manifest.json
+  injectPolyfill() {
+    const document = this.window.document
+    const script = document.createElement('script')
+    script.addEventListener('load', () => script.remove(), { once: true })
+    script.src = this.browser.runtime.getURL('polyfill/polyfill.js')
+    document.documentElement.appendChild(script)
   }
 }
