@@ -22,7 +22,6 @@ export const Component = () => {
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
-      isSiteMonetized,
       walletAddress,
       url
     },
