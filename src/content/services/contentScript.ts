@@ -60,8 +60,8 @@ export class ContentScript {
     )
   }
 
-  // TODO: When Firefox supports `world: MAIN`, inject this directly via
-  // manifest.json
+  // TODO: When Firefox has good support for `world: MAIN`, inject this directly
+  // via manifest.json https://bugzilla.mozilla.org/show_bug.cgi?id=1736575
   injectPolyfill() {
     const document = this.window.document
     const script = document.createElement('script')
