@@ -61,9 +61,16 @@
 
   let eventDetailDeprecationEmitted = false
   class MonetizationEvent extends Event {
+    public readonly amountSent: PaymentCurrencyAmount
+    public readonly incomingPayment: string
+    public readonly paymentPointer: string
+
     constructor(details) {
       super('monetization', { bubbles: true })
-      Object.assign(this, details)
+      const { amountSent, incomingPayment, paymentPointer } = details
+      this.amountSent = amountSent
+      this.incomingPayment = incomingPayment
+      this.paymentPointer = paymentPointer
     }
 
     get [Symbol.toStringTag]() {
