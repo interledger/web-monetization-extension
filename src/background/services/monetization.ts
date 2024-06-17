@@ -250,9 +250,8 @@ export class MonetizationService {
 
     const tab = await getCurrentActiveTab(this.browser)
 
-    let isSiteMonetized = false
     let url
-    if (tab?.id && tab.url) {
+    if (tab && tab.url) {
       try {
         const tabUrl = new URL(tab.url)
         if (tabUrl.protocol === 'https:') {
@@ -262,9 +261,8 @@ export class MonetizationService {
       } catch (_) {
         // noop
       }
-
-      isSiteMonetized = this.sessions[tab.id]?.size > 0
     }
+    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
 
     return {
       ...storedData,

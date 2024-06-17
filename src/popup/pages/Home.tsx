@@ -91,11 +91,7 @@ export const Component = () => {
 
       <hr />
 
-      {isSiteMonetized && url ? (
-        <PayWebsiteForm />
-      ) : (
-        <p>This site is not monetized</p>
-      )}
+      {url ? <PayWebsiteForm /> : null}
     </div>
   )
 }
