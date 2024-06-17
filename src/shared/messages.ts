@@ -131,8 +131,8 @@ export enum BackgroundToContentAction {
 
 export interface MonetizationEventPayload {
   requestId: string
-  details: {
-    receiveAmount: OutgoingPayment['receiveAmount']
+  detail: {
+    amountSent: PaymentCurrencyAmount
     incomingPayment: OutgoingPayment['receiver']
     paymentPointer: WalletAddress['id']
   }

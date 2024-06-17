@@ -20,7 +20,6 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { ContentToContentAction } from '../messages'
-import { transformBalance } from '@/popup/lib/utils'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -66,16 +65,10 @@ export class MonetizationTagManager extends EventEmitter {
     }
   }
 
-  dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
+  dispatchMonetizationEvent({ requestId, detail }: MonetizationEventPayload) {
     this.monetizationTags.forEach((tagDetails, tag) => {
       if (tagDetails.requestId !== requestId) return
 
-      const { incomingPayment, paymentPointer, receiveAmount } = details
-      const amountSent: PaymentCurrencyAmount = {
-        currency: receiveAmount.assetCode,
-        value: transformBalance(receiveAmount.value, receiveAmount.assetScale)
-      }
-      const detail = { incomingPayment, paymentPointer, amountSent }
       tag.dispatchEvent(
         new CustomEvent('__wm_ext_monetization', {
           detail: mozClone(detail, this.document),
