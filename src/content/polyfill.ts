@@ -104,17 +104,17 @@
   )
 
   window.addEventListener(
-    'onmonetization-attr-changed',
+    '__wm_ext_onmonetization_attr_change',
     (event) => {
-      // eslint-disable-next-line no-console
+      const link = event.target
+      if (!(link instanceof HTMLLinkElement)) return
+      if (!link.isConnected) return
+
       const { attribute } = event.detail
       if (attribute) {
-        // TODO:WM2 what are the CSP issues here?
-        // is there any alternative ??
-        // Well, people could just use
-        event.target.onmonetization = new Function(attribute).bind(event.target)
+        link.onmonetization = new Function(attribute).bind(link)
       } else {
-        event.target.onmonetization = null
+        link.onmonetization = null
       }
     },
     { capture: true }
