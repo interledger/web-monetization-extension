@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+import type { MonetizationEventPayload } from '@/shared/messages'
 ;(function () {
   const handlers = new WeakMap()
-  const attributes = {
+  const attributes: PropertyDescriptor & ThisType<EventTarget> = {
     enumerable: true,
     configurable: false,
     get() {
@@ -35,6 +34,7 @@
   const supportsOriginal = DOMTokenList.prototype.supports
   const supportsMonetization = Symbol.for('link-supports-monetization')
   DOMTokenList.prototype.supports = function (token) {
+    // @ts-expect-error: polyfilled
     if (this[supportsMonetization] && token === 'monetization') {
       return true
     } else {
@@ -45,8 +45,8 @@
   const relList = Object.getOwnPropertyDescriptor(
     HTMLLinkElement.prototype,
     'relList'
-  )
-  const relListGetOriginal = relList.get
+  )!
+  const relListGetOriginal = relList.get!
 
   relList.get = function () {
     const val = relListGetOriginal.call(this)
@@ -65,7 +65,7 @@
     public readonly incomingPayment: string
     public readonly paymentPointer: string
 
-    constructor(details) {
+    constructor(details: MonetizationEventPayload['detail']) {
       super('monetization', { bubbles: true })
       const { amountSent, incomingPayment, paymentPointer } = details
       this.amountSent = amountSent
@@ -89,11 +89,12 @@
     }
   }
 
+  // @ts-expect-error: we're defining this now
   window.MonetizationEvent = MonetizationEvent
 
   window.addEventListener(
     '__wm_ext_monetization',
-    (event) => {
+    (event: CustomEvent<MonetizationEventPayload['detail']>) => {
       if (!(event.target instanceof HTMLLinkElement)) return
       if (!event.target.isConnected) return
 
@@ -105,17 +106,16 @@
 
   window.addEventListener(
     '__wm_ext_onmonetization_attr_change',
-    (event) => {
+    (event: CustomEvent<{ attribute?: string }>) => {
       const link = event.target
       if (!(link instanceof HTMLLinkElement)) return
       if (!link.isConnected) return
 
       const { attribute } = event.detail
-      if (attribute) {
-        link.onmonetization = new Function(attribute).bind(link)
-      } else {
-        link.onmonetization = null
-      }
+      // @ts-expect-error: we're defining this now
+      link.onmonetization = attribute
+        ? new Function(attribute).bind(link)
+        : null
     },
     { capture: true }
   )
