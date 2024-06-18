@@ -326,7 +326,7 @@ export class MonetizationTagManager extends EventEmitter {
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.parent.postMessage(
         {
-          message: ContentToContentAction.INITILIZE_IFRAME,
+          message: ContentToContentAction.INITIALIZE_IFRAME,
           id: this.id
         },
         '*'

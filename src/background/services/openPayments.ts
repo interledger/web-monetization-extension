@@ -1,3 +1,4 @@
+// cSpell:ignore keyid
 import { AccessToken, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
@@ -329,7 +330,7 @@ export class OpenPaymentsService {
     )
 
     if (!isFinalizedGrant(continuation)) {
-      throw new Error('Expected finalized grant. Received unfinalized grant.')
+      throw new Error('Expected finalized grant. Received non-finalized grant.')
     }
 
     const token = {
@@ -467,7 +468,7 @@ export class OpenPaymentsService {
     }
   }
 
-  async genererateKeys() {
+  async generateKeys() {
     if (await this.storage.keyPairExists()) return
 
     const { privateKey, publicKey } = await generateEd25519KeyPair()

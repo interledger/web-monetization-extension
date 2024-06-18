@@ -9,6 +9,8 @@ onmonetization
 GNAP
 
 Deduplicator
+crossorigin
+data-testid
 
 # scripts
 typecheck
@@ -19,3 +21,5 @@ corepack
 awilix
 httpbis
 loglevel
+openapi
+apidevtools
