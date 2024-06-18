@@ -49,7 +49,7 @@ export class MonetizationService {
       )
       return
     }
-    const { tabId, frameId } = getSender(sender)
+    const { tabId, frameId, url } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
@@ -75,7 +75,9 @@ export class MonetizationService {
         tabId,
         frameId,
         rate,
-        this.openPaymentsService
+        this.openPaymentsService,
+        this.storage,
+        url
       )
 
       sessions.set(requestId, session)

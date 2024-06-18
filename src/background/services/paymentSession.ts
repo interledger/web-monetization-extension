@@ -9,6 +9,9 @@ import {
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
+import { StorageService } from './storage'
+import { getHashUrl } from '../utils'
+import { OverpayingSession } from '@/shared/types'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -27,7 +30,9 @@ export class PaymentSession {
     private tabId: number,
     private frameId: number,
     private rate: string,
-    private openPaymentsService: OpenPaymentsService
+    private openPaymentsService: OpenPaymentsService,
+    private storage: StorageService,
+    private url: string | undefined
   ) {
     this.adjustSessionAmount()
   }
@@ -125,6 +130,8 @@ export class PaymentSession {
 
     while (this.active) {
       try {
+        this.processOverpaying()
+
         // Quote can be removed once the Test Wallet upgrades to alpha-10.
         // We will be able to create an outgoing payment with an incoming payment,
         // making the quoting unnecessary through OP.
@@ -299,5 +306,62 @@ export class PaymentSession {
   private setAmount(amount: bigint): void {
     this.amount = amount.toString()
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
+  }
+
+  private async getOverpayingSession(): Promise<{
+    session: OverpayingSession | null
+    sessionIndex: number
+  }> {
+    const { overpayingSessions } = await this.storage.get([
+      'overpayingSessions'
+    ])
+
+    const hashUrl = await getHashUrl(this.url || '')
+
+    const sessionIndex = overpayingSessions.findIndex(
+      (session) =>
+        session.tabId === this.tabId &&
+        session.hashUrl === hashUrl &&
+        session.walletAddress === this.receiver
+    )
+    const session = sessionIndex > -1 ? overpayingSessions[sessionIndex] : null
+
+    return { sessionIndex, session }
+  }
+
+  private async processOverpaying(): Promise<void> {
+    const { session } = await this.getOverpayingSession()
+
+    if (session) {
+      // If session not expired yet, wait until it expires
+      const crtTimestamp = Date.now()
+      if (session.expireTimestamp > crtTimestamp) {
+        await sleep(session.expireTimestamp - crtTimestamp)
+      }
+    }
+  }
+
+  private async saveOverpaying(): Promise<void> {
+    const { overpayingSessions } = await this.storage.get([
+      'overpayingSessions'
+    ])
+
+    const hashUrl = await getHashUrl(this.url || '')
+    const crtTimestamp = Date.now()
+    const expireTimestamp = crtTimestamp + this.intervalInMs
+    const walletAddress = this.receiver
+
+    const { session, sessionIndex } = await this.getOverpayingSession()
+
+    const newSession = {
+      ...(session || { hashUrl, tabId: this.tabId }),
+      expireTimestamp,
+      walletAddress,
+      lastPaymentTimestamp: crtTimestamp
+    }
+
+    overpayingSessions[sessionIndex] = newSession
+
+    this.storage.set({ overpayingSessions })
   }
 }

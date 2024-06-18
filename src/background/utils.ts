@@ -83,8 +83,17 @@ export const getTabId = (sender: Runtime.MessageSender): number => {
 export const getSender = (sender: Runtime.MessageSender) => {
   const tabId = getTabId(sender)
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId')
-  return { tabId, frameId }
+  return { tabId, frameId, url: sender.url }
 }
 
 export const computeRate = (rate: string, sessionsCount: number) =>
   (+rate / sessionsCount).toString()
+
+export const getHashUrl = async (url: string) => {
+  const encoder = new TextEncoder()
+  const hashUrl = await crypto.subtle.digest('SHA-1', encoder.encode(url))
+
+  return Array.from(new Uint8Array(hashUrl))
+    .map((v) => v.toString(16).padStart(2, '0'))
+    .join('')
+}

@@ -15,7 +15,10 @@ const defaultStorage = {
   rateOfPay: null,
   minRateOfPay: null,
   maxRateOfPay: null
-} satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
+} satisfies Omit<
+  Storage,
+  'publicKey' | 'privateKey' | 'keyId' | 'overpayingSessions'
+>
 
 // TODO: Emit events when certain values are updated:
 // Eg:
@@ -103,6 +106,13 @@ export class StorageService {
     }
 
     return false
+  }
+
+  async populateOverpayingSessions(): Promise<void> {
+    const { overpayingSessions } = await this.get(['overpayingSessions'])
+    if (overpayingSessions) return
+
+    this.set({ overpayingSessions: [] })
   }
 
   async setHostPermissionStatus(status: boolean): Promise<void> {

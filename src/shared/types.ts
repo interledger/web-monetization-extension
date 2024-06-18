@@ -28,6 +28,14 @@ export interface GrantDetails {
   continueUri: string
 }
 
+export interface OverpayingSession {
+  tabId: number
+  hashUrl: string
+  walletAddress: WalletAddress
+  lastPaymentTimestamp: number
+  expireTimestamp: number
+}
+
 export interface Storage {
   /** If web monetization is enabled */
   enabled: boolean
@@ -56,12 +64,19 @@ export interface Storage {
   publicKey: string
   privateKey: string
   keyId: string
+
+  overpayingSessions: OverpayingSession[]
 }
 export type StorageKey = keyof Storage
 
 export type PopupStore = Omit<
   Storage,
-  'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
+  | 'privateKey'
+  | 'keyId'
+  | 'exceptionList'
+  | 'token'
+  | 'grant'
+  | 'overpayingSessions'
 > & {
   url: string | undefined
 }
