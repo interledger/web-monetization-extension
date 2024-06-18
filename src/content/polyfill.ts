@@ -65,9 +65,12 @@ import type { MonetizationEventPayload } from '@/shared/messages'
     public readonly incomingPayment: string
     public readonly paymentPointer: string
 
-    constructor(details: MonetizationEventPayload['detail']) {
-      super('monetization', { bubbles: true })
-      const { amountSent, incomingPayment, paymentPointer } = details
+    constructor(
+      type: 'monetization',
+      eventInitDict: MonetizationEventPayload['detail']
+    ) {
+      super(type, { bubbles: true })
+      const { amountSent, incomingPayment, paymentPointer } = eventInitDict
       this.amountSent = amountSent
       this.incomingPayment = incomingPayment
       this.paymentPointer = paymentPointer
@@ -99,7 +102,9 @@ import type { MonetizationEventPayload } from '@/shared/messages'
       if (!event.target.isConnected) return
 
       const monetizationTag = event.target
-      monetizationTag.dispatchEvent(new MonetizationEvent(event.detail))
+      monetizationTag.dispatchEvent(
+        new MonetizationEvent('monetization', event.detail)
+      )
     },
     { capture: true }
   )
@@ -107,14 +112,12 @@ import type { MonetizationEventPayload } from '@/shared/messages'
   window.addEventListener(
     '__wm_ext_onmonetization_attr_change',
     (event: CustomEvent<{ attribute?: string }>) => {
-      const link = event.target
-      if (!(link instanceof HTMLLinkElement)) return
-      if (!link.isConnected) return
+      if (!event.target) return
 
       const { attribute } = event.detail
       // @ts-expect-error: we're defining this now
-      link.onmonetization = attribute
-        ? new Function(attribute).bind(link)
+      event.target.onmonetization = attribute
+        ? new Function(attribute).bind(event.target)
         : null
     },
     { capture: true }
