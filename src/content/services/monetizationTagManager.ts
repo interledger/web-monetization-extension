@@ -65,16 +65,16 @@ export class MonetizationTagManager extends EventEmitter {
     }
   }
 
-  dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
+  dispatchMonetizationEvent({ requestId, detail }: MonetizationEventPayload) {
     this.monetizationTags.forEach((tagDetails, tag) => {
       if (tagDetails.requestId !== requestId) return
 
-      const customEvent = new CustomEvent('monetization', {
-        bubbles: true,
-        detail: mozClone(details, this.document)
-      })
-
-      tag.dispatchEvent(customEvent)
+      tag.dispatchEvent(
+        new CustomEvent('__wm_ext_monetization', {
+          detail: mozClone(detail, this.document),
+          bubbles: true
+        })
+      )
     })
     return
   }
@@ -296,7 +296,7 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (!attribute && !changeDetected) return
 
-    const customEvent = new CustomEvent('onmonetization-attr-changed', {
+    const customEvent = new CustomEvent('__wm_ext_onmonetization_attr_change', {
       bubbles: true,
       detail: mozClone({ attribute }, this.document)
     })
