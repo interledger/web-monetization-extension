@@ -58,6 +58,8 @@ jobs:
         if: always()
       - name: Check spelling
         uses: streetsidesoftware/cspell-action@v6
+        with:
+          incremental_files_only: false
         if: always()
 
   test:
