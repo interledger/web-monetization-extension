@@ -107,7 +107,6 @@
     'onmonetization-attr-changed',
     (event) => {
       // eslint-disable-next-line no-console
-      console.log('onmonetization-attr-changed', event.detail)
       const { attribute } = event.detail
       if (attribute) {
         // TODO:WM2 what are the CSP issues here?

@@ -22,8 +22,8 @@ export class ContentScript {
     this.bindMessageHandler()
   }
 
-  start() {
-    this.injectPolyfill()
+  async start() {
+    await this.injectPolyfill()
     if (this.isFirstLevelFrame) {
       this.logger.info('Content script started')
 
@@ -62,11 +62,14 @@ export class ContentScript {
 
   // TODO: When Firefox has good support for `world: MAIN`, inject this directly
   // via manifest.json https://bugzilla.mozilla.org/show_bug.cgi?id=1736575
-  injectPolyfill() {
+  async injectPolyfill() {
     const document = this.window.document
     const script = document.createElement('script')
-    script.addEventListener('load', () => script.remove(), { once: true })
     script.src = this.browser.runtime.getURL('polyfill/polyfill.js')
-    document.documentElement.appendChild(script)
+    await new Promise<void>((resolve) => {
+      script.addEventListener('load', () => resolve(), { once: true })
+      document.documentElement.appendChild(script)
+    })
+    script.remove()
   }
 }
