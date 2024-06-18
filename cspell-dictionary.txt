@@ -1,13 +1,21 @@
-# project term
-webextension
+# project terms
 Interledger
+Fynbos
+Rafiki
+
+SPSP
+webextension
+onmonetization
+GNAP
+
+Deduplicator
 
 # scripts
 typecheck
 prettiercache
 corepack
 
-# packages
+# packages and 3rd party tools/libraries
 awilix
 httpbis
 loglevel

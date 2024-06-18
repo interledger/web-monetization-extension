@@ -4,7 +4,7 @@
   "dictionaryDefinitions": [
     {
       "name": "project-words",
-      "path": "./cspell-dictionary.txt",
+      "path": "cspell-dictionary.txt",
       "addWords": true
     }
   ],
@@ -15,7 +15,8 @@
     "dist",
     "build",
     "temp",
+    "*.svg",
     "pnpm-lock.yaml",
-    "/cspell-dictionary.txt"
+    "cspell-dictionary.txt"
   ]
 }
