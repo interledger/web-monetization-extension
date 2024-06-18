@@ -42,7 +42,7 @@ jobs:
         run: pnpm build
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: web-monetization-extension@${{ env.VERSION }}
           tag_name: ${{ format('{0}', env.VERSION) }}
