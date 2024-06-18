@@ -1,4 +1,5 @@
 import React from 'react'
+import browser from 'webextension-polyfill'
 import { WarningSign } from '@/popup/components/Icons'
 
 export const Component = () => {
@@ -10,14 +11,11 @@ export const Component = () => {
         </div>
         <div className="ml-3 flex flex-col gap-2">
           <h3 className="font-medium text-orange-800">
-            Website is not monetized
+            {browser.i18n.getMessage('siteNotMonetized_title')}
           </h3>
           <div className="space-y-2 text-orange-700">
-            <p>This website does not support Web Monetization.</p>
-            <p>
-              Help monetize the open web by asking the website owner to add Web
-              Monetization support!
-            </p>
+            <p>{browser.i18n.getMessage('siteNotMonetized_heading')}</p>
+            <p>{browser.i18n.getMessage('siteNotMonetized_suggestion')}</p>
           </div>
         </div>
       </div>
