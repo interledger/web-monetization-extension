@@ -1,1 +1,13 @@
+# project term
 webextension
+Interledger
+
+# scripts
+typecheck
+prettiercache
+corepack
+
+# packages
+awilix
+httpbis
+loglevel
