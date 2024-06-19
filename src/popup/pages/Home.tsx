@@ -77,7 +77,7 @@ export const Component = () => {
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <WarningSign />
+          <WarningSign className="text-error" />
           <p className="text-base text-medium">
             Web Monetization has been turned off.
           </p>
