@@ -12,7 +12,7 @@ import {
 export const ROUTES_PATH = {
   HOME: '/',
   SETTINGS: '/settings',
-  MISSING_HOST_PERMISSION: '/errors/missing-host-permission'
+  MISSING_HOST_PERMISSION: '/missing-host-permission'
 } as const
 
 export const routes = [
