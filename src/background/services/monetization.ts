@@ -234,7 +234,7 @@ export class MonetizationService {
 
   private onRateOfPayUpdate() {
     this.events.on('storage.rate_of_pay_update', ({ rate }) => {
-      this.logger.debug("Recevied event='storage.rate_of_pay_update'")
+      this.logger.debug("Received event='storage.rate_of_pay_update'")
       Object.keys(this.sessions).forEach((tabId) => {
         const tabSessions = this.sessions[tabId as unknown as number]
         this.logger.debug(`Re-evaluating sessions amount for tab=${tabId}`)
