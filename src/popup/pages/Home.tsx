@@ -45,7 +45,8 @@ export const Component = () => {
     })
     const response = await updateRateOfPay({ rateOfPay })
     if (!response.success) {
-      // TODO: Maybe reset to old state, but not while user is active (avoid jank)
+      // TODO: Maybe reset to old state, but not while user is active (avoid
+      // sluggishness in UI)
     }
   }
 
@@ -85,7 +86,7 @@ export const Component = () => {
       <Switch
         checked={enabled}
         onChange={onChangeWM}
-        label="Continous payment stream"
+        label="Continuous payment stream"
       />
 
       <hr />

@@ -68,7 +68,7 @@ export class PaymentSession {
 
     if (amountToSend <= MIN_SEND_AMOUNT) {
       // We need to add another unit when using a debit amount, since
-      // @interledger/pay substracts one unit.
+      // @interledger/pay subtracts one unit.
       if (senderAssetScale <= receiverAssetScale) {
         this.setAmount(MIN_SEND_AMOUNT + 1n)
         return

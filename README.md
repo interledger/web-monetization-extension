@@ -56,7 +56,7 @@ All commands are run from the root of the project, from a terminal:
 1. <b>Build the extension with `pnpm build chrome`</b>
 
 1. <b>Open extensions page</b><br/>
-   In Chrome, click the three dots in the top-right corner. Look for the `Extensions` options and select `Manage extesions`.
+   In Chrome, click the three dots in the top-right corner. Look for the `Extensions` options and select `Manage extensions`.
 
 1. <b>Enable developer mode</b><br/>
    To enable `Developer mode`, use the switch at the top-right of the extensions page.

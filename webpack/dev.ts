@@ -4,7 +4,7 @@ import path from 'node:path'
 import { getMainPlugins } from './plugins'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const ExtentionReloader = require('webpack-ext-reloader-mv3')
+const ExtensionReloader = require('webpack-ext-reloader-mv3')
 
 export const getDevConfig = (target: Target): Configuration => {
   return {
@@ -29,7 +29,7 @@ export const getDevConfig = (target: Target): Configuration => {
     },
     plugins: getMainPlugins(DIRECTORIES.DEV, target).concat(
       [
-        new ExtentionReloader({
+        new ExtensionReloader({
           port: target === 'firefox' ? 9090 : 9091,
           reloadPage: true,
           entries: {
