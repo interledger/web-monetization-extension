@@ -2,6 +2,7 @@ import { PopupStateContext } from '@/popup/lib/context'
 import React from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { ROUTES_PATH } from '../Popup'
+import { SiteNotMonetized } from './SiteNotMonetized'
 
 export const ProtectedRoute = () => {
   const { state } = React.useContext(PopupStateContext)
@@ -13,7 +14,7 @@ export const ProtectedRoute = () => {
     return <Navigate to={ROUTES_PATH.SETTINGS} />
   }
   if (!state.isSiteMonetized) {
-    return <Navigate to={ROUTES_PATH.SITE_NOT_MONETIZED} />
+    return <SiteNotMonetized />
   }
 
   return <Outlet />

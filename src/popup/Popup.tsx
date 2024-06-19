@@ -12,8 +12,7 @@ import {
 export const ROUTES_PATH = {
   HOME: '/',
   SETTINGS: '/settings',
-  MISSING_HOST_PERMISSION: '/errors/missing-host-permission',
-  SITE_NOT_MONETIZED: '/errors/site-not-monetized'
+  MISSING_HOST_PERMISSION: '/errors/missing-host-permission'
 } as const
 
 export const routes = [
@@ -33,11 +32,7 @@ export const routes = [
         children: [
           {
             path: ROUTES_PATH.MISSING_HOST_PERMISSION,
-            lazy: () => import('./pages/errors/MissingHostPermission')
-          },
-          {
-            path: ROUTES_PATH.SITE_NOT_MONETIZED,
-            lazy: () => import('./pages/errors/SiteNotMonetized')
+            lazy: () => import('./pages/MissingHostPermission')
           },
           {
             path: ROUTES_PATH.SETTINGS,

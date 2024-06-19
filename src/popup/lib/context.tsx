@@ -119,7 +119,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     return () => {
       browser.runtime.onMessage.removeListener(listener)
     }
-  }, [dispatch])
+  }, [])
 
   if (isLoading) {
     return <>Loading</>
