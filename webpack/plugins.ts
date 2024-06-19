@@ -57,9 +57,9 @@ export const getMainPlugins = (
             if (!json.host_permissions.includes('http://*/*')) {
               json.host_permissions.push('http://*/*')
             }
-            json.content_scripts.forEach((cscript) => {
-              if (!cscript.matches.includes('http://*/*')) {
-                cscript.matches.push('http://*/*')
+            json.content_scripts.forEach((contentScript) => {
+              if (!contentScript.matches.includes('http://*/*')) {
+                contentScript.matches.push('http://*/*')
               }
             })
           }
@@ -68,9 +68,9 @@ export const getMainPlugins = (
             json.background = {
               scripts: [json.background.service_worker]
             }
-            json.content_scripts.forEach((cscript) => {
+            json.content_scripts.forEach((contentScript) => {
               // firefox doesn't support execution context yet
-              cscript.world = undefined
+              contentScript.world = undefined
             })
           }
           if (target !== 'firefox') {

@@ -63,7 +63,7 @@ try {
   cloneIntoRef = undefined
 }
 
-export function mozClone(obj: unknown, document: Document) {
+export function mozClone<T = unknown>(obj: T, document: Document) {
   return cloneIntoRef ? cloneIntoRef(obj, document.defaultView) : obj
 }
 
