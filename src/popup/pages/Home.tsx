@@ -10,6 +10,7 @@ import {
   roundWithPrecision
 } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
+import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 
@@ -19,6 +20,7 @@ export const Component = () => {
   const {
     state: {
       enabled,
+      isSiteMonetized,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
@@ -53,6 +55,10 @@ export const Component = () => {
   const onChangeWM = () => {
     toggleWM()
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
+  }
+
+  if (!isSiteMonetized) {
+    return <SiteNotMonetized />
   }
 
   return (
