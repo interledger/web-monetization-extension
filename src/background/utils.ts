@@ -4,9 +4,10 @@ import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config'
 import { notNullOrUndef } from '@/shared/helpers'
 
 export const getCurrentActiveTab = async (browser: Browser) => {
+  const window = await browser.windows.getCurrent()
   const activeTabs = await browser.tabs.query({
     active: true,
-    currentWindow: true
+    windowId: window.id
   })
   return activeTabs[0]
 }

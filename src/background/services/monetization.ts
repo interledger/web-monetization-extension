@@ -200,11 +200,13 @@ export class MonetizationService {
 
   async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
-    if (!tab || !tab.id) return
+    if (!tab || !tab.id) {
+      throw new Error('Could not find active tab.')
+    }
 
     const sessions = this.sessions[tab.id]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       throw new Error('This website is not monetized.')
     }
 
