@@ -10,8 +10,9 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { StorageService } from './storage'
-import { getHashUrl } from '../utils'
+import { getHash } from '../utils'
 import { OverpayingSession } from '@/shared/types'
+import { transformBalance } from '@/popup/lib/utils'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -32,7 +33,7 @@ export class PaymentSession {
     private rate: string,
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService,
-    private url: string | undefined
+    private url: string
   ) {
     this.adjustSessionAmount()
   }
@@ -72,7 +73,7 @@ export class PaymentSession {
 
     if (amountToSend <= MIN_SEND_AMOUNT) {
       // We need to add another unit when using a debit amount, since
-      // @interledger/pay substracts one unit.
+      // @interledger/pay subtracts one unit.
       if (senderAssetScale <= receiverAssetScale) {
         this.setAmount(MIN_SEND_AMOUNT + 1n)
         return
@@ -180,13 +181,21 @@ export class PaymentSession {
             frameId: this.frameId,
             payload: {
               requestId: this.requestId,
-              details: {
-                receiveAmount,
+              detail: {
+                amountSent: {
+                  currency: receiveAmount.assetCode,
+                  value: transformBalance(
+                    receiveAmount.value,
+                    receiveAmount.assetScale
+                  )
+                },
                 incomingPayment,
                 paymentPointer: this.receiver.id
               }
             }
           })
+
+          this.saveOverpaying()
 
           await sleep(this.intervalInMs)
         }
@@ -290,8 +299,14 @@ export class PaymentSession {
           frameId: this.frameId,
           payload: {
             requestId: this.requestId,
-            details: {
-              receiveAmount,
+            detail: {
+              amountSent: {
+                currency: receiveAmount.assetCode,
+                value: transformBalance(
+                  receiveAmount.value,
+                  receiveAmount.assetScale
+                )
+              },
               incomingPayment,
               paymentPointer: this.receiver.id
             }
@@ -309,24 +324,21 @@ export class PaymentSession {
   }
 
   private async getOverpayingSession(): Promise<{
-    session: OverpayingSession | null
-    sessionIndex: number
+    session: OverpayingSession | undefined
+    sessionKey: string
   }> {
     const { overpayingSessions } = await this.storage.get([
       'overpayingSessions'
     ])
 
-    const hashUrl = await getHashUrl(this.url || '')
+    const hashUrl = await getHash(this.url)
+    const hashWalletAddress = await getHash(JSON.stringify(this.receiver))
 
-    const sessionIndex = overpayingSessions.findIndex(
-      (session) =>
-        session.tabId === this.tabId &&
-        session.hashUrl === hashUrl &&
-        session.walletAddress === this.receiver
-    )
-    const session = sessionIndex > -1 ? overpayingSessions[sessionIndex] : null
+    const sessionKey = `${this.tabId}:${hashUrl}:${hashWalletAddress}`
 
-    return { sessionIndex, session }
+    const session = overpayingSessions[sessionKey]
+
+    return { session, sessionKey }
   }
 
   private async processOverpaying(): Promise<void> {
@@ -342,25 +354,23 @@ export class PaymentSession {
   }
 
   private async saveOverpaying(): Promise<void> {
+    if (!this.intervalInMs) return
+
     const { overpayingSessions } = await this.storage.get([
       'overpayingSessions'
     ])
 
-    const hashUrl = await getHashUrl(this.url || '')
     const crtTimestamp = Date.now()
     const expireTimestamp = crtTimestamp + this.intervalInMs
-    const walletAddress = this.receiver
 
-    const { session, sessionIndex } = await this.getOverpayingSession()
+    const { sessionKey } = await this.getOverpayingSession()
 
     const newSession = {
-      ...(session || { hashUrl, tabId: this.tabId }),
       expireTimestamp,
-      walletAddress,
       lastPaymentTimestamp: crtTimestamp
     }
 
-    overpayingSessions[sessionIndex] = newSession
+    overpayingSessions[sessionKey] = newSession
 
     this.storage.set({ overpayingSessions })
   }

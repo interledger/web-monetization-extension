@@ -29,9 +29,6 @@ export interface GrantDetails {
 }
 
 export interface OverpayingSession {
-  tabId: number
-  hashUrl: string
-  walletAddress: WalletAddress
   lastPaymentTimestamp: number
   expireTimestamp: number
 }
@@ -65,7 +62,7 @@ export interface Storage {
   privateKey: string
   keyId: string
 
-  overpayingSessions: OverpayingSession[]
+  overpayingSessions: { [key: string]: OverpayingSession }
 }
 export type StorageKey = keyof Storage
 

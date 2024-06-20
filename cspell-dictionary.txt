@@ -1,0 +1,27 @@
+# project terms
+Interledger
+Fynbos
+Rafiki
+
+SPSP
+webextension
+onmonetization
+GNAP
+
+Deduplicator
+crossorigin
+iframes
+data-testid
+
+# scripts
+typecheck
+prettiercache
+corepack
+
+# packages and 3rd party tools/libraries
+awilix
+httpbis
+loglevel
+openapi
+apidevtools
+tailwindcss

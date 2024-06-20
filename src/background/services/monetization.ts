@@ -8,7 +8,13 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
-import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
+import {
+  computeRate,
+  getCurrentActiveTab,
+  getSender,
+  getTabId,
+  removeQueryParams
+} from '../utils'
 import { EventsService } from './events'
 
 export class MonetizationService {
@@ -77,7 +83,7 @@ export class MonetizationService {
         rate,
         this.openPaymentsService,
         this.storage,
-        url
+        removeQueryParams(url!)
       )
 
       sessions.set(requestId, session)
@@ -202,11 +208,13 @@ export class MonetizationService {
 
   async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
-    if (!tab || !tab.id) return
+    if (!tab || !tab.id) {
+      throw new Error('Could not find active tab.')
+    }
 
     const sessions = this.sessions[tab.id]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       throw new Error('This website is not monetized.')
     }
 
@@ -235,7 +243,7 @@ export class MonetizationService {
 
   private onRateOfPayUpdate() {
     this.events.on('storage.rate_of_pay_update', ({ rate }) => {
-      this.logger.debug("Recevied event='storage.rate_of_pay_update'")
+      this.logger.debug("Received event='storage.rate_of_pay_update'")
       Object.keys(this.sessions).forEach((tabId) => {
         const tabSessions = this.sessions[tabId as unknown as number]
         this.logger.debug(`Re-evaluating sessions amount for tab=${tabId}`)

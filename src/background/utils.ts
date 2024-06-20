@@ -4,9 +4,10 @@ import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config'
 import { notNullOrUndef } from '@/shared/helpers'
 
 export const getCurrentActiveTab = async (browser: Browser) => {
+  const window = await browser.windows.getCurrent()
   const activeTabs = await browser.tabs.query({
     active: true,
-    currentWindow: true
+    windowId: window.id
   })
   return activeTabs[0]
 }
@@ -89,11 +90,15 @@ export const getSender = (sender: Runtime.MessageSender) => {
 export const computeRate = (rate: string, sessionsCount: number) =>
   (+rate / sessionsCount).toString()
 
-export const getHashUrl = async (url: string) => {
+export const getHash = async (str: string) => {
   const encoder = new TextEncoder()
-  const hashUrl = await crypto.subtle.digest('SHA-1', encoder.encode(url))
+  const hash = await crypto.subtle.digest('SHA-1', encoder.encode(str))
 
-  return Array.from(new Uint8Array(hashUrl))
+  return Array.from(new Uint8Array(hash))
     .map((v) => v.toString(16).padStart(2, '0'))
     .join('')
+}
+
+export const removeQueryParams = (url: string) => {
+  return url.split('?')[0]
 }

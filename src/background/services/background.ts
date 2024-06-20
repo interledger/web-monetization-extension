@@ -166,7 +166,7 @@ export class Background {
       this.logger.info(await this.storage.get())
       if (details.reason === 'install') {
         await this.storage.populate()
-        await this.openPaymentsService.genererateKeys()
+        await this.openPaymentsService.generateKeys()
         await this.storage.populateOverpayingSessions()
       }
       await this.checkPermissions()
