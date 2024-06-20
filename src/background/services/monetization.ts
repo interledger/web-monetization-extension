@@ -206,7 +206,7 @@ export class MonetizationService {
 
     const sessions = this.sessions[tab.id]
 
-    if (!sessions) {
+    if (sessions?.size) {
       throw new Error('This website is not monetized.')
     }
 
