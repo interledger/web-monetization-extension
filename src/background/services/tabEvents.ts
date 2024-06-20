@@ -54,29 +54,24 @@ export class TabEvents {
     await this.changeIcon()
   }
 
-  onUpdatedTab = async (payload?: IsTabMonetizedPayload) => {
+  onUpdatedTab = async (
+    payload?: IsTabMonetizedPayload & { tabId: number }
+  ) => {
     const { enabled } = await this.storage.get(['enabled'])
 
-    let iconData = {
-      '34': enabled ? icon34 : iconWarning34,
-      '128': enabled ? icon34 : iconWarning128
+    let iconData = enabled
+      ? { '34': icon34, '128': icon128 }
+      : { '34': iconWarning34, '128': iconWarning128 }
+
+    let tabId
+    if (enabled && payload) {
+      const { value: isTabMonetized } = payload
+      tabId = payload.tabId
+      iconData = isTabMonetized
+        ? { '34': iconActive34, '128': iconActive128 }
+        : { '34': iconInactive34, '128': iconInactive128 }
     }
 
-    if (enabled) {
-      if (payload) {
-        const { value } = payload
-
-        iconData = {
-          '34': value ? iconActive34 : iconInactive34,
-          '128': value ? iconActive128 : iconInactive128
-        }
-      }
-    }
-
-    if (this.browser.action) {
-      await this.browser.action.setIcon({ path: iconData })
-    } else if (chrome.browserAction) {
-      chrome.browserAction.setIcon({ path: iconData })
-    }
+    await this.browser.action.setIcon({ path: iconData, tabId })
   }
 }
