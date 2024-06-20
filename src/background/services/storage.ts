@@ -1,4 +1,4 @@
-import type { PopupStore, Storage, StorageKey } from '@/shared/types'
+import type { Storage, StorageKey } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
 
@@ -49,22 +49,6 @@ export class StorageService {
     if (Object.keys(data).length === 0) {
       await this.set(defaultStorage)
     }
-  }
-
-  // TODO: Exception list (post-v1) - return data for the current website
-  async getPopupData(): Promise<Omit<PopupStore, 'isSiteMonetized' | 'url'>> {
-    const data = await this.get([
-      'enabled',
-      'connected',
-      'hasHostPermissions',
-      'amount',
-      'rateOfPay',
-      'minRateOfPay',
-      'maxRateOfPay',
-      'walletAddress',
-      'publicKey'
-    ])
-    return data
   }
 
   async getWMState(): Promise<boolean> {

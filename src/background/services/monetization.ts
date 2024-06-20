@@ -246,7 +246,17 @@ export class MonetizationService {
   }
 
   async getPopupData(): Promise<PopupStore> {
-    const storedData = await this.storage.getPopupData()
+    const storedData = await this.storage.get([
+      'enabled',
+      'connected',
+      'hasHostPermissions',
+      'amount',
+      'rateOfPay',
+      'minRateOfPay',
+      'maxRateOfPay',
+      'walletAddress',
+      'publicKey'
+    ])
 
     const tab = await getCurrentActiveTab(this.browser)
 
