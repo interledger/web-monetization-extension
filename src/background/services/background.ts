@@ -78,7 +78,7 @@ export class Background {
         try {
           switch (message.action) {
             case PopupToBackgroundAction.GET_CONTEXT_DATA:
-              return success(await this.storage.getPopupData())
+              return success(await this.monetizationService.getPopupData())
 
             case PopupToBackgroundAction.CONNECT_WALLET:
               await this.openPaymentsService.connectWallet(message.payload)

@@ -10,6 +10,8 @@ import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { EventsService } from './events'
+import { ALLOWED_PROTOCOLS } from '@/shared/defines'
+import type { PopupStore } from '@/shared/types'
 
 export class MonetizationService {
   private sessions: {
@@ -244,5 +246,41 @@ export class MonetizationService {
         }
       })
     })
+  }
+
+  async getPopupData(): Promise<PopupStore> {
+    const storedData = await this.storage.get([
+      'enabled',
+      'connected',
+      'hasHostPermissions',
+      'amount',
+      'rateOfPay',
+      'minRateOfPay',
+      'maxRateOfPay',
+      'walletAddress',
+      'publicKey'
+    ])
+
+    const tab = await getCurrentActiveTab(this.browser)
+
+    let url
+    if (tab && tab.url) {
+      try {
+        const tabUrl = new URL(tab.url)
+        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
+          // Do not include search params
+          url = `${tabUrl.origin}${tabUrl.pathname}`
+        }
+      } catch (_) {
+        // noop
+      }
+    }
+    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
+
+    return {
+      ...storedData,
+      url,
+      isSiteMonetized
+    }
   }
 }
