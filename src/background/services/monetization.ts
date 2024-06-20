@@ -10,6 +10,7 @@ import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { EventsService } from './events'
+import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore } from '@/shared/types'
 
 export class MonetizationService {
@@ -201,11 +202,13 @@ export class MonetizationService {
 
   async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
-    if (!tab || !tab.id) return
+    if (!tab || !tab.id) {
+      throw new Error('Could not find active tab.')
+    }
 
     const sessions = this.sessions[tab.id]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       throw new Error('This website is not monetized.')
     }
 
@@ -264,7 +267,7 @@ export class MonetizationService {
     if (tab && tab.url) {
       try {
         const tabUrl = new URL(tab.url)
-        if (tabUrl.protocol === 'https:') {
+        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
           // Do not include search params
           url = `${tabUrl.origin}${tabUrl.pathname}`
         }

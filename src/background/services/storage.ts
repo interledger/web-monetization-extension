@@ -16,10 +16,6 @@ const defaultStorage = {
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
-// TODO: Emit events when certain values are updated:
-// Eg:
-// - rate of pay - we should recalculate the amount for every payment session
-// - enabling/disabling WM
 export class StorageService {
   constructor(
     private browser: Browser,
