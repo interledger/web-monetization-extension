@@ -415,12 +415,10 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private sendStartMonetization(tags: StartMonetizationPayload[]) {
-    if (!tags.length) return
-
     const isFrameMonetizedMessage = {
       message: ContentToContentAction.IS_FRAME_MONETIZED,
       id: this.id,
-      payload: { isMonetized: true }
+      payload: { isMonetized: tags.length > 0 }
     }
 
     if (this.isTopFrame) {
@@ -443,8 +441,6 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private async sendStopMonetization(tags: StopMonetizationPayload[]) {
-    if (!tags.length) return
-
     await stopMonetization(tags)
 
     // Check if tab still monetized
@@ -467,8 +463,6 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private sendResumeMonetization(tags: ResumeMonetizationPayload[]) {
-    if (!tags.length) return
-
     const isFrameMonetizedMessage = {
       message: ContentToContentAction.IS_FRAME_MONETIZED,
       id: this.id,

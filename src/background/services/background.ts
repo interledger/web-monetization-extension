@@ -90,8 +90,7 @@ export class Background {
 
             case PopupToBackgroundAction.TOGGLE_WM:
               await this.monetizationService.toggleWM()
-
-              this.tabEvents.onUpdatedTab()
+              await this.tabEvents.onUpdatedTab()
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
@@ -112,7 +111,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.STOP_MONETIZATION:
-              this.monetizationService.stopPaymentSession(
+              await this.monetizationService.stopPaymentSession(
                 message.payload,
                 sender
               )
@@ -131,7 +130,7 @@ export class Background {
               )
 
             case ContentToBackgroundAction.IS_TAB_MONETIZED:
-              this.tabEvents.onUpdatedTab(message.payload)
+              await this.tabEvents.onUpdatedTab(message.payload, sender)
               return
 
             case ContentToBackgroundAction.IS_WM_ENABLED:
