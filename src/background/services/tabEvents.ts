@@ -63,13 +63,19 @@ export class TabEvents {
   ) => {
     const { enabled } = await this.storage.get(['enabled'])
 
+    let title = this.browser.i18n.getMessage('appName')
     let iconData = enabled ? ICONS.default : ICONS.warning
     if (enabled && payload) {
       const { value: isTabMonetized } = payload
       iconData = isTabMonetized ? ICONS.active : ICONS.inactive
+      const tabStateText = isTabMonetized
+        ? this.browser.i18n.getMessage('siteMonetized')
+        : this.browser.i18n.getMessage('siteNotMonetized')
+      title = `${title}\n${tabStateText}`
     }
     const tabId = sender && getTabId(sender)
 
     await this.browser.action.setIcon({ path: iconData, tabId })
+    await this.browser.action.setTitle({ title, tabId })
   }
 }
