@@ -64,9 +64,9 @@ export class TabEvents {
     let tabId
     if (enabled) {
       if (payload) {
-        const { value } = payload
+        const { value: isTabMonetized } = payload
         tabId = payload.tabId
-        iconData = value ? ICONS.active : ICONS.inactive
+        iconData = isTabMonetized ? ICONS.active : ICONS.inactive
       }
     }
 
