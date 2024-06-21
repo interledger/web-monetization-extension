@@ -90,7 +90,7 @@ export class Background {
 
             case PopupToBackgroundAction.TOGGLE_WM:
               await this.monetizationService.toggleWM()
-              await this.tabEvents.onUpdatedTab(null, sender)
+              await this.tabEvents.onUpdatedTab()
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:

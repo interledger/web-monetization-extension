@@ -58,8 +58,8 @@ export class TabEvents {
   }
 
   onUpdatedTab = async (
-    payload: IsTabMonetizedPayload | null,
-    sender: Runtime.MessageSender
+    payload?: IsTabMonetizedPayload | null,
+    sender?: Runtime.MessageSender
   ) => {
     const { enabled } = await this.storage.get(['enabled'])
 
@@ -68,7 +68,7 @@ export class TabEvents {
       const { value: isTabMonetized } = payload
       iconData = isTabMonetized ? ICONS.active : ICONS.inactive
     }
-    const tabId = getTabId(sender)
+    const tabId = sender && getTabId(sender)
 
     await this.browser.action.setIcon({ path: iconData, tabId })
   }
