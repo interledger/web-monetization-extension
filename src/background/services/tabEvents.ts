@@ -1,7 +1,9 @@
-import browser, { type Browser, type Tabs } from 'webextension-polyfill'
+import browser from 'webextension-polyfill'
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill'
 import { MonetizationService } from './monetization'
 import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
+import { getTabId } from '../utils'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -56,19 +58,17 @@ export class TabEvents {
   }
 
   onUpdatedTab = async (
-    payload?: IsTabMonetizedPayload & { tabId: number }
+    payload: IsTabMonetizedPayload | null,
+    sender: Runtime.MessageSender
   ) => {
     const { enabled } = await this.storage.get(['enabled'])
 
     let iconData = enabled ? ICONS.default : ICONS.warning
-    let tabId
-    if (enabled) {
-      if (payload) {
-        const { value: isTabMonetized } = payload
-        tabId = payload.tabId
-        iconData = isTabMonetized ? ICONS.active : ICONS.inactive
-      }
+    if (enabled && payload) {
+      const { value: isTabMonetized } = payload
+      iconData = isTabMonetized ? ICONS.active : ICONS.inactive
     }
+    const tabId = getTabId(sender)
 
     await this.browser.action.setIcon({ path: iconData, tabId })
   }
