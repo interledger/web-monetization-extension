@@ -1,4 +1,3 @@
-import { Logger } from '@/shared/logger'
 import { isTabMonetized, stopMonetization } from '../lib/messages'
 import { ContentToContentAction } from '../messages'
 import {
@@ -6,8 +5,13 @@ import {
   StartMonetizationPayload,
   StopMonetizationPayload
 } from '@/shared/messages'
+import type { Cradle } from '@/content/container'
 
 export class FrameManager {
+  private window: Cradle['window']
+  private document: Cradle['document']
+  private logger: Cradle['logger']
+
   private documentObserver: MutationObserver
   private frameAllowAttrObserver: MutationObserver
   private isFrameMonetized: boolean
@@ -16,11 +20,15 @@ export class FrameManager {
     { frameId: string | null; requestIds: string[]; isFrameMonetized?: boolean }
   >()
 
-  constructor(
-    private window: Window,
-    private document: Document,
-    private logger: Logger
-  ) {
+  constructor({
+    window,
+    document,
+    logger
+  }: Pick<Cradle, 'window' | 'document' | 'logger'>) {
+    this.window = window
+    this.document = document
+    this.logger = logger
+
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records)
     )

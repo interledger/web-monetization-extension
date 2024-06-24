@@ -1,6 +1,5 @@
 import type { Storage, StorageKey } from '@/shared/types'
-import { type Browser } from 'webextension-polyfill'
-import { EventsService } from './events'
+import type { Cradle } from '../container'
 
 const defaultStorage = {
   connected: false,
@@ -17,10 +16,13 @@ const defaultStorage = {
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
-  constructor(
-    private browser: Browser,
-    private events: EventsService
-  ) {}
+  private browser: Cradle['browser']
+  private events: Cradle['events']
+
+  constructor({ browser, events }: Pick<Cradle, 'browser' | 'events'>) {
+    this.browser = browser
+    this.events = events
+  }
 
   async get<TKey extends StorageKey>(
     keys?: TKey[]

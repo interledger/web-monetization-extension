@@ -1,9 +1,8 @@
 import browser from 'webextension-polyfill'
-import type { Browser, Runtime, Tabs } from 'webextension-polyfill'
-import { MonetizationService } from './monetization'
-import { StorageService } from './storage'
+import type { Runtime, Tabs } from 'webextension-polyfill'
 import { IsTabMonetizedPayload } from '@/shared/messages'
 import { getTabId } from '../utils'
+import type { Cradle } from '@/background/container'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -26,11 +25,20 @@ const ICONS = {
 }
 
 export class TabEvents {
-  constructor(
-    private monetizationService: MonetizationService,
-    private storage: StorageService,
-    private browser: Browser
-  ) {}
+  private monetizationService: Cradle['monetizationService']
+  private storage: Cradle['storage']
+  private browser: Cradle['browser']
+
+  constructor({
+    monetizationService,
+    storage,
+    browser
+  }: Pick<Cradle, 'monetizationService' | 'storage' | 'browser'>) {
+    this.monetizationService = monetizationService
+    this.storage = storage
+    this.browser = browser
+  }
+
   clearTabSessions = (
     tabId: number,
     changeInfo: Tabs.OnUpdatedChangeInfoType | Tabs.OnRemovedRemoveInfoType

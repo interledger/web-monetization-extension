@@ -1,32 +1,49 @@
-import { type Browser } from 'webextension-polyfill'
 import {
   type ToBackgroundMessage,
   PopupToBackgroundAction,
   ContentToBackgroundAction
 } from '@/shared/messages'
-import type {
-  EventsService,
-  MonetizationService,
-  OpenPaymentsService,
-  StorageService
-} from '.'
-import { Logger } from '@/shared/logger'
 import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
-import { TabEvents } from './tabEvents'
 import { PERMISSION_HOSTS } from '@/shared/defines'
+import type { Cradle } from '@/background/container'
 
 export class Background {
-  constructor(
-    private browser: Browser,
-    private openPaymentsService: OpenPaymentsService,
-    private monetizationService: MonetizationService,
-    private storage: StorageService,
-    private logger: Logger,
-    private tabEvents: TabEvents,
-    private events: EventsService
-  ) {}
+  private browser: Cradle['browser']
+  private openPaymentsService: Cradle['openPaymentsService']
+  private monetizationService: Cradle['monetizationService']
+  private storage: Cradle['storage']
+  private logger: Cradle['logger']
+  private tabEvents: Cradle['tabEvents']
+  private events: Cradle['events']
+
+  constructor({
+    browser,
+    openPaymentsService,
+    monetizationService,
+    storage,
+    logger,
+    tabEvents,
+    events
+  }: Pick<
+    Cradle,
+    | 'browser'
+    | 'openPaymentsService'
+    | 'monetizationService'
+    | 'storage'
+    | 'logger'
+    | 'tabEvents'
+    | 'events'
+  >) {
+    this.browser = browser
+    this.openPaymentsService = openPaymentsService
+    this.monetizationService = monetizationService
+    this.storage = storage
+    this.logger = logger
+    this.tabEvents = tabEvents
+    this.events = events
+  }
 
   async start() {
     this.bindOnInstalled()

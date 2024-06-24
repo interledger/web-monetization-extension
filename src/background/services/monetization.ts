@@ -1,6 +1,3 @@
-import { OpenPaymentsService, StorageService } from '.'
-import { type Browser, type Runtime } from 'webextension-polyfill'
-import { Logger } from '@/shared/logger'
 import {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
@@ -9,22 +6,38 @@ import {
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
-import { EventsService } from './events'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore } from '@/shared/types'
+import type { Runtime } from 'webextension-polyfill'
+import type { Cradle } from '@/background/container'
 
 export class MonetizationService {
+  private logger: Cradle['logger']
+  private openPaymentsService: Cradle['openPaymentsService']
+  private storage: Cradle['storage']
+  private browser: Cradle['browser']
+  private events: Cradle['events']
+
   private sessions: {
     [tabId: number]: Map<string, PaymentSession>
   }
 
-  constructor(
-    private logger: Logger,
-    private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService,
-    private browser: Browser,
-    private events: EventsService
-  ) {
+  constructor({
+    logger,
+    openPaymentsService,
+    storage,
+    browser,
+    events
+  }: Pick<
+    Cradle,
+    'logger' | 'openPaymentsService' | 'storage' | 'browser' | 'events'
+  >) {
+    this.logger = logger
+    this.openPaymentsService = openPaymentsService
+    this.storage = storage
+    this.browser = browser
+    this.events = events
+
     this.sessions = {}
     this.registerEventListeners()
   }

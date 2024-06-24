@@ -15,14 +15,12 @@ import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
-import { Browser } from 'webextension-polyfill'
 import {
   getCurrentActiveTab,
   getExchangeRates,
   getRateOfPay,
   toAmount
 } from '../utils'
-import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
 import { getWalletInformation } from '@/shared/helpers'
@@ -32,7 +30,7 @@ import {
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY
 } from '../config'
-import { Deduplicator } from './deduplicator'
+import type { Cradle } from '@/background/container'
 
 interface KeyInformation {
   privateKey: string
@@ -94,13 +92,20 @@ interface CreateOutgoingPaymentParams {
 export class OpenPaymentsService {
   client?: AuthenticatedClient
 
+  private browser: Cradle['browser']
+  private storage: Cradle['storage']
+  private deduplicator: Cradle['deduplicator']
+
   private token: AccessToken
 
-  constructor(
-    private browser: Browser,
-    private storage: StorageService,
-    private deduplicator: Deduplicator
-  ) {
+  constructor({
+    browser,
+    storage,
+    deduplicator
+  }: Pick<Cradle, 'browser' | 'storage' | 'deduplicator'>) {
+    this.browser = browser
+    this.storage = storage
+    this.deduplicator = deduplicator
     void this.initialize()
   }
 
