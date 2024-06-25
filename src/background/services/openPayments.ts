@@ -2,7 +2,8 @@
 import { AccessToken, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
-  createAuthenticatedClient
+  createAuthenticatedClient,
+  OpenPaymentsClientError
 } from '@interledger/open-payments/dist/client'
 import {
   isFinalizedGrant,
@@ -471,18 +472,24 @@ export class OpenPaymentsService {
 
   async disconnectWallet() {
     const { grant } = await this.storage.get(['grant'])
+    if (!grant) return
 
-    if (grant) {
+    try {
       await this.client!.grant.cancel({
         url: grant.continueUri,
         accessToken: grant.accessToken
       })
-      await this.storage.clear()
-      this.token = {
-        value: '',
-        manage: ''
+    } catch (err) {
+      if (err instanceof OpenPaymentsClientError && err.status === 400) {
+        // key removed from wallet already before disconnect
+        // TODO: assume it's invalid_client error for now:
+        // https://github.com/interledger/open-payments/issues/482
+      } else {
+        throw err
       }
     }
+    await this.storage.clear()
+    this.token = { value: '', manage: '' }
   }
 
   async generateKeys() {
