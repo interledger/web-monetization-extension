@@ -404,7 +404,7 @@ export class MonetizationTagManager extends EventEmitter {
     crtRequestId?: string
   ): Promise<StartMonetizationPayload | null> {
     const walletAddress = await this.checkTag(tag)
-    if(!walletAddress) return null
+    if (!walletAddress) return null
 
     const requestId = crtRequestId ?? crypto.randomUUID()
     const details: MonetizationTagDetails = {
@@ -503,23 +503,27 @@ export class MonetizationTagManager extends EventEmitter {
     return walletAddressInfo
   }
 
-  private async validateWalletAddress(tag: MonetizationTag): Promise<WalletAddress | null>{
-      const walletAddressUrl = tag.href.trim()
-      try {
-        checkWalletAddressUrlFormat(walletAddressUrl)
-        const response = await checkWalletAddressUrlCall({walletAddressUrl})
+  private async validateWalletAddress(
+    tag: MonetizationTag
+  ): Promise<WalletAddress | null> {
+    const walletAddressUrl = tag.href.trim()
+    try {
+      checkWalletAddressUrlFormat(walletAddressUrl)
+      const response = await checkWalletAddressUrlCall({ walletAddressUrl })
 
-        if(response.success === false) {
-            throw new Error(`Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`)
-        }
-
-        tag.dispatchEvent(new Event('load'))
-        return response.payload
-      } catch(e) {
-        this.logger.error(e)
-        tag.dispatchEvent(new Event('error'))
-        return null
+      if (response.success === false) {
+        throw new Error(
+          `Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`
+        )
       }
+
+      tag.dispatchEvent(new Event('load'))
+      return response.payload
+    } catch (e) {
+      this.logger.error(e)
+      tag.dispatchEvent(new Event('error'))
+      return null
+    }
   }
 
   private bindMessageHandler() {

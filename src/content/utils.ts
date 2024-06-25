@@ -1,9 +1,6 @@
 export class WalletAddressFormatError extends Error {}
 
-export function checkWalletAddressUrlFormat(
-  walletAddressUrl: string,
-): void {
-
+export function checkWalletAddressUrlFormat(walletAddressUrl: string): void {
   let url: URL
   try {
     url = new URL(walletAddressUrl)
@@ -23,13 +20,11 @@ export function checkWalletAddressUrlFormat(
     }
   }
 
-  const {hash, search, port, username, password} = url
+  const { hash, search, port, username, password } = url
 
-  if (
-    hash || search || port || username || password
-  ) {
+  if (hash || search || port || username || password) {
     throw new WalletAddressFormatError(
-      `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({hash, search, port, username, password})}`
+      `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({ hash, search, port, username, password })}`
     )
   }
 }
