@@ -14,5 +14,14 @@
   "hostsPermissionsNeeded": {
     "message": "Permission to access your data for all websites is required to use Web Monetization.",
     "description": "..."
+  },
+  "monetizationActiveShort": {
+    "message": "Active"
+  },
+  "monetizationInactiveShort": {
+    "message": "Inactive"
+  },
+  "siteNotMonetized": {
+    "message": "This website is not monetized."
   }
 }

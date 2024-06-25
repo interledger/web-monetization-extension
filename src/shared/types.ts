@@ -63,6 +63,7 @@ export type PopupStore = Omit<
   Storage,
   'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
 > & {
+  isSiteMonetized: boolean
   url: string | undefined
 }
 

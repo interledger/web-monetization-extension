@@ -1,4 +1,4 @@
-import { WalletAddress } from '@interledger/open-payments'
+import type { WalletAddress, OutgoingPayment } from '@interledger/open-payments'
 import { type Browser } from 'webextension-polyfill'
 
 export interface SuccessResponse<TPayload = undefined> {
@@ -131,7 +131,11 @@ export enum BackgroundToContentAction {
 
 export interface MonetizationEventPayload {
   requestId: string
-  details: any
+  detail: {
+    amountSent: PaymentCurrencyAmount
+    incomingPayment: OutgoingPayment['receiver']
+    paymentPointer: WalletAddress['id']
+  }
 }
 
 export interface EmitToggleWMPayload {
@@ -171,9 +175,10 @@ export class MessageManager<TMessages> {
   async sendToActiveTab<TResponse = void>(
     message: TMessages
   ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
+    const window = await this.browser.windows.getCurrent()
     const activeTabs = await this.browser.tabs.query({
       active: true,
-      currentWindow: true
+      windowId: window.id
     })
     const activeTab = activeTabs[0]
     return await this.browser.tabs.sendMessage(activeTab.id as number, message)

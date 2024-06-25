@@ -1,10 +1,16 @@
 import React from 'react'
+import browser from 'webextension-polyfill'
 import { getContextData } from '@/popup/lib/messages'
 import { DeepNonNullable, PopupStore } from '@/shared/types'
+import {
+  ContentToBackgroundAction,
+  type ContentToBackgroundMessage
+} from '@/shared/messages'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
   TOGGLE_WM = 'TOGGLE_WM',
+  SET_IS_SITE_MONETIZED = 'SET_IS_TAB_MONETIZED',
   UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
 
@@ -29,6 +35,13 @@ interface ToggleWMAction extends ReducerActionMock {
   type: ReducerActionType.TOGGLE_WM
 }
 
+interface SetIsSiteMonetized extends ReducerActionMock {
+  type: ReducerActionType.SET_IS_SITE_MONETIZED
+  data: {
+    value: boolean
+  }
+}
+
 interface UpdateRateOfPayAction extends ReducerActionMock {
   type: ReducerActionType.UPDATE_RATE_OF_PAY
   data: {
@@ -39,6 +52,7 @@ interface UpdateRateOfPayAction extends ReducerActionMock {
 export type ReducerActions =
   | SetDataAction
   | ToggleWMAction
+  | SetIsSiteMonetized
   | UpdateRateOfPayAction
 
 export const PopupStateContext = React.createContext<PopupContext>(
@@ -56,6 +70,8 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
         enabled: !state.enabled
       }
     }
+    case ReducerActionType.SET_IS_SITE_MONETIZED:
+      return { ...state, isSiteMonetized: action.data.value }
     case ReducerActionType.UPDATE_RATE_OF_PAY: {
       return {
         ...state,
@@ -86,6 +102,23 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     }
 
     get()
+  }, [])
+
+  React.useEffect(() => {
+    type Listener = Parameters<typeof browser.runtime.onMessage.addListener>[0]
+    const listener: Listener = (message: ContentToBackgroundMessage) => {
+      if (message.action === ContentToBackgroundAction.IS_TAB_MONETIZED) {
+        dispatch({
+          type: ReducerActionType.SET_IS_SITE_MONETIZED,
+          data: message.payload
+        })
+      }
+    }
+
+    browser.runtime.onMessage.addListener(listener)
+    return () => {
+      browser.runtime.onMessage.removeListener(listener)
+    }
   }, [])
 
   if (isLoading) {

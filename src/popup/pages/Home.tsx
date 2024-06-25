@@ -10,6 +10,7 @@ import {
   roundWithPrecision
 } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
+import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 
@@ -19,6 +20,7 @@ export const Component = () => {
   const {
     state: {
       enabled,
+      isSiteMonetized,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
@@ -45,13 +47,18 @@ export const Component = () => {
     })
     const response = await updateRateOfPay({ rateOfPay })
     if (!response.success) {
-      // TODO: Maybe reset to old state, but not while user is active (avoid jank)
+      // TODO: Maybe reset to old state, but not while user is active (avoid
+      // sluggishness in UI)
     }
   }
 
   const onChangeWM = () => {
     toggleWM()
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
+  }
+
+  if (!isSiteMonetized) {
+    return <SiteNotMonetized />
   }
 
   return (
@@ -76,7 +83,7 @@ export const Component = () => {
         </div>
       ) : (
         <div className="flex items-center gap-2">
-          <WarningSign />
+          <WarningSign className="text-error" />
           <p className="text-base text-medium">
             Web Monetization has been turned off.
           </p>
@@ -85,7 +92,7 @@ export const Component = () => {
       <Switch
         checked={enabled}
         onChange={onChangeWM}
-        label="Continous payment stream"
+        label="Continuous payment stream"
       />
 
       <hr />

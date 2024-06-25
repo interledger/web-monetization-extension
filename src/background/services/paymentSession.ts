@@ -9,6 +9,7 @@ import {
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
+import { transformBalance } from '@/popup/lib/utils'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -67,7 +68,7 @@ export class PaymentSession {
 
     if (amountToSend <= MIN_SEND_AMOUNT) {
       // We need to add another unit when using a debit amount, since
-      // @interledger/pay substracts one unit.
+      // @interledger/pay subtracts one unit.
       if (senderAssetScale <= receiverAssetScale) {
         this.setAmount(MIN_SEND_AMOUNT + 1n)
         return
@@ -173,8 +174,14 @@ export class PaymentSession {
             frameId: this.frameId,
             payload: {
               requestId: this.requestId,
-              details: {
-                receiveAmount,
+              detail: {
+                amountSent: {
+                  currency: receiveAmount.assetCode,
+                  value: transformBalance(
+                    receiveAmount.value,
+                    receiveAmount.assetScale
+                  )
+                },
                 incomingPayment,
                 paymentPointer: this.receiver.id
               }
@@ -283,8 +290,14 @@ export class PaymentSession {
           frameId: this.frameId,
           payload: {
             requestId: this.requestId,
-            details: {
-              receiveAmount,
+            detail: {
+              amountSent: {
+                currency: receiveAmount.assetCode,
+                value: transformBalance(
+                  receiveAmount.value,
+                  receiveAmount.assetScale
+                )
+              },
               incomingPayment,
               paymentPointer: this.receiver.id
             }

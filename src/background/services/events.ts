@@ -38,7 +38,7 @@ export class EventsService extends EventEmitter {
    * @deprecated
    */
   addListener(): this {
-    throw new Error('Use `on` instead of `addListner`.')
+    throw new Error('Use `on` instead of `addListener`.')
   }
 
   /**

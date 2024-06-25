@@ -1,6 +1,5 @@
-import type { PopupStore, Storage, StorageKey } from '@/shared/types'
+import type { Storage, StorageKey } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
-import { getCurrentActiveTab } from '../utils'
 import { EventsService } from './events'
 
 const defaultStorage = {
@@ -17,10 +16,6 @@ const defaultStorage = {
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
-// TODO: Emit events when certain values are updated:
-// Eg:
-// - rate of pay - we should recalculate the amount for every payment session
-// - enabling/disabling WM
 export class StorageService {
   constructor(
     private browser: Browser,
@@ -50,37 +45,6 @@ export class StorageService {
     if (Object.keys(data).length === 0) {
       await this.set(defaultStorage)
     }
-  }
-
-  // TODO: Exception list (post-v1) - return data for the current website
-  async getPopupData(): Promise<PopupStore> {
-    let url: string | undefined
-    const data = await this.get([
-      'enabled',
-      'connected',
-      'hasHostPermissions',
-      'amount',
-      'rateOfPay',
-      'minRateOfPay',
-      'maxRateOfPay',
-      'walletAddress',
-      'publicKey'
-    ])
-    const tab = await getCurrentActiveTab(this.browser)
-
-    if (tab && tab.url) {
-      try {
-        const tabUrl = new URL(tab.url)
-        if (tabUrl.protocol === 'https:') {
-          // Do not include search params
-          url = `${tabUrl.origin}${tabUrl.pathname}`
-        }
-      } catch (_) {
-        // noop
-      }
-    }
-
-    return { ...data, url }
   }
 
   async getWMState(): Promise<boolean> {

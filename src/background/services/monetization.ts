@@ -10,6 +10,8 @@ import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { EventsService } from './events'
+import { ALLOWED_PROTOCOLS } from '@/shared/defines'
+import type { PopupStore } from '@/shared/types'
 
 export class MonetizationService {
   private sessions: {
@@ -200,11 +202,13 @@ export class MonetizationService {
 
   async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
-    if (!tab || !tab.id) return
+    if (!tab || !tab.id) {
+      throw new Error('Could not find active tab.')
+    }
 
     const sessions = this.sessions[tab.id]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       throw new Error('This website is not monetized.')
     }
 
@@ -233,7 +237,7 @@ export class MonetizationService {
 
   private onRateOfPayUpdate() {
     this.events.on('storage.rate_of_pay_update', ({ rate }) => {
-      this.logger.debug("Recevied event='storage.rate_of_pay_update'")
+      this.logger.debug("Received event='storage.rate_of_pay_update'")
       Object.keys(this.sessions).forEach((tabId) => {
         const tabSessions = this.sessions[tabId as unknown as number]
         this.logger.debug(`Re-evaluating sessions amount for tab=${tabId}`)
@@ -242,5 +246,41 @@ export class MonetizationService {
         }
       })
     })
+  }
+
+  async getPopupData(): Promise<PopupStore> {
+    const storedData = await this.storage.get([
+      'enabled',
+      'connected',
+      'hasHostPermissions',
+      'amount',
+      'rateOfPay',
+      'minRateOfPay',
+      'maxRateOfPay',
+      'walletAddress',
+      'publicKey'
+    ])
+
+    const tab = await getCurrentActiveTab(this.browser)
+
+    let url
+    if (tab && tab.url) {
+      try {
+        const tabUrl = new URL(tab.url)
+        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
+          // Do not include search params
+          url = `${tabUrl.origin}${tabUrl.pathname}`
+        }
+      } catch (_) {
+        // noop
+      }
+    }
+    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
+
+    return {
+      ...storedData,
+      url,
+      isSiteMonetized
+    }
   }
 }

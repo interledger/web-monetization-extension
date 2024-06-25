@@ -56,6 +56,9 @@ jobs:
         if: always()
       - run: pnpm typecheck
         if: always()
+      - name: Check spelling
+        uses: streetsidesoftware/cspell-action@v6
+        if: always()
 
   test:
     name: Test

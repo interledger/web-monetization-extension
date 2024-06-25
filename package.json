@@ -40,7 +40,7 @@
     "querystring-es3": "^0.2.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-hook-form": "^7.51.5",
+    "react-hook-form": "^7.52.0",
     "react-number-format": "^5.4.0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
@@ -55,7 +55,7 @@
     "@testing-library/react": "^16.0.0",
     "@types/chrome": "^0.0.268",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.12.4",
+    "@types/node": "^20.14.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@types/react-router-dom": "^5.3.3",
@@ -89,10 +89,10 @@
     "style-loader": "^4.0.0",
     "tailwindcss": "^3.4.4",
     "terser-webpack-plugin": "^5.3.10",
-    "ts-jest": "^29.1.4",
+    "ts-jest": "^29.1.5",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.15.4",
+    "tsx": "^4.15.6",
     "typescript": "^5.4.5",
     "webpack": "^5.92.0",
     "webpack-cli": "^5.1.4",
@@ -101,10 +101,10 @@
     "zip-webpack-plugin": "^4.0.1"
   },
   "engines": {
-    "pnpm": "^9.3.0",
+    "pnpm": "^9.4.0",
     "npm": "pnpm",
     "yarn": "pnpm",
-    "node": "20"
+    "node": "20.14.0"
   },
-  "packageManager": "pnpm@9.3.0"
+  "packageManager": "pnpm@9.4.0"
 }
