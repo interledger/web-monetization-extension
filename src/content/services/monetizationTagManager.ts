@@ -65,6 +65,14 @@ export class MonetizationTagManager extends EventEmitter {
     }
   }
 
+  private dispatchLoadEvent(tag: MonetizationTag) {
+    tag.dispatchEvent(new Event('load'))
+  }
+
+  private dispatchErrorEvent(tag: MonetizationTag) {
+    tag.dispatchEvent(new Event('error'))
+  }
+
   dispatchMonetizationEvent({ requestId, detail }: MonetizationEventPayload) {
     this.monetizationTags.forEach((tagDetails, tag) => {
       if (tagDetails.requestId !== requestId) return
@@ -517,11 +525,11 @@ export class MonetizationTagManager extends EventEmitter {
         )
       }
 
-      tag.dispatchEvent(new Event('load'))
+      this.dispatchLoadEvent(tag)
       return response.payload
     } catch (e) {
       this.logger.error(e)
-      tag.dispatchEvent(new Event('error'))
+      this.dispatchErrorEvent(tag)
       return null
     }
   }
