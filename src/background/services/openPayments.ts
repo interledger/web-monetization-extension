@@ -91,6 +91,8 @@ interface CreateOutgoingPaymentParams {
   quoteId: string
 }
 
+type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
+
 export class OpenPaymentsService {
   client?: AuthenticatedClient
 
@@ -434,35 +436,35 @@ export class OpenPaymentsService {
 
     return await new Promise((res) => {
       this.browser.tabs.create({ url }).then((tab) => {
-        if (tab.id) {
-          const getInteractionInfo: Parameters<
-            Tabs.onUpdatedEvent['addListener']
-          >[0] = async (tabId, changeInfo) => {
-            if (tabId !== tab.id) return
-            try {
-              const tabUrl = new URL(changeInfo.url || '')
-              const interactRef = tabUrl.searchParams.get('interact_ref')
-              const hash = tabUrl.searchParams.get('hash')
-              const result = tabUrl.searchParams.get('result')
+        if (!tab.id) return
+        const getInteractionInfo: TabUpdateCallback = async (
+          tabId,
+          changeInfo
+        ) => {
+          if (tabId !== tab.id) return
+          try {
+            const tabUrl = new URL(changeInfo.url || '')
+            const interactRef = tabUrl.searchParams.get('interact_ref')
+            const hash = tabUrl.searchParams.get('hash')
+            const result = tabUrl.searchParams.get('result')
 
-              if (
-                (interactRef && hash) ||
-                result === 'grant_rejected' ||
-                result === 'grant_invalid'
-              ) {
-                await this.closeTab(currentTab.id!, tabId)
-                this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
-              }
-
-              if (interactRef && hash) {
-                res({ interactRef, hash })
-              }
-            } catch (e) {
-              /* do nothing */
+            if (
+              (interactRef && hash) ||
+              result === 'grant_rejected' ||
+              result === 'grant_invalid'
+            ) {
+              await this.closeTab(currentTab.id!, tabId)
+              this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
             }
+
+            if (interactRef && hash) {
+              res({ interactRef, hash })
+            }
+          } catch (e) {
+            /* do nothing */
           }
-          this.browser.tabs.onUpdated.addListener(getInteractionInfo)
         }
+        this.browser.tabs.onUpdated.addListener(getInteractionInfo)
       })
     })
   }
