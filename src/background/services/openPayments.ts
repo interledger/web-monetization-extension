@@ -15,7 +15,7 @@ import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
-import { Browser } from 'webextension-polyfill'
+import { Browser, Tabs } from 'webextension-polyfill'
 import {
   getCurrentActiveTab,
   getExchangeRates,
@@ -431,40 +431,37 @@ export class OpenPaymentsService {
 
   private async getInteractionInfo(url: string): Promise<InteractionParams> {
     const currentTab = await getCurrentActiveTab(this.browser)
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const self = this
 
     return await new Promise((res) => {
       this.browser.tabs.create({ url }).then((tab) => {
         if (tab.id) {
-          this.browser.tabs.onUpdated.addListener(
-            async function getInteractionRefAndHash(tabId, changeInfo) {
-              if (tabId !== tab.id) return
-              try {
-                const tabUrl = new URL(changeInfo.url || '')
-                const interactRef = tabUrl.searchParams.get('interact_ref')
-                const hash = tabUrl.searchParams.get('hash')
-                const result = tabUrl.searchParams.get('result')
+          const getInteractionInfo: Parameters<
+            Tabs.onUpdatedEvent['addListener']
+          >[0] = async (tabId, changeInfo) => {
+            if (tabId !== tab.id) return
+            try {
+              const tabUrl = new URL(changeInfo.url || '')
+              const interactRef = tabUrl.searchParams.get('interact_ref')
+              const hash = tabUrl.searchParams.get('hash')
+              const result = tabUrl.searchParams.get('result')
 
-                if (
-                  (interactRef && hash) ||
-                  result === 'grant_rejected' ||
-                  result === 'grant_invalid'
-                ) {
-                  await self.closeTab(currentTab.id!, tabId)
-                  self.browser.tabs.onUpdated.removeListener(
-                    getInteractionRefAndHash
-                  )
-                }
-
-                if (interactRef && hash) {
-                  res({ interactRef, hash })
-                }
-              } catch (e) {
-                /* do nothing */
+              if (
+                (interactRef && hash) ||
+                result === 'grant_rejected' ||
+                result === 'grant_invalid'
+              ) {
+                await this.closeTab(currentTab.id!, tabId)
+                this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
               }
+
+              if (interactRef && hash) {
+                res({ interactRef, hash })
+              }
+            } catch (e) {
+              /* do nothing */
             }
-          )
+          }
+          this.browser.tabs.onUpdated.addListener(getInteractionInfo)
         }
       })
     })
