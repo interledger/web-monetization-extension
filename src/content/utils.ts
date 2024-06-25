@@ -1,55 +1,37 @@
-export class PaymentEndpointError extends Error {}
+export class WalletAddressFormatError extends Error {}
 
 export function checkWalletAddressUrlFormat(
-  pointerOrUrl: string,
-  urlOnly = false
-) {
-  const httpUrl = urlOnly
-    ? pointerOrUrl
-    : pointerOrUrl.replace(/^\$/, 'https://')
+  walletAddressUrl: string,
+): void {
 
   let url: URL
   try {
-    url = new URL(httpUrl)
-    if (!url.protocol.match(/https?:/)) {
-      const spec = urlOnly ? '' : 'either a payment pointer or '
-      // noinspection ExceptionCaughtLocallyJS
-      throw new PaymentEndpointError(
-        `SPSP endpoint must be specified as ${spec}fully resolved https:// url, ` +
-          `got ${JSON.stringify(pointerOrUrl)} `
+    url = new URL(walletAddressUrl)
+    if (url.protocol !== 'https:') {
+      throw new WalletAddressFormatError(
+        `Wallet address URL must be specified as a fully resolved https:// url, ` +
+          `got ${JSON.stringify(walletAddressUrl)} `
       )
     }
   } catch (e) {
-    if (e instanceof PaymentEndpointError) {
+    if (e instanceof WalletAddressFormatError) {
       throw e
     } else {
-      throw new PaymentEndpointError(
-        `Invalid payment pointer/url: ${JSON.stringify(pointerOrUrl)}`
+      throw new WalletAddressFormatError(
+        `Invalid wallet address URL: ${JSON.stringify(walletAddressUrl)}`
       )
     }
   }
 
-  const isPaymentPointer = pointerOrUrl.startsWith('$')
+  const {hash, search, port, username, password} = url
 
   if (
-    isPaymentPointer &&
-    (url.hash || url.search || url.port || url.username || url.password)
+    hash || search || port || username || password
   ) {
-    throw new PaymentEndpointError(
-      'Payment pointer must not contain ' +
-        'query/fragment/port/username/password elements: ' +
-        JSON.stringify({
-          hash: url.hash,
-          search: url.search,
-          port: url.port,
-          username: url.username,
-          password: url.password
-        })
+    throw new WalletAddressFormatError(
+      `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({hash, search, port, username, password})}`
     )
   }
-  return isPaymentPointer && url.pathname === '/'
-    ? url.href + '.well-known/pay'
-    : url.href
 }
 
 type DefaultView = WindowProxy & typeof globalThis
