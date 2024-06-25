@@ -306,7 +306,7 @@ export class OpenPaymentsService {
 
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
-    const { interactRef, hash } = await this.confirmPayment(
+    const { interactRef, hash } = await this.getInteractionInfo(
       grant.interact.redirect
     )
 
@@ -424,31 +424,49 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
-  private async confirmPayment(url: string): Promise<InteractionParams> {
+  private async closeTab(currentTab: number, tabToClose: number) {
+    await this.browser.tabs.update(currentTab, { active: true })
+    await this.browser.tabs.remove(tabToClose)
+  }
+
+  private async getInteractionInfo(url: string): Promise<InteractionParams> {
     const currentTab = await getCurrentActiveTab(this.browser)
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this
 
     return await new Promise((res) => {
-      if (url) {
-        this.browser.tabs.create({ url }).then((tab) => {
-          if (tab.id) {
-            this.browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+      this.browser.tabs.create({ url }).then((tab) => {
+        if (tab.id) {
+          this.browser.tabs.onUpdated.addListener(
+            async function getInteractionRefAndHash(tabId, changeInfo) {
+              if (tabId !== tab.id) return
               try {
                 const tabUrl = new URL(changeInfo.url || '')
                 const interactRef = tabUrl.searchParams.get('interact_ref')
                 const hash = tabUrl.searchParams.get('hash')
+                const result = tabUrl.searchParams.get('result')
 
-                if (tabId === tab.id && interactRef && hash) {
-                  this.browser.tabs.update(currentTab.id, { active: true })
-                  this.browser.tabs.remove(tab.id)
+                if (
+                  (interactRef && hash) ||
+                  result === 'grant_rejected' ||
+                  result === 'grant_invalid'
+                ) {
+                  await self.closeTab(currentTab.id!, tabId)
+                  self.browser.tabs.onUpdated.removeListener(
+                    getInteractionRefAndHash
+                  )
+                }
+
+                if (interactRef && hash) {
                   res({ interactRef, hash })
                 }
               } catch (e) {
                 /* do nothing */
               }
-            })
-          }
-        })
-      }
+            }
+          )
+        }
+      })
     })
   }
 
