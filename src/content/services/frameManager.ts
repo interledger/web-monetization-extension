@@ -205,7 +205,7 @@ export class FrameManager {
         const frameDetails = this.frames.get(frame)
 
         switch (message) {
-          case ContentToContentAction.INITILIZE_IFRAME:
+          case ContentToContentAction.INITIALIZE_IFRAME:
             event.stopPropagation()
             this.frames.set(frame, {
               frameId: id,

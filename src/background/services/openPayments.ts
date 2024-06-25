@@ -1,3 +1,4 @@
+// cSpell:ignore keyid
 import { AccessToken, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
@@ -14,7 +15,7 @@ import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
-import { Browser } from 'webextension-polyfill'
+import { Browser, Tabs } from 'webextension-polyfill'
 import {
   getCurrentActiveTab,
   getExchangeRates,
@@ -89,6 +90,8 @@ interface CreateOutgoingPaymentParams {
   walletAddress: WalletAddress
   quoteId: string
 }
+
+type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
 
 export class OpenPaymentsService {
   client?: AuthenticatedClient
@@ -305,7 +308,7 @@ export class OpenPaymentsService {
 
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
-    const { interactRef, hash } = await this.confirmPayment(
+    const { interactRef, hash } = await this.getInteractionInfo(
       grant.interact.redirect
     )
 
@@ -329,7 +332,7 @@ export class OpenPaymentsService {
     )
 
     if (!isFinalizedGrant(continuation)) {
-      throw new Error('Expected finalized grant. Received unfinalized grant.')
+      throw new Error('Expected finalized grant. Received non-finalized grant.')
     }
 
     const token = {
@@ -423,31 +426,46 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
-  private async confirmPayment(url: string): Promise<InteractionParams> {
+  private async closeTab(currentTab: number, tabToClose: number) {
+    await this.browser.tabs.update(currentTab, { active: true })
+    await this.browser.tabs.remove(tabToClose)
+  }
+
+  private async getInteractionInfo(url: string): Promise<InteractionParams> {
     const currentTab = await getCurrentActiveTab(this.browser)
 
     return await new Promise((res) => {
-      if (url) {
-        this.browser.tabs.create({ url }).then((tab) => {
-          if (tab.id) {
-            this.browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
-              try {
-                const tabUrl = new URL(changeInfo.url || '')
-                const interactRef = tabUrl.searchParams.get('interact_ref')
-                const hash = tabUrl.searchParams.get('hash')
+      this.browser.tabs.create({ url }).then((tab) => {
+        if (!tab.id) return
+        const getInteractionInfo: TabUpdateCallback = async (
+          tabId,
+          changeInfo
+        ) => {
+          if (tabId !== tab.id) return
+          try {
+            const tabUrl = new URL(changeInfo.url || '')
+            const interactRef = tabUrl.searchParams.get('interact_ref')
+            const hash = tabUrl.searchParams.get('hash')
+            const result = tabUrl.searchParams.get('result')
 
-                if (tabId === tab.id && interactRef && hash) {
-                  this.browser.tabs.update(currentTab.id, { active: true })
-                  this.browser.tabs.remove(tab.id)
-                  res({ interactRef, hash })
-                }
-              } catch (e) {
-                /* do nothing */
-              }
-            })
+            if (
+              (interactRef && hash) ||
+              result === 'grant_rejected' ||
+              result === 'grant_invalid'
+            ) {
+              await this.closeTab(currentTab.id!, tabId)
+              this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
+            }
+
+            if (interactRef && hash) {
+              res({ interactRef, hash })
+            }
+          } catch (e) {
+            /* do nothing */
           }
-        })
-      }
+        }
+        this.browser.tabs.onUpdated.addListener(getInteractionInfo)
+      })
     })
   }
 
@@ -467,7 +485,7 @@ export class OpenPaymentsService {
     }
   }
 
-  async genererateKeys() {
+  async generateKeys() {
     if (await this.storage.keyPairExists()) return
 
     const { privateKey, publicKey } = await generateEd25519KeyPair()

@@ -13,13 +13,7 @@
     {
       "matches": ["https://*/*"],
       "js": ["content/content.js"],
-      "all_frames": true
-    },
-    {
       "run_at": "document_start",
-      "matches": ["https://*/*"],
-      "js": ["contentStatic/contentStatic.js"],
-      "world": "MAIN",
       "all_frames": true
     }
   ],
@@ -33,14 +27,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "assets/*",
-        "content/*",
-        "options/*",
-        "popup/*",
-        "background/*",
-        "specs/*"
-      ],
+      "resources": ["assets/*", "polyfill/*", "specs/*"],
       "matches": ["<all_urls>"]
     }
   ],

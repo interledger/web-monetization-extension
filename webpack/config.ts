@@ -84,8 +84,8 @@ export const mainConfig: Configuration = {
   entry: {
     popup: [path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/popup/index.tsx`)],
     content: [path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/content/index.ts`)],
-    contentStatic: [
-      path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/content/static/index.ts`)
+    polyfill: [
+      path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/content/polyfill.ts`)
     ],
     background: [
       path.resolve(ROOT_DIR, `${DIRECTORIES.SRC}/background/index.ts`)
