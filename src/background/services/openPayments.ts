@@ -478,7 +478,10 @@ export class OpenPaymentsService {
         accessToken: grant.accessToken
       })
     } catch (err) {
-      if (err instanceof OpenPaymentsClientError && err.status === 400) {
+      if (!this.client) {
+        // if we were in connected=key-revoked, client doesn't get initialized.
+        // ignore this error
+      } else if (err instanceof OpenPaymentsClientError && err.status === 400) {
         // key removed from wallet already before disconnect
         // TODO: assume it's invalid_client error for now:
         // https://github.com/interledger/open-payments/issues/482
