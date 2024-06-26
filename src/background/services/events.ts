@@ -47,7 +47,6 @@ export class EventsService extends EventEmitter {
    */
   removeListener(): this {
     // eslint-disable-next-line prefer-rest-params
-    super.removeListener.apply(this, arguments)
-    return this
+    return super.removeListener.apply(this, arguments)
   }
 }
