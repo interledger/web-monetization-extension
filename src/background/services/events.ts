@@ -46,6 +46,7 @@ export class EventsService extends EventEmitter {
    * @deprecated
    */
   removeListener(): this {
-    throw new Error('Use `off` instead of `removeListener`.')
+    // eslint-disable-next-line prefer-rest-params
+    return super.removeListener.apply(this, arguments)
   }
 }
