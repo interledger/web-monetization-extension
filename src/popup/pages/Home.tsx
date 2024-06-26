@@ -11,6 +11,7 @@ import {
 } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
+import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 
@@ -20,6 +21,7 @@ export const Component = () => {
   const {
     state: {
       enabled,
+      connected,
       isSiteMonetized,
       rateOfPay,
       minRateOfPay,
@@ -59,6 +61,10 @@ export const Component = () => {
 
   if (!isSiteMonetized) {
     return <SiteNotMonetized />
+  }
+
+  if (connected === 'key-revoked') {
+    return <ErrorKeyRevoked />
   }
 
   return (

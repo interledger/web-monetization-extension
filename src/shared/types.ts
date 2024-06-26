@@ -31,8 +31,12 @@ export interface GrantDetails {
 export interface Storage {
   /** If web monetization is enabled */
   enabled: boolean
-  /** If a wallet is connected or not */
-  connected: boolean
+  /**
+   * If a wallet is connected or not.
+   * - `true`: wallet is connected and usable.
+   * - `key-revoked`: the uploaded public key is no longer valid/exists.
+   **/
+  connected: boolean | "key-revoked"
   /** Whether extension can inject scripts, and fetch resources from any host */
   hasHostPermissions: boolean
 

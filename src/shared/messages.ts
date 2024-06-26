@@ -1,5 +1,6 @@
 import type { WalletAddress, OutgoingPayment } from '@interledger/open-payments'
-import { type Browser } from 'webextension-polyfill'
+import type { Browser } from 'webextension-polyfill'
+import type { Storage } from '@/shared/types'
 
 export interface SuccessResponse<TPayload = undefined> {
   success: true
@@ -154,6 +155,30 @@ export type BackgroundToContentBackgroundMessage = {
 }[BackgroundToContentAction]
 
 export type ToContentMessage = BackgroundToContentBackgroundMessage
+
+// #region Background to Popup
+
+export enum BackgroundToPopupAction {
+  UPDATE_CONNECTED_STATE = 'UPDATE_CONNECTED_STATE'
+}
+
+export interface UpdateConnectedStatePayload {
+  connected: Storage['connected']
+}
+
+export interface BackgroundToPopupActionPayload {
+  [BackgroundToPopupAction.UPDATE_CONNECTED_STATE]: UpdateConnectedStatePayload
+}
+export type BackgroundToPopupMessage = {
+  [K in BackgroundToPopupAction]: MessageHKT<
+    K,
+    BackgroundToPopupActionPayload[K]
+  >
+}[BackgroundToPopupAction]
+
+export type ToPopupMessage = BackgroundToPopupMessage
+
+// #endregion
 
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
