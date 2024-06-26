@@ -300,6 +300,15 @@ export class OpenPaymentsService {
       clientNonce,
       walletAddress,
       amount: transformedAmount
+    }).catch((err) => {
+      if (err instanceof OpenPaymentsClientError) {
+        if (err.status === 400) {
+          // TODO: check for invalid_client
+          const msg = `Failed to connect. Did you connect the public key with the right wallet address?`
+          throw new Error(msg, { cause: err })
+        }
+      }
+      throw err
     })
 
     // Q: Should this be moved to continuation polling?
