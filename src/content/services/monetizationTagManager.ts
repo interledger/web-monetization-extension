@@ -65,6 +65,14 @@ export class MonetizationTagManager extends EventEmitter {
     }
   }
 
+  private dispatchLoadEvent(tag: MonetizationTag) {
+    tag.dispatchEvent(new Event('load'))
+  }
+
+  private dispatchErrorEvent(tag: MonetizationTag) {
+    tag.dispatchEvent(new Event('error'))
+  }
+
   dispatchMonetizationEvent({ requestId, detail }: MonetizationEventPayload) {
     this.monetizationTags.forEach((tagDetails, tag) => {
       if (tagDetails.requestId !== requestId) return
@@ -404,6 +412,8 @@ export class MonetizationTagManager extends EventEmitter {
     crtRequestId?: string
   ): Promise<StartMonetizationPayload | null> {
     const walletAddress = await this.checkTag(tag)
+    if (!walletAddress) return null
+
     const requestId = crtRequestId ?? crypto.randomUUID()
     const details: MonetizationTagDetails = {
       walletAddress,
@@ -411,7 +421,7 @@ export class MonetizationTagManager extends EventEmitter {
     }
 
     this.monetizationTags.set(tag, details)
-    return walletAddress ? { walletAddress, requestId } : null
+    return { walletAddress, requestId }
   }
 
   private sendStartMonetization(tags: StartMonetizationPayload[]) {
@@ -496,47 +506,30 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (tag.hasAttribute('disabled')) return null
 
-    const isValidWalletAddressUrlFormat = this.checkWalletAddressUrlFormat(tag)
+    const walletAddressInfo = await this.validateWalletAddress(tag)
 
-    return isValidWalletAddressUrlFormat
-      ? await this.checkWalletAddressUrlCall(tag)
-      : null
+    return walletAddressInfo
   }
 
-  // Check wallet address url for valid format
-  private checkWalletAddressUrlFormat(tag: MonetizationTag) {
-    const walletAddressUrl = tag.href.trim()
-
-    try {
-      checkWalletAddressUrlFormat(walletAddressUrl, true)
-
-      return true
-    } catch (err) {
-      this.logger.error(err)
-
-      const event = new Event('error')
-      tag.dispatchEvent(event)
-
-      return false
-    }
-  }
-
-  // Check wallet address url by fetching the wallet address details
-  private async checkWalletAddressUrlCall(
+  private async validateWalletAddress(
     tag: MonetizationTag
   ): Promise<WalletAddress | null> {
     const walletAddressUrl = tag.href.trim()
-
     try {
+      checkWalletAddressUrlFormat(walletAddressUrl)
       const response = await checkWalletAddressUrlCall({ walletAddressUrl })
 
-      return response.success ? response.payload : null
-    } catch (err) {
-      this.logger.error(err)
+      if (response.success === false) {
+        throw new Error(
+          `Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`
+        )
+      }
 
-      const event = new Event('error')
-      tag.dispatchEvent(event)
-
+      this.dispatchLoadEvent(tag)
+      return response.payload
+    } catch (e) {
+      this.logger.error(e)
+      this.dispatchErrorEvent(tag)
       return null
     }
   }
