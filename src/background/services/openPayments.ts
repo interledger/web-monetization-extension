@@ -109,7 +109,9 @@ export class OpenPaymentsService {
       'token'
     ])
 
-    if (connected === true && walletAddress && token) {
+    // TODO: how should we check connected state? Should we create client even
+    // with key-revoked state?
+    if (connected !== false && walletAddress && token) {
       await this.initClient(walletAddress.id)
       this.token = token
     }

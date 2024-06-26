@@ -132,7 +132,9 @@ export class PaymentSession {
           amount: this.amount
         })
       } catch (e) {
-        if (e instanceof OpenPaymentsClientError) {
+        if (this.isKeyRevokedError(e, 'resourceServer')) {
+          this.events.emit('open_payments.key_revoked')
+        } else if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
           if (e.status === 403) {
             await this.openPaymentsService.rotateToken()
@@ -244,7 +246,16 @@ export class PaymentSession {
 
   // TODO: Needs refactoring - breaks DRY
   async pay(amount: number) {
-    const incomingPayment = await this.createIncomingPayment()
+    const incomingPayment = await this.createIncomingPayment().catch(
+      (error) => {
+        if (this.isKeyRevokedError(error)) {
+          this.events.emit('open_payments.key_revoked')
+          return
+        }
+        throw error
+      }
+    )
+    if (!incomingPayment) return
 
     let outgoingPayment: OutgoingPayment | undefined
 
@@ -255,7 +266,9 @@ export class PaymentSession {
         amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
       })
     } catch (e) {
-      if (e instanceof OpenPaymentsClientError) {
+      if (this.isKeyRevokedError(e, 'resourceServer')) {
+        this.events.emit('open_payments.key_revoked')
+      } else if (e instanceof OpenPaymentsClientError) {
         // Status code 403 -> expired access token
         if (e.status === 403) {
           await this.openPaymentsService.rotateToken()
@@ -304,7 +317,11 @@ export class PaymentSession {
       //   find key in list of client keys
       // - create outgoing payment with same
       // - [AUTH SERVER] create incoming payment grant fails with 400 + invalid_client
-      return (!context || context === 'authServer') && error.status === 400
+      return (
+        ((!context || context === 'authServer') && error.status === 400) ||
+        !context ||
+        (context == 'resourceServer' && error.status === 401)
+      )
     }
     return false
   }

@@ -3,7 +3,7 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { WarningSign } from '@/popup/components/Icons'
 import { Button } from '@/popup/components/ui/Button'
-import { disconnectWallet } from '@/popup/lib/messages'
+import { checkKeyAuthentication, disconnectWallet } from '@/popup/lib/messages'
 import { Label } from './ui/Label'
 import { Code } from './ui/Code'
 import type { PopupStore } from '@/shared/types'
@@ -11,9 +11,10 @@ import type { PopupStore } from '@/shared/types'
 interface Props {
   info: Pick<PopupStore, 'publicKey' | 'walletAddress'>
   onDisconnect: () => void
+  onKeyAdded: () => void
 }
 
-export const ErrorKeyRevoked = ({ info, onDisconnect }: Props) => {
+export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -51,7 +52,16 @@ export const ErrorKeyRevoked = ({ info, onDisconnect }: Props) => {
         })}
         onSubmit={handleSubmit(async () => {
           clearErrors()
-          console.log('check key')
+          try {
+            const res = await checkKeyAuthentication()
+            if (res.success) {
+              onKeyAdded()
+            } else {
+              setError('root', { message: res.message })
+            }
+          } catch (error) {
+            setError('root', { message: error.message })
+          }
         })}
       >
         <div className="space-y-4">

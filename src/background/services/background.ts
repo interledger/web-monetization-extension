@@ -84,6 +84,11 @@ export class Background {
               await this.openPaymentsService.connectWallet(message.payload)
               return
 
+            case PopupToBackgroundAction.CHECK_KEY_AUTHENTICATION:
+              await this.openPaymentsService.rotateToken()
+              await this.storage.set({ connected: true })
+              return success(undefined)
+
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
               return
