@@ -259,7 +259,6 @@ export class MonetizationService {
         }
       }
       await this.storage.set({ connected: 'key-revoked' })
-      console.log({ action: await this.browser.action.isEnabled({}) })
       await emitConnectedStateUpdate({ connected: 'key-revoked' })
 
       this.logger.debug(`All payment sessions stopped.`)
