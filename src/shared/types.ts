@@ -36,7 +36,7 @@ export interface Storage {
    * - `true`: wallet is connected and usable.
    * - `key-revoked`: the uploaded public key is no longer valid/exists.
    **/
-  connected: boolean | "key-revoked"
+  connected: boolean | 'key-revoked'
   /** Whether extension can inject scripts, and fetch resources from any host */
   hasHostPermissions: boolean
 
