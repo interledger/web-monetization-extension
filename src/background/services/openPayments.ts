@@ -473,7 +473,10 @@ export class OpenPaymentsService {
     if (!grant) return
 
     try {
-      await this.client!.grant.cancel({
+      if (!this.client) {
+        throw new Error('Client not initialized')
+      }
+      await this.client.grant.cancel({
         url: grant.continueUri,
         accessToken: grant.accessToken
       })

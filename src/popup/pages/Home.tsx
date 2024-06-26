@@ -26,6 +26,7 @@ export const Component = () => {
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
+      publicKey,
       walletAddress,
       url
     },
@@ -64,7 +65,17 @@ export const Component = () => {
   }
 
   if (connected === 'key-revoked') {
-    return <ErrorKeyRevoked />
+    return (
+      <ErrorKeyRevoked
+        info={{ publicKey, walletAddress }}
+        onDisconnect={() => {
+          dispatch({
+            type: ReducerActionType.SET_CONNECTED_STATE,
+            data: { connected: false }
+          })
+        }}
+      />
+    )
   }
 
   return (
