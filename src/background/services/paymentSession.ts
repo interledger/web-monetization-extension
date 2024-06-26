@@ -2,7 +2,6 @@ import { OpenPaymentsService } from './openPayments'
 import {
   IncomingPayment,
   OutgoingPayment,
-  Quote,
   WalletAddress,
   isPendingGrant
 } from '@interledger/open-payments/dist/types'
@@ -123,27 +122,14 @@ export class PaymentSession {
 
     await this.setIncomingPaymentUrl()
 
-    let quote: Quote | undefined
     let outgoingPayment: OutgoingPayment | undefined
 
     while (this.active) {
       try {
-        // Quote can be removed once the Test Wallet upgrades to alpha-10.
-        // We will be able to create an outgoing payment with an incoming payment,
-        // making the quoting unnecessary through OP.
-        //
-        // Note: Under the hood, Rafiki is still quoting.
-        if (!quote) {
-          quote = await this.openPaymentsService.createQuote({
-            walletAddress: this.sender,
-            receiver: this.incomingPaymentUrl,
-            amount: this.amount
-          })
-        }
-
         outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
-          quoteId: quote.id
+          incomingPaymentId: this.incomingPaymentUrl,
+          amount: this.amount
         })
       } catch (e) {
         if (e instanceof OpenPaymentsClientError) {
@@ -153,9 +139,8 @@ export class PaymentSession {
             continue
           }
 
-          // Is there a better way to handle this - expired incoming
-          // payment?
-          if (e.status === 400 && quote === undefined) {
+          // We need better error handling.
+          if (e.status === 400) {
             await this.setIncomingPaymentUrl()
             continue
           }
@@ -168,7 +153,6 @@ export class PaymentSession {
         if (outgoingPayment) {
           const { receiveAmount, receiver: incomingPayment } = outgoingPayment
 
-          quote = undefined
           outgoingPayment = undefined
 
           sendMonetizationEvent({
@@ -262,29 +246,15 @@ export class PaymentSession {
   async pay(amount: number) {
     const incomingPayment = await this.createIncomingPayment()
 
-    let quote: Quote | undefined
     let outgoingPayment: OutgoingPayment | undefined
 
     try {
-      if (!quote) {
-        quote = await this.openPaymentsService.createQuote({
-          walletAddress: this.sender,
-          receiver: incomingPayment.id,
-          amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
-        })
-      }
-
       outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
         walletAddress: this.sender,
-        quoteId: quote.id
+        incomingPaymentId: incomingPayment.id,
+        amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
       })
     } catch (e) {
-      /**
-       * Unhandled exceptions:
-       *  - Expired incoming payment: if the incoming payment is expired when
-       *    trying to create a quote, create a new incoming payment
-       *
-       */
       if (e instanceof OpenPaymentsClientError) {
         // Status code 403 -> expired access token
         if (e.status === 403) {
