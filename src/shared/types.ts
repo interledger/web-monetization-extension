@@ -44,7 +44,7 @@ export interface Storage {
   walletAddress?: WalletAddress | undefined | null
   /** Overall amount */
   amount?: WalletAmount | undefined | null
-  /** Access token for quoting & outgoing payments  */
+  /** Access token for outgoing payments  */
   token?: AccessToken | undefined | null
   /** Grant details - continue access token & uri for canceling the grant */
   grant?: GrantDetails | undefined | null

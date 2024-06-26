@@ -5,10 +5,10 @@ import {
   createAuthenticatedClient
 } from '@interledger/open-payments/dist/client'
 import {
+  IncomingPayment,
   isFinalizedGrant,
   isPendingGrant,
   OutgoingPayment,
-  Quote,
   WalletAddress
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
@@ -74,21 +74,16 @@ interface VerifyInteractionHashParams {
   authServer: string
 }
 
-interface CreateQuoteAndOutgoingPaymentGrantParams {
+interface CreateOutgoingPaymentGrantParams {
   clientNonce: string
   walletAddress: WalletAddress
   amount: WalletAmount
 }
 
-interface CreateQuoteParams {
-  walletAddress: WalletAddress
-  receiver: string
-  amount: string
-}
-
 interface CreateOutgoingPaymentParams {
   walletAddress: WalletAddress
-  quoteId: string
+  incomingPaymentId: IncomingPayment['id']
+  amount: string
 }
 
 type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
@@ -300,7 +295,7 @@ export class OpenPaymentsService {
 
     await this.initClient(walletAddress.id)
     const clientNonce = crypto.randomUUID()
-    const grant = await this.createQuoteAndOutgoingPaymentGrant({
+    const grant = await this.createOutgoingPaymentGrant({
       clientNonce,
       walletAddress,
       amount: transformedAmount
@@ -356,11 +351,11 @@ export class OpenPaymentsService {
     this.token = token
   }
 
-  private async createQuoteAndOutgoingPaymentGrant({
+  private async createOutgoingPaymentGrant({
     amount,
     walletAddress,
     clientNonce
-  }: CreateQuoteAndOutgoingPaymentGrantParams) {
+  }: CreateOutgoingPaymentGrantParams) {
     const grant = await this.client!.grant.request(
       {
         url: walletAddress.authServer
@@ -368,12 +363,6 @@ export class OpenPaymentsService {
       {
         access_token: {
           access: [
-            // TODO: Can be removed when the Test Wallet will be upgraded
-            // to the latest Rafiki version (or at least alpha.10)
-            {
-              type: 'quote',
-              actions: ['create']
-            },
             {
               type: 'outgoing-payment',
               actions: ['create'],
@@ -499,32 +488,10 @@ export class OpenPaymentsService {
     })
   }
 
-  async createQuote({
-    walletAddress,
-    receiver,
-    amount
-  }: CreateQuoteParams): Promise<Quote> {
-    return await this.client!.quote.create(
-      {
-        accessToken: this.token.value,
-        url: walletAddress.resourceServer
-      },
-      {
-        method: 'ilp',
-        walletAddress: walletAddress.id,
-        receiver,
-        debitAmount: {
-          value: amount,
-          assetCode: walletAddress.assetCode,
-          assetScale: walletAddress.assetScale
-        }
-      }
-    )
-  }
-
   async createOutgoingPayment({
     walletAddress,
-    quoteId
+    amount,
+    incomingPaymentId
   }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
     return await this.client!.outgoingPayment.create(
       {
@@ -532,8 +499,13 @@ export class OpenPaymentsService {
         url: walletAddress.resourceServer
       },
       {
-        quoteId,
+        incomingPayment: incomingPaymentId,
         walletAddress: walletAddress.id,
+        debitAmount: {
+          value: amount,
+          assetCode: walletAddress.assetCode,
+          assetScale: walletAddress.assetScale
+        },
         metadata: {
           source: 'Web Monetization'
         }
