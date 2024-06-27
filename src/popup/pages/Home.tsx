@@ -60,10 +60,6 @@ export const Component = () => {
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
   }
 
-  if (!isSiteMonetized) {
-    return <SiteNotMonetized />
-  }
-
   if (connected === 'key-revoked') {
     return (
       <ErrorKeyRevoked
@@ -82,6 +78,10 @@ export const Component = () => {
         }}
       />
     )
+  }
+
+  if (!isSiteMonetized) {
+    return <SiteNotMonetized />
   }
 
   return (

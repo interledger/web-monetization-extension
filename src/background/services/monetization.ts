@@ -90,15 +90,9 @@ export class MonetizationService {
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
-    const { enabled, connected } = await this.storage.get([
-      'connected',
-      'enabled'
-    ])
-    if (connected !== true || enabled === false) return
-
     const sessions = this.sessions[tabId]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -140,10 +134,16 @@ export class MonetizationService {
     })
   }
 
-  resumePaymentSession(
+  async resumePaymentSession(
     payload: ResumeMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
+    const { enabled, connected } = await this.storage.get([
+      'connected',
+      'enabled'
+    ])
+    if (connected !== true || enabled === false) return
+
     const tabId = getTabId(sender)
     const sessions = this.sessions[tabId]
 

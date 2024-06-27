@@ -56,6 +56,7 @@ export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
             const res = await checkKeyAuthentication()
             if (res.success) {
               onKeyAdded()
+              window.location.reload()
             } else {
               setError('root', { message: res.message })
             }

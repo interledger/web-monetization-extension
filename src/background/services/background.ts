@@ -87,6 +87,7 @@ export class Background {
             case PopupToBackgroundAction.CHECK_KEY_AUTHENTICATION:
               await this.openPaymentsService.rotateToken()
               await this.storage.set({ connected: true })
+              await this.tabEvents.onUpdatedTab()
               return success(undefined)
 
             case PopupToBackgroundAction.DISCONNECT_WALLET:
@@ -123,7 +124,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.RESUME_MONETIZATION:
-              this.monetizationService.resumePaymentSession(
+              await this.monetizationService.resumePaymentSession(
                 message.payload,
                 sender
               )

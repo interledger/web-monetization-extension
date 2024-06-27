@@ -244,7 +244,6 @@ export class PaymentSession {
     return incomingPayment
   }
 
-  // TODO: Needs refactoring - breaks DRY
   async pay(amount: number) {
     const incomingPayment = await this.createIncomingPayment().catch(
       (error) => {
@@ -319,8 +318,7 @@ export class PaymentSession {
       // - [AUTH SERVER] create incoming payment grant fails with 400 + invalid_client
       return (
         ((!context || context === 'authServer') && error.status === 400) ||
-        !context ||
-        (context == 'resourceServer' && error.status === 401)
+        ((!context || context == 'resourceServer') && error.status === 401)
       )
     }
     return false
