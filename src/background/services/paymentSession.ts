@@ -2,17 +2,15 @@ import { OpenPaymentsService } from './openPayments'
 import {
   IncomingPayment,
   OutgoingPayment,
-  Quote,
   WalletAddress,
   isPendingGrant
 } from '@interledger/open-payments/dist/types'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
-import { StorageService } from './storage'
-import { getHash } from '../utils'
-import { OverpayingSession } from '@/shared/types'
 import { transformBalance } from '@/popup/lib/utils'
+import { TabState } from './tabState'
+import type { Tabs } from 'webextension-polyfill'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -28,11 +26,12 @@ export class PaymentSession {
     private receiver: WalletAddress,
     private sender: WalletAddress,
     private requestId: string,
+    private tab: Tabs.Tab,
     private tabId: number,
     private frameId: number,
     private rate: string,
     private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService,
+    private tabState: TabState,
     private url: string
   ) {
     this.adjustSessionAmount()
@@ -126,29 +125,16 @@ export class PaymentSession {
 
     await this.setIncomingPaymentUrl()
 
-    let quote: Quote | undefined
     let outgoingPayment: OutgoingPayment | undefined
+
+    this.tabState.processOverpaying(this.tab, this.url, this.receiver)
 
     while (this.active) {
       try {
-        this.processOverpaying()
-
-        // Quote can be removed once the Test Wallet upgrades to alpha-10.
-        // We will be able to create an outgoing payment with an incoming payment,
-        // making the quoting unnecessary through OP.
-        //
-        // Note: Under the hood, Rafiki is still quoting.
-        if (!quote) {
-          quote = await this.openPaymentsService.createQuote({
-            walletAddress: this.sender,
-            receiver: this.incomingPaymentUrl,
-            amount: this.amount
-          })
-        }
-
         outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
-          quoteId: quote.id
+          incomingPaymentId: this.incomingPaymentUrl,
+          amount: this.amount
         })
       } catch (e) {
         if (e instanceof OpenPaymentsClientError) {
@@ -158,9 +144,8 @@ export class PaymentSession {
             continue
           }
 
-          // Is there a better way to handle this - expired incoming
-          // payment?
-          if (e.status === 400 && quote === undefined) {
+          // We need better error handling.
+          if (e.status === 400) {
             await this.setIncomingPaymentUrl()
             continue
           }
@@ -173,7 +158,6 @@ export class PaymentSession {
         if (outgoingPayment) {
           const { receiveAmount, receiver: incomingPayment } = outgoingPayment
 
-          quote = undefined
           outgoingPayment = undefined
 
           sendMonetizationEvent({
@@ -195,7 +179,12 @@ export class PaymentSession {
             }
           })
 
-          this.saveOverpaying()
+          this.tabState.saveOverpaying(
+            this.tab,
+            this.url,
+            this.receiver,
+            this.intervalInMs
+          )
 
           await sleep(this.intervalInMs)
         }
@@ -261,29 +250,15 @@ export class PaymentSession {
   async pay(amount: number) {
     const incomingPayment = await this.createIncomingPayment()
 
-    let quote: Quote | undefined
     let outgoingPayment: OutgoingPayment | undefined
 
     try {
-      if (!quote) {
-        quote = await this.openPaymentsService.createQuote({
-          walletAddress: this.sender,
-          receiver: incomingPayment.id,
-          amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
-        })
-      }
-
       outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
         walletAddress: this.sender,
-        quoteId: quote.id
+        incomingPaymentId: incomingPayment.id,
+        amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
       })
     } catch (e) {
-      /**
-       * Unhandled exceptions:
-       *  - Expired incoming payment: if the incoming payment is expired when
-       *    trying to create a quote, create a new incoming payment
-       *
-       */
       if (e instanceof OpenPaymentsClientError) {
         // Status code 403 -> expired access token
         if (e.status === 403) {
@@ -321,57 +296,5 @@ export class PaymentSession {
   private setAmount(amount: bigint): void {
     this.amount = amount.toString()
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
-  }
-
-  private async getOverpayingSession(): Promise<{
-    session: OverpayingSession | undefined
-    sessionKey: string
-  }> {
-    const { overpayingSessions } = await this.storage.get([
-      'overpayingSessions'
-    ])
-
-    const hashUrl = await getHash(this.url)
-    const hashWalletAddress = await getHash(JSON.stringify(this.receiver))
-
-    const sessionKey = `${this.tabId}:${hashUrl}:${hashWalletAddress}`
-
-    const session = overpayingSessions[sessionKey]
-
-    return { session, sessionKey }
-  }
-
-  private async processOverpaying(): Promise<void> {
-    const { session } = await this.getOverpayingSession()
-
-    if (session) {
-      // If session not expired yet, wait until it expires
-      const crtTimestamp = Date.now()
-      if (session.expireTimestamp > crtTimestamp) {
-        await sleep(session.expireTimestamp - crtTimestamp)
-      }
-    }
-  }
-
-  private async saveOverpaying(): Promise<void> {
-    if (!this.intervalInMs) return
-
-    const { overpayingSessions } = await this.storage.get([
-      'overpayingSessions'
-    ])
-
-    const crtTimestamp = Date.now()
-    const expireTimestamp = crtTimestamp + this.intervalInMs
-
-    const { sessionKey } = await this.getOverpayingSession()
-
-    const newSession = {
-      expireTimestamp,
-      lastPaymentTimestamp: crtTimestamp
-    }
-
-    overpayingSessions[sessionKey] = newSession
-
-    this.storage.set({ overpayingSessions })
   }
 }

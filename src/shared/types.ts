@@ -27,12 +27,6 @@ export interface GrantDetails {
   accessToken: string
   continueUri: string
 }
-
-export interface OverpayingSession {
-  lastPaymentTimestamp: number
-  expireTimestamp: number
-}
-
 export interface Storage {
   /** If web monetization is enabled */
   enabled: boolean
@@ -49,7 +43,7 @@ export interface Storage {
   walletAddress?: WalletAddress | undefined | null
   /** Overall amount */
   amount?: WalletAmount | undefined | null
-  /** Access token for quoting & outgoing payments  */
+  /** Access token for outgoing payments  */
   token?: AccessToken | undefined | null
   /** Grant details - continue access token & uri for canceling the grant */
   grant?: GrantDetails | undefined | null
@@ -61,20 +55,14 @@ export interface Storage {
   publicKey: string
   privateKey: string
   keyId: string
-
-  overpayingSessions: { [key: string]: OverpayingSession }
 }
 export type StorageKey = keyof Storage
 
 export type PopupStore = Omit<
   Storage,
-  | 'privateKey'
-  | 'keyId'
-  | 'exceptionList'
-  | 'token'
-  | 'grant'
-  | 'overpayingSessions'
+  'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
 > & {
+  isSiteMonetized: boolean
   url: string | undefined
 }
 

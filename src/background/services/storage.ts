@@ -1,8 +1,6 @@
-import type { PopupStore, Storage, StorageKey } from '@/shared/types'
+import type { Storage, StorageKey } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
-import { getCurrentActiveTab } from '../utils'
 import { EventsService } from './events'
-import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 
 const defaultStorage = {
   connected: false,
@@ -16,10 +14,7 @@ const defaultStorage = {
   rateOfPay: null,
   minRateOfPay: null,
   maxRateOfPay: null
-} satisfies Omit<
-  Storage,
-  'publicKey' | 'privateKey' | 'keyId' | 'overpayingSessions'
->
+} satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
   constructor(
@@ -52,37 +47,6 @@ export class StorageService {
     }
   }
 
-  // TODO: Exception list (post-v1) - return data for the current website
-  async getPopupData(): Promise<PopupStore> {
-    let url: string | undefined
-    const data = await this.get([
-      'enabled',
-      'connected',
-      'hasHostPermissions',
-      'amount',
-      'rateOfPay',
-      'minRateOfPay',
-      'maxRateOfPay',
-      'walletAddress',
-      'publicKey'
-    ])
-    const tab = await getCurrentActiveTab(this.browser)
-
-    if (tab && tab.url) {
-      try {
-        const tabUrl = new URL(tab.url)
-        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
-          // Do not include search params
-          url = `${tabUrl.origin}${tabUrl.pathname}`
-        }
-      } catch (_) {
-        // noop
-      }
-    }
-
-    return { ...data, url }
-  }
-
   async getWMState(): Promise<boolean> {
     const { enabled } = await this.get(['enabled'])
 
@@ -103,13 +67,6 @@ export class StorageService {
     }
 
     return false
-  }
-
-  async populateOverpayingSessions(): Promise<void> {
-    const { overpayingSessions } = await this.get(['overpayingSessions'])
-    if (overpayingSessions) return
-
-    this.set({ overpayingSessions: {} })
   }
 
   async setHostPermissionStatus(status: boolean): Promise<void> {

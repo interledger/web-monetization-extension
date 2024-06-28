@@ -1,17 +1,29 @@
-import browser, { type Browser, type Tabs } from 'webextension-polyfill'
+import browser from 'webextension-polyfill'
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill'
 import { MonetizationService } from './monetization'
 import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
+import { getTabId } from '../utils'
 
 const runtime = browser.runtime
-const icon34 = runtime.getURL('assets/icons/icon-34.png')
-const icon128 = runtime.getURL('assets/icons/icon-128.png')
-const iconActive34 = runtime.getURL('assets/icons/icon-active-34.png')
-const iconActive128 = runtime.getURL('assets/icons/icon-active-128.png')
-const iconInactive34 = runtime.getURL('assets/icons/icon-inactive-34.png')
-const iconInactive128 = runtime.getURL('assets/icons/icon-inactive-128.png')
-const iconWarning34 = runtime.getURL('assets/icons/icon-warning-34.png')
-const iconWarning128 = runtime.getURL('assets/icons/icon-warning-128.png')
+const ICONS = {
+  default: {
+    34: runtime.getURL('assets/icons/icon-34.png'),
+    128: runtime.getURL('assets/icons/icon-128.png')
+  },
+  active: {
+    34: runtime.getURL('assets/icons/icon-active-34.png'),
+    128: runtime.getURL('assets/icons/icon-active-128.png')
+  },
+  inactive: {
+    34: runtime.getURL('assets/icons/icon-inactive-34.png'),
+    128: runtime.getURL('assets/icons/icon-inactive-128.png')
+  },
+  warning: {
+    34: runtime.getURL('assets/icons/icon-warning-34.png'),
+    128: runtime.getURL('assets/icons/icon-warning-128.png')
+  }
+}
 
 export class TabEvents {
   constructor(
@@ -33,17 +45,8 @@ export class TabEvents {
 
   private changeIcon = async () => {
     const { enabled } = await this.storage.get(['enabled'])
-
-    const iconData = {
-      '34': enabled ? icon34 : iconWarning34,
-      '128': enabled ? icon128 : iconWarning128
-    }
-
-    if (this.browser.action) {
-      await this.browser.action.setIcon({ path: iconData })
-    } else if (chrome.browserAction) {
-      chrome.browserAction.setIcon({ path: iconData })
-    }
+    const iconData = enabled ? ICONS.default : ICONS.warning
+    await this.browser.action.setIcon({ path: iconData })
   }
 
   onActivatedTab = async () => {
@@ -54,29 +57,25 @@ export class TabEvents {
     await this.changeIcon()
   }
 
-  onUpdatedTab = async (payload?: IsTabMonetizedPayload) => {
+  onUpdatedTab = async (
+    payload?: IsTabMonetizedPayload | null,
+    sender?: Runtime.MessageSender
+  ) => {
     const { enabled } = await this.storage.get(['enabled'])
 
-    let iconData = {
-      '34': enabled ? icon34 : iconWarning34,
-      '128': enabled ? icon34 : iconWarning128
+    let title = this.browser.i18n.getMessage('appName')
+    let iconData = enabled ? ICONS.default : ICONS.warning
+    if (enabled && payload) {
+      const { value: isTabMonetized } = payload
+      iconData = isTabMonetized ? ICONS.active : ICONS.inactive
+      const tabStateText = isTabMonetized
+        ? this.browser.i18n.getMessage('monetizationActiveShort')
+        : this.browser.i18n.getMessage('monetizationInactiveShort')
+      title = `${title} - ${tabStateText}`
     }
+    const tabId = sender && getTabId(sender)
 
-    if (enabled) {
-      if (payload) {
-        const { value } = payload
-
-        iconData = {
-          '34': value ? iconActive34 : iconInactive34,
-          '128': value ? iconActive128 : iconInactive128
-        }
-      }
-    }
-
-    if (this.browser.action) {
-      await this.browser.action.setIcon({ path: iconData })
-    } else if (chrome.browserAction) {
-      chrome.browserAction.setIcon({ path: iconData })
-    }
+    await this.browser.action.setIcon({ path: iconData, tabId })
+    await this.browser.action.setTitle({ title, tabId })
   }
 }

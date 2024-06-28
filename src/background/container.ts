@@ -11,6 +11,7 @@ import {
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
+import { TabState } from './services/tabState'
 
 interface Cradle {
   logger: Logger
@@ -22,6 +23,7 @@ interface Cradle {
   monetizationService: MonetizationService
   tabEvents: TabEvents
   background: Background
+  tabState: TabState
 }
 
 export const configureContainer = () => {
@@ -60,7 +62,8 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('main')
-      }))
+      })),
+    tabState: asClass(TabState).singleton()
   })
 
   return container

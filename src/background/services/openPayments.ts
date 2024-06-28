@@ -5,17 +5,17 @@ import {
   createAuthenticatedClient
 } from '@interledger/open-payments/dist/client'
 import {
+  IncomingPayment,
   isFinalizedGrant,
   isPendingGrant,
   OutgoingPayment,
-  Quote,
   WalletAddress
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
-import { Browser } from 'webextension-polyfill'
+import { Browser, Tabs } from 'webextension-polyfill'
 import {
   getCurrentActiveTab,
   getExchangeRates,
@@ -74,22 +74,19 @@ interface VerifyInteractionHashParams {
   authServer: string
 }
 
-interface CreateQuoteAndOutgoingPaymentGrantParams {
+interface CreateOutgoingPaymentGrantParams {
   clientNonce: string
   walletAddress: WalletAddress
   amount: WalletAmount
 }
 
-interface CreateQuoteParams {
+interface CreateOutgoingPaymentParams {
   walletAddress: WalletAddress
-  receiver: string
+  incomingPaymentId: IncomingPayment['id']
   amount: string
 }
 
-interface CreateOutgoingPaymentParams {
-  walletAddress: WalletAddress
-  quoteId: string
-}
+type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
 
 export class OpenPaymentsService {
   client?: AuthenticatedClient
@@ -298,7 +295,7 @@ export class OpenPaymentsService {
 
     await this.initClient(walletAddress.id)
     const clientNonce = crypto.randomUUID()
-    const grant = await this.createQuoteAndOutgoingPaymentGrant({
+    const grant = await this.createOutgoingPaymentGrant({
       clientNonce,
       walletAddress,
       amount: transformedAmount
@@ -306,7 +303,7 @@ export class OpenPaymentsService {
 
     // Q: Should this be moved to continuation polling?
     // https://github.com/interledger/open-payments/issues/385
-    const { interactRef, hash } = await this.confirmPayment(
+    const { interactRef, hash } = await this.getInteractionInfo(
       grant.interact.redirect
     )
 
@@ -354,11 +351,11 @@ export class OpenPaymentsService {
     this.token = token
   }
 
-  private async createQuoteAndOutgoingPaymentGrant({
+  private async createOutgoingPaymentGrant({
     amount,
     walletAddress,
     clientNonce
-  }: CreateQuoteAndOutgoingPaymentGrantParams) {
+  }: CreateOutgoingPaymentGrantParams) {
     const grant = await this.client!.grant.request(
       {
         url: walletAddress.authServer
@@ -366,12 +363,6 @@ export class OpenPaymentsService {
       {
         access_token: {
           access: [
-            // TODO: Can be removed when the Test Wallet will be upgraded
-            // to the latest Rafiki version (or at least alpha.10)
-            {
-              type: 'quote',
-              actions: ['create']
-            },
             {
               type: 'outgoing-payment',
               actions: ['create'],
@@ -424,31 +415,46 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
-  private async confirmPayment(url: string): Promise<InteractionParams> {
+  private async closeTab(currentTab: number, tabToClose: number) {
+    await this.browser.tabs.update(currentTab, { active: true })
+    await this.browser.tabs.remove(tabToClose)
+  }
+
+  private async getInteractionInfo(url: string): Promise<InteractionParams> {
     const currentTab = await getCurrentActiveTab(this.browser)
 
     return await new Promise((res) => {
-      if (url) {
-        this.browser.tabs.create({ url }).then((tab) => {
-          if (tab.id) {
-            this.browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
-              try {
-                const tabUrl = new URL(changeInfo.url || '')
-                const interactRef = tabUrl.searchParams.get('interact_ref')
-                const hash = tabUrl.searchParams.get('hash')
+      this.browser.tabs.create({ url }).then((tab) => {
+        if (!tab.id) return
+        const getInteractionInfo: TabUpdateCallback = async (
+          tabId,
+          changeInfo
+        ) => {
+          if (tabId !== tab.id) return
+          try {
+            const tabUrl = new URL(changeInfo.url || '')
+            const interactRef = tabUrl.searchParams.get('interact_ref')
+            const hash = tabUrl.searchParams.get('hash')
+            const result = tabUrl.searchParams.get('result')
 
-                if (tabId === tab.id && interactRef && hash) {
-                  this.browser.tabs.update(currentTab.id, { active: true })
-                  this.browser.tabs.remove(tab.id)
-                  res({ interactRef, hash })
-                }
-              } catch (e) {
-                /* do nothing */
-              }
-            })
+            if (
+              (interactRef && hash) ||
+              result === 'grant_rejected' ||
+              result === 'grant_invalid'
+            ) {
+              await this.closeTab(currentTab.id!, tabId)
+              this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
+            }
+
+            if (interactRef && hash) {
+              res({ interactRef, hash })
+            }
+          } catch (e) {
+            /* do nothing */
           }
-        })
-      }
+        }
+        this.browser.tabs.onUpdated.addListener(getInteractionInfo)
+      })
     })
   }
 
@@ -482,32 +488,10 @@ export class OpenPaymentsService {
     })
   }
 
-  async createQuote({
-    walletAddress,
-    receiver,
-    amount
-  }: CreateQuoteParams): Promise<Quote> {
-    return await this.client!.quote.create(
-      {
-        accessToken: this.token.value,
-        url: walletAddress.resourceServer
-      },
-      {
-        method: 'ilp',
-        walletAddress: walletAddress.id,
-        receiver,
-        debitAmount: {
-          value: amount,
-          assetCode: walletAddress.assetCode,
-          assetScale: walletAddress.assetScale
-        }
-      }
-    )
-  }
-
   async createOutgoingPayment({
     walletAddress,
-    quoteId
+    amount,
+    incomingPaymentId
   }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
     return await this.client!.outgoingPayment.create(
       {
@@ -515,8 +499,13 @@ export class OpenPaymentsService {
         url: walletAddress.resourceServer
       },
       {
-        quoteId,
+        incomingPayment: incomingPaymentId,
         walletAddress: walletAddress.id,
+        debitAmount: {
+          value: amount,
+          assetCode: walletAddress.assetCode,
+          assetScale: walletAddress.assetScale
+        },
         metadata: {
           source: 'Web Monetization'
         }

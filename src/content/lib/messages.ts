@@ -21,6 +21,7 @@ export const checkWalletAddressUrlCall = async (
 export const startMonetization = async (
   payload: ContentToBackgroundActionPayload[ContentToBackgroundAction.START_MONETIZATION]
 ) => {
+  if (!payload.length) return
   return await message.send({
     action: ContentToBackgroundAction.START_MONETIZATION,
     payload
@@ -30,6 +31,7 @@ export const startMonetization = async (
 export const stopMonetization = async (
   payload: ContentToBackgroundActionPayload[ContentToBackgroundAction.STOP_MONETIZATION]
 ) => {
+  if (!payload.length) return
   return await message.send({
     action: ContentToBackgroundAction.STOP_MONETIZATION,
     payload
@@ -39,6 +41,7 @@ export const stopMonetization = async (
 export const resumeMonetization = async (
   payload: ContentToBackgroundActionPayload[ContentToBackgroundAction.RESUME_MONETIZATION]
 ) => {
+  if (!payload.length) return
   return await message.send({
     action: ContentToBackgroundAction.RESUME_MONETIZATION,
     payload

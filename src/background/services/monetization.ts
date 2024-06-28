@@ -16,6 +16,9 @@ import {
   removeQueryParams
 } from '../utils'
 import { EventsService } from './events'
+import { ALLOWED_PROTOCOLS } from '@/shared/defines'
+import type { PopupStore } from '@/shared/types'
+import { TabState } from './tabState'
 
 export class MonetizationService {
   private sessions: {
@@ -27,7 +30,8 @@ export class MonetizationService {
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService,
     private browser: Browser,
-    private events: EventsService
+    private events: EventsService,
+    private tabState: TabState
   ) {
     this.sessions = {}
     this.registerEventListeners()
@@ -55,7 +59,7 @@ export class MonetizationService {
       )
       return
     }
-    const { tabId, frameId, url } = getSender(sender)
+    const { tabId, frameId, url, tab } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
@@ -78,11 +82,12 @@ export class MonetizationService {
         receiver,
         connectedWallet,
         requestId,
+        tab,
         tabId,
         frameId,
         rate,
         this.openPaymentsService,
-        this.storage,
+        this.tabState,
         removeQueryParams(url!)
       )
 
@@ -252,5 +257,41 @@ export class MonetizationService {
         }
       })
     })
+  }
+
+  async getPopupData(): Promise<PopupStore> {
+    const storedData = await this.storage.get([
+      'enabled',
+      'connected',
+      'hasHostPermissions',
+      'amount',
+      'rateOfPay',
+      'minRateOfPay',
+      'maxRateOfPay',
+      'walletAddress',
+      'publicKey'
+    ])
+
+    const tab = await getCurrentActiveTab(this.browser)
+
+    let url
+    if (tab && tab.url) {
+      try {
+        const tabUrl = new URL(tab.url)
+        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
+          // Do not include search params
+          url = `${tabUrl.origin}${tabUrl.pathname}`
+        }
+      } catch (_) {
+        // noop
+      }
+    }
+    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
+
+    return {
+      ...storedData,
+      url,
+      isSiteMonetized
+    }
   }
 }
