@@ -46,7 +46,9 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
         readOnly={true}
         value={formatNumber(
           +transformBalance(
-            info.amount?.value ?? '0',
+            (info.recurringGrantRemainingBalance ||
+              info.oneTimeGrantRemainingBalance) ??
+              '0',
             info.walletAddress?.assetScale ?? 2
           ),
           info.walletAddress?.assetScale ?? 2

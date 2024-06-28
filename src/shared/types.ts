@@ -13,22 +13,36 @@ export interface Amount {
   interval: number
 }
 
-export interface WebsiteData {
-  url: string
-  amount: Amount
-}
-
 export interface AccessToken {
   value: string
-  manage: string
+  manageUrl: string
 }
 
-export interface GrantDetails {
-  accessToken: string
-  continueUri: string
+interface GrantDetailsBase {
+  type: string
+  accessToken: AccessToken
+  continue: { url: string; accessToken: string }
 }
+export interface OneTimeGrant extends GrantDetailsBase {
+  type: 'one-time'
+  amount: Omit<WalletAmount, 'interval'>
+}
+export interface RecurringGrant extends GrantDetailsBase {
+  type: 'recurring'
+  amount: Required<WalletAmount>
+}
+export type GrantDetails = OneTimeGrant | RecurringGrant
+
+/** Bigint amount, before transformation with assetScale */
+type AmountValue = string
 
 export interface Storage {
+  /**
+   * Storage structure version. Used in migrations. Numbers are sequential.
+   * Inspired by database upgrades in IndexedDB API.
+   */
+  version: number
+
   /** If web monetization is enabled */
   enabled: boolean
   /** If a wallet is connected or not */
@@ -42,12 +56,12 @@ export interface Storage {
 
   /** User wallet address information */
   walletAddress?: WalletAddress | undefined | null
-  /** Overall amount */
-  amount?: WalletAmount | undefined | null
-  /** Access token for outgoing payments  */
-  token?: AccessToken | undefined | null
-  /** Grant details - continue access token & uri for canceling the grant */
-  grant?: GrantDetails | undefined | null
+
+  recurringGrant?: RecurringGrant | undefined | null
+  recurringGrantRemainingBalance?: AmountValue | undefined | null
+  oneTimeGrant?: OneTimeGrant | undefined | null
+  oneTimeGrantRemainingBalance?: AmountValue | undefined | null
+
   /** Exception list with websites and each specific amount */
   exceptionList: {
     [website: string]: Amount
@@ -61,7 +75,12 @@ export type StorageKey = keyof Storage
 
 export type PopupStore = Omit<
   Storage,
-  'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
+  | 'version'
+  | 'privateKey'
+  | 'keyId'
+  | 'exceptionList'
+  | 'recurringGrant'
+  | 'oneTimeGrant'
 > & {
   isSiteMonetized: boolean
   url: string | undefined

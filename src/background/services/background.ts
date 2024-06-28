@@ -162,10 +162,16 @@ export class Background {
 
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
-      this.logger.info(await this.storage.get())
+      const existingData = await this.storage.get()
+      this.logger.info(existingData)
       if (details.reason === 'install') {
         await this.storage.populate()
         await this.openPaymentsService.generateKeys()
+      }
+      const migrated = await this.storage.migrate()
+      if (migrated) {
+        const prevVersion = existingData.version ?? 1
+        this.logger.info(`Migrated from ${prevVersion} to ${migrated.version}`)
       }
       await this.checkPermissions()
     })

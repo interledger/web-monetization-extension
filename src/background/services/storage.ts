@@ -1,16 +1,23 @@
-import type { Storage, StorageKey } from '@/shared/types'
+import type {
+  GrantDetails,
+  Storage,
+  StorageKey,
+  WalletAmount
+} from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
 
 const defaultStorage = {
+  version: 2,
   connected: false,
   enabled: true,
   hasHostPermissions: true,
   exceptionList: {},
   walletAddress: null,
-  amount: null,
-  token: null,
-  grant: null,
+  recurringGrant: null,
+  recurringGrantRemainingBalance: null,
+  oneTimeGrant: null,
+  oneTimeGrantRemainingBalance: null,
   rateOfPay: null,
   minRateOfPay: null,
   maxRateOfPay: null
@@ -47,6 +54,32 @@ export class StorageService {
     }
   }
 
+  /**
+   * Migrate storage to given target version.
+   */
+  async migrate(targetVersion: Storage['version'] = defaultStorage.version) {
+    const storage = this.browser.storage.local
+
+    let { version = 1 } = await this.get(['version'])
+    if (version === targetVersion) {
+      return null
+    }
+
+    let data = await storage.get()
+    while (version < targetVersion) {
+      ++version
+      const migrate = MIGRATIONS[version]
+      if (!migrate) {
+        throw new Error(`No migration available to reach version "${version}"`)
+      }
+      const [newData, deleteKeys = []] = migrate(data)
+      data = { ...newData, version }
+      await storage.set(data)
+      await storage.remove(deleteKeys)
+    }
+    return data as Storage
+  }
+
   async getWMState(): Promise<boolean> {
     const { enabled } = await this.get(['enabled'])
 
@@ -80,5 +113,58 @@ export class StorageService {
   async updateRate(rate: string): Promise<void> {
     await this.set({ rateOfPay: rate })
     this.events.emit('storage.rate_of_pay_update', { rate })
+  }
+}
+
+/**
+ * @param existingData Existing data from previous version.
+ */
+type Migration = (
+  existingData: Record<string, any>
+) => [data: Record<string, any>, deleteKeys?: string[]]
+
+const MIGRATIONS: Record<Storage['version'], Migration> = {
+  // There was never a migration to reach 1.
+  //
+  // In future, we may remove older version migrations as unsupported. That
+  // would require user to reinstall and setup extension from scratch.
+  2: (data) => {
+    const deleteKeys = ['amount', 'token', 'grant']
+
+    data.recurringGrant = null
+    data.recurringGrantRemainingBalance = null
+    data.oneTimeGrant = null
+    data.oneTimeGrantRemainingBalance = null
+
+    if (data.amount?.value && data.token && data.grant) {
+      const type = data.amount.interval ? 'recurring' : 'one-time'
+
+      const grantDetails: GrantDetails = {
+        type,
+        amount: {
+          value: data.amount.value as string,
+          ...(type === 'recurring'
+            ? { interval: data.amount.interval as string }
+            : {})
+        } as Required<WalletAmount>,
+        accessToken: {
+          value: data.token.value as string,
+          manageUrl: data.token.manage as string
+        },
+        continue: {
+          url: data.grant.continueUri as string,
+          accessToken: data.grant.accessToken as string
+        }
+      }
+
+      if (type === 'recurring') {
+        data.recurringGrant = grantDetails
+        data.recurringGrantRemainingBalance = data.amount.value
+      } else {
+        data.oneTimeGrant = grantDetails
+        data.oneTimeGrantRemainingBalance = data.amount.value
+      }
+    }
+    return [data, deleteKeys]
   }
 }
