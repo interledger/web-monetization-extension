@@ -252,7 +252,7 @@ export class MonetizationService {
     const storedData = await this.storage.get([
       'enabled',
       'connected',
-      'hasHostPermissions',
+      'state',
       'recurringGrantRemainingBalance',
       'oneTimeGrantRemainingBalance',
       'rateOfPay',

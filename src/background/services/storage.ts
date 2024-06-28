@@ -9,9 +9,9 @@ import { EventsService } from './events'
 
 const defaultStorage = {
   version: 2,
+  state: null,
   connected: false,
   enabled: true,
-  hasHostPermissions: true,
   exceptionList: {},
   walletAddress: null,
   recurringGrant: null,
@@ -102,12 +102,32 @@ export class StorageService {
     return false
   }
 
-  async setHostPermissionStatus(status: boolean): Promise<void> {
-    const { hasHostPermissions } = await this.get(['hasHostPermissions'])
-    if (hasHostPermissions !== status) {
-      await this.set({ hasHostPermissions: status })
-      this.events.emit('storage.host_permissions_update', { status })
+  // TODO: ensure correct transitions between states, while also considering
+  // race conditions.
+  async setState(
+    state: null | Record<Exclude<Storage['state'], null>, boolean>
+  ): Promise<boolean> {
+    const { state: prevState } = await this.get(['state'])
+
+    let newState: Storage['state'] = null
+    if (state !== null) {
+      if (typeof state.missing_host_permissions === 'boolean') {
+        if (state.missing_host_permissions) {
+          newState = 'missing_host_permissions'
+        }
+      }
     }
+
+    if (prevState === newState) {
+      return false
+    }
+
+    await this.set({ state: newState })
+    this.events.emit('storage.state_update', {
+      state: newState,
+      prevState: prevState
+    })
+    return true
   }
 
   async updateRate(rate: string): Promise<void> {
@@ -129,12 +149,13 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
   // In future, we may remove older version migrations as unsupported. That
   // would require user to reinstall and setup extension from scratch.
   2: (data) => {
-    const deleteKeys = ['amount', 'token', 'grant']
+    const deleteKeys = ['amount', 'token', 'grant', 'hasHostPermissions']
 
     data.recurringGrant = null
     data.recurringGrantRemainingBalance = null
     data.oneTimeGrant = null
     data.oneTimeGrantRemainingBalance = null
+    data.state = null
 
     if (data.amount?.value && data.token && data.grant) {
       const type = data.amount.interval ? 'recurring' : 'one-time'
@@ -164,6 +185,9 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
         data.oneTimeGrant = grantDetails
         data.oneTimeGrantRemainingBalance = data.amount.value
       }
+    }
+    if (data.hasHostPermissions === false) {
+      data.state = 'missing_host_permissions' satisfies Storage['state']
     }
     return [data, deleteKeys]
   }

@@ -32,6 +32,7 @@ export class Background {
     this.bindOnInstalled()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
+    this.bindStateHandler()
     this.bindTabHandlers()
     this.bindWindowHandlers()
   }
@@ -154,8 +155,11 @@ export class Background {
   bindPermissionsHandler() {
     this.browser.permissions.onAdded.addListener(this.checkPermissions)
     this.browser.permissions.onRemoved.addListener(this.checkPermissions)
-    this.events.on('storage.host_permissions_update', async ({ status }) => {
-      this.logger.info('permission changed', { status })
+  }
+
+  bindStateHandler() {
+    this.events.on('storage.state_update', async ({ state, prevState }) => {
+      this.logger.info('state changed', { state, prevState })
       // TODO: change icon here in future
     })
   }
@@ -180,8 +184,8 @@ export class Background {
   checkPermissions = async () => {
     try {
       this.logger.debug('checking hosts permission')
-      const status = await this.browser.permissions.contains(PERMISSION_HOSTS)
-      this.storage.setHostPermissionStatus(status)
+      const ok = await this.browser.permissions.contains(PERMISSION_HOSTS)
+      this.storage.setState({ missing_host_permissions: !ok })
     } catch (error) {
       this.logger.error(error)
     }
