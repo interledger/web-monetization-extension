@@ -362,13 +362,13 @@ export class OpenPaymentsService {
       await this.storage.set({
         ...data,
         recurringGrant: grantDetails,
-        recurringGrantRemainingBalance: amount
+        recurringGrantRemainingBalance: transformedAmount.value
       })
     } else {
       await this.storage.set({
         ...data,
         oneTimeGrant: grantDetails,
-        oneTimeGrantRemainingBalance: amount
+        oneTimeGrantRemainingBalance: transformedAmount.value
       })
     }
     this.grant = grantDetails
