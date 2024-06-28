@@ -338,19 +338,17 @@ export class OpenPaymentsService {
       throw new Error('Expected finalized grant. Received non-finalized grant.')
     }
 
-    const token: AccessToken = {
-      value: continuation.access_token.value,
-      manageUrl: continuation.access_token.manage
-    }
-    const grantContinue: GrantDetails['continue'] = {
-      accessToken: continuation.continue.access_token.value,
-      url: continuation.continue.uri
-    }
     const grantDetails: GrantDetails = {
       type: recurring ? 'recurring' : 'one-time',
       amount: transformedAmount as Required<WalletAmount>,
-      accessToken: token,
-      continue: grantContinue
+      accessToken: {
+        value: continuation.access_token.value,
+        manageUrl: continuation.access_token.manage
+      },
+      continue: {
+        accessToken: continuation.continue.access_token.value,
+        url: continuation.continue.uri
+      }
     }
 
     const data = {
