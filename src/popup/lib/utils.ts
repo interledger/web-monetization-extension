@@ -11,7 +11,10 @@ export const getCurrencySymbol = (assetCode: string): string => {
     .trim()
 }
 
-export const transformBalance = (amount: string | bigint, scale: number): string => {
+export const transformBalance = (
+  amount: string | bigint,
+  scale: number
+): string => {
   const value = BigInt(amount)
   const divisor = BigInt(10 ** scale)
 
