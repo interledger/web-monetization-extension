@@ -104,7 +104,7 @@
     "pnpm": "^9.4.0",
     "npm": "pnpm",
     "yarn": "pnpm",
-    "node": "20.14.0"
+    "node": "^20.14"
   },
   "packageManager": "pnpm@9.4.0"
 }
