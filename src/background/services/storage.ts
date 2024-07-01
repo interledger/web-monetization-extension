@@ -6,6 +6,7 @@ import type {
 } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
+import { DebounceWithQueue } from '@/shared/helpers'
 
 const defaultStorage = {
   /**
@@ -31,10 +32,25 @@ const defaultStorage = {
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
+  private setRemainingBalanceRecurring: DebounceWithQueue<[amount: string]>
+  private setRemainingBalanceOneTime: DebounceWithQueue<[amount: string]>
+
   constructor(
     private browser: Browser,
     private events: EventsService
-  ) {}
+  ) {
+    const bigIntMin = (a: string, b: string) => (BigInt(a) < BigInt(b) ? a : b)
+    this.setRemainingBalanceRecurring = new DebounceWithQueue(
+      (amount: string) => this.set({ recurringGrantRemainingBalance: amount }),
+      (args) => [args.reduce((m, [e]) => (!m ? e : bigIntMin(m, e)), '')],
+      1000
+    )
+    this.setRemainingBalanceOneTime = new DebounceWithQueue(
+      (amount: string) => this.set({ oneTimeGrantRemainingBalance: amount }),
+      (args) => [args.reduce((m, [e]) => (!m ? e : bigIntMin(m, e)), '')],
+      1000
+    )
+  }
 
   async get<TKey extends StorageKey>(
     keys?: TKey[]
@@ -135,6 +151,14 @@ export class StorageService {
       prevState: prevState
     })
     return true
+  }
+
+  setRemainingBalance(grant: GrantDetails['type'], balance: string) {
+    if (grant === 'recurring') {
+      this.setRemainingBalanceRecurring.enqueue(balance)
+    } else if (grant === 'one-time') {
+      this.setRemainingBalanceOneTime.enqueue(balance)
+    }
   }
 
   async updateRate(rate: string): Promise<void> {

@@ -88,6 +88,48 @@ export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
   }
 }
 
+/**
+ * Debounce a function, while allowing the queued arguments to be reduced before
+ * the function is called. With args reducer, we can call the debounced function
+ * with first/last/merged arguments etc.
+ *
+ * @example
+ * ```ts
+ * const debounceWithQueue = new DebounceWithQueue(
+ *   (total: number) => saveToStorage(total),
+ *   (collectedArgs) => collectedArgs.reduce(total, [val] => total + val, 0),
+ *   wait
+ * )
+ * debounceWithQueue.enqueue(10)
+ * debounceWithQueue.enqueue(15)
+ * // results in saveToStorage(25)
+ * ```
+ */
+export class DebounceWithQueue<Args extends unknown[]> {
+  private argsList: Args[] = []
+  private func: () => Promise<unknown>
+
+  constructor(
+    func: (...args: Args) => Promise<unknown>,
+    argsReducer: (args: Args[]) => [...Args],
+    wait: number
+  ) {
+    this.func = debounceAsync(() => {
+      if (this.argsList.length > 0) {
+        const args = argsReducer(this.argsList.slice())
+        this.argsList = []
+        return func(...args)
+      }
+      return Promise.resolve()
+    }, wait)
+  }
+
+  enqueue(...data: Args) {
+    this.argsList.push(data)
+    void this.func()
+  }
+}
+
 export function debounceSync<T extends unknown[], R>(
   func: (...args: T) => R,
   wait: number
