@@ -150,11 +150,11 @@ type Migration = (
   existingData: Record<string, any>
 ) => [data: Record<string, any>, deleteKeys?: string[]]
 
+// There was never a migration to reach 1.
+//
+// In future, we may remove older version migrations as unsupported. That would
+// require user to reinstall and setup extension from scratch.
 const MIGRATIONS: Record<Storage['version'], Migration> = {
-  // There was never a migration to reach 1.
-  //
-  // In future, we may remove older version migrations as unsupported. That
-  // would require user to reinstall and setup extension from scratch.
   2: (data) => {
     const deleteKeys = ['amount', 'token', 'grant', 'hasHostPermissions']
 
