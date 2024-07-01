@@ -8,6 +8,13 @@ import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
 
 const defaultStorage = {
+  /**
+   * For migrations, increase this version and add a migration script in
+   * {@linkcode MIGRATIONS} below. New additions to structure that can be
+   * dynamically set don't need migrations (e.g. we check if value is null etc.)
+   * but other structural changes would need migrations for keeping
+   * compatibility with existing installations.
+   */
   version: 2,
   state: null,
   connected: false,
