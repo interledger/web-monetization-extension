@@ -9,7 +9,7 @@ type State = {
 }
 
 export class TabState {
-  private state = new WeakMap<Tabs.Tab, { [key: string]: State }>()
+  private state = new WeakMap<Tabs.Tab, Map<string, State>>()
 
   constructor() {}
 
@@ -30,13 +30,13 @@ export class TabState {
     walletAddress: WalletAddress
   ): Promise<number | undefined> {
     const key = await this.getStateKey(url, walletAddress)
-    const state = this.state.get(tab)?.[key]
+    const state = this.state.get(tab)?.get(key)
     const now = Date.now()
 
     if (state && state.expiresAtTimestamp > now) {
       return state.expiresAtTimestamp - now
     }
-    
+
     return
   }
 
@@ -48,11 +48,21 @@ export class TabState {
   ): Promise<void> {
     if (!intervalInMs) return
 
-    const key = await this.getStateKey(url, walletAddress)
-    const state = this.state.get(tab)?.[key]
-
     const crtTimestamp = Date.now()
     const expiresAtTimestamp = crtTimestamp + intervalInMs
+
+    const key = await this.getStateKey(url, walletAddress)
+    const state = this.state.get(tab)?.get(key) || {
+      expiresAtTimestamp: expiresAtTimestamp,
+      lastPaymentTimestamp: crtTimestamp
+    }
+
+    if (!state) {
+      const tabState = this.state.get(tab) || new Map()
+      tabState.set(key, state)
+
+      this.state.set(tab, tabState)
+    }
 
     if (state) {
       state.expiresAtTimestamp = expiresAtTimestamp

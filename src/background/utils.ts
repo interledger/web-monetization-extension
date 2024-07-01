@@ -1,5 +1,5 @@
 import { WalletAmount } from '@/shared/types'
-import { type Browser, Runtime, Tabs } from 'webextension-polyfill'
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill'
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config'
 import { notNullOrUndef } from '@/shared/helpers'
 
