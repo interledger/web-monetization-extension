@@ -1,7 +1,6 @@
 import { getHash } from '../utils'
 
 import { Tabs } from 'webextension-polyfill'
-import { sleep } from '@/shared/helpers'
 import { WalletAddress } from '@interledger/open-payments'
 
 type State = {
@@ -33,7 +32,7 @@ export class TabState {
     const key = await this.getStateKey(url, walletAddress)
     const state = this.state.get(tab)?.[key]
     const now = Date.now()
-    
+
     if (state && state.expiresAtTimestamp > now) {
       return state.expiresAtTimestamp - now
     }
