@@ -130,12 +130,10 @@ export class PaymentSession {
     const waitTime = await this.tabState.getOverpayingWaitTime(
       this.tab,
       this.url,
-      this.receiver
+      this.receiver.id
     )
 
-    if (waitTime) {
-      await sleep(waitTime)
-    }
+    await sleep(waitTime)
 
     while (this.active) {
       try {
@@ -191,7 +189,7 @@ export class PaymentSession {
             this.tabState.saveOverpaying(
               this.tab,
               this.url,
-              this.receiver,
+              this.receiver.id,
               this.intervalInMs
             )
           }

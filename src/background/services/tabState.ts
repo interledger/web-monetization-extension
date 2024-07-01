@@ -1,7 +1,4 @@
-import { getHash } from '../utils'
-
 import { Tabs } from 'webextension-polyfill'
-import { WalletAddress } from '@interledger/open-payments'
 
 type State = {
   lastPaymentTimestamp: number
@@ -13,23 +10,16 @@ export class TabState {
 
   constructor() {}
 
-  private async getStateKey(
-    url: string,
-    walletAddress: WalletAddress
-  ): Promise<string> {
-    const hashUrl = await getHash(url)
-    const hashWalletAddress = await getHash(JSON.stringify(walletAddress))
-    const key = `${hashUrl}:${hashWalletAddress}`
-
-    return key
+  private getStateKey(url: string, walletAddressId: string): string {
+    return `${url}:${walletAddressId}`
   }
 
   async getOverpayingWaitTime(
     tab: Tabs.Tab,
     url: string,
-    walletAddress: WalletAddress
-  ): Promise<number | undefined> {
-    const key = await this.getStateKey(url, walletAddress)
+    walletAddressId: string
+  ): Promise<number> {
+    const key = this.getStateKey(url, walletAddressId)
     const state = this.state.get(tab)?.get(key)
     const now = Date.now()
 
@@ -37,13 +27,13 @@ export class TabState {
       return state.expiresAtTimestamp - now
     }
 
-    return
+    return 0
   }
 
   async saveOverpaying(
     tab: Tabs.Tab,
     url: string,
-    walletAddress: WalletAddress,
+    walletAddressId: string,
     intervalInMs: number
   ): Promise<void> {
     if (!intervalInMs) return
@@ -51,7 +41,7 @@ export class TabState {
     const crtTimestamp = Date.now()
     const expiresAtTimestamp = crtTimestamp + intervalInMs
 
-    const key = await this.getStateKey(url, walletAddress)
+    const key = this.getStateKey(url, walletAddressId)
     const state = this.state.get(tab)?.get(key) || {
       expiresAtTimestamp: expiresAtTimestamp,
       lastPaymentTimestamp: crtTimestamp
