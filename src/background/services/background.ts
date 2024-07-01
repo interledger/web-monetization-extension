@@ -166,16 +166,19 @@ export class Background {
 
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
-      const existingData = await this.storage.get()
-      this.logger.info(existingData)
+      const data = await this.storage.get()
+      this.logger.info(data)
       if (details.reason === 'install') {
         await this.storage.populate()
         await this.openPaymentsService.generateKeys()
-      }
-      const migrated = await this.storage.migrate()
-      if (migrated) {
-        const prevVersion = existingData.version ?? 1
-        this.logger.info(`Migrated from ${prevVersion} to ${migrated.version}`)
+      } else if (details.reason === 'update') {
+        const migrated = await this.storage.migrate()
+        if (migrated) {
+          const prevVersion = data.version ?? 1
+          this.logger.info(
+            `Migrated from ${prevVersion} to ${migrated.version}`
+          )
+        }
       }
       await this.checkPermissions()
     })
