@@ -6,11 +6,11 @@ import { WalletAddress } from '@interledger/open-payments'
 
 type State = {
   lastPaymentTimestamp: number
-  expireTimestamp: number
+  expiresAtTimestamp: number
 }
 
 export class TabState {
-  private states = new WeakMap<Tabs.Tab, { [key: string]: State }>()
+  private state = new WeakMap<Tabs.Tab, { [key: string]: State }>()
 
   constructor() {}
 
@@ -20,26 +20,25 @@ export class TabState {
   ): Promise<string> {
     const hashUrl = await getHash(url)
     const hashWalletAddress = await getHash(JSON.stringify(walletAddress))
-    const stateKey = `${hashUrl}:${hashWalletAddress}`
+    const key = `${hashUrl}:${hashWalletAddress}`
 
-    return stateKey
+    return key
   }
 
-  async processOverpaying(
+  async getOverpayingWaitTime(
     tab: Tabs.Tab,
     url: string,
     walletAddress: WalletAddress
-  ): Promise<void> {
-    const stateKey = await this.getStateKey(url, walletAddress)
-    const state = this.states.get(tab)?.[stateKey]
-
-    if (state) {
-      // If session not expired yet, wait until it expires
-      const crtTimestamp = Date.now()
-      if (state.expireTimestamp > crtTimestamp) {
-        await sleep(state.expireTimestamp - crtTimestamp)
-      }
+  ): Promise<number | undefined> {
+    const key = await this.getStateKey(url, walletAddress)
+    const state = this.state.get(tab)?.[key]
+    const now = Date.now()
+    
+    if (state && state.expiresAtTimestamp > now) {
+      return state.expiresAtTimestamp - now
     }
+    
+    return
   }
 
   async saveOverpaying(
@@ -50,14 +49,14 @@ export class TabState {
   ): Promise<void> {
     if (!intervalInMs) return
 
-    const stateKey = await this.getStateKey(url, walletAddress)
-    const state = this.states.get(tab)?.[stateKey]
+    const key = await this.getStateKey(url, walletAddress)
+    const state = this.state.get(tab)?.[key]
 
     const crtTimestamp = Date.now()
-    const expireTimestamp = crtTimestamp + intervalInMs
+    const expiresAtTimestamp = crtTimestamp + intervalInMs
 
     if (state) {
-      state.expireTimestamp = expireTimestamp
+      state.expiresAtTimestamp = expiresAtTimestamp
       state.lastPaymentTimestamp = crtTimestamp
     }
   }

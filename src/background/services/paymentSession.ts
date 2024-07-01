@@ -127,7 +127,11 @@ export class PaymentSession {
 
     let outgoingPayment: OutgoingPayment | undefined
 
-    this.tabState.processOverpaying(this.tab, this.url, this.receiver)
+    const waitTime = await this.tabState.getOverpayingWaitTime(this.tab, this.url, this.receiver)
+
+    if (waitTime) {
+      await sleep(waitTime)
+    }
 
     while (this.active) {
       try {
@@ -179,12 +183,14 @@ export class PaymentSession {
             }
           })
 
-          this.tabState.saveOverpaying(
-            this.tab,
-            this.url,
-            this.receiver,
-            this.intervalInMs
-          )
+          if (this.intervalInMs > 1000) {
+            this.tabState.saveOverpaying(
+              this.tab,
+              this.url,
+              this.receiver,
+              this.intervalInMs
+            )
+          }
 
           await sleep(this.intervalInMs)
         }
