@@ -487,6 +487,9 @@ export class OpenPaymentsService {
       'recurringGrant',
       'oneTimeGrant'
     ])
+    // TODO: When both types of grant can co-exist, make sure to revoke them
+    // correctly (either specific grant or all grants). See
+    // https://github.com/interledger/web-monetization-extension/pull/379#discussion_r1660447849
     const grant = recurringGrant || oneTimeGrant
 
     if (grant) {
