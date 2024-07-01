@@ -14,11 +14,11 @@ export class TabState {
     return `${url}:${walletAddressId}`
   }
 
-  async getOverpayingWaitTime(
+  getOverpayingWaitTime(
     tab: Tabs.Tab,
     url: string,
     walletAddressId: string
-  ): Promise<number> {
+  ): number {
     const key = this.getStateKey(url, walletAddressId)
     const state = this.state.get(tab)?.get(key)
     const now = Date.now()
@@ -38,13 +38,13 @@ export class TabState {
   ): Promise<void> {
     if (!intervalInMs) return
 
-    const crtTimestamp = Date.now()
-    const expiresAtTimestamp = crtTimestamp + intervalInMs
+    const currentTimestamp = Date.now()
+    const expiresAtTimestamp = currentTimestamp + intervalInMs
 
     const key = this.getStateKey(url, walletAddressId)
     const state = this.state.get(tab)?.get(key) || {
       expiresAtTimestamp: expiresAtTimestamp,
-      lastPaymentTimestamp: crtTimestamp
+      lastPaymentTimestamp: currentTimestamp
     }
 
     if (!state) {
@@ -52,11 +52,9 @@ export class TabState {
       tabState.set(key, state)
 
       this.state.set(tab, tabState)
-    }
-
-    if (state) {
+    } else {
       state.expiresAtTimestamp = expiresAtTimestamp
-      state.lastPaymentTimestamp = crtTimestamp
+      state.lastPaymentTimestamp = currentTimestamp
     }
   }
 }

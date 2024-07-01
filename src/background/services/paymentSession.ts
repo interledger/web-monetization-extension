@@ -127,7 +127,7 @@ export class PaymentSession {
 
     let outgoingPayment: OutgoingPayment | undefined
 
-    const waitTime = await this.tabState.getOverpayingWaitTime(
+    const waitTime = this.tabState.getOverpayingWaitTime(
       this.tab,
       this.url,
       this.receiver.id
