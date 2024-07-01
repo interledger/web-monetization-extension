@@ -1,5 +1,8 @@
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 
+/** Bigint amount, before transformation with assetScale */
+type AmountValue = string
+
 /** Wallet amount */
 export interface WalletAmount {
   value: string
@@ -9,12 +12,12 @@ export interface WalletAmount {
 
 /** Amount interface - used in the `exceptionList` */
 export interface Amount {
-  value: string
+  value: AmountValue
   interval: number
 }
 
 export interface AccessToken {
-  value: string
+  value: AmountValue
   manageUrl: string
 }
 
@@ -32,9 +35,6 @@ export interface RecurringGrant extends GrantDetailsBase {
   amount: Required<WalletAmount>
 }
 export type GrantDetails = OneTimeGrant | RecurringGrant
-
-/** Bigint amount, before transformation with assetScale */
-type AmountValue = string
 
 export interface Storage {
   /**
