@@ -187,8 +187,9 @@ export class Background {
   checkPermissions = async () => {
     try {
       this.logger.debug('checking hosts permission')
-      const ok = await this.browser.permissions.contains(PERMISSION_HOSTS)
-      this.storage.setState({ missing_host_permissions: !ok })
+      const hasPermissions =
+        await this.browser.permissions.contains(PERMISSION_HOSTS)
+      this.storage.setState({ missing_host_permissions: !hasPermissions })
     } catch (error) {
       this.logger.error(error)
     }
