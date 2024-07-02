@@ -42,7 +42,7 @@ export class TabState {
     const expiresAtTimestamp = now + intervalInMs
 
     const key = this.getOverpayingStateKey(url, walletAddressId)
-    const state = this.state.get(tab)?.get(key) 
+    const state = this.state.get(tab)?.get(key)
 
     if (!state) {
       const tabState = this.state.get(tab) || new Map()
