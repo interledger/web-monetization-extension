@@ -253,15 +253,13 @@ export class MonetizationService {
       'enabled',
       'connected',
       'state',
-      'recurringGrantRemainingBalance',
-      'oneTimeGrantRemainingBalance',
       'rateOfPay',
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
       'publicKey'
     ])
-
+    const balance = await this.storage.getBalance()
     const tab = await getCurrentActiveTab(this.browser)
 
     let url
@@ -280,6 +278,7 @@ export class MonetizationService {
 
     return {
       ...storedData,
+      balance: balance.total.toString(),
       url,
       isSiteMonetized
     }

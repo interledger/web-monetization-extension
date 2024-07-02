@@ -1,7 +1,7 @@
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 
 /** Bigint amount, before transformation with assetScale */
-type AmountValue = string
+export type AmountValue = string
 
 /** Wallet amount */
 export interface WalletAmount {
@@ -63,9 +63,9 @@ export interface Storage {
   walletAddress?: WalletAddress | undefined | null
 
   recurringGrant?: RecurringGrant | undefined | null
-  recurringGrantRemainingBalance?: AmountValue | undefined | null
+  recurringGrantSpentAmount?: AmountValue | undefined | null
   oneTimeGrant?: OneTimeGrant | undefined | null
-  oneTimeGrantRemainingBalance?: AmountValue | undefined | null
+  oneTimeGrantSpentAmount?: AmountValue | undefined | null
 
   /** Exception list with websites and each specific amount */
   exceptionList: {
@@ -87,6 +87,7 @@ export type PopupStore = Omit<
   | 'recurringGrant'
   | 'oneTimeGrant'
 > & {
+  balance: AmountValue
   isSiteMonetized: boolean
   url: string | undefined
 }

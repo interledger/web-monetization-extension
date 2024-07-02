@@ -1,4 +1,5 @@
 import type {
+  AmountValue,
   GrantDetails,
   Storage,
   StorageKey,
@@ -7,6 +8,7 @@ import type {
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
 import { DebounceWithQueue } from '@/shared/helpers'
+import { computeBalance } from '../utils'
 
 const defaultStorage = {
   /**
@@ -23,31 +25,31 @@ const defaultStorage = {
   exceptionList: {},
   walletAddress: null,
   recurringGrant: null,
-  recurringGrantRemainingBalance: null,
+  recurringGrantSpentAmount: '0',
   oneTimeGrant: null,
-  oneTimeGrantRemainingBalance: null,
+  oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
   minRateOfPay: null,
   maxRateOfPay: null
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
-  private setRemainingBalanceRecurring: DebounceWithQueue<[amount: string]>
-  private setRemainingBalanceOneTime: DebounceWithQueue<[amount: string]>
+  private setSpentAmountRecurring: DebounceWithQueue<[amount: string]>
+  private setSpentAmountOneTime: DebounceWithQueue<[amount: string]>
 
   constructor(
     private browser: Browser,
     private events: EventsService
   ) {
-    const bigIntMin = (a: string, b: string) => (BigInt(a) < BigInt(b) ? a : b)
-    this.setRemainingBalanceRecurring = new DebounceWithQueue(
-      (amount: string) => this.set({ recurringGrantRemainingBalance: amount }),
-      (args) => [args.reduce((m, [e]) => (!m ? e : bigIntMin(m, e)), '')],
+    const bigIntMax = (a: string, b: string) => (BigInt(a) > BigInt(b) ? a : b)
+    this.setSpentAmountRecurring = new DebounceWithQueue(
+      (amount: string) => this.set({ recurringGrantSpentAmount: amount }),
+      (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
       1000
     )
-    this.setRemainingBalanceOneTime = new DebounceWithQueue(
-      (amount: string) => this.set({ oneTimeGrantRemainingBalance: amount }),
-      (args) => [args.reduce((m, [e]) => (!m ? e : bigIntMin(m, e)), '')],
+    this.setSpentAmountOneTime = new DebounceWithQueue(
+      (amount: string) => this.set({ oneTimeGrantSpentAmount: amount }),
+      (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
       1000
     )
   }
@@ -153,11 +155,38 @@ export class StorageService {
     return true
   }
 
-  setRemainingBalance(grant: GrantDetails['type'], balance: string) {
+  setSpentAmount(grant: GrantDetails['type'], amount: string) {
     if (grant === 'recurring') {
-      this.setRemainingBalanceRecurring.enqueue(balance)
+      this.setSpentAmountRecurring.enqueue(amount)
     } else if (grant === 'one-time') {
-      this.setRemainingBalanceOneTime.enqueue(balance)
+      this.setSpentAmountOneTime.enqueue(amount)
+    }
+  }
+
+  async getBalance(): Promise<{
+    recurring: AmountValue
+    oneTime: AmountValue
+    total: AmountValue
+  }> {
+    const data = await this.get([
+      'recurringGrant',
+      'recurringGrantSpentAmount',
+      'oneTimeGrant',
+      'oneTimeGrantSpentAmount'
+    ])
+    const balanceRecurring = computeBalance(
+      data.recurringGrant,
+      data.recurringGrantSpentAmount
+    )
+    const balanceOneTime = computeBalance(
+      data.oneTimeGrant,
+      data.oneTimeGrantSpentAmount
+    )
+    const balance = balanceRecurring + balanceOneTime
+    return {
+      total: balance.toString(),
+      recurring: balanceRecurring.toString(),
+      oneTime: balanceOneTime.toString()
     }
   }
 
@@ -183,9 +212,9 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
     const deleteKeys = ['amount', 'token', 'grant', 'hasHostPermissions']
 
     data.recurringGrant = null
-    data.recurringGrantRemainingBalance = null
+    data.recurringGrantSpentAmount = '0'
     data.oneTimeGrant = null
-    data.oneTimeGrantRemainingBalance = null
+    data.oneTimeGrantSpentAmount = '0'
     data.state = null
 
     if (data.amount?.value && data.token && data.grant) {
@@ -211,15 +240,15 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
 
       if (type === 'recurring') {
         data.recurringGrant = grantDetails
-        data.recurringGrantRemainingBalance = data.amount.value
       } else {
         data.oneTimeGrant = grantDetails
-        data.oneTimeGrantRemainingBalance = data.amount.value
       }
     }
+
     if (data.hasHostPermissions === false) {
       data.state = 'missing_host_permissions' satisfies Storage['state']
     }
+
     return [data, deleteKeys]
   }
 }
