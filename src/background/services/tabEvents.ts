@@ -61,11 +61,14 @@ export class TabEvents {
     payload?: IsTabMonetizedPayload | null,
     sender?: Runtime.MessageSender
   ) => {
-    const { enabled } = await this.storage.get(['enabled'])
+    const { enabled, connected } = await this.storage.get([
+      'enabled',
+      'connected'
+    ])
 
     let title = this.browser.i18n.getMessage('appName')
-    let iconData = enabled ? ICONS.default : ICONS.warning
-    if (enabled && payload) {
+    let iconData = connected === true ? ICONS.default : ICONS.warning
+    if (enabled && connected === true && payload) {
       const { value: isTabMonetized } = payload
       iconData = isTabMonetized ? ICONS.active : ICONS.inactive
       const tabStateText = isTabMonetized

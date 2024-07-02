@@ -17,6 +17,7 @@ data-testid
 typecheck
 prettiercache
 corepack
+endregion
 
 # packages and 3rd party tools/libraries
 awilix

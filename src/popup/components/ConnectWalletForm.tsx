@@ -139,7 +139,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       <Input
         type="url"
         label="Wallet address"
-        disabled={connected}
+        disabled={connected === true}
         placeholder="https://ilp.rafiki.money/johndoe"
         errorMessage={errors.walletAddressUrl?.message}
         {...register('walletAddressUrl', {
@@ -153,7 +153,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       <Input
         type="text"
         inputMode="numeric"
-        disabled={connected}
+        disabled={connected === true}
         addOn={currencySymbol.symbol}
         label="Amount"
         description="Enter the amount to use from your wallet."

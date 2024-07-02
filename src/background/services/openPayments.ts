@@ -2,7 +2,8 @@
 import { AccessToken, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
-  createAuthenticatedClient
+  createAuthenticatedClient,
+  OpenPaymentsClientError
 } from '@interledger/open-payments/dist/client'
 import {
   IncomingPayment,
@@ -108,7 +109,9 @@ export class OpenPaymentsService {
       'token'
     ])
 
-    if (connected === true && walletAddress && token) {
+    // TODO: how should we check connected state? Should we create client even
+    // with key-revoked state?
+    if (connected !== false && walletAddress && token) {
       await this.initClient(walletAddress.id)
       this.token = token
     }
@@ -299,6 +302,15 @@ export class OpenPaymentsService {
       clientNonce,
       walletAddress,
       amount: transformedAmount
+    }).catch((err) => {
+      if (err instanceof OpenPaymentsClientError) {
+        if (err.status === 400) {
+          // TODO: check for invalid_client
+          const msg = `Failed to connect. Did you connect the public key with the right wallet address?`
+          throw new Error(msg, { cause: err })
+        }
+      }
+      throw err
     })
 
     // Q: Should this be moved to continuation polling?
@@ -460,18 +472,30 @@ export class OpenPaymentsService {
 
   async disconnectWallet() {
     const { grant } = await this.storage.get(['grant'])
+    if (!grant) return
 
-    if (grant) {
-      await this.client!.grant.cancel({
+    try {
+      if (!this.client) {
+        throw new Error('Client not initialized')
+      }
+      await this.client.grant.cancel({
         url: grant.continueUri,
         accessToken: grant.accessToken
       })
-      await this.storage.clear()
-      this.token = {
-        value: '',
-        manage: ''
+    } catch (err) {
+      if (!this.client) {
+        // if we were in connected=key-revoked, client doesn't get initialized.
+        // ignore this error
+      } else if (err instanceof OpenPaymentsClientError && err.status === 400) {
+        // key removed from wallet already before disconnect
+        // TODO: assume it's invalid_client error for now:
+        // https://github.com/interledger/open-payments/issues/482
+      } else {
+        throw err
       }
     }
+    await this.storage.clear()
+    this.token = { value: '', manage: '' }
   }
 
   async generateKeys() {

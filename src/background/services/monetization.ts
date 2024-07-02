@@ -7,7 +7,7 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
-import { emitToggleWM } from '../lib/messages'
+import { emitConnectedStateUpdate, emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { EventsService } from './events'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
@@ -77,7 +77,8 @@ export class MonetizationService {
         tabId,
         frameId,
         rate,
-        this.openPaymentsService
+        this.openPaymentsService,
+        this.events
       )
 
       sessions.set(requestId, session)
@@ -89,15 +90,9 @@ export class MonetizationService {
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
-    const { enabled, connected } = await this.storage.get([
-      'connected',
-      'enabled'
-    ])
-    if (connected === false || enabled === false) return
-
     const sessions = this.sessions[tabId]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -139,10 +134,16 @@ export class MonetizationService {
     })
   }
 
-  resumePaymentSession(
+  async resumePaymentSession(
     payload: ResumeMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
+    const { enabled, connected } = await this.storage.get([
+      'connected',
+      'enabled'
+    ])
+    if (connected !== true || enabled === false) return
+
     const tabId = getTabId(sender)
     const sessions = this.sessions[tabId]
 
@@ -163,7 +164,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (connected === false || enabled === false) return
+    if (connected !== true || enabled === false) return
 
     const sessions = this.sessions[tabId]
 
@@ -233,6 +234,7 @@ export class MonetizationService {
 
   private registerEventListeners() {
     this.onRateOfPayUpdate()
+    this.onKeyRevoked()
   }
 
   private onRateOfPayUpdate() {
@@ -245,6 +247,22 @@ export class MonetizationService {
           session.adjustSessionAmount(rate)
         }
       })
+    })
+  }
+
+  private onKeyRevoked() {
+    this.events.once('open_payments.key_revoked', async () => {
+      this.logger.warn(`Key revoked. Stopping all payment sessions.`)
+      for (const sessions of Object.values(this.sessions)) {
+        for (const session of sessions.values()) {
+          session.stop()
+        }
+      }
+      await this.storage.set({ connected: 'key-revoked' })
+      await emitConnectedStateUpdate({ connected: 'key-revoked' })
+
+      this.logger.debug(`All payment sessions stopped.`)
+      this.onKeyRevoked() // setup listener again once all is done
     })
   }
 

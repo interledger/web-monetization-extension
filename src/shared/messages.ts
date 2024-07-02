@@ -1,5 +1,6 @@
 import type { WalletAddress, OutgoingPayment } from '@interledger/open-payments'
-import { type Browser } from 'webextension-polyfill'
+import type { Browser } from 'webextension-polyfill'
+import type { Storage } from '@/shared/types'
 
 export interface SuccessResponse<TPayload = undefined> {
   success: true
@@ -25,6 +26,7 @@ export type MessageHKT<
 export enum PopupToBackgroundAction {
   GET_CONTEXT_DATA = 'GET_CONTEXT_DATA',
   CONNECT_WALLET = 'CONNECT_WALLET',
+  CHECK_KEY_AUTHENTICATION = 'CHECK_KEY_AUTHENTICATION',
   DISCONNECT_WALLET = 'DISCONNECT_WALLET',
   TOGGLE_WM = 'TOGGLE_WM',
   PAY_WEBSITE = 'PAY_WEBSITE',
@@ -48,6 +50,7 @@ export interface UpdateRateOfPayPayload {
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
   [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
+  [PopupToBackgroundAction.CHECK_KEY_AUTHENTICATION]: undefined
   [PopupToBackgroundAction.DISCONNECT_WALLET]: undefined
   [PopupToBackgroundAction.TOGGLE_WM]: undefined
   [PopupToBackgroundAction.PAY_WEBSITE]: PayWebsitePayload
@@ -154,6 +157,30 @@ export type BackgroundToContentBackgroundMessage = {
 }[BackgroundToContentAction]
 
 export type ToContentMessage = BackgroundToContentBackgroundMessage
+
+// #region Background to Popup
+
+export enum BackgroundToPopupAction {
+  UPDATE_CONNECTED_STATE = 'UPDATE_CONNECTED_STATE'
+}
+
+export interface UpdateConnectedStatePayload {
+  connected: Storage['connected']
+}
+
+export interface BackgroundToPopupActionPayload {
+  [BackgroundToPopupAction.UPDATE_CONNECTED_STATE]: UpdateConnectedStatePayload
+}
+export type BackgroundToPopupMessage = {
+  [K in BackgroundToPopupAction]: MessageHKT<
+    K,
+    BackgroundToPopupActionPayload[K]
+  >
+}[BackgroundToPopupAction]
+
+export type ToPopupMessage = BackgroundToPopupMessage
+
+// #endregion
 
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}

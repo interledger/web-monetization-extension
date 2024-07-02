@@ -3,14 +3,21 @@ import browser from 'webextension-polyfill'
 import { getContextData } from '@/popup/lib/messages'
 import { DeepNonNullable, PopupStore } from '@/shared/types'
 import {
+  BackgroundToPopupAction,
   ContentToBackgroundAction,
+  type BackgroundToPopupMessage,
   type ContentToBackgroundMessage
 } from '@/shared/messages'
+
+type MessageListener = Parameters<
+  typeof browser.runtime.onMessage.addListener
+>[0]
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
   TOGGLE_WM = 'TOGGLE_WM',
   SET_IS_SITE_MONETIZED = 'SET_IS_TAB_MONETIZED',
+  SET_CONNECTED_STATE = 'SET_CONNECTED_STATE',
   UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
 
@@ -42,6 +49,13 @@ interface SetIsSiteMonetized extends ReducerActionMock {
   }
 }
 
+interface SetConnectedState extends ReducerActionMock {
+  type: ReducerActionType.SET_CONNECTED_STATE
+  data: {
+    connected: PopupState['connected']
+  }
+}
+
 interface UpdateRateOfPayAction extends ReducerActionMock {
   type: ReducerActionType.UPDATE_RATE_OF_PAY
   data: {
@@ -53,6 +67,7 @@ export type ReducerActions =
   | SetDataAction
   | ToggleWMAction
   | SetIsSiteMonetized
+  | SetConnectedState
   | UpdateRateOfPayAction
 
 export const PopupStateContext = React.createContext<PopupContext>(
@@ -104,22 +119,30 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     get()
   }, [])
 
-  React.useEffect(() => {
-    type Listener = Parameters<typeof browser.runtime.onMessage.addListener>[0]
-    const listener: Listener = (message: ContentToBackgroundMessage) => {
-      if (message.action === ContentToBackgroundAction.IS_TAB_MONETIZED) {
-        dispatch({
-          type: ReducerActionType.SET_IS_SITE_MONETIZED,
-          data: message.payload
-        })
+  const messageListener: MessageListener = React.useCallback(
+    (message: ContentToBackgroundMessage | BackgroundToPopupMessage) => {
+      switch (message.action) {
+        case ContentToBackgroundAction.IS_TAB_MONETIZED:
+          return dispatch({
+            type: ReducerActionType.SET_IS_SITE_MONETIZED,
+            data: message.payload
+          })
+        case BackgroundToPopupAction.UPDATE_CONNECTED_STATE:
+          return dispatch({
+            type: ReducerActionType.SET_CONNECTED_STATE,
+            data: message.payload
+          })
       }
-    }
+    },
+    [dispatch]
+  )
 
-    browser.runtime.onMessage.addListener(listener)
+  React.useEffect(() => {
+    browser.runtime.onMessage.addListener(messageListener)
     return () => {
-      browser.runtime.onMessage.removeListener(listener)
+      browser.runtime.onMessage.removeListener(messageListener)
     }
-  }, [])
+  }, [messageListener])
 
   if (isLoading) {
     return <>Loading</>

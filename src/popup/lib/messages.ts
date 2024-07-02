@@ -28,6 +28,12 @@ export const connectWallet = async (
   })
 }
 
+export const checkKeyAuthentication = async () => {
+  return await message.send({
+    action: PopupToBackgroundAction.CHECK_KEY_AUTHENTICATION
+  })
+}
+
 export const disconnectWallet = async () => {
   return await message.send({
     action: PopupToBackgroundAction.DISCONNECT_WALLET

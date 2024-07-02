@@ -9,6 +9,7 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
+import { EventsService } from './events'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -27,7 +28,8 @@ export class PaymentSession {
     private tabId: number,
     private frameId: number,
     private rate: string,
-    private openPaymentsService: OpenPaymentsService
+    private openPaymentsService: OpenPaymentsService,
+    private events: EventsService
   ) {
     this.adjustSessionAmount()
   }
@@ -130,7 +132,9 @@ export class PaymentSession {
           amount: this.amount
         })
       } catch (e) {
-        if (e instanceof OpenPaymentsClientError) {
+        if (this.isKeyRevokedError(e, 'resourceServer')) {
+          this.events.emit('open_payments.key_revoked')
+        } else if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
           if (e.status === 403) {
             await this.openPaymentsService.rotateToken()
@@ -181,8 +185,16 @@ export class PaymentSession {
   private async setIncomingPaymentUrl() {
     if (this.incomingPaymentUrl) return
 
-    const incomingPayment = await this.createIncomingPayment()
-    this.incomingPaymentUrl = incomingPayment.id
+    try {
+      const incomingPayment = await this.createIncomingPayment()
+      this.incomingPaymentUrl = incomingPayment.id
+    } catch (error) {
+      if (this.isKeyRevokedError(error)) {
+        this.events.emit('open_payments.key_revoked')
+        return
+      }
+      throw error
+    }
   }
 
   private async createIncomingPayment(): Promise<IncomingPayment> {
@@ -232,9 +244,17 @@ export class PaymentSession {
     return incomingPayment
   }
 
-  // TODO: Needs refactoring - breaks DRY
   async pay(amount: number) {
-    const incomingPayment = await this.createIncomingPayment()
+    const incomingPayment = await this.createIncomingPayment().catch(
+      (error) => {
+        if (this.isKeyRevokedError(error)) {
+          this.events.emit('open_payments.key_revoked')
+          return
+        }
+        throw error
+      }
+    )
+    if (!incomingPayment) return
 
     let outgoingPayment: OutgoingPayment | undefined
 
@@ -245,7 +265,9 @@ export class PaymentSession {
         amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
       })
     } catch (e) {
-      if (e instanceof OpenPaymentsClientError) {
+      if (this.isKeyRevokedError(e, 'resourceServer')) {
+        this.events.emit('open_payments.key_revoked')
+      } else if (e instanceof OpenPaymentsClientError) {
         // Status code 403 -> expired access token
         if (e.status === 403) {
           await this.openPaymentsService.rotateToken()
@@ -282,5 +304,23 @@ export class PaymentSession {
   private setAmount(amount: bigint): void {
     this.amount = amount.toString()
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
+  }
+
+  private isKeyRevokedError(
+    error: any,
+    context?: 'resourceServer' | 'authServer'
+  ) {
+    if (error instanceof OpenPaymentsClientError) {
+      // TODO: check it's invalid_client error or Signature validation error
+      // - create quote fails with 401 + Signature validation error: could not
+      //   find key in list of client keys
+      // - create outgoing payment with same
+      // - [AUTH SERVER] create incoming payment grant fails with 400 + invalid_client
+      return (
+        ((!context || context === 'authServer') && error.status === 400) ||
+        ((!context || context == 'resourceServer') && error.status === 401)
+      )
+    }
+    return false
   }
 }

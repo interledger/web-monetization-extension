@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 
 interface BackgroundEvents {
   'storage.rate_of_pay_update': { rate: string }
+  'open_payments.key_revoked': void
   'storage.host_permissions_update': { status: boolean }
 }
 

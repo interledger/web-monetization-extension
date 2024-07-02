@@ -11,6 +11,7 @@ import {
 } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
+import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 
@@ -20,10 +21,12 @@ export const Component = () => {
   const {
     state: {
       enabled,
+      connected,
       isSiteMonetized,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
+      publicKey,
       walletAddress,
       url
     },
@@ -55,6 +58,26 @@ export const Component = () => {
   const onChangeWM = () => {
     toggleWM()
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
+  }
+
+  if (connected === 'key-revoked') {
+    return (
+      <ErrorKeyRevoked
+        info={{ publicKey, walletAddress }}
+        onKeyAdded={() => {
+          dispatch({
+            type: ReducerActionType.SET_CONNECTED_STATE,
+            data: { connected: true }
+          })
+        }}
+        onDisconnect={() => {
+          dispatch({
+            type: ReducerActionType.SET_CONNECTED_STATE,
+            data: { connected: false }
+          })
+        }}
+      />
+    )
   }
 
   if (!isSiteMonetized) {
