@@ -7,6 +7,7 @@ import type {
 } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
+import { ThrottleBatch } from '@/shared/helpers'
 import { computeBalance } from '../utils'
 
 const defaultStorage = {
@@ -33,10 +34,25 @@ const defaultStorage = {
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
+  private setSpentAmountRecurring: ThrottleBatch<[amount: string]>
+  private setSpentAmountOneTime: ThrottleBatch<[amount: string]>
+
   constructor(
     private browser: Browser,
     private events: EventsService
-  ) {}
+  ) {
+    const bigIntMax = (a: string, b: string) => (BigInt(a) > BigInt(b) ? a : b)
+    this.setSpentAmountRecurring = new ThrottleBatch(
+      (amount) => this.set({ recurringGrantSpentAmount: amount }),
+      (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
+      1000
+    )
+    this.setSpentAmountOneTime = new ThrottleBatch(
+      (amount) => this.set({ oneTimeGrantSpentAmount: amount }),
+      (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
+      1000
+    )
+  }
 
   async get<TKey extends StorageKey>(
     keys?: TKey[]
@@ -137,6 +153,14 @@ export class StorageService {
       prevState: prevState
     })
     return true
+  }
+
+  setSpentAmount(grant: GrantDetails['type'], amount: string) {
+    if (grant === 'recurring') {
+      this.setSpentAmountRecurring.enqueue(amount)
+    } else if (grant === 'one-time') {
+      this.setSpentAmountOneTime.enqueue(amount)
+    }
   }
 
   async getBalance(): Promise<
