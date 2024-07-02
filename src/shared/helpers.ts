@@ -131,8 +131,8 @@ export function throttle<T extends unknown[], R>(
  * @example
  * ```ts
  * const throttled = new ThrottleBatch(
- *   (total: number) => saveToStorage(total),
- *   (collectedArgs) => collectedArgs.reduce(total, [val] => total + val, 0),
+ *   (total: number) => saveToStorage({ total: total.toString() }),
+ *   (collectedArgs) => [collectedArgs.reduce(total, [val] => total + val, 0)],
  *   wait
  * )
  * throttled.enqueue(10)
