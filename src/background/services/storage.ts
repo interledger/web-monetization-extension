@@ -139,11 +139,9 @@ export class StorageService {
     return true
   }
 
-  async getBalance(): Promise<{
-    recurring: AmountValue
-    oneTime: AmountValue
-    total: AmountValue
-  }> {
+  async getBalance(): Promise<
+    Record<'recurring' | 'oneTime' | 'total', AmountValue>
+  > {
     const data = await this.get([
       'recurringGrant',
       'recurringGrantSpentAmount',
