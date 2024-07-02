@@ -10,7 +10,7 @@ export class TabState {
 
   constructor() {}
 
-  private getStateKey(url: string, walletAddressId: string): string {
+  private getOverpayingStateKey(url: string, walletAddressId: string): string {
     return `${url}:${walletAddressId}`
   }
 
@@ -19,7 +19,7 @@ export class TabState {
     url: string,
     walletAddressId: string
   ): number {
-    const key = this.getStateKey(url, walletAddressId)
+    const key = this.getOverpayingStateKey(url, walletAddressId)
     const state = this.state.get(tab)?.get(key)
     const now = Date.now()
 
@@ -30,28 +30,26 @@ export class TabState {
     return 0
   }
 
-  async saveOverpaying(
+  saveOverpaying(
     tab: Tabs.Tab,
     url: string,
     walletAddressId: string,
     intervalInMs: number
-  ): Promise<void> {
+  ): void {
     if (!intervalInMs) return
 
     const now = Date.now()
     const expiresAtTimestamp = now + intervalInMs
 
-    const key = this.getStateKey(url, walletAddressId)
-    const state = this.state.get(tab)?.get(key) || {
-      expiresAtTimestamp: expiresAtTimestamp,
-      lastPaymentTimestamp: now
-    }
+    const key = this.getOverpayingStateKey(url, walletAddressId)
+    const state = this.state.get(tab)?.get(key) 
 
     if (!state) {
       const tabState = this.state.get(tab) || new Map()
-      tabState.set(key, state)
-
-      this.state.set(tab, tabState)
+      tabState.set(key, {
+        expiresAtTimestamp: expiresAtTimestamp,
+        lastPaymentTimestamp: now
+      })
     } else {
       state.expiresAtTimestamp = expiresAtTimestamp
       state.lastPaymentTimestamp = now

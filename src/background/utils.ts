@@ -96,22 +96,8 @@ export const getSender = (sender: Runtime.MessageSender) => {
 export const computeRate = (rate: string, sessionsCount: number) =>
   (+rate / sessionsCount).toString()
 
-export const getHash = async (str: string) => {
-  const encoder = new TextEncoder()
-  const hash = await crypto.subtle.digest('SHA-1', encoder.encode(str))
-
-  return Array.from(new Uint8Array(hash))
-    .map((v) => v.toString(16).padStart(2, '0'))
-    .join('')
-}
-
 export const removeQueryParams = (urlString: string) => {
   const url = new URL(urlString)
 
-  const origin = url.origin
-  const pathname = url.pathname
-
-  const fullPath = origin + pathname
-
-  return fullPath
+  return url.origin + url.pathname
 }

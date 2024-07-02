@@ -27,6 +27,7 @@ export interface GrantDetails {
   accessToken: string
   continueUri: string
 }
+
 export interface Storage {
   /** If web monetization is enabled */
   enabled: boolean
