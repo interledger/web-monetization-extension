@@ -8,10 +8,17 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
-import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
+import {
+  computeRate,
+  getCurrentActiveTab,
+  getSender,
+  getTabId,
+  removeQueryParams
+} from '../utils'
 import { EventsService } from './events'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore } from '@/shared/types'
+import { TabState } from './tabState'
 
 export class MonetizationService {
   private sessions: {
@@ -23,7 +30,8 @@ export class MonetizationService {
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService,
     private browser: Browser,
-    private events: EventsService
+    private events: EventsService,
+    private tabState: TabState
   ) {
     this.sessions = {}
     this.registerEventListeners()
@@ -51,7 +59,7 @@ export class MonetizationService {
       )
       return
     }
-    const { tabId, frameId } = getSender(sender)
+    const { tabId, frameId, url, tab } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
@@ -74,10 +82,13 @@ export class MonetizationService {
         receiver,
         connectedWallet,
         requestId,
+        tab,
         tabId,
         frameId,
         rate,
-        this.openPaymentsService
+        this.openPaymentsService,
+        this.tabState,
+        removeQueryParams(url!)
       )
 
       sessions.set(requestId, session)
