@@ -1,5 +1,8 @@
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 
+/** Bigint amount, before transformation with assetScale */
+export type AmountValue = string
+
 /** Wallet amount */
 export interface WalletAmount {
   value: string
@@ -9,32 +12,48 @@ export interface WalletAmount {
 
 /** Amount interface - used in the `exceptionList` */
 export interface Amount {
-  value: string
+  value: AmountValue
   interval: number
 }
 
-export interface WebsiteData {
-  url: string
-  amount: Amount
-}
-
 export interface AccessToken {
-  value: string
-  manage: string
+  value: AmountValue
+  manageUrl: string
 }
 
-export interface GrantDetails {
-  accessToken: string
-  continueUri: string
+interface GrantDetailsBase {
+  type: string
+  accessToken: AccessToken
+  continue: { url: string; accessToken: string }
 }
+export interface OneTimeGrant extends GrantDetailsBase {
+  type: 'one-time'
+  amount: Omit<WalletAmount, 'interval'>
+}
+export interface RecurringGrant extends GrantDetailsBase {
+  type: 'recurring'
+  amount: Required<WalletAmount>
+}
+export type GrantDetails = OneTimeGrant | RecurringGrant
 
 export interface Storage {
+  /**
+   * Storage structure version. Used in migrations. Numbers are sequential.
+   * Inspired by database upgrades in IndexedDB API.
+   */
+  version: number
+
   /** If web monetization is enabled */
   enabled: boolean
   /** If a wallet is connected or not */
   connected: boolean
-  /** Whether extension can inject scripts, and fetch resources from any host */
-  hasHostPermissions: boolean
+  /** Extension state */
+  state:
+    | never // just added for code formatting
+    /** Normal */
+    | null
+    /** Extension can't inject scripts and fetch resources from all hosts */
+    | 'missing_host_permissions'
 
   rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null
@@ -42,12 +61,12 @@ export interface Storage {
 
   /** User wallet address information */
   walletAddress?: WalletAddress | undefined | null
-  /** Overall amount */
-  amount?: WalletAmount | undefined | null
-  /** Access token for outgoing payments  */
-  token?: AccessToken | undefined | null
-  /** Grant details - continue access token & uri for canceling the grant */
-  grant?: GrantDetails | undefined | null
+
+  recurringGrant?: RecurringGrant | undefined | null
+  recurringGrantSpentAmount?: AmountValue | undefined | null
+  oneTimeGrant?: OneTimeGrant | undefined | null
+  oneTimeGrantSpentAmount?: AmountValue | undefined | null
+
   /** Exception list with websites and each specific amount */
   exceptionList: {
     [website: string]: Amount
@@ -61,8 +80,14 @@ export type StorageKey = keyof Storage
 
 export type PopupStore = Omit<
   Storage,
-  'privateKey' | 'keyId' | 'exceptionList' | 'token' | 'grant'
+  | 'version'
+  | 'privateKey'
+  | 'keyId'
+  | 'exceptionList'
+  | 'recurringGrant'
+  | 'oneTimeGrant'
 > & {
+  balance: AmountValue
   isSiteMonetized: boolean
   url: string | undefined
 }

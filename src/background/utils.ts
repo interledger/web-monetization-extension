@@ -1,4 +1,4 @@
-import { WalletAmount } from '@/shared/types'
+import { AmountValue, GrantDetails, WalletAmount } from '@/shared/types'
 import { type Browser, Runtime } from 'webextension-polyfill'
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config'
 import { notNullOrUndef } from '@/shared/helpers'
@@ -89,3 +89,12 @@ export const getSender = (sender: Runtime.MessageSender) => {
 
 export const computeRate = (rate: string, sessionsCount: number) =>
   (+rate / sessionsCount).toString()
+
+export function computeBalance(
+  grant?: GrantDetails | null,
+  grantSpentAmount?: AmountValue | null
+) {
+  if (!grant?.amount) return 0n
+  const total = BigInt(grant.amount.value)
+  return grantSpentAmount ? total - BigInt(grantSpentAmount) : total
+}

@@ -1,8 +1,12 @@
 import { EventEmitter } from 'events'
+import type { Storage } from '@/shared/types'
 
 interface BackgroundEvents {
   'storage.rate_of_pay_update': { rate: string }
-  'storage.host_permissions_update': { status: boolean }
+  'storage.state_update': {
+    state: Storage['state']
+    prevState: Storage['state']
+  }
 }
 
 export class EventsService extends EventEmitter {
