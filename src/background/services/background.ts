@@ -32,6 +32,7 @@ export class Background {
     this.bindOnInstalled()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
+    this.bindStateHandler()
     this.bindTabHandlers()
     this.bindWindowHandlers()
   }
@@ -154,18 +155,30 @@ export class Background {
   bindPermissionsHandler() {
     this.browser.permissions.onAdded.addListener(this.checkPermissions)
     this.browser.permissions.onRemoved.addListener(this.checkPermissions)
-    this.events.on('storage.host_permissions_update', async ({ status }) => {
-      this.logger.info('permission changed', { status })
+  }
+
+  bindStateHandler() {
+    this.events.on('storage.state_update', async ({ state, prevState }) => {
+      this.logger.info('state changed', { state, prevState })
       // TODO: change icon here in future
     })
   }
 
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
-      this.logger.info(await this.storage.get())
+      const data = await this.storage.get()
+      this.logger.info(data)
       if (details.reason === 'install') {
         await this.storage.populate()
         await this.openPaymentsService.generateKeys()
+      } else if (details.reason === 'update') {
+        const migrated = await this.storage.migrate()
+        if (migrated) {
+          const prevVersion = data.version ?? 1
+          this.logger.info(
+            `Migrated from ${prevVersion} to ${migrated.version}`
+          )
+        }
       }
       await this.checkPermissions()
     })
@@ -174,8 +187,9 @@ export class Background {
   checkPermissions = async () => {
     try {
       this.logger.debug('checking hosts permission')
-      const status = await this.browser.permissions.contains(PERMISSION_HOSTS)
-      this.storage.setHostPermissionStatus(status)
+      const hasPermissions =
+        await this.browser.permissions.contains(PERMISSION_HOSTS)
+      this.storage.setState({ missing_host_permissions: !hasPermissions })
     } catch (error) {
       this.logger.error(error)
     }
