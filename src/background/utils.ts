@@ -94,8 +94,7 @@ export function computeBalance(
   grant?: GrantDetails | null,
   grantSpentAmount?: AmountValue | null
 ) {
-  if (grant?.amount && grantSpentAmount) {
-    return BigInt(grant.amount.value) - BigInt(grantSpentAmount)
-  }
-  return 0n
+  if (!grant?.amount) return 0n
+  const total = BigInt(grant.amount.value)
+  return grantSpentAmount ? total - BigInt(grantSpentAmount) : total
 }
