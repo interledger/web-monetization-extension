@@ -50,6 +50,7 @@ export class TabState {
         expiresAtTimestamp: expiresAtTimestamp,
         lastPaymentTimestamp: now
       })
+      this.state.set(tab, tabState)
     } else {
       state.expiresAtTimestamp = expiresAtTimestamp
       state.lastPaymentTimestamp = now
