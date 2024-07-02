@@ -38,13 +38,13 @@ export class TabState {
   ): Promise<void> {
     if (!intervalInMs) return
 
-    const currentTimestamp = Date.now()
-    const expiresAtTimestamp = currentTimestamp + intervalInMs
+    const now = Date.now()
+    const expiresAtTimestamp = now + intervalInMs
 
     const key = this.getStateKey(url, walletAddressId)
     const state = this.state.get(tab)?.get(key) || {
       expiresAtTimestamp: expiresAtTimestamp,
-      lastPaymentTimestamp: currentTimestamp
+      lastPaymentTimestamp: now
     }
 
     if (!state) {
@@ -54,7 +54,7 @@ export class TabState {
       this.state.set(tab, tabState)
     } else {
       state.expiresAtTimestamp = expiresAtTimestamp
-      state.lastPaymentTimestamp = currentTimestamp
+      state.lastPaymentTimestamp = now
     }
   }
 }

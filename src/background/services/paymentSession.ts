@@ -185,6 +185,7 @@ export class PaymentSession {
             }
           })
 
+          // TO DO: find a better source of truth for deciding if overpaying is applicable
           if (this.intervalInMs > 1000) {
             this.tabState.saveOverpaying(
               this.tab,

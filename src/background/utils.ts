@@ -105,6 +105,13 @@ export const getHash = async (str: string) => {
     .join('')
 }
 
-export const removeQueryParams = (url: string) => {
-  return url.split('?')[0]
+export const removeQueryParams = (urlString: string) => {
+  const url = new URL(urlString)
+
+  const origin = url.origin
+  const pathname = url.pathname
+
+  const fullPath = origin + pathname
+
+  return fullPath
 }
