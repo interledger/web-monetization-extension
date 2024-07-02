@@ -46,7 +46,7 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
         readOnly={true}
         value={formatNumber(
           +transformBalance(
-            BigInt(info.balance ?? 0),
+            info.balance ?? 0,
             info.walletAddress?.assetScale ?? 2
           ),
           info.walletAddress?.assetScale ?? 2
