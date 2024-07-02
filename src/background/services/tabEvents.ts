@@ -44,8 +44,8 @@ export class TabEvents {
   }
 
   private changeIcon = async () => {
-    const { enabled } = await this.storage.get(['enabled'])
-    const iconData = enabled ? ICONS.default : ICONS.warning
+    const { connected } = await this.storage.get(['connected'])
+    const iconData = connected ? ICONS.default : ICONS.warning
     await this.browser.action.setIcon({ path: iconData })
   }
 
@@ -61,11 +61,14 @@ export class TabEvents {
     payload?: IsTabMonetizedPayload | null,
     sender?: Runtime.MessageSender
   ) => {
-    const { enabled } = await this.storage.get(['enabled'])
+    const { enabled, connected } = await this.storage.get([
+      'enabled',
+      'connected'
+    ])
 
     let title = this.browser.i18n.getMessage('appName')
-    let iconData = enabled ? ICONS.default : ICONS.warning
-    if (enabled && payload) {
+    let iconData = connected ? ICONS.default : ICONS.warning
+    if (enabled && connected && payload) {
       const { value: isTabMonetized } = payload
       iconData = isTabMonetized ? ICONS.active : ICONS.inactive
       const tabStateText = isTabMonetized
