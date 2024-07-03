@@ -43,12 +43,12 @@ export class StorageService {
   ) {
     const bigIntMax = (a: string, b: string) => (BigInt(a) > BigInt(b) ? a : b)
     this.setSpentAmountRecurring = new ThrottleBatch(
-      (amount) => this.set({ recurringGrantSpentAmount: amount }),
+      (amount) => this.setSpentAmount('recurring', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
       1000
     )
     this.setSpentAmountOneTime = new ThrottleBatch(
-      (amount) => this.set({ oneTimeGrantSpentAmount: amount }),
+      (amount) => this.setSpentAmount('one-time', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
       1000
     )
@@ -155,12 +155,21 @@ export class StorageService {
     return true
   }
 
-  setSpentAmount(grant: GrantDetails['type'], amount: string) {
+  updateSpentAmount(grant: GrantDetails['type'], amount: string) {
     if (grant === 'recurring') {
       this.setSpentAmountRecurring.enqueue(amount)
     } else if (grant === 'one-time') {
       this.setSpentAmountOneTime.enqueue(amount)
     }
+  }
+
+  private async setSpentAmount(grant: GrantDetails['type'], amount: string) {
+    if (grant === 'recurring') {
+      await this.set({ recurringGrantSpentAmount: amount })
+    } else if (grant === 'one-time') {
+      await this.set({ oneTimeGrantSpentAmount: amount })
+    }
+    // TODO: emit event for balance update
   }
 
   async getBalance(): Promise<

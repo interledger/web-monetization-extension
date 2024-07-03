@@ -540,7 +540,7 @@ export class OpenPaymentsService {
     )) as OutgoingPaymentWithSpentAmounts
 
     if (outgoingPayment.grantSpentDebitAmount) {
-      this.storage.setSpentAmount(
+      this.storage.updateSpentAmount(
         this.grant!.type,
         outgoingPayment.grantSpentDebitAmount.value
       )
