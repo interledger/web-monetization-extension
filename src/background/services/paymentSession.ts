@@ -145,7 +145,7 @@ export class PaymentSession {
           amount: this.amount
         })
       } catch (e) {
-        if (this.isKeyRevokedError(e, 'resourceServer')) {
+        if (this.isKeyRevokedError(e)) {
           this.events.emit('open_payments.key_revoked')
         } else if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
@@ -288,7 +288,7 @@ export class PaymentSession {
         amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
       })
     } catch (e) {
-      if (this.isKeyRevokedError(e, 'resourceServer')) {
+      if (this.isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
       } else if (e instanceof OpenPaymentsClientError) {
         // Status code 403 -> expired access token
@@ -329,19 +329,17 @@ export class PaymentSession {
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
   }
 
-  private isKeyRevokedError(
-    error: any,
-    context?: 'resourceServer' | 'authServer'
-  ) {
+  private isKeyRevokedError(error: any) {
     if (error instanceof OpenPaymentsClientError) {
-      // TODO: check it's invalid_client error or Signature validation error
-      // - create quote fails with 401 + Signature validation error: could not
-      //   find key in list of client keys
-      // - create outgoing payment with same
-      // - [AUTH SERVER] create incoming payment grant fails with 400 + invalid_client
       return (
-        ((!context || context === 'authServer') && error.status === 400) ||
-        ((!context || context == 'resourceServer') && error.status === 401)
+        // - [RESOURCE SERVER] create outgoing payment and create quote fail
+        //   with: HTTP 401 + `Signature validation error: could not find key in
+        //   list of client keys`
+        // - [AUTH SERVER] create incoming payment grant fails with: HTTP 400 +
+        //   `invalid_client`
+        (error.status === 400 && error.code === 'invalid_client') ||
+        (error.status === 401 &&
+          error.description?.includes('Signature validation error'))
       )
     }
     return false
