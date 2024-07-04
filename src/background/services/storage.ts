@@ -1,16 +1,32 @@
-import type { Storage, StorageKey } from '@/shared/types'
+import type {
+  AmountValue,
+  GrantDetails,
+  Storage,
+  StorageKey,
+  WalletAmount
+} from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
+import { computeBalance } from '../utils'
 
 const defaultStorage = {
+  /**
+   * For migrations, increase this version and add a migration script in
+   * {@linkcode MIGRATIONS}. New additions to structure that can be dynamically
+   * set don't need migrations (e.g. we check if value is null etc.) but other
+   * structural changes would need migrations for keeping compatibility with
+   * existing installations.
+   */
+  version: 2,
+  state: null,
   connected: false,
   enabled: true,
-  hasHostPermissions: true,
   exceptionList: {},
   walletAddress: null,
-  amount: null,
-  token: null,
-  grant: null,
+  recurringGrant: null,
+  recurringGrantSpentAmount: '0',
+  oneTimeGrant: null,
+  oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
   minRateOfPay: null,
   maxRateOfPay: null
@@ -47,6 +63,32 @@ export class StorageService {
     }
   }
 
+  /**
+   * Migrate storage to given target version.
+   */
+  async migrate(targetVersion: Storage['version'] = defaultStorage.version) {
+    const storage = this.browser.storage.local
+
+    let { version = 1 } = await this.get(['version'])
+    if (version === targetVersion) {
+      return null
+    }
+
+    let data = await storage.get()
+    while (version < targetVersion) {
+      ++version
+      const migrate = MIGRATIONS[version]
+      if (!migrate) {
+        throw new Error(`No migration available to reach version "${version}"`)
+      }
+      const [newData, deleteKeys = []] = migrate(data)
+      data = { ...newData, version }
+      await storage.set(data)
+      await storage.remove(deleteKeys)
+    }
+    return data as Storage
+  }
+
   async getWMState(): Promise<boolean> {
     const { enabled } = await this.get(['enabled'])
 
@@ -69,16 +111,118 @@ export class StorageService {
     return false
   }
 
-  async setHostPermissionStatus(status: boolean): Promise<void> {
-    const { hasHostPermissions } = await this.get(['hasHostPermissions'])
-    if (hasHostPermissions !== status) {
-      await this.set({ hasHostPermissions: status })
-      this.events.emit('storage.host_permissions_update', { status })
+  // TODO: ensure correct transitions between states, while also considering
+  // race conditions.
+  async setState(
+    state: null | Record<Exclude<Storage['state'], null>, boolean>
+  ): Promise<boolean> {
+    const { state: prevState } = await this.get(['state'])
+
+    let newState: Storage['state'] = null
+    if (state !== null) {
+      if (typeof state.missing_host_permissions === 'boolean') {
+        if (state.missing_host_permissions) {
+          newState = 'missing_host_permissions'
+        }
+      }
+    }
+
+    if (prevState === newState) {
+      return false
+    }
+
+    await this.set({ state: newState })
+    this.events.emit('storage.state_update', {
+      state: newState,
+      prevState: prevState
+    })
+    return true
+  }
+
+  async getBalance(): Promise<
+    Record<'recurring' | 'oneTime' | 'total', AmountValue>
+  > {
+    const data = await this.get([
+      'recurringGrant',
+      'recurringGrantSpentAmount',
+      'oneTimeGrant',
+      'oneTimeGrantSpentAmount'
+    ])
+    const balanceRecurring = computeBalance(
+      data.recurringGrant,
+      data.recurringGrantSpentAmount
+    )
+    const balanceOneTime = computeBalance(
+      data.oneTimeGrant,
+      data.oneTimeGrantSpentAmount
+    )
+    const balance = balanceRecurring + balanceOneTime
+    return {
+      total: balance.toString(),
+      recurring: balanceRecurring.toString(),
+      oneTime: balanceOneTime.toString()
     }
   }
 
   async updateRate(rate: string): Promise<void> {
     await this.set({ rateOfPay: rate })
     this.events.emit('storage.rate_of_pay_update', { rate })
+  }
+}
+
+/**
+ * @param existingData Existing data from previous version.
+ */
+type Migration = (
+  existingData: Record<string, any>
+) => [data: Record<string, any>, deleteKeys?: string[]]
+
+// There was never a migration to reach 1.
+//
+// In future, we may remove older version migrations as unsupported. That would
+// require user to reinstall and setup extension from scratch.
+const MIGRATIONS: Record<Storage['version'], Migration> = {
+  2: (data) => {
+    const deleteKeys = ['amount', 'token', 'grant', 'hasHostPermissions']
+
+    data.recurringGrant = null
+    data.recurringGrantSpentAmount = '0'
+    data.oneTimeGrant = null
+    data.oneTimeGrantSpentAmount = '0'
+    data.state = null
+
+    if (data.amount?.value && data.token && data.grant) {
+      const type = data.amount.interval ? 'recurring' : 'one-time'
+
+      const grantDetails: GrantDetails = {
+        type,
+        amount: {
+          value: data.amount.value as string,
+          ...(type === 'recurring'
+            ? { interval: data.amount.interval as string }
+            : {})
+        } as Required<WalletAmount>,
+        accessToken: {
+          value: data.token.value as string,
+          manageUrl: data.token.manage as string
+        },
+        continue: {
+          url: data.grant.continueUri as string,
+          accessToken: data.grant.accessToken as string
+        }
+      }
+
+      if (type === 'recurring') {
+        data.recurringGrant = grantDetails
+      } else {
+        data.oneTimeGrant = grantDetails
+      }
+    }
+
+    if (data.hasHostPermissions === false) {
+      data.state = 'missing_host_permissions' satisfies Storage['state']
+    }
+
+    return [data, deleteKeys]
   }
 }

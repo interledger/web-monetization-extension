@@ -13,11 +13,12 @@ crossorigin
 iframes
 data-testid
 
-# scripts
+# scripts and 3rd party terms
 typecheck
 prettiercache
 corepack
 endregion
+linkcode
 
 # packages and 3rd party tools/libraries
 awilix

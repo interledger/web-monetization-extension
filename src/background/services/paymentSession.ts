@@ -9,7 +9,9 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
-import { EventsService } from './events'
+import { EventsService } from './.'
+import { TabState } from './tabState'
+import type { Tabs } from 'webextension-polyfill'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -25,11 +27,14 @@ export class PaymentSession {
     private receiver: WalletAddress,
     private sender: WalletAddress,
     private requestId: string,
+    private tab: Tabs.Tab,
     private tabId: number,
     private frameId: number,
     private rate: string,
     private openPaymentsService: OpenPaymentsService,
-    private events: EventsService
+    private events: EventsService,
+    private tabState: TabState,
+    private url: string
   ) {
     this.adjustSessionAmount()
   }
@@ -124,6 +129,14 @@ export class PaymentSession {
 
     let outgoingPayment: OutgoingPayment | undefined
 
+    const waitTime = this.tabState.getOverpayingWaitTime(
+      this.tab,
+      this.url,
+      this.receiver.id
+    )
+
+    await sleep(waitTime)
+
     while (this.active) {
       try {
         outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
@@ -175,6 +188,16 @@ export class PaymentSession {
               }
             }
           })
+
+          // TO DO: find a better source of truth for deciding if overpaying is applicable
+          if (this.intervalInMs > 1000) {
+            this.tabState.saveOverpaying(
+              this.tab,
+              this.url,
+              this.receiver.id,
+              this.intervalInMs
+            )
+          }
 
           await sleep(this.intervalInMs)
         }

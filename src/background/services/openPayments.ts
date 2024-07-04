@@ -1,5 +1,5 @@
 // cSpell:ignore keyid
-import { AccessToken, WalletAmount } from 'shared/types'
+import type { AccessToken, GrantDetails, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
@@ -93,6 +93,7 @@ export class OpenPaymentsService {
   client?: AuthenticatedClient
 
   private token: AccessToken
+  private grant: GrantDetails | null
 
   constructor(
     private browser: Browser,
@@ -103,17 +104,22 @@ export class OpenPaymentsService {
   }
 
   private async initialize() {
-    const { token, connected, walletAddress } = await this.storage.get([
-      'connected',
-      'walletAddress',
-      'token'
-    ])
+    const { connected, walletAddress, oneTimeGrant, recurringGrant } =
+      await this.storage.get([
+        'connected',
+        'walletAddress',
+        'oneTimeGrant',
+        'recurringGrant'
+      ])
 
-    // TODO: how should we check connected state? Should we create client even
-    // with key-revoked state?
-    if (connected !== false && walletAddress && token) {
+    if (
+      connected === true &&
+      walletAddress &&
+      (recurringGrant || oneTimeGrant)
+    ) {
+      this.grant = recurringGrant || oneTimeGrant!
+      this.token = this.grant.accessToken
       await this.initClient(walletAddress.id)
-      this.token = token
     }
   }
 
@@ -342,25 +348,41 @@ export class OpenPaymentsService {
       throw new Error('Expected finalized grant. Received non-finalized grant.')
     }
 
-    const token = {
-      value: continuation.access_token.value,
-      manage: continuation.access_token.manage
+    const grantDetails: GrantDetails = {
+      type: recurring ? 'recurring' : 'one-time',
+      amount: transformedAmount as Required<WalletAmount>,
+      accessToken: {
+        value: continuation.access_token.value,
+        manageUrl: continuation.access_token.manage
+      },
+      continue: {
+        accessToken: continuation.continue.access_token.value,
+        url: continuation.continue.uri
+      }
     }
 
-    await this.storage.set({
+    const data = {
       walletAddress,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
-      amount: transformedAmount,
-      token,
-      grant: {
-        accessToken: continuation.continue.access_token.value,
-        continueUri: continuation.continue.uri
-      },
       connected: true
-    })
-    this.token = token
+    }
+    if (grantDetails.type === 'recurring') {
+      await this.storage.set({
+        ...data,
+        recurringGrant: grantDetails,
+        recurringGrantSpentAmount: '0'
+      })
+    } else {
+      await this.storage.set({
+        ...data,
+        oneTimeGrant: grantDetails,
+        oneTimeGrantSpentAmount: '0'
+      })
+    }
+    this.grant = grantDetails
+    this.token = this.grant.accessToken
   }
 
   private async createOutgoingPaymentGrant({
@@ -471,31 +493,21 @@ export class OpenPaymentsService {
   }
 
   async disconnectWallet() {
-    const { grant } = await this.storage.get(['grant'])
-    if (!grant) return
+    const { recurringGrant, oneTimeGrant } = await this.storage.get([
+      'recurringGrant',
+      'oneTimeGrant'
+    ])
+    // TODO: When both types of grant can co-exist, make sure to revoke them
+    // correctly (either specific grant or all grants). See
+    // https://github.com/interledger/web-monetization-extension/pull/379#discussion_r1660447849
+    const grant = recurringGrant || oneTimeGrant
 
-    try {
-      if (!this.client) {
-        throw new Error('Client not initialized')
-      }
-      await this.client.grant.cancel({
-        url: grant.continueUri,
-        accessToken: grant.accessToken
-      })
-    } catch (err) {
-      if (!this.client) {
-        // if we were in connected=key-revoked, client doesn't get initialized.
-        // ignore this error
-      } else if (err instanceof OpenPaymentsClientError && err.status === 400) {
-        // key removed from wallet already before disconnect
-        // TODO: assume it's invalid_client error for now:
-        // https://github.com/interledger/open-payments/issues/482
-      } else {
-        throw err
-      }
+    if (grant) {
+      await this.client!.grant.cancel(grant.continue)
+      await this.storage.clear()
+      this.grant = null
+      this.token = { value: '', manageUrl: '' }
     }
-    await this.storage.clear()
-    this.token = { value: '', manage: '' }
   }
 
   async generateKeys() {
@@ -538,18 +550,24 @@ export class OpenPaymentsService {
   }
 
   async rotateToken() {
+    if (!this.grant) {
+      throw new Error('No grant to rotate token for')
+    }
     const rotate = this.deduplicator.dedupe(this.client!.token.rotate)
     const newToken = await rotate({
-      url: this.token.manage,
+      url: this.token.manageUrl,
       accessToken: this.token.value
     })
-    const token = {
+    const accessToken: AccessToken = {
       value: newToken.access_token.value,
-      manage: newToken.access_token.manage
+      manageUrl: newToken.access_token.manage
     }
-    await this.storage.set({
-      token
-    })
-    this.token = token
+    if (this.grant.type === 'recurring') {
+      this.storage.set({ recurringGrant: { ...this.grant, accessToken } })
+    } else {
+      this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } })
+    }
+    this.grant.accessToken = accessToken
+    this.token = accessToken
   }
 }
