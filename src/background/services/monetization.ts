@@ -42,11 +42,13 @@ export class MonetizationService {
     sender: Runtime.MessageSender
   ) {
     const {
+      state,
       enabled,
       rateOfPay,
       connected,
       walletAddress: connectedWallet
     } = await this.storage.get([
+      'state',
       'enabled',
       'connected',
       'rateOfPay',
@@ -94,7 +96,7 @@ export class MonetizationService {
 
       sessions.set(requestId, session)
 
-      if (connected === true && enabled === true) {
+      if (connected && enabled && state === null) {
         void session.start()
       }
     })
@@ -149,19 +151,20 @@ export class MonetizationService {
     payload: ResumeMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    const { enabled, connected } = await this.storage.get([
-      'connected',
-      'enabled'
-    ])
-    if (!connected || !enabled) return
-
     const tabId = getTabId(sender)
     const sessions = this.sessions[tabId]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
+
+    const { state, connected, enabled } = await this.storage.get([
+      'state',
+      'connected',
+      'enabled'
+    ])
+    if (state !== null || !connected || !enabled) return
 
     payload.forEach((p) => {
       const { requestId } = p
@@ -171,18 +174,18 @@ export class MonetizationService {
   }
 
   async resumePaymentSessionsByTabId(tabId: number) {
-    const { enabled, connected } = await this.storage.get([
-      'connected',
-      'enabled'
-    ])
-    if (connected === false || enabled === false) return
-
     const sessions = this.sessions[tabId]
-
-    if (!sessions) {
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
+
+    const { state, connected, enabled } = await this.storage.get([
+      'state',
+      'connected',
+      'enabled'
+    ])
+    if (state !== null || !connected || !enabled) return
 
     for (const session of sessions.values()) {
       session.resume()
