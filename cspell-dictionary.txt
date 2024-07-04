@@ -12,6 +12,7 @@ Deduplicator
 crossorigin
 iframes
 data-testid
+nums
 
 # scripts and 3rd party terms
 typecheck
@@ -19,6 +20,7 @@ prettiercache
 corepack
 endregion
 linkcode
+endregion
 
 # packages and 3rd party tools/libraries
 awilix

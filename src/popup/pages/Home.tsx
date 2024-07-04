@@ -27,6 +27,7 @@ export const Component = () => {
       minRateOfPay,
       maxRateOfPay,
       publicKey,
+      balance,
       walletAddress,
       url
     },
@@ -39,6 +40,12 @@ export const Component = () => {
 
     return formatNumber(roundedR, walletAddress.assetScale, true)
   }, [rateOfPay, walletAddress.assetScale])
+
+  const remainingBalance = React.useMemo(() => {
+    const val = Number(balance) / 10 ** walletAddress.assetScale
+    const rounded = roundWithPrecision(val, walletAddress.assetScale)
+    return formatNumber(rounded, walletAddress.assetScale, true)
+  }, [balance, walletAddress.assetScale])
 
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const rateOfPay = event.currentTarget.value
@@ -82,9 +89,13 @@ export const Component = () => {
             step={Number(minRateOfPay)}
             value={Number(rateOfPay)}
           />
-          <div className="flex w-full items-center justify-between px-2">
+          <div className="flex w-full items-center justify-between px-2 tabular-nums">
             <span className="text-sm">
-              {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour test
+              {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour
+            </span>
+            <span className="text-sm">
+              Remaining balance: {getCurrencySymbol(walletAddress.assetCode)}
+              {remainingBalance}
             </span>
           </div>
         </div>

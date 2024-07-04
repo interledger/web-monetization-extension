@@ -6,12 +6,13 @@ import {
   MonetizationService,
   Background,
   TabEvents,
+  TabState,
+  SendToPopup,
   EventsService,
   Deduplicator
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
-import { TabState } from './services/tabState'
 
 interface Cradle {
   logger: Logger
@@ -21,6 +22,7 @@ interface Cradle {
   storage: StorageService
   openPaymentsService: OpenPaymentsService
   monetizationService: MonetizationService
+  sendToPopup: SendToPopup
   tabEvents: TabEvents
   background: Background
   tabState: TabState
@@ -58,6 +60,7 @@ export const configureContainer = () => {
         logger: logger.getLogger('monetization-service')
       })),
     tabEvents: asClass(TabEvents).singleton(),
+    sendToPopup: asClass(SendToPopup).singleton(),
     background: asClass(Background)
       .singleton()
       .inject(() => ({

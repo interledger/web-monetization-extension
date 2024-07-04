@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import type { Storage } from '@/shared/types'
+import type { AmountValue, Storage } from '@/shared/types'
 
 interface BackgroundEvents {
   'open_payments.key_revoked': void
@@ -8,6 +8,10 @@ interface BackgroundEvents {
     state: Storage['state']
     prevState: Storage['state']
   }
+  'storage.balance_update': Record<
+    'recurring' | 'oneTime' | 'total',
+    AmountValue
+  >
 }
 
 export class EventsService extends EventEmitter {

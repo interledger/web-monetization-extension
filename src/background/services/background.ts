@@ -8,13 +8,14 @@ import type {
   EventsService,
   MonetizationService,
   OpenPaymentsService,
+  TabEvents,
+  SendToPopup,
   StorageService
 } from '.'
 import { Logger } from '@/shared/logger'
 import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS, getCurrentActiveTab } from '@/background/utils'
-import { TabEvents } from './tabEvents'
 import { PERMISSION_HOSTS } from '@/shared/defines'
 
 export class Background {
@@ -25,6 +26,7 @@ export class Background {
     private storage: StorageService,
     private logger: Logger,
     private tabEvents: TabEvents,
+    private sendToPopup: SendToPopup,
     private events: EventsService
   ) {}
 
@@ -32,9 +34,10 @@ export class Background {
     this.bindOnInstalled()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
-    this.bindStateHandler()
+    this.bindEventsHandler()
     this.bindTabHandlers()
     this.bindWindowHandlers()
+    this.sendToPopup.start()
   }
 
   bindWindowHandlers() {
@@ -47,6 +50,10 @@ export class Background {
           await this.browser.tabs.query({ windowId: w.id, active: true })
         )[0]
         if (!activeTab?.id) return
+        if (this.sendToPopup.isPopupOpen) {
+          this.logger.debug('Popup is open, ignoring focus change')
+          return
+        }
 
         if (w.focused) {
           this.logger.debug(
@@ -166,11 +173,15 @@ export class Background {
     this.browser.permissions.onRemoved.addListener(this.checkPermissions)
   }
 
-  bindStateHandler() {
+  bindEventsHandler() {
     this.events.on('storage.state_update', async ({ state, prevState }) => {
-      this.logger.info('state changed', { state, prevState })
+      this.sendToPopup.send('SET_STATE', { state, prevState })
       // TODO: change icon here in future
     })
+
+    this.events.on('storage.balance_update', (balance) =>
+      this.sendToPopup.send('SET_BALANCE', balance)
+    )
   }
 
   bindOnInstalled() {
