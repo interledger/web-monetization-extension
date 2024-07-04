@@ -12,6 +12,7 @@ Deduplicator
 crossorigin
 iframes
 data-testid
+nums
 
 # scripts and 3rd party terms
 typecheck
