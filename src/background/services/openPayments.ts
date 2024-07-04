@@ -8,8 +8,7 @@ import {
   isFinalizedGrant,
   isPendingGrant,
   type IncomingPayment,
-  type OutgoingPayment,
-  type OutgoingPaymentWithSpentAmounts,
+  type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
@@ -537,7 +536,7 @@ export class OpenPaymentsService {
           source: 'Web Monetization'
         }
       }
-    )) as OutgoingPaymentWithSpentAmounts
+    )) as OutgoingPayment
 
     if (outgoingPayment.grantSpentDebitAmount) {
       this.storage.updateSpentAmount(

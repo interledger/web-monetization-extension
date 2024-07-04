@@ -7,7 +7,7 @@ import type {
 } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
-import { ThrottleBatch } from '@/shared/helpers'
+import { bigIntMax, ThrottleBatch } from '@/shared/helpers'
 import { computeBalance } from '../utils'
 
 const defaultStorage = {
@@ -41,7 +41,6 @@ export class StorageService {
     private browser: Browser,
     private events: EventsService
   ) {
-    const bigIntMax = (a: string, b: string) => (BigInt(a) > BigInt(b) ? a : b)
     this.setSpentAmountRecurring = new ThrottleBatch(
       (amount) => this.setSpentAmount('recurring', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],

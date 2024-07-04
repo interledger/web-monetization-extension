@@ -188,3 +188,7 @@ export function convert(value: bigint, source: number, target: number) {
   }
   return value / BigInt(Math.pow(10, -scaleDiff))
 }
+
+export function bigIntMax(a: string, b: string) {
+  return BigInt(a) > BigInt(b) ? a : b
+}
