@@ -3,15 +3,10 @@ import {
   MessageManager,
   BackgroundToContentAction,
   type BackgroundToContentMessage,
-  type BackgroundToContentActionPayload,
-  BackgroundToPopupAction,
-  type BackgroundToPopupActionPayload,
-  type BackgroundToPopupMessage
+  type BackgroundToContentActionPayload
 } from '@/shared/messages'
 
-export const message = new MessageManager<
-  BackgroundToContentMessage | BackgroundToPopupMessage
->(browser)
+export const message = new MessageManager<BackgroundToContentMessage>(browser)
 
 interface SendMonetizationEventParams {
   tabId: number
@@ -35,15 +30,6 @@ export const emitToggleWM = async (
 ) => {
   return await message.sendToActiveTab({
     action: BackgroundToContentAction.EMIT_TOGGLE_WM,
-    payload
-  })
-}
-
-export const emitConnectedStateUpdate = async (
-  payload: BackgroundToPopupActionPayload[BackgroundToPopupAction.UPDATE_CONNECTED_STATE]
-) => {
-  return await message.send({
-    action: BackgroundToPopupAction.UPDATE_CONNECTED_STATE,
     payload
   })
 }

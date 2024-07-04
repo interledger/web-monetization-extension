@@ -7,7 +7,7 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
-import { emitConnectedStateUpdate, emitToggleWM } from '../lib/messages'
+import { emitToggleWM } from '../lib/messages'
 import {
   computeRate,
   getCurrentActiveTab,
@@ -175,7 +175,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (connected !== true || enabled === false) return
+    if (connected === false || enabled === false) return
 
     const sessions = this.sessions[tabId]
 
@@ -269,9 +269,7 @@ export class MonetizationService {
           session.stop()
         }
       }
-      await this.storage.set({ connected: 'key-revoked' })
-      await emitConnectedStateUpdate({ connected: 'key-revoked' })
-
+      await this.storage.setState({ key_revoked: true })
       this.logger.debug(`All payment sessions stopped.`)
       this.onKeyRevoked() // setup listener again once all is done
     })

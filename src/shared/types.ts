@@ -45,12 +45,8 @@ export interface Storage {
 
   /** If web monetization is enabled */
   enabled: boolean
-  /**
-   * If a wallet is connected or not.
-   * - `true`: wallet is connected and usable.
-   * - `key-revoked`: the uploaded public key is no longer valid/exists.
-   **/
-  connected: boolean | 'key-revoked'
+  /** If a wallet is connected or not **/
+  connected: boolean
   /** Extension state */
   state:
     | never // just added for code formatting
@@ -58,6 +54,8 @@ export interface Storage {
     | null
     /** Extension can't inject scripts and fetch resources from all hosts */
     | 'missing_host_permissions'
+    /** The public key no longer exists or valid in connected wallet */
+    | 'key_revoked'
 
   rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null

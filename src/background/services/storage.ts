@@ -114,7 +114,7 @@ export class StorageService {
   // TODO: ensure correct transitions between states, while also considering
   // race conditions.
   async setState(
-    state: null | Record<Exclude<Storage['state'], null>, boolean>
+    state: null | Partial<Record<Exclude<Storage['state'], null>, boolean>>
   ): Promise<boolean> {
     const { state: prevState } = await this.get(['state'])
 
@@ -123,6 +123,11 @@ export class StorageService {
       if (typeof state.missing_host_permissions === 'boolean') {
         if (state.missing_host_permissions) {
           newState = 'missing_host_permissions'
+        }
+      }
+      if (typeof state.key_revoked === 'boolean') {
+        if (state.key_revoked) {
+          newState = 'key_revoked'
         }
       }
     }

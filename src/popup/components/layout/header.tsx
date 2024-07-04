@@ -13,7 +13,7 @@ const NavigationButton = () => {
     state: { connected }
   } = useContext(PopupStateContext)
   return useMemo(() => {
-    if (connected === false) return null
+    if (!connected) return null
 
     return location.pathname === `${ROUTES_PATH.SETTINGS}` ? (
       <Link to={ROUTES_PATH.HOME}>

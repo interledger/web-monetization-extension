@@ -87,7 +87,7 @@ export class Background {
 
             case PopupToBackgroundAction.CHECK_KEY_AUTHENTICATION:
               await this.openPaymentsService.rotateToken()
-              await this.storage.set({ connected: true })
+              await this.storage.setState({ key_revoked: false })
               await this.monetizationService.resumePaymentSessionsByTabId(
                 (await getCurrentActiveTab(this.browser)).id!
               )

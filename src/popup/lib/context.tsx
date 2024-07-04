@@ -3,15 +3,9 @@ import browser from 'webextension-polyfill'
 import { getContextData } from '@/popup/lib/messages'
 import { DeepNonNullable, PopupStore } from '@/shared/types'
 import {
-  BackgroundToPopupAction,
   ContentToBackgroundAction,
-  type BackgroundToPopupMessage,
   type ContentToBackgroundMessage
 } from '@/shared/messages'
-
-type MessageListener = Parameters<
-  typeof browser.runtime.onMessage.addListener
->[0]
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
@@ -119,30 +113,22 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     get()
   }, [])
 
-  const messageListener: MessageListener = React.useCallback(
-    (message: ContentToBackgroundMessage | BackgroundToPopupMessage) => {
-      switch (message.action) {
-        case ContentToBackgroundAction.IS_TAB_MONETIZED:
-          return dispatch({
-            type: ReducerActionType.SET_IS_SITE_MONETIZED,
-            data: message.payload
-          })
-        case BackgroundToPopupAction.UPDATE_CONNECTED_STATE:
-          return dispatch({
-            type: ReducerActionType.SET_CONNECTED_STATE,
-            data: message.payload
-          })
-      }
-    },
-    [dispatch]
-  )
-
   React.useEffect(() => {
-    browser.runtime.onMessage.addListener(messageListener)
-    return () => {
-      browser.runtime.onMessage.removeListener(messageListener)
+    type Listener = Parameters<typeof browser.runtime.onMessage.addListener>[0]
+    const listener: Listener = (message: ContentToBackgroundMessage) => {
+      if (message.action === ContentToBackgroundAction.IS_TAB_MONETIZED) {
+        dispatch({
+          type: ReducerActionType.SET_IS_SITE_MONETIZED,
+          data: message.payload
+        })
+      }
     }
-  }, [messageListener])
+
+    browser.runtime.onMessage.addListener(listener)
+    return () => {
+      browser.runtime.onMessage.removeListener(listener)
+    }
+  }, [])
 
   if (isLoading) {
     return <>Loading</>
