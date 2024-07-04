@@ -61,23 +61,7 @@ export const Component = () => {
   }
 
   if (state === 'key_revoked') {
-    return (
-      <ErrorKeyRevoked
-        info={{ publicKey, walletAddress }}
-        onKeyAdded={() => {
-          dispatch({
-            type: ReducerActionType.SET_CONNECTED_STATE,
-            data: { connected: true }
-          })
-        }}
-        onDisconnect={() => {
-          dispatch({
-            type: ReducerActionType.SET_CONNECTED_STATE,
-            data: { connected: false }
-          })
-        }}
-      />
-    )
+    return <ErrorKeyRevoked info={{ publicKey, walletAddress }} />
   }
 
   if (!isSiteMonetized) {

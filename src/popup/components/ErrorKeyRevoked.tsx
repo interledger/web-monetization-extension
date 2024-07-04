@@ -10,8 +10,8 @@ import type { PopupStore } from '@/shared/types'
 
 interface Props {
   info: Pick<PopupStore, 'publicKey' | 'walletAddress'>
-  onDisconnect: () => void
-  onKeyAdded: () => void
+  onDisconnect?: () => void
+  onKeyAdded?: () => void
 }
 
 export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
@@ -21,6 +21,29 @@ export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
     clearErrors,
     setError
   } = useForm({ criteriaMode: 'firstError', mode: 'onSubmit' })
+
+  const requestDisconnect = async () => {
+    try {
+      await disconnectWallet()
+      onDisconnect?.()
+    } catch (error) {
+      setError('root', { message: error.message })
+    }
+  }
+
+  const requestReconnect = async () => {
+    clearErrors()
+    try {
+      const res = await checkKeyAuthentication()
+      if (res.success) {
+        onKeyAdded?.()
+      } else {
+        setError('root', { message: res.message })
+      }
+    } catch (error) {
+      setError('root', { message: error.message })
+    }
+  }
 
   return (
     <div className="text-sm">
@@ -41,29 +64,8 @@ export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
 
       <form
         className="mt-4 h-full space-y-4"
-        onReset={handleSubmit(async () => {
-          clearErrors()
-          try {
-            await disconnectWallet()
-            onDisconnect()
-          } catch (error) {
-            setError('root', { message: error.message })
-          }
-        })}
-        onSubmit={handleSubmit(async () => {
-          clearErrors()
-          try {
-            const res = await checkKeyAuthentication()
-            if (res.success) {
-              onKeyAdded()
-              window.location.reload()
-            } else {
-              setError('root', { message: res.message })
-            }
-          } catch (error) {
-            setError('root', { message: error.message })
-          }
-        })}
+        onReset={handleSubmit(requestDisconnect)}
+        onSubmit={handleSubmit(requestReconnect)}
       >
         <div className="space-y-4">
           <div className="space-y-2">
