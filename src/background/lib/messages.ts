@@ -1,9 +1,9 @@
 import browser from 'webextension-polyfill'
 import {
-  MessageManager,
+  BackgroundToContentMessage,
   BackgroundToContentAction,
-  type BackgroundToContentMessage,
-  type BackgroundToContentActionPayload
+  BackgroundToContentActionPayload,
+  MessageManager
 } from '@/shared/messages'
 
 export const message = new MessageManager<BackgroundToContentMessage>(browser)

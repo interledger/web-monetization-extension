@@ -45,7 +45,7 @@ export interface Storage {
 
   /** If web monetization is enabled */
   enabled: boolean
-  /** If a wallet is connected or not **/
+  /** If a wallet is connected or not */
   connected: boolean
   /** Extension state */
   state:

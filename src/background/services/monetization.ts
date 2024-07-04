@@ -153,7 +153,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (connected !== true || enabled === false) return
+    if (!connected || !enabled) return
 
     const tabId = getTabId(sender)
     const sessions = this.sessions[tabId]

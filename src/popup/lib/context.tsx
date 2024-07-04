@@ -79,6 +79,9 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
         enabled: !state.enabled
       }
     }
+    case ReducerActionType.SET_CONNECTED_STATE: {
+      return { ...state, connected: action.data.connected }
+    }
     case ReducerActionType.SET_IS_SITE_MONETIZED:
       return { ...state, isSiteMonetized: action.data.value }
     case ReducerActionType.UPDATE_RATE_OF_PAY: {
