@@ -84,7 +84,7 @@ export const Component = () => {
           />
           <div className="flex w-full items-center justify-between px-2 tabular-nums">
             <span className="text-sm">
-              {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour test
+              {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour
             </span>
             <span className="text-sm">
               Remaining balance: {getCurrencySymbol(walletAddress.assetCode)}
