@@ -5,11 +5,11 @@ import {
   createAuthenticatedClient
 } from '@interledger/open-payments/dist/client'
 import {
-  IncomingPayment,
   isFinalizedGrant,
   isPendingGrant,
-  OutgoingPayment,
-  WalletAddress
+  type IncomingPayment,
+  type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
+  type WalletAddress
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
@@ -519,7 +519,7 @@ export class OpenPaymentsService {
     amount,
     incomingPaymentId
   }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
-    return await this.client!.outgoingPayment.create(
+    const outgoingPayment = (await this.client!.outgoingPayment.create(
       {
         accessToken: this.token.value,
         url: walletAddress.resourceServer
@@ -536,7 +536,16 @@ export class OpenPaymentsService {
           source: 'Web Monetization'
         }
       }
-    )
+    )) as OutgoingPayment
+
+    if (outgoingPayment.grantSpentDebitAmount) {
+      this.storage.updateSpentAmount(
+        this.grant!.type,
+        outgoingPayment.grantSpentDebitAmount.value
+      )
+    }
+
+    return outgoingPayment
   }
 
   async rotateToken() {

@@ -88,6 +88,83 @@ export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
   }
 }
 
+// Based on https://stackoverflow.com/a/27078401
+export function throttle<T extends unknown[], R>(
+  func: (...args: T) => R,
+  wait: number,
+  options: Partial<{ leading: boolean; trailing: boolean }> = {
+    leading: false,
+    trailing: false
+  }
+) {
+  let result: R
+  let timeout: ReturnType<typeof setTimeout> | null = null
+  let previous = 0
+  const later = (...args: T) => {
+    previous = options.leading === false ? 0 : Date.now()
+    timeout = null
+    result = func(...args)
+  }
+  return (...args: T) => {
+    const now = Date.now()
+    if (!previous && options.leading === false) previous = now
+    const remaining = wait - (now - previous)
+    if (remaining <= 0 || remaining > wait) {
+      if (timeout) {
+        clearTimeout(timeout)
+        timeout = null
+      }
+      previous = now
+      result = func(...args)
+    } else if (!timeout && options.trailing !== false) {
+      timeout = setTimeout(later, remaining, ...args)
+    }
+    return result
+  }
+}
+
+/**
+ * Throttle a function, while allowing the queued arguments to be reduced before
+ * the function is called. With args reducer, we can call the throttled function
+ * with first/last/merged arguments etc.
+ *
+ * @example
+ * ```ts
+ * const throttled = new ThrottleBatch(
+ *   (total: number) => saveToStorage({ total: total.toString() }),
+ *   (collectedArgs) => [collectedArgs.reduce(total, [val] => total + val, 0)],
+ *   wait
+ * )
+ * throttled.enqueue(10)
+ * throttled.enqueue(15)
+ * // results in saveToStorage(25)
+ * ```
+ */
+export class ThrottleBatch<Args extends unknown[], R = unknown> {
+  private argsList: Args[] = []
+  private throttled: () => void
+
+  constructor(
+    private func: (...arg: Args) => R,
+    private argsReducer: (args: Args[]) => [...Args],
+    wait: number
+  ) {
+    this.throttled = throttle(() => this.flush(), wait, { leading: true })
+  }
+
+  enqueue(...data: Args) {
+    this.argsList.push(data)
+    void this.throttled()
+  }
+
+  flush() {
+    if (!this.argsList.length) return
+    const args = this.argsReducer(this.argsList.slice())
+    this.argsList = []
+    return this.func(...args)
+  }
+}
+
 export function debounceSync<T extends unknown[], R>(
   func: (...args: T) => R,
   wait: number
@@ -110,4 +187,8 @@ export function convert(value: bigint, source: number, target: number) {
     return value * BigInt(Math.pow(10, scaleDiff))
   }
   return value / BigInt(Math.pow(10, -scaleDiff))
+}
+
+export function bigIntMax(a: string, b: string) {
+  return BigInt(a) > BigInt(b) ? a : b
 }
