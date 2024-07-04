@@ -40,7 +40,7 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
       />
       <Input
         addOn={getCurrencySymbol(info.walletAddress?.assetCode ?? 'USD')}
-        className="bg-disabled"
+        className="bg-disabled tabular-nums"
         label="Remaining balance"
         disabled={true}
         readOnly={true}
