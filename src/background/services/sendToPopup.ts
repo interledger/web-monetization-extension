@@ -1,19 +1,9 @@
-import type { AmountValue, Storage } from '@/shared/types'
 import type { Browser, Runtime } from 'webextension-polyfill'
-
-interface BackgroundToPopupMessages {
-  SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>
-  SET_STATE: { state: Storage['state']; prevState: Storage['state'] }
-}
-
-export type BackgroundToPopupMessage = {
-  [K in keyof BackgroundToPopupMessages]: {
-    type: K
-    data: BackgroundToPopupMessages[K]
-  }
-}[keyof BackgroundToPopupMessages]
-
-export const CONNECTION_NAME = 'popup'
+import {
+  BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
+  type BackgroundToPopupMessage,
+  type BackgroundToPopupMessagesMap
+} from '@/shared/messages'
 
 export class SendToPopup {
   private isConnected = false
@@ -39,9 +29,9 @@ export class SendToPopup {
     return this.isConnected
   }
 
-  async send<T extends keyof BackgroundToPopupMessages>(
+  async send<T extends keyof BackgroundToPopupMessagesMap>(
     type: T,
-    data: BackgroundToPopupMessages[T]
+    data: BackgroundToPopupMessagesMap[T]
   ) {
     if (!this.isConnected) {
       return

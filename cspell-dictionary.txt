@@ -19,6 +19,7 @@ typecheck
 prettiercache
 corepack
 linkcode
+endregion
 
 # packages and 3rd party tools/libraries
 awilix

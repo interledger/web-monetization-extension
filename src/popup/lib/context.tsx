@@ -7,9 +7,9 @@ import {
   type ContentToBackgroundMessage
 } from '@/shared/messages'
 import {
-  CONNECTION_NAME,
+  BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
   type BackgroundToPopupMessage
-} from '@/background/services/sendToPopup'
+} from '@/shared/messages'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
