@@ -6,6 +6,10 @@ import {
   ContentToBackgroundAction,
   type ContentToBackgroundMessage
 } from '@/shared/messages'
+import {
+  BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
+  type BackgroundToPopupMessage
+} from '@/shared/messages'
 
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
@@ -14,7 +18,9 @@ export enum ReducerActionType {
   UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
 
-export type PopupState = Required<DeepNonNullable<PopupStore>>
+export type PopupState = Required<
+  DeepNonNullable<Omit<PopupStore, 'state'>> & Pick<PopupStore, 'state'>
+>
 
 export interface PopupContext {
   state: Required<NonNullable<PopupState>>
@@ -49,11 +55,14 @@ interface UpdateRateOfPayAction extends ReducerActionMock {
   }
 }
 
+type BackgroundToPopupAction = BackgroundToPopupMessage
+
 export type ReducerActions =
   | SetDataAction
   | ToggleWMAction
   | SetIsSiteMonetized
   | UpdateRateOfPayAction
+  | BackgroundToPopupAction
 
 export const PopupStateContext = React.createContext<PopupContext>(
   {} as PopupContext
@@ -78,6 +87,10 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
         rateOfPay: action.data.rateOfPay
       }
     }
+    case 'SET_STATE':
+      return { ...state, state: action.data.state }
+    case 'SET_BALANCE':
+      return { ...state, balance: action.data.total }
     default:
       return state
   }
@@ -120,6 +133,23 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
       browser.runtime.onMessage.removeListener(listener)
     }
   }, [])
+
+  React.useEffect(() => {
+    const port = browser.runtime.connect({ name: CONNECTION_NAME })
+    port.onMessage.addListener((message: BackgroundToPopupMessage) => {
+      switch (message.type) {
+        case 'SET_BALANCE':
+        case 'SET_STATE':
+          return dispatch(message)
+      }
+    })
+    port.onDisconnect.addListener(() => {
+      // nothing to do
+    })
+    return () => {
+      port.disconnect()
+    }
+  }, [dispatch])
 
   if (isLoading) {
     return <>Loading</>

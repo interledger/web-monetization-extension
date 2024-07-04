@@ -1,5 +1,6 @@
 import type { WalletAddress, OutgoingPayment } from '@interledger/open-payments'
-import { type Browser } from 'webextension-polyfill'
+import type { Browser } from 'webextension-polyfill'
+import type { AmountValue, Storage } from '@/shared/types'
 
 export interface SuccessResponse<TPayload = undefined> {
   success: true
@@ -22,6 +23,7 @@ export type MessageHKT<
   ? { action: TAction }
   : { action: TAction; payload: TPayload }
 
+// #region Popup ↦ BG
 export enum PopupToBackgroundAction {
   GET_CONTEXT_DATA = 'GET_CONTEXT_DATA',
   CONNECT_WALLET = 'CONNECT_WALLET',
@@ -60,7 +62,9 @@ export type PopupToBackgroundMessage = {
     PopupToBackgroundActionPayload[K]
   >
 }[PopupToBackgroundAction]
+// #endregion
 
+// #region Content ↦ BG
 export enum ContentToBackgroundAction {
   CHECK_WALLET_ADDRESS_URL = 'CHECK_WALLET_ADDRESS_URL',
   START_MONETIZATION = 'START_MONETIZATION',
@@ -107,7 +111,14 @@ export type ContentToBackgroundMessage = {
     ContentToBackgroundActionPayload[K]
   >
 }[ContentToBackgroundAction]
+// #endregion
 
+export type ToBackgroundMessage =
+  | PopupToBackgroundMessage
+  | ContentToBackgroundMessage
+  | BackgroundToContentMessage
+
+// #region BG ↦ Content
 export type BackgroundToContentMessage = {
   [K in BackgroundToContentAction]: MessageHKT<
     K,
@@ -118,11 +129,6 @@ export type BackgroundToContentMessage = {
 export interface BackgroundToContentActionPayload {
   [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
 }
-
-export type ToBackgroundMessage =
-  | PopupToBackgroundMessage
-  | ContentToBackgroundMessage
-  | BackgroundToContentMessage
 
 export enum BackgroundToContentAction {
   MONETIZATION_EVENT = 'MONETIZATION_EVENT',
@@ -154,6 +160,7 @@ export type BackgroundToContentBackgroundMessage = {
 }[BackgroundToContentAction]
 
 export type ToContentMessage = BackgroundToContentBackgroundMessage
+// #endregion
 
 export class MessageManager<TMessages> {
   constructor(private browser: Browser) {}
@@ -184,3 +191,19 @@ export class MessageManager<TMessages> {
     return await this.browser.tabs.sendMessage(activeTab.id as number, message)
   }
 }
+
+// #region BG ↦ Popup
+export interface BackgroundToPopupMessagesMap {
+  SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>
+  SET_STATE: { state: Storage['state']; prevState: Storage['state'] }
+}
+
+export type BackgroundToPopupMessage = {
+  [K in keyof BackgroundToPopupMessagesMap]: {
+    type: K
+    data: BackgroundToPopupMessagesMap[K]
+  }
+}[keyof BackgroundToPopupMessagesMap]
+
+export const BACKGROUND_TO_POPUP_CONNECTION_NAME = 'popup'
+// #endregion

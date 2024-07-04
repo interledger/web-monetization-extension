@@ -168,7 +168,8 @@ export class StorageService {
     } else if (grant === 'one-time') {
       await this.set({ oneTimeGrantSpentAmount: amount })
     }
-    // TODO: emit event for balance update
+    const balance = await this.getBalance()
+    this.events.emit('storage.balance_update', balance)
   }
 
   async getBalance(): Promise<
