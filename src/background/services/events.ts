@@ -4,7 +4,6 @@ import type { Storage } from '@/shared/types'
 interface BackgroundEvents {
   'open_payments.key_revoked': void
   'storage.rate_of_pay_update': { rate: string }
-  'storage.host_permissions_update': { status: boolean }
   'storage.state_update': {
     state: Storage['state']
     prevState: Storage['state']
