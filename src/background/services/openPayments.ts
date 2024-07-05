@@ -2,7 +2,8 @@
 import type { AccessToken, GrantDetails, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
-  createAuthenticatedClient
+  createAuthenticatedClient,
+  OpenPaymentsClientError
 } from '@interledger/open-payments/dist/client'
 import {
   isFinalizedGrant,
@@ -25,7 +26,7 @@ import {
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation } from '@/shared/helpers'
+import { getWalletInformation, type Translation } from '@/shared/helpers'
 import { ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
@@ -97,7 +98,8 @@ export class OpenPaymentsService {
   constructor(
     private browser: Browser,
     private storage: StorageService,
-    private deduplicator: Deduplicator
+    private deduplicator: Deduplicator,
+    private t: Translation
   ) {
     void this.initialize()
   }
@@ -307,6 +309,14 @@ export class OpenPaymentsService {
       clientNonce,
       walletAddress,
       amount: transformedAmount
+    }).catch((err) => {
+      if (err instanceof OpenPaymentsClientError) {
+        if (err.status === 400 && err.code === 'invalid_client') {
+          const msg = this.t('error_connectWallet_invalidClient')
+          throw new Error(msg, { cause: err })
+        }
+      }
+      throw err
     })
 
     // Q: Should this be moved to continuation polling?
