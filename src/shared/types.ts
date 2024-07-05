@@ -95,6 +95,3 @@ export type PopupStore = Omit<
 export type DeepNonNullable<T> = {
   [P in keyof T]?: NonNullable<T[P]>
 }
-
-export type ExcludeFirst<T extends [f: unknown, ...rest: unknown[]]> =
-  T extends [infer _F, ...infer Rest] ? Rest : never

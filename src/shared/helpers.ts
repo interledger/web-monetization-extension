@@ -3,7 +3,6 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { cx, CxOptions } from 'class-variance-authority'
 import { twMerge } from 'tailwind-merge'
 import type { Browser } from 'webextension-polyfill'
-import type { ExcludeFirst } from './types'
 
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs))
