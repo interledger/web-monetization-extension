@@ -1,5 +1,6 @@
 import type {
   AmountValue,
+  ExtensionState,
   GrantDetails,
   Storage,
   StorageKey,
@@ -7,7 +8,7 @@ import type {
 } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
-import { bigIntMax, ThrottleBatch } from '@/shared/helpers'
+import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers'
 import { computeBalance } from '../utils'
 
 const defaultStorage = {
@@ -18,8 +19,8 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 2,
-  state: null,
+  version: 3,
+  state: {},
   connected: false,
   enabled: true,
   exceptionList: {},
@@ -126,23 +127,14 @@ export class StorageService {
     return false
   }
 
-  // TODO: ensure correct transitions between states, while also considering
-  // race conditions.
-  async setState(
-    state: null | Record<Exclude<Storage['state'], null>, boolean>
-  ): Promise<boolean> {
+  async setState(state: Storage['state']): Promise<boolean> {
     const { state: prevState } = await this.get(['state'])
 
-    let newState: Storage['state'] = null
-    if (state !== null) {
-      if (typeof state.missing_host_permissions === 'boolean') {
-        if (state.missing_host_permissions) {
-          newState = 'missing_host_permissions'
-        }
-      }
+    const newState: Storage['state'] = { ...prevState }
+    for (const key of Object.keys(state) as ExtensionState[]) {
+      newState[key] = state[key]
     }
-
-    if (prevState === newState) {
+    if (prevState && objectEquals(prevState, newState)) {
       return false
     }
 
@@ -253,9 +245,17 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
     }
 
     if (data.hasHostPermissions === false) {
-      data.state = 'missing_host_permissions' satisfies Storage['state']
+      data.state = 'missing_host_permissions'
     }
 
     return [data, deleteKeys]
+  },
+  3: (data) => {
+    const newState =
+      data.state && typeof data.state === 'string'
+        ? { [data.state as ExtensionState]: true }
+        : {}
+    data.state = newState satisfies Storage['state']
+    return [data]
   }
 }
