@@ -1,7 +1,8 @@
 import { MainLayout } from '@/popup/components/layout/MainLayout'
-import { PopupContextProvider } from './lib/context'
+import { PopupContextProvider, TranslationContextProvider } from './lib/context'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import React from 'react'
+import browser from 'webextension-polyfill'
 import { ProtectedRoute } from '@/popup/components/ProtectedRoute'
 import {
   RouteObject,
@@ -49,9 +50,11 @@ const router = createMemoryRouter(routes)
 export const Popup = () => {
   return (
     <LazyMotion features={domAnimation} strict>
-      <PopupContextProvider>
-        <RouterProvider router={router} />
-      </PopupContextProvider>
+      <TranslationContextProvider browser={browser}>
+        <PopupContextProvider>
+          <RouterProvider router={router} />
+        </PopupContextProvider>
+      </TranslationContextProvider>
     </LazyMotion>
   )
 }

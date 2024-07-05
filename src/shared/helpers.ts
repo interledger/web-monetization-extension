@@ -2,6 +2,7 @@ import { SuccessResponse } from '@/shared/messages'
 import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { cx, CxOptions } from 'class-variance-authority'
 import { twMerge } from 'tailwind-merge'
+import type { Browser } from 'webextension-polyfill'
 
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs))
@@ -191,6 +192,20 @@ export function convert(value: bigint, source: number, target: number) {
 
 export function bigIntMax(a: string, b: string) {
   return BigInt(a) > BigInt(b) ? a : b
+}
+
+type TranslationKeys = keyof typeof import('../_locales/en/messages.json')
+
+export type Translation = ReturnType<typeof tFactory>
+export function tFactory(browser: Pick<Browser, 'i18n'>) {
+  /**
+   * Helper over calling cumbersome `this.browser.i18n.getMessage(key)` with
+   * added benefit that it type-checks if key exists in message.json
+   */
+  return <T extends TranslationKeys>(
+    key: T,
+    substitutions?: string | string[]
+  ) => browser.i18n.getMessage(key, substitutions)
 }
 
 type Primitive = string | number | boolean | null | undefined

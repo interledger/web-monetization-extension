@@ -2,8 +2,10 @@ import React from 'react'
 import browser from 'webextension-polyfill'
 import { PERMISSION_HOSTS } from '@/shared/defines'
 import { WarningSign } from '@/popup/components/Icons'
+import { useTranslation } from '@/popup/lib/context'
 
 export const Component = () => {
+  const t = useTranslation()
   return (
     <div className="rounded-md bg-orange-50 p-4 text-sm">
       <div className="flex">
@@ -13,7 +15,7 @@ export const Component = () => {
         <div className="ml-3 flex flex-col gap-2">
           <h3 className="font-medium text-orange-800">Permission needed</h3>
           <div className="text-orange-700">
-            <p>{browser.i18n.getMessage('hostsPermissionsNeeded')}</p>
+            <p>{t('hostsPermissionsNeeded')}</p>
           </div>
         </div>
       </div>
