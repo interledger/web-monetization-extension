@@ -52,11 +52,8 @@ export interface Storage {
   enabled: boolean
   /** If a wallet is connected or not */
   connected: boolean
-  /**
-   * Extension state. null is an optimization (not guaranteed due to race
-   * conditions) implying empty object or all keys set to false.
-   */
-  state: null | Partial<Record<ExtensionState, boolean>>
+  /** Extension state */
+  state: Partial<Record<ExtensionState, boolean>>
 
   rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null

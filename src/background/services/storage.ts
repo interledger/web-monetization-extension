@@ -20,7 +20,7 @@ const defaultStorage = {
    * existing installations.
    */
   version: 3,
-  state: null,
+  state: {},
   connected: false,
   enabled: true,
   exceptionList: {},
@@ -127,10 +127,10 @@ export class StorageService {
     return false
   }
 
-  async setState(state: NonNullable<Storage['state']>): Promise<boolean> {
+  async setState(state: Storage['state']): Promise<boolean> {
     const { state: prevState } = await this.get(['state'])
 
-    const newState: NonNullable<Storage['state']> = { ...prevState }
+    const newState: Storage['state'] = { ...prevState }
     for (const key of Object.keys(state) as ExtensionState[]) {
       newState[key] = state[key]
     }
@@ -251,12 +251,11 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
     return [data, deleteKeys]
   },
   3: (data) => {
-    const state = data.state
-    if (!state) {
-      data.state = null
-    } else if (typeof state === 'string') {
-      data.state = { [state]: true } satisfies Storage['state']
-    }
+    const newState =
+      data.state && typeof data.state === 'string'
+        ? { [data.state as ExtensionState]: true }
+        : {}
+    data.state = newState satisfies Storage['state']
     return [data]
   }
 }
