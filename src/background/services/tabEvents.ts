@@ -4,6 +4,7 @@ import { MonetizationService } from './monetization'
 import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
 import { getTabId } from '../utils'
+import { tFactory } from '@/shared/helpers'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -62,15 +63,16 @@ export class TabEvents {
     sender?: Runtime.MessageSender
   ) => {
     const { enabled } = await this.storage.get(['enabled'])
+    const t = tFactory(this.browser)
 
-    let title = this.browser.i18n.getMessage('appName')
+    let title = t('appName')
     let iconData = enabled ? ICONS.default : ICONS.warning
     if (enabled && payload) {
       const { value: isTabMonetized } = payload
       iconData = isTabMonetized ? ICONS.active : ICONS.inactive
       const tabStateText = isTabMonetized
-        ? this.browser.i18n.getMessage('monetizationActiveShort')
-        : this.browser.i18n.getMessage('monetizationInactiveShort')
+        ? t('monetizationActiveShort')
+        : t('monetizationInactiveShort')
       title = `${title} - ${tabStateText}`
     }
     const tabId = sender && getTabId(sender)
