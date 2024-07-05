@@ -199,6 +199,5 @@ type Primitive = string | number | boolean | null | undefined
 export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
   const keysA = Object.keys(a)
   const keysB = Object.keys(b)
-  if (keysA.length !== keysB.length) return false
   return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort())
 }
