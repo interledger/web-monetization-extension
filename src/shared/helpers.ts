@@ -206,3 +206,12 @@ export function tFactory(browser: Pick<Browser, 'i18n'>) {
     substitutions?: string | string[]
   ) => browser.i18n.getMessage(key, substitutions)
 }
+
+type Primitive = string | number | boolean | null | undefined
+
+// Warn: Not a nested object equals or a deepEquals function
+export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
+  const keysA = Object.keys(a)
+  const keysB = Object.keys(b)
+  return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort())
+}
