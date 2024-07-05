@@ -130,15 +130,11 @@ export class StorageService {
   async setState(state: NonNullable<Storage['state']>): Promise<boolean> {
     const { state: prevState } = await this.get(['state'])
 
-    let newState: Storage['state'] = { ...prevState }
+    const newState: NonNullable<Storage['state']> = { ...prevState }
     for (const key of Object.keys(state) as ExtensionState[]) {
       newState[key] = state[key]
     }
-    if (Object.values(newState).every((v) => v === false)) {
-      newState = null
-    }
-    if (prevState === newState) return false
-    if (prevState && newState ? objectEquals(prevState, newState) : false) {
+    if (prevState && objectEquals(prevState, newState)) {
       return false
     }
 
