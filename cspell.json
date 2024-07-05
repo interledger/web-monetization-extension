@@ -17,6 +17,7 @@
     "temp",
     "*.svg",
     "pnpm-lock.yaml",
+    ".eslintrc.json",
     "cspell-dictionary.txt"
   ]
 }
