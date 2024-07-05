@@ -194,8 +194,9 @@ export function bigIntMax(a: string, b: string) {
   return BigInt(a) > BigInt(b) ? a : b
 }
 
-export function tFactory(browser: Pick<Browser, 'i18n'>) {
-  type TranslationKeys = keyof typeof import('../_locales/en/messages.json')
+export type Translation = ReturnType<typeof tFactory>
+
+type TranslationKeys = keyof typeof import('../_locales/en/messages.json')export function tFactory(browser: Pick<Browser, 'i18n'>) {
   /**
    * Helper over calling cumbersome `this.browser.i18n.getMessage(key)` with
    * added benefit that it type-checks if key exists in message.json

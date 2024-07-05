@@ -13,9 +13,9 @@ import {
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
-import { tFactory } from '@/shared/helpers'
+import { tFactory, type Translation } from '@/shared/helpers'
 
-export interface Cradle {
+interface Cradle {
   logger: Logger
   browser: Browser
   events: EventsService
@@ -26,7 +26,7 @@ export interface Cradle {
   sendToPopup: SendToPopup
   tabEvents: TabEvents
   background: Background
-  t: ReturnType<typeof tFactory>
+  t: Translation
   tabState: TabState
 }
 

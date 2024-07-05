@@ -4,7 +4,7 @@ import { MonetizationService } from './monetization'
 import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
 import { getTabId } from '../utils'
-import type { Cradle } from '@/background/container'
+import type { Translation } from '@/shared/helpers'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -30,7 +30,7 @@ export class TabEvents {
   constructor(
     private monetizationService: MonetizationService,
     private storage: StorageService,
-    private t: Cradle['t'],
+    private t: Translation,
     private browser: Browser
   ) {}
   clearTabSessions = (
