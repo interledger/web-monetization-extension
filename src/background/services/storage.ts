@@ -1,5 +1,6 @@
 import type {
   AmountValue,
+  ExtensionState,
   GrantDetails,
   Storage,
   StorageKey,
@@ -7,7 +8,7 @@ import type {
 } from '@/shared/types'
 import { type Browser } from 'webextension-polyfill'
 import { EventsService } from './events'
-import { bigIntMax, ThrottleBatch } from '@/shared/helpers'
+import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers'
 import { computeBalance } from '../utils'
 
 const defaultStorage = {
@@ -18,7 +19,7 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 2,
+  version: 3,
   state: null,
   connected: false,
   enabled: true,
@@ -126,23 +127,18 @@ export class StorageService {
     return false
   }
 
-  // TODO: ensure correct transitions between states, while also considering
-  // race conditions.
-  async setState(
-    state: null | Record<Exclude<Storage['state'], null>, boolean>
-  ): Promise<boolean> {
+  async setState(state: NonNullable<Storage['state']>): Promise<boolean> {
     const { state: prevState } = await this.get(['state'])
 
-    let newState: Storage['state'] = null
-    if (state !== null) {
-      if (typeof state.missing_host_permissions === 'boolean') {
-        if (state.missing_host_permissions) {
-          newState = 'missing_host_permissions'
-        }
-      }
+    let newState: Storage['state'] = { ...prevState }
+    for (const key of Object.keys(state) as ExtensionState[]) {
+      newState[key] = state[key]
     }
-
-    if (prevState === newState) {
+    if (Object.values(newState).every((v) => v === false)) {
+      newState = null
+    }
+    if (prevState === newState) return false
+    if (prevState && newState ? objectEquals(prevState, newState) : false) {
       return false
     }
 
@@ -253,9 +249,18 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
     }
 
     if (data.hasHostPermissions === false) {
-      data.state = 'missing_host_permissions' satisfies Storage['state']
+      data.state = 'missing_host_permissions'
     }
 
     return [data, deleteKeys]
+  },
+  3: (data) => {
+    const state = data.state
+    if (!state) {
+      data.state = null
+    } else if (typeof state === 'string') {
+      data.state = { [state]: true } satisfies Storage['state']
+    }
+    return [data]
   }
 }

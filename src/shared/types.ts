@@ -36,6 +36,11 @@ export interface RecurringGrant extends GrantDetailsBase {
 }
 export type GrantDetails = OneTimeGrant | RecurringGrant
 
+export type ExtensionState =
+  | never // just added for code formatting
+  /** Extension can't inject scripts and fetch resources from all hosts */
+  | 'missing_host_permissions'
+
 export interface Storage {
   /**
    * Storage structure version. Used in migrations. Numbers are sequential.
@@ -47,13 +52,11 @@ export interface Storage {
   enabled: boolean
   /** If a wallet is connected or not */
   connected: boolean
-  /** Extension state */
-  state:
-    | never // just added for code formatting
-    /** Normal */
-    | null
-    /** Extension can't inject scripts and fetch resources from all hosts */
-    | 'missing_host_permissions'
+  /**
+   * Extension state. null is an optimization (not guaranteed due to race
+   * conditions) implying empty object or all keys set to false.
+   */
+  state: null | Partial<Record<ExtensionState, boolean>>
 
   rateOfPay?: string | undefined | null
   minRateOfPay?: string | undefined | null
