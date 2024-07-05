@@ -1,7 +1,7 @@
 import React from 'react'
 import browser, { type Browser } from 'webextension-polyfill'
 import { getContextData } from '@/popup/lib/messages'
-import { tFactory } from '@/shared/helpers'
+import { tFactory, type Translation } from '@/shared/helpers'
 import type { DeepNonNullable, PopupStore } from '@/shared/types'
 import {
   ContentToBackgroundAction,
@@ -163,9 +163,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
   )
 }
 
-const TranslationContext = React.createContext<ReturnType<typeof tFactory>>(
-  (v: string) => v
-)
+const TranslationContext = React.createContext<Translation>((v: string) => v)
 
 export const TranslationContextProvider = ({
   browser,
