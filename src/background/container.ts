@@ -13,8 +13,9 @@ import {
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
+import { tFactory } from '@/shared/helpers'
 
-interface Cradle {
+export interface Cradle {
   logger: Logger
   browser: Browser
   events: EventsService
@@ -25,6 +26,7 @@ interface Cradle {
   sendToPopup: SendToPopup
   tabEvents: TabEvents
   background: Background
+  t: ReturnType<typeof tFactory>
   tabState: TabState
 }
 
@@ -38,6 +40,7 @@ export const configureContainer = () => {
   container.register({
     logger: asValue(logger),
     browser: asValue(browser),
+    t: asValue(tFactory(browser)),
     events: asClass(EventsService).singleton(),
     deduplicator: asClass(Deduplicator)
       .singleton()

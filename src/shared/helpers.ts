@@ -195,15 +195,14 @@ export function bigIntMax(a: string, b: string) {
   return BigInt(a) > BigInt(b) ? a : b
 }
 
-/**
- * Helper over calling cumbersome `this.browser.i18n.getMessage(key)` with added
- * benefit that it type-checks if key exists in message.json
- */
-export function t<
-  T extends keyof typeof import('../_locales/en/messages.json')
->(browser: Pick<Browser, 'i18n'>, key: T, substitutions?: string | string[]) {
-  return browser.i18n.getMessage(key, substitutions)
-}
 export function tFactory(browser: Pick<Browser, 'i18n'>) {
-  return (...args: ExcludeFirst<Parameters<typeof t>>) => t(browser, ...args)
+  type TranslationKeys = keyof typeof import('../_locales/en/messages.json')
+  /**
+   * Helper over calling cumbersome `this.browser.i18n.getMessage(key)` with
+   * added benefit that it type-checks if key exists in message.json
+   */
+  return <T extends TranslationKeys>(
+    key: T,
+    substitutions?: string | string[]
+  ) => browser.i18n.getMessage(key, substitutions)
 }

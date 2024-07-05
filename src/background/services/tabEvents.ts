@@ -4,7 +4,7 @@ import { MonetizationService } from './monetization'
 import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
 import { getTabId } from '../utils'
-import { tFactory } from '@/shared/helpers'
+import type { Cradle } from '@/background/container'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -30,6 +30,7 @@ export class TabEvents {
   constructor(
     private monetizationService: MonetizationService,
     private storage: StorageService,
+    private t: Cradle['t'],
     private browser: Browser
   ) {}
   clearTabSessions = (
@@ -63,16 +64,15 @@ export class TabEvents {
     sender?: Runtime.MessageSender
   ) => {
     const { enabled } = await this.storage.get(['enabled'])
-    const t = tFactory(this.browser)
 
-    let title = t('appName')
+    let title = this.t('appName')
     let iconData = enabled ? ICONS.default : ICONS.warning
     if (enabled && payload) {
       const { value: isTabMonetized } = payload
       iconData = isTabMonetized ? ICONS.active : ICONS.inactive
       const tabStateText = isTabMonetized
-        ? t('monetizationActiveShort')
-        : t('monetizationInactiveShort')
+        ? this.t('monetizationActiveShort')
+        : this.t('monetizationInactiveShort')
       title = `${title} - ${tabStateText}`
     }
     const tabId = sender && getTabId(sender)
