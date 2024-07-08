@@ -55,8 +55,6 @@ export const ErrorKeyRevoked = ({
       </AnimatePresence>
     )
   }
-
-  // TODO: add a way to go back to "main" screen from "reconnect" screen
 }
 
 interface MainScreenProps {
