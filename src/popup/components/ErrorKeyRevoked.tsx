@@ -35,7 +35,7 @@ export const ErrorKeyRevoked = ({
     return (
       <AnimatePresence mode="sync">
         <MainScreen
-          onRequestReconnect={() => setScreen('reconnect')}
+          requestReconnect={() => setScreen('reconnect')}
           disconnectWallet={disconnectWallet}
           onDisconnect={onDisconnect}
         />
@@ -62,24 +62,28 @@ export const ErrorKeyRevoked = ({
 interface MainScreenProps {
   disconnectWallet: Props['disconnectWallet']
   onDisconnect?: Props['onDisconnect']
-  onRequestReconnect: () => void
+  requestReconnect: () => void
 }
 
 const MainScreen = ({
   disconnectWallet,
   onDisconnect,
-  onRequestReconnect
+  requestReconnect
 }: MainScreenProps) => {
   const t = useTranslation()
   const [errorMsg, setErrorMsg] = React.useState('')
+  const [loading, setIsLoading] = React.useState(false)
 
   const requestDisconnect = async () => {
+    setErrorMsg('')
     try {
+      setIsLoading(true)
       await disconnectWallet()
       onDisconnect?.()
     } catch (error) {
       setErrorMsg(error.message)
     }
+    setIsLoading(false)
   }
 
   return (
@@ -109,10 +113,10 @@ const MainScreen = ({
       )}
 
       <m.form className="flex flex-col items-stretch gap-4">
-        <Button onClick={() => requestDisconnect()}>
+        <Button onClick={() => requestDisconnect()} loading={loading}>
           {t('action_keyRevoked_disconnect')}
         </Button>
-        <Button onClick={() => onRequestReconnect()}>
+        <Button onClick={() => requestReconnect()}>
           {t('action_keyRevoked_reconnect')}
         </Button>
       </m.form>
