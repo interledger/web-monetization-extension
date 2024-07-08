@@ -2,12 +2,7 @@ import React from 'react'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
-import {
-  toggleWM,
-  updateRateOfPay as updateRateOfPay_,
-  reconnectWallet,
-  disconnectWallet
-} from '../lib/messages'
+import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import {
   formatNumber,
@@ -16,7 +11,6 @@ import {
 } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
-import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 
@@ -26,12 +20,10 @@ export const Component = () => {
   const {
     state: {
       enabled,
-      state,
       isSiteMonetized,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
-      publicKey,
       balance,
       walletAddress,
       url
@@ -70,16 +62,6 @@ export const Component = () => {
   const onChangeWM = () => {
     toggleWM()
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
-  }
-
-  if (state.key_revoked) {
-    return (
-      <ErrorKeyRevoked
-        info={{ publicKey, walletAddress }}
-        reconnectWallet={reconnectWallet}
-        disconnectWallet={disconnectWallet}
-      />
-    )
   }
 
   if (!isSiteMonetized) {
