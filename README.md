@@ -9,7 +9,7 @@ The Web Monetization browser extension is an open source implementation of the W
 
 ### Prerequisites
 
-- [NVM](https://github.com/nvm-sh/nvm) - or another Node Version Manager
+- [NVM](https://github.com/nvm-sh/nvm) (Linux, macOS), [NVM Windows](https://github.com/coreybutler/nvm-windows) (Windows) - or another Node Version Manager
 - [PNPM](https://pnpm.io/)
 
 ## Setup
