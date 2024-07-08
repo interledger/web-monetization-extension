@@ -3,16 +3,14 @@ import { Link, useLocation } from 'react-router-dom'
 import { ArrowBack, Settings } from '../Icons'
 import { ROUTES_PATH } from '@/popup/Popup'
 import { PopupStateContext, useBrowser } from '@/popup/lib/context'
-import { isOkState } from '@/shared/helpers'
 
 const NavigationButton = () => {
   const location = useLocation()
   const {
-    state: { connected, state }
+    state: { connected }
   } = useContext(PopupStateContext)
   return useMemo(() => {
     if (!connected) return null
-    if (!isOkState(state)) return null
 
     return location.pathname === `${ROUTES_PATH.SETTINGS}` ? (
       <Link to={ROUTES_PATH.HOME}>
@@ -23,7 +21,7 @@ const NavigationButton = () => {
         <Settings className="h-6" />
       </Link>
     )
-  }, [location, connected, state])
+  }, [location, connected])
 }
 
 export const Header = () => {
