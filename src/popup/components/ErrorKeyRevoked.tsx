@@ -3,7 +3,7 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { WarningSign } from '@/popup/components/Icons'
 import { Button } from '@/popup/components/ui/Button'
-import { checkKeyAuthentication, disconnectWallet } from '@/popup/lib/messages'
+import { reconnectWallet, disconnectWallet } from '@/popup/lib/messages'
 import { Label } from './ui/Label'
 import { Code } from './ui/Code'
 import type { PopupStore } from '@/shared/types'
@@ -34,7 +34,7 @@ export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
   const requestReconnect = async () => {
     clearErrors()
     try {
-      const res = await checkKeyAuthentication()
+      const res = await reconnectWallet()
       if (res.success) {
         onKeyAdded?.()
       } else {

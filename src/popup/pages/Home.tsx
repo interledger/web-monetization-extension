@@ -67,7 +67,7 @@ export const Component = () => {
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
   }
 
-  if (state === 'key_revoked') {
+  if (state.key_revoked) {
     return <ErrorKeyRevoked info={{ publicKey, walletAddress }} />
   }
 

@@ -26,7 +26,7 @@ import {
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation } from '@/shared/helpers'
+import { getWalletInformation, Translation } from '@/shared/helpers'
 import { ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
@@ -98,7 +98,8 @@ export class OpenPaymentsService {
   constructor(
     private browser: Browser,
     private storage: StorageService,
-    private deduplicator: Deduplicator
+    private deduplicator: Deduplicator,
+    private t: Translation
   ) {
     void this.initialize()
   }
@@ -556,6 +557,21 @@ export class OpenPaymentsService {
     }
 
     return outgoingPayment
+  }
+
+  async reconnectWallet() {
+    try {
+      await this.rotateToken()
+    } catch (error) {
+      if (error instanceof OpenPaymentsClientError) {
+        if (error.status === 400 && error.code === 'invalid_client') {
+          const msg = this.t('error_connectWallet_invalidClient')
+          throw new Error(msg, { cause: error })
+        }
+      }
+      throw error
+    }
+    await this.storage.setState({ key_revoked: false })
   }
 
   async rotateToken() {

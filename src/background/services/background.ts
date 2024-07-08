@@ -15,7 +15,7 @@ import type {
 import { Logger } from '@/shared/logger'
 import { failure, getWalletInformation, success } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
-import { OPEN_PAYMENTS_ERRORS, getCurrentActiveTab } from '@/background/utils'
+import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 import { PERMISSION_HOSTS } from '@/shared/defines'
 
 export class Background {
@@ -92,12 +92,9 @@ export class Background {
               await this.openPaymentsService.connectWallet(message.payload)
               return
 
-            case PopupToBackgroundAction.CHECK_KEY_AUTHENTICATION:
-              await this.openPaymentsService.rotateToken()
-              await this.storage.setState({ key_revoked: false })
-              await this.monetizationService.resumePaymentSessionsByTabId(
-                (await getCurrentActiveTab(this.browser)).id!
-              )
+            case PopupToBackgroundAction.RECONNECT_WALLET:
+              await this.openPaymentsService.reconnectWallet()
+              await this.monetizationService.resumePaymentSessionActiveTab()
               await this.tabEvents.onUpdatedTab()
               return success(undefined)
 

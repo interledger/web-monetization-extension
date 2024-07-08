@@ -40,6 +40,8 @@ export type ExtensionState =
   | never // just added for code formatting
   /** Extension can't inject scripts and fetch resources from all hosts */
   | 'missing_host_permissions'
+  /** The public key no longer exists or valid in connected wallet */
+  | 'key_revoked'
 
 export interface Storage {
   /**

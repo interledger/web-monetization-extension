@@ -28,9 +28,9 @@ export const connectWallet = async (
   })
 }
 
-export const checkKeyAuthentication = async () => {
+export const reconnectWallet = async () => {
   return await message.send({
-    action: PopupToBackgroundAction.CHECK_KEY_AUTHENTICATION
+    action: PopupToBackgroundAction.RECONNECT_WALLET
   })
 }
 

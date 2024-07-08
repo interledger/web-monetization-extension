@@ -192,6 +192,12 @@ export class MonetizationService {
     }
   }
 
+  async resumePaymentSessionActiveTab() {
+    const currentTab = await getCurrentActiveTab(this.browser)
+    if (!currentTab?.id) return
+    await this.resumePaymentSessionsByTabId(currentTab.id)
+  }
+
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled'])
     await this.storage.set({ enabled: !enabled })
