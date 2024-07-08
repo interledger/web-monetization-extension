@@ -18,8 +18,13 @@ The Web Monetization browser extension is an open source implementation of the W
 
 ```sh
 # Install Node 20
+# For Linux/macOS
 nvm install lts/iron
 nvm use lts/iron
+
+# For Windows
+nvm install lts
+nvm use lts
 
 # Install pnpm using Corepack
 corepack enable
