@@ -1,5 +1,5 @@
-import React from 'react'
-import browser, { type Browser } from 'webextension-polyfill'
+import React, { type PropsWithChildren } from 'react'
+import type { Browser } from 'webextension-polyfill'
 import { getContextData } from '@/popup/lib/messages'
 import { tFactory, type Translation } from '@/shared/helpers'
 import type { DeepNonNullable, PopupStore } from '@/shared/types'
@@ -12,6 +12,7 @@ import {
   type BackgroundToPopupMessage
 } from '@/shared/messages'
 
+// #region PopupState
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
   TOGGLE_WM = 'TOGGLE_WM',
@@ -102,6 +103,7 @@ interface PopupContextProviderProps {
 }
 
 export function PopupContextProvider({ children }: PopupContextProviderProps) {
+  const browser = useBrowser()
   const [isLoading, setIsLoading] = React.useState(true)
   const [state, dispatch] = React.useReducer(reducer, {} as PopupState)
 
@@ -133,7 +135,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     return () => {
       browser.runtime.onMessage.removeListener(listener)
     }
-  }, [])
+  }, [browser])
 
   React.useEffect(() => {
     const port = browser.runtime.connect({ name: CONNECTION_NAME })
@@ -150,7 +152,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     return () => {
       port.disconnect()
     }
-  }, [dispatch])
+  }, [browser])
 
   if (isLoading) {
     return <>Loading</>
@@ -162,16 +164,30 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     </PopupStateContext.Provider>
   )
 }
+// #endregion
 
-const TranslationContext = React.createContext<Translation>((v: string) => v)
+// #region Browser
+const BrowserContext = React.createContext<Browser>({} as Browser)
 
-export const TranslationContextProvider = ({
+export const BrowserContextProvider = ({
   browser,
   children
-}: {
-  browser: Browser
-  children: React.ReactNode
-}) => {
+}: PropsWithChildren<{ browser: Browser }>) => {
+  return (
+    <BrowserContext.Provider value={browser}>
+      {children}
+    </BrowserContext.Provider>
+  )
+}
+
+export const useBrowser = () => React.useContext(BrowserContext)
+// #endregion
+
+// #region Translation
+const TranslationContext = React.createContext<Translation>((v: string) => v)
+
+export const TranslationContextProvider = ({ children }: PropsWithChildren) => {
+  const browser = useBrowser()
   const t = tFactory(browser)
 
   return (
@@ -182,3 +198,4 @@ export const TranslationContextProvider = ({
 }
 
 export const useTranslation = () => React.useContext(TranslationContext)
+// #endregion
