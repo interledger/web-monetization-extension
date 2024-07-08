@@ -2,7 +2,12 @@ import React from 'react'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
-import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
+import {
+  toggleWM,
+  updateRateOfPay as updateRateOfPay_,
+  reconnectWallet,
+  disconnectWallet
+} from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import {
   formatNumber,
@@ -68,7 +73,13 @@ export const Component = () => {
   }
 
   if (state.key_revoked) {
-    return <ErrorKeyRevoked info={{ publicKey, walletAddress }} />
+    return (
+      <ErrorKeyRevoked
+        info={{ publicKey, walletAddress }}
+        reconnectWallet={reconnectWallet}
+        disconnectWallet={disconnectWallet}
+      />
+    )
   }
 
   if (!isSiteMonetized) {

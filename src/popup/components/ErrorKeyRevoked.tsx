@@ -1,20 +1,36 @@
 import React from 'react'
-// import browser from 'webextension-polyfill'
 import { useForm } from 'react-hook-form'
+import { AnimatePresence, m } from 'framer-motion'
 import { WarningSign } from '@/popup/components/Icons'
 import { Button } from '@/popup/components/ui/Button'
-import { reconnectWallet, disconnectWallet } from '@/popup/lib/messages'
-import { Label } from './ui/Label'
-import { Code } from './ui/Code'
+import { Code } from '@/popup/components/ui/Code'
+import { useTranslation } from '@/popup/lib/context'
+import { useLocalStorage } from '@/popup/lib/utils'
 import type { PopupStore } from '@/shared/types'
+import type { Response } from '@/shared/messages'
 
 interface Props {
   info: Pick<PopupStore, 'publicKey' | 'walletAddress'>
+  disconnectWallet: () => Promise<Response>
+  reconnectWallet: () => Promise<Response>
+  onReconnect?: () => void
   onDisconnect?: () => void
-  onKeyAdded?: () => void
 }
 
-export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
+type Screen = 'main' | 'reconnect'
+
+export const ErrorKeyRevoked = ({
+  info,
+  disconnectWallet,
+  reconnectWallet,
+  onReconnect,
+  onDisconnect
+}: Props) => {
+  const t = useTranslation()
+  const [screen, setScreen, clearScreen] = useLocalStorage<Screen>(
+    'keyRevokedScreen',
+    'main'
+  )
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
@@ -36,7 +52,8 @@ export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
     try {
       const res = await reconnectWallet()
       if (res.success) {
-        onKeyAdded?.()
+        onReconnect?.()
+        clearScreen()
       } else {
         setError('root', { message: res.message })
       }
@@ -45,78 +62,94 @@ export const ErrorKeyRevoked = ({ info, onKeyAdded, onDisconnect }: Props) => {
     }
   }
 
-  return (
-    <div className="text-sm">
-      <div className="-mx-2 flex rounded-md bg-error p-4">
-        <div className="flex-shrink-0">
-          <WarningSign className="size-8 text-error" />
-        </div>
-        <div className="ml-3 flex flex-col gap-0.5">
-          <h3 className="text-base font-medium text-error">Unauthenticated</h3>
-          <div>
-            <p>
-              It appears that the key has been revoked from your wallet.
-              Authenticate wallet by adding the key again, or disconnect.
-            </p>
+  if (screen === 'main') {
+    return (
+      <AnimatePresence mode="sync">
+        <m.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="space-y-4 text-sm"
+        >
+          <div className="flex gap-2 rounded-md bg-error p-2">
+            <WarningSign className="size-6 text-error" />
+            <h3 className="text-base font-medium text-error">
+              {t('error_keyRevoked_title')}
+            </h3>
           </div>
-        </div>
-      </div>
+          <p className="text-xs text-medium">{t('error_keyRevoked_text')}</p>
 
-      <form
-        className="mt-4 h-full space-y-4"
-        onReset={handleSubmit(requestDisconnect)}
+          {errors?.root?.message && (
+            <m.div
+              animate={{ opacity: 1 }}
+              initial={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="rounded-sm px-2 text-sm text-error"
+            >
+              {errors.root.message}
+            </m.div>
+          )}
+
+          <m.form className="flex flex-col items-stretch gap-4">
+            <Button
+              onClick={() => {
+                clearErrors()
+                requestDisconnect()
+              }}
+            >
+              {t('action_keyRevoked_disconnect')}
+            </Button>
+            <Button
+              onClick={() => {
+                clearErrors()
+                setScreen('reconnect')
+              }}
+            >
+              {t('action_keyRevoked_reconnect')}
+            </Button>
+          </m.form>
+        </m.div>
+      </AnimatePresence>
+    )
+  }
+
+  // TODO: add a way to go back to "main" screen from "reconnect" screen
+
+  return (
+    <AnimatePresence mode="sync">
+      <m.form
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex flex-col items-stretch gap-4"
         onSubmit={handleSubmit(requestReconnect)}
       >
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Public key</Label>
-            <p className="px-2 text-xs">
-              Copy the public key below and paste it into your connected wallet.
-              Your wallet address is {info.walletAddress?.id}.
-            </p>
-            <Code className="text-xs" value={info.publicKey} />
-          </div>
-
-          <div className="space-y-1 text-center">
-            <p className="text-xs text-gray-400">
-              I have added the public key to wallet
-            </p>
-            <Button
-              type="submit"
-              variant="default"
-              aria-label="Reconnect"
-              disabled={isSubmitting}
-              loading={isSubmitting}
-            >
-              Reconnect
-            </Button>
-          </div>
+        <div className="space-y-1 text-xs">
+          <p className="px-2">
+            Reconnecting to wallet: {info.walletAddress?.id}
+          </p>
+          <p className="px-2">
+            <strong>Before</strong> you reconnect, copy the public key below and
+            add it to your wallet.
+          </p>
+          <Code className="text-xs" value={info.publicKey} />
         </div>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-white px-2 text-sm text-gray-500">Or</span>
-          </div>
-        </div>
-
-        <Button
-          type="reset"
-          variant="destructive"
-          className="mx-auto mt-auto block w-fit"
-          aria-label="Disconnect"
-          disabled={isSubmitting}
-          loading={isSubmitting}
-        >
-          Disconnect
-        </Button>
 
         {errors?.root?.message && (
-          <div className="text-red-500">{errors.root.message}</div>
+          <m.div
+            animate={{ opacity: 1 }}
+            initial={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="rounded-sm px-2 text-sm text-error"
+          >
+            {errors.root.message}
+          </m.div>
         )}
-      </form>
-    </div>
+
+        <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+          {t('action_keyRevoked_reconnectBtn')}
+        </Button>
+      </m.form>
+    </AnimatePresence>
   )
 }

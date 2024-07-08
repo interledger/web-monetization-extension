@@ -8,14 +8,8 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
-import {
-  computeRate,
-  getCurrentActiveTab,
-  getSender,
-  getTabId,
-  isOkState,
-  removeQueryParams
-} from '../utils'
+import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { isOkState, removeQueryParams } from '@/shared/helpers'
 import { EventsService } from './events'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore } from '@/shared/types'

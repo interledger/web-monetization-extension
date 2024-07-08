@@ -96,11 +96,6 @@ export const getSender = (sender: Runtime.MessageSender) => {
 export const computeRate = (rate: string, sessionsCount: number) =>
   (+rate / sessionsCount).toString()
 
-export const removeQueryParams = (urlString: string) => {
-  const url = new URL(urlString)
-  return url.origin + url.pathname
-}
-
 export function computeBalance(
   grant?: GrantDetails | null,
   grantSpentAmount?: AmountValue | null
@@ -108,8 +103,4 @@ export function computeBalance(
   if (!grant?.amount) return 0n
   const total = BigInt(grant.amount.value)
   return grantSpentAmount ? total - BigInt(grantSpentAmount) : total
-}
-
-export const isOkState = (state: Storage['state']) => {
-  return Object.values(state).every((value) => value === false)
 }

@@ -1,3 +1,5 @@
+import React from 'react'
+
 export const getCurrencySymbol = (assetCode: string): string => {
   return new Intl.NumberFormat('en-US', {
     currency: assetCode,
@@ -61,4 +63,32 @@ export function formatNumber(
       return value.toFixed(fixedScale)
     } else return value.toExponential()
   }
+}
+
+export function useLocalStorage<T>(key: string, defaultValue?: T) {
+  const [value, setValue] = React.useState<T>(() => {
+    if (typeof localStorage === 'undefined') {
+      return defaultValue
+    }
+    const storedValue = localStorage.getItem(key)
+    if (storedValue) {
+      return JSON.parse(storedValue)
+    }
+    return defaultValue
+  })
+
+  React.useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value))
+  }, [value, key])
+
+  const clearStorage = () => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(key)
+    }
+    if (typeof defaultValue !== 'undefined') {
+      setValue(defaultValue)
+    }
+  }
+
+  return [value, setValue, clearStorage] as const
 }
