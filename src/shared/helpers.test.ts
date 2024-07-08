@@ -17,12 +17,14 @@ describe('objectEquals', () => {
 describe('removeQueryParams', () => {
   it('should remove the query params from the URL', () => {
     expect(removeQueryParams('https://example.com?foo=bar#baz')).toBe(
-      'https://example.com'
+      'https://example.com/'
     )
   })
 
-  it('should not modify the URL if there are no query params', () => {
-    expect(removeQueryParams('https://example.com')).toBe('https://example.com')
+  it('should normalize the URL if there are no query params', () => {
+    expect(removeQueryParams('https://example.com')).toBe(
+      'https://example.com/'
+    )
   })
 })
 
