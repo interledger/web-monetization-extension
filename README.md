@@ -90,7 +90,6 @@ Inside this project, you'll see the following folders and files:
 │   ├── assets/ # Images for the extension (icon, etc.)
 │   ├── background/ # Source code for the background script
 │   ├── content/ # Source  code for the content script
-│   │   ├── static/ # WM polyfill
 │   ├── popup/ # Source code for the popup UI
 │   └── shared/ # Shared utilities
 ├── webpack/ # Webpack configuration
