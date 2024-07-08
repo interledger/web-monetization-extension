@@ -1,16 +1,14 @@
-import { OpenPaymentsService } from './openPayments'
 import {
-  IncomingPayment,
-  OutgoingPayment,
-  WalletAddress,
-  isPendingGrant
+  isPendingGrant,
+  type IncomingPayment,
+  type OutgoingPayment,
+  type WalletAddress
 } from '@interledger/open-payments/dist/types'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
-import { EventsService } from './.'
-import { TabState } from './tabState'
+import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { Tabs } from 'webextension-polyfill'
 
 const DEFAULT_INTERVAL_MS = 1000

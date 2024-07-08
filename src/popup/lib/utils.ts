@@ -66,8 +66,9 @@ export function formatNumber(
 }
 
 export function useLocalStorage<T>(key: string, defaultValue?: T) {
+  const hasLocalStorage = typeof localStorage !== 'undefined'
   const [value, setValue] = React.useState<T>(() => {
-    if (typeof localStorage === 'undefined') {
+    if (!hasLocalStorage) {
       return defaultValue
     }
     const storedValue = localStorage.getItem(key)
@@ -78,11 +79,13 @@ export function useLocalStorage<T>(key: string, defaultValue?: T) {
   })
 
   React.useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(value))
-  }, [value, key])
+    if (hasLocalStorage) {
+      localStorage.setItem(key, JSON.stringify(value))
+    }
+  }, [value, key, hasLocalStorage])
 
   const clearStorage = () => {
-    if (typeof localStorage !== 'undefined') {
+    if (hasLocalStorage) {
       localStorage.removeItem(key)
     }
     if (typeof defaultValue !== 'undefined') {
