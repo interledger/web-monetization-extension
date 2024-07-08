@@ -1,10 +1,10 @@
 import React from 'react'
-import browser from 'webextension-polyfill'
 import { PERMISSION_HOSTS } from '@/shared/defines'
 import { WarningSign } from '@/popup/components/Icons'
-import { useTranslation } from '@/popup/lib/context'
+import { useBrowser, useTranslation } from '@/popup/lib/context'
 
 export const Component = () => {
+  const browser = useBrowser()
   const t = useTranslation()
   return (
     <div className="rounded-md bg-orange-50 p-4 text-sm">
