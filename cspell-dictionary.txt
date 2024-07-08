@@ -18,7 +18,6 @@ nums
 typecheck
 prettiercache
 corepack
-endregion
 linkcode
 endregion
 
