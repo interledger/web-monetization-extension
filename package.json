@@ -101,10 +101,10 @@
     "zip-webpack-plugin": "^4.0.1"
   },
   "engines": {
-    "pnpm": "^9.4.0",
+    "pnpm": "^9.5.0",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "20.15.0"
   },
-  "packageManager": "pnpm@9.4.0"
+  "packageManager": "pnpm@9.5.0"
 }
