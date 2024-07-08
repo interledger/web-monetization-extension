@@ -100,7 +100,7 @@ export class Background {
 
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
-              await this.storage.setState({ key_revoked: false })
+              this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
               return
 
             case PopupToBackgroundAction.TOGGLE_WM:
