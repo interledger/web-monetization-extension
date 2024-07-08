@@ -88,11 +88,11 @@ Inside this project, you'll see the following folders and files:
 ├── src/ # Extension's source code
 │   ├── _locales/ # Files for multi-lang support
 │   ├── assets/ # Images for the extension (icon, etc.)
-│   ├── background/ # Source code for the background script
+│   ├── background/ # Source code for the background script/service worker
 │   ├── content/ # Source  code for the content script
-│   │   ├── static/ # WM polyfill
 │   ├── popup/ # Source code for the popup UI
-│   └── shared/ # Shared utilities
+│   ├── shared/ # Shared utilities
+│   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
 ├── webpack/ # Webpack configuration
 ├── jest.config.ts
 ├── jest.setup.ts
