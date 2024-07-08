@@ -109,3 +109,7 @@ export function computeBalance(
   const total = BigInt(grant.amount.value)
   return grantSpentAmount ? total - BigInt(grantSpentAmount) : total
 }
+
+export const isOkState = (state: Storage['state']) => {
+  return Object.values(state).every((value) => value === false)
+}

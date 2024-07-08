@@ -13,6 +13,7 @@ import {
   getCurrentActiveTab,
   getSender,
   getTabId,
+  isOkState,
   removeQueryParams
 } from '../utils'
 import { EventsService } from './events'
@@ -96,7 +97,7 @@ export class MonetizationService {
 
       sessions.set(requestId, session)
 
-      if (connected && enabled && state === null) {
+      if (connected && enabled && isOkState(state)) {
         void session.start()
       }
     })
@@ -164,7 +165,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (state !== null || !connected || !enabled) return
+    if (!isOkState(state) || !connected || !enabled) return
 
     payload.forEach((p) => {
       const { requestId } = p
@@ -185,7 +186,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (state !== null || !connected || !enabled) return
+    if (!isOkState(state) || !connected || !enabled) return
 
     for (const session of sessions.values()) {
       session.resume()

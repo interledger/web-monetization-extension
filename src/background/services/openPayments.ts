@@ -565,6 +565,8 @@ export class OpenPaymentsService {
     } catch (error) {
       if (error instanceof OpenPaymentsClientError) {
         if (error.status === 400 && error.code === 'invalid_client') {
+          // TODO
+          // @ts-expect-error to be rebased first
           const msg = this.t('error_connectWallet_invalidClient')
           throw new Error(msg, { cause: error })
         }
