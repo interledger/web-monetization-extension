@@ -1,11 +1,8 @@
 import React, { useContext, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import browser from 'webextension-polyfill'
 import { ArrowBack, Settings } from '../Icons'
 import { ROUTES_PATH } from '@/popup/Popup'
-import { PopupStateContext } from '@/popup/lib/context'
-
-const Logo = browser.runtime.getURL('assets/images/logo.svg')
+import { PopupStateContext, useBrowser } from '@/popup/lib/context'
 
 const NavigationButton = () => {
   const location = useLocation()
@@ -28,6 +25,9 @@ const NavigationButton = () => {
 }
 
 export const Header = () => {
+  const browser = useBrowser()
+  const Logo = browser.runtime.getURL('assets/images/logo.svg')
+
   return (
     <header className="flex h-8 flex-row items-center justify-between">
       <div className="flex flex-row items-center gap-3">
