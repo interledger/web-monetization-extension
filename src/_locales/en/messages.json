@@ -23,5 +23,8 @@
   },
   "siteNotMonetized": {
     "message": "This website is not monetized."
+  },
+  "error_connectWallet_invalidClient": {
+    "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
   }
 }
