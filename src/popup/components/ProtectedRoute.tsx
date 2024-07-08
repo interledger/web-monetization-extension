@@ -6,7 +6,7 @@ import { ROUTES_PATH } from '../Popup'
 export const ProtectedRoute = () => {
   const { state } = React.useContext(PopupStateContext)
 
-  if (state.state === 'missing_host_permissions') {
+  if (state.state.missing_host_permissions) {
     return <Navigate to={ROUTES_PATH.MISSING_HOST_PERMISSION} />
   }
   if (state.connected === false) {
