@@ -65,22 +65,47 @@ export function formatNumber(
   }
 }
 
-export function useLocalStorage<T>(key: string, defaultValue?: T) {
+export function useLocalStorage<T>(
+  key: string,
+  {
+    defaultValue,
+    maxAge = Infinity
+  }: Partial<{ defaultValue: T; maxAge: number }> = {}
+) {
   const hasLocalStorage = typeof localStorage !== 'undefined'
-  const [value, setValue] = React.useState<T>(() => {
+  type Stored = { value: T; ts: number }
+  const isWellFormed = (obj: any): obj is Stored => {
+    if (typeof obj !== 'object' || obj == null) return false
+    if (!obj.ts || !Number.isSafeInteger(obj.ts)) return false
+    return typeof obj.value !== 'undefined'
+  }
+
+  const [value, setValue] = React.useState<T | undefined>(() => {
     if (!hasLocalStorage) {
       return defaultValue
     }
     const storedValue = localStorage.getItem(key)
     if (storedValue) {
-      return JSON.parse(storedValue)
+      try {
+        const data = JSON.parse(storedValue)
+        if (isWellFormed(data)) {
+          if (Date.now() - data.ts < maxAge * 1000 && data.value) {
+            return data.value
+          } else {
+            localStorage.removeItem(key)
+          }
+        }
+      } catch (error) {
+        // do nothing
+      }
     }
     return defaultValue
   })
 
   React.useEffect(() => {
-    if (hasLocalStorage) {
-      localStorage.setItem(key, JSON.stringify(value))
+    if (hasLocalStorage && value !== undefined) {
+      const data: Stored = { value, ts: Date.now() }
+      localStorage.setItem(key, JSON.stringify(data))
     }
   }, [value, key, hasLocalStorage])
 

@@ -28,7 +28,7 @@ export const ErrorKeyRevoked = ({
 }: Props) => {
   const [screen, setScreen, clearScreen] = useLocalStorage<Screen>(
     'keyRevokedScreen',
-    'main'
+    { defaultValue: 'main', maxAge: 2 * 60 }
   )
 
   if (screen === 'main') {
