@@ -79,18 +79,6 @@ export const getMainPlugins = (
 
           return JSON.stringify(json, null, 2)
         }
-      },
-      // Bundle OpenAPI schemas - the Open Payments client is using them to
-      // validate responses.
-      {
-        from: path.resolve(
-          ROOT_DIR,
-          'node_modules/@interledger/open-payments/dist/openapi/specs'
-        ),
-        to: path.resolve(ROOT_DIR, `${outputDir}/${target}/specs`),
-        globOptions: {
-          ignore: ['**/generated/**']
-        }
       }
     ]
   }),
