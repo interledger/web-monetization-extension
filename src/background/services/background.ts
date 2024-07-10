@@ -126,7 +126,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.RESUME_MONETIZATION:
-              this.monetizationService.resumePaymentSession(
+              await this.monetizationService.resumePaymentSession(
                 message.payload,
                 sender
               )

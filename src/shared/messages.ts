@@ -90,6 +90,7 @@ export interface StopMonetizationPayload {
 
 export interface ResumeMonetizationPayload {
   requestId: string
+  walletAddress: WalletAddress
 }
 
 export interface IsTabMonetizedPayload {

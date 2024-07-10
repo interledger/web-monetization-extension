@@ -95,7 +95,10 @@ export class MonetizationTagManager extends EventEmitter {
 
       this.monetizationTags.forEach((value) => {
         if (value.requestId && value.walletAddress) {
-          resumeMonetizationTags.push({ requestId: value.requestId })
+          resumeMonetizationTags.push({
+            requestId: value.requestId,
+            walletAddress: value.walletAddress
+          })
         }
       })
 

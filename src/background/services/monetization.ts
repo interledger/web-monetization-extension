@@ -150,7 +150,7 @@ export class MonetizationService {
     })
   }
 
-  resumePaymentSession(
+  async resumePaymentSession(
     payload: ResumeMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
@@ -159,6 +159,7 @@ export class MonetizationService {
 
     if (!sessions) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
+      await this.startPaymentSession(payload, sender)
       return
     }
 
