@@ -188,14 +188,11 @@ export class FrameManager {
           if (message === ContentToContentAction.IS_FRAME_MONETIZED) {
             event.stopPropagation()
 
-            let isMonetized = false
-
             this.isFrameMonetized = payload.isMonetized
-            this.frames.forEach((value) => {
-              if (value.isFrameMonetized) isMonetized = true
-            })
-
-            isTabMonetized({ value: isMonetized || this.isFrameMonetized })
+            const isMonetized =
+              this.isFrameMonetized ||
+              [...this.frames.values()].some((e) => e.isFrameMonetized)
+            isTabMonetized({ value: isMonetized })
           }
           return
         }
