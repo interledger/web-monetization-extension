@@ -1,7 +1,12 @@
 import React from 'react'
 
 /**
- * Storage data in browser's local storage.
+ * Store data in browser's local storage. Helpful in retrieving state after
+ * popup closes.
+ *
+ * Can set a `maxAge` (in seconds, default 1000 days - AKA forever but not
+ * Infinity) to avoid using state data. Stale data is cleared on access only.
+ *
  * @note Don't call it too often to avoid performance issues, as it's
  * synchronous and calls JSON.stringify and JSON.parse APIs.
  */
