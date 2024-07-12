@@ -5,7 +5,7 @@ import { WarningSign } from '@/popup/components/Icons'
 import { Button } from '@/popup/components/ui/Button'
 import { Code } from '@/popup/components/ui/Code'
 import { useTranslation } from '@/popup/lib/context'
-import { useLocalStorage } from '@/popup/lib/utils'
+import { useLocalStorage } from '@/popup/lib/hooks'
 import type { PopupStore } from '@/shared/types'
 import type { Response } from '@/shared/messages'
 
@@ -28,7 +28,8 @@ export const ErrorKeyRevoked = ({
 }: Props) => {
   const [screen, setScreen, clearScreen] = useLocalStorage<Screen>(
     'keyRevokedScreen',
-    { defaultValue: 'main', maxAge: 2 * 60 }
+    'main',
+    { maxAge: 2 * 60 }
   )
 
   if (screen === 'main') {

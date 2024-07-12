@@ -1,5 +1,3 @@
-import React from 'react'
-
 export const getCurrencySymbol = (assetCode: string): string => {
   return new Intl.NumberFormat('en-US', {
     currency: assetCode,
@@ -63,60 +61,4 @@ export function formatNumber(
       return value.toFixed(fixedScale)
     } else return value.toExponential()
   }
-}
-
-export function useLocalStorage<T>(
-  key: string,
-  {
-    defaultValue,
-    maxAge = Infinity
-  }: Partial<{ defaultValue: T; maxAge: number }> = {}
-) {
-  const hasLocalStorage = typeof localStorage !== 'undefined'
-  type Stored = { value: T; ts: number }
-  const isWellFormed = (obj: any): obj is Stored => {
-    if (typeof obj !== 'object' || obj == null) return false
-    if (!obj.ts || !Number.isSafeInteger(obj.ts)) return false
-    return typeof obj.value !== 'undefined'
-  }
-
-  const [value, setValue] = React.useState<T | undefined>(() => {
-    if (!hasLocalStorage) {
-      return defaultValue
-    }
-    const storedValue = localStorage.getItem(key)
-    if (storedValue) {
-      try {
-        const data = JSON.parse(storedValue)
-        if (isWellFormed(data)) {
-          if (Date.now() - data.ts < maxAge * 1000 && data.value) {
-            return data.value
-          } else {
-            localStorage.removeItem(key)
-          }
-        }
-      } catch (error) {
-        // do nothing
-      }
-    }
-    return defaultValue
-  })
-
-  React.useEffect(() => {
-    if (hasLocalStorage && value !== undefined) {
-      const data: Stored = { value, ts: Date.now() }
-      localStorage.setItem(key, JSON.stringify(data))
-    }
-  }, [value, key, hasLocalStorage])
-
-  const clearStorage = () => {
-    if (hasLocalStorage) {
-      localStorage.removeItem(key)
-    }
-    if (typeof defaultValue !== 'undefined') {
-      setValue(defaultValue)
-    }
-  }
-
-  return [value, setValue, clearStorage] as const
 }
