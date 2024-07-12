@@ -1,4 +1,5 @@
-import { Tabs } from 'webextension-polyfill'
+import type { Tabs } from 'webextension-polyfill'
+import type { PaymentSession } from './paymentSession'
 
 type State = {
   lastPaymentTimestamp: number
@@ -7,6 +8,7 @@ type State = {
 
 export class TabState {
   private state = new WeakMap<Tabs.Tab, Map<string, State>>()
+  private sessions = new WeakMap<Tabs.Tab, Map<string, PaymentSession>>()
 
   constructor() {}
 
@@ -55,5 +57,12 @@ export class TabState {
       state.expiresAtTimestamp = expiresAtTimestamp
       state.lastPaymentTimestamp = now
     }
+  }
+
+  getSessions(tab: Tabs.Tab) {
+    if (!this.sessions.has(tab)) {
+      this.sessions.set(tab, new Map())
+    }
+    return this.sessions.get(tab)!
   }
 }

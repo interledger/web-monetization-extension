@@ -12,7 +12,7 @@ import {
   computeRate,
   getCurrentActiveTab,
   getSender,
-  getTabId,
+  getTab,
   removeQueryParams
 } from '../utils'
 import { EventsService } from './events'
@@ -21,10 +21,6 @@ import type { PopupStore } from '@/shared/types'
 import { TabState } from './tabState'
 
 export class MonetizationService {
-  private sessions: {
-    [tabId: number]: Map<string, PaymentSession>
-  }
-
   constructor(
     private logger: Logger,
     private openPaymentsService: OpenPaymentsService,
@@ -33,7 +29,6 @@ export class MonetizationService {
     private events: EventsService,
     private tabState: TabState
   ) {
-    this.sessions = {}
     this.registerEventListeners()
   }
 
@@ -60,12 +55,8 @@ export class MonetizationService {
       return
     }
     const { tabId, frameId, url, tab } = getSender(sender)
+    const sessions = this.tabState.getSessions(tab)
 
-    if (this.sessions[tabId] == null) {
-      this.sessions[tabId] = new Map()
-    }
-
-    const sessions = this.sessions[tabId]
     const sessionsCount = sessions.size + payload.length
     const rate = computeRate(rateOfPay, sessionsCount)
 
@@ -106,9 +97,13 @@ export class MonetizationService {
     ])
     if (connected === false || enabled === false) return
 
-    const sessions = this.sessions[tabId]
-
-    if (!sessions) {
+    const tab = await this.getTabById(tabId)
+    if (!tab) {
+      this.logger.warn(`Tab ${tabId} not found.`)
+      return
+    }
+    const sessions = this.tabState.getSessions(tab)
+    if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -122,11 +117,11 @@ export class MonetizationService {
     payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    const tabId = getTabId(sender)
-    const sessions = this.sessions[tabId]
+    const tab = getTab(sender)
+    const sessions = this.tabState.getSessions(tab)
 
-    if (!sessions) {
-      this.logger.debug(`No active sessions found for tab ${tabId}.`)
+    if (!sessions.size) {
+      this.logger.debug(`No active sessions found for tab ${tab.id}.`)
       return
     }
 
@@ -154,11 +149,11 @@ export class MonetizationService {
     payload: ResumeMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    const tabId = getTabId(sender)
-    const sessions = this.sessions[tabId]
+    const tab = getTab(sender)
+    const sessions = this.tabState.getSessions(tab)
 
-    if (!sessions) {
-      this.logger.debug(`No active sessions found for tab ${tabId}.`)
+    if (!sessions.size) {
+      this.logger.debug(`No active sessions found for tab ${tab.id}.`)
       return
     }
 
@@ -176,9 +171,13 @@ export class MonetizationService {
     ])
     if (connected === false || enabled === false) return
 
-    const sessions = this.sessions[tabId]
-
-    if (!sessions) {
+    const tab = await this.getTabById(tabId)
+    if (!tab) {
+      this.logger.warn(`Tab ${tabId} not found.`)
+      return
+    }
+    const sessions = this.tabState.getSessions(tab)
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -194,11 +193,13 @@ export class MonetizationService {
     emitToggleWM({ enabled: !enabled })
   }
 
-  clearTabSessions(tabId: number) {
+  async clearTabSessions(tabId: number) {
     this.logger.debug(`Attempting to clear sessions for tab ${tabId}.`)
-    const sessions = this.sessions[tabId]
+    const tab = await this.getTabById(tabId)
+    if (!tab) return
+    const sessions = this.tabState.getSessions(tab)
 
-    if (!sessions) {
+    if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -207,7 +208,6 @@ export class MonetizationService {
       session.stop()
     }
 
-    delete this.sessions[tabId]
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }
 
@@ -216,27 +216,20 @@ export class MonetizationService {
     if (!tab || !tab.id) {
       throw new Error('Could not find active tab.')
     }
-
-    const sessions = this.sessions[tab.id]
-
-    if (!sessions?.size) {
+    const sessions = this.tabState.getSessions(tab)
+    if (!sessions.size) {
       throw new Error('This website is not monetized.')
     }
 
-    let totalSentAmount = BigInt(0)
     const splitAmount = Number(amount) / sessions.size
-    const promises = []
 
-    for (const session of sessions.values()) {
-      promises.push(session.pay(splitAmount))
-    }
+    const results = await Promise.allSettled(
+      [...sessions.values()].map((session) => session.pay(splitAmount))
+    )
 
-    ;(await Promise.allSettled(promises)).forEach((p) => {
-      if (p.status === 'fulfilled') {
-        totalSentAmount += BigInt(p.value?.value ?? 0)
-      }
-    })
-
+    const totalSentAmount = results
+      .filter((r) => r.status === 'fulfilled')
+      .reduce((acc, r) => acc + BigInt(r.value?.value ?? 0), BigInt(0))
     if (totalSentAmount === BigInt(0)) {
       throw new Error('Could not facilitate payment for current website.')
     }
@@ -249,12 +242,15 @@ export class MonetizationService {
   private onRateOfPayUpdate() {
     this.events.on('storage.rate_of_pay_update', ({ rate }) => {
       this.logger.debug("Received event='storage.rate_of_pay_update'")
-      Object.keys(this.sessions).forEach((tabId) => {
-        const tabSessions = this.sessions[tabId as unknown as number]
-        this.logger.debug(`Re-evaluating sessions amount for tab=${tabId}`)
-        for (const session of tabSessions.values()) {
-          session.adjustSessionAmount(rate)
-        }
+      this.browser.tabs.query({}).then((tabs) => {
+        tabs.forEach((tab) => {
+          if (!tab.id) return
+          this.logger.debug(`Re-evaluating sessions amount for tab=${tab.id}`)
+          const tabSessions = this.tabState.getSessions(tab)
+          for (const session of tabSessions.values()) {
+            session.adjustSessionAmount(rate)
+          }
+        })
       })
     })
   }
@@ -285,7 +281,7 @@ export class MonetizationService {
         // noop
       }
     }
-    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
+    const isSiteMonetized = this.tabState.getSessions(tab).size > 0
 
     return {
       ...storedData,
@@ -293,5 +289,9 @@ export class MonetizationService {
       url,
       isSiteMonetized
     }
+  }
+
+  private async getTabById(tabId: number) {
+    return await this.browser.tabs.get(tabId)
   }
 }
