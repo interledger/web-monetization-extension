@@ -208,6 +208,7 @@ export class MonetizationService {
       session.stop()
     }
 
+    sessions.clear()
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }
 
