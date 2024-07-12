@@ -5,7 +5,7 @@ import React from 'react'
  * popup closes.
  *
  * Can set a `maxAge` (in seconds, default 1000 days - AKA forever but not
- * Infinity) to avoid using state data. Stale data is cleared on access only.
+ * Infinity) to avoid using stale data. Stale data is cleared on access only.
  *
  * @note Don't call it too often to avoid performance issues, as it's
  * synchronous and calls JSON.stringify and JSON.parse APIs.
