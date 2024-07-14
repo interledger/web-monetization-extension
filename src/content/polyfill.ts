@@ -67,7 +67,7 @@ import type { MonetizationEventPayload } from '@/shared/messages'
 
     constructor(
       type: 'monetization',
-      eventInitDict: MonetizationEventPayload['detail']
+      eventInitDict: MonetizationEventPayload['details']
     ) {
       super(type, { bubbles: true })
       const { amountSent, incomingPayment, paymentPointer } = eventInitDict
@@ -97,7 +97,7 @@ import type { MonetizationEventPayload } from '@/shared/messages'
 
   window.addEventListener(
     '__wm_ext_monetization',
-    (event: CustomEvent<MonetizationEventPayload['detail']>) => {
+    (event: CustomEvent<MonetizationEventPayload['details']>) => {
       if (!(event.target instanceof HTMLLinkElement)) return
       if (!event.target.isConnected) return
 

@@ -11,6 +11,7 @@ import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import { TabState } from './tabState'
 import type { Tabs } from 'webextension-polyfill'
+import { MonetizationEventPayload } from '@/shared/messages'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -166,12 +167,9 @@ export class PaymentSession {
 
           outgoingPayment = undefined
 
-          sendMonetizationEvent({
-            tabId: this.tabId,
-            frameId: this.frameId,
-            payload: {
+          const monetizationEventPayload: MonetizationEventPayload = {
               requestId: this.requestId,
-              detail: {
+              details: {
                 amountSent: {
                   currency: receiveAmount.assetCode,
                   value: transformBalance(
@@ -183,6 +181,11 @@ export class PaymentSession {
                 paymentPointer: this.receiver.id
               }
             }
+
+          sendMonetizationEvent({
+            tabId: this.tabId,
+            frameId: this.frameId,
+            payload: monetizationEventPayload
           })
 
           // TO DO: find a better source of truth for deciding if overpaying is applicable
@@ -283,7 +286,7 @@ export class PaymentSession {
           frameId: this.frameId,
           payload: {
             requestId: this.requestId,
-            detail: {
+            details: {
               amountSent: {
                 currency: receiveAmount.assetCode,
                 value: transformBalance(
