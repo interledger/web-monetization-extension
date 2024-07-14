@@ -193,8 +193,11 @@ export class PaymentSession {
             this.tabState.saveOverpaying(
               this.tab,
               this.url,
-              this.receiver.id,
-              this.intervalInMs
+              {
+                  walletAddressId: this.receiver.id,
+                  monetizationEvent: monetizationEventPayload,
+                  intervalInMs: this.intervalInMs
+              }
             )
           }
 

@@ -1,8 +1,15 @@
 import { Tabs } from 'webextension-polyfill'
 
 type State = {
+  monetizationEvent: MonetizationEventPayload
   lastPaymentTimestamp: number
   expiresAtTimestamp: number
+}
+
+interface SaveOverpayingDetails {
+    walletAddressId: string,
+    monetizationEvent: MonetizationEventPayload,
+    intervalInMs: number
 }
 
 export class TabState {
@@ -33,9 +40,9 @@ export class TabState {
   saveOverpaying(
     tab: Tabs.Tab,
     url: string,
-    walletAddressId: string,
-    intervalInMs: number
+    details: SaveOverpayingDetails
   ): void {
+      const {intervalInMs, walletAddressId, monetizationEvent } = details
     if (!intervalInMs) return
 
     const now = Date.now()
@@ -45,8 +52,9 @@ export class TabState {
     const state = this.state.get(tab)?.get(key)
 
     if (!state) {
-      const tabState = this.state.get(tab) || new Map()
+      const tabState = this.state.get(tab) || new Map<string, State>()
       tabState.set(key, {
+        monetizationEvent,
         expiresAtTimestamp: expiresAtTimestamp,
         lastPaymentTimestamp: now
       })
