@@ -22,7 +22,7 @@ export class TabState {
     return `${url}:${walletAddressId}`
   }
 
-  getOverpayingWaitTime(
+  getOverpayingDetails(
     tab: Tabs.Tab,
     url: string,
     walletAddressId: string
