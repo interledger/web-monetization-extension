@@ -135,13 +135,15 @@ export enum BackgroundToContentAction {
   EMIT_TOGGLE_WM = 'EMIT_TOGGLE_WM'
 }
 
+export interface MonetizationEventDetails {
+  amountSent: PaymentCurrencyAmount
+  incomingPayment: OutgoingPayment['receiver']
+  paymentPointer: WalletAddress['id']
+}
+
 export interface MonetizationEventPayload {
   requestId: string
-  details: {
-    amountSent: PaymentCurrencyAmount
-    incomingPayment: OutgoingPayment['receiver']
-    paymentPointer: WalletAddress['id']
-  }
+  details: MonetizationEventDetails
 }
 
 export interface EmitToggleWMPayload {
