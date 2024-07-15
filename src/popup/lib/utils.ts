@@ -62,3 +62,7 @@ export function formatNumber(
     } else return value.toExponential()
   }
 }
+
+export function toWalletAddressUrl(s: string): string {
+  return s.startsWith('$') ? s.replace('$', 'https://') : s
+}

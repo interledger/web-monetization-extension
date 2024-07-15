@@ -10,7 +10,8 @@ import { debounceSync, getWalletInformation } from '@/shared/helpers'
 import {
   charIsNumber,
   formatNumber,
-  getCurrencySymbol
+  getCurrencySymbol,
+  toWalletAddressUrl
 } from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
 
@@ -52,7 +53,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       clearErrors('walletAddressUrl')
       if (!walletAddressUrl) return
       try {
-        const url = new URL(walletAddressUrl)
+        const url = new URL(toWalletAddressUrl(walletAddressUrl))
         const walletAddress = await getWalletInformation(url.toString())
         setCurrencySymbol({
           symbol: getCurrencySymbol(walletAddress.assetCode),
@@ -61,7 +62,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       } catch (e) {
         setError('walletAddressUrl', {
           type: 'validate',
-          message: 'Invalid wallet address URL.'
+          message: 'Invalid wallet address.'
         })
       }
     },
@@ -107,7 +108,10 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        const response = await connectWallet(data)
+        const response = await connectWallet({
+          ...data,
+          walletAddressUrl: toWalletAddressUrl(data.walletAddressUrl)
+        })
         if (!response.success) {
           setError('walletAddressUrl', {
             type: 'validate',
@@ -137,8 +141,8 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         <Code className="text-xs" value={publicKey} />
       </div>
       <Input
-        type="url"
-        label="Wallet address"
+        type="text"
+        label="Wallet address or payment pointer"
         disabled={connected}
         placeholder="https://ilp.rafiki.money/johndoe"
         errorMessage={errors.walletAddressUrl?.message}
