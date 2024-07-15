@@ -37,7 +37,8 @@ import {
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY
 } from '../config'
-import { Deduplicator } from './deduplicator'
+import type { Deduplicator } from './deduplicator'
+import type { Logger } from '@/shared/logger'
 
 interface KeyInformation {
   privateKey: string
@@ -106,6 +107,7 @@ export class OpenPaymentsService {
     private browser: Browser,
     private storage: StorageService,
     private deduplicator: Deduplicator,
+    private logger: Logger,
     private t: Translation
   ) {
     void this.initialize()
@@ -626,7 +628,7 @@ export class OpenPaymentsService {
     if (!this.isGrantUsable.recurring && !this.isGrantUsable.oneTime) {
       return null
     }
-    console.log('Switching from grant', this.grant?.type)
+    this.logger.debug('Switching from grant', this.grant?.type)
     const { oneTimeGrant, recurringGrant } = await this.storage.get([
       'oneTimeGrant',
       'recurringGrant'
@@ -635,9 +637,9 @@ export class OpenPaymentsService {
       if (this.grant.type === 'recurring') {
         this.isGrantUsable.recurring = false
         if (oneTimeGrant) {
-          console.log('switching to grant', oneTimeGrant.type)
           this.grant = oneTimeGrant
           this.token = this.grant.accessToken
+          this.logger.log('Switched to grant', oneTimeGrant.type)
           return 'one-time'
         }
       } else if (this.grant.type === 'one-time') {
@@ -645,11 +647,11 @@ export class OpenPaymentsService {
         if (
           recurringGrant &&
           /* TODO: When can we allow switching back to recurring grant? */
-          getNextOccurrence(recurringGrant.amount.interval) === new Date()
+          getNextOccurrence(recurringGrant.amount.interval) <= new Date()
         ) {
-          console.log('switching to grant', recurringGrant.type)
           this.grant = recurringGrant
           this.token = this.grant.accessToken
+          this.logger.log('Switched to grant', recurringGrant.type)
           return 'recurring'
         }
       }
