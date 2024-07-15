@@ -1,8 +1,7 @@
+import React, { useCallback, useEffect } from 'react'
 import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
-import { connected } from 'process'
-import React, { useCallback, useEffect } from 'react'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
@@ -22,10 +21,14 @@ interface ConnectWalletFormInputs {
 }
 
 interface ConnectWalletFormProps {
+  connected: boolean
   publicKey: string
 }
 
-export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
+export const ConnectWalletForm = ({
+  publicKey,
+  connected
+}: ConnectWalletFormProps) => {
   const {
     register,
     handleSubmit,
