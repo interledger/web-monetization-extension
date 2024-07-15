@@ -29,3 +29,9 @@
   - any:
       - changed-files:
           - any-glob-to-any-file: '**/*.test.ts'
+
+'area: i18n':
+  - any:
+      - changed-files:
+          - any-glob-to-any-file: 'src/_locales/**/*'
+
