@@ -658,3 +658,22 @@ export class OpenPaymentsService {
     this.token = accessToken
   }
 }
+
+export const isKeyRevokedError = (error: any) => {
+  if (!(error instanceof OpenPaymentsClientError)) return false
+  return (
+    // - [RESOURCE SERVER] create outgoing payment and create quote fail
+    //   with: HTTP 401 + `Signature validation error: could not find key in
+    //   list of client keys`
+    // - [AUTH SERVER] create incoming payment grant fails with: HTTP 400 +
+    //   `invalid_client`
+    (error.status === 400 && error.code === 'invalid_client') ||
+    (error.status === 401 &&
+      error.description?.includes('Signature validation error'))
+  )
+}
+
+export const isOutOfBalanceError = (error: any) => {
+  if (!(error instanceof OpenPaymentsClientError)) return false
+  return error.status === 403 && error.description === 'unauthorized'
+}
