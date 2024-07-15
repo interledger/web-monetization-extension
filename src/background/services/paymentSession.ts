@@ -10,6 +10,7 @@ import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { Tabs } from 'webextension-polyfill'
+import type { MonetizationEventDetails } from '@/shared/messages'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -127,11 +128,22 @@ export class PaymentSession {
 
     let outgoingPayment: OutgoingPayment | undefined
 
-    const waitTime = this.tabState.getOverpayingWaitTime(
+    const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
       this.tab,
       this.url,
       this.receiver.id
     )
+
+    if (monetizationEvent) {
+      sendMonetizationEvent({
+        tabId: this.tabId,
+        frameId: this.frameId,
+        payload: {
+          requestId: this.requestId,
+          details: monetizationEvent
+        }
+      })
+    }
 
     await sleep(waitTime)
 
@@ -168,33 +180,34 @@ export class PaymentSession {
 
           outgoingPayment = undefined
 
+          const monetizationEventDetails: MonetizationEventDetails = {
+            amountSent: {
+              currency: receiveAmount.assetCode,
+              value: transformBalance(
+                receiveAmount.value,
+                receiveAmount.assetScale
+              )
+            },
+            incomingPayment,
+            paymentPointer: this.receiver.id
+          }
+
           sendMonetizationEvent({
             tabId: this.tabId,
             frameId: this.frameId,
             payload: {
               requestId: this.requestId,
-              detail: {
-                amountSent: {
-                  currency: receiveAmount.assetCode,
-                  value: transformBalance(
-                    receiveAmount.value,
-                    receiveAmount.assetScale
-                  )
-                },
-                incomingPayment,
-                paymentPointer: this.receiver.id
-              }
+              details: monetizationEventDetails
             }
           })
 
           // TO DO: find a better source of truth for deciding if overpaying is applicable
           if (this.intervalInMs > 1000) {
-            this.tabState.saveOverpaying(
-              this.tab,
-              this.url,
-              this.receiver.id,
-              this.intervalInMs
-            )
+            this.tabState.saveOverpaying(this.tab, this.url, {
+              walletAddressId: this.receiver.id,
+              monetizationEvent: monetizationEventDetails,
+              intervalInMs: this.intervalInMs
+            })
           }
 
           await sleep(this.intervalInMs)
@@ -303,7 +316,7 @@ export class PaymentSession {
           frameId: this.frameId,
           payload: {
             requestId: this.requestId,
-            detail: {
+            details: {
               amountSent: {
                 currency: receiveAmount.assetCode,
                 value: transformBalance(
