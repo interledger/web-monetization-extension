@@ -39,17 +39,16 @@ export function useLocalStorage<T>(
         localStorage.removeItem(key)
       }
     } catch {
-      // do nothing
+      localStorage.removeItem(key)
     }
     return defaultValue
   })
 
   React.useEffect(() => {
-    if (hasLocalStorage && value !== defaultValue) {
-      const expiresAt = Date.now() + maxAge
-      const data: Stored = { value, expiresAt }
-      localStorage.setItem(key, JSON.stringify(data))
-    }
+    if (!hasLocalStorage) return
+    const expiresAt = Date.now() + maxAge
+    const data: Stored = { value, expiresAt }
+    localStorage.setItem(key, JSON.stringify(data))
   }, [value, key, defaultValue, maxAge, hasLocalStorage])
 
   const clearStorage = () => {

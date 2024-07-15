@@ -42,10 +42,13 @@ describe('useLocalStorage', () => {
     )
   }
 
-  it('does no set localStorage based on default value', () => {
+  it('sets localStorage based on default value', () => {
     const { getByTestId } = render(<TestComponent />)
-    expect(localStorage.getItem('name')).toBeNull()
-    expect(getByTestId('data')).toHaveTextContent('John')
+    expect(getByTestId('data')).toHaveTextContent('John Doe')
+    expect(localStorage.getItem('name')).not.toBeNull()
+    const stored = JSON.parse(localStorage.getItem('name')!)
+    expect(stored.value).toBe('John Doe')
+    expect(stored.expiresAt).toBeGreaterThan(defaultExpiresAt)
   })
 
   it('gets localStorage value instead of default', () => {
@@ -93,7 +96,7 @@ describe('useLocalStorage', () => {
     const { getByTestId } = render(<TestComponent />)
 
     fireEvent.click(getByTestId('clear'))
-    expect(getByTestId('data')).toHaveTextContent('John')
+    expect(getByTestId('data')).toHaveTextContent('John Doe')
     expect(localStorage.getItem('name')).toBeNull()
   })
 
@@ -112,9 +115,12 @@ describe('useLocalStorage', () => {
   it('should respect maxAge', () => {
     const maxAge = 5
     const ui = <TestComponent maxAge={maxAge} />
-    const { getByTestId, unmount } = render(ui)
-    expect(getByTestId('data')).toHaveTextContent('John')
+
     expect(localStorage.getItem('name')).toBeNull()
+
+    const { getByTestId, unmount } = render(ui)
+    expect(getByTestId('data')).toHaveTextContent('John Doe')
+    expect(localStorage.getItem('name')).not.toBeNull()
 
     fireEvent.click(getByTestId('set'))
     const now = Date.now()
@@ -131,6 +137,7 @@ describe('useLocalStorage', () => {
     unmount()
     const remounted = render(ui)
     expect(remounted.getByTestId('data')).toHaveTextContent('John Doe')
-    expect(localStorage.getItem('name')).toBeNull()
+    expect(localStorage.getItem('name')).not.toBeNull()
+    expect(JSON.parse(localStorage.getItem('name')!).value).toBe('John Doe')
   })
 })
