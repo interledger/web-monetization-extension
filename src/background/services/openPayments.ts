@@ -635,8 +635,9 @@ export class OpenPaymentsService {
       if (this.grant.type === 'recurring') {
         this.isGrantUsable.recurring = false
         if (oneTimeGrant) {
-          console.log('switching grant', oneTimeGrant.type)
+          console.log('switching to grant', oneTimeGrant.type)
           this.grant = oneTimeGrant
+          this.token = this.grant.accessToken
           return 'one-time'
         }
       } else if (this.grant.type === 'one-time') {
@@ -646,8 +647,9 @@ export class OpenPaymentsService {
           /* TODO: When can we allow switching back to recurring grant? */
           getNextOccurrence(recurringGrant.amount.interval) === new Date()
         ) {
-          console.log('switching grant', recurringGrant.type)
+          console.log('switching to grant', recurringGrant.type)
           this.grant = recurringGrant
+          this.token = this.grant.accessToken
           return 'recurring'
         }
       }
