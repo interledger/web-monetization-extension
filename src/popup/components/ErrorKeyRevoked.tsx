@@ -86,19 +86,14 @@ const MainScreen = ({
   }
 
   return (
-    <m.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="space-y-4 text-sm"
-    >
+    <m.div exit={{ opacity: 0 }} className="space-y-4 text-sm">
       <div className="flex gap-2 rounded-md bg-error p-2">
         <WarningSign className="size-6 text-error" />
         <h3 className="text-base font-medium text-error">
           {t('keyRevoked_error_title')}
         </h3>
       </div>
-      <p className="text-xs text-medium">{t('keyRevoked_error_text')}</p>
+      <p className="text-sm text-medium">{t('keyRevoked_error_text')}</p>
 
       {errorMsg && (
         <m.div
@@ -164,8 +159,11 @@ const ReconnectScreen = ({
       className="flex flex-col items-stretch gap-4"
       onSubmit={handleSubmit(requestReconnect)}
     >
-      <div className="space-y-1 text-xs">
-        <p className="px-2">Reconnecting to wallet: {info.walletAddress?.id}</p>
+      <div className="space-y-1 text-sm">
+        <p className="px-2">
+          Reconnecting to wallet:{' '}
+          <span className="underline">{info.walletAddress?.id}</span>
+        </p>
         <p className="px-2">
           <strong>Before</strong> you reconnect, copy the public key below and
           add it to your wallet.
