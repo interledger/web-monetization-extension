@@ -313,7 +313,7 @@ export class OpenPaymentsService {
     }).catch((err) => {
       if (err instanceof OpenPaymentsClientError) {
         if (err.status === 400 && err.code === 'invalid_client') {
-          const msg = this.t('error_connectWallet_invalidClient')
+          const msg = this.t('connectWallet_error_invalidClient')
           throw new Error(msg, { cause: err })
         }
       }
@@ -579,7 +579,7 @@ export class OpenPaymentsService {
     } catch (error) {
       if (error instanceof OpenPaymentsClientError) {
         if (error.status === 400 && error.code === 'invalid_client') {
-          const msg = this.t('error_connectWallet_invalidClient')
+          const msg = this.t('connectWallet_error_invalidClient')
           throw new Error(msg, { cause: error })
         }
       }

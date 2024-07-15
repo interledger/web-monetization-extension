@@ -71,8 +71,8 @@ export class TabEvents {
       const { value: isTabMonetized } = payload
       iconData = isTabMonetized ? ICONS.active : ICONS.inactive
       const tabStateText = isTabMonetized
-        ? this.t('monetizationActiveShort')
-        : this.t('monetizationInactiveShort')
+        ? this.t('icon_state_monetizationActive')
+        : this.t('icon_state_monetizationInactive')
       title = `${title} - ${tabStateText}`
     }
     const tabId = sender && getTabId(sender)

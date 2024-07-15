@@ -7,21 +7,16 @@
     "message": "Web Monetization Extension",
     "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website."
   },
-  "btnTooltip": {
-    "message": "Web Monetization",
-    "description": "..."
-  },
-  "hostsPermissionsNeeded": {
-    "message": "Permission to access your data for all websites is required to use Web Monetization.",
-    "description": "..."
-  },
-  "monetizationActiveShort": {
+  "icon_state_monetizationActive": {
     "message": "Active"
   },
-  "monetizationInactiveShort": {
+  "icon_state_monetizationInactive": {
     "message": "Inactive"
   },
-  "siteNotMonetized": {
+  "missingHostPermission_state_text": {
+    "message": "Permission to access your data for all websites is required to use Web Monetization."
+  },
+  "siteNotMonetized_state_text": {
     "message": "This website is not monetized."
   },
   "keyRevoked_error_title": {
@@ -39,7 +34,7 @@
   "keyRevoked_action_reconnectBtn": {
     "message": "Reconnect"
   },
-  "error_connectWallet_invalidClient": {
+  "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
   }
 }
