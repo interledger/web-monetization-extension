@@ -3,6 +3,7 @@ import type { AmountValue, Storage } from '@/shared/types'
 
 interface BackgroundEvents {
   'open_payments.key_revoked': void
+  'open_payments.out_of_funds': void
   'storage.rate_of_pay_update': { rate: string }
   'storage.state_update': {
     state: Storage['state']

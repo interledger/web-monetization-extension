@@ -1,4 +1,9 @@
-import { isOkState, objectEquals, removeQueryParams } from './helpers'
+import {
+  isOkState,
+  objectEquals,
+  removeQueryParams,
+  getNextOccurrence
+} from './helpers'
 
 describe('objectEquals', () => {
   it('should return true if objects are equal', () => {
@@ -44,4 +49,20 @@ describe('isOkState', () => {
       isOkState({ key_revoked: false, missing_host_permissions: true })
     ).toBe(false)
   })
+})
+
+describe('getNextOccurrence', () => {
+  const now = new Date()
+  const nowISO = now.toISOString()
+  const nowVal = now.valueOf()
+
+  it('should return the next occurrence in the array', () => {
+    expect(getNextOccurrence(`R/${nowISO}/PT30S`, now)).toEqual(
+      new Date(nowVal + 30 * 1000)
+    )
+  })
+
+  // TODO: more tests
+  // `R/${now.toISOString()}/PT1H` // recur unlimited
+  // `R3/${now.toISOString()}/PT1M` // recur 3 times
 })

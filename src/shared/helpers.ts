@@ -3,7 +3,7 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { cx, CxOptions } from 'class-variance-authority'
 import { twMerge } from 'tailwind-merge'
 import type { Browser } from 'webextension-polyfill'
-import type { Storage } from './types'
+import type { Storage, RepeatingInterval } from './types'
 
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs))
@@ -225,4 +225,11 @@ export const removeQueryParams = (urlString: string) => {
 
 export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false)
+}
+
+export const getNextOccurrence = (
+  interval: RepeatingInterval,
+  base = new Date()
+): Date => {
+  return base
 }

@@ -12,6 +12,9 @@ export const ProtectedRoute = () => {
   if (state.state.key_revoked) {
     return <Navigate to={ROUTES_PATH.ERROR_KEY_REVOKED} />
   }
+  if (state.state.out_of_funds) {
+    return <Navigate to={ROUTES_PATH.OUT_OF_FUNDS} />
+  }
   if (state.connected === false) {
     return <Navigate to={ROUTES_PATH.SETTINGS} />
   }

@@ -26,7 +26,11 @@ import {
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation, type Translation } from '@/shared/helpers'
+import {
+  getNextOccurrence,
+  getWalletInformation,
+  type Translation
+} from '@/shared/helpers'
 import { ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
@@ -92,8 +96,11 @@ type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
 export class OpenPaymentsService {
   client?: AuthenticatedClient
 
+  public switchGrant: OpenPaymentsService['_switchGrant']
+
   private token: AccessToken
   private grant: GrantDetails | null
+  private isGrantUsable = { recurring: false, oneTime: false }
 
   constructor(
     private browser: Browser,
@@ -102,6 +109,7 @@ export class OpenPaymentsService {
     private t: Translation
   ) {
     void this.initialize()
+    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
   }
 
   private async initialize() {
@@ -119,6 +127,8 @@ export class OpenPaymentsService {
       (recurringGrant || oneTimeGrant)
     ) {
       this.grant = recurringGrant || oneTimeGrant!
+      this.isGrantUsable.recurring = !!recurringGrant
+      this.isGrantUsable.oneTime = !!oneTimeGrant
       this.token = this.grant.accessToken
       await this.initClient(walletAddress.id)
     }
@@ -586,6 +596,44 @@ export class OpenPaymentsService {
       throw error
     }
     await this.storage.setState({ key_revoked: false })
+  }
+
+  /**
+   * Switches to the next grant that can be used.
+   * @returns the type of grant that should be used now, or null if no grant can
+   * be used.
+   */
+  private async _switchGrant(): Promise<GrantDetails['type'] | null> {
+    if (!this.isGrantUsable.recurring && !this.isGrantUsable.oneTime) {
+      return null
+    }
+    console.log('Switching from grant', this.grant?.type)
+    const { oneTimeGrant, recurringGrant } = await this.storage.get([
+      'oneTimeGrant',
+      'recurringGrant'
+    ])
+    if (this.grant) {
+      if (this.grant.type === 'recurring') {
+        this.isGrantUsable.recurring = false
+        if (oneTimeGrant) {
+          console.log('switching grant', oneTimeGrant.type)
+          this.grant = oneTimeGrant
+          return 'one-time'
+        }
+      } else if (this.grant.type === 'one-time') {
+        this.isGrantUsable.oneTime = false
+        if (
+          recurringGrant &&
+          /* TODO: When can we allow switching back to recurring grant? */
+          getNextOccurrence(recurringGrant.amount.interval) === new Date()
+        ) {
+          console.log('switching grant', recurringGrant.type)
+          this.grant = recurringGrant
+          return 'recurring'
+        }
+      }
+    }
+    return null
   }
 
   async rotateToken() {

@@ -157,6 +157,11 @@ export class PaymentSession {
       } catch (e) {
         if (this.isKeyRevokedError(e)) {
           this.events.emit('open_payments.key_revoked')
+        } else if (this.outOfBalanceError(e)) {
+          const switched = await this.openPaymentsService.switchGrant()
+          if (switched === null) {
+            this.events.emit('open_payments.out_of_funds')
+          }
         } else if (e instanceof OpenPaymentsClientError) {
           // Status code 403 -> expired access token
           if (e.status === 403) {
@@ -170,8 +175,6 @@ export class PaymentSession {
             continue
           }
 
-          // TODO: Check what Rafiki returns when there is no amount
-          // left in the grant.
           throw new Error(e.message)
         }
       } finally {
@@ -352,6 +355,13 @@ export class PaymentSession {
         (error.status === 401 &&
           error.description?.includes('Signature validation error'))
       )
+    }
+    return false
+  }
+
+  private outOfBalanceError(error: any) {
+    if (error instanceof OpenPaymentsClientError) {
+      return error.status === 403 && error.description === 'unauthorized'
     }
     return false
   }

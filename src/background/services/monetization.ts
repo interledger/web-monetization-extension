@@ -250,6 +250,7 @@ export class MonetizationService {
   private registerEventListeners() {
     this.onRateOfPayUpdate()
     this.onKeyRevoked()
+    this.onOutOfFunds()
   }
 
   private onRateOfPayUpdate() {
@@ -276,6 +277,20 @@ export class MonetizationService {
       await this.storage.setState({ key_revoked: true })
       this.logger.debug(`All payment sessions stopped.`)
       this.onKeyRevoked() // setup listener again once all is done
+    })
+  }
+
+  private onOutOfFunds() {
+    this.events.once('open_payments.out_of_funds', async () => {
+      this.logger.warn(`Out of funds. Stopping all payment sessions.`)
+      for (const sessions of Object.values(this.sessions)) {
+        for (const session of sessions.values()) {
+          session.stop()
+        }
+      }
+      await this.storage.setState({ out_of_funds: true })
+      this.logger.debug(`All payment sessions stopped.`)
+      this.onOutOfFunds() // setup listener again once all is done
     })
   }
 
