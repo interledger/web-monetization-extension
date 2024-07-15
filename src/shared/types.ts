@@ -96,6 +96,10 @@ export type PopupStore = Omit<
   balance: AmountValue
   isSiteMonetized: boolean
   url: string | undefined
+  grants?: Partial<{
+    oneTime: OneTimeGrant['amount']
+    recurring: RecurringGrant['amount']
+  }>
 }
 
 export type DeepNonNullable<T> = {

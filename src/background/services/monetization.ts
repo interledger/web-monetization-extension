@@ -303,10 +303,14 @@ export class MonetizationService {
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
+      'oneTimeGrant',
+      'recurringGrant',
       'publicKey'
     ])
     const balance = await this.storage.getBalance()
     const tab = await getCurrentActiveTab(this.browser)
+
+    const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData
 
     let url
     if (tab && tab.url) {
@@ -323,9 +327,13 @@ export class MonetizationService {
     const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
 
     return {
-      ...storedData,
+      ...dataFromStorage,
       balance: balance.total.toString(),
       url,
+      grants: {
+        oneTime: oneTimeGrant?.amount,
+        recurring: recurringGrant?.amount
+      },
       isSiteMonetized
     }
   }
