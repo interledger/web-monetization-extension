@@ -73,13 +73,13 @@ export class MonetizationTagManager extends EventEmitter {
     tag.dispatchEvent(new Event('error'))
   }
 
-  dispatchMonetizationEvent({ requestId, detail }: MonetizationEventPayload) {
+  dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
     this.monetizationTags.forEach((tagDetails, tag) => {
       if (tagDetails.requestId !== requestId) return
 
       tag.dispatchEvent(
         new CustomEvent('__wm_ext_monetization', {
-          detail: mozClone(detail, this.document),
+          detail: mozClone(details, this.document),
           bubbles: true
         })
       )

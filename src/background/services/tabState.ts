@@ -1,8 +1,16 @@
-import { Tabs } from 'webextension-polyfill'
+import type { MonetizationEventDetails } from '@/shared/messages'
+import type { Tabs } from 'webextension-polyfill'
 
 type State = {
+  monetizationEvent: MonetizationEventDetails
   lastPaymentTimestamp: number
   expiresAtTimestamp: number
+}
+
+interface SaveOverpayingDetails {
+  walletAddressId: string
+  monetizationEvent: MonetizationEventDetails
+  intervalInMs: number
 }
 
 export class TabState {
@@ -14,28 +22,33 @@ export class TabState {
     return `${url}:${walletAddressId}`
   }
 
-  getOverpayingWaitTime(
+  getOverpayingDetails(
     tab: Tabs.Tab,
     url: string,
     walletAddressId: string
-  ): number {
+  ): { waitTime: number; monetizationEvent?: MonetizationEventDetails } {
     const key = this.getOverpayingStateKey(url, walletAddressId)
     const state = this.state.get(tab)?.get(key)
     const now = Date.now()
 
     if (state && state.expiresAtTimestamp > now) {
-      return state.expiresAtTimestamp - now
+      return {
+        waitTime: state.expiresAtTimestamp - now,
+        monetizationEvent: state.monetizationEvent
+      }
     }
 
-    return 0
+    return {
+      waitTime: 0
+    }
   }
 
   saveOverpaying(
     tab: Tabs.Tab,
     url: string,
-    walletAddressId: string,
-    intervalInMs: number
+    details: SaveOverpayingDetails
   ): void {
+    const { intervalInMs, walletAddressId, monetizationEvent } = details
     if (!intervalInMs) return
 
     const now = Date.now()
@@ -45,8 +58,9 @@ export class TabState {
     const state = this.state.get(tab)?.get(key)
 
     if (!state) {
-      const tabState = this.state.get(tab) || new Map()
+      const tabState = this.state.get(tab) || new Map<string, State>()
       tabState.set(key, {
+        monetizationEvent,
         expiresAtTimestamp: expiresAtTimestamp,
         lastPaymentTimestamp: now
       })
