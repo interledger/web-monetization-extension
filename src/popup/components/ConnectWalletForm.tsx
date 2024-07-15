@@ -53,8 +53,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       clearErrors('walletAddressUrl')
       if (!walletAddressUrl) return
       try {
-        const httpUrl = toWalletAddressUrl(walletAddressUrl)
-        const url = new URL(httpUrl)
+        const url = new URL(toWalletAddressUrl(walletAddressUrl))
         const walletAddress = await getWalletInformation(url.toString())
         setCurrencySymbol({
           symbol: getCurrencySymbol(walletAddress.assetCode),
@@ -143,7 +142,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       </div>
       <Input
         type="text"
-        label="Wallet address"
+        label="Wallet address or payment pointer"
         disabled={connected}
         placeholder="https://ilp.rafiki.money/johndoe"
         errorMessage={errors.walletAddressUrl?.message}
