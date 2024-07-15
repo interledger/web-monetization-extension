@@ -505,8 +505,16 @@ export class OpenPaymentsService {
     if (!grant) {
       return
     }
+    await this.cancelGrant(grant.continue)
+    await this.storage.clear()
+    this.grant = null
+    this.token = { value: '', manageUrl: '' }
+  }
 
-    await this.client!.grant.cancel(grant.continue).catch((error) => {
+  private async cancelGrant(grantContinuation: GrantDetails['continue']) {
+    try {
+      await this.client!.grant.cancel(grantContinuation)
+    } catch (error) {
       if (error instanceof OpenPaymentsClientError) {
         if (error.status === 400 && error.code === 'invalid_client') {
           // key already removed from wallet
@@ -514,11 +522,7 @@ export class OpenPaymentsService {
         }
       }
       throw error
-    })
-
-    await this.storage.clear()
-    this.grant = null
-    this.token = { value: '', manageUrl: '' }
+    }
   }
 
   async generateKeys() {
