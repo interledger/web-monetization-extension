@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import type { AmountValue, Storage } from '@/shared/types'
 
 interface BackgroundEvents {
+  'open_payments.key_revoked': void
   'storage.rate_of_pay_update': { rate: string }
   'storage.state_update': {
     state: Storage['state']

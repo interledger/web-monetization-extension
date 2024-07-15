@@ -502,12 +502,26 @@ export class OpenPaymentsService {
     // correctly (either specific grant or all grants). See
     // https://github.com/interledger/web-monetization-extension/pull/379#discussion_r1660447849
     const grant = recurringGrant || oneTimeGrant
+    if (!grant) {
+      return
+    }
+    await this.cancelGrant(grant.continue)
+    await this.storage.clear()
+    this.grant = null
+    this.token = { value: '', manageUrl: '' }
+  }
 
-    if (grant) {
-      await this.client!.grant.cancel(grant.continue)
-      await this.storage.clear()
-      this.grant = null
-      this.token = { value: '', manageUrl: '' }
+  private async cancelGrant(grantContinuation: GrantDetails['continue']) {
+    try {
+      await this.client!.grant.cancel(grantContinuation)
+    } catch (error) {
+      if (error instanceof OpenPaymentsClientError) {
+        if (error.status === 400 && error.code === 'invalid_client') {
+          // key already removed from wallet
+          return
+        }
+      }
+      throw error
     }
   }
 
@@ -557,6 +571,21 @@ export class OpenPaymentsService {
     }
 
     return outgoingPayment
+  }
+
+  async reconnectWallet() {
+    try {
+      await this.rotateToken()
+    } catch (error) {
+      if (error instanceof OpenPaymentsClientError) {
+        if (error.status === 400 && error.code === 'invalid_client') {
+          const msg = this.t('error_connectWallet_invalidClient')
+          throw new Error(msg, { cause: error })
+        }
+      }
+      throw error
+    }
+    await this.storage.setState({ key_revoked: false })
   }
 
   async rotateToken() {

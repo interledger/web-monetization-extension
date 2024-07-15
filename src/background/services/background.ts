@@ -92,8 +92,15 @@ export class Background {
               await this.openPaymentsService.connectWallet(message.payload)
               return
 
+            case PopupToBackgroundAction.RECONNECT_WALLET:
+              await this.openPaymentsService.reconnectWallet()
+              await this.monetizationService.resumePaymentSessionActiveTab()
+              await this.tabEvents.onUpdatedTab()
+              return success(undefined)
+
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
+              this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
               return
 
             case PopupToBackgroundAction.TOGGLE_WM:
@@ -126,7 +133,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.RESUME_MONETIZATION:
-              this.monetizationService.resumePaymentSession(
+              await this.monetizationService.resumePaymentSession(
                 message.payload,
                 sender
               )

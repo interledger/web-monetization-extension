@@ -96,11 +96,6 @@ export const getSender = (sender: Runtime.MessageSender) => {
 export const computeRate = (rate: string, sessionsCount: number) =>
   (+rate / sessionsCount).toString()
 
-export const removeQueryParams = (urlString: string) => {
-  const url = new URL(urlString)
-  return url.origin + url.pathname
-}
-
 export function computeBalance(
   grant?: GrantDetails | null,
   grantSpentAmount?: AmountValue | null

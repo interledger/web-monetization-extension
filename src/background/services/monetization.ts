@@ -8,13 +8,8 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
-import {
-  computeRate,
-  getCurrentActiveTab,
-  getSender,
-  getTabId,
-  removeQueryParams
-} from '../utils'
+import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { isOkState, removeQueryParams } from '@/shared/helpers'
 import { EventsService } from './events'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore } from '@/shared/types'
@@ -42,11 +37,13 @@ export class MonetizationService {
     sender: Runtime.MessageSender
   ) {
     const {
+      state,
       enabled,
       rateOfPay,
       connected,
       walletAddress: connectedWallet
     } = await this.storage.get([
+      'state',
       'enabled',
       'connected',
       'rateOfPay',
@@ -87,28 +84,23 @@ export class MonetizationService {
         frameId,
         rate,
         this.openPaymentsService,
+        this.events,
         this.tabState,
         removeQueryParams(url!)
       )
 
       sessions.set(requestId, session)
 
-      if (connected === true && enabled === true) {
+      if (connected && enabled && isOkState(state)) {
         void session.start()
       }
     })
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
-    const { enabled, connected } = await this.storage.get([
-      'connected',
-      'enabled'
-    ])
-    if (connected === false || enabled === false) return
-
     const sessions = this.sessions[tabId]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -150,17 +142,24 @@ export class MonetizationService {
     })
   }
 
-  resumePaymentSession(
+  async resumePaymentSession(
     payload: ResumeMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
     const tabId = getTabId(sender)
     const sessions = this.sessions[tabId]
 
-    if (!sessions) {
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
+
+    const { state, connected, enabled } = await this.storage.get([
+      'state',
+      'connected',
+      'enabled'
+    ])
+    if (!isOkState(state) || !connected || !enabled) return
 
     payload.forEach((p) => {
       const { requestId } = p
@@ -170,22 +169,28 @@ export class MonetizationService {
   }
 
   async resumePaymentSessionsByTabId(tabId: number) {
-    const { enabled, connected } = await this.storage.get([
-      'connected',
-      'enabled'
-    ])
-    if (connected === false || enabled === false) return
-
     const sessions = this.sessions[tabId]
-
-    if (!sessions) {
+    if (!sessions?.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
 
+    const { state, connected, enabled } = await this.storage.get([
+      'state',
+      'connected',
+      'enabled'
+    ])
+    if (!isOkState(state) || !connected || !enabled) return
+
     for (const session of sessions.values()) {
       session.resume()
     }
+  }
+
+  async resumePaymentSessionActiveTab() {
+    const currentTab = await getCurrentActiveTab(this.browser)
+    if (!currentTab?.id) return
+    await this.resumePaymentSessionsByTabId(currentTab.id)
   }
 
   async toggleWM() {
@@ -244,6 +249,7 @@ export class MonetizationService {
 
   private registerEventListeners() {
     this.onRateOfPayUpdate()
+    this.onKeyRevoked()
   }
 
   private onRateOfPayUpdate() {
@@ -256,6 +262,20 @@ export class MonetizationService {
           session.adjustSessionAmount(rate)
         }
       })
+    })
+  }
+
+  private onKeyRevoked() {
+    this.events.once('open_payments.key_revoked', async () => {
+      this.logger.warn(`Key revoked. Stopping all payment sessions.`)
+      for (const sessions of Object.values(this.sessions)) {
+        for (const session of sessions.values()) {
+          session.stop()
+        }
+      }
+      await this.storage.setState({ key_revoked: true })
+      this.logger.debug(`All payment sessions stopped.`)
+      this.onKeyRevoked() // setup listener again once all is done
     })
   }
 

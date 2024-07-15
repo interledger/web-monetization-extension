@@ -3,6 +3,7 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 import { cx, CxOptions } from 'class-variance-authority'
 import { twMerge } from 'tailwind-merge'
 import type { Browser } from 'webextension-polyfill'
+import type { Storage } from './types'
 
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs))
@@ -215,4 +216,13 @@ export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
   const keysA = Object.keys(a)
   const keysB = Object.keys(b)
   return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort())
+}
+
+export const removeQueryParams = (urlString: string) => {
+  const url = new URL(urlString)
+  return url.origin + url.pathname
+}
+
+export const isOkState = (state: Storage['state']) => {
+  return Object.values(state).every((value) => value === false)
 }
