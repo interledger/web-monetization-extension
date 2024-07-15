@@ -1,4 +1,9 @@
-import { OpenPaymentsService, StorageService } from '.'
+import type {
+  EventsService,
+  OpenPaymentsService,
+  StorageService,
+  TabState
+} from '.'
 import { type Browser, type Runtime } from 'webextension-polyfill'
 import { Logger } from '@/shared/logger'
 import {
@@ -9,11 +14,10 @@ import {
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { isOutOfBalanceError } from './openPayments'
 import { isOkState, removeQueryParams } from '@/shared/helpers'
-import { EventsService } from './events'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore } from '@/shared/types'
-import { TabState } from './tabState'
 
 export class MonetizationService {
   private sessions: {
@@ -228,21 +232,22 @@ export class MonetizationService {
       throw new Error('This website is not monetized.')
     }
 
-    let totalSentAmount = BigInt(0)
     const splitAmount = Number(amount) / sessions.size
-    const promises = []
+    // TODO: handle paying across two grants (when one grant doesn't have enough funds)
+    const results = await Promise.allSettled(
+      Array.from(sessions.values()).map((session) => session.pay(splitAmount))
+    )
 
-    for (const session of sessions.values()) {
-      promises.push(session.pay(splitAmount))
-    }
-
-    ;(await Promise.allSettled(promises)).forEach((p) => {
-      if (p.status === 'fulfilled') {
-        totalSentAmount += BigInt(p.value?.value ?? 0)
-      }
-    })
-
+    const totalSentAmount = results
+      .filter((e) => e.status === 'fulfilled')
+      .reduce((acc, curr) => acc + BigInt(curr.value?.value ?? 0), 0n)
     if (totalSentAmount === BigInt(0)) {
+      const isNotEnoughFunds = results
+        .filter((e) => e.status === 'rejected')
+        .some((e) => isOutOfBalanceError(e.reason))
+      if (isNotEnoughFunds) {
+        throw new Error('Not enough funds to facilitate payment.')
+      }
       throw new Error('Could not facilitate payment for current website.')
     }
   }
