@@ -95,10 +95,10 @@ const MainScreen = ({
       <div className="flex gap-2 rounded-md bg-error p-2">
         <WarningSign className="size-6 text-error" />
         <h3 className="text-base font-medium text-error">
-          {t('error_keyRevoked_title')}
+          {t('keyRevoked_error_title')}
         </h3>
       </div>
-      <p className="text-xs text-medium">{t('error_keyRevoked_text')}</p>
+      <p className="text-xs text-medium">{t('keyRevoked_error_text')}</p>
 
       {errorMsg && (
         <m.div
@@ -113,10 +113,10 @@ const MainScreen = ({
 
       <m.form className="flex flex-col items-stretch gap-4">
         <Button onClick={() => requestDisconnect()} loading={loading}>
-          {t('action_keyRevoked_disconnect')}
+          {t('keyRevoked_action_disconnect')}
         </Button>
         <Button onClick={() => requestReconnect()}>
-          {t('action_keyRevoked_reconnect')}
+          {t('keyRevoked_action_reconnect')}
         </Button>
       </m.form>
     </m.div>
@@ -185,7 +185,7 @@ const ReconnectScreen = ({
       )}
 
       <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
-        {t('action_keyRevoked_reconnectBtn')}
+        {t('keyRevoked_action_reconnectBtn')}
       </Button>
     </m.form>
   )

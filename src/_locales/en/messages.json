@@ -24,19 +24,19 @@
   "siteNotMonetized": {
     "message": "This website is not monetized."
   },
-  "error_keyRevoked_title": {
+  "keyRevoked_error_title": {
     "message": "Unauthorized access to wallet"
   },
-  "error_keyRevoked_text": {
+  "keyRevoked_error_text": {
     "message": "It appears that the key has been revoked from your wallet. Authenticate wallet by adding the key again, or disconnect."
   },
-  "action_keyRevoked_disconnect": {
+  "keyRevoked_action_disconnect": {
     "message": "Yes, let me disconnect my wallet"
   },
-  "action_keyRevoked_reconnect": {
+  "keyRevoked_action_reconnect": {
     "message": "It was a mistake, I’d like to reconnect my wallet"
   },
-  "action_keyRevoked_reconnectBtn": {
+  "keyRevoked_action_reconnectBtn": {
     "message": "Reconnect"
   },
   "error_connectWallet_invalidClient": {
