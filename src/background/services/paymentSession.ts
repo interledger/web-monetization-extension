@@ -157,13 +157,10 @@ export class PaymentSession {
       } catch (e) {
         if (this.isKeyRevokedError(e)) {
           this.events.emit('open_payments.key_revoked')
+        } else if (this.isTokenExpiredError(e)) {
+          await this.openPaymentsService.rotateToken()
+          continue
         } else if (e instanceof OpenPaymentsClientError) {
-          // Status code 403 -> expired access token
-          if (e.status === 403) {
-            await this.openPaymentsService.rotateToken()
-            continue
-          }
-
           // We need better error handling.
           if (e.status === 400) {
             await this.setIncomingPaymentUrl()
@@ -301,11 +298,8 @@ export class PaymentSession {
     } catch (e) {
       if (this.isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
-      } else if (e instanceof OpenPaymentsClientError) {
-        // Status code 403 -> expired access token
-        if (e.status === 403) {
-          await this.openPaymentsService.rotateToken()
-        }
+      } else if (this.isTokenExpiredError(e)) {
+        await this.openPaymentsService.rotateToken()
       }
     } finally {
       if (outgoingPayment) {
@@ -354,5 +348,16 @@ export class PaymentSession {
       )
     }
     return false
+  }
+
+  private isTokenExpiredError(error: any) {
+    if (!(error instanceof OpenPaymentsClientError)) return false
+    return this.isTokenInvalidError(error) || this.isTokenInactiveError(error)
+  }
+  private isTokenInvalidError(error: OpenPaymentsClientError) {
+    return error.status === 401 && error.description === 'Invalid Token'
+  }
+  private isTokenInactiveError(error: OpenPaymentsClientError) {
+    return error.status === 403 && error.description === 'Inactive Token'
   }
 }
