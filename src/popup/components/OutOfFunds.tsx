@@ -50,8 +50,8 @@ export const OutOfFunds = ({
       <h3 className="text-lg">
         Top-up: ${getCurrencySymbol(info.assetCode)}${amount}
       </h3>
-      <Button onClick={() => requestTopUpOneTime()}>Recurring</Button>
-      <Button onClick={() => requestTopUpRecurring()}>One-time</Button>
+      <Button onClick={() => requestTopUpRecurring()}>Recurring</Button>
+      <Button onClick={() => requestTopUpOneTime()}>One-time</Button>
     </div>
   )
 }

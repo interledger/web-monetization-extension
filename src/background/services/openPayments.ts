@@ -314,7 +314,9 @@ export class OpenPaymentsService {
       assetScale: walletAddress.assetScale
     })
 
-    await this.initClient(walletAddress.id)
+    if (!this.client) {
+      await this.initClient(walletAddress.id)
+    }
     const clientNonce = crypto.randomUUID()
     const grant = await this.createOutgoingPaymentGrant({
       clientNonce,
@@ -372,6 +374,22 @@ export class OpenPaymentsService {
       }
     }
 
+    // clear existing grants, if any
+    const grants = await this.storage.get(['oneTimeGrant', 'recurringGrant'])
+    if (grants.oneTimeGrant && grantDetails.type === 'one-time') {
+      await this.cancelGrant(grants.oneTimeGrant.continue)
+      await this.storage.set({
+        oneTimeGrant: null,
+        oneTimeGrantSpentAmount: '0'
+      })
+    } else if (grants.recurringGrant && grantDetails.type === 'recurring') {
+      await this.cancelGrant(grants.recurringGrant.continue)
+      await this.storage.set({
+        recurringGrant: null,
+        recurringGrantSpentAmount: '0'
+      })
+    }
+
     const data = {
       walletAddress,
       rateOfPay,
@@ -392,7 +410,8 @@ export class OpenPaymentsService {
         oneTimeGrantSpentAmount: '0'
       })
     }
-    this.grant = grantDetails
+    this.storage.setState({ out_of_funds: false })
+    this.grant = grantDetails // TODO: recurring grant should be prioritized, if existing
     this.token = this.grant.accessToken
   }
 

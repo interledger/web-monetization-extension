@@ -1,7 +1,7 @@
 import React from 'react'
 import { OutOfFunds } from '@/popup/components/OutOfFunds'
 import { usePopupState } from '@/popup/lib/context'
-import { sleep } from '@/shared/helpers'
+import { connectWallet } from '@/popup/lib/messages'
 
 export const Component = () => {
   const {
@@ -13,10 +13,9 @@ export const Component = () => {
       info={walletAddress}
       grantOneTime={grants.oneTime}
       grantRecurring={grants.recurring}
-      requestTopUp={async (...args) => {
-        console.log(...args)
-        await sleep(2000)
-        return { success: true, payload: undefined }
+      requestTopUp={async (data) => {
+        const res = await connectWallet(data)
+        return res
       }}
     />
   )
