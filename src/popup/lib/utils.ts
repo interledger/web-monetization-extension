@@ -64,5 +64,5 @@ export function formatNumber(
 }
 
 export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace(/^\$/, 'https://') : s
+  return s.startsWith('$') ? s.replace('$', 'https://') : s
 }
