@@ -311,9 +311,11 @@ export class OpenPaymentsService {
       walletAddress,
       amount: transformedAmount
     }).catch((err) => {
-      if (isInvalidClientError(err)) {
-        const msg = this.t('error_connectWallet_invalidClient')
-        throw new Error(msg, { cause: err })
+      if (err instanceof OpenPaymentsClientError) {
+        if (err.status === 400 && err.code === 'invalid_client') {
+          const msg = this.t('connectWallet_error_invalidClient')
+          throw new Error(msg, { cause: err })
+        }
       }
       throw err
     })
@@ -574,7 +576,7 @@ export class OpenPaymentsService {
       await this.rotateToken()
     } catch (error) {
       if (isInvalidClientError(error)) {
-        const msg = this.t('error_connectWallet_invalidClient')
+        const msg = this.t('connectWallet_error_invalidClient')
         throw new Error(msg, { cause: error })
       }
       throw error

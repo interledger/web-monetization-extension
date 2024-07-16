@@ -9,7 +9,7 @@ export const SiteNotMonetized = () => {
       <div className="flex-shrink-0">
         <WarningSign className="size-6 text-medium" />
       </div>
-      <h3 className="text-medium">{t('siteNotMonetized')}</h3>
+      <h3 className="text-medium">{t('siteNotMonetized_state_text')}</h3>
     </div>
   )
 }
