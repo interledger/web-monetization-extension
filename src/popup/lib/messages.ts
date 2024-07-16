@@ -28,6 +28,12 @@ export const connectWallet = async (
   })
 }
 
+export const reconnectWallet = async () => {
+  return await message.send({
+    action: PopupToBackgroundAction.RECONNECT_WALLET
+  })
+}
+
 export const disconnectWallet = async () => {
   return await message.send({
     action: PopupToBackgroundAction.DISCONNECT_WALLET

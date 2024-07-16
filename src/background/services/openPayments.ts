@@ -311,11 +311,9 @@ export class OpenPaymentsService {
       walletAddress,
       amount: transformedAmount
     }).catch((err) => {
-      if (err instanceof OpenPaymentsClientError) {
-        if (err.status === 400 && err.code === 'invalid_client') {
-          const msg = this.t('error_connectWallet_invalidClient')
-          throw new Error(msg, { cause: err })
-        }
+      if (isInvalidClientError(err)) {
+        const msg = this.t('connectWallet_error_invalidClient')
+        throw new Error(msg, { cause: err })
       }
       throw err
     })
@@ -502,12 +500,24 @@ export class OpenPaymentsService {
     // correctly (either specific grant or all grants). See
     // https://github.com/interledger/web-monetization-extension/pull/379#discussion_r1660447849
     const grant = recurringGrant || oneTimeGrant
+    if (!grant) {
+      return
+    }
+    await this.cancelGrant(grant.continue)
+    await this.storage.clear()
+    this.grant = null
+    this.token = { value: '', manageUrl: '' }
+  }
 
-    if (grant) {
-      await this.client!.grant.cancel(grant.continue)
-      await this.storage.clear()
-      this.grant = null
-      this.token = { value: '', manageUrl: '' }
+  private async cancelGrant(grantContinuation: GrantDetails['continue']) {
+    try {
+      await this.client!.grant.cancel(grantContinuation)
+    } catch (error) {
+      if (isInvalidClientError(error)) {
+        // key already removed from wallet
+        return
+      }
+      throw error
     }
   }
 
@@ -559,6 +569,19 @@ export class OpenPaymentsService {
     return outgoingPayment
   }
 
+  async reconnectWallet() {
+    try {
+      await this.rotateToken()
+    } catch (error) {
+      if (isInvalidClientError(error)) {
+        const msg = this.t('connectWallet_error_invalidClient')
+        throw new Error(msg, { cause: error })
+      }
+      throw error
+    }
+    await this.storage.setState({ key_revoked: false })
+  }
+
   async rotateToken() {
     if (!this.grant) {
       throw new Error('No grant to rotate token for')
@@ -580,4 +603,39 @@ export class OpenPaymentsService {
     this.grant.accessToken = accessToken
     this.token = accessToken
   }
+}
+
+const isOpenPaymentsClientError = (error: any) =>
+  error instanceof OpenPaymentsClientError
+
+export const isKeyRevokedError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return isInvalidClientError(error) || isSignatureValidationError(error)
+}
+
+// AUTH SERVER error
+export const isInvalidClientError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 400 && error.code === 'invalid_client'
+}
+
+// RESOURCE SERVER error. Create outgoing payment and create quote can fail
+// with: `Signature validation error: could not find key in list of client keys`
+export const isSignatureValidationError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return (
+    error.status === 401 &&
+    error.description?.includes('Signature validation error')
+  )
+}
+
+export const isTokenExpiredError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return isTokenInvalidError(error) || isTokenInactiveError(error)
+}
+export const isTokenInvalidError = (error: OpenPaymentsClientError) => {
+  return error.status === 401 && error.description === 'Invalid Token'
+}
+export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
+  return error.status === 403 && error.description === 'Inactive Token'
 }

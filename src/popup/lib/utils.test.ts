@@ -1,4 +1,4 @@
-import { formatNumber } from './utils'
+import { formatNumber, toWalletAddressUrl } from './utils'
 
 describe('formatNumber', () => {
   it('should display right format for integers', () => {
@@ -41,5 +41,13 @@ describe('formatNumber', () => {
     expect(formatNumber(0.000010009, 9, true)).toEqual('1.0009e-5')
 
     expect(formatNumber(0.000100009, 9)).toEqual('0.000100009')
+  })
+})
+
+describe('toWalletAddressUrl', () => {
+  it('converts from short form to long form', () => {
+    expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
+      'https://wallet.com/bob'
+    )
   })
 })

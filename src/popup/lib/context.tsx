@@ -16,6 +16,7 @@ import {
 export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
   TOGGLE_WM = 'TOGGLE_WM',
+  SET_CONNECTED = 'SET_CONNECTED',
   SET_IS_SITE_MONETIZED = 'SET_IS_TAB_MONETIZED',
   UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
@@ -49,6 +50,12 @@ interface SetIsSiteMonetized extends ReducerActionMock {
     value: boolean
   }
 }
+interface SetConnected extends ReducerActionMock {
+  type: ReducerActionType.SET_CONNECTED
+  data: {
+    value: boolean
+  }
+}
 
 interface UpdateRateOfPayAction extends ReducerActionMock {
   type: ReducerActionType.UPDATE_RATE_OF_PAY
@@ -63,6 +70,7 @@ export type ReducerActions =
   | SetDataAction
   | ToggleWMAction
   | SetIsSiteMonetized
+  | SetConnected
   | UpdateRateOfPayAction
   | BackgroundToPopupAction
 
@@ -83,6 +91,8 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
     }
     case ReducerActionType.SET_IS_SITE_MONETIZED:
       return { ...state, isSiteMonetized: action.data.value }
+    case ReducerActionType.SET_CONNECTED:
+      return { ...state, connected: action.data.value }
     case ReducerActionType.UPDATE_RATE_OF_PAY: {
       return {
         ...state,
