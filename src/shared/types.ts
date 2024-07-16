@@ -3,11 +3,13 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 /** Bigint amount, before transformation with assetScale */
 export type AmountValue = string
 
+/** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
+export type RepeatingInterval = string
+
 /** Wallet amount */
 export interface WalletAmount {
   value: string
-  /** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
-  interval?: string
+  interval?: RepeatingInterval
 }
 
 /** Amount interface - used in the `exceptionList` */
