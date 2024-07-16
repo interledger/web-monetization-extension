@@ -1,9 +1,13 @@
-import { SuccessResponse } from '@/shared/messages'
-import { WalletAddress } from '@interledger/open-payments/dist/types'
+import type { SuccessResponse } from '@/shared/messages'
+import type { WalletAddress } from '@interledger/open-payments/dist/types'
 import { cx, CxOptions } from 'class-variance-authority'
 import { twMerge } from 'tailwind-merge'
+import { addSeconds } from 'date-fns/addSeconds'
+import { isAfter } from 'date-fns/isAfter'
+import { isBefore } from 'date-fns/isBefore'
+import { parse, toSeconds } from 'iso8601-duration'
 import type { Browser } from 'webextension-polyfill'
-import type { Storage } from './types'
+import type { Storage, RepeatingInterval } from './types'
 
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs))
@@ -225,4 +229,30 @@ export const removeQueryParams = (urlString: string) => {
 
 export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false)
+}
+
+export const getNextOccurrence = (
+  interval: RepeatingInterval,
+  base = new Date()
+): Date => {
+  const re = /^R(\d*)\/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\/(P.+)$/
+  const match = interval.match(re)
+  if (!match) {
+    throw new Error(`Invalid interval: ${interval}`)
+  }
+  const count = match[1] ? parseInt(match[1], 10) : null
+  const startDate = new Date(match[2])
+  const pattern = parse(match[3])
+  const seconds = toSeconds(pattern, base)
+
+  if (count && isAfter(base, addSeconds(startDate, count * seconds))) {
+    throw new Error('No next occurrence is possible beyond given time')
+  }
+
+  let date = new Date(startDate)
+  while (!isBefore(base, date)) {
+    date = addSeconds(date, seconds)
+  }
+
+  return date
 }
