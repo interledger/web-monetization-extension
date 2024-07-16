@@ -34,4 +34,3 @@
   - any:
       - changed-files:
           - any-glob-to-any-file: 'src/_locales/**/*'
-
