@@ -311,11 +311,9 @@ export class OpenPaymentsService {
       walletAddress,
       amount: transformedAmount
     }).catch((err) => {
-      if (err instanceof OpenPaymentsClientError) {
-        if (err.status === 400 && err.code === 'invalid_client') {
-          const msg = this.t('connectWallet_error_invalidClient')
-          throw new Error(msg, { cause: err })
-        }
+      if (isInvalidClientError(err)) {
+        const msg = this.t('connectWallet_error_invalidClient')
+        throw new Error(msg, { cause: err })
       }
       throw err
     })
@@ -629,4 +627,15 @@ export const isSignatureValidationError = (error: any) => {
     error.status === 401 &&
     error.description?.includes('Signature validation error')
   )
+}
+
+export const isTokenExpiredError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return isTokenInvalidError(error) || isTokenInactiveError(error)
+}
+export const isTokenInvalidError = (error: OpenPaymentsClientError) => {
+  return error.status === 401 && error.description === 'Invalid Token'
+}
+export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
+  return error.status === 403 && error.description === 'Inactive Token'
 }
