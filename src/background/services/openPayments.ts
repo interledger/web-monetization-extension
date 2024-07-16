@@ -639,3 +639,8 @@ export const isTokenInvalidError = (error: OpenPaymentsClientError) => {
 export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
   return error.status === 403 && error.description === 'Inactive Token'
 }
+
+export const isOutOfBalanceError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 403 && error.description === 'unauthorized'
+}
