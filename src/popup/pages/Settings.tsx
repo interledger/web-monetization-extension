@@ -9,6 +9,11 @@ export const Component = () => {
   if (state.connected) {
     return <WalletInformation info={state} />
   } else {
-    return <ConnectWalletForm publicKey={state.publicKey} />
+    return (
+      <ConnectWalletForm
+        publicKey={state.publicKey}
+        connected={state.connected}
+      />
+    )
   }
 }
