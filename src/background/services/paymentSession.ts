@@ -8,7 +8,11 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
-import { isKeyRevokedError, isOutOfBalanceError } from './openPayments'
+import {
+  isKeyRevokedError,
+  isOutOfBalanceError,
+  isTokenExpiredError
+} from './openPayments'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { Tabs } from 'webextension-polyfill'
 import type { MonetizationEventDetails } from '@/shared/messages'
@@ -158,18 +162,15 @@ export class PaymentSession {
       } catch (e) {
         if (isKeyRevokedError(e)) {
           this.events.emit('open_payments.key_revoked')
+        } else if (isTokenExpiredError(e)) {
+          await this.openPaymentsService.rotateToken()
+          continue
         } else if (isOutOfBalanceError(e)) {
           const switched = await this.openPaymentsService.switchGrant()
           if (switched === null) {
             this.events.emit('open_payments.out_of_funds')
           }
         } else if (e instanceof OpenPaymentsClientError) {
-          // Status code 403 -> expired access token
-          if (e.status === 403) {
-            await this.openPaymentsService.rotateToken()
-            continue
-          }
-
           // We need better error handling.
           if (e.status === 400) {
             await this.setIncomingPaymentUrl()
@@ -305,11 +306,8 @@ export class PaymentSession {
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
-      } else if (e instanceof OpenPaymentsClientError) {
-        // Status code 403 -> expired access token
-        if (e.status === 403) {
-          await this.openPaymentsService.rotateToken()
-        }
+      } else if (isTokenExpiredError(e)) {
+        await this.openPaymentsService.rotateToken()
       }
     } finally {
       if (outgoingPayment) {

@@ -325,11 +325,9 @@ export class OpenPaymentsService {
       walletAddress,
       amount: transformedAmount
     }).catch((err) => {
-      if (err instanceof OpenPaymentsClientError) {
-        if (err.status === 400 && err.code === 'invalid_client') {
-          const msg = this.t('error_connectWallet_invalidClient')
-          throw new Error(msg, { cause: err })
-        }
+      if (isInvalidClientError(err)) {
+        const msg = this.t('connectWallet_error_invalidClient')
+        throw new Error(msg, { cause: err })
       }
       throw err
     })
@@ -546,11 +544,9 @@ export class OpenPaymentsService {
     try {
       await this.client!.grant.cancel(grantContinuation)
     } catch (error) {
-      if (error instanceof OpenPaymentsClientError) {
-        if (error.status === 400 && error.code === 'invalid_client') {
-          // key already removed from wallet
-          return
-        }
+      if (isInvalidClientError(error)) {
+        // key already removed from wallet
+        return
       }
       throw error
     }
@@ -608,11 +604,9 @@ export class OpenPaymentsService {
     try {
       await this.rotateToken()
     } catch (error) {
-      if (error instanceof OpenPaymentsClientError) {
-        if (error.status === 400 && error.code === 'invalid_client') {
-          const msg = this.t('error_connectWallet_invalidClient')
-          throw new Error(msg, { cause: error })
-        }
+      if (isInvalidClientError(error)) {
+        const msg = this.t('connectWallet_error_invalidClient')
+        throw new Error(msg, { cause: error })
       }
       throw error
     }
@@ -682,21 +676,42 @@ export class OpenPaymentsService {
   }
 }
 
+const isOpenPaymentsClientError = (error: any) =>
+  error instanceof OpenPaymentsClientError
+
+export const isOutOfBalanceError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 403 && error.description === 'unauthorized'
+}
+
 export const isKeyRevokedError = (error: any) => {
-  if (!(error instanceof OpenPaymentsClientError)) return false
+  if (!isOpenPaymentsClientError(error)) return false
+  return isInvalidClientError(error) || isSignatureValidationError(error)
+}
+
+// AUTH SERVER error
+export const isInvalidClientError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 400 && error.code === 'invalid_client'
+}
+
+// RESOURCE SERVER error. Create outgoing payment and create quote can fail
+// with: `Signature validation error: could not find key in list of client keys`
+export const isSignatureValidationError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
   return (
-    // - [RESOURCE SERVER] create outgoing payment and create quote fail
-    //   with: HTTP 401 + `Signature validation error: could not find key in
-    //   list of client keys`
-    // - [AUTH SERVER] create incoming payment grant fails with: HTTP 400 +
-    //   `invalid_client`
-    (error.status === 400 && error.code === 'invalid_client') ||
-    (error.status === 401 &&
-      error.description?.includes('Signature validation error'))
+    error.status === 401 &&
+    error.description?.includes('Signature validation error')
   )
 }
 
-export const isOutOfBalanceError = (error: any) => {
-  if (!(error instanceof OpenPaymentsClientError)) return false
-  return error.status === 403 && error.description === 'unauthorized'
+export const isTokenExpiredError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return isTokenInvalidError(error) || isTokenInactiveError(error)
+}
+export const isTokenInvalidError = (error: OpenPaymentsClientError) => {
+  return error.status === 401 && error.description === 'Invalid Token'
+}
+export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
+  return error.status === 403 && error.description === 'Inactive Token'
 }
