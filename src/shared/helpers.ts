@@ -231,12 +231,14 @@ export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false)
 }
 
+const REPEATING_INTERVAL_REGEX =
+  /^R(\d*)\/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\/(P.+)$/
+
 export const getNextOccurrence = (
   interval: RepeatingInterval,
   base = new Date()
 ): Date => {
-  const re = /^R(\d*)\/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\/(P.+)$/
-  const match = interval.match(re)
+  const match = interval.match(REPEATING_INTERVAL_REGEX)
   if (!match) {
     throw new Error(`Invalid interval: ${interval}`)
   }
