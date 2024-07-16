@@ -56,6 +56,7 @@ describe('getNextOccurrence', () => {
   const now = new Date()
   const nowISO = now.toISOString()
   const dateJan = new Date('2024-01-03T00:00:00.000Z')
+  const dateJanEnd = new Date('2024-01-30T00:00:00.000Z')
   const dateFeb = new Date('2023-02-03T00:00:00.000Z')
   const dateFebLeap = new Date('2024-02-29T00:00:00.000Z')
   const dateApr = new Date('2024-04-03T00:00:00.000Z')
@@ -64,6 +65,12 @@ describe('getNextOccurrence', () => {
     expect(
       getNextOccurrence(`R/${dateJan.toISOString()}/P1M`, dateJan)
     ).toEqual(addMonths(dateJan, 1))
+    expect(
+      getNextOccurrence(`R/${dateJan.toISOString()}/P1M`, addDays(dateJan, 2))
+    ).toEqual(addMonths(dateJan, 1))
+    expect(
+      getNextOccurrence(`R/${dateJanEnd.toISOString()}/P1M`, dateJanEnd)
+    ).toEqual(new Date('2024-03-01T00:00:00.000Z'))
     expect(
       getNextOccurrence(`R/${dateFeb.toISOString()}/P1M`, dateFeb)
     ).toEqual(addMonths(dateFeb, 1))
