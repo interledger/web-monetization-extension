@@ -15,7 +15,11 @@ import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { isOutOfBalanceError } from './openPayments'
-import { isOkState, removeQueryParams } from '@/shared/helpers'
+import {
+  isOkState,
+  removeQueryParams,
+  type Translation
+} from '@/shared/helpers'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore } from '@/shared/types'
 
@@ -26,6 +30,7 @@ export class MonetizationService {
 
   constructor(
     private logger: Logger,
+    private t: Translation,
     private openPaymentsService: OpenPaymentsService,
     private storage: StorageService,
     private browser: Browser,
@@ -241,12 +246,13 @@ export class MonetizationService {
     const totalSentAmount = results
       .filter((e) => e.status === 'fulfilled')
       .reduce((acc, curr) => acc + BigInt(curr.value?.value ?? 0), 0n)
-    if (totalSentAmount === BigInt(0)) {
+
+    if (totalSentAmount === 0n) {
       const isNotEnoughFunds = results
         .filter((e) => e.status === 'rejected')
         .some((e) => isOutOfBalanceError(e.reason))
       if (isNotEnoughFunds) {
-        throw new Error('Not enough funds to facilitate payment.')
+        throw new Error(this.t('pay_error_notEnoughFunds'))
       }
       throw new Error('Could not facilitate payment for current website.')
     }
