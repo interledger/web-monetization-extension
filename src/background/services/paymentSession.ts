@@ -301,6 +301,8 @@ export class PaymentSession {
         this.events.emit('open_payments.key_revoked')
       } else if (isTokenExpiredError(e)) {
         await this.openPaymentsService.rotateToken()
+      } else {
+        throw e
       }
     } finally {
       if (outgoingPayment) {
