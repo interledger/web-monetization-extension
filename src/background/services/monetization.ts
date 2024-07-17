@@ -279,13 +279,8 @@ export class MonetizationService {
   private onKeyRevoked() {
     this.events.once('open_payments.key_revoked', async () => {
       this.logger.warn(`Key revoked. Stopping all payment sessions.`)
-      for (const sessions of Object.values(this.sessions)) {
-        for (const session of sessions.values()) {
-          session.stop()
-        }
-      }
+      this.stopAllSessions()
       await this.storage.setState({ key_revoked: true })
-      this.logger.debug(`All payment sessions stopped.`)
       this.onKeyRevoked() // setup listener again once all is done
     })
   }
@@ -293,15 +288,19 @@ export class MonetizationService {
   private onOutOfFunds() {
     this.events.once('open_payments.out_of_funds', async () => {
       this.logger.warn(`Out of funds. Stopping all payment sessions.`)
-      for (const sessions of Object.values(this.sessions)) {
-        for (const session of sessions.values()) {
-          session.stop()
-        }
-      }
+      this.stopAllSessions()
       await this.storage.setState({ out_of_funds: true })
-      this.logger.debug(`All payment sessions stopped.`)
       this.onOutOfFunds() // setup listener again once all is done
     })
+  }
+
+  private stopAllSessions() {
+    for (const sessions of Object.values(this.sessions)) {
+      for (const session of sessions.values()) {
+        session.stop()
+      }
+    }
+    this.logger.debug(`All payment sessions stopped.`)
   }
 
   async getPopupData(): Promise<PopupStore> {
