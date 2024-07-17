@@ -127,8 +127,6 @@ export class PaymentSession {
 
     await this.setIncomingPaymentUrl()
 
-    let outgoingPayment: OutgoingPayment | undefined
-
     const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
       this.tab,
       this.url,
@@ -149,68 +147,60 @@ export class PaymentSession {
     await sleep(waitTime)
 
     while (this.active) {
-      try {
-        outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
-          walletAddress: this.sender,
-          incomingPaymentId: this.incomingPaymentUrl,
-          amount: this.amount
+      this.openPaymentsService.createOutgoingPayment({
+        walletAddress: this.sender,
+        incomingPaymentId: this.incomingPaymentUrl,
+        amount: this.amount
+      }).then((outgoingPayment: OutgoingPayment) => {
+        const { receiveAmount, receiver: incomingPayment } = outgoingPayment
+
+        const monetizationEventDetails: MonetizationEventDetails = {
+          amountSent: {
+            currency: receiveAmount.assetCode,
+            value: transformBalance(
+              receiveAmount.value,
+              receiveAmount.assetScale
+            )
+          },
+          incomingPayment,
+          paymentPointer: this.receiver.id
+        }
+
+        sendMonetizationEvent({
+          tabId: this.tabId,
+          frameId: this.frameId,
+          payload: {
+            requestId: this.requestId,
+            details: monetizationEventDetails
+          }
         })
-      } catch (e) {
+
+        // TO DO: find a better source of truth for deciding if overpaying is applicable
+        if (this.intervalInMs > 1000) {
+          this.tabState.saveOverpaying(this.tab, this.url, {
+            walletAddressId: this.receiver.id,
+            monetizationEvent: monetizationEventDetails,
+            intervalInMs: this.intervalInMs
+          })
+        }
+      }).catch(async (e) => {
         if (isKeyRevokedError(e)) {
           this.events.emit('open_payments.key_revoked')
         } else if (isTokenExpiredError(e)) {
-          await this.openPaymentsService.rotateToken()
-          continue
+          this.openPaymentsService.rotateToken()
         } else if (e instanceof OpenPaymentsClientError) {
           // We need better error handling.
           if (e.status === 400) {
             await this.setIncomingPaymentUrl()
-            continue
           }
 
           // TODO: Check what Rafiki returns when there is no amount
           // left in the grant.
           throw new Error(e.message)
         }
-      } finally {
-        if (outgoingPayment) {
-          const { receiveAmount, receiver: incomingPayment } = outgoingPayment
+      })
 
-          outgoingPayment = undefined
-
-          const monetizationEventDetails: MonetizationEventDetails = {
-            amountSent: {
-              currency: receiveAmount.assetCode,
-              value: transformBalance(
-                receiveAmount.value,
-                receiveAmount.assetScale
-              )
-            },
-            incomingPayment,
-            paymentPointer: this.receiver.id
-          }
-
-          sendMonetizationEvent({
-            tabId: this.tabId,
-            frameId: this.frameId,
-            payload: {
-              requestId: this.requestId,
-              details: monetizationEventDetails
-            }
-          })
-
-          // TO DO: find a better source of truth for deciding if overpaying is applicable
-          if (this.intervalInMs > 1000) {
-            this.tabState.saveOverpaying(this.tab, this.url, {
-              walletAddressId: this.receiver.id,
-              monetizationEvent: monetizationEventDetails,
-              intervalInMs: this.intervalInMs
-            })
-          }
-
-          await sleep(this.intervalInMs)
-        }
-      }
+      await sleep(this.intervalInMs)
     }
   }
 
