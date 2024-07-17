@@ -21,14 +21,10 @@ interface ConnectWalletFormInputs {
 }
 
 interface ConnectWalletFormProps {
-  connected: boolean
   publicKey: string
 }
 
-export const ConnectWalletForm = ({
-  publicKey,
-  connected
-}: ConnectWalletFormProps) => {
+export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   const {
     register,
     handleSubmit,
