@@ -679,11 +679,6 @@ export class OpenPaymentsService {
 const isOpenPaymentsClientError = (error: any) =>
   error instanceof OpenPaymentsClientError
 
-export const isOutOfBalanceError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
-  return error.status === 403 && error.description === 'unauthorized'
-}
-
 export const isKeyRevokedError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false
   return isInvalidClientError(error) || isSignatureValidationError(error)
