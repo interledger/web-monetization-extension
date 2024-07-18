@@ -169,6 +169,8 @@ export class PaymentSession {
           const switched = await this.openPaymentsService.switchGrant()
           if (switched === null) {
             this.events.emit('open_payments.out_of_funds')
+          } else {
+            await this.setIncomingPaymentUrl()
           }
         } else if (e instanceof OpenPaymentsClientError) {
           // We need better error handling.
