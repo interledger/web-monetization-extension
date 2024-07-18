@@ -22,6 +22,7 @@ export const OutOfFunds = ({
     throw new Error('Provide at least one of grantOneTime and grantRecurring')
   }
 
+  const currencySymbol = getCurrencySymbol(info.assetCode)
   const amount = transformBalance(
     grantRecurring?.value || grantOneTime!.value,
     info.assetScale
@@ -48,7 +49,7 @@ export const OutOfFunds = ({
       <h2 className="text-xl">Out of funds</h2>
 
       <h3 className="text-lg">
-        Top-up: ${getCurrencySymbol(info.assetCode)}${amount}
+        Top-up: <span>{currencySymbol + amount}</span>
       </h3>
       <Button onClick={() => requestTopUpRecurring()}>Recurring</Button>
       <Button onClick={() => requestTopUpOneTime()}>One-time</Button>
