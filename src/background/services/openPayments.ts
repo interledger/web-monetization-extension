@@ -111,7 +111,13 @@ export class OpenPaymentsService {
     private t: Translation
   ) {
     void this.initialize()
-    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
+    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this), {
+      wait: 3_000
+    })
+  }
+
+  public isAnyGrantUsable() {
+    return this.isGrantUsable.recurring || this.isGrantUsable.oneTime
   }
 
   private _grant: GrantDetails | null
@@ -661,8 +667,8 @@ export class OpenPaymentsService {
       this.isGrantUsable.oneTime = false
       if (
         recurringGrant &&
-        /* TODO: When can we allow switching back to recurring grant? */
-        getNextOccurrence(recurringGrant.amount.interval) <= new Date()
+        getNextOccurrence(recurringGrant.amount.interval).valueOf() <=
+          Date.now()
       ) {
         this.grant = recurringGrant
         this.token = this.grant.accessToken

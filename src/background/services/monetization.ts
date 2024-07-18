@@ -21,7 +21,7 @@ import {
   type Translation
 } from '@/shared/helpers'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
-import type { PopupStore } from '@/shared/types'
+import type { PopupStore, Storage } from '@/shared/types'
 
 export class MonetizationService {
   private sessions: {
@@ -100,7 +100,7 @@ export class MonetizationService {
 
       sessions.set(requestId, session)
 
-      if (connected && enabled && isOkState(state)) {
+      if (enabled && this.canTryPayment(connected, state)) {
         void session.start()
       }
     })
@@ -168,7 +168,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (!isOkState(state) || !connected || !enabled) return
+    if (!enabled || !this.canTryPayment(connected, state)) return
 
     payload.forEach((p) => {
       const { requestId } = p
@@ -189,7 +189,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (!isOkState(state) || !connected || !enabled) return
+    if (!enabled || !this.canTryPayment(connected, state)) return
 
     for (const session of sessions.values()) {
       session.resume()
@@ -255,6 +255,23 @@ export class MonetizationService {
       }
       throw new Error('Could not facilitate payment for current website.')
     }
+  }
+
+  private canTryPayment(
+    connected: Storage['connected'],
+    state: Storage['state']
+  ): boolean {
+    if (!connected) return false
+    if (isOkState(state)) return true
+
+    if (state.out_of_funds && this.openPaymentsService.isAnyGrantUsable()) {
+      // if we're in out_of_funds state, we still try to make payments hoping we
+      // have funds available now. If a payment succeeds, we move out from
+      // of_out_funds state.
+      return true
+    }
+
+    return false
   }
 
   private registerEventListeners() {
