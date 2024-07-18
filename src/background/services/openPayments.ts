@@ -623,6 +623,7 @@ export class OpenPaymentsService {
         outgoingPayment.grantSpentDebitAmount.value
       )
     }
+    await this.storage.setState({ out_of_funds: false })
 
     return outgoingPayment
   }
