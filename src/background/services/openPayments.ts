@@ -318,9 +318,7 @@ export class OpenPaymentsService {
       assetScale: walletAddress.assetScale
     })
 
-    if (!this.client) {
-      await this.initClient(walletAddress.id)
-    }
+    await this.initClient(walletAddress.id)
     const clientNonce = crypto.randomUUID()
     const grant = await this.createOutgoingPaymentGrant({
       clientNonce,
