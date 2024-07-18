@@ -101,6 +101,7 @@ export class OpenPaymentsService {
 
   private token: AccessToken
   private grant: GrantDetails | null
+  /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false }
 
   constructor(
