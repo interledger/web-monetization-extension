@@ -123,14 +123,15 @@ export class OpenPaymentsService {
         'recurringGrant'
       ])
 
+    this.isGrantUsable.recurring = !!recurringGrant
+    this.isGrantUsable.oneTime = !!oneTimeGrant
+
     if (
       connected === true &&
       walletAddress &&
       (recurringGrant || oneTimeGrant)
     ) {
       this.grant = recurringGrant || oneTimeGrant!
-      this.isGrantUsable.recurring = !!recurringGrant
-      this.isGrantUsable.oneTime = !!oneTimeGrant
       this.token = this.grant.accessToken
       await this.initClient(walletAddress.id)
     }
@@ -527,14 +528,17 @@ export class OpenPaymentsService {
       'recurringGrant',
       'oneTimeGrant'
     ])
-    // TODO: When both types of grant can co-exist, make sure to revoke them
-    // correctly (either specific grant or all grants). See
-    // https://github.com/interledger/web-monetization-extension/pull/379#discussion_r1660447849
-    const grant = recurringGrant || oneTimeGrant
-    if (!grant) {
+    if (!recurringGrant && !oneTimeGrant) {
       return
     }
-    await this.cancelGrant(grant.continue)
+    if (recurringGrant) {
+      await this.cancelGrant(recurringGrant.continue)
+      this.isGrantUsable.recurring = false
+    }
+    if (oneTimeGrant) {
+      await this.cancelGrant(oneTimeGrant.continue)
+      this.isGrantUsable.oneTime = false
+    }
     await this.storage.clear()
     this.grant = null
     this.token = { value: '', manageUrl: '' }
@@ -627,27 +631,25 @@ export class OpenPaymentsService {
       'oneTimeGrant',
       'recurringGrant'
     ])
-    if (this.grant) {
-      if (this.grant.type === 'recurring') {
-        this.isGrantUsable.recurring = false
-        if (oneTimeGrant) {
-          this.grant = oneTimeGrant
-          this.token = this.grant.accessToken
-          this.logger.log('Switched to grant', oneTimeGrant.type)
-          return 'one-time'
-        }
-      } else if (this.grant.type === 'one-time') {
-        this.isGrantUsable.oneTime = false
-        if (
-          recurringGrant &&
-          /* TODO: When can we allow switching back to recurring grant? */
-          getNextOccurrence(recurringGrant.amount.interval) <= new Date()
-        ) {
-          this.grant = recurringGrant
-          this.token = this.grant.accessToken
-          this.logger.log('Switched to grant', recurringGrant.type)
-          return 'recurring'
-        }
+    if (this.grant?.type === 'recurring') {
+      this.isGrantUsable.recurring = false
+      if (oneTimeGrant) {
+        this.grant = oneTimeGrant
+        this.token = this.grant.accessToken
+        this.logger.log('Switched to grant', oneTimeGrant.type)
+        return 'one-time'
+      }
+    } else if (this.grant?.type === 'one-time') {
+      this.isGrantUsable.oneTime = false
+      if (
+        recurringGrant &&
+        /* TODO: When can we allow switching back to recurring grant? */
+        getNextOccurrence(recurringGrant.amount.interval) <= new Date()
+      ) {
+        this.grant = recurringGrant
+        this.token = this.grant.accessToken
+        this.logger.log('Switched to grant', recurringGrant.type)
+        return 'recurring'
       }
     }
     return null
