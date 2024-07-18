@@ -111,9 +111,7 @@ export class OpenPaymentsService {
     private t: Translation
   ) {
     void this.initialize()
-    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this), {
-      wait: 3_000
-    })
+    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
   }
 
   public isAnyGrantUsable() {
