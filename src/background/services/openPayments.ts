@@ -412,7 +412,7 @@ export class OpenPaymentsService {
       })
       this.isGrantUsable.oneTime = true
     }
-    this.storage.setState({ out_of_funds: false })
+    await this.storage.setState({ out_of_funds: false })
 
     // If we already have a recurring grant, and user adds a one-time popup,
     // prefer existing recurring grant. If the recurring grant doesn't have
