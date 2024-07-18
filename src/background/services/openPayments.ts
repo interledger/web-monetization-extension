@@ -100,7 +100,6 @@ export class OpenPaymentsService {
   public switchGrant: OpenPaymentsService['_switchGrant']
 
   private token: AccessToken
-  private grant: GrantDetails | null
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false }
 
@@ -113,6 +112,15 @@ export class OpenPaymentsService {
   ) {
     void this.initialize()
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
+  }
+
+  private _grant: GrantDetails | null
+  private get grant() {
+    return this._grant
+  }
+  private set grant(grantDetails) {
+    this.logger.debug(`🤝🏻 Using grant: ${grantDetails?.type || null}`)
+    this._grant = grantDetails
   }
 
   private async initialize() {
@@ -647,7 +655,6 @@ export class OpenPaymentsService {
       if (oneTimeGrant) {
         this.grant = oneTimeGrant
         this.token = this.grant.accessToken
-        this.logger.log('Switched to grant', oneTimeGrant.type)
         return 'one-time'
       }
     } else if (this.grant?.type === 'one-time') {
@@ -659,7 +666,6 @@ export class OpenPaymentsService {
       ) {
         this.grant = recurringGrant
         this.token = this.grant.accessToken
-        this.logger.log('Switched to grant', recurringGrant.type)
         return 'recurring'
       }
     }
