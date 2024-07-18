@@ -37,6 +37,8 @@ const defaultStorage = {
 export class StorageService {
   private setSpentAmountRecurring: ThrottleBatch<[amount: string]>
   private setSpentAmountOneTime: ThrottleBatch<[amount: string]>
+  // used as an optimization/cache
+  private currentState: Storage['state'] | null = null
 
   constructor(
     private browser: Browser,
@@ -69,6 +71,7 @@ export class StorageService {
 
   async clear(): Promise<void> {
     await this.set(defaultStorage)
+    this.currentState = { ...defaultStorage.state }
   }
 
   async populate(): Promise<void> {
@@ -128,12 +131,13 @@ export class StorageService {
   }
 
   async setState(state: Storage['state']): Promise<boolean> {
-    const { state: prevState } = await this.get(['state'])
+    const prevState = this.currentState ?? (await this.get(['state'])).state
 
-    const newState: Storage['state'] = { ...prevState }
+    const newState: Storage['state'] = { ...this.currentState }
     for (const key of Object.keys(state) as ExtensionState[]) {
       newState[key] = state[key]
     }
+    this.currentState = newState
     if (prevState && objectEquals(prevState, newState)) {
       return false
     }
