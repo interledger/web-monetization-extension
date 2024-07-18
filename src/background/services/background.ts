@@ -31,6 +31,9 @@ export class Background {
   ) {}
 
   async start() {
+    // Reset out_of_funds state, we'll detect latest state as we make a payment.
+    await this.storage.setState({ out_of_funds: false })
+
     this.bindOnInstalled()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
