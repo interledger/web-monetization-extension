@@ -13,10 +13,18 @@ import type {
   StorageService
 } from '.'
 import { Logger } from '@/shared/logger'
-import { failure, getWalletInformation, success } from '@/shared/helpers'
+import {
+  failure,
+  getNextOccurrence,
+  getWalletInformation,
+  success
+} from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 import { PERMISSION_HOSTS } from '@/shared/defines'
+
+type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0]
+const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds'
 
 export class Background {
   constructor(
@@ -31,9 +39,7 @@ export class Background {
   ) {}
 
   async start() {
-    // Reset out_of_funds state, we'll detect latest state as we make a payment.
-    await this.storage.setState({ out_of_funds: false })
-
+    this.scheduleResetOutOfFundsState()
     this.bindOnInstalled()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
@@ -41,6 +47,25 @@ export class Background {
     this.bindTabHandlers()
     this.bindWindowHandlers()
     this.sendToPopup.start()
+  }
+
+  async scheduleResetOutOfFundsState() {
+    // Reset out_of_funds state, we'll detect latest state as we make a payment.
+    await this.storage.setState({ out_of_funds: false })
+
+    const { recurringGrant } = await this.storage.get(['recurringGrant'])
+    if (!recurringGrant) return
+
+    const renewDate = getNextOccurrence(recurringGrant.amount.interval)
+    this.browser.alarms.create(ALARM_RESET_OUT_OF_FUNDS, {
+      when: renewDate.valueOf()
+    })
+    const resetOutOfFundsState: AlarmCallback = (alarm) => {
+      if (alarm.name !== ALARM_RESET_OUT_OF_FUNDS) return
+      this.storage.setState({ out_of_funds: false })
+      this.browser.alarms.onAlarm.removeListener(resetOutOfFundsState)
+    }
+    this.browser.alarms.onAlarm.addListener(resetOutOfFundsState)
   }
 
   bindWindowHandlers() {
@@ -93,6 +118,10 @@ export class Background {
 
             case PopupToBackgroundAction.CONNECT_WALLET:
               await this.openPaymentsService.connectWallet(message.payload)
+              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
+              if (message.payload.recurring) {
+                this.scheduleResetOutOfFundsState()
+              }
               return
 
             case PopupToBackgroundAction.RECONNECT_WALLET:
