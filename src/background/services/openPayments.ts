@@ -127,6 +127,9 @@ export class OpenPaymentsService {
   private set grant(grantDetails) {
     this.logger.debug(`🤝🏻 Using grant: ${grantDetails?.type || null}`)
     this._grant = grantDetails
+    this.token = grantDetails
+      ? grantDetails.accessToken
+      : { value: '', manageUrl: '' }
   }
 
   private async initialize() {
@@ -147,7 +150,6 @@ export class OpenPaymentsService {
       (recurringGrant || oneTimeGrant)
     ) {
       this.grant = recurringGrant || oneTimeGrant! // prefer recurring
-      this.token = this.grant.accessToken
       await this.initClient(walletAddress.id)
     }
   }
@@ -438,7 +440,6 @@ export class OpenPaymentsService {
         ? grants.recurringGrant
         : grantDetails
     this.grant = preferredGrant
-    this.token = this.grant.accessToken
   }
 
   private async createOutgoingPaymentGrant({
@@ -566,7 +567,6 @@ export class OpenPaymentsService {
     }
     await this.storage.clear()
     this.grant = null
-    this.token = { value: '', manageUrl: '' }
   }
 
   private async cancelGrant(grantContinuation: GrantDetails['continue']) {
@@ -660,7 +660,6 @@ export class OpenPaymentsService {
       this.isGrantUsable.recurring = false
       if (oneTimeGrant) {
         this.grant = oneTimeGrant
-        this.token = this.grant.accessToken
         return 'one-time'
       }
     } else if (this.grant?.type === 'one-time') {
@@ -671,7 +670,6 @@ export class OpenPaymentsService {
           Date.now()
       ) {
         this.grant = recurringGrant
-        this.token = this.grant.accessToken
         return 'recurring'
       }
     }
@@ -696,8 +694,7 @@ export class OpenPaymentsService {
     } else {
       this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } })
     }
-    this.grant.accessToken = accessToken
-    this.token = accessToken
+    this.grant = { ...this.grant, accessToken }
   }
 }
 
