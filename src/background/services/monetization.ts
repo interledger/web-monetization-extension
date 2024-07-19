@@ -80,7 +80,7 @@ export class MonetizationService {
       session.adjustSessionAmount(rate)
     })
 
-    console.log(tabId);
+    console.log(tabId)
 
     // Initialize new sessions
     payload.forEach((p) => {
@@ -224,7 +224,7 @@ export class MonetizationService {
 
     delete this.sessions[tabId]
 
-    this.tabState.clearByTabId(tabId);
+    this.tabState.clearByTabId(tabId)
 
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }
@@ -320,7 +320,7 @@ export class MonetizationService {
     }
 
     const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
-    console.log(this.sessions);
+    console.log(this.sessions)
     return {
       ...storedData,
       balance: balance.total.toString(),

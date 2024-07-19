@@ -15,7 +15,7 @@ interface SaveOverpayingDetails {
 export class TabState {
   private state = new Map<number, Map<string, State>>()
 
-  constructor() { }
+  constructor() {}
 
   private getOverpayingStateKey(url: string, walletAddressId: string): string {
     return `${url}:${walletAddressId}`
@@ -71,6 +71,6 @@ export class TabState {
   }
 
   clearByTabId(tabId: number) {
-    this.state.delete(tabId);
+    this.state.delete(tabId)
   }
 }
