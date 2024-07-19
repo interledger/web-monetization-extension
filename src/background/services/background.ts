@@ -118,7 +118,6 @@ export class Background {
 
             case PopupToBackgroundAction.CONNECT_WALLET:
               await this.openPaymentsService.connectWallet(message.payload)
-              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
               if (message.payload.recurring) {
                 this.scheduleResetOutOfFundsState()
               }
@@ -140,6 +139,7 @@ export class Background {
 
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
+              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
               return
 
