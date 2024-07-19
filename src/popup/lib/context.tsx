@@ -77,6 +77,7 @@ export type ReducerActions =
 export const PopupStateContext = React.createContext<PopupContext>(
   {} as PopupContext
 )
+export const usePopupState = () => React.useContext(PopupStateContext)
 
 const reducer = (state: PopupState, action: ReducerActions): PopupState => {
   switch (action.type) {

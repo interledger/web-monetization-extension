@@ -18,6 +18,7 @@ export const ROUTES_PATH = {
   HOME: '/',
   SETTINGS: '/settings',
   MISSING_HOST_PERMISSION: '/missing-host-permission',
+  OUT_OF_FUNDS: '/out-of-funds',
   ERROR_KEY_REVOKED: '/error/key-revoked'
 } as const
 
@@ -43,6 +44,10 @@ export const routes = [
           {
             path: ROUTES_PATH.ERROR_KEY_REVOKED,
             lazy: () => import('./pages/ErrorKeyRevoked')
+          },
+          {
+            path: ROUTES_PATH.OUT_OF_FUNDS,
+            lazy: () => import('./pages/OutOfFunds')
           },
           {
             path: ROUTES_PATH.SETTINGS,

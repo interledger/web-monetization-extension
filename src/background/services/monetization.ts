@@ -21,7 +21,7 @@ import {
   type Translation
 } from '@/shared/helpers'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
-import type { PopupStore } from '@/shared/types'
+import type { PopupStore, Storage } from '@/shared/types'
 
 export class MonetizationService {
   private sessions: {
@@ -100,7 +100,7 @@ export class MonetizationService {
 
       sessions.set(requestId, session)
 
-      if (connected && enabled && isOkState(state)) {
+      if (enabled && this.canTryPayment(connected, state)) {
         void session.start()
       }
     })
@@ -168,7 +168,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (!isOkState(state) || !connected || !enabled) return
+    if (!enabled || !this.canTryPayment(connected, state)) return
 
     payload.forEach((p) => {
       const { requestId } = p
@@ -189,7 +189,7 @@ export class MonetizationService {
       'connected',
       'enabled'
     ])
-    if (!isOkState(state) || !connected || !enabled) return
+    if (!enabled || !this.canTryPayment(connected, state)) return
 
     for (const session of sessions.values()) {
       session.resume()
@@ -238,6 +238,7 @@ export class MonetizationService {
     }
 
     const splitAmount = Number(amount) / sessions.size
+    // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
       Array.from(sessions.values()).map((session) => session.pay(splitAmount))
     )
@@ -256,9 +257,27 @@ export class MonetizationService {
     }
   }
 
+  private canTryPayment(
+    connected: Storage['connected'],
+    state: Storage['state']
+  ): boolean {
+    if (!connected) return false
+    if (isOkState(state)) return true
+
+    if (state.out_of_funds && this.openPaymentsService.isAnyGrantUsable()) {
+      // if we're in out_of_funds state, we still try to make payments hoping we
+      // have funds available now. If a payment succeeds, we move out from
+      // of_out_funds state.
+      return true
+    }
+
+    return false
+  }
+
   private registerEventListeners() {
     this.onRateOfPayUpdate()
     this.onKeyRevoked()
+    this.onOutOfFunds()
   }
 
   private onRateOfPayUpdate() {
@@ -277,15 +296,28 @@ export class MonetizationService {
   private onKeyRevoked() {
     this.events.once('open_payments.key_revoked', async () => {
       this.logger.warn(`Key revoked. Stopping all payment sessions.`)
-      for (const sessions of Object.values(this.sessions)) {
-        for (const session of sessions.values()) {
-          session.stop()
-        }
-      }
+      this.stopAllSessions()
       await this.storage.setState({ key_revoked: true })
-      this.logger.debug(`All payment sessions stopped.`)
       this.onKeyRevoked() // setup listener again once all is done
     })
+  }
+
+  private onOutOfFunds() {
+    this.events.once('open_payments.out_of_funds', async () => {
+      this.logger.warn(`Out of funds. Stopping all payment sessions.`)
+      this.stopAllSessions()
+      await this.storage.setState({ out_of_funds: true })
+      this.onOutOfFunds() // setup listener again once all is done
+    })
+  }
+
+  private stopAllSessions() {
+    for (const sessions of Object.values(this.sessions)) {
+      for (const session of sessions.values()) {
+        session.stop()
+      }
+    }
+    this.logger.debug(`All payment sessions stopped.`)
   }
 
   async getPopupData(): Promise<PopupStore> {
@@ -297,10 +329,14 @@ export class MonetizationService {
       'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
+      'oneTimeGrant',
+      'recurringGrant',
       'publicKey'
     ])
     const balance = await this.storage.getBalance()
     const tab = await getCurrentActiveTab(this.browser)
+
+    const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData
 
     let url
     if (tab && tab.url) {
@@ -317,9 +353,13 @@ export class MonetizationService {
     const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
 
     return {
-      ...storedData,
+      ...dataFromStorage,
       balance: balance.total.toString(),
       url,
+      grants: {
+        oneTime: oneTimeGrant?.amount,
+        recurring: recurringGrant?.amount
+      },
       isSiteMonetized
     }
   }

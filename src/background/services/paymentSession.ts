@@ -8,7 +8,11 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
-import { isKeyRevokedError, isTokenExpiredError } from './openPayments'
+import {
+  isKeyRevokedError,
+  isOutOfBalanceError,
+  isTokenExpiredError
+} from './openPayments'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { Tabs } from 'webextension-polyfill'
 import type { MonetizationEventDetails } from '@/shared/messages'
@@ -161,6 +165,11 @@ export class PaymentSession {
         } else if (isTokenExpiredError(e)) {
           await this.openPaymentsService.rotateToken()
           continue
+        } else if (isOutOfBalanceError(e)) {
+          const switched = await this.openPaymentsService.switchGrant()
+          if (switched === null) {
+            this.events.emit('open_payments.out_of_funds')
+          }
         } else if (e instanceof OpenPaymentsClientError) {
           // We need better error handling.
           if (e.status === 400) {
@@ -168,8 +177,6 @@ export class PaymentSession {
             continue
           }
 
-          // TODO: Check what Rafiki returns when there is no amount
-          // left in the grant.
           throw new Error(e.message)
         }
       } finally {
