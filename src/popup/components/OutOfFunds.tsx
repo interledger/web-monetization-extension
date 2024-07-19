@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button } from './ui/Button'
 import type { RecurringGrant, OneTimeGrant } from '@/shared/types'
-import type { ConnectWalletPayload, Response } from '@/shared/messages'
+import type { AddFundsPayload, Response } from '@/shared/messages'
 import type { WalletAddress } from '@interledger/open-payments'
 import { getCurrencySymbol, transformBalance } from '../lib/utils'
 import { getNextOccurrence } from '@/shared/helpers'
@@ -10,14 +10,14 @@ interface OutOfFundsProps {
   info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
   grantRecurring?: RecurringGrant['amount']
   grantOneTime?: OneTimeGrant['amount']
-  requestTopUp: (details: ConnectWalletPayload) => Promise<Response>
+  requestAddFunds: (details: AddFundsPayload) => Promise<Response>
 }
 
 export const OutOfFunds = ({
   info,
   grantOneTime,
   grantRecurring,
-  requestTopUp
+  requestAddFunds
 }: OutOfFundsProps) => {
   if (!grantOneTime && !grantRecurring) {
     throw new Error('Provide at least one of grantOneTime and grantRecurring')
@@ -30,19 +30,11 @@ export const OutOfFunds = ({
   )
 
   const requestTopUpOneTime = () => {
-    return requestTopUp({
-      walletAddressUrl: info.id,
-      amount: amount,
-      recurring: false
-    })
+    return requestAddFunds({ amount: amount, recurring: false })
   }
 
   const requestTopUpRecurring = () => {
-    return requestTopUp({
-      walletAddressUrl: info.id,
-      amount: amount,
-      recurring: true
-    })
+    return requestAddFunds({ amount: amount, recurring: true })
   }
 
   return (

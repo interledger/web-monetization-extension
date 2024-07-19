@@ -130,6 +130,14 @@ export class Background {
               await this.tabEvents.onUpdatedTab()
               return success(undefined)
 
+            case PopupToBackgroundAction.ADD_FUNDS:
+              await this.openPaymentsService.addFunds(message.payload)
+              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
+              if (message.payload.recurring) {
+                this.scheduleResetOutOfFundsState()
+              }
+              return
+
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
