@@ -341,27 +341,19 @@ export class OpenPaymentsService {
   async addFunds({ amount, recurring }: AddFundsPayload) {
     const { walletAddress } = await this.storage.get(['walletAddress'])
 
-    // clear existing grants of same type, if any
-    const grants = await this.storage.get(['oneTimeGrant', 'recurringGrant'])
-    if (grants.oneTimeGrant && !recurring) {
-      await this.cancelGrant(grants.oneTimeGrant.continue)
-      await this.storage.set({
-        oneTimeGrant: null,
-        oneTimeGrantSpentAmount: '0'
-      })
-    } else if (grants.recurringGrant && recurring) {
-      await this.cancelGrant(grants.recurringGrant.continue)
-      await this.storage.set({
-        recurringGrant: null,
-        recurringGrantSpentAmount: '0'
-      })
-    }
-
     const grantDetails = await this.completeGrant(
       amount,
       walletAddress!,
       recurring
     )
+
+    // cancel existing grants of same type, if any
+    const grants = await this.storage.get(['oneTimeGrant', 'recurringGrant'])
+    if (grants.oneTimeGrant && !recurring) {
+      await this.cancelGrant(grants.oneTimeGrant.continue)
+    } else if (grants.recurringGrant && recurring) {
+      await this.cancelGrant(grants.recurringGrant.continue)
+    }
 
     // If we already have a recurring grant, and user adds a one-time popup,
     // prefer existing recurring grant. If the recurring grant doesn't have
