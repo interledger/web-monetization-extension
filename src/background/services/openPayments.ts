@@ -653,7 +653,7 @@ export class OpenPaymentsService {
    * be used.
    */
   private async _switchGrant(): Promise<GrantDetails['type'] | null> {
-    if (!this.isGrantUsable.recurring && !this.isGrantUsable.oneTime) {
+    if (!this.isAnyGrantUsable()) {
       return null
     }
     this.logger.debug('Switching from grant', this.grant?.type)
