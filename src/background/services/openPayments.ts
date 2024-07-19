@@ -122,6 +122,7 @@ export class OpenPaymentsService {
   private get grant() {
     return this.grantDetails
   }
+
   private set grant(grantDetails) {
     this.logger.debug(`🤝🏻 Using grant: ${grantDetails?.type || null}`)
     this.grantDetails = grantDetails
@@ -339,7 +340,11 @@ export class OpenPaymentsService {
   }
 
   async addFunds({ amount, recurring }: AddFundsPayload) {
-    const { walletAddress } = await this.storage.get(['walletAddress'])
+    const { walletAddress, ...grants } = await this.storage.get([
+      'walletAddress',
+      'oneTimeGrant',
+      'recurringGrant'
+    ])
 
     const grantDetails = await this.completeGrant(
       amount,
@@ -348,24 +353,13 @@ export class OpenPaymentsService {
     )
 
     // cancel existing grants of same type, if any
-    const grants = await this.storage.get(['oneTimeGrant', 'recurringGrant'])
     if (grants.oneTimeGrant && !recurring) {
       await this.cancelGrant(grants.oneTimeGrant.continue)
     } else if (grants.recurringGrant && recurring) {
       await this.cancelGrant(grants.recurringGrant.continue)
     }
 
-    // If we already have a recurring grant, and user adds a one-time popup,
-    // prefer existing recurring grant. If the recurring grant doesn't have
-    // enough funds, which is likely the reason to add a one-time popup (but not
-    // always, as user can add top-up before running out of funds in future),
-    // we'll switch to the one-time grant when we try to make a payment.
-    const preferredGrant =
-      grants.recurringGrant && grantDetails.type !== 'recurring'
-        ? grants.recurringGrant
-        : grantDetails
-    this.grant = preferredGrant
-
+    this.grant = grantDetails
     await this.storage.setState({ out_of_funds: false })
   }
 
