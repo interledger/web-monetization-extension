@@ -223,6 +223,9 @@ export class MonetizationService {
     }
 
     delete this.sessions[tabId]
+
+    this.tabState.clearByTabId(tabId);
+
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }
 

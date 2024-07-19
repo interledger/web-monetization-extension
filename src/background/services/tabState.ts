@@ -26,7 +26,6 @@ export class TabState {
     url: string,
     walletAddressId: string
   ): { waitTime: number; monetizationEvent?: MonetizationEventDetails } {
-    console.log('getOverpayingDetails', tabId);
     const key = this.getOverpayingStateKey(url, walletAddressId)
     const state = this.state.get(tabId)?.get(key)
     const now = Date.now()
@@ -69,5 +68,9 @@ export class TabState {
       state.expiresAtTimestamp = expiresAtTimestamp
       state.lastPaymentTimestamp = now
     }
+  }
+
+  clearByTabId(tabId: number) {
+    this.state.delete(tabId);
   }
 }
