@@ -26,11 +26,7 @@ import {
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import {
-  getNextOccurrence,
-  getWalletInformation,
-  type Translation
-} from '@/shared/helpers'
+import { getWalletInformation, type Translation } from '@/shared/helpers'
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
@@ -669,11 +665,7 @@ export class OpenPaymentsService {
       }
     } else if (this.grant?.type === 'one-time') {
       this.isGrantUsable.oneTime = false
-      if (
-        recurringGrant &&
-        getNextOccurrence(recurringGrant.amount.interval).valueOf() <=
-          Date.now()
-      ) {
+      if (recurringGrant) {
         this.grant = recurringGrant
         return 'recurring'
       }
