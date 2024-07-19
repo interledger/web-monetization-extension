@@ -80,8 +80,6 @@ export class MonetizationService {
       session.adjustSessionAmount(rate)
     })
 
-    console.log(tabId)
-
     // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
@@ -320,7 +318,7 @@ export class MonetizationService {
     }
 
     const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
-    console.log(this.sessions)
+
     return {
       ...storedData,
       balance: balance.total.toString(),
