@@ -65,7 +65,7 @@ export class MonetizationService {
       )
       return
     }
-    const { tabId, frameId, url, tab } = getSender(sender)
+    const { tabId, frameId, url } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
@@ -80,6 +80,8 @@ export class MonetizationService {
       session.adjustSessionAmount(rate)
     })
 
+    console.log(tabId);
+
     // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
@@ -88,7 +90,6 @@ export class MonetizationService {
         receiver,
         connectedWallet,
         requestId,
-        tab,
         tabId,
         frameId,
         rate,
@@ -314,8 +315,9 @@ export class MonetizationService {
         // noop
       }
     }
-    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
 
+    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
+    console.log(this.sessions);
     return {
       ...storedData,
       balance: balance.total.toString(),

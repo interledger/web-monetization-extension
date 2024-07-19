@@ -10,7 +10,6 @@ import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import { isKeyRevokedError, isTokenExpiredError } from './openPayments'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
-import type { Tabs } from 'webextension-polyfill'
 import type { MonetizationEventDetails } from '@/shared/messages'
 
 const DEFAULT_INTERVAL_MS = 1000
@@ -27,7 +26,6 @@ export class PaymentSession {
     private receiver: WalletAddress,
     private sender: WalletAddress,
     private requestId: string,
-    private tab: Tabs.Tab,
     private tabId: number,
     private frameId: number,
     private rate: string,
@@ -130,7 +128,7 @@ export class PaymentSession {
     let outgoingPayment: OutgoingPayment | undefined
 
     const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
-      this.tab,
+      this.tabId,
       this.url,
       this.receiver.id
     )
@@ -201,7 +199,7 @@ export class PaymentSession {
 
           // TO DO: find a better source of truth for deciding if overpaying is applicable
           if (this.intervalInMs > 1000) {
-            this.tabState.saveOverpaying(this.tab, this.url, {
+            this.tabState.saveOverpaying(this.tabId, this.url, {
               walletAddressId: this.receiver.id,
               monetizationEvent: monetizationEventDetails,
               intervalInMs: this.intervalInMs
