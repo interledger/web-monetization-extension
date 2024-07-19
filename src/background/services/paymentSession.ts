@@ -147,7 +147,7 @@ export class PaymentSession {
     await sleep(waitTime)
 
     while (this.active) {
-      void this.payContinous()
+      void this.payContinuous()
       await sleep(this.intervalInMs)
     }
   }
@@ -275,7 +275,7 @@ export class PaymentSession {
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
   }
 
-  private async payContinous() {
+  private async payContinuous() {
     try {
       const outgoingPayment =
         await this.openPaymentsService.createOutgoingPayment({
