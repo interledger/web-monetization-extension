@@ -100,6 +100,7 @@ export class OpenPaymentsService {
   public switchGrant: OpenPaymentsService['_switchGrant']
 
   private token: AccessToken
+  private grantDetails: GrantDetails | null
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false }
 
@@ -118,13 +119,12 @@ export class OpenPaymentsService {
     return this.isGrantUsable.recurring || this.isGrantUsable.oneTime
   }
 
-  private _grant: GrantDetails | null
   private get grant() {
-    return this._grant
+    return this.grantDetails
   }
   private set grant(grantDetails) {
     this.logger.debug(`🤝🏻 Using grant: ${grantDetails?.type || null}`)
-    this._grant = grantDetails
+    this.grantDetails = grantDetails
     this.token = grantDetails
       ? grantDetails.accessToken
       : { value: '', manageUrl: '' }
