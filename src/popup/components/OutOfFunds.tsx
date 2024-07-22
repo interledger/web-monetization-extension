@@ -10,15 +10,45 @@ interface OutOfFundsProps {
   info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
   grantRecurring?: RecurringGrant['amount']
   grantOneTime?: OneTimeGrant['amount']
-  requestAddFunds: (details: AddFundsPayload) => Promise<Response>
+  onChooseOption: (recurring: boolean) => void
 }
 
 export const OutOfFunds = ({
   info,
   grantOneTime,
   grantRecurring,
-  requestAddFunds
+  onChooseOption
 }: OutOfFundsProps) => {
+  if (!grantOneTime && !grantRecurring) {
+    throw new Error('Provide at least one of grantOneTime and grantRecurring')
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h2 className="text-xl">Out of funds</h2>
+
+      <RecurringAutoRenewInfo grantRecurring={grantRecurring} info={info} />
+      <Button onClick={() => onChooseOption(true)}>Recurring</Button>
+      <Button onClick={() => onChooseOption(false)}>One-time</Button>
+    </div>
+  )
+}
+
+interface AddFundsProps {
+  info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
+  recurring: boolean
+  grantRecurring?: RecurringGrant['amount']
+  grantOneTime?: OneTimeGrant['amount']
+  requestAddFunds: (details: AddFundsPayload) => Promise<Response>
+}
+
+export function AddFunds({
+  info,
+  grantOneTime,
+  grantRecurring,
+  recurring,
+  requestAddFunds
+}: AddFundsProps) {
   if (!grantOneTime && !grantRecurring) {
     throw new Error('Provide at least one of grantOneTime and grantRecurring')
   }
@@ -39,14 +69,15 @@ export const OutOfFunds = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-xl">Out of funds</h2>
-
+      <h2 className="text-xl">Add funds</h2>
       <h3 className="text-lg">
         Top-up: <span>{currencySymbol + amount}</span>
       </h3>
-      <RecurringAutoRenewInfo grantRecurring={grantRecurring} info={info} />
-      <Button onClick={() => requestTopUpRecurring()}>Recurring</Button>
-      <Button onClick={() => requestTopUpOneTime()}>One-time</Button>
+      {recurring ? (
+        <Button onClick={requestTopUpRecurring}>Recurring</Button>
+      ) : (
+        <Button onClick={requestTopUpOneTime}>One-time</Button>
+      )}
     </div>
   )
 }
