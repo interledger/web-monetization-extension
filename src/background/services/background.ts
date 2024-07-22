@@ -233,6 +233,7 @@ export class Background {
       const data = await this.storage.get()
       this.logger.info(data)
       if (details.reason === 'install') {
+        await this.storage.populate()
         await this.openPaymentsService.generateKeys()
       } else if (details.reason === 'update') {
         const migrated = await this.storage.migrate()
