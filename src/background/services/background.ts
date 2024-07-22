@@ -230,7 +230,6 @@ export class Background {
 
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
-      console.log('running')
       const data = await this.storage.get()
       this.logger.info(data)
       if (details.reason === 'install') {
