@@ -214,7 +214,9 @@ export class Background {
   bindEventsHandler() {
     this.events.on('storage.state_update', async ({ state, prevState }) => {
       this.sendToPopup.send('SET_STATE', { state, prevState })
-      // TODO: change icon here in future
+
+      const isCurrentTabMonetized = true // TODO get from tabState
+      await this.tabEvents.onUpdatedTab({ value: isCurrentTabMonetized })
     })
 
     this.events.on('storage.balance_update', (balance) =>
