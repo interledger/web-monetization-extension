@@ -190,6 +190,9 @@ function RecurringAutoRenewInfo({
 }
 
 function getNextOccurrenceDate(period: 'P1M', baseDate = new Date()) {
-  const date = getNextOccurrence(`R/${baseDate.toISOString()}/${period}`, baseDate)
+  const date = getNextOccurrence(
+    `R/${baseDate.toISOString()}/${period}`,
+    baseDate
+  )
   return date.toLocaleDateString(undefined, { dateStyle: 'medium' })
 }
