@@ -47,16 +47,10 @@
     "message": "Please add funds."
   },
   "outOfFunds_error_textDoNothing": {
-    "message": "If you do nothing, $AMOUNT$ will automatically be available on  $AUTO_RENEW_DATE$",
+    "message": "If you do nothing, $AMOUNT$ will automatically be available on $AUTO_RENEW_DATE$",
     "placeholders": {
-      "AMOUNT": {
-        "content": "$1",
-        "example": "$2.05"
-      },
-      "AUTO_RENEW_DATE": {
-        "content": "$2",
-        "example": "Aug 22, 2024, 6:05 PM"
-      }
+      "AMOUNT": { "content": "$1", "example": "$2.05" },
+      "AUTO_RENEW_DATE": { "content": "$2", "example": "Aug 22, 2024, 6:05 PM" }
     }
   },
   "outOfFunds_action_optionOneTime": {
@@ -77,10 +71,7 @@
   "outOfFundsAddFunds_label_amountDescriptionRecurring": {
     "message": "Enter the amount to add from the wallet. This amount will renew automatically every month (next: $NEXT_RENEW_DATE$}).",
     "placeholders": {
-      "NEXT_RENEW_DATE": {
-        "content": "$1",
-        "example": "Aug 22, 2024"
-      }
+      "NEXT_RENEW_DATE": { "content": "$1", "example": "Aug 22, 2024" }
     }
   },
   "outOfFundsAddFunds_action_addOneTime": {
