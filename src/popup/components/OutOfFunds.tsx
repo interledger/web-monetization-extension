@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button } from './ui/Button'
+import { useForm } from 'react-hook-form'
 import type { RecurringGrant, OneTimeGrant, AmountValue } from '@/shared/types'
 import type { AddFundsPayload, Response } from '@/shared/messages'
 import type { WalletAddress } from '@interledger/open-payments'
@@ -8,11 +8,12 @@ import {
   formatNumber,
   getCurrencySymbol,
   transformBalance
-} from '../lib/utils'
+} from '@/popup/lib/utils'
+import { useTranslation } from '@/popup/lib/context'
 import { getNextOccurrence } from '@/shared/helpers'
-import { ErrorMessage } from './ErrorMessage'
-import { Input } from './ui/Input'
-import { useForm } from 'react-hook-form'
+import { ErrorMessage } from '@/popup/components/ErrorMessage'
+import { Button } from '@/popup/components/ui/Button'
+import { Input } from '@/popup/components/ui/Input'
 
 interface OutOfFundsProps {
   info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
@@ -30,13 +31,17 @@ export const OutOfFunds = ({
   if (!grantOneTime && !grantRecurring) {
     throw new Error('Provide at least one of grantOneTime and grantRecurring')
   }
+  const t = useTranslation()
 
   return (
     <div className="flex flex-col gap-4">
-      <ErrorMessage error="Out of funds" className="mb-0 text-error" />
+      <ErrorMessage
+        error={t('outOfFunds_error_title')}
+        className="mb-0 text-error"
+      />
       <div className="px-2 text-xs text-medium">
-        <p>Funds have been depleted. You can no longer make payments.</p>
-        <p>Please add funds.</p>
+        <p>{t('outOfFunds_error_text')}</p>
+        <p>{t('outOfFunds_error_textHint')}</p>
         {grantRecurring?.value && (
           <p className="mt-1">
             <RecurringAutoRenewInfo
@@ -49,8 +54,12 @@ export const OutOfFunds = ({
 
       <div className="w-100 h-0.5 bg-disabled" />
 
-      <Button onClick={() => onChooseOption(true)}>Recurring</Button>
-      <Button onClick={() => onChooseOption(false)}>One-time</Button>
+      <Button onClick={() => onChooseOption(true)}>
+        {t('outOfFunds_action_optionRecurring')}
+      </Button>
+      <Button onClick={() => onChooseOption(false)}>
+        {t('outOfFunds_action_optionOneTime')}
+      </Button>
     </div>
   )
 }
@@ -68,6 +77,7 @@ export function AddFunds({
   recurring,
   requestAddFunds
 }: AddFundsProps) {
+  const t = useTranslation()
   const {
     register,
     handleSubmit,
@@ -100,7 +110,7 @@ export function AddFunds({
     >
       <Input
         type="url"
-        label="Connected wallet address"
+        label={t('outOfFundsAddFunds_label_walletAddress')}
         value={info.id}
         readOnly
         disabled
@@ -110,13 +120,13 @@ export function AddFunds({
         type="text"
         inputMode="numeric"
         addOn={currencySymbol}
-        label="Amount"
+        label={t('outOfFundsAddFunds_label_amount')}
         description={
-          'Enter the amount to add from the wallet.' +
-          (recurring
-            ? ' ' +
-              `This amount will renew automatically every month (next: ${getNextOccurrence(`R/${new Date().toISOString()}/P1M`).toLocaleDateString(undefined, { dateStyle: 'medium' })}).`
-            : '')
+          recurring
+            ? t('outOfFundsAddFunds_label_amountDescriptionRecurring', [
+                getNextOccurrenceDate('P1M')
+              ])
+            : t('outOfFundsAddFunds_label_amountDescriptionOneTime')
         }
         placeholder="5.00"
         onKeyDown={(e) => {
@@ -136,10 +146,7 @@ export function AddFunds({
           required: { value: true, message: 'Amount is required.' },
           valueAsNumber: false,
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            setValue(
-              'amount',
-              formatNumber(+e.currentTarget.value, info.assetScale)
-            )
+            setValue('amount', formatNumber(+e.currentTarget.value, 2))
           }
         })}
       />
@@ -152,7 +159,9 @@ export function AddFunds({
       )}
 
       <Button type="submit" disabled={isSubmitting} loading={isSubmitting}>
-        Add funds
+        {recurring
+          ? t('outOfFundsAddFunds_action_addRecurring')
+          : t('outOfFundsAddFunds_action_addOneTime')}
       </Button>
     </form>
   )
@@ -162,22 +171,25 @@ function RecurringAutoRenewInfo({
   grantRecurring,
   info
 }: Pick<OutOfFundsProps, 'grantRecurring' | 'info'>) {
+  const t = useTranslation()
+
   if (!grantRecurring) return null
 
   const currencySymbol = getCurrencySymbol(info.assetCode)
   const amount = transformBalance(grantRecurring.value, info.assetScale)
   const renewDate = getNextOccurrence(grantRecurring.interval, new Date())
+  const renewDateLocalized = renewDate.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  })
 
-  return (
-    <>
-      If you do nothing, {currencySymbol}
-      {amount} will automatically be available on{' '}
-      <time dateTime={renewDate.toISOString()} title={renewDate.toISOString()}>
-        {renewDate.toLocaleString(undefined, {
-          dateStyle: 'medium',
-          timeStyle: 'short'
-        })}
-      </time>
-    </>
-  )
+  return t('outOfFunds_error_textDoNothing', [
+    `${currencySymbol}${amount}`,
+    renewDateLocalized
+  ])
+}
+
+function getNextOccurrenceDate(period: 'P1M', baseDate = new Date()) {
+  const date = getNextOccurrence(`R/${baseDate.toISOString()}/${period}`)
+  return date.toLocaleDateString(undefined, { dateStyle: 'medium' })
 }
