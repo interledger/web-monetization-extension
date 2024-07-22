@@ -40,12 +40,19 @@ export class Background {
 
   async start() {
     this.bindOnInstalled()
+    await this.onStart()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
     this.bindEventsHandler()
     this.bindTabHandlers()
     this.bindWindowHandlers()
     this.sendToPopup.start()
+  }
+
+  async onStart() {
+    await this.storage.populate()
+    await this.checkPermissions()
+    await this.scheduleResetOutOfFundsState()
   }
 
   async scheduleResetOutOfFundsState() {
@@ -223,10 +230,10 @@ export class Background {
 
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
+      console.log('running')
       const data = await this.storage.get()
       this.logger.info(data)
       if (details.reason === 'install') {
-        await this.storage.populate()
         await this.openPaymentsService.generateKeys()
       } else if (details.reason === 'update') {
         const migrated = await this.storage.migrate()
@@ -237,8 +244,6 @@ export class Background {
           )
         }
       }
-      await this.checkPermissions()
-      await this.scheduleResetOutOfFundsState()
     })
   }
 
