@@ -74,6 +74,9 @@ export class StorageService {
     this.currentState = { ...defaultStorage.state }
   }
 
+  /**
+   * Needs to run before any other storage `set` call.
+   */
   async populate(): Promise<void> {
     const data = await this.get(Object.keys(defaultStorage) as StorageKey[])
 

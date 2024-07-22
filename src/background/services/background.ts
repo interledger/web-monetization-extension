@@ -39,14 +39,20 @@ export class Background {
   ) {}
 
   async start() {
-    this.scheduleResetOutOfFundsState()
     this.bindOnInstalled()
+    await this.onStart()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
     this.bindEventsHandler()
     this.bindTabHandlers()
     this.bindWindowHandlers()
     this.sendToPopup.start()
+  }
+
+  async onStart() {
+    await this.storage.populate()
+    await this.checkPermissions()
+    await this.scheduleResetOutOfFundsState()
   }
 
   async scheduleResetOutOfFundsState() {
@@ -238,7 +244,6 @@ export class Background {
           )
         }
       }
-      await this.checkPermissions()
     })
   }
 
