@@ -39,7 +39,6 @@ export class Background {
   ) {}
 
   async start() {
-    this.scheduleResetOutOfFundsState()
     this.bindOnInstalled()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
@@ -239,6 +238,7 @@ export class Background {
         }
       }
       await this.checkPermissions()
+      await this.scheduleResetOutOfFundsState()
     })
   }
 
