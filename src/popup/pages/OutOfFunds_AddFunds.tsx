@@ -11,14 +11,15 @@ export const Component = () => {
     state: { grants, walletAddress }
   } = usePopupState()
   const location = useLocation()
-  const state = location.state as State
+
+  const state: State = { recurring: false, ...location.state }
+  const defaultAmount = grants.recurring?.value ?? grants.oneTime!.value
 
   return (
     <AddFunds
       info={walletAddress}
-      grantOneTime={grants.oneTime}
-      grantRecurring={grants.recurring}
-      recurring={state.recurring}
+      defaultAmount={defaultAmount}
+      recurring={state.recurring ? 'P1M' : false}
       requestAddFunds={async (data) => {
         const res = await addFunds(data)
         return res
