@@ -13,10 +13,18 @@ import type {
   StorageService
 } from '.'
 import { Logger } from '@/shared/logger'
-import { failure, getWalletInformation, success } from '@/shared/helpers'
+import {
+  failure,
+  getNextOccurrence,
+  getWalletInformation,
+  success
+} from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 import { PERMISSION_HOSTS } from '@/shared/defines'
+
+type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0]
+const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds'
 
 export class Background {
   constructor(
@@ -32,12 +40,38 @@ export class Background {
 
   async start() {
     this.bindOnInstalled()
+    await this.onStart()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
     this.bindEventsHandler()
     this.bindTabHandlers()
     this.bindWindowHandlers()
     this.sendToPopup.start()
+  }
+
+  async onStart() {
+    await this.storage.populate()
+    await this.checkPermissions()
+    await this.scheduleResetOutOfFundsState()
+  }
+
+  async scheduleResetOutOfFundsState() {
+    // Reset out_of_funds state, we'll detect latest state as we make a payment.
+    await this.storage.setState({ out_of_funds: false })
+
+    const { recurringGrant } = await this.storage.get(['recurringGrant'])
+    if (!recurringGrant) return
+
+    const renewDate = getNextOccurrence(recurringGrant.amount.interval)
+    this.browser.alarms.create(ALARM_RESET_OUT_OF_FUNDS, {
+      when: renewDate.valueOf()
+    })
+    const resetOutOfFundsState: AlarmCallback = (alarm) => {
+      if (alarm.name !== ALARM_RESET_OUT_OF_FUNDS) return
+      this.storage.setState({ out_of_funds: false })
+      this.browser.alarms.onAlarm.removeListener(resetOutOfFundsState)
+    }
+    this.browser.alarms.onAlarm.addListener(resetOutOfFundsState)
   }
 
   bindWindowHandlers() {
@@ -90,10 +124,29 @@ export class Background {
 
             case PopupToBackgroundAction.CONNECT_WALLET:
               await this.openPaymentsService.connectWallet(message.payload)
+              if (message.payload.recurring) {
+                this.scheduleResetOutOfFundsState()
+              }
+              return
+
+            case PopupToBackgroundAction.RECONNECT_WALLET:
+              await this.openPaymentsService.reconnectWallet()
+              await this.monetizationService.resumePaymentSessionActiveTab()
+              await this.tabEvents.onUpdatedTab()
+              return success(undefined)
+
+            case PopupToBackgroundAction.ADD_FUNDS:
+              await this.openPaymentsService.addFunds(message.payload)
+              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
+              if (message.payload.recurring) {
+                this.scheduleResetOutOfFundsState()
+              }
               return
 
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
+              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
+              this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
               return
 
             case PopupToBackgroundAction.TOGGLE_WM:
@@ -126,7 +179,7 @@ export class Background {
               return
 
             case ContentToBackgroundAction.RESUME_MONETIZATION:
-              this.monetizationService.resumePaymentSession(
+              await this.monetizationService.resumePaymentSession(
                 message.payload,
                 sender
               )
@@ -167,7 +220,9 @@ export class Background {
   bindEventsHandler() {
     this.events.on('storage.state_update', async ({ state, prevState }) => {
       this.sendToPopup.send('SET_STATE', { state, prevState })
-      // TODO: change icon here in future
+
+      const isCurrentTabMonetized = true // TODO get from tabState
+      await this.tabEvents.onUpdatedTab({ value: isCurrentTabMonetized })
     })
 
     this.events.on('storage.balance_update', (balance) =>
@@ -191,7 +246,6 @@ export class Background {
           )
         }
       }
-      await this.checkPermissions()
     })
   }
 

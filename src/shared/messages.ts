@@ -27,6 +27,8 @@ export type MessageHKT<
 export enum PopupToBackgroundAction {
   GET_CONTEXT_DATA = 'GET_CONTEXT_DATA',
   CONNECT_WALLET = 'CONNECT_WALLET',
+  ADD_FUNDS = 'ADD_FUNDS',
+  RECONNECT_WALLET = 'RECONNECT_WALLET',
   DISCONNECT_WALLET = 'DISCONNECT_WALLET',
   TOGGLE_WM = 'TOGGLE_WM',
   PAY_WEBSITE = 'PAY_WEBSITE',
@@ -35,6 +37,11 @@ export enum PopupToBackgroundAction {
 
 export interface ConnectWalletPayload {
   walletAddressUrl: string
+  amount: string
+  recurring: boolean
+}
+
+export interface AddFundsPayload {
   amount: string
   recurring: boolean
 }
@@ -50,6 +57,8 @@ export interface UpdateRateOfPayPayload {
 export interface PopupToBackgroundActionPayload {
   [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
   [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
+  [PopupToBackgroundAction.RECONNECT_WALLET]: undefined
+  [PopupToBackgroundAction.ADD_FUNDS]: AddFundsPayload
   [PopupToBackgroundAction.DISCONNECT_WALLET]: undefined
   [PopupToBackgroundAction.TOGGLE_WM]: undefined
   [PopupToBackgroundAction.PAY_WEBSITE]: PayWebsitePayload
@@ -135,13 +144,15 @@ export enum BackgroundToContentAction {
   EMIT_TOGGLE_WM = 'EMIT_TOGGLE_WM'
 }
 
+export interface MonetizationEventDetails {
+  amountSent: PaymentCurrencyAmount
+  incomingPayment: OutgoingPayment['receiver']
+  paymentPointer: WalletAddress['id']
+}
+
 export interface MonetizationEventPayload {
   requestId: string
-  detail: {
-    amountSent: PaymentCurrencyAmount
-    incomingPayment: OutgoingPayment['receiver']
-    paymentPointer: WalletAddress['id']
-  }
+  details: MonetizationEventDetails
 }
 
 export interface EmitToggleWMPayload {

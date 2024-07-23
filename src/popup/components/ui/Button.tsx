@@ -40,7 +40,8 @@ export interface ButtonProps
   extends VariantProps<typeof buttonVariants>,
     React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean
-  ['aria-label']: string
+  /** Optional only when children are passed */
+  ['aria-label']?: string
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

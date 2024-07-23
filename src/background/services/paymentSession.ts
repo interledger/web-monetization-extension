@@ -1,16 +1,20 @@
-import { OpenPaymentsService } from './openPayments'
 import {
-  IncomingPayment,
-  OutgoingPayment,
-  WalletAddress,
-  isPendingGrant
+  isPendingGrant,
+  type IncomingPayment,
+  type OutgoingPayment,
+  type WalletAddress
 } from '@interledger/open-payments/dist/types'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
-import { TabState } from './tabState'
-import type { Tabs } from 'webextension-polyfill'
+import {
+  isKeyRevokedError,
+  isOutOfBalanceError,
+  isTokenExpiredError
+} from './openPayments'
+import type { EventsService, OpenPaymentsService, TabState } from '.'
+import type { MonetizationEventDetails } from '@/shared/messages'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -26,11 +30,11 @@ export class PaymentSession {
     private receiver: WalletAddress,
     private sender: WalletAddress,
     private requestId: string,
-    private tab: Tabs.Tab,
     private tabId: number,
     private frameId: number,
     private rate: string,
     private openPaymentsService: OpenPaymentsService,
+    private events: EventsService,
     private tabState: TabState,
     private url: string
   ) {
@@ -127,11 +131,22 @@ export class PaymentSession {
 
     let outgoingPayment: OutgoingPayment | undefined
 
-    const waitTime = this.tabState.getOverpayingWaitTime(
-      this.tab,
+    const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
+      this.tabId,
       this.url,
       this.receiver.id
     )
+
+    if (monetizationEvent) {
+      sendMonetizationEvent({
+        tabId: this.tabId,
+        frameId: this.frameId,
+        payload: {
+          requestId: this.requestId,
+          details: monetizationEvent
+        }
+      })
+    }
 
     await sleep(waitTime)
 
@@ -143,21 +158,23 @@ export class PaymentSession {
           amount: this.amount
         })
       } catch (e) {
-        if (e instanceof OpenPaymentsClientError) {
-          // Status code 403 -> expired access token
-          if (e.status === 403) {
-            await this.openPaymentsService.rotateToken()
-            continue
+        if (isKeyRevokedError(e)) {
+          this.events.emit('open_payments.key_revoked')
+        } else if (isTokenExpiredError(e)) {
+          await this.openPaymentsService.rotateToken()
+          continue
+        } else if (isOutOfBalanceError(e)) {
+          const switched = await this.openPaymentsService.switchGrant()
+          if (switched === null) {
+            this.events.emit('open_payments.out_of_funds')
           }
-
+        } else if (e instanceof OpenPaymentsClientError) {
           // We need better error handling.
           if (e.status === 400) {
             await this.setIncomingPaymentUrl()
             continue
           }
 
-          // TODO: Check what Rafiki returns when there is no amount
-          // left in the grant.
           throw new Error(e.message)
         }
       } finally {
@@ -166,33 +183,34 @@ export class PaymentSession {
 
           outgoingPayment = undefined
 
+          const monetizationEventDetails: MonetizationEventDetails = {
+            amountSent: {
+              currency: receiveAmount.assetCode,
+              value: transformBalance(
+                receiveAmount.value,
+                receiveAmount.assetScale
+              )
+            },
+            incomingPayment,
+            paymentPointer: this.receiver.id
+          }
+
           sendMonetizationEvent({
             tabId: this.tabId,
             frameId: this.frameId,
             payload: {
               requestId: this.requestId,
-              detail: {
-                amountSent: {
-                  currency: receiveAmount.assetCode,
-                  value: transformBalance(
-                    receiveAmount.value,
-                    receiveAmount.assetScale
-                  )
-                },
-                incomingPayment,
-                paymentPointer: this.receiver.id
-              }
+              details: monetizationEventDetails
             }
           })
 
           // TO DO: find a better source of truth for deciding if overpaying is applicable
           if (this.intervalInMs > 1000) {
-            this.tabState.saveOverpaying(
-              this.tab,
-              this.url,
-              this.receiver.id,
-              this.intervalInMs
-            )
+            this.tabState.saveOverpaying(this.tabId, this.url, {
+              walletAddressId: this.receiver.id,
+              monetizationEvent: monetizationEventDetails,
+              intervalInMs: this.intervalInMs
+            })
           }
 
           await sleep(this.intervalInMs)
@@ -204,8 +222,16 @@ export class PaymentSession {
   private async setIncomingPaymentUrl() {
     if (this.incomingPaymentUrl) return
 
-    const incomingPayment = await this.createIncomingPayment()
-    this.incomingPaymentUrl = incomingPayment.id
+    try {
+      const incomingPayment = await this.createIncomingPayment()
+      this.incomingPaymentUrl = incomingPayment.id
+    } catch (error) {
+      if (isKeyRevokedError(error)) {
+        this.events.emit('open_payments.key_revoked')
+        return
+      }
+      throw error
+    }
   }
 
   private async createIncomingPayment(): Promise<IncomingPayment> {
@@ -255,9 +281,17 @@ export class PaymentSession {
     return incomingPayment
   }
 
-  // TODO: Needs refactoring - breaks DRY
   async pay(amount: number) {
-    const incomingPayment = await this.createIncomingPayment()
+    const incomingPayment = await this.createIncomingPayment().catch(
+      (error) => {
+        if (isKeyRevokedError(error)) {
+          this.events.emit('open_payments.key_revoked')
+          return
+        }
+        throw error
+      }
+    )
+    if (!incomingPayment) return
 
     let outgoingPayment: OutgoingPayment | undefined
 
@@ -268,11 +302,12 @@ export class PaymentSession {
         amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
       })
     } catch (e) {
-      if (e instanceof OpenPaymentsClientError) {
-        // Status code 403 -> expired access token
-        if (e.status === 403) {
-          await this.openPaymentsService.rotateToken()
-        }
+      if (isKeyRevokedError(e)) {
+        this.events.emit('open_payments.key_revoked')
+      } else if (isTokenExpiredError(e)) {
+        await this.openPaymentsService.rotateToken()
+      } else {
+        throw e
       }
     } finally {
       if (outgoingPayment) {
@@ -283,7 +318,7 @@ export class PaymentSession {
           frameId: this.frameId,
           payload: {
             requestId: this.requestId,
-            detail: {
+            details: {
               amountSent: {
                 currency: receiveAmount.assetCode,
                 value: transformBalance(

@@ -88,18 +88,12 @@ export const getTab = (sender: Runtime.MessageSender): Tabs.Tab => {
 export const getSender = (sender: Runtime.MessageSender) => {
   const tabId = getTabId(sender)
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId')
-  const tab = getTab(sender)
 
-  return { tabId, frameId, url: sender.url, tab }
+  return { tabId, frameId, url: sender.url }
 }
 
 export const computeRate = (rate: string, sessionsCount: number) =>
   (+rate / sessionsCount).toString()
-
-export const removeQueryParams = (urlString: string) => {
-  const url = new URL(urlString)
-  return url.origin + url.pathname
-}
 
 export function computeBalance(
   grant?: GrantDetails | null,

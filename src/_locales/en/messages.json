@@ -7,24 +7,40 @@
     "message": "Web Monetization Extension",
     "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website."
   },
-  "btnTooltip": {
-    "message": "Web Monetization",
-    "description": "..."
-  },
-  "hostsPermissionsNeeded": {
-    "message": "Permission to access your data for all websites is required to use Web Monetization.",
-    "description": "..."
-  },
-  "monetizationActiveShort": {
+  "icon_state_monetizationActive": {
     "message": "Active"
   },
-  "monetizationInactiveShort": {
+  "icon_state_monetizationInactive": {
     "message": "Inactive"
   },
-  "siteNotMonetized": {
+  "icon_state_actionRequired": {
+    "message": "Action Required!"
+  },
+  "missingHostPermission_state_text": {
+    "message": "Permission to access your data for all websites is required to use Web Monetization."
+  },
+  "siteNotMonetized_state_text": {
     "message": "This website is not monetized."
   },
-  "error_connectWallet_invalidClient": {
+  "keyRevoked_error_title": {
+    "message": "Unauthorized access to wallet"
+  },
+  "keyRevoked_error_text": {
+    "message": "It appears that the key has been revoked from your wallet. Authenticate wallet by adding the key again, or disconnect."
+  },
+  "keyRevoked_action_disconnect": {
+    "message": "Yes, let me disconnect my wallet"
+  },
+  "keyRevoked_action_reconnect": {
+    "message": "It was a mistake, I’d like to reconnect my wallet"
+  },
+  "keyRevoked_action_reconnectBtn": {
+    "message": "Reconnect"
+  },
+  "pay_error_notEnoughFunds": {
+    "message": "Not enough funds to facilitate payment."
+  },
+  "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
   }
 }

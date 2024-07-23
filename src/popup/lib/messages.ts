@@ -28,6 +28,21 @@ export const connectWallet = async (
   })
 }
 
+export const addFunds = async (
+  payload: PopupToBackgroundActionPayload[PopupToBackgroundAction.ADD_FUNDS]
+) => {
+  return await message.send({
+    action: PopupToBackgroundAction.ADD_FUNDS,
+    payload
+  })
+}
+
+export const reconnectWallet = async () => {
+  return await message.send({
+    action: PopupToBackgroundAction.RECONNECT_WALLET
+  })
+}
+
 export const disconnectWallet = async () => {
   return await message.send({
     action: PopupToBackgroundAction.DISCONNECT_WALLET
