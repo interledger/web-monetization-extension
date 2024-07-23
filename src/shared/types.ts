@@ -44,6 +44,8 @@ export type ExtensionState =
   | 'missing_host_permissions'
   /** The public key no longer exists or valid in connected wallet */
   | 'key_revoked'
+  /** The wallet is out of funds, cannot make payments */
+  | 'out_of_funds'
 
 export interface Storage {
   /**
@@ -94,6 +96,10 @@ export type PopupStore = Omit<
   balance: AmountValue
   isSiteMonetized: boolean
   url: string | undefined
+  grants?: Partial<{
+    oneTime: OneTimeGrant['amount']
+    recurring: RecurringGrant['amount']
+  }>
 }
 
 export type DeepNonNullable<T> = {

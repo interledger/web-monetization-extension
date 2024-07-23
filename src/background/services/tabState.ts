@@ -1,4 +1,5 @@
 import type { MonetizationEventDetails } from '@/shared/messages'
+import { Tabs } from 'webextension-polyfill'
 
 type State = {
   monetizationEvent: MonetizationEventDetails
@@ -12,10 +13,13 @@ interface SaveOverpayingDetails {
   intervalInMs: number
 }
 
-export class TabState {
-  private state = new Map<number, Map<string, State>>()
+type TabId = NonNullable<Tabs.Tab['id']>
+type SessionId = string
 
-  constructor() {}
+export class TabState {
+  private state = new Map<TabId, Map<SessionId, State>>()
+
+  constructor() { }
 
   private getOverpayingStateKey(url: string, walletAddressId: string): string {
     return `${url}:${walletAddressId}`
