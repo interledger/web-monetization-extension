@@ -66,7 +66,7 @@ export const OutOfFunds = ({
 
 interface AddFundsProps {
   info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
-  recurring: false | 'P1M'
+  recurring: boolean
   defaultAmount: AmountValue
   requestAddFunds: (details: AddFundsPayload) => Promise<Response>
 }

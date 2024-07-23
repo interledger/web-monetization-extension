@@ -19,7 +19,7 @@ export const Component = () => {
     <AddFunds
       info={walletAddress}
       defaultAmount={defaultAmount}
-      recurring={state.recurring ? 'P1M' : false}
+      recurring={state.recurring}
       requestAddFunds={async (data) => {
         const res = await addFunds(data)
         return res
