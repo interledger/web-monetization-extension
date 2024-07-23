@@ -13,6 +13,9 @@
   "icon_state_monetizationInactive": {
     "message": "Inactive"
   },
+  "icon_state_actionRequired": {
+    "message": "Action Required!"
+  },
   "missingHostPermission_state_text": {
     "message": "Permission to access your data for all websites is required to use Web Monetization."
   },
