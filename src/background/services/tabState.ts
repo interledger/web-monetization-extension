@@ -1,5 +1,5 @@
 import type { MonetizationEventDetails } from '@/shared/messages'
-import type { Tabs } from 'webextension-polyfill'
+import type { TabId } from '@/shared/types'
 import type { PaymentSession } from './paymentSession'
 
 type State = {
@@ -14,7 +14,6 @@ interface SaveOverpayingDetails {
   intervalInMs: number
 }
 
-type TabId = NonNullable<Tabs.Tab['id']>
 type SessionId = string
 
 export class TabState {
