@@ -20,7 +20,7 @@
   "background": {
     "service_worker": "background/background.js"
   },
-  "permissions": ["tabs", "storage"],
+  "permissions": ["tabs", "storage", "alarms"],
   "action": {
     "default_title": "Web Monetization",
     "default_popup": "popup/index.html"

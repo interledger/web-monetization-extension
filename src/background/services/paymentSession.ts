@@ -8,7 +8,11 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
-import { isKeyRevokedError, isTokenExpiredError } from './openPayments'
+import {
+  isKeyRevokedError,
+  isOutOfBalanceError,
+  isTokenExpiredError
+} from './openPayments'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { Tabs } from 'webextension-polyfill'
 import type { MonetizationEventDetails } from '@/shared/messages'
