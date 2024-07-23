@@ -269,16 +269,10 @@ export class MonetizationService {
   }
 
   private onRateOfPayUpdate() {
-    this.events.on('storage.rate_of_pay_update', async ({ rate }) => {
+    this.events.on('storage.rate_of_pay_update', ({ rate }) => {
       this.logger.debug("Received event='storage.rate_of_pay_update'")
-      const tabs = await this.browser.tabs.query({})
-      for (const tab of tabs) {
-        if (!tab.id) continue
-        this.logger.debug(`Re-evaluating sessions amount for tab=${tab.id}`)
-        const tabSessions = this.tabState.getSessions(tab.id)
-        for (const session of tabSessions.values()) {
-          session.adjustSessionAmount(rate)
-        }
+      for (const session of this.tabState.getAllSessions()) {
+        session.adjustSessionAmount(rate)
       }
     })
   }
