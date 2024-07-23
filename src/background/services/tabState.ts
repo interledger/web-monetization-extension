@@ -1,6 +1,6 @@
+import type { MonetizationEventDetails } from '@/shared/messages'
 import type { Tabs } from 'webextension-polyfill'
 import type { PaymentSession } from './paymentSession'
-import type { MonetizationEventDetails } from '@/shared/messages'
 
 type State = {
   monetizationEvent: MonetizationEventDetails

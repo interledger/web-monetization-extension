@@ -13,8 +13,8 @@ import {
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
-import { isOutOfBalanceError } from './openPayments'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
+import { isOutOfBalanceError } from './openPayments'
 import {
   isOkState,
   removeQueryParams,
