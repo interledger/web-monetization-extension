@@ -19,7 +19,7 @@ type SessionId = string
 export class TabState {
   private state = new Map<TabId, Map<SessionId, State>>()
 
-  constructor() { }
+  constructor() {}
 
   private getOverpayingStateKey(url: string, walletAddressId: string): string {
     return `${url}:${walletAddressId}`
