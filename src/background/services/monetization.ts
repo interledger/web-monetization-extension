@@ -197,7 +197,7 @@ export class MonetizationService {
     emitToggleWM({ enabled: !enabled })
   }
 
-  async clearTabSessions(tabId: number) {
+  clearTabSessions(tabId: number) {
     this.logger.debug(`Attempting to clear sessions for tab ${tabId}.`)
     const sessions = this.tabState.getSessions(tabId)
 
