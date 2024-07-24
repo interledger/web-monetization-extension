@@ -408,9 +408,12 @@ export class OpenPaymentsService {
       hash,
       authServer: walletAddress.authServer
     }).catch(async (e) => {
-      await this.browser.tabs.update(tabId, {
-        url: `${OPEN_PAYMENTS_REDIRECT_URL}?result=${GrantResult.ERROR}&intent=${intent}&errorCode=${ErrorCode.HASH_FAILED}`
-      })
+      await this.redirectToWelcomeScreen(
+        tabId,
+        GrantResult.ERROR,
+        intent,
+        ErrorCode.HASH_FAILED
+      )
       throw e
     })
 
@@ -423,9 +426,12 @@ export class OpenPaymentsService {
         interact_ref: interactRef
       }
     ).catch(async (e) => {
-      await this.browser.tabs.update(tabId, {
-        url: `${OPEN_PAYMENTS_REDIRECT_URL}?result=${GrantResult.ERROR}&intent=${intent}&errorCode=${ErrorCode.HASH_FAILED}`
-      })
+      await this.redirectToWelcomeScreen(
+        tabId,
+        GrantResult.ERROR,
+        intent,
+        ErrorCode.CONTINUATION_FAILED
+      )
       throw e
     })
 
@@ -460,10 +466,23 @@ export class OpenPaymentsService {
       this.isGrantUsable.oneTime = true
     }
 
-    await this.browser.tabs.update(tabId, {
-      url: `${OPEN_PAYMENTS_REDIRECT_URL}?result=${GrantResult.SUCCESS}&intent=${intent}`
-    })
+    await this.redirectToWelcomeScreen(tabId, GrantResult.SUCCESS, intent)
     return grantDetails
+  }
+
+  private async redirectToWelcomeScreen(
+    tabId: NonNullable<Tabs.Tab['id']>,
+    result: GrantResult,
+    intent: InteractionIntent,
+    errorCode?: ErrorCode
+  ) {
+    const url = new URL(OPEN_PAYMENTS_REDIRECT_URL)
+    url.searchParams.set('result', result)
+    url.searchParams.set('intent', intent)
+    if (errorCode) url.searchParams.set('errorCode', errorCode)
+    await this.browser.tabs.update(tabId, {
+      url: url.toString()
+    })
   }
 
   private async createOutgoingPaymentGrant({
