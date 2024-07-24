@@ -530,11 +530,6 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
-  // private async closeTab(currentTab: number, tabToClose: number) {
-  //   await this.browser.tabs.update(currentTab, { active: true })
-  //   await this.browser.tabs.remove(tabToClose)
-  // }
-
   private async getInteractionInfo(url: string): Promise<InteractionParams> {
     return await new Promise((res) => {
       this.browser.tabs.create({ url }).then((tab) => {
@@ -555,7 +550,6 @@ export class OpenPaymentsService {
               result === 'grant_rejected' ||
               result === 'grant_invalid'
             ) {
-              // await this.closeTab(currentTab.id!, tabId)
               this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
             }
 
