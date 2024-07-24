@@ -14,7 +14,6 @@ import {
   isTokenExpiredError
 } from './openPayments'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
-import type { Tabs } from 'webextension-polyfill'
 import type { MonetizationEventDetails } from '@/shared/messages'
 
 const DEFAULT_INTERVAL_MS = 1000
@@ -31,7 +30,6 @@ export class PaymentSession {
     private receiver: WalletAddress,
     private sender: WalletAddress,
     private requestId: string,
-    private tab: Tabs.Tab,
     private tabId: number,
     private frameId: number,
     private rate: string,
@@ -132,7 +130,7 @@ export class PaymentSession {
     await this.setIncomingPaymentUrl()
 
     const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
-      this.tab,
+      this.tabId,
       this.url,
       this.receiver.id
     )
@@ -156,8 +154,8 @@ export class PaymentSession {
     }
   }
 
-  private async setIncomingPaymentUrl() {
-    if (this.incomingPaymentUrl) return
+  private async setIncomingPaymentUrl(reset?: boolean) {
+    if (this.incomingPaymentUrl && !reset) return
 
     try {
       const incomingPayment = await this.createIncomingPayment()
@@ -308,7 +306,7 @@ export class PaymentSession {
 
       // TO DO: find a better source of truth for deciding if overpaying is applicable
       if (this.intervalInMs > 1000) {
-        this.tabState.saveOverpaying(this.tab, this.url, {
+        this.tabState.saveOverpaying(this.tabId, this.url, {
           walletAddressId: this.receiver.id,
           monetizationEvent: monetizationEventDetails,
           intervalInMs: this.intervalInMs
@@ -318,15 +316,18 @@ export class PaymentSession {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
       } else if (isTokenExpiredError(e)) {
-        this.openPaymentsService.rotateToken()
+        await this.openPaymentsService.rotateToken()
+      } else if (isOutOfBalanceError(e)) {
+        const switched = await this.openPaymentsService.switchGrant()
+        if (switched === null) {
+          this.events.emit('open_payments.out_of_funds')
+        }
       } else if (e instanceof OpenPaymentsClientError) {
         // We need better error handling.
         if (e.status === 400) {
-          await this.setIncomingPaymentUrl()
+          await this.setIncomingPaymentUrl(true)
         }
 
-        // TODO: Check what Rafiki returns when there is no amount
-        // left in the grant.
         throw new Error(e.message)
       }
     }

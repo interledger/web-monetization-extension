@@ -65,7 +65,7 @@ export class MonetizationService {
       )
       return
     }
-    const { tabId, frameId, url, tab } = getSender(sender)
+    const { tabId, frameId, url } = getSender(sender)
 
     if (this.sessions[tabId] == null) {
       this.sessions[tabId] = new Map()
@@ -88,7 +88,6 @@ export class MonetizationService {
         receiver,
         connectedWallet,
         requestId,
-        tab,
         tabId,
         frameId,
         rate,
@@ -222,6 +221,8 @@ export class MonetizationService {
     }
 
     delete this.sessions[tabId]
+    this.tabState.clearByTabId(tabId)
+
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }
 
@@ -350,6 +351,7 @@ export class MonetizationService {
         // noop
       }
     }
+
     const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
 
     return {
