@@ -3,11 +3,13 @@ import { WalletAddress } from '@interledger/open-payments/dist/types'
 /** Bigint amount, before transformation with assetScale */
 export type AmountValue = string
 
+/** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
+export type RepeatingInterval = string
+
 /** Wallet amount */
 export interface WalletAmount {
   value: string
-  /** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
-  interval?: string
+  interval?: RepeatingInterval
 }
 
 /** Amount interface - used in the `exceptionList` */
@@ -42,6 +44,8 @@ export type ExtensionState =
   | 'missing_host_permissions'
   /** The public key no longer exists or valid in connected wallet */
   | 'key_revoked'
+  /** The wallet is out of funds, cannot make payments */
+  | 'out_of_funds'
 
 export interface Storage {
   /**
@@ -92,6 +96,10 @@ export type PopupStore = Omit<
   balance: AmountValue
   isSiteMonetized: boolean
   url: string | undefined
+  grants?: Partial<{
+    oneTime: OneTimeGrant['amount']
+    recurring: RecurringGrant['amount']
+  }>
 }
 
 export type DeepNonNullable<T> = {

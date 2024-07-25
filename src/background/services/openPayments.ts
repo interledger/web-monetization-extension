@@ -27,13 +27,14 @@ import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
 import { getWalletInformation, type Translation } from '@/shared/helpers'
-import { ConnectWalletPayload } from '@/shared/messages'
+import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY
 } from '../config'
-import { Deduplicator } from './deduplicator'
+import type { Deduplicator } from './deduplicator'
+import type { Logger } from '@/shared/logger'
 
 interface KeyInformation {
   privateKey: string
@@ -92,16 +93,38 @@ type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
 export class OpenPaymentsService {
   client?: AuthenticatedClient
 
+  public switchGrant: OpenPaymentsService['_switchGrant']
+
   private token: AccessToken
-  private grant: GrantDetails | null
+  private grantDetails: GrantDetails | null
+  /** Whether a grant has enough balance to make payments */
+  private isGrantUsable = { recurring: false, oneTime: false }
 
   constructor(
     private browser: Browser,
     private storage: StorageService,
     private deduplicator: Deduplicator,
+    private logger: Logger,
     private t: Translation
   ) {
     void this.initialize()
+    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
+  }
+
+  public isAnyGrantUsable() {
+    return this.isGrantUsable.recurring || this.isGrantUsable.oneTime
+  }
+
+  private get grant() {
+    return this.grantDetails
+  }
+
+  private set grant(grantDetails) {
+    this.logger.debug(`🤝🏻 Using grant: ${grantDetails?.type || null}`)
+    this.grantDetails = grantDetails
+    this.token = grantDetails
+      ? grantDetails.accessToken
+      : { value: '', manageUrl: '' }
   }
 
   private async initialize() {
@@ -113,13 +136,15 @@ export class OpenPaymentsService {
         'recurringGrant'
       ])
 
+    this.isGrantUsable.recurring = !!recurringGrant
+    this.isGrantUsable.oneTime = !!oneTimeGrant
+
     if (
       connected === true &&
       walletAddress &&
       (recurringGrant || oneTimeGrant)
     ) {
-      this.grant = recurringGrant || oneTimeGrant!
-      this.token = this.grant.accessToken
+      this.grant = recurringGrant || oneTimeGrant! // prefer recurring
       await this.initClient(walletAddress.id)
     }
   }
@@ -298,24 +323,62 @@ export class OpenPaymentsService {
       assetScale: walletAddress.assetScale
     })
 
+    await this.initClient(walletAddress.id)
+    await this.completeGrant(amount, walletAddress, recurring)
+
+    await this.storage.set({
+      walletAddress,
+      rateOfPay,
+      minRateOfPay,
+      maxRateOfPay,
+      connected: true
+    })
+  }
+
+  async addFunds({ amount, recurring }: AddFundsPayload) {
+    const { walletAddress, ...grants } = await this.storage.get([
+      'walletAddress',
+      'oneTimeGrant',
+      'recurringGrant'
+    ])
+
+    const grantDetails = await this.completeGrant(
+      amount,
+      walletAddress!,
+      recurring
+    )
+
+    // cancel existing grants of same type, if any
+    if (grants.oneTimeGrant && !recurring) {
+      await this.cancelGrant(grants.oneTimeGrant.continue)
+    } else if (grants.recurringGrant && recurring) {
+      await this.cancelGrant(grants.recurringGrant.continue)
+    }
+
+    this.grant = grantDetails
+    await this.storage.setState({ out_of_funds: false })
+  }
+
+  private async completeGrant(
+    amount: string,
+    walletAddress: WalletAddress,
+    recurring: boolean
+  ): Promise<GrantDetails> {
     const transformedAmount = toAmount({
       value: amount,
       recurring,
       assetScale: walletAddress.assetScale
     })
 
-    await this.initClient(walletAddress.id)
     const clientNonce = crypto.randomUUID()
     const grant = await this.createOutgoingPaymentGrant({
       clientNonce,
       walletAddress,
       amount: transformedAmount
     }).catch((err) => {
-      if (err instanceof OpenPaymentsClientError) {
-        if (err.status === 400 && err.code === 'invalid_client') {
-          const msg = this.t('error_connectWallet_invalidClient')
-          throw new Error(msg, { cause: err })
-        }
+      if (isInvalidClientError(err)) {
+        const msg = this.t('connectWallet_error_invalidClient')
+        throw new Error(msg, { cause: err })
       }
       throw err
     })
@@ -362,28 +425,21 @@ export class OpenPaymentsService {
       }
     }
 
-    const data = {
-      walletAddress,
-      rateOfPay,
-      minRateOfPay,
-      maxRateOfPay,
-      connected: true
-    }
     if (grantDetails.type === 'recurring') {
       await this.storage.set({
-        ...data,
         recurringGrant: grantDetails,
         recurringGrantSpentAmount: '0'
       })
+      this.isGrantUsable.recurring = true
     } else {
       await this.storage.set({
-        ...data,
         oneTimeGrant: grantDetails,
         oneTimeGrantSpentAmount: '0'
       })
+      this.isGrantUsable.oneTime = true
     }
-    this.grant = grantDetails
-    this.token = this.grant.accessToken
+
+    return grantDetails
   }
 
   private async createOutgoingPaymentGrant({
@@ -498,28 +554,28 @@ export class OpenPaymentsService {
       'recurringGrant',
       'oneTimeGrant'
     ])
-    // TODO: When both types of grant can co-exist, make sure to revoke them
-    // correctly (either specific grant or all grants). See
-    // https://github.com/interledger/web-monetization-extension/pull/379#discussion_r1660447849
-    const grant = recurringGrant || oneTimeGrant
-    if (!grant) {
+    if (!recurringGrant && !oneTimeGrant) {
       return
     }
-    await this.cancelGrant(grant.continue)
+    if (recurringGrant) {
+      await this.cancelGrant(recurringGrant.continue)
+      this.isGrantUsable.recurring = false
+    }
+    if (oneTimeGrant) {
+      await this.cancelGrant(oneTimeGrant.continue)
+      this.isGrantUsable.oneTime = false
+    }
     await this.storage.clear()
     this.grant = null
-    this.token = { value: '', manageUrl: '' }
   }
 
   private async cancelGrant(grantContinuation: GrantDetails['continue']) {
     try {
       await this.client!.grant.cancel(grantContinuation)
     } catch (error) {
-      if (error instanceof OpenPaymentsClientError) {
-        if (error.status === 400 && error.code === 'invalid_client') {
-          // key already removed from wallet
-          return
-        }
+      if (isInvalidClientError(error)) {
+        // key already removed from wallet
+        return
       }
       throw error
     }
@@ -569,6 +625,7 @@ export class OpenPaymentsService {
         outgoingPayment.grantSpentDebitAmount.value
       )
     }
+    await this.storage.setState({ out_of_funds: false })
 
     return outgoingPayment
   }
@@ -577,15 +634,43 @@ export class OpenPaymentsService {
     try {
       await this.rotateToken()
     } catch (error) {
-      if (error instanceof OpenPaymentsClientError) {
-        if (error.status === 400 && error.code === 'invalid_client') {
-          const msg = this.t('error_connectWallet_invalidClient')
-          throw new Error(msg, { cause: error })
-        }
+      if (isInvalidClientError(error)) {
+        const msg = this.t('connectWallet_error_invalidClient')
+        throw new Error(msg, { cause: error })
       }
       throw error
     }
     await this.storage.setState({ key_revoked: false })
+  }
+
+  /**
+   * Switches to the next grant that can be used.
+   * @returns the type of grant that should be used now, or null if no grant can
+   * be used.
+   */
+  private async _switchGrant(): Promise<GrantDetails['type'] | null> {
+    if (!this.isAnyGrantUsable()) {
+      return null
+    }
+    this.logger.debug('Switching from grant', this.grant?.type)
+    const { oneTimeGrant, recurringGrant } = await this.storage.get([
+      'oneTimeGrant',
+      'recurringGrant'
+    ])
+    if (this.grant?.type === 'recurring') {
+      this.isGrantUsable.recurring = false
+      if (oneTimeGrant) {
+        this.grant = oneTimeGrant
+        return 'one-time'
+      }
+    } else if (this.grant?.type === 'one-time') {
+      this.isGrantUsable.oneTime = false
+      if (recurringGrant) {
+        this.grant = recurringGrant
+        return 'recurring'
+      }
+    }
+    return null
   }
 
   async rotateToken() {
@@ -606,7 +691,46 @@ export class OpenPaymentsService {
     } else {
       this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } })
     }
-    this.grant.accessToken = accessToken
-    this.token = accessToken
+    this.grant = { ...this.grant, accessToken }
   }
+}
+
+const isOpenPaymentsClientError = (error: any) =>
+  error instanceof OpenPaymentsClientError
+
+export const isKeyRevokedError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return isInvalidClientError(error) || isSignatureValidationError(error)
+}
+
+// AUTH SERVER error
+export const isInvalidClientError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 400 && error.code === 'invalid_client'
+}
+
+// RESOURCE SERVER error. Create outgoing payment and create quote can fail
+// with: `Signature validation error: could not find key in list of client keys`
+export const isSignatureValidationError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return (
+    error.status === 401 &&
+    error.description?.includes('Signature validation error')
+  )
+}
+
+export const isTokenExpiredError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return isTokenInvalidError(error) || isTokenInactiveError(error)
+}
+export const isTokenInvalidError = (error: OpenPaymentsClientError) => {
+  return error.status === 401 && error.description === 'Invalid Token'
+}
+export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
+  return error.status === 403 && error.description === 'Inactive Token'
+}
+
+export const isOutOfBalanceError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 403 && error.description === 'unauthorized'
 }

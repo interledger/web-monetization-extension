@@ -8,8 +8,12 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
+import {
+  isKeyRevokedError,
+  isOutOfBalanceError,
+  isTokenExpiredError
+} from './openPayments'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
-import type { Tabs } from 'webextension-polyfill'
 import type { MonetizationEventDetails } from '@/shared/messages'
 
 const DEFAULT_INTERVAL_MS = 1000
@@ -26,7 +30,6 @@ export class PaymentSession {
     private receiver: WalletAddress,
     private sender: WalletAddress,
     private requestId: string,
-    private tab: Tabs.Tab,
     private tabId: number,
     private frameId: number,
     private rate: string,
@@ -129,7 +132,7 @@ export class PaymentSession {
     let outgoingPayment: OutgoingPayment | undefined
 
     const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
-      this.tab,
+      this.tabId,
       this.url,
       this.receiver.id
     )
@@ -155,23 +158,23 @@ export class PaymentSession {
           amount: this.amount
         })
       } catch (e) {
-        if (this.isKeyRevokedError(e)) {
+        if (isKeyRevokedError(e)) {
           this.events.emit('open_payments.key_revoked')
-        } else if (e instanceof OpenPaymentsClientError) {
-          // Status code 403 -> expired access token
-          if (e.status === 403) {
-            await this.openPaymentsService.rotateToken()
-            continue
+        } else if (isTokenExpiredError(e)) {
+          await this.openPaymentsService.rotateToken()
+          continue
+        } else if (isOutOfBalanceError(e)) {
+          const switched = await this.openPaymentsService.switchGrant()
+          if (switched === null) {
+            this.events.emit('open_payments.out_of_funds')
           }
-
+        } else if (e instanceof OpenPaymentsClientError) {
           // We need better error handling.
           if (e.status === 400) {
             await this.setIncomingPaymentUrl()
             continue
           }
 
-          // TODO: Check what Rafiki returns when there is no amount
-          // left in the grant.
           throw new Error(e.message)
         }
       } finally {
@@ -203,7 +206,7 @@ export class PaymentSession {
 
           // TO DO: find a better source of truth for deciding if overpaying is applicable
           if (this.intervalInMs > 1000) {
-            this.tabState.saveOverpaying(this.tab, this.url, {
+            this.tabState.saveOverpaying(this.tabId, this.url, {
               walletAddressId: this.receiver.id,
               monetizationEvent: monetizationEventDetails,
               intervalInMs: this.intervalInMs
@@ -223,7 +226,7 @@ export class PaymentSession {
       const incomingPayment = await this.createIncomingPayment()
       this.incomingPaymentUrl = incomingPayment.id
     } catch (error) {
-      if (this.isKeyRevokedError(error)) {
+      if (isKeyRevokedError(error)) {
         this.events.emit('open_payments.key_revoked')
         return
       }
@@ -281,7 +284,7 @@ export class PaymentSession {
   async pay(amount: number) {
     const incomingPayment = await this.createIncomingPayment().catch(
       (error) => {
-        if (this.isKeyRevokedError(error)) {
+        if (isKeyRevokedError(error)) {
           this.events.emit('open_payments.key_revoked')
           return
         }
@@ -299,13 +302,12 @@ export class PaymentSession {
         amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
       })
     } catch (e) {
-      if (this.isKeyRevokedError(e)) {
+      if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
-      } else if (e instanceof OpenPaymentsClientError) {
-        // Status code 403 -> expired access token
-        if (e.status === 403) {
-          await this.openPaymentsService.rotateToken()
-        }
+      } else if (isTokenExpiredError(e)) {
+        await this.openPaymentsService.rotateToken()
+      } else {
+        throw e
       }
     } finally {
       if (outgoingPayment) {
@@ -338,21 +340,5 @@ export class PaymentSession {
   private setAmount(amount: bigint): void {
     this.amount = amount.toString()
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
-  }
-
-  private isKeyRevokedError(error: any) {
-    if (error instanceof OpenPaymentsClientError) {
-      return (
-        // - [RESOURCE SERVER] create outgoing payment and create quote fail
-        //   with: HTTP 401 + `Signature validation error: could not find key in
-        //   list of client keys`
-        // - [AUTH SERVER] create incoming payment grant fails with: HTTP 400 +
-        //   `invalid_client`
-        (error.status === 400 && error.code === 'invalid_client') ||
-        (error.status === 401 &&
-          error.description?.includes('Signature validation error'))
-      )
-    }
-    return false
   }
 }

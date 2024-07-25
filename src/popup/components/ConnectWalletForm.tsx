@@ -1,8 +1,7 @@
+import React, { useCallback, useEffect } from 'react'
 import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
-import { connected } from 'process'
-import React, { useCallback, useEffect } from 'react'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
 import { connectWallet } from '@/popup/lib/messages'
@@ -143,7 +142,6 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       <Input
         type="text"
         label="Wallet address or payment pointer"
-        disabled={connected}
         placeholder="https://ilp.rafiki.money/johndoe"
         errorMessage={errors.walletAddressUrl?.message}
         {...register('walletAddressUrl', {
@@ -157,7 +155,6 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       <Input
         type="text"
         inputMode="numeric"
-        disabled={connected}
         addOn={currencySymbol.symbol}
         label="Amount"
         description="Enter the amount to use from your wallet."

@@ -88,9 +88,8 @@ export const getTab = (sender: Runtime.MessageSender): Tabs.Tab => {
 export const getSender = (sender: Runtime.MessageSender) => {
   const tabId = getTabId(sender)
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId')
-  const tab = getTab(sender)
 
-  return { tabId, frameId, url: sender.url, tab }
+  return { tabId, frameId, url: sender.url }
 }
 
 export const computeRate = (rate: string, sessionsCount: number) =>
