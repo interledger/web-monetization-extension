@@ -34,6 +34,7 @@ export class TabState {
     const key = this.getOverpayingStateKey(url, walletAddressId)
     const state = this.state.get(tabId)?.get(key)
     const now = Date.now()
+    console.log(Object.fromEntries(this.state.entries()))
 
     if (state && state.expiresAtTimestamp > now) {
       return {

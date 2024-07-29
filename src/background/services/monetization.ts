@@ -66,10 +66,10 @@ export class MonetizationService {
     const sessionsCount = sessions.size + payload.length
     const rate = computeRate(rateOfPay, sessionsCount)
 
-    // Adjust rate of payment for existing sessions
-    sessions.forEach((session) => {
-      session.adjustSessionAmount(rate)
-    })
+    // // Adjust rate of payment for existing sessions
+    // sessions.forEach((session) => {
+    //   session.adjustSessionAmount(rate)
+    // })
 
     // Initialize new sessions
     payload.forEach((p) => {
@@ -89,11 +89,21 @@ export class MonetizationService {
       )
 
       sessions.set(requestId, session)
-
-      if (enabled && this.canTryPayment(connected, state)) {
-        void session.start()
-      }
     })
+
+    const sessionsArr = Array.from(sessions.values())
+
+    // Since we probe (through quoting) the debitAmount we have to await the
+    // `adjustAmount` method.
+    await Promise.all(
+      sessionsArr.map((session) => session.adjustAmount())
+    )
+
+    if (enabled && this.canTryPayment(connected, state)) {
+        sessionsArr.forEach((session) => {
+            void session.start()
+        })
+    }
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
@@ -135,8 +145,12 @@ export class MonetizationService {
 
     const rate = computeRate(rateOfPay, sessions.size)
     // Adjust rate of payment for existing sessions
+
+    // TODO: Only adjust the amount if a wallet address gets removed.
+    // At the moment whenever we switch tabs, the `adjustAmount` method
+    // is called, making at least 2 unnecessary probe requests.
     sessions.forEach((session) => {
-      session.adjustSessionAmount(rate)
+      session.adjustAmount(rate)
     })
   }
 
@@ -272,7 +286,7 @@ export class MonetizationService {
     this.events.on('storage.rate_of_pay_update', ({ rate }) => {
       this.logger.debug("Received event='storage.rate_of_pay_update'")
       for (const session of this.tabState.getAllSessions()) {
-        session.adjustSessionAmount(rate)
+        session.adjustAmount(rate)
       }
     })
   }

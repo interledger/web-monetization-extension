@@ -1,5 +1,5 @@
 // cSpell:ignore keyid
-import type { AccessToken, GrantDetails, WalletAmount } from 'shared/types'
+import type { AccessToken, AmountValue, GrantDetails, WalletAmount } from 'shared/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
@@ -455,6 +455,10 @@ export class OpenPaymentsService {
         access_token: {
           access: [
             {
+                type: 'quote',
+                actions: ['create'],
+            },
+            {
               type: 'outgoing-payment',
               actions: ['create'],
               identifier: walletAddress.id,
@@ -628,6 +632,22 @@ export class OpenPaymentsService {
     await this.storage.setState({ out_of_funds: false })
 
     return outgoingPayment
+  }
+
+  async probeDebitAmount(amount: AmountValue, incomingPayment: IncomingPayment['id'], sender: WalletAddress): Promise<void>{
+    await this.client!.quote.create({
+        url: sender.resourceServer,
+        accessToken: this.token.value
+    }, {
+        method: 'ilp',
+        receiver: incomingPayment,
+        walletAddress: sender.id,
+        debitAmount: {
+            value: amount,
+            assetCode: sender.assetCode,
+            assetScale: sender.assetScale
+        }
+    })
   }
 
   async reconnectWallet() {
