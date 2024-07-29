@@ -95,14 +95,12 @@ export class MonetizationService {
 
     // Since we probe (through quoting) the debitAmount we have to await the
     // `adjustAmount` method.
-    await Promise.all(
-      sessionsArr.map((session) => session.adjustAmount())
-    )
+    await Promise.all(sessionsArr.map((session) => session.adjustAmount()))
 
     if (enabled && this.canTryPayment(connected, state)) {
-        sessionsArr.forEach((session) => {
-            void session.start()
-        })
+      sessionsArr.forEach((session) => {
+        void session.start()
+      })
     }
   }
 

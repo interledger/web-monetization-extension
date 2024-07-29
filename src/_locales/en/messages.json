@@ -40,6 +40,49 @@
   "pay_error_notEnoughFunds": {
     "message": "Not enough funds to facilitate payment."
   },
+  "outOfFunds_error_title": {
+    "message": "Out of funds"
+  },
+  "outOfFunds_error_text": {
+    "message": "Funds have been depleted. You can no longer make payments."
+  },
+  "outOfFunds_error_textHint": {
+    "message": "Please add funds."
+  },
+  "outOfFunds_error_textDoNothing": {
+    "message": "If you do nothing, $AMOUNT$ will automatically be renewed and available on $AUTO_RENEW_DATE$",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" },
+      "AUTO_RENEW_DATE": { "content": "$2", "example": "Aug 22, 2024, 6:05 PM" }
+    }
+  },
+  "outOfFunds_action_optionOneTime": {
+    "message": "Let me top-up funds one time"
+  },
+  "outOfFunds_action_optionRecurring": {
+    "message": "Let me add funds & auto-renew monthly"
+  },
+  "outOfFundsAddFunds_label_walletAddress": {
+    "message": "Connected wallet address"
+  },
+  "outOfFundsAddFunds_label_amount": {
+    "message": "Amount"
+  },
+  "outOfFundsAddFunds_label_amountDescriptionOneTime": {
+    "message": "Enter the amount to add from the wallet."
+  },
+  "outOfFundsAddFunds_label_amountDescriptionRecurring": {
+    "message": "Enter the amount to add from the wallet. This amount will renew automatically every month (next: $NEXT_RENEW_DATE$).",
+    "placeholders": {
+      "NEXT_RENEW_DATE": { "content": "$1", "example": "Aug 22, 2024" }
+    }
+  },
+  "outOfFundsAddFunds_action_addOneTime": {
+    "message": "Add funds"
+  },
+  "outOfFundsAddFunds_action_addRecurring": {
+    "message": "Add funds"
+  },
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
   }
