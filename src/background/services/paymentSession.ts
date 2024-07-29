@@ -80,47 +80,48 @@ export class PaymentSession {
           }
         }
       }
-    } else {
-      if (amountToSend <= MIN_SEND_AMOUNT) {
-        // We need to add another unit when using a debit amount, since
-        // @interledger/pay subtracts one unit.
-        if (senderAssetScale <= receiverAssetScale) {
-          this.setAmount(MIN_SEND_AMOUNT + 1n)
-          return
-        }
-
-        // If the sender scale is greater than the receiver scale, the unit issue
-        // will not be present.
-        if (senderAssetScale > receiverAssetScale) {
-          this.setAmount(MIN_SEND_AMOUNT)
-          return
-        }
-      }
-
-      // If the sender can facilitate the rate, but the amount can not be
-      // represented in the receiver's scale we need to send the minimum amount
-      // for the receiver (1 unit, but in the sender's asset scale)
-      if (senderAssetScale > receiverAssetScale) {
-        const amountInReceiversScale = convert(
-          amountToSend,
-          senderAssetScale,
-          receiverAssetScale
-        )
-
-        if (amountInReceiversScale === 0n) {
-          const amount = convert(
-            MIN_SEND_AMOUNT,
-            receiverAssetScale,
-            senderAssetScale
-          )
-          this.setAmount(amount)
-          return
-        }
-      }
-
-      this.amount = amountToSend.toString()
-      this.intervalInMs = DEFAULT_INTERVAL_MS
+      return
     }
+
+    if (amountToSend <= MIN_SEND_AMOUNT) {
+      // We need to add another unit when using a debit amount, since
+      // @interledger/pay subtracts one unit.
+      if (senderAssetScale <= receiverAssetScale) {
+        this.setAmount(MIN_SEND_AMOUNT + 1n)
+        return
+      }
+
+      // If the sender scale is greater than the receiver scale, the unit issue
+      // will not be present.
+      if (senderAssetScale > receiverAssetScale) {
+        this.setAmount(MIN_SEND_AMOUNT)
+        return
+      }
+    }
+
+    // If the sender can facilitate the rate, but the amount can not be
+    // represented in the receiver's scale we need to send the minimum amount
+    // for the receiver (1 unit, but in the sender's asset scale)
+    if (senderAssetScale > receiverAssetScale) {
+      const amountInReceiversScale = convert(
+        amountToSend,
+        senderAssetScale,
+        receiverAssetScale
+      )
+
+      if (amountInReceiversScale === 0n) {
+        const amount = convert(
+          MIN_SEND_AMOUNT,
+          receiverAssetScale,
+          senderAssetScale
+        )
+        this.setAmount(amount)
+        return
+      }
+    }
+
+    this.amount = amountToSend.toString()
+    this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
   stop() {
