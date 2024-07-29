@@ -63,7 +63,15 @@ export class MonetizationService {
     const { tabId, frameId, url } = getSender(sender)
     const sessions = this.tabState.getSessions(tabId)
 
-    const sessionsCount = sessions.size + payload.length
+    // 3 monetization links
+    // one of them gets the href attr updated
+
+    // sessions.size (3) + 1 = 4
+
+    const sessionsCount = new Set([
+      ...sessions.keys(),
+      ...payload.map((p) => p.requestId)
+    ]).size
     const rate = computeRate(rateOfPay, sessionsCount)
 
     // Initialize new sessions
@@ -94,6 +102,7 @@ export class MonetizationService {
 
     if (enabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
+        session.enable()
         void session.start()
       })
     }
@@ -115,7 +124,7 @@ export class MonetizationService {
     payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    let removed = false
+    let needsAdjustAmount = false
     const tabId = getTabId(sender)
     const sessions = this.tabState.getSessions(tabId)
 
@@ -127,11 +136,18 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId } = p
 
-      sessions.get(requestId)?.stop()
+      const session = sessions.get(requestId)
+      if (!session) return
 
-      if (p.remove) {
-        removed = true
+      if (p.intent === 'remove') {
+        needsAdjustAmount = true
+        session.stop()
         sessions.delete(requestId)
+      } else if (p.intent === 'disable') {
+        needsAdjustAmount = true
+        session.disable()
+      } else {
+        session.stop()
       }
     })
 
@@ -140,7 +156,7 @@ export class MonetizationService {
 
     const rate = computeRate(rateOfPay, sessions.size)
 
-    if (removed) {
+    if (needsAdjustAmount) {
       const sessionsArr = Array.from(sessions.values())
       await Promise.all(
         sessionsArr.map((session) => session.adjustAmount(rate))
@@ -354,3 +370,24 @@ export class MonetizationService {
     }
   }
 }
+
+/*
+- ON PAGE LOAD:
+  * we get all monetization links that are not disabled and we send the `START_MONETIZATION` event
+
+- A NEW MONETIZATION LINK GETS ADDED
+  * we send the `START_MONETIZATION` event for the new monetization link
+
+- A MONETIZATION LINK GETS REMOVED
+  * we send the `STOP_MONETIZATION` event for the removed monetization link with the `intent` set to `remove` and we readjust the amount
+
+- A MONETIZATION LINK GETS DISABLED
+  * we send the `STOP_MONETIZATION` event for the disabled monetization link with the `intent` set to `disable` and we readjust the amount
+
+- A MONETIZATION LINK GETS ENABLED
+  * we send the `START_MONETIZATION` event and replace the previous session with a new one with the same requestId and we readjust the amount
+  !! we send the `RESUME_MONETIZATION` event for the enabled tag
+
+- THE HREF ATTRIBUTE IS UPDATED
+  * we send the `STOP_MONETIZATION` event for the updated monetization link with the `intent` set to `remove` and we send the `START_MONETIZATION` event for the new monetization link
+**/

@@ -125,10 +125,6 @@ export class PaymentSession {
     this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
-  get disabled() {
-    return this.isDisabled
-  }
-
   disable() {
     this.isDisabled = true
     this.stop()
@@ -150,7 +146,7 @@ export class PaymentSession {
   }
 
   async start() {
-    if (this.active) return
+    if (this.active || this.isDisabled) return
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -315,6 +311,8 @@ export class PaymentSession {
   }
 
   async pay(amount: number) {
+    if (this.isDisabled) return
+
     const incomingPayment = await this.createIncomingPayment().catch(
       (error) => {
         if (isKeyRevokedError(error)) {

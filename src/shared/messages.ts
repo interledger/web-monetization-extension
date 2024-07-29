@@ -94,7 +94,7 @@ export interface StartMonetizationPayload {
 
 export interface StopMonetizationPayload {
   requestId: string
-  remove?: boolean
+  intent: 'remove' | 'disable' | 'visibility' | 'idle'
 }
 
 export interface ResumeMonetizationPayload {
