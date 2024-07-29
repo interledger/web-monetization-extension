@@ -66,11 +66,6 @@ export class MonetizationService {
     const sessionsCount = sessions.size + payload.length
     const rate = computeRate(rateOfPay, sessionsCount)
 
-    // Adjust rate of payment for existing sessions
-    sessions.forEach((session) => {
-      session.adjustSessionAmount(rate)
-    })
-
     // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
@@ -89,11 +84,19 @@ export class MonetizationService {
       )
 
       sessions.set(requestId, session)
-
-      if (enabled && this.canTryPayment(connected, state)) {
-        void session.start()
-      }
     })
+
+    const sessionsArr = Array.from(sessions.values())
+
+    // Since we probe (through quoting) the debitAmount we have to await the
+    // `adjustAmount` method.
+    await Promise.all(sessionsArr.map((session) => session.adjustAmount()))
+
+    if (enabled && this.canTryPayment(connected, state)) {
+      sessionsArr.forEach((session) => {
+        void session.start()
+      })
+    }
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
@@ -112,6 +115,7 @@ export class MonetizationService {
     payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
+    let removed = false
     const tabId = getTabId(sender)
     const sessions = this.tabState.getSessions(tabId)
 
@@ -126,6 +130,7 @@ export class MonetizationService {
       sessions.get(requestId)?.stop()
 
       if (p.remove) {
+        removed = true
         sessions.delete(requestId)
       }
     })
@@ -134,10 +139,13 @@ export class MonetizationService {
     if (!rateOfPay) return
 
     const rate = computeRate(rateOfPay, sessions.size)
-    // Adjust rate of payment for existing sessions
-    sessions.forEach((session) => {
-      session.adjustSessionAmount(rate)
-    })
+
+    if (removed) {
+      const sessionsArr = Array.from(sessions.values())
+      await Promise.all(
+        sessionsArr.map((session) => session.adjustAmount(rate))
+      )
+    }
   }
 
   async resumePaymentSession(
@@ -272,7 +280,7 @@ export class MonetizationService {
     this.events.on('storage.rate_of_pay_update', ({ rate }) => {
       this.logger.debug("Received event='storage.rate_of_pay_update'")
       for (const session of this.tabState.getAllSessions()) {
-        session.adjustSessionAmount(rate)
+        session.adjustAmount(rate)
       }
     })
   }
