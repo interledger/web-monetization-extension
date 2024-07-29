@@ -28,3 +28,8 @@ loglevel
 openapi
 apidevtools
 tailwindcss
+
+# user names
+raducristianpopa
+sidvishnoi
+dianafulga

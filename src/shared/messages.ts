@@ -206,6 +206,7 @@ export class MessageManager<TMessages> {
 // #region BG ↦ Popup
 export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>
+  SET_IS_MONETIZED: boolean
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] }
 }
 
