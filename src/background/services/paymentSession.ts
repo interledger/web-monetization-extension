@@ -46,20 +46,12 @@ export class PaymentSession {
 
   async adjustAmount(rate?: AmountValue): Promise<void> {
     if (rate) this.rate = rate
-    // rateOfPay: $0.6/h (asset scale 9 sender)
-    //  receivers at scale 9, 2
-    // amount/s = rateOfPay / 3600 = 83333 (scale 9)
-    // console.log({rate: this.rate}) // 30_00_00_000
 
     // The amount that needs to be sent every second.
     // In senders asset scale already.
     const amountToSend = BigInt(this.rate) / 3600n
     const senderAssetScale = this.sender.assetScale
     const receiverAssetScale = this.receiver.assetScale
-
-    // 0.600000000 / 3600 = 0.000166
-    // 166667
-    // MIN_SEND = 1
 
     // This all will eventually get replaced by OpenPayments response update
     // that includes a min rate that we can directly use.
@@ -363,5 +355,5 @@ export class PaymentSession {
   private setAmount(amount: bigint): void {
     this.amount = amount.toString()
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
-      }
+  }
 }

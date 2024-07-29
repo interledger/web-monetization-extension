@@ -66,11 +66,6 @@ export class MonetizationService {
     const sessionsCount = sessions.size + payload.length
     const rate = computeRate(rateOfPay, sessionsCount)
 
-    // // Adjust rate of payment for existing sessions
-    // sessions.forEach((session) => {
-    //   session.adjustSessionAmount(rate)
-    // })
-
     // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
@@ -146,10 +141,9 @@ export class MonetizationService {
     const rate = computeRate(rateOfPay, sessions.size)
 
     if (removed) {
+      const sessionsArr = Array.from(sessions.values())
       await Promise.all(
-        Array.from(sessions.values()).map((session) =>
-          session.adjustAmount(rate)
-        )
+        sessionsArr.map((session) => session.adjustAmount(rate))
       )
     }
   }
