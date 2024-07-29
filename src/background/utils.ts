@@ -104,29 +104,24 @@ export function computeBalance(
   return grantSpentAmount ? total - BigInt(grantSpentAmount) : total
 }
 
-/**
- * USD Scale 9 (connected)
- * EUR Scale 2 (page)
- *
- * MIN_SEND_AMOUNT = 0.01 EUR * 10 ** (9 (Scale) - 2 (scale))
- */
+// USD Scale 9 (connected wallet)
+// EUR Scale 2 (page)
+// MIN_SEND_AMOUNT = 0.01 EUR * 10 ** (9 (Scale) - 2 (scale))
 export function* getNextSendableAmount(
   senderAssetScale: number,
   receiverAssetScale: number,
-  amount?: bigint
+  amount: bigint = 0n
 ): IterableIterator<AmountValue> {
   const EXPONENTIAL_INCREASE = 0.5
 
   const scaleDiff =
     senderAssetScale < receiverAssetScale
       ? 0
-      : Math.abs(senderAssetScale - receiverAssetScale)
+      : senderAssetScale - receiverAssetScale
   const base = 1n * 10n ** BigInt(scaleDiff)
 
   if (amount) {
     yield amount.toString()
-  } else {
-    amount = 0n
   }
 
   let exp = 0
