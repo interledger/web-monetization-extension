@@ -10,16 +10,17 @@ import { bigIntMax, convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import {
   isKeyRevokedError,
+  isNonPositiveAmountError,
   isOutOfBalanceError,
   isTokenExpiredError
 } from './openPayments'
+import { getNextSendableAmount } from '@/background/utils'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { MonetizationEventDetails } from '@/shared/messages'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
-const EXPONENTIAL_INCREASE = .5
 
 export class PaymentSession {
   private active: boolean = false
@@ -38,8 +39,7 @@ export class PaymentSession {
     private events: EventsService,
     private tabState: TabState,
     private url: string
-  ) {
-  }
+  ) {}
 
   async adjustAmount(rate?: string): Promise<void> {
     if (rate) this.rate = rate
@@ -50,31 +50,32 @@ export class PaymentSession {
     const senderAssetScale = this.sender.assetScale
     const receiverAssetScale = this.receiver.assetScale
 
+    // QUESTION(@raducristianpopa): why code and not scale here?
     if (this.sender.assetCode !== this.receiver.assetCode) {
-      let probing = true
-      let tries = 0
-      let amount = BigInt(bigIntMax(amountToSend.toString(), MIN_SEND_AMOUNT.toString()))
-
-      while (probing) {
-        await this.setIncomingPaymentUrl()
-        await this.openPaymentsService
-          .probeDebitAmount(
-            amount.toString(),
+      await this.setIncomingPaymentUrl()
+      // This will eventually get replaced by OpenPayments response returning a min rate that we can directly use
+      for (const amount of getNextSendableAmount(
+        this.receiver.assetScale,
+        this.sender.assetScale,
+        bigIntMax(amountToSend, MIN_SEND_AMOUNT)
+      )) {
+        try {
+          await this.openPaymentsService.probeDebitAmount(
+            amount,
             this.incomingPaymentUrl,
             this.sender
           )
-          .then(() => {
-            probing = false
-            this.setAmount(BigInt(amount))
-          })
-          .catch(async (e) => {
-            if (isTokenExpiredError(e)) {
-              await this.openPaymentsService.rotateToken()
-            } else {
-              tries += EXPONENTIAL_INCREASE
-              amount = BigInt(Math.floor(Math.exp(tries)))
-            }
-          })
+          this.setAmount(BigInt(amount))
+          return
+        } catch (e) {
+          if (isTokenExpiredError(e)) {
+            await this.openPaymentsService.rotateToken()
+          } else if (isNonPositiveAmountError(e)) {
+            continue
+          } else {
+            throw e
+          }
+        }
       }
     } else {
       if (amountToSend <= MIN_SEND_AMOUNT) {
