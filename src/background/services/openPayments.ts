@@ -771,3 +771,8 @@ export const isOutOfBalanceError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false
   return error.status === 403 && error.description === 'unauthorized'
 }
+
+export const isInvalidReceiverError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 400 && error.description === 'invalid receiver'
+}

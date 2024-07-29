@@ -9,6 +9,7 @@ import { sendMonetizationEvent } from '../lib/messages'
 import { bigIntMax, convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import {
+  isInvalidReceiverError,
   isKeyRevokedError,
   isNonPositiveAmountError,
   isOutOfBalanceError,
@@ -26,6 +27,7 @@ const MIN_SEND_AMOUNT = 1n // 1 unit
 export class PaymentSession {
   private active: boolean = false
   private incomingPaymentUrl: string
+  private incomingPaymentExpiresAt: number
   private amount: string
   private intervalInMs: number
 
@@ -182,14 +184,15 @@ export class PaymentSession {
           if (switched === null) {
             this.events.emit('open_payments.out_of_funds')
           }
-        } else if (e instanceof OpenPaymentsClientError) {
-          // We need better error handling.
-          if (e.status === 400) {
-            await this.setIncomingPaymentUrl()
-            continue
+        } else if (isInvalidReceiverError(e)) {
+          if (Date.now() >= this.incomingPaymentExpiresAt) {
+            await this.setIncomingPaymentUrl(true)
           }
-
+          continue
+        } else if (e instanceof OpenPaymentsClientError) {
           throw new Error(e.message)
+        } else {
+          throw e
         }
       } finally {
         if (outgoingPayment) {
@@ -233,8 +236,8 @@ export class PaymentSession {
     }
   }
 
-  private async setIncomingPaymentUrl() {
-    if (this.incomingPaymentUrl) return
+  private async setIncomingPaymentUrl(reset?: boolean) {
+    if (this.incomingPaymentUrl && !reset) return
 
     try {
       const incomingPayment = await this.createIncomingPayment()
@@ -279,12 +282,18 @@ export class PaymentSession {
         },
         {
           walletAddress: this.receiver.id,
-          expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
+          expiresAt: new Date(Date.now() + 1000 * 60 * 10).toISOString(),
           metadata: {
             source: 'Web Monetization'
           }
         }
       )
+
+    if (incomingPayment.expiresAt) {
+      this.incomingPaymentExpiresAt = new Date(
+        incomingPayment.expiresAt
+      ).valueOf()
+    }
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
     await this.openPaymentsService.client!.grant.cancel({
@@ -354,5 +363,5 @@ export class PaymentSession {
   private setAmount(amount: bigint): void {
     this.amount = amount.toString()
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
-  }
+      }
 }
