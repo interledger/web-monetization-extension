@@ -8,6 +8,7 @@ import {
 export class SendToPopup {
   private isConnected = false
   private port: Runtime.Port
+  private queue = new Map<keyof BackgroundToPopupMessagesMap, any>()
 
   constructor(private browser: Browser) {}
 
@@ -19,6 +20,10 @@ export class SendToPopup {
       }
       this.port = port
       this.isConnected = true
+      for (const [type, data] of this.queue) {
+        this.send(type, data)
+        this.queue.delete(type)
+      }
       port.onDisconnect.addListener(() => {
         this.isConnected = false
       })
@@ -34,6 +39,7 @@ export class SendToPopup {
     data: BackgroundToPopupMessagesMap[T]
   ) {
     if (!this.isConnected) {
+      this.queue.set(type, data)
       return
     }
     const message = { type, data } as BackgroundToPopupMessage

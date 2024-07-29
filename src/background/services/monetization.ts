@@ -24,10 +24,6 @@ import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { PopupStore, Storage } from '@/shared/types'
 
 export class MonetizationService {
-  private sessions: {
-    [tabId: number]: Map<string, PaymentSession>
-  }
-
   constructor(
     private logger: Logger,
     private t: Translation,
@@ -37,7 +33,6 @@ export class MonetizationService {
     private events: EventsService,
     private tabState: TabState
   ) {
-    this.sessions = {}
     this.registerEventListeners()
   }
 
@@ -66,12 +61,8 @@ export class MonetizationService {
       return
     }
     const { tabId, frameId, url } = getSender(sender)
+    const sessions = this.tabState.getSessions(tabId)
 
-    if (this.sessions[tabId] == null) {
-      this.sessions[tabId] = new Map()
-    }
-
-    const sessions = this.sessions[tabId]
     const sessionsCount = sessions.size + payload.length
     const rate = computeRate(rateOfPay, sessionsCount)
 
@@ -106,9 +97,8 @@ export class MonetizationService {
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
-    const sessions = this.sessions[tabId]
-
-    if (!sessions?.size) {
+    const sessions = this.tabState.getSessions(tabId)
+    if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -123,9 +113,9 @@ export class MonetizationService {
     sender: Runtime.MessageSender
   ) {
     const tabId = getTabId(sender)
-    const sessions = this.sessions[tabId]
+    const sessions = this.tabState.getSessions(tabId)
 
-    if (!sessions) {
+    if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -155,9 +145,9 @@ export class MonetizationService {
     sender: Runtime.MessageSender
   ) {
     const tabId = getTabId(sender)
-    const sessions = this.sessions[tabId]
+    const sessions = this.tabState.getSessions(tabId)
 
-    if (!sessions?.size) {
+    if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -177,8 +167,8 @@ export class MonetizationService {
   }
 
   async resumePaymentSessionsByTabId(tabId: number) {
-    const sessions = this.sessions[tabId]
-    if (!sessions?.size) {
+    const sessions = this.tabState.getSessions(tabId)
+    if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -209,9 +199,9 @@ export class MonetizationService {
 
   clearTabSessions(tabId: number) {
     this.logger.debug(`Attempting to clear sessions for tab ${tabId}.`)
-    const sessions = this.sessions[tabId]
+    const sessions = this.tabState.getSessions(tabId)
 
-    if (!sessions) {
+    if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`)
       return
     }
@@ -220,7 +210,6 @@ export class MonetizationService {
       session.stop()
     }
 
-    delete this.sessions[tabId]
     this.tabState.clearByTabId(tabId)
 
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
@@ -231,10 +220,8 @@ export class MonetizationService {
     if (!tab || !tab.id) {
       throw new Error('Could not find active tab.')
     }
-
-    const sessions = this.sessions[tab.id]
-
-    if (!sessions?.size) {
+    const sessions = this.tabState.getSessions(tab.id)
+    if (!sessions.size) {
       throw new Error('This website is not monetized.')
     }
 
@@ -284,13 +271,9 @@ export class MonetizationService {
   private onRateOfPayUpdate() {
     this.events.on('storage.rate_of_pay_update', ({ rate }) => {
       this.logger.debug("Received event='storage.rate_of_pay_update'")
-      Object.keys(this.sessions).forEach((tabId) => {
-        const tabSessions = this.sessions[tabId as unknown as number]
-        this.logger.debug(`Re-evaluating sessions amount for tab=${tabId}`)
-        for (const session of tabSessions.values()) {
-          session.adjustSessionAmount(rate)
-        }
-      })
+      for (const session of this.tabState.getAllSessions()) {
+        session.adjustSessionAmount(rate)
+      }
     })
   }
 
@@ -313,10 +296,8 @@ export class MonetizationService {
   }
 
   private stopAllSessions() {
-    for (const sessions of Object.values(this.sessions)) {
-      for (const session of sessions.values()) {
-        session.stop()
-      }
+    for (const session of this.tabState.getAllSessions()) {
+      session.stop()
     }
     this.logger.debug(`All payment sessions stopped.`)
   }
@@ -351,8 +332,7 @@ export class MonetizationService {
         // noop
       }
     }
-
-    const isSiteMonetized = tab?.id ? this.sessions[tab.id]?.size > 0 : false
+    const isSiteMonetized = this.tabState.getSessions(tab.id!).size > 0
 
     return {
       ...dataFromStorage,
