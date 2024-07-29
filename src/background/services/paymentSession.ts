@@ -53,10 +53,11 @@ export class PaymentSession {
     // QUESTION(@raducristianpopa): why code and not scale here?
     if (this.sender.assetCode !== this.receiver.assetCode) {
       await this.setIncomingPaymentUrl()
-      // This will eventually get replaced by OpenPayments response returning a min rate that we can directly use
+      // This will eventually get replaced by OpenPayments response update that
+      // includes a min rate that we can directly use
       for (const amount of getNextSendableAmount(
-        this.receiver.assetScale,
-        this.sender.assetScale,
+        senderAssetScale,
+        receiverAssetScale,
         bigIntMax(amountToSend, MIN_SEND_AMOUNT)
       )) {
         try {
