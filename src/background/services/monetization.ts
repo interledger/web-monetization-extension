@@ -120,6 +120,7 @@ export class MonetizationService {
     payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
+    let removed = false
     const tabId = getTabId(sender)
     const sessions = this.tabState.getSessions(tabId)
 
@@ -134,6 +135,7 @@ export class MonetizationService {
       sessions.get(requestId)?.stop()
 
       if (p.remove) {
+        removed = true
         sessions.delete(requestId)
       }
     })
@@ -142,14 +144,14 @@ export class MonetizationService {
     if (!rateOfPay) return
 
     const rate = computeRate(rateOfPay, sessions.size)
-    // Adjust rate of payment for existing sessions
 
-    // TODO: Only adjust the amount if a wallet address gets removed.
-    // At the moment whenever we switch tabs, the `adjustAmount` method
-    // is called, making at least 2 unnecessary probe requests.
-    sessions.forEach((session) => {
-      session.adjustAmount(rate)
-    })
+    if (removed) {
+      await Promise.all(
+        Array.from(sessions.values()).map((session) =>
+          session.adjustAmount(rate)
+        )
+      )
+    }
   }
 
   async resumePaymentSession(

@@ -347,11 +347,7 @@ export class OpenPaymentsService {
       'recurringGrant'
     ])
 
-    const grantDetails = await this.completeGrant(
-      amount,
-      walletAddress!,
-      recurring
-    )
+    await this.completeGrant(amount, walletAddress!, recurring)
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
@@ -360,7 +356,6 @@ export class OpenPaymentsService {
       await this.cancelGrant(grants.recurringGrant.continue)
     }
 
-    this.grant = grantDetails
     await this.storage.setState({ out_of_funds: false })
   }
 
@@ -444,6 +439,7 @@ export class OpenPaymentsService {
       this.isGrantUsable.oneTime = true
     }
 
+    this.grant = grantDetails
     return grantDetails
   }
 
