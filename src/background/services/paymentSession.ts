@@ -22,6 +22,7 @@ const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
   private active: boolean = false
+  private isDisabled: boolean = false
   private incomingPaymentUrl: string
   private amount: string
   private intervalInMs: number
@@ -39,6 +40,22 @@ export class PaymentSession {
     private url: string
   ) {
     this.adjustSessionAmount()
+  }
+
+  get disabled() {
+    return this.isDisabled
+  }
+
+  disable() {
+    this.isDisabled = true
+    this.stop()
+  }
+
+  enable() {
+    this.isDisabled = false
+    if (this.active) {
+      this.resume()
+    }
   }
 
   // Only tested for same-currency transactions (USD mostly).

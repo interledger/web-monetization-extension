@@ -123,10 +123,13 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId } = p
 
-      sessions.get(requestId)?.stop()
-
-      if (p.remove) {
-        sessions.delete(requestId)
+      const session = sessions.get(requestId)
+      if (session){
+        session.stop()
+        session.disable()
+        if (p.remove) {
+          sessions.delete(requestId)
+        }
       }
     })
 

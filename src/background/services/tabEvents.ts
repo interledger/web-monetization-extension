@@ -81,6 +81,7 @@ export class TabEvents {
     ) {
       this.monetizationService.clearTabSessions(tabId)
     }
+
   }
 
   private updateVisualIndicators = async (
