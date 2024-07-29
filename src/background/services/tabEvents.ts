@@ -121,15 +121,13 @@ export class TabEvents {
     tabId,
     enabled,
     state,
-    isTabMonetized
+    isTabMonetized = tabId ? this.tabState.getSessions(tabId).size > 0 : false
   }: {
     enabled: Storage['enabled']
     state: Storage['state']
     tabId?: TabId
     isTabMonetized?: boolean
   }) {
-    isTabMonetized ??= tabId ? this.tabState.getSessions(tabId).size > 0 : false
-
     let title = this.t('appName')
     let iconData = ICONS.default
     if (!isOkState(state)) {
