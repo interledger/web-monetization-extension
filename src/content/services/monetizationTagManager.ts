@@ -53,7 +53,7 @@ export class MonetizationTagManager extends EventEmitter {
     document.addEventListener('visibilitychange', async () => {
       document.visibilityState === 'visible'
         ? await this.resumeAllMonetization()
-        : this.stopAllMonetization('visibility')
+        : this.stopAllMonetization()
     })
 
     this.isTopFrame = window === window.top
@@ -103,7 +103,7 @@ export class MonetizationTagManager extends EventEmitter {
     }
   }
 
-  private stopAllMonetization(intent: StopMonetizationPayload['intent']) {
+  private stopAllMonetization(intent?: StopMonetizationPayload['intent']) {
     const stopMonetizationTags: StopMonetizationPayload[] = []
     this.monetizationTags.forEach((value) => {
       if (value.requestId && value.walletAddress) {
@@ -571,7 +571,7 @@ export class MonetizationTagManager extends EventEmitter {
       await this.resumeAllMonetization()
     } else {
       // TODO: https://github.com/interledger/web-monetization-extension/issues/452
-      this.stopAllMonetization('visibility')
+      this.stopAllMonetization()
     }
   }
 }

@@ -25,6 +25,7 @@ const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
+  private rate: string
   private active: boolean = false
   private isDisabled: boolean = false
   private incomingPaymentUrl: string
@@ -38,15 +39,14 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
-    private rate: string,
     private openPaymentsService: OpenPaymentsService,
     private events: EventsService,
     private tabState: TabState,
     private url: string
   ) {}
 
-  async adjustAmount(rate?: AmountValue): Promise<void> {
-    if (rate) this.rate = rate
+  async adjustAmount(rate: AmountValue): Promise<void> {
+    this.rate = rate
 
     // The amount that needs to be sent every second.
     // In senders asset scale already.
@@ -130,11 +130,13 @@ export class PaymentSession {
     this.stop()
   }
 
+  /**
+   * there's no enable() as we replace the sessions with new ones when
+   * resume/start or removal of disabled attribute at the moment.
+   * @deprecated
+   */
   enable() {
-    this.isDisabled = false
-    if (this.active) {
-      this.resume()
-    }
+    throw new Error('Method not implemented.')
   }
 
   stop() {

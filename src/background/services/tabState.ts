@@ -86,6 +86,10 @@ export class TabState {
     return [...this.sessions.values()].flatMap((s) => [...s.values()])
   }
 
+  getAllTabs(): TabId[] {
+    return [...this.sessions.keys()]
+  }
+
   clearByTabId(tabId: TabId) {
     this.state.delete(tabId)
     this.sessions.delete(tabId)

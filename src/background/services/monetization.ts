@@ -40,6 +40,9 @@ export class MonetizationService {
     payload: StartMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
+    if (!payload.length) {
+      throw new Error('Unexpected: payload is empty')
+    }
     const {
       state,
       enabled,
@@ -63,20 +66,12 @@ export class MonetizationService {
     const { tabId, frameId, url } = getSender(sender)
     const sessions = this.tabState.getSessions(tabId)
 
-    // 3 monetization links
-    // one of them gets the href attr updated
-
-    // sessions.size (3) + 1 = 4
-
-    const sessionsCount = new Set([
-      ...sessions.keys(),
-      ...payload.map((p) => p.requestId)
-    ]).size
-    const rate = computeRate(rateOfPay, sessionsCount)
-
     // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
+
+      sessions.get(requestId)?.stop()
+      sessions.delete(requestId)
 
       const session = new PaymentSession(
         receiver,
@@ -84,7 +79,6 @@ export class MonetizationService {
         requestId,
         tabId,
         frameId,
-        rate,
         this.openPaymentsService,
         this.events,
         this.tabState,
@@ -98,11 +92,11 @@ export class MonetizationService {
 
     // Since we probe (through quoting) the debitAmount we have to await the
     // `adjustAmount` method.
-    await Promise.all(sessionsArr.map((session) => session.adjustAmount()))
+    const rate = computeRate(rateOfPay, sessions.size)
+    await Promise.all(sessionsArr.map((session) => session.adjustAmount(rate)))
 
     if (enabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
-        session.enable()
         void session.start()
       })
     }
@@ -154,9 +148,8 @@ export class MonetizationService {
     const { rateOfPay } = await this.storage.get(['rateOfPay'])
     if (!rateOfPay) return
 
-    const rate = computeRate(rateOfPay, sessions.size)
-
     if (needsAdjustAmount) {
+      const rate = computeRate(rateOfPay, sessions.size)
       const sessionsArr = Array.from(sessions.values())
       await Promise.all(
         sessionsArr.map((session) => session.adjustAmount(rate))
@@ -293,10 +286,25 @@ export class MonetizationService {
   }
 
   private onRateOfPayUpdate() {
-    this.events.on('storage.rate_of_pay_update', ({ rate }) => {
+    this.events.on('storage.rate_of_pay_update', async ({ rate }) => {
       this.logger.debug("Received event='storage.rate_of_pay_update'")
-      for (const session of this.tabState.getAllSessions()) {
-        session.adjustAmount(rate)
+      const tabIds = this.tabState.getAllTabs()
+
+      // Move the current active tab to the front of the array
+      const currentTab = await getCurrentActiveTab(this.browser)
+      if (currentTab?.id) {
+        const idx = tabIds.indexOf(currentTab.id)
+        const tmp = tabIds[0]
+        tabIds[0] = currentTab.id
+        tabIds[idx] = tmp
+      }
+
+      for (const tabId of tabIds) {
+        const sessions = [...this.tabState.getSessions(tabId).values()]
+        const computedRate = computeRate(rate, sessions.length)
+        await Promise.all(
+          sessions.map((session) => session.adjustAmount(computedRate))
+        )
       }
     })
   }
