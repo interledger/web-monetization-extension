@@ -1,40 +1,78 @@
 import browser from 'webextension-polyfill'
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill'
-import { MonetizationService } from './monetization'
-import { StorageService } from './storage'
 import { IsTabMonetizedPayload } from '@/shared/messages'
 import { getTabId } from '../utils'
-import type { Translation } from '@/shared/helpers'
+import { isOkState, type Translation } from '@/shared/helpers'
+import type {
+  MonetizationService,
+  SendToPopup,
+  StorageService,
+  TabState
+} from '.'
+import type { Storage, TabId } from '@/shared/types'
 
 const runtime = browser.runtime
 const ICONS = {
   default: {
-    34: runtime.getURL('assets/icons/icon-34.png'),
-    128: runtime.getURL('assets/icons/icon-128.png')
+    32: runtime.getURL('assets/icons/32x32/default.png'),
+    48: runtime.getURL('assets/icons/48x48/default.png'),
+    128: runtime.getURL('assets/icons/128x128/default.png')
   },
-  active: {
-    34: runtime.getURL('assets/icons/icon-active-34.png'),
-    128: runtime.getURL('assets/icons/icon-active-128.png')
+  default_gray: {
+    32: runtime.getURL('assets/icons/32x32/default-gray.png'),
+    48: runtime.getURL('assets/icons/48x48/default-gray.png'),
+    128: runtime.getURL('assets/icons/128x128/default-gray.png')
   },
-  inactive: {
-    34: runtime.getURL('assets/icons/icon-inactive-34.png'),
-    128: runtime.getURL('assets/icons/icon-inactive-128.png')
+  enabled_hasLinks: {
+    32: runtime.getURL('assets/icons/32x32/enabled-has-links.png'),
+    48: runtime.getURL('assets/icons/48x48/enabled-has-links.png'),
+    128: runtime.getURL('assets/icons/128x128/enabled-has-links.png')
   },
-  warning: {
-    34: runtime.getURL('assets/icons/icon-warning-34.png'),
-    128: runtime.getURL('assets/icons/icon-warning-128.png')
+  enabled_noLinks: {
+    32: runtime.getURL('assets/icons/32x32/enabled-no-links.png'),
+    48: runtime.getURL('assets/icons/48x48/enabled-no-links.png'),
+    128: runtime.getURL('assets/icons/128x128/enabled-no-links.png')
+  },
+  enabled_warn: {
+    32: runtime.getURL('assets/icons/32x32/enabled-warn.png'),
+    48: runtime.getURL('assets/icons/48x48/enabled-warn.png'),
+    128: runtime.getURL('assets/icons/128x128/enabled-warn.png')
+  },
+  disabled_hasLinks: {
+    32: runtime.getURL('assets/icons/32x32/disabled-has-links.png'),
+    48: runtime.getURL('assets/icons/48x48/disabled-has-links.png'),
+    128: runtime.getURL('assets/icons/128x128/disabled-has-links.png')
+  },
+  disabled_noLinks: {
+    32: runtime.getURL('assets/icons/32x32/disabled-no-links.png'),
+    48: runtime.getURL('assets/icons/48x48/disabled-no-links.png'),
+    128: runtime.getURL('assets/icons/128x128/disabled-no-links.png')
+  },
+  disabled_warn: {
+    32: runtime.getURL('assets/icons/32x32/disabled-warn.png'),
+    48: runtime.getURL('assets/icons/48x48/disabled-warn.png'),
+    128: runtime.getURL('assets/icons/128x128/disabled-warn.png')
   }
 }
+
+type CallbackTabOnActivated = Parameters<
+  Browser['tabs']['onActivated']['addListener']
+>[0]
+type CallbackTabOnCreated = Parameters<
+  Browser['tabs']['onCreated']['addListener']
+>[0]
 
 export class TabEvents {
   constructor(
     private monetizationService: MonetizationService,
     private storage: StorageService,
+    private tabState: TabState,
+    private sendToPopup: SendToPopup,
     private t: Translation,
     private browser: Browser
   ) {}
   clearTabSessions = (
-    tabId: number,
+    tabId: TabId,
     changeInfo: Tabs.OnUpdatedChangeInfoType | Tabs.OnRemovedRemoveInfoType
   ) => {
     if (
@@ -45,39 +83,77 @@ export class TabEvents {
     }
   }
 
-  private changeIcon = async () => {
-    const { enabled } = await this.storage.get(['enabled'])
-    const iconData = enabled ? ICONS.default : ICONS.warning
-    await this.browser.action.setIcon({ path: iconData })
+  private updateVisualIndicators = async (
+    tabId?: TabId,
+    isTabMonetized?: boolean
+  ) => {
+    const { enabled, state } = await this.storage.get(['enabled', 'state'])
+
+    const { path, title, isMonetized } = this.getIconAndTooltip({
+      enabled,
+      state,
+      tabId,
+      isTabMonetized
+    })
+
+    this.sendToPopup.send('SET_IS_MONETIZED', isMonetized)
+    await this.browser.action.setIcon({ path, tabId })
+    await this.browser.action.setTitle({ title, tabId })
   }
 
-  onActivatedTab = async () => {
-    await this.changeIcon()
+  onActivatedTab: CallbackTabOnActivated = async (info) => {
+    await this.updateVisualIndicators(info.tabId)
   }
 
-  onCreatedTab = async () => {
-    await this.changeIcon()
+  onCreatedTab: CallbackTabOnCreated = async (tab) => {
+    await this.updateVisualIndicators(tab.id)
   }
 
   onUpdatedTab = async (
     payload?: IsTabMonetizedPayload | null,
     sender?: Runtime.MessageSender
   ) => {
-    const { enabled } = await this.storage.get(['enabled'])
+    const tabId = sender && getTabId(sender)
+    await this.updateVisualIndicators(tabId, payload?.value)
+  }
 
+  private getIconAndTooltip({
+    tabId,
+    enabled,
+    state,
+    isTabMonetized = tabId ? this.tabState.getSessions(tabId).size > 0 : false
+  }: {
+    enabled: Storage['enabled']
+    state: Storage['state']
+    tabId?: TabId
+    isTabMonetized?: boolean
+  }) {
     let title = this.t('appName')
-    let iconData = enabled ? ICONS.default : ICONS.warning
-    if (enabled && payload) {
-      const { value: isTabMonetized } = payload
-      iconData = isTabMonetized ? ICONS.active : ICONS.inactive
+    let iconData = ICONS.default
+    if (!isOkState(state)) {
+      iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
+      const tabStateText = this.t('icon_state_actionRequired')
+      title = `${title} - ${tabStateText}`
+    } else {
+      if (enabled) {
+        iconData = isTabMonetized
+          ? ICONS.enabled_hasLinks
+          : ICONS.enabled_noLinks
+      } else {
+        iconData = isTabMonetized
+          ? ICONS.disabled_hasLinks
+          : ICONS.disabled_noLinks
+      }
       const tabStateText = isTabMonetized
         ? this.t('icon_state_monetizationActive')
         : this.t('icon_state_monetizationInactive')
       title = `${title} - ${tabStateText}`
     }
-    const tabId = sender && getTabId(sender)
 
-    await this.browser.action.setIcon({ path: iconData, tabId })
-    await this.browser.action.setTitle({ title, tabId })
+    return {
+      path: iconData,
+      isMonetized: isTabMonetized,
+      title
+    }
   }
 }

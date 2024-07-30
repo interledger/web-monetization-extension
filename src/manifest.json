@@ -5,8 +5,9 @@
   "manifest_version": 3,
   "description": "__MSG_appDescription__",
   "icons": {
-    "34": "assets/icons/icon-34.png",
-    "128": "assets/icons/icon-128.png"
+    "32": "assets/icons/32x32/default.png",
+    "48": "assets/icons/48x48/default.png",
+    "128": "assets/icons/128x128/default.png"
   },
   "default_locale": "en",
   "content_scripts": [

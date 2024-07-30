@@ -1,5 +1,10 @@
 // cSpell:ignore keyid
-import type { AccessToken, GrantDetails, WalletAmount } from 'shared/types'
+import type {
+  AccessToken,
+  AmountValue,
+  GrantDetails,
+  WalletAmount
+} from 'shared/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
@@ -342,11 +347,7 @@ export class OpenPaymentsService {
       'recurringGrant'
     ])
 
-    const grantDetails = await this.completeGrant(
-      amount,
-      walletAddress!,
-      recurring
-    )
+    await this.completeGrant(amount, walletAddress!, recurring)
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
@@ -355,7 +356,6 @@ export class OpenPaymentsService {
       await this.cancelGrant(grants.recurringGrant.continue)
     }
 
-    this.grant = grantDetails
     await this.storage.setState({ out_of_funds: false })
   }
 
@@ -439,6 +439,7 @@ export class OpenPaymentsService {
       this.isGrantUsable.oneTime = true
     }
 
+    this.grant = grantDetails
     return grantDetails
   }
 
@@ -454,6 +455,10 @@ export class OpenPaymentsService {
       {
         access_token: {
           access: [
+            {
+              type: 'quote',
+              actions: ['create']
+            },
             {
               type: 'outgoing-payment',
               actions: ['create'],
@@ -630,6 +635,29 @@ export class OpenPaymentsService {
     return outgoingPayment
   }
 
+  async probeDebitAmount(
+    amount: AmountValue,
+    incomingPayment: IncomingPayment['id'],
+    sender: WalletAddress
+  ): Promise<void> {
+    await this.client!.quote.create(
+      {
+        url: sender.resourceServer,
+        accessToken: this.token.value
+      },
+      {
+        method: 'ilp',
+        receiver: incomingPayment,
+        walletAddress: sender.id,
+        debitAmount: {
+          value: amount,
+          assetCode: sender.assetCode,
+          assetScale: sender.assetScale
+        }
+      }
+    )
+  }
+
   async reconnectWallet() {
     try {
       await this.rotateToken()
@@ -730,7 +758,21 @@ export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
   return error.status === 403 && error.description === 'Inactive Token'
 }
 
+// happens during quoting only
+export const isNonPositiveAmountError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return (
+    error.status === 400 &&
+    error.description?.toLowerCase()?.includes('non-positive receive amount')
+  )
+}
+
 export const isOutOfBalanceError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false
   return error.status === 403 && error.description === 'unauthorized'
+}
+
+export const isInvalidReceiverError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false
+  return error.status === 400 && error.description === 'invalid receiver'
 }
