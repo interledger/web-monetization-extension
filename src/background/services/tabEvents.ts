@@ -83,24 +83,6 @@ export class TabEvents {
     }
   }
 
-  private updateVisualIndicators = async (
-    tabId?: TabId,
-    isTabMonetized?: boolean
-  ) => {
-    const { enabled, state } = await this.storage.get(['enabled', 'state'])
-
-    const { path, title, isMonetized } = this.getIconAndTooltip({
-      enabled,
-      state,
-      tabId,
-      isTabMonetized
-    })
-
-    this.sendToPopup.send('SET_IS_MONETIZED', isMonetized)
-    await this.browser.action.setIcon({ path, tabId })
-    await this.browser.action.setTitle({ title, tabId })
-  }
-
   onActivatedTab: CallbackTabOnActivated = async (info) => {
     await this.updateVisualIndicators(info.tabId)
   }
@@ -117,16 +99,40 @@ export class TabEvents {
     await this.updateVisualIndicators(tabId, payload?.value)
   }
 
+  private updateVisualIndicators = async (
+    tabId?: TabId,
+    isTabMonetized: boolean = tabId
+      ? this.tabState.isTabMonetized(tabId)
+      : false
+  ) => {
+    const { enabled, state } = await this.storage.get(['enabled', 'state'])
+    const { path, title, isMonetized } = this.getIconAndTooltip({
+      enabled,
+      state,
+      isTabMonetized
+    })
+    this.sendToPopup.send('SET_IS_MONETIZED', isMonetized)
+    await this.setIconAndTooltip(path, title, tabId)
+  }
+
+  // TODO: memoize this call
+  private setIconAndTooltip = async (
+    path: (typeof ICONS)[keyof typeof ICONS],
+    title: string,
+    tabId?: TabId
+  ) => {
+    await this.browser.action.setIcon({ path, tabId })
+    await this.browser.action.setTitle({ title, tabId })
+  }
+
   private getIconAndTooltip({
-    tabId,
     enabled,
     state,
-    isTabMonetized = tabId ? this.tabState.isTabMonetized(tabId) : false
+    isTabMonetized
   }: {
     enabled: Storage['enabled']
     state: Storage['state']
-    tabId?: TabId
-    isTabMonetized?: boolean
+    isTabMonetized: boolean
   }) {
     let title = this.t('appName')
     let iconData = ICONS.default
