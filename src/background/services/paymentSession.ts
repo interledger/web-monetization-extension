@@ -32,6 +32,7 @@ export class PaymentSession {
   private incomingPaymentExpiresAt: number
   private amount: string
   private intervalInMs: number
+  private probing: number
 
   constructor(
     private receiver: WalletAddress,
@@ -46,6 +47,8 @@ export class PaymentSession {
   ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
+    this.probing = Date.now()
+    const probing = this.probing
     this.rate = rate
 
     // The amount that needs to be sent every second.
@@ -63,6 +66,10 @@ export class PaymentSession {
         receiverAssetScale,
         bigIntMax(amountToSend, MIN_SEND_AMOUNT)
       )) {
+        if (this.probing !== probing) {
+          console.warn('!!!! Stopping previous probing')
+          break
+        }
         try {
           await this.openPaymentsService.probeDebitAmount(
             amount,
