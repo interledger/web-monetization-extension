@@ -67,8 +67,7 @@ export class PaymentSession {
         bigIntMax(amountToSend, MIN_SEND_AMOUNT)
       )) {
         if (this.probing !== probing) {
-          console.warn('!!!! Stopping previous probing')
-          break
+          throw new Error('Aborting')
         }
         try {
           await this.openPaymentsService.probeDebitAmount(
@@ -130,6 +129,7 @@ export class PaymentSession {
 
     this.amount = amountToSend.toString()
     this.intervalInMs = DEFAULT_INTERVAL_MS
+    this.probing = 0
   }
 
   get disabled() {
@@ -208,8 +208,6 @@ export class PaymentSession {
             await this.setIncomingPaymentUrl(true)
           }
           continue
-        } else if (e instanceof OpenPaymentsClientError) {
-          throw new Error(e.message)
         } else {
           throw e
         }
