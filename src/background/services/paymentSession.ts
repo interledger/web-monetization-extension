@@ -4,7 +4,6 @@ import {
   type OutgoingPayment,
   type WalletAddress
 } from '@interledger/open-payments/dist/types'
-import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { bigIntMax, convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
@@ -32,7 +31,7 @@ export class PaymentSession {
   private incomingPaymentExpiresAt: number
   private amount: string
   private intervalInMs: number
-  private probing: number
+  private probingId: number
 
   constructor(
     private receiver: WalletAddress,
@@ -47,8 +46,8 @@ export class PaymentSession {
   ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
-    this.probing = Date.now()
-    const probing = this.probing
+    this.probingId = Date.now()
+    const localProbingId = this.probingId
     this.rate = rate
 
     // The amount that needs to be sent every second.
@@ -66,8 +65,8 @@ export class PaymentSession {
         receiverAssetScale,
         bigIntMax(amountToSend, MIN_SEND_AMOUNT)
       )) {
-        if (this.probing !== probing) {
-          throw new DOMException('Aborting previous probing', 'AbortError')
+        if (this.probingId !== localProbingId) {
+          throw new DOMException('Aborting existing probing', 'AbortError')
         }
         try {
           await this.openPaymentsService.probeDebitAmount(
@@ -129,7 +128,6 @@ export class PaymentSession {
 
     this.amount = amountToSend.toString()
     this.intervalInMs = DEFAULT_INTERVAL_MS
-    this.probing = 0
   }
 
   get disabled() {
