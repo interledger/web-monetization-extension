@@ -281,14 +281,13 @@ export class MonetizationTagManager extends EventEmitter {
     wasDisabled = false,
     isDisabled = false
   ) {
-    const { requestId } = this.getTagDetails(tag, 'onChangedWalletAddressUrl')
     let stopMonetizationTag = null
 
     if (!wasDisabled && !isDisabled) {
       stopMonetizationTag = this.onRemovedTag(tag)
     }
 
-    const startMonetizationTag = await this.onAddedTag(tag, requestId)
+    const startMonetizationTag = await this.onAddedTag(tag)
 
     return { startMonetizationTag, stopMonetizationTag }
   }
