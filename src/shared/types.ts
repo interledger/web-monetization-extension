@@ -1,4 +1,5 @@
-import { WalletAddress } from '@interledger/open-payments/dist/types'
+import type { WalletAddress } from '@interledger/open-payments/dist/types'
+import type { Tabs } from 'webextension-polyfill'
 
 /** Bigint amount, before transformation with assetScale */
 export type AmountValue = string
@@ -105,3 +106,5 @@ export type PopupStore = Omit<
 export type DeepNonNullable<T> = {
   [P in keyof T]?: NonNullable<T[P]>
 }
+
+export type TabId = NonNullable<Tabs.Tab['id']>

@@ -4,10 +4,6 @@ import { getContextData } from '@/popup/lib/messages'
 import { tFactory, type Translation } from '@/shared/helpers'
 import type { DeepNonNullable, PopupStore } from '@/shared/types'
 import {
-  ContentToBackgroundAction,
-  type ContentToBackgroundMessage
-} from '@/shared/messages'
-import {
   BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
   type BackgroundToPopupMessage
 } from '@/shared/messages'
@@ -17,7 +13,6 @@ export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
   TOGGLE_WM = 'TOGGLE_WM',
   SET_CONNECTED = 'SET_CONNECTED',
-  SET_IS_SITE_MONETIZED = 'SET_IS_TAB_MONETIZED',
   UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
 }
 
@@ -44,12 +39,6 @@ interface ToggleWMAction extends ReducerActionMock {
   type: ReducerActionType.TOGGLE_WM
 }
 
-interface SetIsSiteMonetized extends ReducerActionMock {
-  type: ReducerActionType.SET_IS_SITE_MONETIZED
-  data: {
-    value: boolean
-  }
-}
 interface SetConnected extends ReducerActionMock {
   type: ReducerActionType.SET_CONNECTED
   data: {
@@ -69,7 +58,6 @@ type BackgroundToPopupAction = BackgroundToPopupMessage
 export type ReducerActions =
   | SetDataAction
   | ToggleWMAction
-  | SetIsSiteMonetized
   | SetConnected
   | UpdateRateOfPayAction
   | BackgroundToPopupAction
@@ -90,8 +78,6 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
         enabled: !state.enabled
       }
     }
-    case ReducerActionType.SET_IS_SITE_MONETIZED:
-      return { ...state, isSiteMonetized: action.data.value }
     case ReducerActionType.SET_CONNECTED:
       return { ...state, connected: action.data.value }
     case ReducerActionType.UPDATE_RATE_OF_PAY: {
@@ -102,6 +88,8 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
     }
     case 'SET_STATE':
       return { ...state, state: action.data.state }
+    case 'SET_IS_MONETIZED':
+      return { ...state, isSiteMonetized: action.data }
     case 'SET_BALANCE':
       return { ...state, balance: action.data.total }
     default:
@@ -132,28 +120,12 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
   }, [])
 
   React.useEffect(() => {
-    type Listener = Parameters<typeof browser.runtime.onMessage.addListener>[0]
-    const listener: Listener = (message: ContentToBackgroundMessage) => {
-      if (message.action === ContentToBackgroundAction.IS_TAB_MONETIZED) {
-        dispatch({
-          type: ReducerActionType.SET_IS_SITE_MONETIZED,
-          data: message.payload
-        })
-      }
-    }
-
-    browser.runtime.onMessage.addListener(listener)
-    return () => {
-      browser.runtime.onMessage.removeListener(listener)
-    }
-  }, [browser])
-
-  React.useEffect(() => {
     const port = browser.runtime.connect({ name: CONNECTION_NAME })
     port.onMessage.addListener((message: BackgroundToPopupMessage) => {
       switch (message.type) {
         case 'SET_BALANCE':
         case 'SET_STATE':
+        case 'SET_IS_MONETIZED':
           return dispatch(message)
       }
     })

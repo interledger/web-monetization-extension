@@ -4,7 +4,7 @@ import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config'
 import { notNullOrUndef } from '@/shared/helpers'
 
 export const getCurrentActiveTab = async (browser: Browser) => {
-  const window = await browser.windows.getCurrent()
+  const window = await browser.windows.getLastFocused()
   const activeTabs = await browser.tabs.query({
     active: true,
     windowId: window.id
@@ -102,4 +102,32 @@ export function computeBalance(
   if (!grant?.amount) return 0n
   const total = BigInt(grant.amount.value)
   return grantSpentAmount ? total - BigInt(grantSpentAmount) : total
+}
+
+// USD Scale 9 (connected wallet)
+// EUR Scale 2 (page)
+// MIN_SEND_AMOUNT = 0.01 EUR * 10 ** (9 (Scale) - 2 (scale))
+export function* getNextSendableAmount(
+  senderAssetScale: number,
+  receiverAssetScale: number,
+  amount: bigint = 0n
+): IterableIterator<AmountValue> {
+  const EXPONENTIAL_INCREASE = 0.5
+
+  const scaleDiff =
+    senderAssetScale < receiverAssetScale
+      ? 0
+      : senderAssetScale - receiverAssetScale
+  const base = 1n * 10n ** BigInt(scaleDiff)
+
+  if (amount) {
+    yield amount.toString()
+  }
+
+  let exp = 0
+  while (true) {
+    amount += base * BigInt(Math.floor(Math.exp(exp)))
+    yield amount.toString()
+    exp += EXPONENTIAL_INCREASE
+  }
 }
