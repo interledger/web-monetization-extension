@@ -21,7 +21,7 @@ import {
   type Translation
 } from '@/shared/helpers'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
-import type { PopupStore, Storage } from '@/shared/types'
+import type { AmountValue, PopupStore, Storage } from '@/shared/types'
 
 export class MonetizationService {
   constructor(
@@ -40,6 +40,9 @@ export class MonetizationService {
     payload: StartMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
+    if (!payload.length) {
+      throw new Error('Unexpected: payload is empty')
+    }
     const {
       state,
       enabled,
@@ -63,12 +66,12 @@ export class MonetizationService {
     const { tabId, frameId, url } = getSender(sender)
     const sessions = this.tabState.getSessions(tabId)
 
-    const sessionsCount = sessions.size + payload.length
-    const rate = computeRate(rateOfPay, sessionsCount)
-
     // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
+
+      sessions.get(requestId)?.stop()
+      sessions.delete(requestId)
 
       const session = new PaymentSession(
         receiver,
@@ -76,7 +79,6 @@ export class MonetizationService {
         requestId,
         tabId,
         frameId,
-        rate,
         this.openPaymentsService,
         this.events,
         this.tabState,
@@ -86,11 +88,12 @@ export class MonetizationService {
       sessions.set(requestId, session)
     })
 
-    const sessionsArr = Array.from(sessions.values())
+    const sessionsArr = this.tabState.getEnabledSessions(tabId)
+    const rate = computeRate(rateOfPay, sessionsArr.length)
 
-    // Since we probe (through quoting) the debitAmount we have to await the
-    // `adjustAmount` method.
-    await Promise.all(sessionsArr.map((session) => session.adjustAmount()))
+    // Since we probe (through quoting) the debitAmount we have to await this call.
+    const isAdjusted = await this.adjustSessionsAmount(sessionsArr, rate)
+    if (!isAdjusted) return
 
     if (enabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
@@ -115,7 +118,7 @@ export class MonetizationService {
     payload: StopMonetizationPayload[],
     sender: Runtime.MessageSender
   ) {
-    let removed = false
+    let needsAdjustAmount = false
     const tabId = getTabId(sender)
     const sessions = this.tabState.getSessions(tabId)
 
@@ -127,24 +130,31 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId } = p
 
-      sessions.get(requestId)?.stop()
+      const session = sessions.get(requestId)
+      if (!session) return
 
-      if (p.remove) {
-        removed = true
+      if (p.intent === 'remove') {
+        needsAdjustAmount = true
+        session.stop()
         sessions.delete(requestId)
+      } else if (p.intent === 'disable') {
+        needsAdjustAmount = true
+        session.disable()
+      } else {
+        session.stop()
       }
     })
 
     const { rateOfPay } = await this.storage.get(['rateOfPay'])
     if (!rateOfPay) return
 
-    const rate = computeRate(rateOfPay, sessions.size)
-
-    if (removed) {
-      const sessionsArr = Array.from(sessions.values())
-      await Promise.all(
-        sessionsArr.map((session) => session.adjustAmount(rate))
-      )
+    if (needsAdjustAmount) {
+      const sessionsArr = this.tabState.getEnabledSessions(tabId)
+      if (!sessionsArr.length) return
+      const rate = computeRate(rateOfPay, sessionsArr.length)
+      await this.adjustSessionsAmount(sessionsArr, rate).catch((e) => {
+        this.logger.error(e)
+      })
     }
   }
 
@@ -228,15 +238,15 @@ export class MonetizationService {
     if (!tab || !tab.id) {
       throw new Error('Could not find active tab.')
     }
-    const sessions = this.tabState.getSessions(tab.id)
-    if (!sessions.size) {
+    const sessions = this.tabState.getEnabledSessions(tab.id)
+    if (!sessions.length) {
       throw new Error('This website is not monetized.')
     }
 
-    const splitAmount = Number(amount) / sessions.size
+    const splitAmount = Number(amount) / sessions.length
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
-      Array.from(sessions.values()).map((session) => session.pay(splitAmount))
+      sessions.map((session) => session.pay(splitAmount))
     )
 
     const totalSentAmount = results
@@ -277,10 +287,28 @@ export class MonetizationService {
   }
 
   private onRateOfPayUpdate() {
-    this.events.on('storage.rate_of_pay_update', ({ rate }) => {
+    this.events.on('storage.rate_of_pay_update', async ({ rate }) => {
       this.logger.debug("Received event='storage.rate_of_pay_update'")
-      for (const session of this.tabState.getAllSessions()) {
-        session.adjustAmount(rate)
+      const tabIds = this.tabState.getAllTabs()
+
+      // Move the current active tab to the front of the array
+      const currentTab = await getCurrentActiveTab(this.browser)
+      if (currentTab?.id) {
+        const idx = tabIds.indexOf(currentTab.id)
+        if (idx !== -1) {
+          const tmp = tabIds[0]
+          tabIds[0] = currentTab.id
+          tabIds[idx] = tmp
+        }
+      }
+
+      for (const tabId of tabIds) {
+        const sessions = this.tabState.getEnabledSessions(tabId)
+        if (!sessions.length) continue
+        const computedRate = computeRate(rate, sessions.length)
+        await this.adjustSessionsAmount(sessions, computedRate).catch((e) => {
+          this.logger.error(e)
+        })
       }
     })
   }
@@ -340,7 +368,7 @@ export class MonetizationService {
         // noop
       }
     }
-    const isSiteMonetized = this.tabState.getSessions(tab.id!).size > 0
+    const isSiteMonetized = this.tabState.isTabMonetized(tab.id!)
 
     return {
       ...dataFromStorage,
@@ -351,6 +379,23 @@ export class MonetizationService {
         recurring: recurringGrant?.amount
       },
       isSiteMonetized
+    }
+  }
+
+  private async adjustSessionsAmount(
+    sessions: PaymentSession[],
+    rate: AmountValue
+  ): Promise<boolean> {
+    try {
+      await Promise.all(sessions.map((session) => session.adjustAmount(rate)))
+      return true
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        this.logger.debug('adjustAmount aborted due to new call')
+        return false
+      } else {
+        throw err
+      }
     }
   }
 }

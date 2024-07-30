@@ -101,7 +101,7 @@ export class FrameManager {
     const stopMonetizationTags: StopMonetizationPayload[] =
       frameDetails?.requestIds.map((requestId) => ({
         requestId,
-        remove: true
+        intent: 'remove'
       })) || []
     stopMonetization(stopMonetizationTags)
 
