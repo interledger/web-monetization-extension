@@ -180,7 +180,9 @@ export class MonetizationTagManager extends EventEmitter {
 
         handledTags.add(target)
       } else if (hasTarget && !typeSpecified) {
-        stopMonetizationTags.push(this.onRemovedTag(target))
+        const stopMonetizationTag = this.onRemovedTag(target)
+        stopMonetizationTags.push(stopMonetizationTag)
+
         handledTags.add(target)
       } else if (!hasTarget && !typeSpecified) {
         // ignore these changes
@@ -205,7 +207,7 @@ export class MonetizationTagManager extends EventEmitter {
               } else if (walletAddress) {
                 startMonetizationTags.push({ requestId, walletAddress })
               }
-            } catch (error) {
+            } catch {
               const startMonetizationPayload = await this.onAddedTag(target)
               if (startMonetizationPayload) {
                 startMonetizationTags.push(startMonetizationPayload)

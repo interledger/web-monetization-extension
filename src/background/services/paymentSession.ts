@@ -324,7 +324,7 @@ export class PaymentSession {
 
   async pay(amount: number) {
     if (this.isDisabled) {
-        throw new Error('Attempted to send a payment to a disabled session.')
+      throw new Error('Attempted to send a payment to a disabled session.')
     }
 
     const incomingPayment = await this.createIncomingPayment().catch(

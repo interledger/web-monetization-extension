@@ -21,7 +21,7 @@ import {
   type Translation
 } from '@/shared/helpers'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
-import type { PopupStore, Storage } from '@/shared/types'
+import type { AmountValue, PopupStore, Storage } from '@/shared/types'
 
 export class MonetizationService {
   constructor(
@@ -89,21 +89,11 @@ export class MonetizationService {
     })
 
     const sessionsArr = this.tabState.getEnabledSessions(tabId)
-    // Since we probe (through quoting) the debitAmount we have to await the
-    // `adjustAmount` method.
     const rate = computeRate(rateOfPay, sessionsArr.length)
-    try {
-      await Promise.all(
-        sessionsArr.map((session) => session.adjustAmount(rate))
-      )
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        this.logger.debug('adjustAmount aborted due to new call')
-        return
-      } else {
-        throw err
-      }
-    }
+
+    // Since we probe (through quoting) the debitAmount we have to await this call.
+    const isAdjusted = await this.adjustSessionsAmount(sessionsArr, rate)
+    if (!isAdjusted) return
 
     if (enabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
@@ -162,9 +152,9 @@ export class MonetizationService {
       const sessionsArr = this.tabState.getEnabledSessions(tabId)
       if (!sessionsArr.length) return
       const rate = computeRate(rateOfPay, sessionsArr.length)
-      await Promise.all(
-        sessionsArr.map((session) => session.adjustAmount(rate))
-      )
+      await this.adjustSessionsAmount(sessionsArr, rate).catch((e) => {
+        this.logger.error(e)
+      })
     }
   }
 
@@ -305,18 +295,20 @@ export class MonetizationService {
       const currentTab = await getCurrentActiveTab(this.browser)
       if (currentTab?.id) {
         const idx = tabIds.indexOf(currentTab.id)
-        const tmp = tabIds[0]
-        tabIds[0] = currentTab.id
-        tabIds[idx] = tmp
+        if (idx !== -1) {
+          const tmp = tabIds[0]
+          tabIds[0] = currentTab.id
+          tabIds[idx] = tmp
+        }
       }
 
       for (const tabId of tabIds) {
         const sessions = this.tabState.getEnabledSessions(tabId)
         if (!sessions.length) continue
         const computedRate = computeRate(rate, sessions.length)
-        await Promise.all(
-          sessions.map((session) => session.adjustAmount(computedRate))
-        )
+        await this.adjustSessionsAmount(sessions, computedRate).catch((e) => {
+          this.logger.error(e)
+        })
       }
     })
   }
@@ -387,6 +379,23 @@ export class MonetizationService {
         recurring: recurringGrant?.amount
       },
       isSiteMonetized
+    }
+  }
+
+  private async adjustSessionsAmount(
+    sessions: PaymentSession[],
+    rate: AmountValue
+  ): Promise<boolean> {
+    try {
+      await Promise.all(sessions.map((session) => session.adjustAmount(rate)))
+      return true
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        this.logger.debug('adjustAmount aborted due to new call')
+        return false
+      } else {
+        throw err
+      }
     }
   }
 }
