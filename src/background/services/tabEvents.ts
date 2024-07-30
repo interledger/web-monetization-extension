@@ -121,7 +121,7 @@ export class TabEvents {
     tabId,
     enabled,
     state,
-    isTabMonetized = tabId ? this.tabState.getSessions(tabId).size > 0 : false
+    isTabMonetized = tabId ? this.tabState.isTabMonetized(tabId) : false
   }: {
     enabled: Storage['enabled']
     state: Storage['state']

@@ -376,7 +376,7 @@ export class MonetizationService {
         // noop
       }
     }
-    const isSiteMonetized = this.tabState.getSessions(tab.id!).size > 0
+    const isSiteMonetized = this.tabState.isTabMonetized(tab.id!)
 
     return {
       ...dataFromStorage,

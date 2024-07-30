@@ -86,6 +86,10 @@ export class TabState {
     return [...this.sessions.get(tabId)!.values()].filter((s) => !s.disabled)
   }
 
+  isTabMonetized(tabId: TabId) {
+    return this.getEnabledSessions(tabId).length > 0
+  }
+
   getAllSessions() {
     return [...this.sessions.values()].flatMap((s) => [...s.values()])
   }
