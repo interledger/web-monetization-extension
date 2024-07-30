@@ -19,6 +19,7 @@ export const ROUTES_PATH = {
   SETTINGS: '/settings',
   MISSING_HOST_PERMISSION: '/missing-host-permission',
   OUT_OF_FUNDS: '/out-of-funds',
+  OUT_OF_FUNDS_ADD_FUNDS: '/out-of-funds/s/add-funds',
   ERROR_KEY_REVOKED: '/error/key-revoked'
 } as const
 
@@ -48,6 +49,10 @@ export const routes = [
           {
             path: ROUTES_PATH.OUT_OF_FUNDS,
             lazy: () => import('./pages/OutOfFunds')
+          },
+          {
+            path: ROUTES_PATH.OUT_OF_FUNDS_ADD_FUNDS,
+            lazy: () => import('./pages/OutOfFunds_AddFunds')
           },
           {
             path: ROUTES_PATH.SETTINGS,
