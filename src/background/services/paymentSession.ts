@@ -25,7 +25,7 @@ const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
   private rate: string
-  private waiting: boolean = false;
+  private waiting: boolean = false
   private active: boolean = false
   private isDisabled: boolean = false
   private incomingPaymentUrl: string
@@ -184,7 +184,6 @@ export class PaymentSession {
       await sleep(waitTime)
       this.waiting = false
     }
-
 
     while (this.active && !this.waiting && !this.isDisabled) {
       try {
