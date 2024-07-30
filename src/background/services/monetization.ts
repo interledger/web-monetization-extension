@@ -160,6 +160,7 @@ export class MonetizationService {
 
     if (needsAdjustAmount) {
       const sessionsArr = this.tabState.getEnabledSessions(tabId)
+      if (!sessionsArr.length) return
       const rate = computeRate(rateOfPay, sessionsArr.length)
       await Promise.all(
         sessionsArr.map((session) => session.adjustAmount(rate))
@@ -311,6 +312,7 @@ export class MonetizationService {
 
       for (const tabId of tabIds) {
         const sessions = this.tabState.getEnabledSessions(tabId)
+        if (!sessions.length) continue
         const computedRate = computeRate(rate, sessions.length)
         await Promise.all(
           sessions.map((session) => session.adjustAmount(computedRate))
