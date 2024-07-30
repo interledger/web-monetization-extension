@@ -237,15 +237,15 @@ export class MonetizationService {
     if (!tab || !tab.id) {
       throw new Error('Could not find active tab.')
     }
-    const sessions = this.tabState.getSessions(tab.id)
-    if (!sessions.size) {
+    const sessions = this.tabState.getEnabledSessions(tab.id)
+    if (!sessions.length) {
       throw new Error('This website is not monetized.')
     }
 
-    const splitAmount = Number(amount) / sessions.size
+    const splitAmount = Number(amount) / sessions.length
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
-      Array.from(sessions.values()).map((session) => session.pay(splitAmount))
+      sessions.map((session) => session.pay(splitAmount))
     )
 
     const totalSentAmount = results

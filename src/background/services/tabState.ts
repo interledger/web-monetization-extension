@@ -82,6 +82,10 @@ export class TabState {
     return this.sessions.get(tabId)!
   }
 
+  getEnabledSessions(tabId: TabId) {
+    return [...this.sessions.get(tabId)!.values()].filter((s) => !s.disabled)
+  }
+
   getAllSessions() {
     return [...this.sessions.values()].flatMap((s) => [...s.values()])
   }

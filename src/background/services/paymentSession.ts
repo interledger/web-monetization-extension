@@ -125,6 +125,10 @@ export class PaymentSession {
     this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
+  get disabled() {
+    return this.isDisabled
+  }
+
   disable() {
     this.isDisabled = true
     this.stop()
