@@ -88,7 +88,7 @@ export class MonetizationService {
       sessions.set(requestId, session)
     })
 
-    const sessionsArr = Array.from(sessions.values()).filter((s) => !s.disabled)
+    const sessionsArr = this.tabState.getEnabledSessions(tabId)
     // Since we probe (through quoting) the debitAmount we have to await the
     // `adjustAmount` method.
     const rate = computeRate(rateOfPay, sessionsArr.length)
@@ -159,9 +159,7 @@ export class MonetizationService {
     if (!rateOfPay) return
 
     if (needsAdjustAmount) {
-      const sessionsArr = Array.from(sessions.values()).filter(
-        (s) => !s.disabled
-      )
+      const sessionsArr = this.tabState.getEnabledSessions(tabId)
       const rate = computeRate(rateOfPay, sessionsArr.length)
       await Promise.all(
         sessionsArr.map((session) => session.adjustAmount(rate))
@@ -312,7 +310,7 @@ export class MonetizationService {
       }
 
       for (const tabId of tabIds) {
-        const sessions = [...this.tabState.getSessions(tabId).values()]
+        const sessions = this.tabState.getEnabledSessions(tabId)
         const computedRate = computeRate(rate, sessions.length)
         await Promise.all(
           sessions.map((session) => session.adjustAmount(computedRate))
