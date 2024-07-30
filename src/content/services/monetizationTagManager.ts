@@ -467,11 +467,13 @@ export class MonetizationTagManager extends EventEmitter {
     await stopMonetization(tags)
 
     // Check if tab still monetized
-    let validTagsCount = 0
+    const validTagsCount = [...this.monetizationTags].reduce(
+      (count, [tag, { requestId, walletAddress }]) => {
+        return !tag.disabled && requestId && walletAddress ? count + 1 : count
+      },
+      0
+    )
 
-    this.monetizationTags.forEach((value) => {
-      if (value.requestId && value.walletAddress) ++validTagsCount
-    })
     const isFrameMonetizedMessage = {
       message: ContentToContentAction.IS_FRAME_MONETIZED,
       id: this.id,
