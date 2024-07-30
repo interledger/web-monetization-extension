@@ -53,7 +53,7 @@ export class MonetizationTagManager extends EventEmitter {
     document.addEventListener('visibilitychange', async () => {
       document.visibilityState === 'visible'
         ? await this.resumeAllMonetization()
-        : await this.stopAllMonetization(false)
+        : this.stopAllMonetization(false)
     })
 
     this.isTopFrame = window === window.top
@@ -559,7 +559,7 @@ export class MonetizationTagManager extends EventEmitter {
     if (enabled) {
       await this.resumeAllMonetization()
     } else {
-      await this.stopAllMonetization(true)
+      this.stopAllMonetization(false)
     }
   }
 }
