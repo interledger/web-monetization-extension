@@ -25,6 +25,7 @@ const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
   private rate: string
+  private waiting: boolean = false;
   private active: boolean = false
   private isDisabled: boolean = false
   private incomingPaymentUrl: string
@@ -157,7 +158,7 @@ export class PaymentSession {
   }
 
   async start() {
-    if (this.active || this.isDisabled) return
+    if (this.active || this.isDisabled || this.waiting) return
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -179,11 +180,13 @@ export class PaymentSession {
           details: monetizationEvent
         }
       })
+      this.waiting = true
+      await sleep(waitTime)
+      this.waiting = false
     }
 
-    await sleep(waitTime)
 
-    while (this.active) {
+    while (this.active && !this.waiting && !this.isDisabled) {
       try {
         outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
