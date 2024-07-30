@@ -22,12 +22,7 @@ import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
 import { Browser, Tabs } from 'webextension-polyfill'
-import {
-  getCurrentActiveTab,
-  getExchangeRates,
-  getRateOfPay,
-  toAmount
-} from '../utils'
+import { getExchangeRates, getRateOfPay, toAmount } from '../utils'
 import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
@@ -40,6 +35,7 @@ import {
 } from '../config'
 import type { Deduplicator } from './deduplicator'
 import type { Logger } from '@/shared/logger'
+import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines'
 
 interface KeyInformation {
   privateKey: string
@@ -49,6 +45,7 @@ interface KeyInformation {
 interface InteractionParams {
   interactRef: string
   hash: string
+  tabId: NonNullable<Tabs.Tab['id']>
 }
 
 export interface SignatureHeaders {
@@ -94,6 +91,21 @@ interface CreateOutgoingPaymentParams {
 }
 
 type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
+
+const enum ErrorCode {
+  CONTINUATION_FAILED = 'continuation_failed',
+  HASH_FAILED = 'hash_failed'
+}
+
+const enum GrantResult {
+  SUCCESS = 'grant_success',
+  ERROR = 'grant_error'
+}
+
+const enum InteractionIntent {
+  CONNECT = 'connect',
+  FUNDS = 'funds'
+}
 
 export class OpenPaymentsService {
   client?: AuthenticatedClient
@@ -362,7 +374,8 @@ export class OpenPaymentsService {
   private async completeGrant(
     amount: string,
     walletAddress: WalletAddress,
-    recurring: boolean
+    recurring: boolean,
+    intent: InteractionIntent = InteractionIntent.CONNECT
   ): Promise<GrantDetails> {
     const transformedAmount = toAmount({
       value: amount,
@@ -383,19 +396,24 @@ export class OpenPaymentsService {
       throw err
     })
 
-    // Q: Should this be moved to continuation polling?
-    // https://github.com/interledger/open-payments/issues/385
-    const { interactRef, hash } = await this.getInteractionInfo(
+    const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect
     )
 
-    // TODO: Check with Fynbos if the auth server routes have `/gnap` before them.
     await this.verifyInteractionHash({
       clientNonce,
       interactNonce: grant.interact.finish,
       interactRef,
       hash,
       authServer: walletAddress.authServer
+    }).catch(async (e) => {
+      await this.redirectToWelcomeScreen(
+        tabId,
+        GrantResult.ERROR,
+        intent,
+        ErrorCode.HASH_FAILED
+      )
+      throw e
     })
 
     const continuation = await this.client!.grant.continue(
@@ -406,7 +424,15 @@ export class OpenPaymentsService {
       {
         interact_ref: interactRef
       }
-    )
+    ).catch(async (e) => {
+      await this.redirectToWelcomeScreen(
+        tabId,
+        GrantResult.ERROR,
+        intent,
+        ErrorCode.CONTINUATION_FAILED
+      )
+      throw e
+    })
 
     if (!isFinalizedGrant(continuation)) {
       throw new Error('Expected finalized grant. Received non-finalized grant.')
@@ -440,7 +466,23 @@ export class OpenPaymentsService {
     }
 
     this.grant = grantDetails
+    await this.redirectToWelcomeScreen(tabId, GrantResult.SUCCESS, intent)
     return grantDetails
+  }
+
+  private async redirectToWelcomeScreen(
+    tabId: NonNullable<Tabs.Tab['id']>,
+    result: GrantResult,
+    intent: InteractionIntent,
+    errorCode?: ErrorCode
+  ) {
+    const url = new URL(OPEN_PAYMENTS_REDIRECT_URL)
+    url.searchParams.set('result', result)
+    url.searchParams.set('intent', intent)
+    if (errorCode) url.searchParams.set('errorCode', errorCode)
+    await this.browser.tabs.update(tabId, {
+      url: url.toString()
+    })
   }
 
   private async createOutgoingPaymentGrant({
@@ -478,7 +520,7 @@ export class OpenPaymentsService {
           start: ['redirect'],
           finish: {
             method: 'redirect',
-            uri: 'http://localhost:3344',
+            uri: OPEN_PAYMENTS_REDIRECT_URL,
             nonce: clientNonce
           }
         }
@@ -511,14 +553,7 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
 
-  private async closeTab(currentTab: number, tabToClose: number) {
-    await this.browser.tabs.update(currentTab, { active: true })
-    await this.browser.tabs.remove(tabToClose)
-  }
-
   private async getInteractionInfo(url: string): Promise<InteractionParams> {
-    const currentTab = await getCurrentActiveTab(this.browser)
-
     return await new Promise((res) => {
       this.browser.tabs.create({ url }).then((tab) => {
         if (!tab.id) return
@@ -538,12 +573,11 @@ export class OpenPaymentsService {
               result === 'grant_rejected' ||
               result === 'grant_invalid'
             ) {
-              await this.closeTab(currentTab.id!, tabId)
               this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
             }
 
             if (interactRef && hash) {
-              res({ interactRef, hash })
+              res({ interactRef, hash, tabId })
             }
           } catch (e) {
             /* do nothing */
