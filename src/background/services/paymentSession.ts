@@ -67,6 +67,7 @@ export class PaymentSession {
         bigIntMax(amountToSend, MIN_SEND_AMOUNT)
       )) {
         if (this.probingId !== localProbingId) {
+          // In future we can throw `new AbortError()`
           throw new DOMException('Aborting existing probing', 'AbortError')
         }
         try {
@@ -322,7 +323,9 @@ export class PaymentSession {
   }
 
   async pay(amount: number) {
-    if (this.isDisabled) return
+    if (this.isDisabled) {
+        throw new Error('Attempted to send a payment to a disabled session.')
+    }
 
     const incomingPayment = await this.createIncomingPayment().catch(
       (error) => {
