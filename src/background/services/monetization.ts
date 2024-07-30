@@ -88,15 +88,21 @@ export class MonetizationService {
       sessions.set(requestId, session)
     })
 
-    const sessionsArr = Array.from(sessions.values())
-
+    const sessionsArr = Array.from(sessions.values()).filter((s) => !s.disabled)
     // Since we probe (through quoting) the debitAmount we have to await the
     // `adjustAmount` method.
-    const rate = computeRate(rateOfPay, sessions.size)
+    const rate = computeRate(rateOfPay, sessionsArr.length)
     try {
-        await Promise.all(sessionsArr.map((session) => session.adjustAmount(rate)))
-    } catch (e) {
-        if(e.message === 'Aborting') throw new Error('Aborting starting session')
+      await Promise.all(
+        sessionsArr.map((session) => session.adjustAmount(rate))
+      )
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        this.logger.debug('adjustAmount aborted due to new call')
+        return
+      } else {
+        throw err
+      }
     }
 
     if (enabled && this.canTryPayment(connected, state)) {

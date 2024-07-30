@@ -67,7 +67,7 @@ export class PaymentSession {
         bigIntMax(amountToSend, MIN_SEND_AMOUNT)
       )) {
         if (this.probing !== probing) {
-          throw new Error('Aborting')
+          throw new DOMException('Aborting previous probing', 'AbortError')
         }
         try {
           await this.openPaymentsService.probeDebitAmount(
