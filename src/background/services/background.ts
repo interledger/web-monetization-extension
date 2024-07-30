@@ -108,7 +108,9 @@ export class Background {
 
   bindTabHandlers() {
     this.browser.tabs.onRemoved.addListener(this.tabEvents.clearTabSessions)
-    this.browser.tabs.onUpdated.addListener(this.tabEvents.clearTabSessions)
+    this.browser.tabs.onUpdated.addListener(this.tabEvents.clearTabSessions, {
+      properties: ['url', 'discarded', 'status', 'isArticle']
+    })
     this.browser.tabs.onCreated.addListener(this.tabEvents.onCreatedTab)
     this.browser.tabs.onActivated.addListener(this.tabEvents.onActivatedTab)
   }

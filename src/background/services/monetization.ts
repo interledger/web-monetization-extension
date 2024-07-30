@@ -215,7 +215,10 @@ export class MonetizationService {
     emitToggleWM({ enabled: !enabled })
   }
 
-  clearTabSessions(tabId: number) {
+  clearTabSessions(
+    tabId: number,
+    { clearOverpaying }: { clearOverpaying: boolean }
+  ) {
     this.logger.debug(`Attempting to clear sessions for tab ${tabId}.`)
     const sessions = this.tabState.getSessions(tabId)
 
@@ -228,7 +231,10 @@ export class MonetizationService {
       session.stop()
     }
 
-    this.tabState.clearByTabId(tabId)
+    this.tabState.clearSessionsByTabId(tabId)
+    if (clearOverpaying) {
+      this.tabState.clearOverpayingByTabId(tabId)
+    }
 
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
   }

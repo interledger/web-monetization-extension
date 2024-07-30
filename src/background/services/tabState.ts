@@ -100,8 +100,11 @@ export class TabState {
     return [...this.sessions.keys()]
   }
 
-  clearByTabId(tabId: TabId) {
+  clearOverpayingByTabId(tabId: TabId) {
     this.state.delete(tabId)
+  }
+
+  clearSessionsByTabId(tabId: TabId) {
     this.sessions.delete(tabId)
   }
 }
