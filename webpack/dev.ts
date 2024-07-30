@@ -46,9 +46,8 @@ export const getDevConfig = (target: Target): Configuration => {
         }),
         CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['http:', 'https:']),
         CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
-          'https://deploy-preview-462--webmonetization-preview.netlify.app/welcome'
+          'https://webmonetization.org/welcome'
         )
-        // CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify('https://webmonetization.org/welcome')
       })
     )
   }
