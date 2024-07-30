@@ -390,24 +390,3 @@ export class MonetizationService {
     }
   }
 }
-
-/*
-- ON PAGE LOAD:
-  * we get all monetization links that are not disabled and we send the `START_MONETIZATION` event
-
-- A NEW MONETIZATION LINK GETS ADDED
-  * we send the `START_MONETIZATION` event for the new monetization link
-
-- A MONETIZATION LINK GETS REMOVED
-  * we send the `STOP_MONETIZATION` event for the removed monetization link with the `intent` set to `remove` and we readjust the amount
-
-- A MONETIZATION LINK GETS DISABLED
-  * we send the `STOP_MONETIZATION` event for the disabled monetization link with the `intent` set to `disable` and we readjust the amount
-
-- A MONETIZATION LINK GETS ENABLED
-  * we send the `START_MONETIZATION` event and replace the previous session with a new one with the same requestId and we readjust the amount
-  !! we send the `RESUME_MONETIZATION` event for the enabled tag
-
-- THE HREF ATTRIBUTE IS UPDATED
-  * we send the `STOP_MONETIZATION` event for the updated monetization link with the `intent` set to `remove` and we send the `START_MONETIZATION` event for the new monetization link
-**/
