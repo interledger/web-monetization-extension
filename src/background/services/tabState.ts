@@ -35,6 +35,8 @@ export class TabState {
     const state = this.state.get(tabId)?.get(key)
     const now = Date.now()
 
+    console.log({state})
+
     if (state && state.expiresAtTimestamp > now) {
       return {
         waitTime: state.expiresAtTimestamp - now,

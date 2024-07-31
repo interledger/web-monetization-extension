@@ -75,12 +75,11 @@ export class TabEvents {
     tabId: TabId,
     changeInfo: Tabs.OnUpdatedChangeInfoType | Tabs.OnRemovedRemoveInfoType
   ) => {
-    // console.log('clearTabSessions', changeInfo)
     if (
       ('status' in changeInfo && changeInfo.status === 'loading') ||
       'isWindowClosing' in changeInfo
     ) {
-      const clearOverpaying = !('isWindowClosing' in changeInfo) // TODO: verify this condition
+      const clearOverpaying = 'isWindowClosing' in changeInfo
       this.monetizationService.clearTabSessions(tabId, { clearOverpaying })
     }
   }
