@@ -44,7 +44,7 @@ export class PaymentSession {
     private events: EventsService,
     private tabState: TabState,
     private url: string
-  ) { }
+  ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
     this.probingId = Date.now()
