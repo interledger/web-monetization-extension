@@ -107,8 +107,8 @@ export class Background {
   }
 
   bindTabHandlers() {
-    this.browser.tabs.onRemoved.addListener(this.tabEvents.clearTabSessions)
-    this.browser.tabs.onUpdated.addListener(this.tabEvents.clearTabSessions)
+    this.browser.tabs.onRemoved.addListener(this.tabEvents.onRemovedTab)
+    this.browser.tabs.onUpdated.addListener(this.tabEvents.onUpdatedTab)
     this.browser.tabs.onCreated.addListener(this.tabEvents.onCreatedTab)
     this.browser.tabs.onActivated.addListener(this.tabEvents.onActivatedTab)
   }
@@ -132,7 +132,7 @@ export class Background {
             case PopupToBackgroundAction.RECONNECT_WALLET:
               await this.openPaymentsService.reconnectWallet()
               await this.monetizationService.resumePaymentSessionActiveTab()
-              await this.tabEvents.onUpdatedTab()
+              await this.tabEvents.onUpdatedTabUpdatedIndicator()
               return success(undefined)
 
             case PopupToBackgroundAction.ADD_FUNDS:
@@ -151,7 +151,7 @@ export class Background {
 
             case PopupToBackgroundAction.TOGGLE_WM:
               await this.monetizationService.toggleWM()
-              await this.tabEvents.onUpdatedTab()
+              await this.tabEvents.onUpdatedTabUpdatedIndicator()
               return
 
             case PopupToBackgroundAction.PAY_WEBSITE:
@@ -191,7 +191,10 @@ export class Background {
               )
 
             case ContentToBackgroundAction.IS_TAB_MONETIZED:
-              await this.tabEvents.onUpdatedTab(message.payload, sender)
+              await this.tabEvents.onUpdatedTabUpdatedIndicator(
+                message.payload,
+                sender
+              )
               return
 
             case ContentToBackgroundAction.IS_WM_ENABLED:
@@ -222,7 +225,9 @@ export class Background {
       this.sendToPopup.send('SET_STATE', { state, prevState })
 
       const isCurrentTabMonetized = true // TODO get from tabState
-      await this.tabEvents.onUpdatedTab({ value: isCurrentTabMonetized })
+      await this.tabEvents.onUpdatedTabUpdatedIndicator({
+        value: isCurrentTabMonetized
+      })
     })
 
     this.events.on('storage.balance_update', (balance) =>

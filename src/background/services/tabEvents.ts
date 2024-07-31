@@ -1,14 +1,13 @@
 import browser from 'webextension-polyfill'
-import type { Browser, Runtime, Tabs } from 'webextension-polyfill'
+import type { Browser, Runtime } from 'webextension-polyfill'
 import { IsTabMonetizedPayload } from '@/shared/messages'
 import { getTabId } from '../utils'
-import { isOkState, type Translation } from '@/shared/helpers'
-import type {
-  MonetizationService,
-  SendToPopup,
-  StorageService,
-  TabState
-} from '.'
+import {
+  isOkState,
+  removeQueryParams,
+  type Translation
+} from '@/shared/helpers'
+import type { SendToPopup, StorageService, TabState } from '.'
 import type { Storage, TabId } from '@/shared/types'
 
 const runtime = browser.runtime
@@ -55,43 +54,48 @@ const ICONS = {
   }
 }
 
-type CallbackTabOnActivated = Parameters<
-  Browser['tabs']['onActivated']['addListener']
->[0]
-type CallbackTabOnCreated = Parameters<
-  Browser['tabs']['onCreated']['addListener']
->[0]
+type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
+  Parameters<Browser['tabs'][T]['addListener']>[0]
 
 export class TabEvents {
   constructor(
-    private monetizationService: MonetizationService,
     private storage: StorageService,
     private tabState: TabState,
     private sendToPopup: SendToPopup,
     private t: Translation,
     private browser: Browser
   ) {}
-  clearTabSessions = (
-    tabId: TabId,
-    changeInfo: Tabs.OnUpdatedChangeInfoType | Tabs.OnRemovedRemoveInfoType
-  ) => {
-    if (
-      ('status' in changeInfo && changeInfo.status === 'loading') ||
-      'isWindowClosing' in changeInfo
-    ) {
-      this.monetizationService.clearTabSessions(tabId)
+
+  onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
+    /**
+     * if loading and no url -> clear all sessions but not the overpaying state
+     * if loading and url -> we need to check if state keys include this url.
+     */
+    if (changeInfo.status === 'loading') {
+      const url = tab.url ? removeQueryParams(tab.url) : ''
+      const clearOverpaying = this.tabState.shouldClearOverpaying(tabId, url)
+
+      this.tabState.clearSessionsByTabId(tabId)
+      if (clearOverpaying) {
+        this.tabState.clearOverpayingByTabId(tabId)
+      }
     }
   }
 
-  onActivatedTab: CallbackTabOnActivated = async (info) => {
+  onRemovedTab: CallbackTab<'onRemoved'> = (tabId, _removeInfo) => {
+    this.tabState.clearSessionsByTabId(tabId)
+    this.tabState.clearOverpayingByTabId(tabId)
+  }
+
+  onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
     await this.updateVisualIndicators(info.tabId)
   }
 
-  onCreatedTab: CallbackTabOnCreated = async (tab) => {
+  onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
     await this.updateVisualIndicators(tab.id)
   }
 
-  onUpdatedTab = async (
+  onUpdatedTabUpdatedIndicator = async (
     payload?: IsTabMonetizedPayload | null,
     sender?: Runtime.MessageSender
   ) => {
