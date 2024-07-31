@@ -88,6 +88,8 @@ export class MonetizationService {
       sessions.set(requestId, session)
     })
 
+    this.events.emit('monetization.state_update', tabId)
+
     const sessionsArr = this.tabState.getEnabledSessions(tabId)
     const rate = computeRate(rateOfPay, sessionsArr.length)
 
@@ -150,6 +152,7 @@ export class MonetizationService {
 
     if (needsAdjustAmount) {
       const sessionsArr = this.tabState.getEnabledSessions(tabId)
+      this.events.emit('monetization.state_update', tabId)
       if (!sessionsArr.length) return
       const rate = computeRate(rateOfPay, sessionsArr.length)
       await this.adjustSessionsAmount(sessionsArr, rate).catch((e) => {

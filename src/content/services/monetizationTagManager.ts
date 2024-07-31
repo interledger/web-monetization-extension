@@ -438,17 +438,9 @@ export class MonetizationTagManager extends EventEmitter {
 
   private sendStartMonetization(tags: StartMonetizationPayload[]) {
     if (!tags.length) return
-    const isFrameMonetizedMessage = {
-      message: ContentToContentAction.IS_FRAME_MONETIZED,
-      id: this.id,
-      payload: { isMonetized: tags.length > 0 }
-    }
 
     if (this.isTopFrame) {
       startMonetization(tags)
-
-      // Update icon
-      this.window.postMessage(isFrameMonetizedMessage, '*')
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
         {
@@ -458,48 +450,17 @@ export class MonetizationTagManager extends EventEmitter {
         },
         '*'
       )
-      // Update icon
-      this.window.parent.postMessage(isFrameMonetizedMessage, '*')
     }
   }
 
   private async sendStopMonetization(tags: StopMonetizationPayload[]) {
     if (!tags.length) return
     await stopMonetization(tags)
-
-    // Check if tab still monetized
-    const validTagsCount = [...this.monetizationTags].reduce(
-      (count, [tag, { requestId, walletAddress }]) => {
-        return !tag.disabled && requestId && walletAddress ? count + 1 : count
-      },
-      0
-    )
-
-    const isFrameMonetizedMessage = {
-      message: ContentToContentAction.IS_FRAME_MONETIZED,
-      id: this.id,
-      payload: { isMonetized: validTagsCount > 0 }
-    }
-
-    if (this.isTopFrame) {
-      this.window.postMessage(isFrameMonetizedMessage, '*')
-    } else if (this.isFirstLevelFrame) {
-      this.window.parent.postMessage(isFrameMonetizedMessage, '*')
-    }
   }
 
   private sendResumeMonetization(tags: ResumeMonetizationPayload[]) {
-    const isFrameMonetizedMessage = {
-      message: ContentToContentAction.IS_FRAME_MONETIZED,
-      id: this.id,
-      payload: { isMonetized: tags.length > 0 }
-    }
-
     if (this.isTopFrame) {
       resumeMonetization(tags)
-
-      // Update icon
-      this.window.postMessage(isFrameMonetizedMessage, '*')
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
         {
@@ -509,9 +470,6 @@ export class MonetizationTagManager extends EventEmitter {
         },
         '*'
       )
-
-      // Update icon
-      this.window.parent.postMessage(isFrameMonetizedMessage, '*')
     }
   }
 

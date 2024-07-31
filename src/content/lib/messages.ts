@@ -48,15 +48,6 @@ export const resumeMonetization = async (
   })
 }
 
-export const isTabMonetized = async (
-  payload: ContentToBackgroundActionPayload[ContentToBackgroundAction.IS_TAB_MONETIZED]
-) => {
-  return await message.send({
-    action: ContentToBackgroundAction.IS_TAB_MONETIZED,
-    payload
-  })
-}
-
 export const isWMEnabled = async () => {
   return await message.send<boolean>({
     action: ContentToBackgroundAction.IS_WM_ENABLED
