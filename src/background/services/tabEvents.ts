@@ -83,9 +83,7 @@ export class TabEvents {
      */
     if (changeInfo.status === 'loading') {
       const url = tab.url ? removeQueryParams(tab.url) : ''
-      const clearOverpaying = url
-        ? this.tabState.shouldClearOverpaying(tabId, url)
-        : ''
+      const clearOverpaying = this.tabState.shouldClearOverpaying(tabId, url)
 
       this.tabState.clearSessionsByTabId(tabId)
       if (clearOverpaying) {

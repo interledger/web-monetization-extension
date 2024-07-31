@@ -29,7 +29,7 @@ export class TabState {
 
   shouldClearOverpaying(tabId: TabId, url: string): boolean {
     const tabState = this.state.get(tabId)
-    if (!tabState?.size) return false
+    if (!tabState?.size || !url) return false
     return ![...tabState.keys()].some((key) => key.startsWith(`${url}:`))
   }
 
