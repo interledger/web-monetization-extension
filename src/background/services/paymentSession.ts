@@ -164,8 +164,6 @@ export class PaymentSession {
 
     await this.setIncomingPaymentUrl()
 
-    let outgoingPayment: OutgoingPayment | undefined
-
     const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
       this.tabId,
       this.url,
@@ -187,70 +185,9 @@ export class PaymentSession {
     }
 
     while (this.active && !this.waiting && !this.isDisabled) {
-      try {
-        outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
-          walletAddress: this.sender,
-          incomingPaymentId: this.incomingPaymentUrl,
-          amount: this.amount
-        })
-      } catch (e) {
-        if (isKeyRevokedError(e)) {
-          this.events.emit('open_payments.key_revoked')
-        } else if (isTokenExpiredError(e)) {
-          await this.openPaymentsService.rotateToken()
-          continue
-        } else if (isOutOfBalanceError(e)) {
-          const switched = await this.openPaymentsService.switchGrant()
-          if (switched === null) {
-            this.events.emit('open_payments.out_of_funds')
-          }
-        } else if (isInvalidReceiverError(e)) {
-          if (Date.now() >= this.incomingPaymentExpiresAt) {
-            await this.setIncomingPaymentUrl(true)
-          }
-          continue
-        } else {
-          throw e
-        }
-      } finally {
-        if (outgoingPayment) {
-          const { receiveAmount, receiver: incomingPayment } = outgoingPayment
-
-          outgoingPayment = undefined
-
-          const monetizationEventDetails: MonetizationEventDetails = {
-            amountSent: {
-              currency: receiveAmount.assetCode,
-              value: transformBalance(
-                receiveAmount.value,
-                receiveAmount.assetScale
-              )
-            },
-            incomingPayment,
-            paymentPointer: this.receiver.id
-          }
-
-          sendMonetizationEvent({
-            tabId: this.tabId,
-            frameId: this.frameId,
-            payload: {
-              requestId: this.requestId,
-              details: monetizationEventDetails
-            }
-          })
-
-          // TO DO: find a better source of truth for deciding if overpaying is applicable
-          if (this.intervalInMs > 1000) {
-            this.tabState.saveOverpaying(this.tabId, this.url, {
-              walletAddressId: this.receiver.id,
-              monetizationEvent: monetizationEventDetails,
-              intervalInMs: this.intervalInMs
-            })
-          }
-
-          await sleep(this.intervalInMs)
-        }
-      }
+      // TO DO: remove await after rafiki test
+      await this.payContinuous()
+      await sleep(this.intervalInMs)
     }
   }
 
@@ -385,5 +322,62 @@ export class PaymentSession {
   private setAmount(amount: bigint): void {
     this.amount = amount.toString()
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate))
+  }
+
+  private async payContinuous() {
+    try {
+      const outgoingPayment =
+        await this.openPaymentsService.createOutgoingPayment({
+          walletAddress: this.sender,
+          incomingPaymentId: this.incomingPaymentUrl,
+          amount: this.amount
+        })
+      const { receiveAmount, receiver: incomingPayment } = outgoingPayment
+      const monetizationEventDetails: MonetizationEventDetails = {
+        amountSent: {
+          currency: receiveAmount.assetCode,
+          value: transformBalance(receiveAmount.value, receiveAmount.assetScale)
+        },
+        incomingPayment,
+        paymentPointer: this.receiver.id
+      }
+
+      sendMonetizationEvent({
+        tabId: this.tabId,
+        frameId: this.frameId,
+        payload: {
+          requestId: this.requestId,
+          details: monetizationEventDetails
+        }
+      })
+
+      // TO DO: find a better source of truth for deciding if overpaying is applicable
+      if (this.intervalInMs > 1000) {
+        this.tabState.saveOverpaying(this.tabId, this.url, {
+          walletAddressId: this.receiver.id,
+          monetizationEvent: monetizationEventDetails,
+          intervalInMs: this.intervalInMs
+        })
+      }
+    } catch (e) {
+      if (isKeyRevokedError(e)) {
+        this.events.emit('open_payments.key_revoked')
+      } else if (isTokenExpiredError(e)) {
+        await this.openPaymentsService.rotateToken()
+      } else if (isOutOfBalanceError(e)) {
+        const switched = await this.openPaymentsService.switchGrant()
+        if (switched === null) {
+          this.events.emit('open_payments.out_of_funds')
+        }
+      } else if (isInvalidReceiverError(e)) {
+        if (Date.now() >= this.incomingPaymentExpiresAt) {
+          await this.setIncomingPaymentUrl(true)
+        } else {
+          throw e
+        }
+      } else {
+        throw e
+      }
+    }
   }
 }
