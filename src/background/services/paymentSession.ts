@@ -4,11 +4,11 @@ import {
   type OutgoingPayment,
   type WalletAddress
 } from '@interledger/open-payments/dist/types'
-import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
 import { bigIntMax, convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import {
+  isInvalidReceiverError,
   isKeyRevokedError,
   isNonPositiveAmountError,
   isOutOfBalanceError,
@@ -24,11 +24,15 @@ const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
+  private rate: string
+  private waiting: boolean = false
   private active: boolean = false
+  private isDisabled: boolean = false
   private incomingPaymentUrl: string
   private incomingPaymentExpiresAt: number
   private amount: string
   private intervalInMs: number
+  private probingId: number
 
   constructor(
     private receiver: WalletAddress,
@@ -36,15 +40,16 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
-    private rate: string,
     private openPaymentsService: OpenPaymentsService,
     private events: EventsService,
     private tabState: TabState,
     private url: string
   ) { }
 
-  async adjustAmount(rate?: AmountValue): Promise<void> {
-    if (rate) this.rate = rate
+  async adjustAmount(rate: AmountValue): Promise<void> {
+    this.probingId = Date.now()
+    const localProbingId = this.probingId
+    this.rate = rate
 
     // The amount that needs to be sent every second.
     // In senders asset scale already.
@@ -61,6 +66,10 @@ export class PaymentSession {
         receiverAssetScale,
         bigIntMax(amountToSend, MIN_SEND_AMOUNT)
       )) {
+        if (this.probingId !== localProbingId) {
+          // In future we can throw `new AbortError()`
+          throw new DOMException('Aborting existing probing', 'AbortError')
+        }
         try {
           await this.openPaymentsService.probeDebitAmount(
             amount,
@@ -123,6 +132,24 @@ export class PaymentSession {
     this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
+  get disabled() {
+    return this.isDisabled
+  }
+
+  disable() {
+    this.isDisabled = true
+    this.stop()
+  }
+
+  /**
+   * there's no enable() as we replace the sessions with new ones when
+   * resume/start or removal of disabled attribute at the moment.
+   * @deprecated
+   */
+  enable() {
+    throw new Error('Method not implemented.')
+  }
+
   stop() {
     this.active = false
   }
@@ -132,7 +159,7 @@ export class PaymentSession {
   }
 
   async start() {
-    if (this.active) return
+    if (this.active || this.isDisabled || this.waiting) return
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -152,11 +179,14 @@ export class PaymentSession {
           details: monetizationEvent
         }
       })
+      this.waiting = true
+      await sleep(waitTime)
+      this.waiting = false
     }
 
     await sleep(waitTime)
 
-    while (this.active) {
+    while (this.active && !this.waiting && !this.isDisabled) {
       // TO DO: remove await after rafiki test
       await this.payContinuous()
       await sleep(this.intervalInMs)
@@ -232,6 +262,10 @@ export class PaymentSession {
   }
 
   async pay(amount: number) {
+    if (this.isDisabled) {
+      throw new Error('Attempted to send a payment to a disabled session.')
+    }
+
     const incomingPayment = await this.createIncomingPayment().catch(
       (error) => {
         if (isKeyRevokedError(error)) {
@@ -337,13 +371,12 @@ export class PaymentSession {
         if (switched === null) {
           this.events.emit('open_payments.out_of_funds')
         }
-      } else if (e instanceof OpenPaymentsClientError) {
-        // We need better error handling.
-        if (e.status === 400) {
+      } else if (isInvalidReceiverError(e)) {
+        if (Date.now() >= this.incomingPaymentExpiresAt) {
           await this.setIncomingPaymentUrl(true)
         }
-
-        throw new Error(e.message)
+      } else {
+        throw e
       }
     }
   }

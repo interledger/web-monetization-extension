@@ -14,7 +14,7 @@ import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 
-const updateRateOfPay = debounceAsync(updateRateOfPay_, 500)
+const updateRateOfPay = debounceAsync(updateRateOfPay_, 1000)
 
 export const Component = () => {
   const {

@@ -76,14 +76,28 @@ export class TabState {
   }
 
   getSessions(tabId: TabId) {
-    if (!this.sessions.has(tabId)) {
-      this.sessions.set(tabId, new Map())
+    let sessions = this.sessions.get(tabId)
+    if (!sessions) {
+      sessions = new Map()
+      this.sessions.set(tabId, sessions)
     }
-    return this.sessions.get(tabId)!
+    return sessions
+  }
+
+  getEnabledSessions(tabId: TabId) {
+    return [...this.getSessions(tabId).values()].filter((s) => !s.disabled)
+  }
+
+  isTabMonetized(tabId: TabId) {
+    return this.getEnabledSessions(tabId).length > 0
   }
 
   getAllSessions() {
     return [...this.sessions.values()].flatMap((s) => [...s.values()])
+  }
+
+  getAllTabs(): TabId[] {
+    return [...this.sessions.keys()]
   }
 
   clearByTabId(tabId: TabId) {

@@ -92,8 +92,8 @@ export const getSender = (sender: Runtime.MessageSender) => {
   return { tabId, frameId, url: sender.url }
 }
 
-export const computeRate = (rate: string, sessionsCount: number) =>
-  (+rate / sessionsCount).toString()
+export const computeRate = (rate: string, sessionsCount: number): AmountValue =>
+  (BigInt(rate) / BigInt(sessionsCount)).toString()
 
 export function computeBalance(
   grant?: GrantDetails | null,
