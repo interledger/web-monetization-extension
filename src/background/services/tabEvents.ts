@@ -7,6 +7,7 @@ import {
 } from '@/shared/helpers'
 import type { SendToPopup, StorageService, TabState } from '.'
 import type { Storage, TabId } from '@/shared/types'
+import memoizee from 'memoizee'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -56,13 +57,25 @@ type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
   Parameters<Browser['tabs'][T]['addListener']>[0]
 
 export class TabEvents {
+  private setIconAndTooltip: TabEvents['_setIconAndTooltip']
   constructor(
     private storage: StorageService,
     private tabState: TabState,
     private sendToPopup: SendToPopup,
     private t: Translation,
     private browser: Browser
-  ) {}
+  ) {
+    this.setIconAndTooltip = memoizee(this._setIconAndTooltip.bind(this), {
+      promise: true,
+      maxAge: 500,
+      normalizer([path, title, tabId]: Parameters<
+        TabEvents['_setIconAndTooltip']
+      >) {
+        if (!tabId) return Math.random().toString()
+        return `${tabId}:${title}:${path[32]}`
+      }
+    })
+  }
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     /**
@@ -111,8 +124,7 @@ export class TabEvents {
     await this.setIconAndTooltip(path, title, tabId)
   }
 
-  // TODO: memoize this call
-  private setIconAndTooltip = async (
+  private _setIconAndTooltip = async (
     path: (typeof ICONS)[keyof typeof ICONS],
     title: string,
     tabId?: TabId
