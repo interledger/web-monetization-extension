@@ -92,12 +92,16 @@ export class TabEvents {
       const clearOverpaying = url
         ? this.tabState.checkOverpayingUrl(tabId, url)
         : false
-      this.monetizationService.clearTabSessions(tabId, { clearOverpaying })
+      this.monetizationService.clearTabSessions(tabId)
+      if (clearOverpaying) {
+        this.monetizationService.clearTabOverpaying(tabId)
+      }
     }
   }
 
   onRemovedTab: CallbackTabOnRemoved = (tabId, _removeInfo) => {
-    this.monetizationService.clearTabSessions(tabId, { clearOverpaying: true })
+    this.monetizationService.clearTabSessions(tabId)
+    this.monetizationService.clearTabOverpaying(tabId)
   }
 
   onActivatedTab: CallbackTabOnActivated = async (info) => {
