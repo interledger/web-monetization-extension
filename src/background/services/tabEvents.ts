@@ -5,6 +5,7 @@ import { getTabId } from '../utils'
 import {
   isOkState,
   removeQueryParams,
+  type BrowserVariant,
   type Translation
 } from '@/shared/helpers'
 import type {
@@ -79,24 +80,26 @@ export class TabEvents {
     private tabState: TabState,
     private sendToPopup: SendToPopup,
     private t: Translation,
+    private browserVariant: BrowserVariant,
     private browser: Browser
   ) {}
 
-  onUpdatedTab: CallbackTabOnUpdated = (tabId, changeInfo) => {
-    console.warn('clearTabSessions', changeInfo)
-
+  onUpdatedTab: CallbackTabOnUpdated = (tabId, changeInfo, tab) => {
+    if (changeInfo.status) {
+      console.warn('onUpdatedTab', tabId, changeInfo.url, tab.url)
+    }
     /**
      * if loading and no url -> clear all sessions but not the overpaying state
      * if loading and url -> we need to check if state keys include this url.
      */
     if (changeInfo.status === 'loading') {
-      const clearOverpaying = changeInfo.url
-        ? this.tabState.checkOverpayingUrl(
-            tabId,
-            removeQueryParams(changeInfo.url)
-          )
+      const tabUrl =
+        this.browserVariant === 'firefox' ? changeInfo.url : tab.url
+      const url = tabUrl ? removeQueryParams(tabUrl) : ''
+
+      const clearOverpaying = url
+        ? this.tabState.checkOverpayingUrl(tabId, url)
         : false
-      console.log({ clearOverpaying, url: changeInfo.url })
       this.monetizationService.clearTabSessions(tabId, { clearOverpaying })
     }
   }
