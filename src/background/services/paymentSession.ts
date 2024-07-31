@@ -6,15 +6,18 @@ import {
 } from '@interledger/open-payments/dist/types'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client'
 import { sendMonetizationEvent } from '../lib/messages'
-import { convert, sleep } from '@/shared/helpers'
+import { bigIntMax, convert, sleep } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import {
   isKeyRevokedError,
+  isNonPositiveAmountError,
   isOutOfBalanceError,
   isTokenExpiredError
 } from './openPayments'
+import { getNextSendableAmount } from '@/background/utils'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { MonetizationEventDetails } from '@/shared/messages'
+import type { AmountValue } from '@/shared/types'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
@@ -23,6 +26,7 @@ const MIN_SEND_AMOUNT = 1n // 1 unit
 export class PaymentSession {
   private active: boolean = false
   private incomingPaymentUrl: string
+  private incomingPaymentExpiresAt: number
   private amount: string
   private intervalInMs: number
 
@@ -37,42 +41,46 @@ export class PaymentSession {
     private events: EventsService,
     private tabState: TabState,
     private url: string
-  ) {
-    this.adjustSessionAmount()
-  }
+  ) { }
 
-  // Only tested for same-currency transactions (USD mostly).
-  // What to do for cross-currency? Will the sending part lose money (ASE),
-  // when performing FX, since the receive amount will be ceiled?
-  adjustSessionAmount(rate?: string): void {
-    if (this.sender.assetCode !== this.receiver.assetCode) {
-      throw new Error(
-        `NOT IMPLEMENTED\nCross-currency transactions not supported`
-      )
-    }
-
-    // TODO: When we will batch all the wallet addresses that are found in the page,
-    // this is not going to be the rate, but `RATE_OF_PAY / No. of WA` (which
-    // should be passed directly to the PaymentSession class when initializing it).
+  async adjustAmount(rate?: AmountValue): Promise<void> {
     if (rate) this.rate = rate
-
-    const senderAssetScale = this.sender.assetScale
-    const receiverAssetScale = this.receiver.assetScale
-
-    // GitHub issue: https://github.com/interledger/rafiki/issues/2747
-    // We would be able to test this in about 2 weeks (next Rafiki release)
-    // and we will have to wait for the Test Wallet to use the latest version.
-    //
-    // Current implementation should work for this scenario as well.
-    if (senderAssetScale < receiverAssetScale) {
-      throw new Error(
-        `NOT IMPLEMENTED\nSender asset scale is less than receiver asset scale.`
-      )
-    }
 
     // The amount that needs to be sent every second.
     // In senders asset scale already.
     const amountToSend = BigInt(this.rate) / 3600n
+    const senderAssetScale = this.sender.assetScale
+    const receiverAssetScale = this.receiver.assetScale
+
+    // This all will eventually get replaced by OpenPayments response update
+    // that includes a min rate that we can directly use.
+    if (this.sender.assetCode !== this.receiver.assetCode) {
+      await this.setIncomingPaymentUrl()
+      for (const amount of getNextSendableAmount(
+        senderAssetScale,
+        receiverAssetScale,
+        bigIntMax(amountToSend, MIN_SEND_AMOUNT)
+      )) {
+        try {
+          await this.openPaymentsService.probeDebitAmount(
+            amount,
+            this.incomingPaymentUrl,
+            this.sender
+          )
+          this.setAmount(BigInt(amount))
+          return
+        } catch (e) {
+          if (isTokenExpiredError(e)) {
+            await this.openPaymentsService.rotateToken()
+          } else if (isNonPositiveAmountError(e)) {
+            continue
+          } else {
+            throw e
+          }
+        }
+      }
+      return
+    }
 
     if (amountToSend <= MIN_SEND_AMOUNT) {
       // We need to add another unit when using a debit amount, since
@@ -149,7 +157,8 @@ export class PaymentSession {
     await sleep(waitTime)
 
     while (this.active) {
-      void this.payContinuous()
+      // TO DO: remove await after rafiki test
+      await this.payContinuous()
       await sleep(this.intervalInMs)
     }
   }
@@ -200,12 +209,18 @@ export class PaymentSession {
         },
         {
           walletAddress: this.receiver.id,
-          expiresAt: new Date(Date.now() + 6000 * 60 * 10).toISOString(),
+          expiresAt: new Date(Date.now() + 1000 * 60 * 10).toISOString(),
           metadata: {
             source: 'Web Monetization'
           }
         }
       )
+
+    if (incomingPayment.expiresAt) {
+      this.incomingPaymentExpiresAt = new Date(
+        incomingPayment.expiresAt
+      ).valueOf()
+    }
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
     await this.openPaymentsService.client!.grant.cancel({

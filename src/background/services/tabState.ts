@@ -1,5 +1,6 @@
 import type { MonetizationEventDetails } from '@/shared/messages'
-import type { Tabs } from 'webextension-polyfill'
+import type { TabId } from '@/shared/types'
+import type { PaymentSession } from './paymentSession'
 
 type State = {
   monetizationEvent: MonetizationEventDetails
@@ -13,10 +14,11 @@ interface SaveOverpayingDetails {
   intervalInMs: number
 }
 
-type TabId = NonNullable<Tabs.Tab['id']>
+type SessionId = string
 
 export class TabState {
   private state = new Map<TabId, Map<string, State>>()
+  private sessions = new Map<TabId, Map<SessionId, PaymentSession>>()
 
   constructor() {}
 
@@ -73,7 +75,19 @@ export class TabState {
     }
   }
 
+  getSessions(tabId: TabId) {
+    if (!this.sessions.has(tabId)) {
+      this.sessions.set(tabId, new Map())
+    }
+    return this.sessions.get(tabId)!
+  }
+
+  getAllSessions() {
+    return [...this.sessions.values()].flatMap((s) => [...s.values()])
+  }
+
   clearByTabId(tabId: TabId) {
     this.state.delete(tabId)
+    this.sessions.delete(tabId)
   }
 }

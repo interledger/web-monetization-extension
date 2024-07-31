@@ -7,7 +7,7 @@ import { isAfter } from 'date-fns/isAfter'
 import { isBefore } from 'date-fns/isBefore'
 import { parse, toSeconds } from 'iso8601-duration'
 import type { Browser } from 'webextension-polyfill'
-import type { Storage, RepeatingInterval } from './types'
+import type { Storage, RepeatingInterval, AmountValue } from './types'
 
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs))
@@ -195,7 +195,7 @@ export function convert(value: bigint, source: number, target: number) {
   return value / BigInt(Math.pow(10, -scaleDiff))
 }
 
-export function bigIntMax(a: string, b: string) {
+export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
   return BigInt(a) > BigInt(b) ? a : b
 }
 
