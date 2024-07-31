@@ -173,17 +173,12 @@ export class FrameManager {
       (event: any) => {
         const { message, payload, id } = event.data
         const frame = this.findIframe(event.source)
-
         if (!frame) {
-          if (message === ContentToContentAction.IS_FRAME_MONETIZED) {
-            event.stopPropagation()
-          }
+          event.stopPropagation()
           return
         }
 
         if (event.origin === this.window.location.href) return
-
-        const frameDetails = this.frames.get(frame)
 
         switch (message) {
           case ContentToContentAction.INITIALIZE_IFRAME:
@@ -235,16 +230,6 @@ export class FrameManager {
             }
             return
 
-          case ContentToContentAction.IS_FRAME_MONETIZED: {
-            event.stopPropagation()
-            if (!frameDetails) return
-
-            this.frames.set(frame, {
-              ...frameDetails
-            })
-
-            return
-          }
           default:
             return
         }
