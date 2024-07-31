@@ -54,18 +54,8 @@ const ICONS = {
   }
 }
 
-type CallbackTabOnActivated = Parameters<
-  Browser['tabs']['onActivated']['addListener']
->[0]
-type CallbackTabOnCreated = Parameters<
-  Browser['tabs']['onCreated']['addListener']
->[0]
-type CallbackTabOnRemoved = Parameters<
-  Browser['tabs']['onRemoved']['addListener']
->[0]
-type CallbackTabOnUpdated = Parameters<
-  Browser['tabs']['onUpdated']['addListener']
->[0]
+type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
+  Parameters<Browser['tabs'][T]['addListener']>[0]
 
 export class TabEvents {
   constructor(
@@ -76,7 +66,7 @@ export class TabEvents {
     private browser: Browser
   ) {}
 
-  onUpdatedTab: CallbackTabOnUpdated = (tabId, changeInfo, tab) => {
+  onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     /**
      * if loading and no url -> clear all sessions but not the overpaying state
      * if loading and url -> we need to check if state keys include this url.
@@ -92,16 +82,16 @@ export class TabEvents {
     }
   }
 
-  onRemovedTab: CallbackTabOnRemoved = (tabId, _removeInfo) => {
+  onRemovedTab: CallbackTab<'onRemoved'> = (tabId, _removeInfo) => {
     this.tabState.clearSessionsByTabId(tabId)
     this.tabState.clearOverpayingByTabId(tabId)
   }
 
-  onActivatedTab: CallbackTabOnActivated = async (info) => {
+  onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
     await this.updateVisualIndicators(info.tabId)
   }
 
-  onCreatedTab: CallbackTabOnCreated = async (tab) => {
+  onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
     await this.updateVisualIndicators(tab.id)
   }
 
