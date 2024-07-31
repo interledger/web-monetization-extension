@@ -27,10 +27,10 @@ export class TabState {
     return `${url}:${walletAddressId}`
   }
 
-  checkOverpayingUrl(tabId: TabId, url: string): boolean {
+  shouldClearOverpaying(tabId: TabId, url: string): boolean {
     const tabState = this.state.get(tabId)
-    if (!tabState?.size) return true
-    return [...tabState.keys()].some((key) => key.startsWith(`${url}:`))
+    if (!tabState?.size) return false
+    return ![...tabState.keys()].some((key) => key.startsWith(`${url}:`))
   }
 
   getOverpayingDetails(
@@ -41,8 +41,6 @@ export class TabState {
     const key = this.getOverpayingStateKey(url, walletAddressId)
     const state = this.state.get(tabId)?.get(key)
     const now = Date.now()
-
-    console.log({ state })
 
     if (state && state.expiresAtTimestamp > now) {
       return {
