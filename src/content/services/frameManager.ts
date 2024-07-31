@@ -1,5 +1,5 @@
 import { Logger } from '@/shared/logger'
-import { isTabMonetized, stopMonetization } from '../lib/messages'
+import { stopMonetization } from '../lib/messages'
 import { ContentToContentAction } from '../messages'
 import {
   ResumeMonetizationPayload,
@@ -106,14 +106,6 @@ export class FrameManager {
     stopMonetization(stopMonetizationTags)
 
     this.frames.delete(frame)
-
-    let isMonetized = false
-
-    this.frames.forEach((value) => {
-      if (value.isFrameMonetized) isMonetized = true
-    })
-
-    isTabMonetized({ value: isMonetized || this.isFrameMonetized })
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
@@ -189,10 +181,6 @@ export class FrameManager {
             event.stopPropagation()
 
             this.isFrameMonetized = payload.isMonetized
-            const isMonetized =
-              this.isFrameMonetized ||
-              [...this.frames.values()].some((e) => e.isFrameMonetized)
-            isTabMonetized({ value: isMonetized })
           }
           return
         }
@@ -256,18 +244,12 @@ export class FrameManager {
 
           case ContentToContentAction.IS_FRAME_MONETIZED: {
             event.stopPropagation()
-            let isMonetized = false
             if (!frameDetails) return
 
             this.frames.set(frame, {
               ...frameDetails,
               isFrameMonetized: payload.isMonetized
             })
-            this.frames.forEach((value) => {
-              if (value.isFrameMonetized) isMonetized = true
-            })
-
-            isTabMonetized({ value: isMonetized || this.isFrameMonetized })
 
             return
           }

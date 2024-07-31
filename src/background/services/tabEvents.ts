@@ -1,7 +1,5 @@
 import browser from 'webextension-polyfill'
-import type { Browser, Runtime } from 'webextension-polyfill'
-import { IsTabMonetizedPayload } from '@/shared/messages'
-import { getTabId } from '../utils'
+import type { Browser } from 'webextension-polyfill'
 import {
   isOkState,
   removeQueryParams,
@@ -92,19 +90,11 @@ export class TabEvents {
   }
 
   onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
-    await this.updateVisualIndicators(tab.id)
+    await this.updateVisualIndicators(tab.id!)
   }
 
-  onUpdatedTabUpdatedIndicator = async (
-    payload?: IsTabMonetizedPayload | null,
-    sender?: Runtime.MessageSender
-  ) => {
-    const tabId = sender && getTabId(sender)
-    await this.updateVisualIndicators(tabId, payload?.value)
-  }
-
-  private updateVisualIndicators = async (
-    tabId?: TabId,
+  updateVisualIndicators = async (
+    tabId: TabId,
     isTabMonetized: boolean = tabId
       ? this.tabState.isTabMonetized(tabId)
       : false

@@ -20,7 +20,7 @@ import {
   success
 } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
-import { OPEN_PAYMENTS_ERRORS } from '@/background/utils'
+import { getCurrentActiveTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 import { PERMISSION_HOSTS } from '@/shared/defines'
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0]
@@ -129,11 +129,12 @@ export class Background {
               }
               return
 
-            case PopupToBackgroundAction.RECONNECT_WALLET:
+            case PopupToBackgroundAction.RECONNECT_WALLET: {
               await this.openPaymentsService.reconnectWallet()
               await this.monetizationService.resumePaymentSessionActiveTab()
-              await this.tabEvents.onUpdatedTabUpdatedIndicator()
+              await this.updateVisualIndicatorsForCurrentTab()
               return success(undefined)
+            }
 
             case PopupToBackgroundAction.ADD_FUNDS:
               await this.openPaymentsService.addFunds(message.payload)
@@ -149,10 +150,11 @@ export class Background {
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
               return
 
-            case PopupToBackgroundAction.TOGGLE_WM:
+            case PopupToBackgroundAction.TOGGLE_WM: {
               await this.monetizationService.toggleWM()
-              await this.tabEvents.onUpdatedTabUpdatedIndicator()
+              await this.updateVisualIndicatorsForCurrentTab()
               return
+            }
 
             case PopupToBackgroundAction.PAY_WEBSITE:
               return success(
@@ -190,13 +192,6 @@ export class Background {
                 await this.storage.updateRate(message.payload.rateOfPay)
               )
 
-            case ContentToBackgroundAction.IS_TAB_MONETIZED:
-              await this.tabEvents.onUpdatedTabUpdatedIndicator(
-                message.payload,
-                sender
-              )
-              return
-
             case ContentToBackgroundAction.IS_WM_ENABLED:
               return success(await this.storage.getWMState())
 
@@ -215,6 +210,13 @@ export class Background {
     )
   }
 
+  private async updateVisualIndicatorsForCurrentTab() {
+    const activeTab = await getCurrentActiveTab(this.browser)
+    if (activeTab?.id) {
+      void this.tabEvents.updateVisualIndicators(activeTab.id)
+    }
+  }
+
   bindPermissionsHandler() {
     this.browser.permissions.onAdded.addListener(this.checkPermissions)
     this.browser.permissions.onRemoved.addListener(this.checkPermissions)
@@ -223,11 +225,11 @@ export class Background {
   bindEventsHandler() {
     this.events.on('storage.state_update', async ({ state, prevState }) => {
       this.sendToPopup.send('SET_STATE', { state, prevState })
+      await this.updateVisualIndicatorsForCurrentTab()
+    })
 
-      const isCurrentTabMonetized = true // TODO get from tabState
-      await this.tabEvents.onUpdatedTabUpdatedIndicator({
-        value: isCurrentTabMonetized
-      })
+    this.events.on('monetization.state_update', (tabId) => {
+      void this.tabEvents.updateVisualIndicators(tabId)
     })
 
     this.events.on('storage.balance_update', (balance) =>

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import type { AmountValue, Storage } from '@/shared/types'
+import type { AmountValue, Storage, TabId } from '@/shared/types'
 
 interface BackgroundEvents {
   'open_payments.key_revoked': void
@@ -13,6 +13,7 @@ interface BackgroundEvents {
     'recurring' | 'oneTime' | 'total',
     AmountValue
   >
+  'monetization.state_update': TabId
 }
 
 export class EventsService extends EventEmitter {

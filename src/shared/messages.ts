@@ -79,7 +79,6 @@ export enum ContentToBackgroundAction {
   START_MONETIZATION = 'START_MONETIZATION',
   STOP_MONETIZATION = 'STOP_MONETIZATION',
   RESUME_MONETIZATION = 'RESUME_MONETIZATION',
-  IS_TAB_MONETIZED = 'IS_TAB_MONETIZED',
   IS_WM_ENABLED = 'IS_WM_ENABLED'
 }
 
@@ -110,7 +109,6 @@ export interface ContentToBackgroundActionPayload {
   [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload[]
   [ContentToBackgroundAction.STOP_MONETIZATION]: StopMonetizationPayload[]
   [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload[]
-  [ContentToBackgroundAction.IS_TAB_MONETIZED]: IsTabMonetizedPayload
   [ContentToBackgroundAction.IS_WM_ENABLED]: undefined
 }
 

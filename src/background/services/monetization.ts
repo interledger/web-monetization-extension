@@ -96,6 +96,7 @@ export class MonetizationService {
     if (!isAdjusted) return
 
     if (enabled && this.canTryPayment(connected, state)) {
+      this.events.emit('monetization.state_update', tabId)
       sessionsArr.forEach((session) => {
         void session.start()
       })
@@ -150,6 +151,7 @@ export class MonetizationService {
 
     if (needsAdjustAmount) {
       const sessionsArr = this.tabState.getEnabledSessions(tabId)
+      this.events.emit('monetization.state_update', tabId)
       if (!sessionsArr.length) return
       const rate = computeRate(rateOfPay, sessionsArr.length)
       await this.adjustSessionsAmount(sessionsArr, rate).catch((e) => {
