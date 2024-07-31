@@ -44,7 +44,7 @@ export class PaymentSession {
     private events: EventsService,
     private tabState: TabState,
     private url: string
-  ) { }
+  ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
     this.probingId = Date.now()
@@ -372,6 +372,8 @@ export class PaymentSession {
       } else if (isInvalidReceiverError(e)) {
         if (Date.now() >= this.incomingPaymentExpiresAt) {
           await this.setIncomingPaymentUrl(true)
+        } else {
+          throw e
         }
       } else {
         throw e
