@@ -10,10 +10,9 @@ import {
 export class FrameManager {
   private documentObserver: MutationObserver
   private frameAllowAttrObserver: MutationObserver
-  private isFrameMonetized: boolean
   private frames = new Map<
     HTMLIFrameElement,
-    { frameId: string | null; requestIds: string[]; isFrameMonetized?: boolean }
+    { frameId: string | null; requestIds: string[] }
   >()
 
   constructor(
@@ -88,8 +87,7 @@ export class FrameManager {
   private async onAddedFrame(frame: HTMLIFrameElement) {
     this.frames.set(frame, {
       frameId: null,
-      requestIds: [],
-      isFrameMonetized: false
+      requestIds: []
     })
   }
 
@@ -179,8 +177,6 @@ export class FrameManager {
         if (!frame) {
           if (message === ContentToContentAction.IS_FRAME_MONETIZED) {
             event.stopPropagation()
-
-            this.isFrameMonetized = payload.isMonetized
           }
           return
         }
@@ -194,8 +190,7 @@ export class FrameManager {
             event.stopPropagation()
             this.frames.set(frame, {
               frameId: id,
-              requestIds: [],
-              isFrameMonetized: false
+              requestIds: []
             })
             return
 
@@ -206,8 +201,7 @@ export class FrameManager {
                 frameId: id,
                 requestIds: payload.map(
                   (p: StartMonetizationPayload) => p.requestId
-                ),
-                isFrameMonetized: true
+                )
               })
               event.source.postMessage(
                 {
@@ -228,8 +222,7 @@ export class FrameManager {
                 frameId: id,
                 requestIds: payload.map(
                   (p: ResumeMonetizationPayload) => p.requestId
-                ),
-                isFrameMonetized: true
+                )
               })
               event.source.postMessage(
                 {
@@ -247,8 +240,7 @@ export class FrameManager {
             if (!frameDetails) return
 
             this.frames.set(frame, {
-              ...frameDetails,
-              isFrameMonetized: payload.isMonetized
+              ...frameDetails
             })
 
             return
