@@ -44,7 +44,7 @@ export class PaymentSession {
     private events: EventsService,
     private tabState: TabState,
     private url: string
-  ) {}
+  ) { }
 
   async adjustAmount(rate: AmountValue): Promise<void> {
     this.probingId = Date.now()
@@ -183,8 +183,6 @@ export class PaymentSession {
       await sleep(waitTime)
       this.waiting = false
     }
-
-    await sleep(waitTime)
 
     while (this.active && !this.waiting && !this.isDisabled) {
       // TO DO: remove await after rafiki test
