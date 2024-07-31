@@ -28,7 +28,6 @@ loglevel
 openapi
 apidevtools
 tailwindcss
-memoizee
 
 # user names
 raducristianpopa
