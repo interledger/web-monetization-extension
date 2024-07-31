@@ -215,23 +215,6 @@ export class MonetizationService {
     emitToggleWM({ enabled: !enabled })
   }
 
-  clearTabSessions(tabId: number) {
-    const sessions = this.tabState.getSessions(tabId)
-    if (!sessions.size) return
-
-    for (const session of sessions.values()) {
-      session.stop()
-    }
-
-    this.tabState.clearSessionsByTabId(tabId)
-    this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
-  }
-
-  clearTabOverpaying(tabId: number) {
-    this.tabState.clearOverpayingByTabId(tabId)
-    this.logger.debug(`Cleared overpaying state for tab ${tabId}.`)
-  }
-
   async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
     if (!tab || !tab.id) {

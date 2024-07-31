@@ -7,12 +7,7 @@ import {
   removeQueryParams,
   type Translation
 } from '@/shared/helpers'
-import type {
-  MonetizationService,
-  SendToPopup,
-  StorageService,
-  TabState
-} from '.'
+import type { SendToPopup, StorageService, TabState } from '.'
 import type { Storage, TabId } from '@/shared/types'
 
 const runtime = browser.runtime
@@ -74,7 +69,6 @@ type CallbackTabOnUpdated = Parameters<
 
 export class TabEvents {
   constructor(
-    private monetizationService: MonetizationService,
     private storage: StorageService,
     private tabState: TabState,
     private sendToPopup: SendToPopup,
@@ -92,16 +86,16 @@ export class TabEvents {
       const clearOverpaying = url
         ? this.tabState.checkOverpayingUrl(tabId, url)
         : false
-      this.monetizationService.clearTabSessions(tabId)
+      this.tabState.clearSessionsByTabId(tabId)
       if (clearOverpaying) {
-        this.monetizationService.clearTabOverpaying(tabId)
+        this.tabState.clearOverpayingByTabId(tabId)
       }
     }
   }
 
   onRemovedTab: CallbackTabOnRemoved = (tabId, _removeInfo) => {
-    this.monetizationService.clearTabSessions(tabId)
-    this.monetizationService.clearTabOverpaying(tabId)
+    this.tabState.clearSessionsByTabId(tabId)
+    this.tabState.clearOverpayingByTabId(tabId)
   }
 
   onActivatedTab: CallbackTabOnActivated = async (info) => {

@@ -1,6 +1,7 @@
 import type { MonetizationEventDetails } from '@/shared/messages'
 import type { TabId } from '@/shared/types'
 import type { PaymentSession } from './paymentSession'
+import type { Logger } from '@/shared/logger'
 
 type State = {
   monetizationEvent: MonetizationEventDetails
@@ -20,7 +21,7 @@ export class TabState {
   private state = new Map<TabId, Map<string, State>>()
   private sessions = new Map<TabId, Map<SessionId, PaymentSession>>()
 
-  constructor() {}
+  constructor(private logger: Logger) {}
 
   private getOverpayingStateKey(url: string, walletAddressId: string): string {
     return `${url}:${walletAddressId}`
@@ -110,9 +111,17 @@ export class TabState {
 
   clearOverpayingByTabId(tabId: TabId) {
     this.state.delete(tabId)
+    this.logger.debug(`Cleared overpaying state for tab ${tabId}.`)
   }
 
   clearSessionsByTabId(tabId: TabId) {
+    const sessions = this.getSessions(tabId)
+    if (!sessions.size) return
+
+    for (const session of sessions.values()) {
+      session.stop()
+    }
+    this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`)
     this.sessions.delete(tabId)
   }
 }
