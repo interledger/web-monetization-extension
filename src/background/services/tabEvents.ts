@@ -77,6 +77,7 @@ export class TabEvents {
       if (clearOverpaying) {
         this.tabState.clearOverpayingByTabId(tabId)
       }
+      void this.updateVisualIndicators(tabId)
     }
   }
 
