@@ -365,6 +365,7 @@ export class MonetizationService {
       }
     }
     const isSiteMonetized = this.tabState.isTabMonetized(tab.id!)
+    const hasAllSessionsInvalid = this.tabState.hasTabAllSessionsInvalid(tab.id!)
 
     return {
       ...dataFromStorage,
@@ -374,7 +375,8 @@ export class MonetizationService {
         oneTime: oneTimeGrant?.amount,
         recurring: recurringGrant?.amount
       },
-      isSiteMonetized
+      isSiteMonetized,
+      hasAllSessionsInvalid
     }
   }
 

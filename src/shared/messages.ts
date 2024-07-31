@@ -172,7 +172,7 @@ export type ToContentMessage = BackgroundToContentBackgroundMessage
 // #endregion
 
 export class MessageManager<TMessages> {
-  constructor(private browser: Browser) {}
+  constructor(private browser: Browser) { }
 
   async send<TResponse = undefined>(
     message: TMessages
@@ -206,6 +206,7 @@ export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>
   SET_IS_MONETIZED: boolean
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] }
+  SET_ALL_SESSIONS_INVALID: boolean
 }
 
 export type BackgroundToPopupMessage = {

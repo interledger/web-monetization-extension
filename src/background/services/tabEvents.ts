@@ -62,7 +62,7 @@ export class TabEvents {
     private sendToPopup: SendToPopup,
     private t: Translation,
     private browser: Browser
-  ) {}
+  ) { }
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     /**
@@ -112,6 +112,8 @@ export class TabEvents {
       hasTabAllSessionsInvalid
     })
     this.sendToPopup.send('SET_IS_MONETIZED', isMonetized)
+    this.sendToPopup.send('SET_ALL_SESSIONS_INVALID', hasTabAllSessionsInvalid)
+
     await this.setIconAndTooltip(path, title, tabId)
   }
 

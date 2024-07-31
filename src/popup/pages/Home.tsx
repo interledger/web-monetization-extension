@@ -13,6 +13,7 @@ import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
+import { WarningMessage } from '../components/WarningMessage'
 
 const updateRateOfPay = debounceAsync(updateRateOfPay_, 1000)
 
@@ -26,7 +27,8 @@ export const Component = () => {
       maxRateOfPay,
       balance,
       walletAddress,
-      url
+      url,
+      hasAllSessionsInvalid
     },
     dispatch
   } = React.useContext(PopupStateContext)
@@ -72,6 +74,9 @@ export const Component = () => {
     <div className="space-y-8">
       {enabled ? (
         <div className="space-y-2">
+          {hasAllSessionsInvalid && (
+            <WarningMessage warning="Has invalid links" />
+          )}
           <Label className="px-2 text-base font-medium text-medium">
             Current rate of pay
           </Label>
