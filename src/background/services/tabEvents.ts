@@ -90,7 +90,8 @@ export class TabEvents {
   }
 
   onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
-    await this.updateVisualIndicators(tab.id!)
+    if (!tab.id) return
+    await this.updateVisualIndicators(tab.id)
   }
 
   updateVisualIndicators = async (
