@@ -269,6 +269,7 @@ export class MonetizationService {
     this.onRateOfPayUpdate()
     this.onKeyRevoked()
     this.onOutOfFunds()
+    this.onInvalidReceiver()
   }
 
   private onRateOfPayUpdate() {
@@ -313,6 +314,16 @@ export class MonetizationService {
       this.stopAllSessions()
       await this.storage.setState({ out_of_funds: true })
       this.onOutOfFunds() // setup listener again once all is done
+    })
+  }
+
+  private onInvalidReceiver() {
+    this.events.on('open_payments.invalid_receiver', async ({ tabId }) => {
+      const allInvalid = this.tabState.hasTabAllSessionsInvalid(tabId)
+
+      if (allInvalid) {
+        this.events.emit('monetization.state_update', tabId)
+      }
     })
   }
 

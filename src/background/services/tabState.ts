@@ -99,6 +99,14 @@ export class TabState {
     return this.getEnabledSessions(tabId).length > 0
   }
 
+  hasTabAllSessionsInvalid(tabId: TabId) {
+    const sessions = [...this.getSessions(tabId).values()]
+    return (
+      sessions.length > 0 &&
+      sessions.filter((s) => !s.disabled).every((s) => s.getIsInvalid())
+    )
+  }
+
   getAllSessions() {
     return [...this.sessions.values()].flatMap((s) => [...s.values()])
   }

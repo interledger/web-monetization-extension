@@ -22,11 +22,15 @@ import type { AmountValue } from '@/shared/types'
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
+const MAX_FAILS = 10
 
 export class PaymentSession {
   private rate: string
   private waiting: boolean = false
   private active: boolean = false
+  private isInvalid: boolean = false
+  private countFailed: number = 0
+  private failed: boolean = false
   private isDisabled: boolean = false
   private incomingPaymentUrl: string
   private incomingPaymentExpiresAt: number
@@ -159,7 +163,14 @@ export class PaymentSession {
   }
 
   async start() {
-    if (this.active || this.isDisabled || this.waiting) return
+    if (
+      this.active ||
+      this.isDisabled ||
+      this.waiting ||
+      this.isInvalid ||
+      this.failed
+    )
+      return
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -184,7 +195,13 @@ export class PaymentSession {
       this.waiting = false
     }
 
-    while (this.active && !this.waiting && !this.isDisabled) {
+    while (
+      this.active &&
+      !this.waiting &&
+      !this.isDisabled &&
+      !this.failed &&
+      !this.isInvalid
+    ) {
       // TO DO: remove await after rafiki test
       await this.payContinuous()
       await sleep(this.intervalInMs)
@@ -373,11 +390,23 @@ export class PaymentSession {
         if (Date.now() >= this.incomingPaymentExpiresAt) {
           await this.setIncomingPaymentUrl(true)
         } else {
+          this.isInvalid = true
+          this.events.emit('open_payments.invalid_receiver', {
+            tabId: this.tabId
+          })
           throw e
         }
       } else {
+        ++this.countFailed
+        if (this.countFailed > MAX_FAILS) {
+          this.failed = true
+        }
         throw e
       }
     }
+  }
+
+  getIsInvalid() {
+    return this.isInvalid
   }
 }
