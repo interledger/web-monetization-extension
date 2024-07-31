@@ -258,14 +258,3 @@ export const getNextOccurrence = (
 
   return date
 }
-
-export type BrowserVariant = 'chrome' | 'firefox' | 'unknown'
-export const getBrowserVariant = (browser: Browser): BrowserVariant => {
-  const testUrl = browser.runtime.getURL('')
-  if (testUrl.startsWith('chrome-extension://')) {
-    return 'chrome'
-  } else if (testUrl.startsWith('moz-extension://')) {
-    return 'firefox'
-  }
-  return 'unknown'
-}

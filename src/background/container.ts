@@ -13,17 +13,11 @@ import {
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
-import {
-  getBrowserVariant,
-  tFactory,
-  type BrowserVariant,
-  type Translation
-} from '@/shared/helpers'
+import { tFactory, type Translation } from '@/shared/helpers'
 
 interface Cradle {
   logger: Logger
   browser: Browser
-  browserVariant: BrowserVariant
   events: EventsService
   deduplicator: Deduplicator
   storage: StorageService
@@ -46,7 +40,6 @@ export const configureContainer = () => {
   container.register({
     logger: asValue(logger),
     browser: asValue(browser),
-    browserVariant: asValue(getBrowserVariant(browser)),
     t: asValue(tFactory(browser)),
     events: asClass(EventsService).singleton(),
     deduplicator: asClass(Deduplicator)
