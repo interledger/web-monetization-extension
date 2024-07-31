@@ -26,6 +26,12 @@ export class TabState {
     return `${url}:${walletAddressId}`
   }
 
+  checkOverpayingUrl(tabId: TabId, url: string): boolean {
+    const tabState = this.state.get(tabId)
+    if (!tabState?.size) return true
+    return [...tabState.keys()].some((key) => key.startsWith(`${url}:`))
+  }
+
   getOverpayingDetails(
     tabId: TabId,
     url: string,
