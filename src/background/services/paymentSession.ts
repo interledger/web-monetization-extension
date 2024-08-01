@@ -207,9 +207,9 @@ export class PaymentSession {
       !this.isDisabled &&
       !this.isInvalid
     ) {
-      // TO DO: remove await after rafiki test
+      // TO DO: remove await after rafiki test and handle sleep (skip or not)
+      // and move the sleep function in the while block
       await this.payContinuous()
-      await sleep(this.intervalInMs)
     }
   }
 
@@ -381,6 +381,8 @@ export class PaymentSession {
           intervalInMs: this.intervalInMs
         })
       }
+
+      await sleep(this.intervalInMs)
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
@@ -396,7 +398,10 @@ export class PaymentSession {
           await this.setIncomingPaymentUrl(true)
         } else {
           ++this.countInvalidReceiver
-          if (this.countInvalidReceiver > MAX_INVALID_RECEIVER_ATTEMPTS) {
+          if (
+            this.countInvalidReceiver >= MAX_INVALID_RECEIVER_ATTEMPTS &&
+            !this.isInvalid
+          ) {
             this.isInvalid = true
             this.events.emit('open_payments.invalid_receiver', {
               tabId: this.tabId

@@ -172,7 +172,7 @@ export type ToContentMessage = BackgroundToContentBackgroundMessage
 // #endregion
 
 export class MessageManager<TMessages> {
-  constructor(private browser: Browser) { }
+  constructor(private browser: Browser) {}
 
   async send<TResponse = undefined>(
     message: TMessages

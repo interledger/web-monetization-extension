@@ -70,6 +70,7 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
 
+      // Q: How does this impact client side apps/routing?
       sessions.get(requestId)?.stop()
       sessions.delete(requestId)
 
