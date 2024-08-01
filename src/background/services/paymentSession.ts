@@ -23,6 +23,8 @@ const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
 
+type PaymentSessionSource = 'tab-change' | 'request-id-reused'
+
 export class PaymentSession {
   private rate: string
   private active: boolean = false
@@ -131,6 +133,10 @@ export class PaymentSession {
     this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
+  get id() {
+    return this.requestId
+  }
+
   get disabled() {
     return this.isDisabled
   }
@@ -172,7 +178,7 @@ export class PaymentSession {
     }
   }
 
-  async start(source?: 'tab-change') {
+  async start(source?: PaymentSessionSource) {
     if (this.active || this.isDisabled) return
     this.active = true
 
