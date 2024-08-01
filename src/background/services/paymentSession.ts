@@ -163,15 +163,15 @@ export class PaymentSession {
   private timeout: ReturnType<typeof setTimeout> | null = null
 
   private clearTimers() {
-    if(this.interval) {
-        console.warn('clearing interval', this.interval)
-        clearInterval(this.interval)
-        this.interval = null
+    if (this.interval) {
+      console.warn('clearing interval', this.interval)
+      clearTimeout(this.interval)
+      this.interval = null
     }
-    if(this.timeout) {
-        console.warn('clearing timeout', this.timeout)
-        clearTimeout(this.timeout)
-        this.timeout = null
+    if (this.timeout) {
+      console.warn('clearing timeout', this.timeout)
+      clearTimeout(this.timeout)
+      this.timeout = null
     }
   }
 
@@ -188,7 +188,7 @@ export class PaymentSession {
       this.receiver.id
     )
 
-    console.warn({waitTime, monetizationEvent})
+    console.warn({ waitTime, monetizationEvent })
 
     if (monetizationEvent && source !== 'tab-change') {
       sendMonetizationEvent({
@@ -201,14 +201,19 @@ export class PaymentSession {
       })
     }
 
-    if(this.active && !this.isDisabled) {
-        this.timeout = setTimeout(() => {
-            void this.payContinuous()
+    if (this.active && !this.isDisabled) {
+      this.timeout = setTimeout(() => {
+        void this.payContinuous()
 
-            this.interval = setInterval(() => {
-                void this.payContinuous()
-            }, this.intervalInMs)
-        }, waitTime)
+        const rec = () => {
+          void this.payContinuous().then(() => {
+            rec()
+          })
+        }
+        this.interval = setTimeout(() => {
+          rec()
+        }, this.intervalInMs)
+      }, waitTime)
     }
   }
 
@@ -346,7 +351,7 @@ export class PaymentSession {
   }
 
   private async payContinuous() {
-      console.count('payContinuous')
+    console.count('payContinuous')
     try {
       const outgoingPayment =
         await this.openPaymentsService.createOutgoingPayment({
