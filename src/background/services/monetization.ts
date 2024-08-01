@@ -322,6 +322,7 @@ export class MonetizationService {
   private onInvalidReceiver() {
     this.events.on('open_payments.invalid_receiver', async ({ tabId }) => {
       if (this.tabState.tabHasAllSessionsInvalid(tabId)) {
+        this.logger.debug(`Tab ${tabId} has all sessions invalid`)
         this.events.emit('monetization.state_update', tabId)
       }
     })
