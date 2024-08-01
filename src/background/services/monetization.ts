@@ -90,7 +90,8 @@ export class MonetizationService {
 
     this.events.emit('monetization.state_update', tabId)
 
-    const sessionsArr = this.tabState.getEnabledSessions(tabId)
+    const sessionsArr = this.tabState.getPayableSessions(tabId)
+    if (!sessionsArr.length) return
     const rate = computeRate(rateOfPay, sessionsArr.length)
 
     // Since we probe (through quoting) the debitAmount we have to await this call.
@@ -151,7 +152,7 @@ export class MonetizationService {
     if (!rateOfPay) return
 
     if (needsAdjustAmount) {
-      const sessionsArr = this.tabState.getEnabledSessions(tabId)
+      const sessionsArr = this.tabState.getPayableSessions(tabId)
       this.events.emit('monetization.state_update', tabId)
       if (!sessionsArr.length) return
       const rate = computeRate(rateOfPay, sessionsArr.length)
@@ -289,7 +290,7 @@ export class MonetizationService {
       }
 
       for (const tabId of tabIds) {
-        const sessions = this.tabState.getEnabledSessions(tabId)
+        const sessions = this.tabState.getPayableSessions(tabId)
         if (!sessions.length) continue
         const computedRate = computeRate(rate, sessions.length)
         await this.adjustSessionsAmount(sessions, computedRate).catch((e) => {
@@ -319,9 +320,7 @@ export class MonetizationService {
 
   private onInvalidReceiver() {
     this.events.on('open_payments.invalid_receiver', async ({ tabId }) => {
-      const allInvalid = this.tabState.hasTabAllSessionsInvalid(tabId)
-
-      if (allInvalid) {
+      if (this.tabState.tabHasAllSessionsInvalid(tabId)) {
         this.events.emit('monetization.state_update', tabId)
       }
     })
@@ -365,7 +364,9 @@ export class MonetizationService {
       }
     }
     const isSiteMonetized = this.tabState.isTabMonetized(tab.id!)
-    const hasAllSessionsInvalid = this.tabState.hasTabAllSessionsInvalid(tab.id!)
+    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(
+      tab.id!
+    )
 
     return {
       ...dataFromStorage,

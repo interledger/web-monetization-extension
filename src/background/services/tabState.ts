@@ -95,16 +95,17 @@ export class TabState {
     return [...this.getSessions(tabId).values()].filter((s) => !s.disabled)
   }
 
+  getPayableSessions(tabId: TabId) {
+    return this.getEnabledSessions(tabId).filter((s) => !s.invalid)
+  }
+
   isTabMonetized(tabId: TabId) {
     return this.getEnabledSessions(tabId).length > 0
   }
 
-  hasTabAllSessionsInvalid(tabId: TabId) {
-    const sessions = [...this.getSessions(tabId).values()]
-    return (
-      sessions.length > 0 &&
-      sessions.filter((s) => !s.disabled).every((s) => s.getIsInvalid())
-    )
+  tabHasAllSessionsInvalid(tabId: TabId) {
+    const sessions = this.getEnabledSessions(tabId)
+    return sessions.length > 0 && sessions.every((s) => s.invalid)
   }
 
   getAllSessions() {

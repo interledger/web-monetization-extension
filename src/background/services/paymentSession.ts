@@ -22,15 +22,15 @@ import type { AmountValue } from '@/shared/types'
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
-const MAX_FAILS = 10
+const MAX_INVALID_RECEIVER_ATTEMPTS = 2
 
 export class PaymentSession {
   private rate: string
   private waiting: boolean = false
   private active: boolean = false
+  /** Invalid receiver (providers not peered or other reasons) */
   private isInvalid: boolean = false
-  private countFailed: number = 0
-  private failed: boolean = false
+  private countInvalidReceiver: number = 0
   private isDisabled: boolean = false
   private incomingPaymentUrl: string
   private incomingPaymentExpiresAt: number
@@ -87,6 +87,12 @@ export class PaymentSession {
             await this.openPaymentsService.rotateToken()
           } else if (isNonPositiveAmountError(e)) {
             continue
+          } else if (isInvalidReceiverError(e)) {
+            this.isInvalid = true
+            this.events.emit('open_payments.invalid_receiver', {
+              tabId: this.tabId
+            })
+            break
           } else {
             throw e
           }
@@ -140,6 +146,10 @@ export class PaymentSession {
     return this.isDisabled
   }
 
+  get invalid() {
+    return this.isInvalid
+  }
+
   disable() {
     this.isDisabled = true
     this.stop()
@@ -163,14 +173,10 @@ export class PaymentSession {
   }
 
   async start() {
-    if (
-      this.active ||
-      this.isDisabled ||
-      this.waiting ||
-      this.isInvalid ||
-      this.failed
-    )
+    if (this.active || this.isDisabled || this.waiting || this.isInvalid) {
       return
+    }
+
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -199,7 +205,6 @@ export class PaymentSession {
       this.active &&
       !this.waiting &&
       !this.isDisabled &&
-      !this.failed &&
       !this.isInvalid
     ) {
       // TO DO: remove await after rafiki test
@@ -390,23 +395,17 @@ export class PaymentSession {
         if (Date.now() >= this.incomingPaymentExpiresAt) {
           await this.setIncomingPaymentUrl(true)
         } else {
-          this.isInvalid = true
-          this.events.emit('open_payments.invalid_receiver', {
-            tabId: this.tabId
-          })
-          throw e
+          ++this.countInvalidReceiver
+          if (this.countInvalidReceiver > MAX_INVALID_RECEIVER_ATTEMPTS) {
+            this.isInvalid = true
+            this.events.emit('open_payments.invalid_receiver', {
+              tabId: this.tabId
+            })
+          }
         }
       } else {
-        ++this.countFailed
-        if (this.countFailed > MAX_FAILS) {
-          this.failed = true
-        }
         throw e
       }
     }
-  }
-
-  getIsInvalid() {
-    return this.isInvalid
   }
 }
