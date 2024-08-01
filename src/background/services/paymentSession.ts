@@ -5,7 +5,7 @@ import {
   type WalletAddress
 } from '@interledger/open-payments/dist/types'
 import { sendMonetizationEvent } from '../lib/messages'
-import { bigIntMax, convert, sleep } from '@/shared/helpers'
+import { bigIntMax, convert } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import {
   isInvalidReceiverError,
@@ -25,7 +25,6 @@ const MIN_SEND_AMOUNT = 1n // 1 unit
 
 export class PaymentSession {
   private rate: string
-  private waiting: boolean = false
   private active: boolean = false
   private isDisabled: boolean = false
   private incomingPaymentUrl: string
@@ -201,18 +200,35 @@ export class PaymentSession {
       })
     }
 
+    // Uncomment this after we perform the Rafiki test and remove the leftover
+    // code below.
+    //
+    // if (this.active && !this.isDisabled) {
+    //   this.timeout = setTimeout(() => {
+    //     void this.payContinuous()
+    //
+    //     this.interval = setInterval(() => {
+    //       void this.payContinuous()
+    //     }, this.intervalInMs)
+    //   }, waitTime)
+    // }
+
+    // Leftofer
+    const continuePayment = () => {
+      if (!this.active || this.isDisabled) return
+      void this.payContinuous().then(() => {
+        this.interval = setTimeout(() => {
+          continuePayment()
+        }, this.intervalInMs)
+      })
+    }
+
     if (this.active && !this.isDisabled) {
       this.timeout = setTimeout(() => {
         void this.payContinuous()
-
-        const rec = () => {
-          void this.payContinuous().then(() => {
-            rec()
-          })
-        }
         this.interval = setTimeout(() => {
-          rec()
-        }, this.intervalInMs)
+          continuePayment()
+        }, waitTime + this.intervalInMs)
       }, waitTime)
     }
   }
