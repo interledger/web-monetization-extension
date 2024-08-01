@@ -152,14 +152,32 @@ export class PaymentSession {
 
   stop() {
     this.active = false
+    this.clearTimers()
   }
 
   resume() {
-    this.start()
+    this.start('tab-change')
   }
 
-  async start() {
-    if (this.active || this.isDisabled || this.waiting) return
+  private interval: ReturnType<typeof setInterval> | null = null
+  private timeout: ReturnType<typeof setTimeout> | null = null
+
+  private clearTimers() {
+    if(this.interval) {
+        console.warn('clearing interval', this.interval)
+        clearInterval(this.interval)
+        this.interval = null
+    }
+    if(this.timeout) {
+        console.warn('clearing timeout', this.timeout)
+        clearTimeout(this.timeout)
+        this.timeout = null
+    }
+  }
+
+  async start(source?: 'tab-change') {
+    console.count('calling start')
+    if (this.active || this.isDisabled) return
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -170,7 +188,9 @@ export class PaymentSession {
       this.receiver.id
     )
 
-    if (monetizationEvent) {
+    console.warn({waitTime, monetizationEvent})
+
+    if (monetizationEvent && source !== 'tab-change') {
       sendMonetizationEvent({
         tabId: this.tabId,
         frameId: this.frameId,
@@ -179,15 +199,16 @@ export class PaymentSession {
           details: monetizationEvent
         }
       })
-      this.waiting = true
-      await sleep(waitTime)
-      this.waiting = false
     }
 
-    while (this.active && !this.waiting && !this.isDisabled) {
-      // TO DO: remove await after rafiki test
-      await this.payContinuous()
-      await sleep(this.intervalInMs)
+    if(this.active && !this.isDisabled) {
+        this.timeout = setTimeout(() => {
+            void this.payContinuous()
+
+            this.interval = setInterval(() => {
+                void this.payContinuous()
+            }, this.intervalInMs)
+        }, waitTime)
     }
   }
 
@@ -325,6 +346,7 @@ export class PaymentSession {
   }
 
   private async payContinuous() {
+      console.count('payContinuous')
     try {
       const outgoingPayment =
         await this.openPaymentsService.createOutgoingPayment({

@@ -45,7 +45,7 @@ export class Background {
     this.bindPermissionsHandler()
     this.bindEventsHandler()
     this.bindTabHandlers()
-    this.bindWindowHandlers()
+    // this.bindWindowHandlers()
     this.sendToPopup.start()
   }
 
