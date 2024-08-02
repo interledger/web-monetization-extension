@@ -60,7 +60,7 @@ export const configureContainer = () => {
     monetizationService: asClass(MonetizationService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('monetization-service')
+        logger: logger.getLogger('monetization')
       })),
     tabEvents: asClass(TabEvents).singleton(),
     sendToPopup: asClass(SendToPopup).singleton(),
@@ -69,7 +69,11 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('main')
       })),
-    tabState: asClass(TabState).singleton()
+    tabState: asClass(TabState)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('tab-state')
+      }))
   })
 
   return container
