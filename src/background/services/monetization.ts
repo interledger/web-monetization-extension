@@ -66,13 +66,19 @@ export class MonetizationService {
     const { tabId, frameId, url } = getSender(sender)
     const sessions = this.tabState.getSessions(tabId)
 
+    const replacedSessions = new Set<string>()
+
     // Initialize new sessions
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
 
       // Q: How does this impact client side apps/routing?
-      sessions.get(requestId)?.stop()
-      sessions.delete(requestId)
+      const existingSession = sessions.get(requestId)
+      if (existingSession) {
+        existingSession.stop()
+        sessions.delete(requestId)
+        replacedSessions.add(requestId)
+      }
 
       const session = new PaymentSession(
         receiver,
@@ -83,7 +89,8 @@ export class MonetizationService {
         this.openPaymentsService,
         this.events,
         this.tabState,
-        removeQueryParams(url!)
+        removeQueryParams(url!),
+        this.logger
       )
 
       sessions.set(requestId, session)
@@ -101,7 +108,10 @@ export class MonetizationService {
 
     if (enabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
-        void session.start()
+        const source = replacedSessions.has(session.id)
+          ? 'request-id-reused'
+          : 'new-link'
+        void session.start(source)
       })
     }
   }

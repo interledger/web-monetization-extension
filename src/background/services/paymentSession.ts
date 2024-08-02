@@ -5,7 +5,7 @@ import {
   type WalletAddress
 } from '@interledger/open-payments/dist/types'
 import { sendMonetizationEvent } from '../lib/messages'
-import { bigIntMax, convert, sleep } from '@/shared/helpers'
+import { bigIntMax, convert } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import {
   isInvalidReceiverError,
@@ -18,15 +18,17 @@ import { getNextSendableAmount } from '@/background/utils'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { MonetizationEventDetails } from '@/shared/messages'
 import type { AmountValue } from '@/shared/types'
+import type { Logger } from '@/shared/logger'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
 const MAX_INVALID_RECEIVER_ATTEMPTS = 2
 
+type PaymentSessionSource = 'tab-change' | 'request-id-reused' | 'new-link'
+
 export class PaymentSession {
   private rate: string
-  private waiting: boolean = false
   private active: boolean = false
   /** Invalid receiver (providers not peered or other reasons) */
   private isInvalid: boolean = false
@@ -38,6 +40,9 @@ export class PaymentSession {
   private intervalInMs: number
   private probingId: number
 
+  private interval: ReturnType<typeof setInterval> | null = null
+  private timeout: ReturnType<typeof setTimeout> | null = null
+
   constructor(
     private receiver: WalletAddress,
     private sender: WalletAddress,
@@ -47,7 +52,8 @@ export class PaymentSession {
     private openPaymentsService: OpenPaymentsService,
     private events: EventsService,
     private tabState: TabState,
-    private url: string
+    private url: string,
+    private logger: Logger
   ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
@@ -142,6 +148,10 @@ export class PaymentSession {
     this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
+  get id() {
+    return this.requestId
+  }
+
   get disabled() {
     return this.isDisabled
   }
@@ -166,17 +176,39 @@ export class PaymentSession {
 
   stop() {
     this.active = false
+    this.clearTimers()
   }
 
   resume() {
-    this.start()
+    this.start('tab-change')
   }
 
-  async start() {
-    if (this.active || this.isDisabled || this.waiting || this.isInvalid) {
-      return
+  private clearTimers() {
+    if (this.interval) {
+      this.debug(`Clearing interval=${this.timeout}`)
+      clearInterval(this.interval)
+      this.interval = null
     }
+    if (this.timeout) {
+      this.debug(`Clearing timeout=${this.timeout}`)
+      clearTimeout(this.timeout)
+      this.timeout = null
+    }
+  }
 
+  private debug(message: string) {
+    this.logger.debug(
+      `[PAYMENT SESSION] requestId=${this.requestId}; receiver=${this.receiver.id}\n\n`,
+      `   ${message}`
+    )
+  }
+
+  async start(source: PaymentSessionSource) {
+    this.debug(
+      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled}`
+    )
+    if (this.active || this.isDisabled) return
+    this.debug(`Session started; source=${source}`)
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -187,7 +219,9 @@ export class PaymentSession {
       this.receiver.id
     )
 
-    if (monetizationEvent) {
+    this.debug(`Overpaying: waitTime=${waitTime}`)
+
+    if (monetizationEvent && source !== 'tab-change') {
       sendMonetizationEvent({
         tabId: this.tabId,
         frameId: this.frameId,
@@ -196,20 +230,44 @@ export class PaymentSession {
           details: monetizationEvent
         }
       })
-      this.waiting = true
-      await sleep(waitTime)
-      this.waiting = false
     }
 
-    while (
-      this.active &&
-      !this.waiting &&
-      !this.isDisabled &&
-      !this.isInvalid
-    ) {
-      // TO DO: remove await after rafiki test and handle sleep (skip or not)
-      // and move the sleep function in the while block
-      await this.payContinuous()
+    // Uncomment this after we perform the Rafiki test and remove the leftover
+    // code below.
+    //
+    // if (this.active && !this.isDisabled) {
+    //   this.timeout = setTimeout(() => {
+    //     void this.payContinuous()
+    //
+    //     this.interval = setInterval(() => {
+    //       if (!this.active || this.isDisabled || this.isInvalid) {
+    //           this.clearTimers()
+    //           return
+    //       }
+    //       void this.payContinuous()
+    //     }, this.intervalInMs)
+    //   }, waitTime)
+    // }
+
+    // Leftover
+    const continuePayment = () => {
+      if (!this.active || this.isDisabled || this.isInvalid) return
+      // alternatively (leftover) after we perform the Rafiki test, we can just
+      // skip the `.then()` here and call setTimeout recursively immediately
+      void this.payContinuous().then(() => {
+        this.timeout = setTimeout(() => {
+          continuePayment()
+        }, this.intervalInMs)
+      })
+    }
+
+    if (this.active && !this.isDisabled && !this.isInvalid) {
+      this.timeout = setTimeout(() => {
+        void this.payContinuous()
+        this.timeout = setTimeout(() => {
+          continuePayment()
+        }, this.intervalInMs)
+      }, waitTime)
     }
   }
 
@@ -381,8 +439,6 @@ export class PaymentSession {
           intervalInMs: this.intervalInMs
         })
       }
-
-      await sleep(this.intervalInMs)
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
