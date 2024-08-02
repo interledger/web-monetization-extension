@@ -72,11 +72,9 @@ export const Component = () => {
 
   return (
     <div className="space-y-8">
+      {hasAllSessionsInvalid && <WarningMessage warning="Has invalid links" />}
       {enabled ? (
         <div className="space-y-2">
-          {hasAllSessionsInvalid && (
-            <WarningMessage warning="Has invalid links" />
-          )}
           <Label className="px-2 text-base font-medium text-medium">
             Current rate of pay
           </Label>

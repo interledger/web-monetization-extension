@@ -236,22 +236,21 @@ export class MonetizationService {
     if (!tab || !tab.id) {
       throw new Error('Could not find active tab.')
     }
-    const sessions = this.tabState.getEnabledSessions(tab.id)
-    if (!sessions.length) {
+
+    const payableSessions = this.tabState.getPayableSessions(tab.id)
+    if (!payableSessions.length) {
+      if (this.tabState.getEnabledSessions(tab.id).length) {
+        throw new Error(
+          '[TODO] We cannot send money (probable cause: unpeered wallets) '
+        )
+      }
       throw new Error('This website is not monetized.')
     }
 
-    const validSessions = sessions.filter((s) => !s.invalid)
-    if (!validSessions.length) {
-      throw new Error(
-        '[TODO] We cannot send money (probable cause: unpeered wallets) '
-      )
-    }
-
-    const splitAmount = Number(amount) / validSessions.length
+    const splitAmount = Number(amount) / payableSessions.length
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
-      validSessions.map((session) => session.pay(splitAmount))
+      payableSessions.map((session) => session.pay(splitAmount))
     )
 
     const totalSentAmount = results
