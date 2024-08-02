@@ -106,6 +106,7 @@ export class MonetizationService {
 
     if (enabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
+        if (!sessions.get(session.id)) return
         const source = replacedSessions.has(session.id)
           ? 'request-id-reused'
           : 'new-link'
