@@ -111,7 +111,7 @@ export function* getNextSendableAmount(
   senderAssetScale: number,
   receiverAssetScale: number,
   amount: bigint = 0n
-): IterableIterator<AmountValue> {
+): Generator<AmountValue, never, never> {
   const EXPONENTIAL_INCREASE = 0.5
 
   const scaleDiff =

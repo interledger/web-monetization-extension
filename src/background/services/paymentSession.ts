@@ -20,7 +20,6 @@ import type { MonetizationEventDetails } from '@/shared/messages'
 import type { AmountValue } from '@/shared/types'
 import type { Logger } from '@/shared/logger'
 
-const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
 const MAX_INVALID_RECEIVER_ATTEMPTS = 2
@@ -39,7 +38,7 @@ export class PaymentSession {
   private amount: string
   private intervalInMs: number
   private probingId: number
-  private shouldRetryImmediately: boolean = false;
+  private shouldRetryImmediately: boolean = false
 
   private interval: ReturnType<typeof setInterval> | null = null
   private timeout: ReturnType<typeof setTimeout> | null = null
@@ -104,29 +103,32 @@ export class PaymentSession {
 
     // This all will eventually get replaced by OpenPayments response update
     // that includes a min rate that we can directly use.
-    // if (this.sender.assetCode !== this.receiver.assetCode) {
     await this.setIncomingPaymentUrl()
-    for (const amount of getNextSendableAmount(
+    const amountIter = getNextSendableAmount(
       senderAssetScale,
       receiverAssetScale,
       bigIntMax(amountToSend, MIN_SEND_AMOUNT)
-    )) {
+    )
+
+    amountToSend = BigInt(amountIter.next().value)
+    while (true) {
       if (this.probingId !== localProbingId) {
         // In future we can throw `new AbortError()`
         throw new DOMException('Aborting existing probing', 'AbortError')
       }
       try {
         await this.openPaymentsService.probeDebitAmount(
-          amount,
+          amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender
         )
-        this.setAmount(BigInt(amount))
-        return
+        this.setAmount(amountToSend)
+        break
       } catch (e) {
         if (isTokenExpiredError(e)) {
           await this.openPaymentsService.rotateToken()
         } else if (isNonPositiveAmountError(e)) {
+          amountToSend = BigInt(amountIter.next().value)
           continue
         } else if (isInvalidReceiverError(e)) {
           this.markInvalid()
@@ -139,11 +141,6 @@ export class PaymentSession {
         }
       }
     }
-    // return
-    // }
-
-    this.amount = amountToSend.toString()
-    this.intervalInMs = DEFAULT_INTERVAL_MS
   }
 
   get id() {
@@ -252,7 +249,7 @@ export class PaymentSession {
     //   }, waitTime)
     // }
 
-    console.log({interval: this.intervalInMs})
+    console.log({ interval: this.intervalInMs })
 
     // Leftover
     const continuePayment = () => {
@@ -260,18 +257,24 @@ export class PaymentSession {
       // alternatively (leftover) after we perform the Rafiki test, we can just
       // skip the `.then()` here and call setTimeout recursively immediately
       void this.payContinuous().then(() => {
-        this.timeout = setTimeout(() => {
-          continuePayment()
-        }, this.shouldRetryImmediately ? 0 : this.intervalInMs)
+        this.timeout = setTimeout(
+          () => {
+            continuePayment()
+          },
+          this.shouldRetryImmediately ? 0 : this.intervalInMs
+        )
       })
     }
 
     if (this.canContinuePayment) {
       this.timeout = setTimeout(async () => {
         await this.payContinuous()
-        this.timeout = setTimeout(() => {
-          continuePayment()
-        }, this.shouldRetryImmediately ? 0 : this.intervalInMs)
+        this.timeout = setTimeout(
+          () => {
+            continuePayment()
+          },
+          this.shouldRetryImmediately ? 0 : this.intervalInMs
+        )
       }, waitTime)
     }
   }
@@ -418,7 +421,8 @@ export class PaymentSession {
       const outgoingPayment =
         await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
-          incomingPaymentId: 'https://ilp.rafiki.money/incoming-payments/95b678e7-2a73-4df4-8243-d824661fca6d',
+          incomingPaymentId:
+            'https://ilp.rafiki.money/incoming-payments/95b678e7-2a73-4df4-8243-d824661fca6d',
           amount: this.amount
         })
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment
