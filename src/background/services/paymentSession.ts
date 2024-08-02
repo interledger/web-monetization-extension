@@ -18,12 +18,13 @@ import { getNextSendableAmount } from '@/background/utils'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
 import type { MonetizationEventDetails } from '@/shared/messages'
 import type { AmountValue } from '@/shared/types'
+import type { Logger } from '@/shared/logger'
 
 const DEFAULT_INTERVAL_MS = 1000
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
 
-type PaymentSessionSource = 'tab-change' | 'request-id-reused'
+type PaymentSessionSource = 'tab-change' | 'request-id-reused' | 'new-link'
 
 export class PaymentSession {
   private rate: string
@@ -35,6 +36,9 @@ export class PaymentSession {
   private intervalInMs: number
   private probingId: number
 
+  private interval: ReturnType<typeof setInterval> | null = null
+  private timeout: ReturnType<typeof setTimeout> | null = null
+
   constructor(
     private receiver: WalletAddress,
     private sender: WalletAddress,
@@ -44,7 +48,8 @@ export class PaymentSession {
     private openPaymentsService: OpenPaymentsService,
     private events: EventsService,
     private tabState: TabState,
-    private url: string
+    private url: string,
+    private logger: Logger
   ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
@@ -164,22 +169,32 @@ export class PaymentSession {
     this.start('tab-change')
   }
 
-  private interval: ReturnType<typeof setInterval> | null = null
-  private timeout: ReturnType<typeof setTimeout> | null = null
-
   private clearTimers() {
     if (this.interval) {
+      this.debug(`Clearing interval=${this.timeout}`)
       clearTimeout(this.interval)
       this.interval = null
     }
     if (this.timeout) {
+      this.debug(`Clearing timeout=${this.timeout}`)
       clearTimeout(this.timeout)
       this.timeout = null
     }
   }
 
-  async start(source?: PaymentSessionSource) {
+  private debug(...args: unknown[]) {
+    this.logger.debug(
+      `[PAYMENT SESSION] requestId=${this.requestId}; receiver=${this.receiver.id}\n\n`,
+      `   ${args}`
+    )
+  }
+
+  async start(source: PaymentSessionSource) {
+    this.debug(
+      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled}`
+    )
     if (this.active || this.isDisabled) return
+    this.debug(`Session started; source=${source}`)
     this.active = true
 
     await this.setIncomingPaymentUrl()
@@ -189,6 +204,8 @@ export class PaymentSession {
       this.url,
       this.receiver.id
     )
+
+    this.debug(`Overpaying: waitTime=${waitTime}`)
 
     if (monetizationEvent && source !== 'tab-change') {
       sendMonetizationEvent({
@@ -209,6 +226,10 @@ export class PaymentSession {
     //     void this.payContinuous()
     //
     //     this.interval = setInterval(() => {
+    //       if (!this.active || this.isDisabled) {
+    //           this.clearTimers()
+    //           return
+    //       }
     //       void this.payContinuous()
     //     }, this.intervalInMs)
     //   }, waitTime)

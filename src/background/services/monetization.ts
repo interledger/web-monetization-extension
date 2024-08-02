@@ -88,7 +88,8 @@ export class MonetizationService {
         this.openPaymentsService,
         this.events,
         this.tabState,
-        removeQueryParams(url!)
+        removeQueryParams(url!),
+        this.logger
       )
 
       sessions.set(requestId, session)
@@ -107,7 +108,7 @@ export class MonetizationService {
       sessionsArr.forEach((session) => {
         const source = duplicates.has(session.id)
           ? 'request-id-reused'
-          : undefined
+          : 'new-link'
         void session.start(source)
       })
     }
