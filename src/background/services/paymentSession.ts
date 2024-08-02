@@ -249,8 +249,6 @@ export class PaymentSession {
     //   }, waitTime)
     // }
 
-    console.log({ interval: this.intervalInMs })
-
     // Leftover
     const continuePayment = () => {
       if (!this.canContinuePayment) return

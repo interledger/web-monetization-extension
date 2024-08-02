@@ -41,7 +41,7 @@
     "message": "Not enough funds to facilitate payment."
   },
   "pay_error_invalidReceivers": {
-    "message": "[TODO] We cannot send money (probable cause: unpeered wallets)"
+    "message": "[TODO] We cannot send money (probable cause: un-peered wallets)"
   },
   "pay_error_notMonetized": {
     "message": "[TODO] This website is not monetized."
