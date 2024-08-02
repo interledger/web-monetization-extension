@@ -208,7 +208,7 @@ export class PaymentSession {
 
   async start(source: PaymentSessionSource) {
     this.debug(
-      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled}`
+      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled} isInvalid=${this.isInvalid}`
     )
     if (this.active || this.isDisabled || this.isInvalid) return
     this.debug(`Session started; source=${source}`)
