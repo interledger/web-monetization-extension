@@ -66,7 +66,7 @@ export class MonetizationService {
     const { tabId, frameId, url } = getSender(sender)
     const sessions = this.tabState.getSessions(tabId)
 
-    const duplicates = new Set<string>()
+    const replacedSessions = new Set<string>()
 
     // Initialize new sessions
     payload.forEach((p) => {
@@ -76,7 +76,7 @@ export class MonetizationService {
       if (existingSession) {
         existingSession.stop()
         sessions.delete(requestId)
-        duplicates.add(requestId)
+        replacedSessions.add(requestId)
       }
 
       const session = new PaymentSession(
@@ -106,14 +106,12 @@ export class MonetizationService {
 
     if (enabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
-        const source = duplicates.has(session.id)
+        const source = replacedSessions.has(session.id)
           ? 'request-id-reused'
           : 'new-link'
         void session.start(source)
       })
     }
-
-    duplicates.clear()
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {

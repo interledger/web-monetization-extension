@@ -182,10 +182,10 @@ export class PaymentSession {
     }
   }
 
-  private debug(...args: unknown[]) {
+  private debug(message: string) {
     this.logger.debug(
       `[PAYMENT SESSION] requestId=${this.requestId}; receiver=${this.receiver.id}\n\n`,
-      `   ${args}`
+      `   ${message}`
     )
   }
 
