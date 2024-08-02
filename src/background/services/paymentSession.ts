@@ -174,6 +174,11 @@ export class PaymentSession {
     throw new Error('Method not implemented.')
   }
 
+  private markInvalid() {
+    this.isInvalid = true
+    this.stop()
+  }
+
   stop() {
     this.active = false
     this.clearTimers()
@@ -207,7 +212,7 @@ export class PaymentSession {
     this.debug(
       `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled}`
     )
-    if (this.active || this.isDisabled) return
+    if (this.active || this.isDisabled || this.isInvalid) return
     this.debug(`Session started; source=${source}`)
     this.active = true
 
@@ -235,12 +240,12 @@ export class PaymentSession {
     // Uncomment this after we perform the Rafiki test and remove the leftover
     // code below.
     //
-    // if (this.active && !this.isDisabled) {
+    // if (this.canContinuePayment) {
     //   this.timeout = setTimeout(() => {
     //     void this.payContinuous()
     //
     //     this.interval = setInterval(() => {
-    //       if (!this.active || this.isDisabled || this.isInvalid) {
+    //       if (!this.canContinuePayment) {
     //           this.clearTimers()
     //           return
     //       }
@@ -251,7 +256,7 @@ export class PaymentSession {
 
     // Leftover
     const continuePayment = () => {
-      if (!this.active || this.isDisabled || this.isInvalid) return
+      if (!this.canContinuePayment) return
       // alternatively (leftover) after we perform the Rafiki test, we can just
       // skip the `.then()` here and call setTimeout recursively immediately
       void this.payContinuous().then(() => {
@@ -261,7 +266,7 @@ export class PaymentSession {
       })
     }
 
-    if (this.active && !this.isDisabled && !this.isInvalid) {
+    if (this.canContinuePayment) {
       this.timeout = setTimeout(() => {
         void this.payContinuous()
         this.timeout = setTimeout(() => {
@@ -269,6 +274,10 @@ export class PaymentSession {
         }, this.intervalInMs)
       }, waitTime)
     }
+  }
+
+  private get canContinuePayment() {
+    return this.active && !this.isDisabled && !this.isInvalid
   }
 
   private async setIncomingPaymentUrl(reset?: boolean) {
@@ -458,7 +467,7 @@ export class PaymentSession {
             this.countInvalidReceiver >= MAX_INVALID_RECEIVER_ATTEMPTS &&
             !this.isInvalid
           ) {
-            this.isInvalid = true
+            this.markInvalid()
             this.events.emit('open_payments.invalid_receiver', {
               tabId: this.tabId
             })
