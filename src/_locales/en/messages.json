@@ -40,6 +40,12 @@
   "pay_error_notEnoughFunds": {
     "message": "Not enough funds to facilitate payment."
   },
+  "pay_error_invalidReceivers": {
+    "message": "[TODO] We cannot send money (probable cause: unpeered wallets)"
+  },
+  "pay_error_notMonetized": {
+    "message": "[TODO] This website is not monetized."
+  },
   "outOfFunds_error_title": {
     "message": "Out of funds"
   },
@@ -85,5 +91,8 @@
   },
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
+  },
+  "home_warn_invalidLinks": {
+    "message": "[TODO] Has invalid links. (UI)"
   }
 }

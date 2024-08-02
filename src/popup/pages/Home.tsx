@@ -1,5 +1,9 @@
 import React from 'react'
-import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
+import {
+  PopupStateContext,
+  ReducerActionType,
+  useTranslation
+} from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
 import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
@@ -18,6 +22,7 @@ import { WarningMessage } from '../components/WarningMessage'
 const updateRateOfPay = debounceAsync(updateRateOfPay_, 1000)
 
 export const Component = () => {
+  const t = useTranslation()
   const {
     state: {
       enabled,
@@ -72,7 +77,9 @@ export const Component = () => {
 
   return (
     <div className="space-y-8">
-      {hasAllSessionsInvalid && <WarningMessage warning="Has invalid links" />}
+      {hasAllSessionsInvalid && (
+        <WarningMessage warning={t('home_warn_invalidLinks')} />
+      )}
       {enabled ? (
         <div className="space-y-2">
           <Label className="px-2 text-base font-medium text-medium">

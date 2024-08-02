@@ -234,17 +234,15 @@ export class MonetizationService {
   async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
     if (!tab || !tab.id) {
-      throw new Error('Could not find active tab.')
+      throw new Error('Unexpected error: could not find active tab.')
     }
 
     const payableSessions = this.tabState.getPayableSessions(tab.id)
     if (!payableSessions.length) {
       if (this.tabState.getEnabledSessions(tab.id).length) {
-        throw new Error(
-          '[TODO] We cannot send money (probable cause: unpeered wallets) '
-        )
+        throw new Error(this.t('pay_error_invalidReceivers'))
       }
-      throw new Error('This website is not monetized.')
+      throw new Error(this.t('pay_error_notMonetized'))
     }
 
     const splitAmount = Number(amount) / payableSessions.length
