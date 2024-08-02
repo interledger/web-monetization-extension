@@ -104,6 +104,7 @@ export class PaymentSession {
       receiverAssetScale,
       bigIntMax(amountToSend, MIN_SEND_AMOUNT)
     )
+
     amountToSend = BigInt(amountIter.next().value)
     while (true) {
       if (this.probingId !== localProbingId) {
