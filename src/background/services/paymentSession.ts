@@ -421,8 +421,7 @@ export class PaymentSession {
       const outgoingPayment =
         await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
-          incomingPaymentId:
-            'https://ilp.rafiki.money/incoming-payments/95b678e7-2a73-4df4-8243-d824661fca6d',
+          incomingPaymentId: this.incomingPaymentUrl,
           amount: this.amount
         })
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment
