@@ -241,10 +241,17 @@ export class MonetizationService {
       throw new Error('This website is not monetized.')
     }
 
-    const splitAmount = Number(amount) / sessions.length
+    const validSessions = sessions.filter((s) => !s.invalid)
+    if (!validSessions.length) {
+      throw new Error(
+        '[TODO] We cannot send money (probable cause: unpeered wallets) '
+      )
+    }
+
+    const splitAmount = Number(amount) / validSessions.length
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
-      sessions.map((session) => session.pay(splitAmount))
+      validSessions.map((session) => session.pay(splitAmount))
     )
 
     const totalSentAmount = results
