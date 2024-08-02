@@ -58,8 +58,7 @@ export class PaymentSession {
 
     // The amount that needs to be sent every second.
     // In senders asset scale already.
-    const initialAmount = BigInt(this.rate) / 3600n
-    let amountToSend = initialAmount
+    let amountToSend = BigInt(this.rate) / 3600n
     const senderAssetScale = this.sender.assetScale
     const receiverAssetScale = this.receiver.assetScale
     const isCrossCurrency = this.sender.assetCode !== this.receiver.assetCode
@@ -105,7 +104,7 @@ export class PaymentSession {
       receiverAssetScale,
       bigIntMax(amountToSend, MIN_SEND_AMOUNT)
     )
-    amountToSend = amountIter.next().value
+    amountToSend = BigInt(amountIter.next().value)
     while (true) {
       if (this.probingId !== localProbingId) {
         // In future we can throw `new AbortError()`
@@ -123,7 +122,7 @@ export class PaymentSession {
         if (isTokenExpiredError(e)) {
           await this.openPaymentsService.rotateToken()
         } else if (isNonPositiveAmountError(e)) {
-          amountToSend = amountIter.next().value
+          amountToSend = BigInt(amountIter.next().value)
           continue
         } else {
           throw e
