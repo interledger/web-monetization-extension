@@ -39,6 +39,7 @@ export class PaymentSession {
   private amount: string
   private intervalInMs: number
   private probingId: number
+  private shouldRetryImmediately: boolean = false;
 
   private interval: ReturnType<typeof setInterval> | null = null
   private timeout: ReturnType<typeof setTimeout> | null = null
@@ -254,6 +255,8 @@ export class PaymentSession {
     //   }, waitTime)
     // }
 
+    console.log({interval: this.intervalInMs})
+
     // Leftover
     const continuePayment = () => {
       if (!this.canContinuePayment) return
@@ -262,16 +265,16 @@ export class PaymentSession {
       void this.payContinuous().then(() => {
         this.timeout = setTimeout(() => {
           continuePayment()
-        }, this.intervalInMs)
+        }, this.shouldRetryImmediately ? 0 : this.intervalInMs)
       })
     }
 
     if (this.canContinuePayment) {
-      this.timeout = setTimeout(() => {
-        void this.payContinuous()
+      this.timeout = setTimeout(async () => {
+        await this.payContinuous()
         this.timeout = setTimeout(() => {
           continuePayment()
-        }, this.intervalInMs)
+        }, this.shouldRetryImmediately ? 0 : this.intervalInMs)
       }, waitTime)
     }
   }
@@ -418,7 +421,7 @@ export class PaymentSession {
       const outgoingPayment =
         await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
-          incomingPaymentId: this.incomingPaymentUrl,
+          incomingPaymentId: 'https://ilp.rafiki.money/incoming-payments/95b678e7-2a73-4df4-8243-d824661fca6d',
           amount: this.amount
         })
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment
@@ -448,19 +451,24 @@ export class PaymentSession {
           intervalInMs: this.intervalInMs
         })
       }
+      this.shouldRetryImmediately = false
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
       } else if (isTokenExpiredError(e)) {
         await this.openPaymentsService.rotateToken()
+        this.shouldRetryImmediately = true
       } else if (isOutOfBalanceError(e)) {
         const switched = await this.openPaymentsService.switchGrant()
         if (switched === null) {
           this.events.emit('open_payments.out_of_funds')
+        } else {
+          this.shouldRetryImmediately = true
         }
       } else if (isInvalidReceiverError(e)) {
         if (Date.now() >= this.incomingPaymentExpiresAt) {
           await this.setIncomingPaymentUrl(true)
+          this.shouldRetryImmediately = true
         } else {
           ++this.countInvalidReceiver
           if (
@@ -471,6 +479,8 @@ export class PaymentSession {
             this.events.emit('open_payments.invalid_receiver', {
               tabId: this.tabId
             })
+          } else {
+            this.shouldRetryImmediately = true
           }
         }
       } else {
