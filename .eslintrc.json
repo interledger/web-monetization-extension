@@ -36,6 +36,7 @@
         "html": true
       }
     ],
+    "no-constant-condition": "off",
     "no-console": "warn",
     "react/prop-types": "off",
     "block-scoped-var": "error",
