@@ -172,7 +172,7 @@ export class PaymentSession {
   private clearTimers() {
     if (this.interval) {
       this.debug(`Clearing interval=${this.timeout}`)
-      clearTimeout(this.interval)
+      clearInterval(this.interval)
       this.interval = null
     }
     if (this.timeout) {
@@ -238,8 +238,10 @@ export class PaymentSession {
     // Leftover
     const continuePayment = () => {
       if (!this.active || this.isDisabled) return
+      // alternatively (leftover) after we perform the Rafiki test, we can just
+      // skip the `.then()` here and call setTimeout recursively immediately
       void this.payContinuous().then(() => {
-        this.interval = setTimeout(() => {
+        this.timeout = setTimeout(() => {
           continuePayment()
         }, this.intervalInMs)
       })
@@ -248,9 +250,9 @@ export class PaymentSession {
     if (this.active && !this.isDisabled) {
       this.timeout = setTimeout(() => {
         void this.payContinuous()
-        this.interval = setTimeout(() => {
+        this.timeout = setTimeout(() => {
           continuePayment()
-        }, waitTime + this.intervalInMs)
+        }, this.intervalInMs)
       }, waitTime)
     }
   }
