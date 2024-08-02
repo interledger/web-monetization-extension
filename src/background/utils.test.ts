@@ -65,4 +65,17 @@ describe('getNextSendableAmount', () => {
       '80'
     ])
   })
+
+  it('from assetScale 2 to 2', () => {
+    expect(take(getNextSendableAmount(2, 2), 8)).toEqual([
+      '1',
+      '2',
+      '4',
+      '8',
+      '15',
+      '27',
+      '47',
+      '80'
+    ])
+  })
 })
