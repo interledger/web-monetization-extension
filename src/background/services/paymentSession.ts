@@ -24,6 +24,7 @@ const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
 
 type PaymentSessionSource = 'tab-change' | 'request-id-reused' | 'new-link'
+type IncomingPaymentSource = 'one-time' | 'continuous'
 
 export class PaymentSession {
   private rate: string
@@ -255,7 +256,7 @@ export class PaymentSession {
     if (this.incomingPaymentUrl && !reset) return
 
     try {
-      const incomingPayment = await this.createIncomingPayment()
+      const incomingPayment = await this.createIncomingPayment('continuous')
       this.incomingPaymentUrl = incomingPayment.id
     } catch (error) {
       if (isKeyRevokedError(error)) {
@@ -266,7 +267,13 @@ export class PaymentSession {
     }
   }
 
-  private async createIncomingPayment(): Promise<IncomingPayment> {
+  private async createIncomingPayment(
+    source: IncomingPaymentSource
+  ): Promise<IncomingPayment> {
+    const expiresAt = new Date(
+      Date.now() + 1000 * (source === 'continuous' ? 60 * 10 : 30)
+    ).toISOString()
+
     const incomingPaymentGrant =
       await this.openPaymentsService.client!.grant.request(
         {
@@ -297,7 +304,7 @@ export class PaymentSession {
         },
         {
           walletAddress: this.receiver.id,
-          expiresAt: new Date(Date.now() + 1000 * 60 * 10).toISOString(),
+          expiresAt,
           metadata: {
             source: 'Web Monetization'
           }
@@ -324,7 +331,7 @@ export class PaymentSession {
       throw new Error('Attempted to send a payment to a disabled session.')
     }
 
-    const incomingPayment = await this.createIncomingPayment().catch(
+    const incomingPayment = await this.createIncomingPayment('one-time').catch(
       (error) => {
         if (isKeyRevokedError(error)) {
           this.events.emit('open_payments.key_revoked')
