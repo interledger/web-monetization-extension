@@ -10,7 +10,8 @@ import type {
   OpenPaymentsService,
   TabEvents,
   SendToPopup,
-  StorageService
+  StorageService,
+  Heartbeat
 } from '.'
 import { Logger } from '@/shared/logger'
 import {
@@ -35,12 +36,14 @@ export class Background {
     private logger: Logger,
     private tabEvents: TabEvents,
     private sendToPopup: SendToPopup,
-    private events: EventsService
+    private events: EventsService,
+    private heartbeat: Heartbeat
   ) {}
 
   async start() {
     this.bindOnInstalled()
     await this.onStart()
+    this.heartbeat.start()
     this.bindMessageHandler()
     this.bindPermissionsHandler()
     this.bindEventsHandler()
