@@ -3,7 +3,7 @@ export class WalletAddressFormatError extends Error {}
 export function checkWalletAddressUrlFormat(walletAddressUrl: string): void {
   let url: URL
   try {
-    url = new URL(walletAddressUrl)
+    url = new URL(walletAddressUrl.trim(), '')
     if (url.protocol !== 'https:') {
       throw new WalletAddressFormatError(
         `Wallet address URL must be specified as a fully resolved https:// url, ` +

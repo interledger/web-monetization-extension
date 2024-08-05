@@ -220,7 +220,7 @@ export class MonetizationTagManager extends EventEmitter {
           record.type === 'attributes' &&
           record.attributeName === 'href' &&
           target instanceof HTMLLinkElement &&
-          target.href !== record.oldValue
+          target.getAttribute('href') !== record.oldValue
         ) {
           const { startMonetizationTag, stopMonetizationTag } =
             await this.onChangedWalletAddressUrl(target)
@@ -488,14 +488,16 @@ export class MonetizationTagManager extends EventEmitter {
   private async validateWalletAddress(
     tag: MonetizationTag
   ): Promise<WalletAddress | null> {
-    const walletAddressUrl = tag.href.trim()
     try {
-      checkWalletAddressUrlFormat(walletAddressUrl)
-      const response = await checkWalletAddressUrlCall({ walletAddressUrl })
+      const href = tag.getAttribute('href')
+      if (!href)
+        throw new Error('Monetization link is missing the "href" attribute.')
+      checkWalletAddressUrlFormat(href)
+      const response = await checkWalletAddressUrlCall({ walletAddressUrl: href })
 
       if (response.success === false) {
         throw new Error(
-          `Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`
+          `Could not retrieve wallet address information for ${JSON.stringify(href)}.`
         )
       }
 
