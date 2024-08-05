@@ -9,6 +9,7 @@ import {
   TabState,
   SendToPopup,
   EventsService,
+  Heartbeat,
   Deduplicator
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
@@ -28,6 +29,7 @@ interface Cradle {
   background: Background
   t: Translation
   tabState: TabState
+  heartbeat: Heartbeat
 }
 
 export const configureContainer = () => {
@@ -73,7 +75,8 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('tab-state')
-      }))
+      })),
+    heartbeat: asClass(Heartbeat).singleton()
   })
 
   return container
