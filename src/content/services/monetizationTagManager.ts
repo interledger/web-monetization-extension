@@ -493,7 +493,9 @@ export class MonetizationTagManager extends EventEmitter {
       if (!href)
         throw new Error('Monetization link is missing the "href" attribute.')
       checkWalletAddressUrlFormat(href)
-      const response = await checkWalletAddressUrlCall({ walletAddressUrl: href })
+      const response = await checkWalletAddressUrlCall({
+        walletAddressUrl: href
+      })
 
       if (response.success === false) {
         throw new Error(
