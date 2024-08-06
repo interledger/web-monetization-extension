@@ -10,7 +10,6 @@ The Web Monetization browser extension is an open source implementation of the W
 ### Prerequisites
 
 - [NVM](https://github.com/nvm-sh/nvm) (Linux, macOS), [NVM Windows](https://github.com/coreybutler/nvm-windows) (Windows) - or another Node Version Manager
-- [PNPM](https://pnpm.io/)
 
 ## Setup
 
@@ -26,19 +25,9 @@ nvm use lts/iron
 nvm install lts
 nvm use lts
 
-# Install pnpm using Corepack
+# Install correct version of pnpm using Corepack (Corepack comes with Node)
 corepack enable
 ```
-
-If you do not have `corepack` installed locally you can use `npm` or `yarn` to install `pnpm`:
-
-```sh
-npm install -g pnpm
-# or
-yarn install -g pnpm
-```
-
-For alternative methods of installing `pnpm`, you can refer to the [official `pnpm` documentation](https://pnpm.io/installation).
 
 To install dependencies, execute:
 
