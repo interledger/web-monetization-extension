@@ -63,7 +63,7 @@ export class MonetizationService {
       )
       return
     }
-    const { tabId, frameId, url } = getSender(sender)
+    const { tabId, frameId, url, isPredendering } = getSender(sender)
     const sessions = this.tabState.getSessions(tabId)
 
     const replacedSessions = new Set<string>()
@@ -95,6 +95,8 @@ export class MonetizationService {
 
       sessions.set(requestId, session)
     })
+
+    if (isPredendering) return
 
     this.events.emit('monetization.state_update', tabId)
 
