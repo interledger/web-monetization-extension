@@ -1,9 +1,5 @@
 import React from 'react'
-import {
-  PopupStateContext,
-  ReducerActionType,
-  useTranslation
-} from '@/popup/lib/context'
+import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
 import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
@@ -17,12 +13,11 @@ import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
-import { WarningMessage } from '../components/WarningMessage'
+import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid'
 
 const updateRateOfPay = debounceAsync(updateRateOfPay_, 1000)
 
 export const Component = () => {
-  const t = useTranslation()
   const {
     state: {
       enabled,
@@ -75,11 +70,16 @@ export const Component = () => {
     return <SiteNotMonetized />
   }
 
+  if (hasAllSessionsInvalid) return <AllSessionsInvalid />
+
   return (
     <div className="space-y-8">
-      {hasAllSessionsInvalid && (
+      {/*
+        // TO DO: Check if still needed after discussing
+        // https://github.com/interledger/web-monetization-extension/issues/471
+        {hasAllSessionsInvalid && (
         <WarningMessage warning={t('home_warn_invalidLinks')} />
-      )}
+      )} */}
       {enabled ? (
         <div className="space-y-2">
           <Label className="px-2 text-base font-medium text-medium">
