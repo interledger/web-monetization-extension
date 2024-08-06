@@ -90,6 +90,6 @@ export const getMainPlugins = (
   }),
   new IgnorePlugin({
     resourceRegExp: /node-fetch/,
-    contextRegExp: /@apidevtools\/json-schema-ref-parser/
+    contextRegExp: /@apidevtools[/|\\]json-schema-ref-parser/
   })
 ]
