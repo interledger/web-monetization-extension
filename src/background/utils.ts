@@ -88,8 +88,10 @@ export const getTab = (sender: Runtime.MessageSender): Tabs.Tab => {
 export const getSender = (sender: Runtime.MessageSender) => {
   const tabId = getTabId(sender)
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId')
+  const isPrerendering = (sender as any).documentLifecycle === 'prerender' && sender.frameId !== 0;
 
-  return { tabId, frameId, url: sender.url }
+
+  return { tabId, frameId, url: sender.url, isPrerendering }
 }
 
 export const computeRate = (rate: string, sessionsCount: number): AmountValue =>
