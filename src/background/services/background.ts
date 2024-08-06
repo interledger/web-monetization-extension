@@ -119,7 +119,7 @@ export class Background {
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
       async (message: ToBackgroundMessage, sender) => {
-        this.logger.debug('Received message', message, sender)
+        this.logger.debug('Received message', message)
         try {
           switch (message.action) {
             case PopupToBackgroundAction.GET_CONTEXT_DATA:
