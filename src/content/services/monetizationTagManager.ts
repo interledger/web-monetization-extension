@@ -325,18 +325,35 @@ export class MonetizationTagManager extends EventEmitter {
     node.dispatchEvent(customEvent)
   }
 
-  start(): void {
-    if (
-      document.readyState === 'interactive' ||
-      document.readyState === 'complete'
+  private isDocumentReady() {
+    return (
+      (document.readyState === 'interactive' ||
+        document.readyState === 'complete') &&
+      document.visibilityState === 'visible'
     )
+  }
+
+  start(): void {
+    if (this.isDocumentReady()) {
       this.run()
+      return
+    }
 
     document.addEventListener(
       'readystatechange',
       () => {
-        if (document.readyState === 'interactive') {
+        if (this.isDocumentReady()) {
           this.run()
+        } else {
+          document.addEventListener(
+            'visibilitychange',
+            () => {
+              if (this.isDocumentReady()) {
+                this.run()
+              }
+            },
+            { once: true }
+          )
         }
       },
       { once: true }
