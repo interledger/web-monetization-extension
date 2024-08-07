@@ -1,11 +1,9 @@
 {
   "appName": {
-    "message": "Web Monetization",
-    "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website."
+    "message": "Web Monetization"
   },
   "appDescription": {
-    "message": "Web Monetization Extension",
-    "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website."
+    "message": "Support content you love. Pay as you browse!"
   },
   "icon_state_monetizationActive": {
     "message": "Active"
