@@ -13,6 +13,7 @@ import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
 import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
+import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid'
 
 const updateRateOfPay = debounceAsync(updateRateOfPay_, 1000)
 
@@ -26,7 +27,8 @@ export const Component = () => {
       maxRateOfPay,
       balance,
       walletAddress,
-      url
+      url,
+      hasAllSessionsInvalid
     },
     dispatch
   } = React.useContext(PopupStateContext)
@@ -66,6 +68,10 @@ export const Component = () => {
 
   if (!isSiteMonetized) {
     return <SiteNotMonetized />
+  }
+
+  if (hasAllSessionsInvalid) {
+    return <AllSessionsInvalid />
   }
 
   return (

@@ -72,6 +72,7 @@ export class MonetizationService {
     payload.forEach((p) => {
       const { requestId, walletAddress: receiver } = p
 
+      // Q: How does this impact client side apps/routing?
       const existingSession = sessions.get(requestId)
       if (existingSession) {
         existingSession.stop()
@@ -97,7 +98,8 @@ export class MonetizationService {
 
     this.events.emit('monetization.state_update', tabId)
 
-    const sessionsArr = this.tabState.getEnabledSessions(tabId)
+    const sessionsArr = this.tabState.getPayableSessions(tabId)
+    if (!sessionsArr.length) return
     const rate = computeRate(rateOfPay, sessionsArr.length)
 
     // Since we probe (through quoting) the debitAmount we have to await this call.
@@ -162,7 +164,7 @@ export class MonetizationService {
     if (!rateOfPay) return
 
     if (needsAdjustAmount) {
-      const sessionsArr = this.tabState.getEnabledSessions(tabId)
+      const sessionsArr = this.tabState.getPayableSessions(tabId)
       this.events.emit('monetization.state_update', tabId)
       if (!sessionsArr.length) return
       const rate = computeRate(rateOfPay, sessionsArr.length)
@@ -232,17 +234,21 @@ export class MonetizationService {
   async pay(amount: string) {
     const tab = await getCurrentActiveTab(this.browser)
     if (!tab || !tab.id) {
-      throw new Error('Could not find active tab.')
-    }
-    const sessions = this.tabState.getEnabledSessions(tab.id)
-    if (!sessions.length) {
-      throw new Error('This website is not monetized.')
+      throw new Error('Unexpected error: could not find active tab.')
     }
 
-    const splitAmount = Number(amount) / sessions.length
+    const payableSessions = this.tabState.getPayableSessions(tab.id)
+    if (!payableSessions.length) {
+      if (this.tabState.getEnabledSessions(tab.id).length) {
+        throw new Error(this.t('pay_error_invalidReceivers'))
+      }
+      throw new Error(this.t('pay_error_notMonetized'))
+    }
+
+    const splitAmount = Number(amount) / payableSessions.length
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
-      sessions.map((session) => session.pay(splitAmount))
+      payableSessions.map((session) => session.pay(splitAmount))
     )
 
     const totalSentAmount = results
@@ -280,6 +286,7 @@ export class MonetizationService {
     this.onRateOfPayUpdate()
     this.onKeyRevoked()
     this.onOutOfFunds()
+    this.onInvalidReceiver()
   }
 
   private onRateOfPayUpdate() {
@@ -299,7 +306,7 @@ export class MonetizationService {
       }
 
       for (const tabId of tabIds) {
-        const sessions = this.tabState.getEnabledSessions(tabId)
+        const sessions = this.tabState.getPayableSessions(tabId)
         if (!sessions.length) continue
         const computedRate = computeRate(rate, sessions.length)
         await this.adjustSessionsAmount(sessions, computedRate).catch((e) => {
@@ -324,6 +331,15 @@ export class MonetizationService {
       this.stopAllSessions()
       await this.storage.setState({ out_of_funds: true })
       this.onOutOfFunds() // setup listener again once all is done
+    })
+  }
+
+  private onInvalidReceiver() {
+    this.events.on('open_payments.invalid_receiver', async ({ tabId }) => {
+      if (this.tabState.tabHasAllSessionsInvalid(tabId)) {
+        this.logger.debug(`Tab ${tabId} has all sessions invalid`)
+        this.events.emit('monetization.state_update', tabId)
+      }
     })
   }
 
@@ -365,6 +381,9 @@ export class MonetizationService {
       }
     }
     const isSiteMonetized = this.tabState.isTabMonetized(tab.id!)
+    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(
+      tab.id!
+    )
 
     return {
       ...dataFromStorage,
@@ -374,7 +393,8 @@ export class MonetizationService {
         oneTime: oneTimeGrant?.amount,
         recurring: recurringGrant?.amount
       },
-      isSiteMonetized
+      isSiteMonetized,
+      hasAllSessionsInvalid
     }
   }
 

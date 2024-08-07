@@ -38,6 +38,13 @@
   "pay_error_notEnoughFunds": {
     "message": "Not enough funds to facilitate payment."
   },
+  "pay_error_invalidReceivers": {
+    "message": "At the moment, you can not pay this website.",
+    "description": "We cannot send money (probable cause: un-peered wallets)"
+  },
+  "pay_error_notMonetized": {
+    "message": "This website is not monetized."
+  },
   "outOfFunds_error_title": {
     "message": "Out of funds"
   },
@@ -83,5 +90,8 @@
   },
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
+  },
+  "allInvalidLinks_state_text": {
+    "message": "At the moment, you can not pay this website."
   }
 }

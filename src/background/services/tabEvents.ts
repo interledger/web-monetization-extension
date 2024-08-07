@@ -99,15 +99,21 @@ export class TabEvents {
     tabId: TabId,
     isTabMonetized: boolean = tabId
       ? this.tabState.isTabMonetized(tabId)
+      : false,
+    hasTabAllSessionsInvalid: boolean = tabId
+      ? this.tabState.tabHasAllSessionsInvalid(tabId)
       : false
   ) => {
     const { enabled, state } = await this.storage.get(['enabled', 'state'])
     const { path, title, isMonetized } = this.getIconAndTooltip({
       enabled,
       state,
-      isTabMonetized
+      isTabMonetized,
+      hasTabAllSessionsInvalid
     })
+
     this.sendToPopup.send('SET_IS_MONETIZED', isMonetized)
+    this.sendToPopup.send('SET_ALL_SESSIONS_INVALID', hasTabAllSessionsInvalid)
     await this.setIconAndTooltip(path, title, tabId)
   }
 
@@ -124,15 +130,17 @@ export class TabEvents {
   private getIconAndTooltip({
     enabled,
     state,
-    isTabMonetized
+    isTabMonetized,
+    hasTabAllSessionsInvalid
   }: {
     enabled: Storage['enabled']
     state: Storage['state']
     isTabMonetized: boolean
+    hasTabAllSessionsInvalid: boolean
   }) {
     let title = this.t('appName')
     let iconData = ICONS.default
-    if (!isOkState(state)) {
+    if (!isOkState(state) || hasTabAllSessionsInvalid) {
       iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
       const tabStateText = this.t('icon_state_actionRequired')
       title = `${title} - ${tabStateText}`

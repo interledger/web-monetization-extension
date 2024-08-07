@@ -101,6 +101,7 @@ export type PopupStore = Omit<
     oneTime: OneTimeGrant['amount']
     recurring: RecurringGrant['amount']
   }>
+  hasAllSessionsInvalid: boolean
 }
 
 export type DeepNonNullable<T> = {
