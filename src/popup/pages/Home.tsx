@@ -70,16 +70,12 @@ export const Component = () => {
     return <SiteNotMonetized />
   }
 
-  if (hasAllSessionsInvalid) return <AllSessionsInvalid />
+  if (hasAllSessionsInvalid) {
+    return <AllSessionsInvalid />
+  }
 
   return (
     <div className="space-y-8">
-      {/*
-        // TO DO: Check if still needed after discussing
-        // https://github.com/interledger/web-monetization-extension/issues/471
-        {hasAllSessionsInvalid && (
-        <WarningMessage warning={t('home_warn_invalidLinks')} />
-      )} */}
       {enabled ? (
         <div className="space-y-2">
           <Label className="px-2 text-base font-medium text-medium">
