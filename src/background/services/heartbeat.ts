@@ -1,19 +1,47 @@
-import type { StorageService } from '.'
+import type { Browser } from 'webextension-polyfill'
 
 export class Heartbeat {
-  private interval: ReturnType<typeof setInterval>
-
-  constructor(private storage: StorageService) {}
+  constructor(private browser: Browser) {}
 
   start() {
-    this.interval = setInterval(this.run.bind(this), 20 * 1000)
-  }
+    setTimeout(
+      () =>
+        this.browser.alarms.create('keep-alive-alarm-0', {
+          periodInMinutes: 1
+        }),
+      0
+    )
+    setTimeout(
+      () =>
+        this.browser.alarms.create('keep-alive-alarm-1', {
+          periodInMinutes: 1
+        }),
+      15 * 1000
+    )
+    setTimeout(
+      () =>
+        this.browser.alarms.create('keep-alive-alarm-2', {
+          periodInMinutes: 1
+        }),
+      30 * 1000
+    )
+    setTimeout(
+      () =>
+        this.browser.alarms.create('keep-alive-alarm-3', {
+          periodInMinutes: 1
+        }),
+      45 * 1000
+    )
 
-  run() {
-    void this.storage.get(['version'])
+    this.browser.alarms.onAlarm.addListener((ev) => {
+      console.count('keeping extension alive - ' + ev.name)
+    })
   }
 
   stop() {
-    clearInterval(this.interval)
+    this.browser.alarms.clear('keep-alive-alarm-0')
+    this.browser.alarms.clear('keep-alive-alarm-1')
+    this.browser.alarms.clear('keep-alive-alarm-2')
+    this.browser.alarms.clear('keep-alive-alarm-3')
   }
 }
