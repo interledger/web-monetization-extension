@@ -172,6 +172,15 @@ export class FrameManager {
       'message',
       (event: any) => {
         const { message, payload, id } = event.data
+        if (
+          ![
+            ContentToContentAction.INITIALIZE_IFRAME,
+            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
+            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME
+          ].includes(message)
+        ) {
+          return
+        }
         const frame = this.findIframe(event.source)
         if (!frame) {
           event.stopPropagation()
