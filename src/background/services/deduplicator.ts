@@ -1,4 +1,3 @@
-import type { Logger } from '@/shared/logger'
 import type { Cradle } from '../container'
 
 type AsyncFn<T> = (...args: any[]) => Promise<T>
