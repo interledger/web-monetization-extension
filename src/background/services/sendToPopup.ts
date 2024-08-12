@@ -1,4 +1,4 @@
-import type { Browser, Runtime } from 'webextension-polyfill'
+import type { Runtime } from 'webextension-polyfill'
 import {
   BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
   type BackgroundToPopupMessage,
@@ -7,7 +7,7 @@ import {
 import type { Cradle } from '@/background/container'
 
 export class SendToPopup {
-  private browser: Browser
+  private browser: Cradle['browser']
 
   private isConnected = false
   private port: Runtime.Port

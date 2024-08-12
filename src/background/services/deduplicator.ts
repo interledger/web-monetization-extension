@@ -13,7 +13,7 @@ interface DedupeOptions {
 }
 
 export class Deduplicator {
-  private logger: Logger
+  private logger: Cradle['logger']
 
   private cache: Map<string, CacheEntry> = new Map()
 

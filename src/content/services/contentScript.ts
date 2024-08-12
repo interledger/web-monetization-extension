@@ -1,17 +1,16 @@
-import { Logger } from '@/shared/logger'
-import { MonetizationTagManager } from './monetizationTagManager'
-import { type Browser } from 'webextension-polyfill'
-import { BackgroundToContentAction, ToContentMessage } from '@/shared/messages'
+import {
+  BackgroundToContentAction,
+  type ToContentMessage
+} from '@/shared/messages'
 import { failure } from '@/shared/helpers'
-import type { FrameManager } from './frameManager'
 import type { Cradle } from '@/content/container'
 
 export class ContentScript {
-  private browser: Browser
-  private window: Window
-  private logger: Logger
-  private monetizationTagManager: MonetizationTagManager
-  private frameManager: FrameManager
+  private browser: Cradle['browser']
+  private window: Cradle['window']
+  private logger: Cradle['logger']
+  private monetizationTagManager: Cradle['monetizationTagManager']
+  private frameManager: Cradle['frameManager']
 
   private isFirstLevelFrame: boolean
   private isTopFrame: boolean

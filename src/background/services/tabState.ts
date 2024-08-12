@@ -1,7 +1,6 @@
 import type { MonetizationEventDetails } from '@/shared/messages'
 import type { TabId } from '@/shared/types'
 import type { PaymentSession } from './paymentSession'
-import type { Logger } from '@/shared/logger'
 import type { Cradle } from '@/background/container'
 
 type State = {
@@ -19,7 +18,7 @@ interface SaveOverpayingDetails {
 type SessionId = string
 
 export class TabState {
-  private logger: Logger
+  private logger: Cradle['logger']
 
   private state = new Map<TabId, Map<string, State>>()
   private sessions = new Map<TabId, Map<SessionId, PaymentSession>>()

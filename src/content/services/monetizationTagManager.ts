@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events'
 import { mozClone } from '../utils'
-import type { Logger } from '@/shared/logger'
 import type { MonetizationTagDetails } from '../types'
 import type { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
@@ -29,9 +28,9 @@ interface FireOnMonetizationChangeIfHaveAttributeParams {
 }
 
 export class MonetizationTagManager extends EventEmitter {
-  private window: Window
-  private document: Document
-  private logger: Logger
+  private window: Cradle['window']
+  private document: Cradle['document']
+  private logger: Cradle['logger']
 
   private isTopFrame: boolean
   private isFirstLevelFrame: boolean
