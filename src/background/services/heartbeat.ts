@@ -1,13 +1,10 @@
 import type { Cradle } from '@/background/container'
-import type { Browser } from 'webextension-polyfill'
 
 export class Heartbeat {
-  private browser: Browser
+  private browser: Cradle['browser']
 
   constructor({ browser }: Cradle) {
-    Object.assign(this, {
-      browser
-    })
+    Object.assign(this, { browser })
   }
 
   start() {

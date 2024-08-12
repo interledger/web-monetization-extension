@@ -1,19 +1,9 @@
-import { type Browser } from 'webextension-polyfill'
+import type { Browser } from 'webextension-polyfill'
 import {
   type ToBackgroundMessage,
   PopupToBackgroundAction,
   ContentToBackgroundAction
 } from '@/shared/messages'
-import type {
-  EventsService,
-  MonetizationService,
-  OpenPaymentsService,
-  TabEvents,
-  SendToPopup,
-  StorageService,
-  Heartbeat
-} from '.'
-import { Logger } from '@/shared/logger'
 import {
   failure,
   getNextOccurrence,
@@ -29,15 +19,15 @@ type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0]
 const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds'
 
 export class Background {
-  private browser: Browser
-  private openPaymentsService: OpenPaymentsService
-  private monetizationService: MonetizationService
-  private storage: StorageService
-  private logger: Logger
-  private tabEvents: TabEvents
-  private sendToPopup: SendToPopup
-  private events: EventsService
-  private heartbeat: Heartbeat
+  private browser: Cradle['browser']
+  private openPaymentsService: Cradle['openPaymentsService']
+  private monetizationService: Cradle['monetizationService']
+  private storage: Cradle['storage']
+  private logger: Cradle['logger']
+  private tabEvents: Cradle['tabEvents']
+  private sendToPopup: Cradle['sendToPopup']
+  private events: Cradle['events']
+  private heartbeat: Cradle['heartbeat']
 
   constructor({
     browser,

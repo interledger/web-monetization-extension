@@ -21,20 +21,17 @@ import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
-import { Browser, Tabs } from 'webextension-polyfill'
+import { Tabs } from 'webextension-polyfill'
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils'
-import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation, type Translation } from '@/shared/helpers'
+import { getWalletInformation } from '@/shared/helpers'
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY
 } from '../config'
-import type { Deduplicator } from './deduplicator'
-import type { Logger } from '@/shared/logger'
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines'
 import type { Cradle } from '../container'
 
@@ -109,11 +106,11 @@ const enum InteractionIntent {
 }
 
 export class OpenPaymentsService {
-  private browser: Browser
-  private storage: StorageService
-  private deduplicator: Deduplicator
-  private logger: Logger
-  private t: Translation
+  private browser: Cradle['browser']
+  private storage: Cradle['storage']
+  private deduplicator: Cradle['deduplicator']
+  private logger: Cradle['logger']
+  private t: Cradle['t']
 
   client?: AuthenticatedClient
 

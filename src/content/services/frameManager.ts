@@ -1,4 +1,3 @@
-import type { Logger } from '@/shared/logger'
 import { stopMonetization } from '../lib/messages'
 import { ContentToContentAction } from '../messages'
 import type {
@@ -9,9 +8,9 @@ import type {
 import type { Cradle } from '@/content/container'
 
 export class FrameManager {
-  private window: Window
-  private document: Document
-  private logger: Logger
+  private window: Cradle['window']
+  private document: Cradle['document']
+  private logger: Cradle['logger']
 
   private documentObserver: MutationObserver
   private frameAllowAttrObserver: MutationObserver
