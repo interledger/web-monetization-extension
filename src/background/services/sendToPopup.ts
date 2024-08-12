@@ -4,13 +4,18 @@ import {
   type BackgroundToPopupMessage,
   type BackgroundToPopupMessagesMap
 } from '@/shared/messages'
+import type { Cradle } from '@/background/container'
 
 export class SendToPopup {
+  private browser: Browser
+
   private isConnected = false
   private port: Runtime.Port
   private queue = new Map<keyof BackgroundToPopupMessagesMap, any>()
 
-  constructor(private browser: Browser) {}
+  constructor({ browser }: Cradle) {
+    Object.assign(this, { browser })
+  }
 
   start() {
     this.browser.runtime.onConnect.addListener((port) => {

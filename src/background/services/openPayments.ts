@@ -36,6 +36,7 @@ import {
 import type { Deduplicator } from './deduplicator'
 import type { Logger } from '@/shared/logger'
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines'
+import type { Cradle } from '../container'
 
 interface KeyInformation {
   privateKey: string
@@ -108,6 +109,12 @@ const enum InteractionIntent {
 }
 
 export class OpenPaymentsService {
+  private browser: Browser
+  private storage: StorageService
+  private deduplicator: Deduplicator
+  private logger: Logger
+  private t: Translation
+
   client?: AuthenticatedClient
 
   public switchGrant: OpenPaymentsService['_switchGrant']
@@ -117,13 +124,9 @@ export class OpenPaymentsService {
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false }
 
-  constructor(
-    private browser: Browser,
-    private storage: StorageService,
-    private deduplicator: Deduplicator,
-    private logger: Logger,
-    private t: Translation
-  ) {
+  constructor({ browser, storage, deduplicator, logger, t }: Cradle) {
+    Object.assign(this, { browser, storage, deduplicator, logger, t })
+
     void this.initialize()
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
   }

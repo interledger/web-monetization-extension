@@ -16,7 +16,7 @@ import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
 import { tFactory, type Translation } from '@/shared/helpers'
 
-interface Cradle {
+export interface Cradle {
   logger: Logger
   browser: Browser
   events: EventsService
@@ -34,7 +34,7 @@ interface Cradle {
 
 export const configureContainer = () => {
   const container = createContainer<Cradle>({
-    injectionMode: InjectionMode.CLASSIC
+    injectionMode: InjectionMode.PROXY
   })
 
   const logger = createLogger(LOG_LEVEL)

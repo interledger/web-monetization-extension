@@ -23,22 +23,45 @@ import {
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { getCurrentActiveTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils'
 import { PERMISSION_HOSTS } from '@/shared/defines'
+import type { Cradle } from '@/background/container'
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0]
 const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds'
 
 export class Background {
-  constructor(
-    private browser: Browser,
-    private openPaymentsService: OpenPaymentsService,
-    private monetizationService: MonetizationService,
-    private storage: StorageService,
-    private logger: Logger,
-    private tabEvents: TabEvents,
-    private sendToPopup: SendToPopup,
-    private events: EventsService,
-    private heartbeat: Heartbeat
-  ) {}
+  private browser: Browser
+  private openPaymentsService: OpenPaymentsService
+  private monetizationService: MonetizationService
+  private storage: StorageService
+  private logger: Logger
+  private tabEvents: TabEvents
+  private sendToPopup: SendToPopup
+  private events: EventsService
+  private heartbeat: Heartbeat
+
+  constructor({
+    browser,
+    openPaymentsService,
+    monetizationService,
+    storage,
+    logger,
+    tabEvents,
+    sendToPopup,
+    events,
+    heartbeat
+  }: Cradle) {
+    Object.assign(this, {
+      browser,
+      openPaymentsService,
+      monetizationService,
+      storage,
+      sendToPopup,
+      tabEvents,
+      logger,
+      events,
+      heartbeat
+    })
+  }
 
   async start() {
     this.bindOnInstalled()

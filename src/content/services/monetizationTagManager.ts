@@ -1,9 +1,8 @@
 import { EventEmitter } from 'events'
-
 import { mozClone } from '../utils'
-import { Logger } from '@/shared/logger'
-import { MonetizationTagDetails } from '../types'
-import { WalletAddress } from '@interledger/open-payments/dist/types'
+import type { Logger } from '@/shared/logger'
+import type { MonetizationTagDetails } from '../types'
+import type { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
 import {
   checkWalletAddressUrlCall,
@@ -12,7 +11,7 @@ import {
   startMonetization,
   stopMonetization
 } from '../lib/messages'
-import {
+import type {
   EmitToggleWMPayload,
   MonetizationEventPayload,
   ResumeMonetizationPayload,
@@ -20,6 +19,7 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { ContentToContentAction } from '../messages'
+import type { Cradle } from '@/content/container'
 
 export type MonetizationTag = HTMLLinkElement
 
@@ -29,20 +29,25 @@ interface FireOnMonetizationChangeIfHaveAttributeParams {
 }
 
 export class MonetizationTagManager extends EventEmitter {
+  private window: Window
+  private document: Document
+  private logger: Logger
+
   private isTopFrame: boolean
   private isFirstLevelFrame: boolean
   private documentObserver: MutationObserver
   private monetizationTagAttrObserver: MutationObserver
   private id: string
-
   private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
 
-  constructor(
-    private window: Window,
-    private document: Document,
-    private logger: Logger
-  ) {
+  constructor({ window, document, logger }: Cradle) {
     super()
+    Object.assign(this, {
+      window,
+      document,
+      logger
+    })
+
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records)
     )
