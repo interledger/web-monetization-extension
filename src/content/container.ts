@@ -6,7 +6,7 @@ import { MonetizationTagManager } from './services/monetizationTagManager'
 import { LOG_LEVEL } from '@/shared/defines'
 import { FrameManager } from './services/frameManager'
 
-interface Cradle {
+export interface Cradle {
   logger: Logger
   browser: Browser
   document: Document
@@ -18,7 +18,7 @@ interface Cradle {
 
 export const configureContainer = () => {
   const container = createContainer<Cradle>({
-    injectionMode: InjectionMode.CLASSIC
+    injectionMode: InjectionMode.PROXY
   })
 
   const logger = createLogger(LOG_LEVEL)

@@ -6,10 +6,11 @@ import type {
   StorageKey,
   WalletAmount
 } from '@/shared/types'
-import { type Browser } from 'webextension-polyfill'
-import { EventsService } from './events'
+import type { Browser } from 'webextension-polyfill'
+import type { EventsService } from './events'
 import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers'
 import { computeBalance } from '../utils'
+import type { Cradle } from '../container'
 
 const defaultStorage = {
   /**
@@ -35,15 +36,17 @@ const defaultStorage = {
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
+  private browser: Browser
+  private events: EventsService
+
   private setSpentAmountRecurring: ThrottleBatch<[amount: string]>
   private setSpentAmountOneTime: ThrottleBatch<[amount: string]>
   // used as an optimization/cache
   private currentState: Storage['state'] | null = null
 
-  constructor(
-    private browser: Browser,
-    private events: EventsService
-  ) {
+  constructor({ browser, events }: Cradle) {
+    Object.assign(this, { browser, events })
+
     this.setSpentAmountRecurring = new ThrottleBatch(
       (amount) => this.setSpentAmount('recurring', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],

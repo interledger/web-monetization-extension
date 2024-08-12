@@ -22,17 +22,36 @@ import {
 } from '@/shared/helpers'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { AmountValue, PopupStore, Storage } from '@/shared/types'
+import type { Cradle } from '../container'
 
 export class MonetizationService {
-  constructor(
-    private logger: Logger,
-    private t: Translation,
-    private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService,
-    private browser: Browser,
-    private events: EventsService,
-    private tabState: TabState
-  ) {
+  private logger: Logger
+  private t: Translation
+  private openPaymentsService: OpenPaymentsService
+  private storage: StorageService
+  private browser: Browser
+  private events: EventsService
+  private tabState: TabState
+
+  constructor({
+    logger,
+    t,
+    browser,
+    storage,
+    events,
+    openPaymentsService,
+    tabState
+  }: Cradle) {
+    Object.assign(this, {
+      logger,
+      t,
+      openPaymentsService,
+      storage,
+      browser,
+      events,
+      tabState
+    })
+
     this.registerEventListeners()
   }
 

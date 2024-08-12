@@ -22,7 +22,7 @@ export const getProdConfig = (target: Target): Configuration => {
         new TerserPlugin({
           parallel: true,
           terserOptions: {
-            mangle: false,
+            mangle: true,
             format: {
               comments: false
             }

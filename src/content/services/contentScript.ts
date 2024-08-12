@@ -3,19 +3,34 @@ import { MonetizationTagManager } from './monetizationTagManager'
 import { type Browser } from 'webextension-polyfill'
 import { BackgroundToContentAction, ToContentMessage } from '@/shared/messages'
 import { failure } from '@/shared/helpers'
-import { FrameManager } from './frameManager'
+import type { FrameManager } from './frameManager'
+import type { Cradle } from '@/content/container'
 
 export class ContentScript {
+  private browser: Browser
+  private window: Window
+  private logger: Logger
+  private monetizationTagManager: MonetizationTagManager
+  private frameManager: FrameManager
+
   private isFirstLevelFrame: boolean
   private isTopFrame: boolean
 
-  constructor(
-    private browser: Browser,
-    private window: Window,
-    private logger: Logger,
-    private monetizationTagManager: MonetizationTagManager,
-    private frameManager: FrameManager
-  ) {
+  constructor({
+    browser,
+    window,
+    logger,
+    monetizationTagManager,
+    frameManager
+  }: Cradle) {
+    Object.assign(this, {
+      browser,
+      window,
+      logger,
+      monetizationTagManager,
+      frameManager
+    })
+
     this.isTopFrame = window === window.top
     this.isFirstLevelFrame = window.parent === window.top
 
