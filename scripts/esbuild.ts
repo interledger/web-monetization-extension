@@ -63,6 +63,10 @@ async function build({ target, channel, dev }: BuildArgs) {
       {
         in: path.join(DIR_SRC, 'content', 'polyfill.ts'),
         out: path.join('polyfill', 'polyfill')
+      },
+      {
+        in: path.join(DIR_SRC, 'popup', 'index.tsx'),
+        out: path.join('popup', 'popup')
       }
     ],
     outdir: path.join(OUTPUT_DIR, target),
@@ -79,7 +83,7 @@ async function build({ target, channel, dev }: BuildArgs) {
           path: true,
           constants: true,
           stream: true,
-          util: true,
+          util: true
         }
       }),
       ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/])
@@ -94,12 +98,14 @@ async function build({ target, channel, dev }: BuildArgs) {
     logLevel: 'info',
     treeShaking: true,
     metafile: dev,
-    minify: true,
+    minify: false,
     define: {
       NODE_ENV: JSON.stringify('development'),
       CONFIG_LOG_LEVEL: JSON.stringify('DEBUG'),
-      CONFIG_PERMISSION_HOSTS: JSON.stringify({ origins: ['https://*/*'] }),
-      CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['https:']),
+      CONFIG_PERMISSION_HOSTS: JSON.stringify({
+        origins: ['http://*/*', 'https://*/*']
+      }),
+      CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['http:', 'https:']),
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
         'https://webmonetization.org/welcome'
       )
@@ -188,6 +194,12 @@ function processManifest({ target, channel, dev }: BuildArgs) {
     delete json['browser_specific_settings']
   }
 
+  fs.writeFileSync(
+    path.join(OUTPUT_DIR, target, 'manifest.json'),
+    JSON.stringify(json, null, 2),
+    'utf8'
+  )
+  return
   // TODO: write to dist
   return JSON.stringify(json, null, 2)
 }
