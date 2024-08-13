@@ -2,25 +2,30 @@
 import path from 'node:path'
 import { Configuration, Stats } from 'webpack'
 
-export const TARGETS = ['chrome', 'firefox', 'opera', 'edge'] as const
+export const TARGETS = ['chrome', 'firefox'] as const
 export const ROOT_DIR = path.resolve(__dirname, '..')
+export const DIRECTORIES = {
+  DEV: './dev',
+  DIST: './dist',
+  TEMP: './temp',
+  SRC: './src'
+}
 
-const DIR_SRC = path.resolve(ROOT_DIR, 'src')
-const DIR_DEV = path.resolve(ROOT_DIR, 'dev')
-const DIR_DIST = path.resolve(ROOT_DIR, 'dist')
-
-export const IS_PRODUCTION = process.env.NODE_ENV === 'production'
-
-export const MANIFEST_PATH = path.join(DIR_SRC, 'manifest.json')
+export const MANIFEST_PATH = path.resolve(
+  ROOT_DIR,
+  `${DIRECTORIES.SRC}/manifest.json`
+)
 export const OUTPUT_DIR =
-  process.env.NODE_ENV === 'production' ? DIR_DIST : DIR_DEV
+  process.env.NODE_ENV === 'production'
+    ? path.resolve(ROOT_DIR, DIRECTORIES.DIST)
+    : path.resolve(ROOT_DIR, DIRECTORIES.DEV)
 
 export const mainConfig: Configuration = {
   module: {
     rules: [
       {
         test: /\.css$/i,
-        include: DIR_SRC,
+        include: path.resolve(ROOT_DIR, DIRECTORIES.SRC),
         use: [
           'style-loader',
           'css-loader',
