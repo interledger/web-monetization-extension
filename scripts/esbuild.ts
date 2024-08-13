@@ -65,8 +65,17 @@ async function build({ target, channel, dev }: BuildArgs) {
     plugins: [
       nodeModulesPolyfillPlugin({
         fallback: 'empty',
+        globals: {
+          Buffer: true
+        },
         modules: {
-          crypto: true
+          buffer: true,
+          events: true,
+          crypto: true,
+          path: true,
+          constants: true,
+          stream: true,
+          util: true,
         }
       }),
       ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/])
@@ -85,10 +94,11 @@ async function build({ target, channel, dev }: BuildArgs) {
     define: {
       NODE_ENV: JSON.stringify('development'),
       CONFIG_LOG_LEVEL: JSON.stringify('DEBUG'),
-      CONFIG_PERMISSION_HOSTS: JSON.stringify({
-        origins: ['http://*/*', 'https://*/*']
-      }),
-      CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['http:', 'https:'])
+      CONFIG_PERMISSION_HOSTS: JSON.stringify({ origins: ['https://*/*'] }),
+      CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['https:']),
+      CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
+        'https://webmonetization.org/welcome'
+      )
     }
   })
 
