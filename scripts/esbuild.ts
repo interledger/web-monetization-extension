@@ -10,6 +10,7 @@ import esbuild from 'esbuild'
 import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill'
 import esbuildStylePlugin from 'esbuild-style-plugin'
 import { copy } from 'esbuild-plugin-copy'
+import { clean } from 'esbuild-plugin-clean'
 
 const TARGETS = ['chrome', 'firefox', 'opera', 'edge'] as const
 const CHANNELS = ['nightly', 'preview', 'release'] as const
@@ -74,6 +75,11 @@ async function build({ target, channel, dev }: BuildArgs) {
     ],
     outdir: OUTPUT_DIR,
     plugins: [
+      clean({
+        cleanOn: 'start',
+        patterns: [OUTPUT_DIR]
+      }),
+
       nodeModulesPolyfillPlugin({
         fallback: 'empty',
         globals: {
