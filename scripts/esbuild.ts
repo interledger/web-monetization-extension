@@ -1,10 +1,15 @@
 /* eslint-disable no-console */
 // cSpell:ignore metafile,iife,outdir
+
+// TODO: Do type checking at build time
+
 import sade from 'sade'
 import path from 'node:path'
 import fs from 'node:fs'
 import esbuild from 'esbuild'
 import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill'
+import esbuildStylePlugin from 'esbuild-style-plugin'
+import { copy } from 'esbuild-plugin-copy'
 
 const TARGETS = ['chrome', 'firefox', 'opera', 'edge'] as const
 const CHANNELS = ['nightly', 'preview', 'release'] as const
@@ -48,8 +53,6 @@ sade('build', true)
   .parse(process.argv)
 
 async function build({ target, channel, dev }: BuildArgs) {
-  processManifest({ target, channel, dev })
-
   const result = await esbuild.build({
     entryPoints: [
       {
@@ -86,7 +89,43 @@ async function build({ target, channel, dev }: BuildArgs) {
           util: true
         }
       }),
-      ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/])
+      ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
+
+      // @ts-expect-error fix me
+      esbuildStylePlugin({
+        extract: true,
+        postcss: {
+          plugins: [require('tailwindcss'), require('autoprefixer')]
+        }
+      }),
+
+      copy({
+        resolveFrom: ROOT_DIR,
+        assets: [
+          {
+            from: path.join(DIR_SRC, 'popup', 'index.html'),
+            to: path.join(OUTPUT_DIR, target, 'popup', 'index.html')
+          },
+          {
+            from: path.join(DIR_SRC, '_locales/**/*'),
+            to: path.join(OUTPUT_DIR, target, '_locales')
+          },
+          {
+            from: path.join(DIR_SRC, 'assets/**/*'),
+            to: path.join(OUTPUT_DIR, target, 'assets')
+          }
+        ],
+        watch: true
+      }),
+
+      {
+        name: 'process-manifest',
+        setup(build) {
+          build.onEnd(() => {
+            processManifest({ target, channel, dev })
+          })
+        }
+      }
     ],
     bundle: true,
     legalComments: 'none',
