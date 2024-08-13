@@ -6,6 +6,7 @@
 import sade from 'sade'
 import path from 'node:path'
 import fs from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
 import esbuild from 'esbuild'
 import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill'
 import esbuildStylePlugin from 'esbuild-style-plugin'
@@ -132,11 +133,13 @@ async function build({ target, channel, dev }: BuildArgs) {
       {
         name: 'process-manifest',
         setup(build) {
-          build.onEnd(() => {
-            processManifest(
-              { srcDir: DIR_SRC, outDir: OUTPUT_DIR },
-              { target, channel, dev }
-            )
+          build.onEnd(async () => {
+            const src = path.join(DIR_SRC, 'manifest.json')
+            const dest = path.join(OUTPUT_DIR, 'manifest.json')
+
+            const json = JSON.parse(await readFile(src, 'utf8'))
+            const processed = processManifest(json, { target, channel, dev })
+            await writeFile(dest, JSON.stringify(processed, null, 2))
           })
         }
       }
@@ -190,12 +193,9 @@ function ignorePackagePlugin(ignores: RegExp[]): esbuild.Plugin {
 // }
 
 function processManifest(
-  { srcDir, outDir }: { srcDir: string; outDir: string },
+  json: Record<string, any>,
   { target, channel, dev }: BuildArgs
 ) {
-  const json = JSON.parse(
-    fs.readFileSync(path.join(srcDir, 'manifest.json'), 'utf8')
-  )
   // Transform manifest as targets have different expectations
 
   delete json['$schema'] // Only for IDE. No target accepts it.
@@ -242,9 +242,5 @@ function processManifest(
     delete json['browser_specific_settings']
   }
 
-  fs.writeFileSync(
-    path.join(outDir, 'manifest.json'),
-    JSON.stringify(json, null, 2),
-    'utf8'
-  )
+  return json
 }
