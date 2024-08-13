@@ -1,34 +1,64 @@
 /* eslint-disable no-console */
-import { webpack } from 'webpack'
-import { TARGETS, callbackFn, type Target } from '../webpack/config'
-import { getProdConfig } from '../webpack/prod'
+// cSpell:ignore metafile,iife,outdir
 
-const TARGET: Target | null = process.argv[2]
-  ? (process.argv[2] as Target)
-  : null
+import sade from 'sade'
+import path from 'node:path'
+import fs from 'node:fs'
+import esbuild from 'esbuild'
+import {
+  BuildArgs,
+  CHANNELS,
+  DEV_DIR,
+  DIST_DIR,
+  options,
+  TARGETS
+} from '../esbuild/config'
+import { getDevOptions } from '../esbuild/dev'
+import { getProdOptions } from '../esbuild/prod'
 
-if (TARGET !== null && !TARGETS.includes(TARGET)) {
-  console.log('Invalid target. Please use "chrome" or "firefox" as target.')
-  console.log(
-    'Usage: pnpm prod <TARGET>, where <TARGET> is either "firefox" or "chrome".'
-  )
-  console.log(
-    'Omitting the target the extension will be built for all available targets.'
-  )
-  process.exit(1)
+// TODO: Live Reload extension with --dev
+
+sade('build', true)
+  .option('--target', 'Target', 'chrome')
+  .option('--channel', 'Channel', 'nightly')
+  .option('--dev', 'Dev-mode (watch, live-reload)', false)
+  .action(async (options: BuildArgs) => {
+    if (!TARGETS.includes(options.target)) {
+      console.warn('Invalid --target. Must be one of ' + TARGETS.join(', '))
+      process.exit(1)
+    }
+    if (!CHANNELS.includes(options.channel)) {
+      console.warn('Invalid --channel. Must be one of ' + CHANNELS.join(', '))
+      process.exit(1)
+    }
+
+    return options.dev ? buildWatch(options) : build(options)
+  })
+  .parse(process.argv)
+
+async function build({ target, channel }: BuildArgs) {
+  const OUTPUT_DIR = path.join(DIST_DIR, target)
+  const result = await esbuild.build({
+    ...options,
+    ...getProdOptions({ outDir: OUTPUT_DIR, target, channel }),
+    outdir: OUTPUT_DIR
+  })
+
+  if (result.metafile) {
+    fs.writeFileSync(
+      path.join(OUTPUT_DIR, 'meta.json'),
+      JSON.stringify(result.metafile)
+    )
+  }
 }
 
-process.env.NODE_ENV ||= 'production'
-
-// If no target is specified, build for all available targets
-if (TARGET === null) {
-  console.log(`Building extension for all available targets...`)
-  TARGETS.forEach((target) => {
-    const config = getProdConfig(target)
-    webpack(config, callbackFn)
+async function buildWatch({ target, channel }: BuildArgs) {
+  const OUTPUT_DIR = path.join(DEV_DIR, target)
+  const ctx = await esbuild.context({
+    ...options,
+    ...getDevOptions({ outDir: OUTPUT_DIR, target, channel }),
+    outdir: OUTPUT_DIR
   })
-} else {
-  const config = getProdConfig(TARGET)
-  console.log(`Building extension for ${TARGET.toUpperCase()}...`)
-  webpack(config, callbackFn)
+
+  await ctx.watch()
 }
