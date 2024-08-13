@@ -20,8 +20,6 @@ const DIR_DEV = path.resolve(ROOT_DIR, 'dev')
 const DIR_DIST = path.resolve(ROOT_DIR, 'dist')
 
 export const MANIFEST_PATH = path.join(DIR_SRC, 'manifest.json')
-export const OUTPUT_DIR =
-  process.env.NODE_ENV === 'production' ? DIR_DIST : DIR_DEV
 
 type Target = (typeof TARGETS)[number]
 type Channel = (typeof CHANNELS)[number]
@@ -53,6 +51,8 @@ sade('build', true)
   .parse(process.argv)
 
 async function build({ target, channel, dev }: BuildArgs) {
+  const OUTPUT_DIR = path.join(dev ? DIR_DEV : DIR_DIST, target)
+
   const result = await esbuild.build({
     entryPoints: [
       {
@@ -72,7 +72,7 @@ async function build({ target, channel, dev }: BuildArgs) {
         out: path.join('popup', 'popup')
       }
     ],
-    outdir: path.join(OUTPUT_DIR, target),
+    outdir: OUTPUT_DIR,
     plugins: [
       nodeModulesPolyfillPlugin({
         fallback: 'empty',
@@ -89,6 +89,7 @@ async function build({ target, channel, dev }: BuildArgs) {
           util: true
         }
       }),
+
       ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
 
       // @ts-expect-error fix me
@@ -104,25 +105,28 @@ async function build({ target, channel, dev }: BuildArgs) {
         assets: [
           {
             from: path.join(DIR_SRC, 'popup', 'index.html'),
-            to: path.join(OUTPUT_DIR, target, 'popup', 'index.html')
+            to: path.join(OUTPUT_DIR, 'popup', 'index.html')
           },
           {
             from: path.join(DIR_SRC, '_locales/**/*'),
-            to: path.join(OUTPUT_DIR, target, '_locales')
+            to: path.join(OUTPUT_DIR, '_locales')
           },
           {
             from: path.join(DIR_SRC, 'assets/**/*'),
-            to: path.join(OUTPUT_DIR, target, 'assets')
+            to: path.join(OUTPUT_DIR, 'assets')
           }
         ],
-        watch: true
+        watch: dev
       }),
 
       {
         name: 'process-manifest',
         setup(build) {
           build.onEnd(() => {
-            processManifest({ target, channel, dev })
+            processManifest(
+              { srcDir: DIR_SRC, outDir: OUTPUT_DIR },
+              { target, channel, dev }
+            )
           })
         }
       }
@@ -137,7 +141,7 @@ async function build({ target, channel, dev }: BuildArgs) {
     logLevel: 'info',
     treeShaking: true,
     metafile: dev,
-    minify: false,
+    minify: !dev,
     define: {
       NODE_ENV: JSON.stringify('development'),
       CONFIG_LOG_LEVEL: JSON.stringify('DEBUG'),
@@ -153,7 +157,7 @@ async function build({ target, channel, dev }: BuildArgs) {
 
   if (result.metafile) {
     fs.writeFileSync(
-      path.join(OUTPUT_DIR, target, 'meta.json'),
+      path.join(OUTPUT_DIR, 'meta.json'),
       JSON.stringify(result.metafile)
     )
   }
@@ -185,8 +189,13 @@ function ignorePackagePlugin(ignores: RegExp[]): esbuild.Plugin {
 //   console.log(target, channel)
 // }
 
-function processManifest({ target, channel, dev }: BuildArgs) {
-  const json = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'))
+function processManifest(
+  { srcDir, outDir }: { srcDir: string; outDir: string },
+  { target, channel, dev }: BuildArgs
+) {
+  const json = JSON.parse(
+    fs.readFileSync(path.join(srcDir, 'manifest.json'), 'utf8')
+  )
   // Transform manifest as targets have different expectations
 
   delete json['$schema'] // Only for IDE. No target accepts it.
@@ -234,11 +243,8 @@ function processManifest({ target, channel, dev }: BuildArgs) {
   }
 
   fs.writeFileSync(
-    path.join(OUTPUT_DIR, target, 'manifest.json'),
+    path.join(outDir, 'manifest.json'),
     JSON.stringify(json, null, 2),
     'utf8'
   )
-  return
-  // TODO: write to dist
-  return JSON.stringify(json, null, 2)
 }
