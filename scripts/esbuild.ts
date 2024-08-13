@@ -53,6 +53,9 @@ sade('build', true)
 
 async function build({ target, channel, dev }: BuildArgs) {
   const OUTPUT_DIR = path.join(dev ? DIR_DEV : DIR_DIST, target)
+  const config = dev
+    ? await import('./config.dev')
+    : await import('./config.build')
 
   const result = await esbuild.build({
     entryPoints: [
@@ -74,6 +77,7 @@ async function build({ target, channel, dev }: BuildArgs) {
       }
     ],
     outdir: OUTPUT_DIR,
+
     plugins: [
       clean({
         cleanOn: 'start',
@@ -148,17 +152,7 @@ async function build({ target, channel, dev }: BuildArgs) {
     treeShaking: true,
     metafile: dev,
     minify: !dev,
-    define: {
-      NODE_ENV: JSON.stringify('development'),
-      CONFIG_LOG_LEVEL: JSON.stringify('DEBUG'),
-      CONFIG_PERMISSION_HOSTS: JSON.stringify({
-        origins: ['http://*/*', 'https://*/*']
-      }),
-      CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['http:', 'https:']),
-      CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
-        'https://webmonetization.org/welcome'
-      )
-    }
+    define: config.defines
   })
 
   if (result.metafile) {
