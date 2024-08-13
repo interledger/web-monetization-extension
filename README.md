@@ -41,8 +41,8 @@ All commands are run from the root of the project, from a terminal:
 
 | Command               | Action                                                                                                                                                                                                          |
 | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev <TARGET>`   | Builds the extension for development, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for a Chromium based browser. Output folder: `dev`.    |
-| `pnpm build <TARGET>` | Builds the extension for production usage, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for all available targets. Output folder: `dist`. |
+| `pnpm dev --target=<TARGET>`   | Builds the extension for development, for a specified target (`chrome`, `firefox`, `edge`, `opera`). If the target is not specified the script will build the extension for a Chromium based browser. Output folder: `dev`.    |
+| `pnpm build --target=<TARGET>` | Builds the extension for production usage, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for all available targets. Output folder: `dist`. |
 | `pnpm test`           | Runs all test files using Jest.                                                                                                                                                                                 |
 
 ### Installing the extension from source, in Chromium based browsers (Chrome, Opera, Edge, Brave, Arc)
