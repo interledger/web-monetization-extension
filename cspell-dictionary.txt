@@ -20,6 +20,7 @@ prettiercache
 corepack
 linkcode
 endregion
+metafile
 
 # packages and 3rd party tools/libraries
 awilix
@@ -33,3 +34,4 @@ tailwindcss
 raducristianpopa
 sidvishnoi
 dianafulga
+jgoz

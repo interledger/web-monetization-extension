@@ -18,53 +18,53 @@ export const getPlugins = ({
   outDir: string
 }): ESBuildPlugin[] => {
   return [
-      clean({
-        cleanOn: 'start',
-        patterns: [outDir]
-      }),
-      nodeModulesPolyfillPlugin({
-        fallback: 'empty',
-        globals: {
-          Buffer: true
+    clean({
+      cleanOn: 'start',
+      patterns: [outDir]
+    }),
+    nodeModulesPolyfillPlugin({
+      fallback: 'empty',
+      globals: {
+        Buffer: true
+      },
+      modules: {
+        buffer: true,
+        events: true,
+        crypto: true,
+        path: true,
+        constants: true,
+        stream: true,
+        util: true
+      }
+    }),
+    ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
+    // @ts-expect-error fix me
+    esbuildStylePlugin({
+      extract: true,
+      postcss: {
+        plugins: [require('tailwindcss'), require('autoprefixer')]
+      }
+    }),
+    copy({
+      resolveFrom: ROOT_DIR,
+      assets: [
+        {
+          from: path.join(SRC_DIR, 'popup', 'index.html'),
+          to: path.join(outDir, 'popup', 'index.html')
         },
-        modules: {
-          buffer: true,
-          events: true,
-          crypto: true,
-          path: true,
-          constants: true,
-          stream: true,
-          util: true
+        {
+          from: path.join(SRC_DIR, '_locales/**/*'),
+          to: path.join(outDir, '_locales')
+        },
+        {
+          from: path.join(SRC_DIR, 'assets/**/*'),
+          to: path.join(outDir, 'assets')
         }
-      }),
-      ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
-      // @ts-expect-error fix me
-      esbuildStylePlugin({
-        extract: true,
-        postcss: {
-          plugins: [require('tailwindcss'), require('autoprefixer')]
-        }
-      }),
-      copy({
-        resolveFrom: ROOT_DIR,
-        assets: [
-          {
-            from: path.join(SRC_DIR, 'popup', 'index.html'),
-            to: path.join(outDir, 'popup', 'index.html')
-          },
-          {
-            from: path.join(SRC_DIR, '_locales/**/*'),
-            to: path.join(outDir, '_locales')
-          },
-          {
-            from: path.join(SRC_DIR, 'assets/**/*'),
-            to: path.join(outDir, 'assets')
-          }
-        ],
-        watch: dev
-      }),
-      processManifestPlugin({ outDir, dev, target, channel })
-    ]
+      ],
+      watch: dev
+    }),
+    processManifestPlugin({ outDir, dev, target, channel })
+  ]
 }
 
 // Based on https://github.com/Knowre-Dev/esbuild-plugin-ignore
