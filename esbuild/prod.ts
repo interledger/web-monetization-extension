@@ -47,7 +47,7 @@ function zipPlugin({ outDir }): ESBuildPlugin {
           console.log(`   Archived ${fileName}: ${formatBytes(archiveSize)}`)
         })
         archive.pipe(output)
-        archive.glob('*', { cwd: outDir, ignore: ['meta.json'] })
+        archive.glob('**/*', { cwd: outDir, ignore: ['meta.json'] })
         // archive.directory(outDir, false)
         await archive.finalize()
       })
