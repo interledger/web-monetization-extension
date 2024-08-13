@@ -59,6 +59,10 @@ async function build({ target, channel, dev }: BuildArgs) {
       {
         in: path.join(DIR_SRC, 'content', 'index.ts'),
         out: path.join('content', 'content')
+      },
+      {
+        in: path.join(DIR_SRC, 'content', 'polyfill.ts'),
+        out: path.join('polyfill', 'polyfill')
       }
     ],
     outdir: path.join(OUTPUT_DIR, target),
