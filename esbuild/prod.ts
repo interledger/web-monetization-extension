@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
-import fs from 'fs'
+import fs from 'fs/promises'
+import { createWriteStream } from 'fs'
 import path from 'path'
 import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild'
 import archiver from 'archiver'
@@ -20,6 +21,7 @@ export const getProdOptions = ({
     minify: true,
     plugins: getPlugins({ outDir, dev: false, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly' }),
+      preservePolyfillClassNamesPlugin({ outDir }),
       zipPlugin({ outDir })
     ]),
     define: {
@@ -39,7 +41,7 @@ function zipPlugin({ outDir }: { outDir: string }): ESBuildPlugin {
     name: 'zipPlugin',
     setup(build) {
       build.onEnd(async () => {
-        const output = fs.createWriteStream(`${outDir}.zip`)
+        const output = createWriteStream(`${outDir}.zip`)
         const archive = archiver('zip')
         archive.on('end', function () {
           const archiveSize = archive.pointer()
@@ -50,6 +52,43 @@ function zipPlugin({ outDir }: { outDir: string }): ESBuildPlugin {
         archive.glob('**/*', { cwd: outDir, ignore: ['meta.json'] })
         // archive.directory(outDir, false)
         await archive.finalize()
+      })
+    }
+  }
+}
+
+/**
+ * Unmangles the MonetizationEvent class
+ */
+function preservePolyfillClassNamesPlugin({
+  outDir
+}: {
+  outDir: string
+}): ESBuildPlugin {
+  return {
+    name: 'preservePolyfillClassNamesPlugin',
+    setup(build) {
+      build.onEnd(async () => {
+        const polyfillPath = path.join(outDir, 'polyfill', 'polyfill.js')
+        const polyfillContent = await fs.readFile(polyfillPath, 'utf8')
+        const definitionRegex = /class\s+([A-Za-z_$][\w$]*)\s+extends\s+Event/
+
+        const match = polyfillContent.match(definitionRegex)
+        if (!match) {
+          throw new Error('Could not find MonetizationEvent definition')
+        }
+
+        const minifiedName = match[1]
+
+        const result = polyfillContent
+          .replace(definitionRegex, `class MonetizationEvent extends Event`)
+          .replace(
+            `window.MonetizationEvent=${minifiedName}`,
+            `window.MonetizationEvent=MonetizationEvent`
+          )
+          .replaceAll(`new ${minifiedName}`, 'new MonetizationEvent')
+
+        await fs.writeFile(polyfillPath, result)
       })
     }
   }
