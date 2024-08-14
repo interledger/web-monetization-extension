@@ -2,7 +2,7 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 
 import type { Plugin as ESBuildPlugin } from 'esbuild'
-import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill'
+import { nodeBuiltin } from 'esbuild-node-builtin'
 import esbuildStylePlugin from 'esbuild-style-plugin'
 import { copy } from 'esbuild-plugin-copy'
 import { clean } from 'esbuild-plugin-clean'
@@ -27,21 +27,21 @@ export const getPlugins = ({
       cleanOn: 'start',
       patterns: [outDir]
     }),
-    nodeModulesPolyfillPlugin({
-      fallback: 'empty',
-      globals: {
-        Buffer: true
-      },
-      modules: {
-        buffer: true,
-        events: true,
-        crypto: true,
-        path: true,
-        constants: true,
-        stream: true,
-        util: true
+
+    // nodeBuiltIn (powered by rollup plugin) replaces crypto with an empty
+    // package. But we need it, and we use crypto-browserify in for our use
+    // case. The JSPM crypto package is too large and not tree shakeable, so we
+    // don't use it.
+    nodeBuiltin({ exclude: ['crypto'], injectBuffer: true }),
+    {
+      name: 'crypto-for-extension',
+      setup(build) {
+        build.onResolve({ filter: /^crypto$/ }, () => ({
+          path: require.resolve('crypto-browserify')
+        }))
       }
-    }),
+    },
+
     ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
     esbuildStylePlugin({
       extract: true,
