@@ -23,6 +23,6 @@
       "@/assets/*": ["./assets/*"]
     }
   },
-  "include": ["./src/**/*", "./jest.config.ts", "./jest.setup.ts", "./scripts/**/*"],
+  "include": ["./src/**/*", "./jest.config.ts", "./jest.setup.ts", "./scripts/**/*", "esbuild/**/*"],
   "exclude": ["dist", "dev"]
 }
