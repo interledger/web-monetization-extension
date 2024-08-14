@@ -63,7 +63,8 @@ export const getPlugins = ({
       ],
       watch: dev
     }),
-    processManifestPlugin({ outDir, dev, target, channel })
+    processManifestPlugin({ outDir, dev, target, channel }),
+    preserverPolyfillClassNamesPlugin({ outDir })
   ]
 }
 
@@ -149,6 +150,42 @@ function processManifestPlugin({
         }
 
         await fs.writeFile(dest, JSON.stringify(json, null, 2))
+      })
+    }
+  }
+}
+
+/**
+ * Unmangles the MonetizationEvent class
+ * This can be one solution to keep the class name for the MonetizationEvent unmangled.
+ * Another solution might be to switch back to a JS polyfill and avoid transpiling
+ * it from TS to JS.
+ *
+ * At the moment, it will still need another Regex to match:
+ *  - `new p("monetization",t.detail)`
+ */
+function preserverPolyfillClassNamesPlugin({
+  outDir
+}: {
+  outDir: string
+}): ESBuildPlugin {
+  return {
+    name: 'polyfillPlugin',
+    setup(build) {
+      build.onEnd(async () => {
+        const pollyfillPath = path.join(outDir, 'polyfill', 'polyfill.js')
+        const polyfillContent = await fs.readFile(pollyfillPath, 'utf8')
+        const definitionRegex = /class\s+([A-Za-z_$][\w$]*)\s+extends\s+Event/g
+        const assignmentRegex =
+          /window\.\s*MonetizationEvent\s*=\s*([A-Za-z_$][\w$]*)/g
+
+        const result = polyfillContent
+          .replace(definitionRegex, `class MonetizationEvent extends Event`)
+          .replace(
+            assignmentRegex,
+            `window.MonetizationEvent=MonetizationEvent`
+          )
+        await fs.writeFile(pollyfillPath, result)
       })
     }
   }
