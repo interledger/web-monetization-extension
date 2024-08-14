@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-// cSpell:ignore metafile,iife,outdir
+// cSpell:ignore metafile,iife,outdir,servedir
 
 import sade from 'sade'
 import path from 'node:path'
@@ -11,6 +11,7 @@ import {
   DEV_DIR,
   DIST_DIR,
   options,
+  SERVE_PORTS,
   TARGETS
 } from '../esbuild/config'
 import { getDevOptions } from '../esbuild/dev'
@@ -60,5 +61,18 @@ async function buildWatch({ target, channel }: BuildArgs) {
     outdir: OUTPUT_DIR
   })
 
+  try {
+    await ctx.serve({
+      host: 'localhost',
+      port: SERVE_PORTS[target],
+      servedir: OUTPUT_DIR
+    })
+  } catch (error) {
+    console.log(error.message)
+    console.log('>>> PLEASE TRY SAVING BUILD SCRIPT AGAIN')
+  }
+
   await ctx.watch()
+
+  process.on('beforeExit', () => ctx.dispose())
 }

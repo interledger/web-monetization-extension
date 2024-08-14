@@ -50,3 +50,10 @@ export const options: BuildOptions = {
 export type WebExtensionManifest = Manifest.WebExtensionManifest & {
   background: Manifest.WebExtensionManifestBackgroundC3Type
 }
+
+export const SERVE_PORTS: Record<Target, number> = {
+  chrome: 7000,
+  edge: 7001,
+  firefox: 7002,
+  opera: 7003
+}
