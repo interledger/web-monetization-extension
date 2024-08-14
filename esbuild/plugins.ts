@@ -43,7 +43,6 @@ export const getPlugins = ({
       }
     }),
     ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
-    // @ts-expect-error fix me
     esbuildStylePlugin({
       extract: true,
       postcss: {
