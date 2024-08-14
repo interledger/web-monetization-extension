@@ -67,7 +67,7 @@ export const getPlugins = ({
       ],
       watch: dev
     }),
-    processManifestPlugin({ outDir, dev, target, channel }),
+    processManifestPlugin({ outDir, dev, target, channel })
   ]
 }
 

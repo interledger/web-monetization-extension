@@ -11,6 +11,7 @@ GNAP
 Deduplicator
 crossorigin
 iframes
+unmangles
 data-testid
 nums
 
