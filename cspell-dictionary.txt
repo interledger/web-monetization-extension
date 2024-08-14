@@ -21,6 +21,7 @@ corepack
 linkcode
 endregion
 metafile
+iife
 
 # packages and 3rd party tools/libraries
 awilix

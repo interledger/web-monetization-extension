@@ -34,7 +34,7 @@ export const getProdOptions = ({
   }
 }
 
-function zipPlugin({ outDir }): ESBuildPlugin {
+function zipPlugin({ outDir }: { outDir: string }): ESBuildPlugin {
   return {
     name: 'zipPlugin',
     setup(build) {

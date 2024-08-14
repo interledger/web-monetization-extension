@@ -1,5 +1,6 @@
-import { BuildOptions } from 'esbuild'
+import type { BuildOptions } from 'esbuild'
 import path from 'path'
+import type { Manifest } from 'webextension-polyfill'
 
 export const TARGETS = ['chrome', 'firefox', 'opera', 'edge'] as const
 export const CHANNELS = ['nightly', 'preview', 'release'] as const
@@ -44,4 +45,8 @@ export const options: BuildOptions = {
   write: true,
   logLevel: 'info',
   treeShaking: true
+}
+
+export type WebExtensionManifest = Manifest.WebExtensionManifest & {
+  background: Manifest.WebExtensionManifestBackgroundC3Type
 }

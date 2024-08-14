@@ -1,5 +1,5 @@
-import path from 'path'
-import fs from 'fs/promises'
+import path from 'node:path'
+import fs from 'node:fs/promises'
 
 import type { Plugin as ESBuildPlugin } from 'esbuild'
 import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill'
@@ -7,7 +7,12 @@ import esbuildStylePlugin from 'esbuild-style-plugin'
 import { copy } from 'esbuild-plugin-copy'
 import { clean } from 'esbuild-plugin-clean'
 
-import { SRC_DIR, ROOT_DIR, BuildArgs } from './config'
+import {
+  SRC_DIR,
+  ROOT_DIR,
+  type BuildArgs,
+  type WebExtensionManifest
+} from './config'
 
 export const getPlugins = ({
   outDir,
@@ -103,20 +108,25 @@ function processManifestPlugin({
         const src = path.join(SRC_DIR, 'manifest.json')
         const dest = path.join(outDir, 'manifest.json')
 
-        const json = JSON.parse(await fs.readFile(src, 'utf8'))
+        const json = JSON.parse(
+          await fs.readFile(src, 'utf8')
+        ) as WebExtensionManifest
         // Transform manifest as targets have different expectations
-        delete json['$schema'] // Only for IDE. No target accepts it.
+        // @ts-expect-error Only for IDE. No target accepts it
+        delete json['$schema']
 
         if (channel === 'nightly') {
-          // Set version to YYYY.MM.DD
+          // Set version to YYYY.M.D
           const now = new Date()
           const [year, month, day] = [
             now.getFullYear(),
             now.getMonth() + 1,
             now.getDate()
-          ].map((e) => `${e}`.padStart(2, '0'))
+          ]
           json.version = `${year}.${month}.${day}`
-          json.version_name = `Nightly ${json.version}`
+          if (target !== 'firefox') {
+            json.version_name = `Nightly ${json.version}`
+          }
         }
 
         if (channel === 'preview') {
@@ -126,10 +136,13 @@ function processManifestPlugin({
         }
 
         if (dev) {
-          if (!json.host_permissions.includes('http://*/*')) {
+          if (
+            json.host_permissions &&
+            !json.host_permissions.includes('http://*/*')
+          ) {
             json.host_permissions.push('http://*/*')
           }
-          json.content_scripts.forEach((contentScript) => {
+          json.content_scripts?.forEach((contentScript) => {
             if (!contentScript.matches.includes('http://*/*')) {
               contentScript.matches.push('http://*/*')
             }
@@ -137,11 +150,12 @@ function processManifestPlugin({
         }
 
         if (target === 'firefox') {
+          // @ts-expect-error Firefox doesn't support Service Worker in MV3 yet
           json.background = {
             scripts: [json.background.service_worker]
           }
-          json.content_scripts.forEach((contentScript) => {
-            // firefox doesn't support execution context yet
+          json.content_scripts?.forEach((contentScript) => {
+            // @ts-expect-error firefox doesn't support execution context yet
             contentScript.world = undefined
           })
         }
@@ -156,13 +170,10 @@ function processManifestPlugin({
 }
 
 /**
- * Unmangles the MonetizationEvent class
- * This can be one solution to keep the class name for the MonetizationEvent unmangled.
+ * Un-mangles the MonetizationEvent class
+ * This can be one solution to keep the class name for the MonetizationEvent un-mangled.
  * Another solution might be to switch back to a JS polyfill and avoid transpiling
  * it from TS to JS.
- *
- * At the moment, it will still need another Regex to match:
- *  - `new p("monetization",t.detail)`
  */
 function preserverPolyfillClassNamesPlugin({
   outDir
@@ -173,19 +184,26 @@ function preserverPolyfillClassNamesPlugin({
     name: 'polyfillPlugin',
     setup(build) {
       build.onEnd(async () => {
-        const pollyfillPath = path.join(outDir, 'polyfill', 'polyfill.js')
-        const polyfillContent = await fs.readFile(pollyfillPath, 'utf8')
-        const definitionRegex = /class\s+([A-Za-z_$][\w$]*)\s+extends\s+Event/g
-        const assignmentRegex =
-          /window\.\s*MonetizationEvent\s*=\s*([A-Za-z_$][\w$]*)/g
+        const polyfillPath = path.join(outDir, 'polyfill', 'polyfill.js')
+        const polyfillContent = await fs.readFile(polyfillPath, 'utf8')
+        const definitionRegex = /class\s+([A-Za-z_$][\w$]*)\s+extends\s+Event/
+
+        const match = polyfillContent.match(definitionRegex)
+        if (!match) {
+          throw new Error('Could not find MonetizationEvent definition')
+        }
+
+        const minifiedName = match[1]
 
         const result = polyfillContent
           .replace(definitionRegex, `class MonetizationEvent extends Event`)
           .replace(
-            assignmentRegex,
+            `window.MonetizationEvent=${minifiedName}`,
             `window.MonetizationEvent=MonetizationEvent`
           )
-        await fs.writeFile(pollyfillPath, result)
+          .replaceAll(`new ${minifiedName}`, 'new MonetizationEvent')
+
+        await fs.writeFile(polyfillPath, result)
       })
     }
   }
