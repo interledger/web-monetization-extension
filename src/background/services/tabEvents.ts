@@ -140,7 +140,7 @@ export class TabEvents {
     hasTabAllSessionsInvalid
   }: {
     enabled: Storage['enabled']
-    connected: boolean
+    connected: Storage['connected']
     state: Storage['state']
     isTabMonetized: boolean
     hasTabAllSessionsInvalid: boolean
