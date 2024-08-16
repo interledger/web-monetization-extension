@@ -17,6 +17,7 @@ import {
   type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress
 } from '@interledger/open-payments/dist/types'
+import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
@@ -193,8 +194,7 @@ export class OpenPaymentsService {
       id: keyId,
       alg: 'ed25519',
       async sign(data: Uint8Array) {
-        const { signAsync } = await import('@noble/ed25519')
-        return Buffer.from(await signAsync(data, key.slice(16)))
+        return Buffer.from(await ed.signAsync(data, key.slice(16)))
       }
     }
   }
@@ -258,7 +258,6 @@ export class OpenPaymentsService {
 
   async initClient(walletAddressUrl: string) {
     const { privateKey, keyId } = await this.getPrivateKeyInformation()
-    const { etc } = await import('@noble/ed25519')
 
     this.client = await createAuthenticatedClient({
       validateResponses: false,
@@ -282,7 +281,7 @@ export class OpenPaymentsService {
               ? JSON.stringify(await request.json())
               : undefined
           },
-          privateKey: etc.hexToBytes(privateKey),
+          privateKey: ed.etc.hexToBytes(privateKey),
           keyId
         })
 
