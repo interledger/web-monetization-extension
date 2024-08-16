@@ -86,5 +86,14 @@
     "yarn": "pnpm",
     "node": "^20.15.1"
   },
+  "pnpm": {
+    "overrides": {
+      "safe-buffer": "5.2.1",
+      "string_decoder": "1.3.0",
+      "readable-stream": "2.3.8",
+      "bn.js": "5.2.1",
+      "structured-headers": "1.0.1"
+    }
+  },
   "packageManager": "pnpm@9.6.0"
 }
