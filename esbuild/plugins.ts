@@ -4,7 +4,6 @@ import type { Plugin as ESBuildPlugin } from 'esbuild'
 import { nodeBuiltin } from 'esbuild-node-builtin'
 import esbuildStylePlugin from 'esbuild-style-plugin'
 import { copy } from 'esbuild-plugin-copy'
-import { rimraf } from 'rimraf'
 
 import {
   SRC_DIR,
@@ -22,7 +21,7 @@ export const getPlugins = ({
   outDir: string
 }): ESBuildPlugin[] => {
   return [
-    cleanPlugin({ on: 'start', patterns: outDir }),
+    cleanPlugin([outDir]),
     // nodeBuiltIn (powered by rollup plugin) replaces crypto with an empty
     // package. But we need it, and we use crypto-browserify in for our use
     // case. The JSPM crypto package is too large and not tree shakeable, so we
@@ -161,26 +160,15 @@ function processManifestPlugin({
   }
 }
 
-interface CleanPluginOptions {
-  on: 'start' | 'end' | 'both'
-  patterns: string | string[]
-}
-
-function cleanPlugin({ on, patterns }: CleanPluginOptions): ESBuildPlugin {
+function cleanPlugin(dirs: string[]): ESBuildPlugin {
   return {
     name: 'clean',
     setup(build) {
-      if (on === 'start' || on === 'both') {
-        build.onStart(async () => {
-          await rimraf(patterns)
-        })
-      }
-
-      if (on === 'end' || on === 'both') {
-        build.onStart(async () => {
-          await rimraf(patterns)
-        })
-      }
+      build.onStart(async () => {
+        await Promise.all(
+          dirs.map((dir) => fs.rm(dir, { recursive: true, force: true }))
+        )
+      })
     }
   }
 }
