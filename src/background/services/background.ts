@@ -150,6 +150,7 @@ export class Background {
             case PopupToBackgroundAction.DISCONNECT_WALLET:
               await this.openPaymentsService.disconnectWallet()
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
+              await this.updateVisualIndicatorsForCurrentTab()
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
               return
 
