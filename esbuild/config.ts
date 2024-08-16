@@ -53,5 +53,5 @@ export type WebExtensionManifest = Manifest.WebExtensionManifest & {
 
 export const SERVE_PORTS: Record<Target, number> = {
   chrome: 7000,
-  firefox: 7002,
+  firefox: 7002
 }

@@ -17,7 +17,7 @@ import {
 import { getDevOptions } from '../esbuild/dev'
 import { getProdOptions } from '../esbuild/prod'
 
-// TODO: Live Reload extension with --dev
+// TODO: FIX README OR ADD TARGET ALL
 
 sade('build', true)
   .option('--target', 'Target', 'chrome')
