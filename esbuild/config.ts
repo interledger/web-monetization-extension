@@ -2,7 +2,7 @@ import path from 'node:path'
 import type { BuildOptions } from 'esbuild'
 import type { Manifest } from 'webextension-polyfill'
 
-export const TARGETS = ['chrome', 'firefox', 'opera', 'edge'] as const
+export const TARGETS = ['chrome', 'firefox'] as const
 export const CHANNELS = ['nightly', 'preview', 'release'] as const
 
 export const ROOT_DIR = path.resolve(__dirname, '..')
@@ -53,7 +53,5 @@ export type WebExtensionManifest = Manifest.WebExtensionManifest & {
 
 export const SERVE_PORTS: Record<Target, number> = {
   chrome: 7000,
-  edge: 7001,
   firefox: 7002,
-  opera: 7003
 }

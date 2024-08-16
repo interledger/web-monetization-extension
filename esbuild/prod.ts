@@ -50,7 +50,6 @@ function zipPlugin({ outDir }: { outDir: string }): ESBuildPlugin {
         })
         archive.pipe(output)
         archive.glob('**/*', { cwd: outDir, ignore: ['meta.json'] })
-        // archive.directory(outDir, false)
         await archive.finalize()
       })
     }
