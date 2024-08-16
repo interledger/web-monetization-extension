@@ -108,9 +108,14 @@ export class TabEvents {
       ? this.tabState.tabHasAllSessionsInvalid(tabId)
       : false
   ) => {
-    const { enabled, state } = await this.storage.get(['enabled', 'state'])
+    const { enabled, connected, state } = await this.storage.get([
+      'enabled',
+      'connected',
+      'state'
+    ])
     const { path, title, isMonetized } = this.getIconAndTooltip({
       enabled,
+      connected,
       state,
       isTabMonetized,
       hasTabAllSessionsInvalid
@@ -133,18 +138,22 @@ export class TabEvents {
 
   private getIconAndTooltip({
     enabled,
+    connected,
     state,
     isTabMonetized,
     hasTabAllSessionsInvalid
   }: {
     enabled: Storage['enabled']
+    connected: Storage['connected']
     state: Storage['state']
     isTabMonetized: boolean
     hasTabAllSessionsInvalid: boolean
   }) {
     let title = this.t('appName')
     let iconData = ICONS.default
-    if (!isOkState(state) || hasTabAllSessionsInvalid) {
+    if (!connected) {
+      // use defaults
+    } else if (!isOkState(state) || hasTabAllSessionsInvalid) {
       iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
       const tabStateText = this.t('icon_state_actionRequired')
       title = `${title} - ${tabStateText}`
