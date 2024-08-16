@@ -1,13 +1,17 @@
-import { Logger } from '@/shared/logger'
 import { stopMonetization } from '../lib/messages'
 import { ContentToContentAction } from '../messages'
-import {
+import type {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload
 } from '@/shared/messages'
+import type { Cradle } from '@/content/container'
 
 export class FrameManager {
+  private window: Cradle['window']
+  private document: Cradle['document']
+  private logger: Cradle['logger']
+
   private documentObserver: MutationObserver
   private frameAllowAttrObserver: MutationObserver
   private frames = new Map<
@@ -15,11 +19,13 @@ export class FrameManager {
     { frameId: string | null; requestIds: string[] }
   >()
 
-  constructor(
-    private window: Window,
-    private document: Document,
-    private logger: Logger
-  ) {
+  constructor({ window, document, logger }: Cradle) {
+    Object.assign(this, {
+      window,
+      document,
+      logger
+    })
+
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records)
     )

@@ -1,7 +1,11 @@
-import type { Browser } from 'webextension-polyfill'
+import type { Cradle } from '@/background/container'
 
 export class Heartbeat {
-  constructor(private browser: Browser) {}
+  private browser: Cradle['browser']
+
+  constructor({ browser }: Cradle) {
+    Object.assign(this, { browser })
+  }
 
   start() {
     const alarms = this.browser.alarms

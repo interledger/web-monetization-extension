@@ -1,11 +1,4 @@
-import type {
-  EventsService,
-  OpenPaymentsService,
-  StorageService,
-  TabState
-} from '.'
-import { type Browser, type Runtime } from 'webextension-polyfill'
-import { Logger } from '@/shared/logger'
+import type { Runtime } from 'webextension-polyfill'
 import {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
@@ -15,24 +8,39 @@ import { PaymentSession } from './paymentSession'
 import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { isOutOfBalanceError } from './openPayments'
-import {
-  isOkState,
-  removeQueryParams,
-  type Translation
-} from '@/shared/helpers'
+import { isOkState, removeQueryParams } from '@/shared/helpers'
 import { ALLOWED_PROTOCOLS } from '@/shared/defines'
 import type { AmountValue, PopupStore, Storage } from '@/shared/types'
+import type { Cradle } from '../container'
 
 export class MonetizationService {
-  constructor(
-    private logger: Logger,
-    private t: Translation,
-    private openPaymentsService: OpenPaymentsService,
-    private storage: StorageService,
-    private browser: Browser,
-    private events: EventsService,
-    private tabState: TabState
-  ) {
+  private logger: Cradle['logger']
+  private t: Cradle['t']
+  private openPaymentsService: Cradle['openPaymentsService']
+  private storage: Cradle['storage']
+  private browser: Cradle['browser']
+  private events: Cradle['events']
+  private tabState: Cradle['tabState']
+
+  constructor({
+    logger,
+    t,
+    browser,
+    storage,
+    events,
+    openPaymentsService,
+    tabState
+  }: Cradle) {
+    Object.assign(this, {
+      logger,
+      t,
+      openPaymentsService,
+      storage,
+      browser,
+      events,
+      tabState
+    })
+
     this.registerEventListeners()
   }
 

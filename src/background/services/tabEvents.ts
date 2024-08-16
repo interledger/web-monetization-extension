@@ -1,12 +1,8 @@
 import browser from 'webextension-polyfill'
 import type { Browser } from 'webextension-polyfill'
-import {
-  isOkState,
-  removeQueryParams,
-  type Translation
-} from '@/shared/helpers'
-import type { SendToPopup, StorageService, TabState } from '.'
+import { isOkState, removeQueryParams } from '@/shared/helpers'
 import type { Storage, TabId } from '@/shared/types'
+import type { Cradle } from '@/background/container'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -56,13 +52,21 @@ type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
   Parameters<Browser['tabs'][T]['addListener']>[0]
 
 export class TabEvents {
-  constructor(
-    private storage: StorageService,
-    private tabState: TabState,
-    private sendToPopup: SendToPopup,
-    private t: Translation,
-    private browser: Browser
-  ) {}
+  private storage: Cradle['storage']
+  private tabState: Cradle['tabState']
+  private sendToPopup: Cradle['sendToPopup']
+  private t: Cradle['t']
+  private browser: Cradle['browser']
+
+  constructor({ storage, tabState, sendToPopup, t, browser }: Cradle) {
+    Object.assign(this, {
+      storage,
+      tabState,
+      sendToPopup,
+      t,
+      browser
+    })
+  }
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     /**
