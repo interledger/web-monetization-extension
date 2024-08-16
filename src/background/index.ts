@@ -1,3 +1,4 @@
+import './global-buffer'
 import { configureContainer } from './container'
 
 const container = configureContainer()

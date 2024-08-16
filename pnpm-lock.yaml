@@ -165,6 +165,9 @@ importers:
       sade:
         specifier: ^1.8.1
         version: 1.8.1
+      safe-buffer:
+        specifier: ^5.2.1
+        version: 5.2.1
       tailwindcss:
         specifier: ^3.4.4
         version: 3.4.4(ts-node@10.9.2(@types/node@20.14.10)(typescript@5.5.3))

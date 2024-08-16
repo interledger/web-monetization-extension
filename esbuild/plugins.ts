@@ -26,7 +26,7 @@ export const getPlugins = ({
     // package. But we need it, and we use crypto-browserify in for our use
     // case. The JSPM crypto package is too large and not tree shakeable, so we
     // don't use it.
-    nodeBuiltin({ exclude: ['crypto'], injectBuffer: true }),
+    nodeBuiltin({ exclude: ['crypto'] }),
     {
       name: 'crypto-for-extension',
       setup(build) {
