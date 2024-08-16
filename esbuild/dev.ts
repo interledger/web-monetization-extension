@@ -15,6 +15,10 @@ export const getDevOptions = ({
     sourcemap: 'linked',
     metafile: false,
     minify: false,
+    plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
+      typecheckPlugin({ buildMode: 'readonly', watch: true }),
+      liveReloadPlugin({ target })
+    ]),
     define: {
       NODE_ENV: JSON.stringify('development'),
       CONFIG_LOG_LEVEL: JSON.stringify('DEBUG'),
@@ -25,11 +29,7 @@ export const getDevOptions = ({
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
         'https://webmonetization.org/welcome'
       )
-    },
-    plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
-      typecheckPlugin({ buildMode: 'readonly', watch: true }),
-      liveReloadPlugin({ target })
-    ])
+    }
   }
 }
 
@@ -54,7 +54,7 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
     });`
 
   return {
-    name: 'ext-live-reload',
+    name: 'live-reload',
     setup(build) {
       build.onLoad({ filter: /src\/background\/index\.ts$/ }, async (args) => {
         const contents = await readFile(args.path, 'utf8')

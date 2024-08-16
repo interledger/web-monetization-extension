@@ -38,7 +38,7 @@ export const getProdOptions = ({
 
 function zipPlugin({ outDir }: { outDir: string }): ESBuildPlugin {
   return {
-    name: 'zipPlugin',
+    name: 'zip',
     setup(build) {
       build.onEnd(async () => {
         const output = createWriteStream(`${outDir}.zip`)
@@ -66,7 +66,7 @@ function preservePolyfillClassNamesPlugin({
   outDir: string
 }): ESBuildPlugin {
   return {
-    name: 'preservePolyfillClassNamesPlugin',
+    name: 'preserve-polyfill-class-names',
     setup(build) {
       build.onEnd(async () => {
         const polyfillPath = path.join(outDir, 'polyfill', 'polyfill.js')

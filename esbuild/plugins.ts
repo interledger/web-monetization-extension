@@ -68,7 +68,7 @@ export const getPlugins = ({
 // Based on https://github.com/Knowre-Dev/esbuild-plugin-ignore
 function ignorePackagePlugin(ignores: RegExp[]): ESBuildPlugin {
   return {
-    name: 'ignorePackagePlugin',
+    name: 'ignore-package',
     setup(build) {
       build.onResolve({ filter: /.*/, namespace: 'ignore' }, (args) => ({
         path: args.path,
