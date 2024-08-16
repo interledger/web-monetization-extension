@@ -62,7 +62,7 @@ export class TabEvents {
     private sendToPopup: SendToPopup,
     private t: Translation,
     private browser: Browser
-  ) {}
+  ) { }
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     /**
@@ -104,9 +104,10 @@ export class TabEvents {
       ? this.tabState.tabHasAllSessionsInvalid(tabId)
       : false
   ) => {
-    const { enabled, state } = await this.storage.get(['enabled', 'state'])
+    const { enabled, connected, state } = await this.storage.get(['enabled', 'connected', 'state'])
     const { path, title, isMonetized } = this.getIconAndTooltip({
       enabled,
+      connected,
       state,
       isTabMonetized,
       hasTabAllSessionsInvalid
@@ -129,35 +130,39 @@ export class TabEvents {
 
   private getIconAndTooltip({
     enabled,
+    connected,
     state,
     isTabMonetized,
     hasTabAllSessionsInvalid
   }: {
     enabled: Storage['enabled']
+    connected: boolean
     state: Storage['state']
     isTabMonetized: boolean
     hasTabAllSessionsInvalid: boolean
   }) {
     let title = this.t('appName')
     let iconData = ICONS.default
-    if (!isOkState(state) || hasTabAllSessionsInvalid) {
-      iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
-      const tabStateText = this.t('icon_state_actionRequired')
-      title = `${title} - ${tabStateText}`
-    } else {
-      if (enabled) {
-        iconData = isTabMonetized
-          ? ICONS.enabled_hasLinks
-          : ICONS.enabled_noLinks
+    if (connected) {
+      if (!isOkState(state) || hasTabAllSessionsInvalid) {
+        iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
+        const tabStateText = this.t('icon_state_actionRequired')
+        title = `${title} - ${tabStateText}`
       } else {
-        iconData = isTabMonetized
-          ? ICONS.disabled_hasLinks
-          : ICONS.disabled_noLinks
+        if (enabled) {
+          iconData = isTabMonetized
+            ? ICONS.enabled_hasLinks
+            : ICONS.enabled_noLinks
+        } else {
+          iconData = isTabMonetized
+            ? ICONS.disabled_hasLinks
+            : ICONS.disabled_noLinks
+        }
+        const tabStateText = isTabMonetized
+          ? this.t('icon_state_monetizationActive')
+          : this.t('icon_state_monetizationInactive')
+        title = `${title} - ${tabStateText}`
       }
-      const tabStateText = isTabMonetized
-        ? this.t('icon_state_monetizationActive')
-        : this.t('icon_state_monetizationInactive')
-      title = `${title} - ${tabStateText}`
     }
 
     return {
