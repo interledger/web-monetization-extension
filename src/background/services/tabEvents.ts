@@ -62,7 +62,7 @@ export class TabEvents {
     private sendToPopup: SendToPopup,
     private t: Translation,
     private browser: Browser
-  ) { }
+  ) {}
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     /**
@@ -104,7 +104,11 @@ export class TabEvents {
       ? this.tabState.tabHasAllSessionsInvalid(tabId)
       : false
   ) => {
-    const { enabled, connected, state } = await this.storage.get(['enabled', 'connected', 'state'])
+    const { enabled, connected, state } = await this.storage.get([
+      'enabled',
+      'connected',
+      'state'
+    ])
     const { path, title, isMonetized } = this.getIconAndTooltip({
       enabled,
       connected,

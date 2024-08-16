@@ -38,7 +38,7 @@ export class Background {
     private sendToPopup: SendToPopup,
     private events: EventsService,
     private heartbeat: Heartbeat
-  ) { }
+  ) {}
 
   async start() {
     this.bindOnInstalled()
