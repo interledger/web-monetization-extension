@@ -147,26 +147,26 @@ export class TabEvents {
   }) {
     let title = this.t('appName')
     let iconData = ICONS.default
-    if (connected) {
-      if (!isOkState(state) || hasTabAllSessionsInvalid) {
-        iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
-        const tabStateText = this.t('icon_state_actionRequired')
-        title = `${title} - ${tabStateText}`
+    if (!connected) {
+      // use defaults
+    } else if (!isOkState(state) || hasTabAllSessionsInvalid) {
+      iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
+      const tabStateText = this.t('icon_state_actionRequired')
+      title = `${title} - ${tabStateText}`
+    } else {
+      if (enabled) {
+        iconData = isTabMonetized
+          ? ICONS.enabled_hasLinks
+          : ICONS.enabled_noLinks
       } else {
-        if (enabled) {
-          iconData = isTabMonetized
-            ? ICONS.enabled_hasLinks
-            : ICONS.enabled_noLinks
-        } else {
-          iconData = isTabMonetized
-            ? ICONS.disabled_hasLinks
-            : ICONS.disabled_noLinks
-        }
-        const tabStateText = isTabMonetized
-          ? this.t('icon_state_monetizationActive')
-          : this.t('icon_state_monetizationInactive')
-        title = `${title} - ${tabStateText}`
+        iconData = isTabMonetized
+          ? ICONS.disabled_hasLinks
+          : ICONS.disabled_noLinks
       }
+      const tabStateText = isTabMonetized
+        ? this.t('icon_state_monetizationActive')
+        : this.t('icon_state_monetizationInactive')
+      title = `${title} - ${tabStateText}`
     }
 
     return {
