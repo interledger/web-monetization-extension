@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-import fs from 'fs/promises'
-import { createWriteStream } from 'fs'
-import path from 'path'
+import fs from 'node:fs/promises'
+import { createWriteStream } from 'node:fs'
+import path from 'node:path'
 import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild'
 import archiver from 'archiver'
 import type { BuildArgs } from './config'
