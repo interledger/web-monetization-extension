@@ -149,8 +149,8 @@ function processManifestPlugin({
             // @ts-expect-error firefox doesn't support execution context yet
             contentScript.world = undefined
           })
-        }
-        if (target !== 'firefox') {
+          delete json.minimum_chrome_version
+        } else {
           delete json['browser_specific_settings']
         }
 
