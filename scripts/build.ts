@@ -20,10 +20,18 @@ import { getProdOptions } from '../esbuild/prod'
 // TODO: FIX README OR ADD TARGET ALL
 
 sade('build', true)
-  .option('--target', 'Target', 'chrome')
+  .option('--target', 'Target')
   .option('--channel', 'Channel', 'nightly')
   .option('--dev', 'Dev-mode (watch, live-reload)', false)
   .action(async (options: BuildArgs) => {
+    if (!options.target && !options.dev) {
+      const builds: Promise<void>[] = []
+      TARGETS.forEach((target) => {
+        builds.push(build({ ...options, target }))
+      })
+      return Promise.all(builds)
+    }
+
     if (!TARGETS.includes(options.target)) {
       console.warn('Invalid --target. Must be one of ' + TARGETS.join(', '))
       process.exit(1)
