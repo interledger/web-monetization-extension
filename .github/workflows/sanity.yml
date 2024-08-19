@@ -24,7 +24,7 @@ jobs:
 
       - name: Build
         shell: bash
-        run: pnpm build --target=${{ matrix.browser}} --channel=release
+        run: pnpm build --target=${{ matrix.browser}} --channel=stable
 
   test:
     name: Test

@@ -3,7 +3,7 @@ import type { BuildOptions } from 'esbuild'
 import type { Manifest } from 'webextension-polyfill'
 
 export const TARGETS = ['chrome', 'firefox'] as const
-export const CHANNELS = ['nightly', 'preview', 'release'] as const
+export const CHANNELS = ['nightly', 'preview', 'stable'] as const
 
 export const ROOT_DIR = path.resolve(__dirname, '..')
 export const SRC_DIR = path.resolve(ROOT_DIR, 'src')
