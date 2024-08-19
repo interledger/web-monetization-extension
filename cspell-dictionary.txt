@@ -23,6 +23,7 @@ linkcode
 endregion
 metafile
 iife
+softprops
 
 # packages and 3rd party tools/libraries
 awilix
