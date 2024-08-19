@@ -25,11 +25,12 @@ sade('build', true)
   .option('--dev', 'Dev-mode (watch, live-reload)', false)
   .action(async (options: BuildArgs) => {
     if (!options.target && !options.dev) {
-      const builds: Promise<void>[] = []
-      TARGETS.forEach((target) => {
-        builds.push(build({ ...options, target }))
-      })
-      return Promise.all(builds)
+      return Promise.all(TARGETS.map((target) => build({ ...options, target })))
+    }
+
+    // Default to chrome in dev build
+    if (options.dev && !options.target) {
+      options.target = 'chrome'
     }
 
     if (!TARGETS.includes(options.target)) {
