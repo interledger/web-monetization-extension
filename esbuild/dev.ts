@@ -36,22 +36,34 @@ export const getDevOptions = ({
 function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
   const port = SERVE_PORTS[target]
   const reloadScriptBackground = `
-    new EventSource('http://localhost:${port}/esbuild').addEventListener('change', async (ev) => {
-      const browser = 'browser' in globalThis ? globalThis.browser : globalThis.chrome;
-      const data = JSON.parse(ev.data)
-      if (data.added.some(s => s.includes('background.js')) ||  data.updated.some(s => s.includes('background.js'))) {
-        console.warn(">>>>>>>> reloading background...")
-        await browser.runtime.reload();
+    new EventSource("http://localhost:${port}/esbuild").addEventListener(
+      "change",
+      async (ev) => {
+        const browser = "browser" in globalThis ? globalThis.browser : globalThis.chrome;
+        const data = JSON.parse(ev.data);
+        if (
+          data.added.some(s => s.includes("background.js")) ||
+          data.updated.some(s => s.includes("background.js"))
+        ) {
+          console.warn(">>>>>>>> reloading background...");
+          await browser.runtime.reload();
+        }
       }
-    });`
+    );`
 
   const reloadScriptPopup = `
-    new EventSource('http://localhost:${port}/esbuild').addEventListener('change', (ev) => {
-      const data = JSON.parse(ev.data)
-      if (data.added.some(s => s.includes('popup.js')) ||  data.updated.some(s => s.includes('popup.js'))) {
-        globalThis.location.reload()
+    new EventSource("http://localhost:${port}/esbuild").addEventListener(
+      "change",
+      (ev) => {
+        const data = JSON.parse(ev.data);
+        if (
+          data.added.some(s => s.includes("popup.js")) ||
+          data.updated.some(s => s.includes("popup.js"))
+        ) {
+          globalThis.location.reload();
+        }
       }
-    });`
+    );`
 
   return {
     name: 'live-reload',
