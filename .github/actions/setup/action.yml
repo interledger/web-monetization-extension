@@ -1,4 +1,5 @@
 name: Environment setup
+description: Sets up Node and pnpm
 
 runs:
   using: 'composite'

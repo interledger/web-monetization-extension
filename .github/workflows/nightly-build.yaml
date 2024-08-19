@@ -1,0 +1,46 @@
+name: Nightly build
+
+on:
+  schedule:
+    - cron: '0 0 * * 1-6'
+  workflow_dispatch:
+    inputs: {}
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-nightly:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Build
+        id: build
+        run: |
+          pnpm build
+          echo "VERSION=$(jq -r '.version' './dist/chrome/manifest.json')" >> $GITHUB_OUTPUT
+
+      - name: Delete existing release
+        run: gh release delete nightly --cleanup-tag --yes
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create GH Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+          tag_name: 'nightly'
+          name: Nightly ${{ steps.build.outputs.VERSION }}
+          prerelease: true
