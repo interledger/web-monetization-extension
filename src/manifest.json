@@ -3,6 +3,7 @@
   "name": "__MSG_appName__",
   "version": "0.1.0",
   "manifest_version": 3,
+  "minimum_chrome_version": "110.0",
   "description": "__MSG_appDescription__",
   "icons": {
     "32": "assets/icons/32x32/default.png",
@@ -38,6 +39,7 @@
   "host_permissions": ["https://*/*"],
   "browser_specific_settings": {
     "gecko": {
+      "strict_min_version": "110.0",
       "id": "tech@interledger.com"
     }
   }

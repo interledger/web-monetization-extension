@@ -11,6 +11,7 @@ GNAP
 Deduplicator
 crossorigin
 iframes
+unmangles
 data-testid
 nums
 
@@ -20,6 +21,9 @@ prettiercache
 corepack
 linkcode
 endregion
+metafile
+iife
+softprops
 
 # packages and 3rd party tools/libraries
 awilix
@@ -33,3 +37,4 @@ tailwindcss
 raducristianpopa
 sidvishnoi
 dianafulga
+jgoz

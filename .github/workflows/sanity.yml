@@ -24,7 +24,7 @@ jobs:
 
       - name: Build
         shell: bash
-        run: pnpm build ${{ matrix.browser}}
+        run: pnpm build ${{ matrix.browser}} nightly
 
   test:
     name: Test

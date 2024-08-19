@@ -28,7 +28,7 @@ jobs:
 
       - name: Build
         shell: bash
-        run: pnpm build ${{ matrix.browser }}
+        run: pnpm build ${{ matrix.browser }} nightly
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3.1.3
