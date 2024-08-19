@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "tsx ./scripts/build.ts",
-    "dev": "tsx watch ./scripts/build.ts --dev --channel=nightly",
+    "dev": "tsx watch ./scripts/build.ts --dev",
     "lint": "eslint . --cache --cache-location 'node_modules/.cache/eslintcache' --max-warnings 0",
     "lint:fix": "eslint . --fix --cache --cache-location 'node_modules/.cache/eslintcache' --max-warnings 0",
     "format": "prettier . --check --cache --cache-location='node_modules/.cache/prettiercache'",
