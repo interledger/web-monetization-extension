@@ -7,7 +7,6 @@ import fs from 'node:fs'
 import esbuild from 'esbuild'
 import {
   BuildArgs,
-  Channel,
   CHANNELS,
   DEV_DIR,
   DIST_DIR,
@@ -19,16 +18,14 @@ import {
 import { getDevOptions } from '../esbuild/dev'
 import { getProdOptions } from '../esbuild/prod'
 
-sade('build [target] [channel]', true)
+sade('build [target]', true)
+  .option('--channel', `One of: ${CHANNELS.join(', ')}`, 'nightly')
   .option('--dev', 'Dev-mode (watch, live-reload)', false)
-  .example('chrome nightly')
-  .example('firefox stable')
-  .describe([
-    '`target` should be one of ' + TARGETS.join(', '),
-    '`channel` should be one of ' + CHANNELS.join(', ')
-  ])
-  .action(async (target: Target, channel: Channel, opts: BuildArgs) => {
-    const options = { ...opts, target, channel: channel || 'nightly' }
+  .example('chrome --channel=nightly')
+  .example('firefox --channel=stable')
+  .describe(['`target` should be one of ' + TARGETS.join(', ')])
+  .action(async (target: Target, opts: BuildArgs) => {
+    const options = { ...opts, target }
     if (!options.target && !options.dev) {
       console.log(`Building all targets with channel: ${options.channel}`)
       return Promise.all(TARGETS.map((t) => build({ ...options, target: t })))
@@ -37,7 +34,6 @@ sade('build [target] [channel]', true)
     // Default to chrome in dev build
     if (options.dev) {
       options.target ||= 'chrome'
-      options.channel ||= 'nightly'
     }
 
     if (!TARGETS.includes(options.target)) {
