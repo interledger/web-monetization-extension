@@ -55,7 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
     "archiver": "^7.0.1",
-    "autoprefixer": "^10.4.19",
+    "autoprefixer": "^10.4.20",
     "esbuild": "^0.23.0",
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",
