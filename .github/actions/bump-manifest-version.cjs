@@ -32,8 +32,8 @@ module.exports = async ({ core }) => {
  */
 function bumpVersion(existingVersion, type) {
   const parts = existingVersion.split('.').map(Number)
-  if (parts.length !== 4 || parts.some(e => !Number.isSafeInteger(e))) {
-    throw new Error("Existing version does not have right format")
+  if (parts.length !== 4 || parts.some((e) => !Number.isSafeInteger(e))) {
+    throw new Error('Existing version does not have right format')
   }
   const [major, minor, patch, build] = parts
 
