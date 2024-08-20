@@ -48,4 +48,7 @@ jobs:
             dist/*.zip
           tag_name: 'nightly'
           name: Nightly ${{ steps.version.outputs.version }}
+          body: |
+            > [!warning]
+            > The Nightly build is for adventurous folks. It's updated daily with less-tested features and improvements.
           prerelease: true
