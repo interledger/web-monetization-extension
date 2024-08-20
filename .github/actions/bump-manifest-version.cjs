@@ -1,6 +1,5 @@
 // @ts-check
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-var-requires, no-console */
 const fs = require("node:fs/promises");
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
