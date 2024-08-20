@@ -107,8 +107,8 @@ importers:
         specifier: ^5.3.3
         version: 5.3.3
       '@types/webextension-polyfill':
-        specifier: ^0.10.7
-        version: 0.10.7
+        specifier: ^0.12.0
+        version: 0.12.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.16.0
         version: 7.16.0(@typescript-eslint/parser@7.16.0(eslint@8.57.0)(typescript@5.5.3))(eslint@8.57.0)(typescript@5.5.3)
@@ -1184,8 +1184,8 @@ packages:
   '@types/tough-cookie@4.0.5':
     resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
 
-  '@types/webextension-polyfill@0.10.7':
-    resolution: {integrity: sha512-10ql7A0qzBmFB+F+qAke/nP1PIonS0TXZAOMVOxEUsm+lGSW6uwVcISFNa0I4Oyj0884TZVWGGMIWeXOVSNFHw==}
+  '@types/webextension-polyfill@0.12.0':
+    resolution: {integrity: sha512-0d1V0jw5wswj11ijrPoUUP+kV2pHCNKDDgQSzNdD1PK5i3vQ0eHiA1xzT5mFwaqdwatrXdgkxgC4BzCQ6C9eUw==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -5083,7 +5083,7 @@ snapshots:
 
   '@types/tough-cookie@4.0.5': {}
 
-  '@types/webextension-polyfill@0.10.7': {}
+  '@types/webextension-polyfill@0.12.0': {}
 
   '@types/yargs-parser@21.0.3': {}
 
