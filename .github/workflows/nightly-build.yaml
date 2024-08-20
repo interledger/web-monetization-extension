@@ -25,10 +25,15 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build
-        id: build
-        run: |
-          pnpm build
-          echo "VERSION=$(jq -r '.version' './dist/chrome/manifest.json')" >> $GITHUB_OUTPUT
+        run: pnpm build --channel=nightly
+
+      - name: Get built version
+        uses: actions/github-script@v7
+        id:  version
+        with:
+          script: |
+            const script = require('./.github/actions/get-built-version.cjs')
+            await script({ github, context, core })
 
       - name: Delete existing release
         run: gh release delete nightly --cleanup-tag --yes
@@ -42,5 +47,5 @@ jobs:
           files: |
             dist/*.zip
           tag_name: 'nightly'
-          name: Nightly ${{ steps.build.outputs.VERSION }}
+          name: Nightly ${{ steps.version.outputs.version }}
           prerelease: true
