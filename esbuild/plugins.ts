@@ -146,6 +146,8 @@ function processManifestPlugin({
             scripts: [json.background.service_worker]
           }
           json.content_scripts?.forEach((contentScript) => {
+            // TODO: Remoe this when Firefox supports `world` - at least last 10
+            // version
             contentScript.world = undefined
           })
           delete json.minimum_chrome_version
