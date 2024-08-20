@@ -1,0 +1,57 @@
+name: Release for Preview Channel
+
+on:
+  push:
+    branches:
+      - main
+      - "v[0-9]+.x"
+    paths:
+      - "src/manifest.json"
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  release-preview:
+    if: "${{ startsWith(github.event.head_commit.message, 'chore: release version') }}"
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build --channel=preview
+
+      - name: Get built version
+        uses: actions/github-script@v7
+        id: version
+        with:
+          script: |
+            const script = require('./.github/actions/get-built-version.cjs')
+            await script({ github, context, core })
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+          tag_name: v${{ steps.version.outputs.version }}-preview
+          name: Preview v${{ steps.version.outputs.version }}
+          prerelease: true
+
+      # - name: Upload to stores
+      #   if: github.ref_name == 'main'
+      #   run: |
+      #     echo 'TODO'
