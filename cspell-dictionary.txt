@@ -16,6 +16,7 @@ data-testid
 nums
 
 # scripts and 3rd party terms
+nvmrc
 typecheck
 prettiercache
 corepack

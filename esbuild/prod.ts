@@ -4,7 +4,7 @@ import { createWriteStream } from 'node:fs'
 import path from 'node:path'
 import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild'
 import archiver from 'archiver'
-import type { BuildArgs } from './config'
+import type { BuildArgs, Channel, Target, WebExtensionManifest } from './config'
 import { getPlugins } from './plugins'
 import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck'
 
@@ -22,7 +22,7 @@ export const getProdOptions = ({
     plugins: getPlugins({ outDir, dev: false, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly' }),
       preservePolyfillClassNamesPlugin({ outDir }),
-      zipPlugin({ outDir })
+      zipPlugin({ outDir, target, channel })
     ]),
     define: {
       NODE_ENV: JSON.stringify('production'),
@@ -36,16 +36,34 @@ export const getProdOptions = ({
   }
 }
 
-function zipPlugin({ outDir }: { outDir: string }): ESBuildPlugin {
+function zipPlugin({
+  outDir,
+  target,
+  channel
+}: {
+  channel: Channel
+  target: Target
+  outDir: string
+}): ESBuildPlugin {
   return {
     name: 'zip',
     setup(build) {
       build.onEnd(async () => {
-        const output = createWriteStream(`${outDir}.zip`)
+        const manifest = JSON.parse(
+          await fs.readFile(path.join(outDir, 'manifest.json'), 'utf8')
+        ) as WebExtensionManifest
+
+        let zipName = `${target}-${manifest.version}.zip`
+        if (channel !== 'stable') {
+          zipName = `${channel}-${zipName}`
+        }
+
+        const dest = path.join(outDir, '..', zipName)
+        const output = createWriteStream(dest)
         const archive = archiver('zip')
         archive.on('end', function () {
           const archiveSize = archive.pointer()
-          const fileName = path.relative(process.cwd(), `${outDir}.zip`)
+          const fileName = path.relative(process.cwd(), dest)
           console.log(`   Archived ${fileName}: ${formatBytes(archiveSize)}`)
         })
         archive.pipe(output)
