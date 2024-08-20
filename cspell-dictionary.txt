@@ -24,6 +24,7 @@ endregion
 metafile
 iife
 softprops
+amannn
 
 # packages and 3rd party tools/libraries
 awilix
