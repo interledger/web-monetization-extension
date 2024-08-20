@@ -1,28 +1,28 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-var-requires, no-console */
-const fs = require("node:fs/promises");
+const fs = require('node:fs/promises')
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ core }) => {
-  const manifestPath = "./src/manifest.json";
-  const manifestFile = await fs.readFile(manifestPath, "utf8");
-  const manifest = JSON.parse(manifestFile);
+  const manifestPath = './src/manifest.json'
+  const manifestFile = await fs.readFile(manifestPath, 'utf8')
+  const manifest = JSON.parse(manifestFile)
   /**@type {string} */
-  const existingVersion = manifest.version;
+  const existingVersion = manifest.version
 
-  const bumpType = /** @type {BumpType} */ (process.env.INPUT_VERSION);
+  const bumpType = /** @type {BumpType} */ (process.env.INPUT_VERSION)
   if (!bumpType) {
-    throw new Error("Missing bump type");
+    throw new Error('Missing bump type')
   }
 
-  const version = bumpVersion(existingVersion, bumpType).join(".");
+  const version = bumpVersion(existingVersion, bumpType).join('.')
 
-  console.log({ existingVersion, bumpType, version });
+  console.log({ existingVersion, bumpType, version })
 
-  manifest.version = version;
-  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
-  core.setOutput("version", version);
-};
+  manifest.version = version
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2))
+  core.setOutput('version', version)
+}
 
 /**
  * @typedef {'build' | 'patch' | 'minor'} BumpType
@@ -31,16 +31,16 @@ module.exports = async ({ core }) => {
  * @return {[major: number, minor: number, patch: number, build: number]}
  */
 function bumpVersion(existingVersion, type) {
-  const [major, minor, patch, build] = existingVersion.split(".").map(Number);
+  const [major, minor, patch, build] = existingVersion.split('.').map(Number)
 
   switch (type) {
-    case "build":
-      return [major, minor, patch, build + 1];
-    case "patch":
-      return [major, minor, patch + 1, 0];
-    case "minor":
-      return [major, minor + 1, 0, 0];
+    case 'build':
+      return [major, minor, patch, build + 1]
+    case 'patch':
+      return [major, minor, patch + 1, 0]
+    case 'minor':
+      return [major, minor + 1, 0, 0]
     default:
-      throw new Error("Unknown bump type: " + type);
+      throw new Error('Unknown bump type: ' + type)
   }
 }
