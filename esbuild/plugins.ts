@@ -146,7 +146,6 @@ function processManifestPlugin({
             scripts: [json.background.service_worker]
           }
           json.content_scripts?.forEach((contentScript) => {
-            // @ts-expect-error firefox doesn't support execution context yet
             contentScript.world = undefined
           })
           delete json.minimum_chrome_version

@@ -170,7 +170,7 @@ export class OpenPaymentsService {
     const data = await this.browser.storage.local.get(['privateKey', 'keyId'])
 
     if (data.privateKey && data.keyId) {
-      return data as KeyInformation
+      return data as unknown as KeyInformation
     }
 
     throw new Error(
