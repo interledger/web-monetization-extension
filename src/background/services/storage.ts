@@ -109,7 +109,7 @@ export class StorageService {
       await storage.set(data)
       await storage.remove(deleteKeys)
     }
-    return data as Storage
+    return data as unknown as Storage
   }
 
   async getWMState(): Promise<boolean> {

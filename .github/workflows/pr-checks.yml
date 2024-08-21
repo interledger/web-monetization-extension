@@ -28,13 +28,13 @@ jobs:
 
       - name: Build
         shell: bash
-        run: pnpm build ${{ matrix.browser }} nightly
+        run: pnpm build ${{ matrix.browser }} --channel=nightly
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
-          path: dist/${{ matrix.browser }}.zip
+          path: dist/${{ matrix.browser }}/
           if-no-files-found: error
 
   lint:

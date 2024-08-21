@@ -16,6 +16,7 @@ data-testid
 nums
 
 # scripts and 3rd party terms
+nvmrc
 typecheck
 prettiercache
 corepack
@@ -23,7 +24,6 @@ linkcode
 endregion
 metafile
 iife
-softprops
 
 # packages and 3rd party tools/libraries
 awilix
@@ -38,3 +38,5 @@ raducristianpopa
 sidvishnoi
 dianafulga
 jgoz
+amannn
+softprops
