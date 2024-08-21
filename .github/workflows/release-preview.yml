@@ -22,8 +22,7 @@ permissions:
 jobs:
   release-preview:
     if: "${{ startsWith(github.event.head_commit.message, 'chore: release version') }}"
-    runs-on: ubuntu-latest
-    # environment: production
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
