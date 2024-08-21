@@ -1,6 +1,6 @@
 {
   "env": {
-    "es2020": true,
+    "es2022": true,
     "browser": true,
     "node": true
   },
@@ -15,7 +15,7 @@
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "sourceType": "module",
-    "ecmaVersion": 2020,
+    "ecmaVersion": 2022,
     "ecmaFeatures": {
       "jsx": true
     }
@@ -72,7 +72,12 @@
   },
   "overrides": [
     {
-      "files": [".*rc.js", ".*rc.cjs", "*.config.js", "*.config.cjs"],
+      "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:n/recommended"
+      ],
+      "files": ["**/*.js", "**/*.cjs"],
       "env": {
         "node": true
       }
