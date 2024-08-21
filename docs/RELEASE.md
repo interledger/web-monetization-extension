@@ -15,7 +15,8 @@ Web extensions do not follow SEMVER. The version string consists of 1 to 4 numbe
 
 A major version bump (`2.0.0.0`) signifies the start of a block of product features.
 
-Before the extension is available first on the Stable channel, we only increase the build number (`2.0.0.x`) when publishing to the Preview channel. After that, we follow SEMVER (`2.x.y`).
+Before the extension is available first on the Stable channel, we only increase the build number (`2.0.0.x`) when publishing to the Preview channel. After that (during 
+maintenance mode), we follow SEMVER (`2.x.y.0`).
 
 ### Minor version bump
 
@@ -60,7 +61,7 @@ Once a new development stage starts for a new major version and we start publish
 
 ### Release artifacts
 
-Artifacts follow the name `preview-{browser}-{version}.zip`, e.g. `preview-chrome-1.0.4.zip`, `preview-edge-2.0.0.12.zip`, `preview-firefox-2.1.1.zip`
+Artifacts follow the name `preview-{browser}-{version}.zip`, e.g. `preview-chrome-1.0.4.0.zip`, `preview-edge-2.0.0.12.zip`, `preview-firefox-2.1.1.0.zip`
 
 ## Release
 
@@ -70,7 +71,7 @@ Release promotions are triggered manually (via GitHub Actions).
 
 ### Release artifacts
 
-Artifacts follow the name `{browser}-{version}.zip`, e.g. `chrome-1.0.4.zip`, `edge-2.0.0.12.zip`, `firefox-2.1.1.zip`.
+Artifacts follow the name `{browser}-{version}.zip`, e.g. `chrome-1.0.4.0.zip`, `edge-2.0.0.12.zip`, `firefox-2.1.1.0.zip`.
 
 ---
 
