@@ -15,8 +15,7 @@ Web extensions do not follow SEMVER. The version string consists of 1 to 4 numbe
 
 A major version bump (`2.0.0.0`) signifies the start of a block of product features.
 
-Before the extension is available first on the Stable channel, we only increase the build number (`2.0.0.x`) when publishing to the Preview channel. After that (during 
-maintenance mode), we follow SEMVER (`2.x.y.0`).
+Before the extension is available first on the Stable channel, we only increase the build number (`2.0.0.x`) when publishing to the Preview channel. After that (during maintenance mode), we follow SEMVER (`2.x.y.0`).
 
 ### Minor version bump
 
