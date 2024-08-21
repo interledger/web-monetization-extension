@@ -6,8 +6,6 @@ on:
       - main
       - 'v[0-9]+.x'
 
-# TODO(@raducristianpopa): add lint/format checks and tests
-
 jobs:
   build:
     name: Build extension
@@ -39,3 +37,26 @@ jobs:
 
       - name: Test
         run: pnpm test:ci
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    env:
+      FORCE_COLOR: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - run: pnpm format
+        if: always()
+      - run: pnpm lint
+        if: always()
+      - run: pnpm typecheck
+        if: always()
+      - name: Check spelling
+        uses: streetsidesoftware/cspell-action@v6
+        if: always()
