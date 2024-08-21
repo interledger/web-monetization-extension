@@ -30,14 +30,13 @@ jobs:
         id: find-comment
         with:
           issue-number: ${{ steps.get-workflow-artifacts.outputs.pr_number }}
-          comment-author: 'raducristianpopa'
+          comment-author: 'github-actions[bot]'
           body-includes: '<!-- __WM_EXTENSION_BUILD_PREVIEWS__ -->'
 
       - name: Add/Update comment
         if: ${{ steps.get-workflow-artifacts.outputs.conclusion != 'cancelled' }}
         uses: peter-evans/create-or-update-comment@v4
         with:
-          token: ${{ secrets.PAT }}
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ steps.get-workflow-artifacts.outputs.pr_number }}
           body: ${{ steps.get-workflow-artifacts.outputs.comment_body }}

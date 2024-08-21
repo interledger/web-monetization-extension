@@ -22,8 +22,7 @@ permissions:
 
 jobs:
   release-stable:
-    runs-on: ubuntu-latest
-    # environment: production
+    runs-on: ubuntu-22.04
     name: Release
     steps:
       - name: Checkout repository
