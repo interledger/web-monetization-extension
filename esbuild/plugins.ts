@@ -4,6 +4,8 @@ import type { Plugin as ESBuildPlugin } from 'esbuild'
 import { nodeBuiltin } from 'esbuild-node-builtin'
 import esbuildStylePlugin from 'esbuild-style-plugin'
 import { copy } from 'esbuild-plugin-copy'
+import tailwind from 'tailwindcss'
+import autoprefixer from 'autoprefixer'
 
 import {
   SRC_DIR,
@@ -39,7 +41,7 @@ export const getPlugins = ({
     esbuildStylePlugin({
       extract: true,
       postcss: {
-        plugins: [require('tailwindcss'), require('autoprefixer')]
+        plugins: [tailwind, autoprefixer]
       }
     }),
     copy({
