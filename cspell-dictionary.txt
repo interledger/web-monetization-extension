@@ -25,6 +25,8 @@ endregion
 metafile
 iife
 backported
+autobuild
+buildscript
 
 # packages and 3rd party tools/libraries
 awilix
