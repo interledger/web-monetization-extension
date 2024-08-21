@@ -1,27 +1,41 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable no-console */
+// @ts-check
+/* eslint-disable @typescript-eslint/no-var-requires, no-console */
 const fs = require('node:fs/promises')
 const { COLORS, TEMPLATE_VARS, BADGE } = require('./constants.cjs')
 
+/**
+ * @typedef {import('./constants.cjs').Browser} Browser
+ */
+
+/** @type {Record<Browser, {name: string, url: string, size: string}>} */
 const ARTIFACTS_DATA = {
   chrome: {
     name: 'Chrome',
-    url: null,
-    size: null
+    url: '',
+    size: ''
   },
   firefox: {
     name: 'Firefox',
-    url: null,
-    size: null
+    url: '',
+    size: ''
   }
 }
 
+/**
+ * @param {string} conclusion
+ * @param {string} badgeColor
+ * @param {string} badgeLabel
+ */
 function getBadge(conclusion, badgeColor, badgeLabel) {
-  return BADGE.replace(TEMPLATE_VARS.conslusion, conclusion)
+  return BADGE.replace(TEMPLATE_VARS.conclusion, conclusion)
     .replace(TEMPLATE_VARS.badgeColor, badgeColor)
     .replace(TEMPLATE_VARS.badgeLabel, badgeLabel)
 }
 
+/**
+ * @param {number} bytes
+ * @param {number} decimals
+ */
 function formatBytes(bytes, decimals = 2) {
   if (!Number(bytes)) return '0B'
   const k = 1024
@@ -31,9 +45,10 @@ function formatBytes(bytes, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`
 }
 
+/** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ github, context, core }) => {
   const { owner, repo } = context.repo
-  const baseUrl = context.payload.repository.html_url
+  const baseUrl = context.payload.repository?.html_url
   const suiteId = context.payload.workflow_run.check_suite_id
   const runId = context.payload.workflow_run.id
   const conclusion = context.payload.workflow_run.conclusion
@@ -44,6 +59,8 @@ module.exports = async ({ github, context, core }) => {
     './.github/actions/templates/build-status.md',
     'utf8'
   )
+
+  /** @type {string[]} */
   const tableRows = []
 
   core.setOutput('conclusion', conclusion)
@@ -59,15 +76,15 @@ module.exports = async ({ github, context, core }) => {
   })
 
   artifacts.data.artifacts.forEach((artifact) => {
-    const [, key] = artifact.name.split('-')
+    const key = /** @type {Browser} */ (artifact.name.split('-')[1])
     ARTIFACTS_DATA[key].url =
       `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`
     ARTIFACTS_DATA[key].size = formatBytes(artifact.size_in_bytes)
   })
 
   Object.keys(ARTIFACTS_DATA).forEach((k) => {
-    const { name, url, size } = ARTIFACTS_DATA[k]
-    if (url === null && size === null) {
+    const { name, url, size } = ARTIFACTS_DATA[/** @type {Browser} */ (k)]
+    if (!url && !size) {
       const badgeUrl = getBadge('failure', COLORS.red, name)
       tableRows.push(
         `<tr><td align="center">${badgeUrl}</td><td align="center">N/A</td></tr>`
@@ -82,7 +99,7 @@ module.exports = async ({ github, context, core }) => {
 
   const tableBody = tableRows.join('')
   const commentBody = template
-    .replace(TEMPLATE_VARS.conslusion, conclusion)
+    .replace(TEMPLATE_VARS.conclusion, conclusion)
     .replace(TEMPLATE_VARS.sha, sha)
     .replace(TEMPLATE_VARS.jobLogs, `<a href="${jobLogsUrl}">Run #${runId}</a>`)
     .replace(TEMPLATE_VARS.tableBody, tableBody)

@@ -1,67 +1,61 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable no-console */
+// @ts-check
+/* eslint-disable @typescript-eslint/no-var-requires, no-console */
 const { BROWSERS } = require('./constants.cjs')
 
-async function getBrowserArfifacts({ github, owner, repo, name }) {
-  const artifacts = []
+/**
+ * @param {Pick<import('github-script').AsyncFunctionArguments, 'github' | 'context'>} AsyncFunctionArguments
+ * @param {string} name
+ */
+async function getBrowserArfifacts({ github, context }, name) {
   const result = await github.rest.actions.listArtifactsForRepo({
-    owner,
-    repo,
+    owner: context.repo.owner,
+    repo: context.repo.repo,
     name
   })
-
-  for (let i = 0; i < result.data.total_count; i++) {
-    artifacts.push(result.data.artifacts[i].id)
-  }
-
-  return artifacts
+  return result.data.artifacts
 }
 
-async function getPRArtifacts({ github, owner, repo, prNumber }) {
-  const promises = []
-  const artifacts = []
-
-  BROWSERS.forEach((browser) =>
-    promises.push(
-      getBrowserArfifacts({
-        github,
-        owner,
-        repo,
-        name: `${prNumber}-${browser}`
-      })
+/**
+ * @param {Pick<import('github-script').AsyncFunctionArguments, 'github' | 'context'>} AsyncFunctionArguments
+ * @param {number} prNumber
+ */
+async function getPRArtifacts({ github, context }, prNumber) {
+  const data = await Promise.all(
+    BROWSERS.map((browser) =>
+      getBrowserArfifacts({ github, context }, `${prNumber}-${browser}`)
     )
   )
 
-  const data = await Promise.all(promises)
-
+  /** @type {{id: number}[]} */
+  const artifacts = []
   for (let i = 0; i < data.length; i++) {
+    // same as `artifacts.push(...data[i])` but it's a bit faster
     artifacts.push.apply(artifacts, data[i])
   }
-
   return artifacts
 }
 
+/** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ github, context, core }) => {
   if (context.payload.action !== 'closed') {
     core.setFailed('This action only works on closed PRs.')
   }
 
   const { owner, repo } = context.repo
+  /** @type {number} */
   const prNumber = context.payload.number
-  const promises = []
 
-  const artifacts = await getPRArtifacts({ github, owner, repo, prNumber })
+  const artifacts = await getPRArtifacts({ github, context }, prNumber)
 
-  for (let i = 0; i < artifacts.length; i++) {
-    promises.push(
+  await Promise.all(
+    artifacts.map((artifact) =>
       github.rest.actions.deleteArtifact({
         owner,
         repo,
-        artifact_id: artifacts[i]
+        artifact_id: artifact.id
       })
     )
-  }
+  )
 
-  await Promise.all(promises)
   console.log(`Deleted ${artifacts.length} artifacts for PR #${prNumber}.`)
 }
