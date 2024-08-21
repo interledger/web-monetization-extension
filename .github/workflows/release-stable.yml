@@ -1,0 +1,79 @@
+name: Release Stable
+run-name: Release Stable ${{ github.event.inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag (vX.X.X.X-preview)'
+        required: true
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  release-stable:
+    runs-on: ubuntu-latest
+    # environment: production
+    name: Release
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # We want to build extension using the code and dependencies as of
+          # this tag. The scripts, workflows are back-ported, so they can be
+          # used consistently.
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Validate stable release
+        uses: actions/github-script@v7
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        with:
+          script: |
+            const script = require('./.github/actions/validate-stable-release.cjs')
+            await script({ github, context, core })
+
+      - name: Build
+        run: pnpm build --channel=release
+
+      - name: Get built version
+        uses: actions/github-script@v7
+        id: version
+        with:
+          script: |
+            const script = require('./.github/actions/get-built-version.cjs')
+            await script({ github, context, core })
+
+      - name: Delete existing release # To keep the workflow idempotent.
+        run: gh release delete v${{ steps.version.outputs.version }} --cleanup-tag --yes
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          prerelease: false
+          fail_on_unmatched_files: true
+
+      # - name: Upload to stores
+      #   run: |
+      #     echo 'TODO'

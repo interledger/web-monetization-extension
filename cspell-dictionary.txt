@@ -24,6 +24,7 @@ linkcode
 endregion
 metafile
 iife
+backported
 
 # packages and 3rd party tools/libraries
 awilix

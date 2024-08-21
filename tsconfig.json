@@ -28,6 +28,7 @@
     "./jest.config.ts",
     "./jest.setup.ts",
     "./scripts/**/*",
+    "./.github/actions/*.cjs",
     "esbuild/**/*"
   ],
   "exclude": ["dist", "dev"]
