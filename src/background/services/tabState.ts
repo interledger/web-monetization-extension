@@ -1,7 +1,7 @@
 import type { MonetizationEventDetails } from '@/shared/messages'
 import type { TabId } from '@/shared/types'
 import type { PaymentSession } from './paymentSession'
-import type { Logger } from '@/shared/logger'
+import type { Cradle } from '@/background/container'
 
 type State = {
   monetizationEvent: MonetizationEventDetails
@@ -18,10 +18,16 @@ interface SaveOverpayingDetails {
 type SessionId = string
 
 export class TabState {
+  private logger: Cradle['logger']
+
   private state = new Map<TabId, Map<string, State>>()
   private sessions = new Map<TabId, Map<SessionId, PaymentSession>>()
 
-  constructor(private logger: Logger) {}
+  constructor({ logger }: Cradle) {
+    Object.assign(this, {
+      logger
+    })
+  }
 
   private getOverpayingStateKey(url: string, walletAddressId: string): string {
     return `${url}:${walletAddressId}`
@@ -95,8 +101,17 @@ export class TabState {
     return [...this.getSessions(tabId).values()].filter((s) => !s.disabled)
   }
 
+  getPayableSessions(tabId: TabId) {
+    return this.getEnabledSessions(tabId).filter((s) => !s.invalid)
+  }
+
   isTabMonetized(tabId: TabId) {
     return this.getEnabledSessions(tabId).length > 0
+  }
+
+  tabHasAllSessionsInvalid(tabId: TabId) {
+    const sessions = this.getEnabledSessions(tabId)
+    return sessions.length > 0 && sessions.every((s) => s.invalid)
   }
 
   getAllSessions() {

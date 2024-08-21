@@ -10,7 +10,6 @@ The Web Monetization browser extension is an open source implementation of the W
 ### Prerequisites
 
 - [NVM](https://github.com/nvm-sh/nvm) (Linux, macOS), [NVM Windows](https://github.com/coreybutler/nvm-windows) (Windows) - or another Node Version Manager
-- [PNPM](https://pnpm.io/)
 
 ## Setup
 
@@ -26,19 +25,9 @@ nvm use lts/iron
 nvm install lts
 nvm use lts
 
-# Install pnpm using Corepack
+# Install correct version of pnpm using Corepack (Corepack comes with Node)
 corepack enable
 ```
-
-If you do not have `corepack` installed locally you can use `npm` or `yarn` to install `pnpm`:
-
-```sh
-npm install -g pnpm
-# or
-yarn install -g pnpm
-```
-
-For alternative methods of installing `pnpm`, you can refer to the [official `pnpm` documentation](https://pnpm.io/installation).
 
 To install dependencies, execute:
 
@@ -50,13 +39,13 @@ pnpm i
 
 All commands are run from the root of the project, from a terminal:
 
-| Command               | Action                                                                                                                                                                                                          |
-| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev <TARGET>`   | Builds the extension for development, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for a Chromium based browser. Output folder: `dev`.    |
-| `pnpm build <TARGET>` | Builds the extension for production usage, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for all available targets. Output folder: `dist`. |
-| `pnpm test`           | Runs all test files using Jest.                                                                                                                                                                                 |
+| Command                                 | Action                                                                                                                                                                                                                                                                                                                                                        |
+| :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm dev [target]`                     | Builds the extension for development, rebuilding on source code changes, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for a Chromium based browser. Output folder: `dev`.                                                                                                               |
+| `pnpm build [TARGET] --channel=CHANNEL` | Builds the extension for production usage, for a specified target (`chrome` or `firefox`) and channel (`nightly`, `preview` or `stable`). If the target is not specified the script will build the extension for all available targets. If the channel is not specified the script will build the extension for the `nightly` channel. Output folder: `dist`. |
+| `pnpm test`                             | Runs all test files using Jest.                                                                                                                                                                                                                                                                                                                               |
 
-### Installing the extension from source, in Chromium based browsers (Chrome, Opera, Edge, Brave, Arc)
+### Installing the extension from source, in Chromium based browsers (Chrome, Opera, Edge, Brave, Arc, Vivaldi)
 
 1. <b>Build the extension with `pnpm build chrome`</b>
 

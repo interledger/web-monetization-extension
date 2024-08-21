@@ -5,13 +5,13 @@
     "noImplicitThis": true,
     "baseUrl": "./src",
     "esModuleInterop": true,
-    "module": "commonjs",
+    "module": "ES2022",
     "target": "ES2022",
     "allowJs": true,
     "jsx": "react",
     "sourceMap": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
@@ -23,6 +23,13 @@
       "@/assets/*": ["./assets/*"]
     }
   },
-  "include": ["./src/**/*", "./jest.config.ts", "./jest.setup.ts"],
-  "exclude": ["dist", "dev", "temp"]
+  "include": [
+    "./src/**/*",
+    "./jest.config.ts",
+    "./jest.setup.ts",
+    "./scripts/**/*",
+    "./.github/actions/*.cjs",
+    "esbuild/**/*"
+  ],
+  "exclude": ["dist", "dev"]
 }

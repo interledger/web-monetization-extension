@@ -4,6 +4,7 @@ import type { AmountValue, Storage, TabId } from '@/shared/types'
 interface BackgroundEvents {
   'open_payments.key_revoked': void
   'open_payments.out_of_funds': void
+  'open_payments.invalid_receiver': { tabId: number }
   'storage.rate_of_pay_update': { rate: string }
   'storage.state_update': {
     state: Storage['state']

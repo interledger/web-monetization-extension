@@ -1,0 +1,51 @@
+name: Bump Manifest Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to bump to'
+        required: true
+        default: 'build'
+        type: choice
+        options:
+          - build
+          - patch
+          - minor
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump-version:
+    name: Bump version
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: { node-version-file: '.nvmrc' }
+
+      - name: Bump version
+        id: bump
+        uses: actions/github-script@v7
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        with:
+          script: |
+            const script = require('./.github/actions/bump-manifest-version.cjs')
+            await script({ github, context, core })
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: release version ${{ steps.bump.outputs.version }}'
+          title: 'chore: release version ${{ steps.bump.outputs.version }}'
+          body: |
+            Bump extension version to ${{ steps.bump.outputs.version }}
+          branch: preview/${{ steps.bump.outputs.version }}
+          labels: preview

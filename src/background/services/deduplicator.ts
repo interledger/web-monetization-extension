@@ -1,4 +1,4 @@
-import { Logger } from '@/shared/logger'
+import type { Cradle } from '../container'
 
 type AsyncFn<T> = (...args: any[]) => Promise<T>
 
@@ -12,9 +12,13 @@ interface DedupeOptions {
 }
 
 export class Deduplicator {
+  private logger: Cradle['logger']
+
   private cache: Map<string, CacheEntry> = new Map()
 
-  constructor(private logger: Logger) {}
+  constructor({ logger }: Cradle) {
+    Object.assign(this, { logger })
+  }
 
   dedupe<T extends AsyncFn<any>>(
     fn: T,

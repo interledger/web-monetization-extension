@@ -11,15 +11,22 @@ GNAP
 Deduplicator
 crossorigin
 iframes
+unmangles
 data-testid
 nums
 
 # scripts and 3rd party terms
+nvmrc
 typecheck
 prettiercache
 corepack
 linkcode
 endregion
+metafile
+iife
+backported
+autobuild
+buildscript
 
 # packages and 3rd party tools/libraries
 awilix
@@ -33,3 +40,6 @@ tailwindcss
 raducristianpopa
 sidvishnoi
 dianafulga
+jgoz
+amannn
+softprops

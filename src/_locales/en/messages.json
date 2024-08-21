@@ -1,11 +1,9 @@
 {
   "appName": {
-    "message": "Web Monetization",
-    "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website."
+    "message": "Web Monetization Extension"
   },
   "appDescription": {
-    "message": "Web Monetization Extension",
-    "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website."
+    "message": "Support content you love. Pay as you browse!"
   },
   "icon_state_monetizationActive": {
     "message": "Active"
@@ -39,6 +37,13 @@
   },
   "pay_error_notEnoughFunds": {
     "message": "Not enough funds to facilitate payment."
+  },
+  "pay_error_invalidReceivers": {
+    "message": "At the moment, you can not pay this website.",
+    "description": "We cannot send money (probable cause: un-peered wallets)"
+  },
+  "pay_error_notMonetized": {
+    "message": "This website is not monetized."
   },
   "outOfFunds_error_title": {
     "message": "Out of funds"
@@ -85,5 +90,8 @@
   },
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
+  },
+  "allInvalidLinks_state_text": {
+    "message": "At the moment, you can not pay this website."
   }
 }

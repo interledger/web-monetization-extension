@@ -22,6 +22,7 @@ import type { Logger } from '@/shared/logger'
 
 const HOUR_MS = 3600 * 1000
 const MIN_SEND_AMOUNT = 1n // 1 unit
+const MAX_INVALID_RECEIVER_ATTEMPTS = 2
 
 type PaymentSessionSource = 'tab-change' | 'request-id-reused' | 'new-link'
 type IncomingPaymentSource = 'one-time' | 'continuous'
@@ -29,12 +30,16 @@ type IncomingPaymentSource = 'one-time' | 'continuous'
 export class PaymentSession {
   private rate: string
   private active: boolean = false
+  /** Invalid receiver (providers not peered or other reasons) */
+  private isInvalid: boolean = false
+  private countInvalidReceiver: number = 0
   private isDisabled: boolean = false
   private incomingPaymentUrl: string
   private incomingPaymentExpiresAt: number
   private amount: string
   private intervalInMs: number
   private probingId: number
+  private shouldRetryImmediately: boolean = false
 
   private interval: ReturnType<typeof setInterval> | null = null
   private timeout: ReturnType<typeof setTimeout> | null = null
@@ -126,6 +131,12 @@ export class PaymentSession {
         } else if (isNonPositiveAmountError(e)) {
           amountToSend = BigInt(amountIter.next().value)
           continue
+        } else if (isInvalidReceiverError(e)) {
+          this.markInvalid()
+          this.events.emit('open_payments.invalid_receiver', {
+            tabId: this.tabId
+          })
+          break
         } else {
           throw e
         }
@@ -141,6 +152,10 @@ export class PaymentSession {
     return this.isDisabled
   }
 
+  get invalid() {
+    return this.isInvalid
+  }
+
   disable() {
     this.isDisabled = true
     this.stop()
@@ -153,6 +168,11 @@ export class PaymentSession {
    */
   enable() {
     throw new Error('Method not implemented.')
+  }
+
+  private markInvalid() {
+    this.isInvalid = true
+    this.stop()
   }
 
   stop() {
@@ -186,9 +206,9 @@ export class PaymentSession {
 
   async start(source: PaymentSessionSource) {
     this.debug(
-      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled}`
+      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled} isInvalid=${this.isInvalid}`
     )
-    if (this.active || this.isDisabled) return
+    if (this.active || this.isDisabled || this.isInvalid) return
     this.debug(`Session started; source=${source}`)
     this.active = true
 
@@ -216,12 +236,12 @@ export class PaymentSession {
     // Uncomment this after we perform the Rafiki test and remove the leftover
     // code below.
     //
-    // if (this.active && !this.isDisabled) {
+    // if (this.canContinuePayment) {
     //   this.timeout = setTimeout(() => {
     //     void this.payContinuous()
     //
     //     this.interval = setInterval(() => {
-    //       if (!this.active || this.isDisabled) {
+    //       if (!this.canContinuePayment) {
     //           this.clearTimers()
     //           return
     //       }
@@ -232,24 +252,34 @@ export class PaymentSession {
 
     // Leftover
     const continuePayment = () => {
-      if (!this.active || this.isDisabled) return
+      if (!this.canContinuePayment) return
       // alternatively (leftover) after we perform the Rafiki test, we can just
       // skip the `.then()` here and call setTimeout recursively immediately
       void this.payContinuous().then(() => {
-        this.timeout = setTimeout(() => {
-          continuePayment()
-        }, this.intervalInMs)
+        this.timeout = setTimeout(
+          () => {
+            continuePayment()
+          },
+          this.shouldRetryImmediately ? 0 : this.intervalInMs
+        )
       })
     }
 
-    if (this.active && !this.isDisabled) {
-      this.timeout = setTimeout(() => {
-        void this.payContinuous()
-        this.timeout = setTimeout(() => {
-          continuePayment()
-        }, this.intervalInMs)
+    if (this.canContinuePayment) {
+      this.timeout = setTimeout(async () => {
+        await this.payContinuous()
+        this.timeout = setTimeout(
+          () => {
+            continuePayment()
+          },
+          this.shouldRetryImmediately ? 0 : this.intervalInMs
+        )
       }, waitTime)
     }
+  }
+
+  private get canContinuePayment() {
+    return this.active && !this.isDisabled && !this.isInvalid
   }
 
   private async setIncomingPaymentUrl(reset?: boolean) {
@@ -426,21 +456,37 @@ export class PaymentSession {
           intervalInMs: this.intervalInMs
         })
       }
+      this.shouldRetryImmediately = false
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked')
       } else if (isTokenExpiredError(e)) {
         await this.openPaymentsService.rotateToken()
+        this.shouldRetryImmediately = true
       } else if (isOutOfBalanceError(e)) {
         const switched = await this.openPaymentsService.switchGrant()
         if (switched === null) {
           this.events.emit('open_payments.out_of_funds')
+        } else {
+          this.shouldRetryImmediately = true
         }
       } else if (isInvalidReceiverError(e)) {
         if (Date.now() >= this.incomingPaymentExpiresAt) {
           await this.setIncomingPaymentUrl(true)
+          this.shouldRetryImmediately = true
         } else {
-          throw e
+          ++this.countInvalidReceiver
+          if (
+            this.countInvalidReceiver >= MAX_INVALID_RECEIVER_ATTEMPTS &&
+            !this.isInvalid
+          ) {
+            this.markInvalid()
+            this.events.emit('open_payments.invalid_receiver', {
+              tabId: this.tabId
+            })
+          } else {
+            this.shouldRetryImmediately = true
+          }
         }
       } else {
         throw e

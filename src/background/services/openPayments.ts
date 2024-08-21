@@ -21,21 +21,19 @@ import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
 import { signMessage } from 'http-message-signatures/lib/httpbis'
 import { createContentDigestHeader } from 'httpbis-digest-headers'
-import { Browser, Tabs } from 'webextension-polyfill'
+import type { Tabs } from 'webextension-polyfill'
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils'
-import { StorageService } from '@/background/services/storage'
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
 import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation, type Translation } from '@/shared/helpers'
+import { getWalletInformation } from '@/shared/helpers'
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY
 } from '../config'
-import type { Deduplicator } from './deduplicator'
-import type { Logger } from '@/shared/logger'
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines'
+import type { Cradle } from '../container'
 
 interface KeyInformation {
   privateKey: string
@@ -108,6 +106,12 @@ const enum InteractionIntent {
 }
 
 export class OpenPaymentsService {
+  private browser: Cradle['browser']
+  private storage: Cradle['storage']
+  private deduplicator: Cradle['deduplicator']
+  private logger: Cradle['logger']
+  private t: Cradle['t']
+
   client?: AuthenticatedClient
 
   public switchGrant: OpenPaymentsService['_switchGrant']
@@ -117,13 +121,9 @@ export class OpenPaymentsService {
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false }
 
-  constructor(
-    private browser: Browser,
-    private storage: StorageService,
-    private deduplicator: Deduplicator,
-    private logger: Logger,
-    private t: Translation
-  ) {
+  constructor({ browser, storage, deduplicator, logger, t }: Cradle) {
+    Object.assign(this, { browser, storage, deduplicator, logger, t })
+
     void this.initialize()
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
   }
@@ -170,7 +170,7 @@ export class OpenPaymentsService {
     const data = await this.browser.storage.local.get(['privateKey', 'keyId'])
 
     if (data.privateKey && data.keyId) {
-      return data as KeyInformation
+      return data as unknown as KeyInformation
     }
 
     throw new Error(

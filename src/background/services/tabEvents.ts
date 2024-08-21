@@ -1,12 +1,8 @@
 import browser from 'webextension-polyfill'
 import type { Browser } from 'webextension-polyfill'
-import {
-  isOkState,
-  removeQueryParams,
-  type Translation
-} from '@/shared/helpers'
-import type { SendToPopup, StorageService, TabState } from '.'
+import { isOkState, removeQueryParams } from '@/shared/helpers'
 import type { Storage, TabId } from '@/shared/types'
+import type { Cradle } from '@/background/container'
 
 const runtime = browser.runtime
 const ICONS = {
@@ -56,13 +52,21 @@ type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
   Parameters<Browser['tabs'][T]['addListener']>[0]
 
 export class TabEvents {
-  constructor(
-    private storage: StorageService,
-    private tabState: TabState,
-    private sendToPopup: SendToPopup,
-    private t: Translation,
-    private browser: Browser
-  ) {}
+  private storage: Cradle['storage']
+  private tabState: Cradle['tabState']
+  private sendToPopup: Cradle['sendToPopup']
+  private t: Cradle['t']
+  private browser: Cradle['browser']
+
+  constructor({ storage, tabState, sendToPopup, t, browser }: Cradle) {
+    Object.assign(this, {
+      storage,
+      tabState,
+      sendToPopup,
+      t,
+      browser
+    })
+  }
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     /**
@@ -99,15 +103,26 @@ export class TabEvents {
     tabId: TabId,
     isTabMonetized: boolean = tabId
       ? this.tabState.isTabMonetized(tabId)
+      : false,
+    hasTabAllSessionsInvalid: boolean = tabId
+      ? this.tabState.tabHasAllSessionsInvalid(tabId)
       : false
   ) => {
-    const { enabled, state } = await this.storage.get(['enabled', 'state'])
+    const { enabled, connected, state } = await this.storage.get([
+      'enabled',
+      'connected',
+      'state'
+    ])
     const { path, title, isMonetized } = this.getIconAndTooltip({
       enabled,
+      connected,
       state,
-      isTabMonetized
+      isTabMonetized,
+      hasTabAllSessionsInvalid
     })
+
     this.sendToPopup.send('SET_IS_MONETIZED', isMonetized)
+    this.sendToPopup.send('SET_ALL_SESSIONS_INVALID', hasTabAllSessionsInvalid)
     await this.setIconAndTooltip(path, title, tabId)
   }
 
@@ -123,16 +138,22 @@ export class TabEvents {
 
   private getIconAndTooltip({
     enabled,
+    connected,
     state,
-    isTabMonetized
+    isTabMonetized,
+    hasTabAllSessionsInvalid
   }: {
     enabled: Storage['enabled']
+    connected: Storage['connected']
     state: Storage['state']
     isTabMonetized: boolean
+    hasTabAllSessionsInvalid: boolean
   }) {
     let title = this.t('appName')
     let iconData = ICONS.default
-    if (!isOkState(state)) {
+    if (!connected) {
+      // use defaults
+    } else if (!isOkState(state) || hasTabAllSessionsInvalid) {
       iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn
       const tabStateText = this.t('icon_state_actionRequired')
       title = `${title} - ${tabStateText}`
