@@ -80,6 +80,6 @@ Whenever a major version goes into maintenance mode, `v{major}.x` is branched-of
 
 We primarily work over the main branch. For the maintenance of previous major versions, PRs can be sent to the `v{major}.x` branch. If some commits in main need to be available on earlier major versions as well, they can be back-ported (after being merged into main) by sending a PR with the other major branch (e.g. `v1.x`) as base.
 
-### Pull requests
+## Pull requests
 
 When there's a commit that needs to be back-ported, the PR corresponding to that commit should have a needs backport label. Once back-ported, the label should be removed (or replaced with back-ported).
