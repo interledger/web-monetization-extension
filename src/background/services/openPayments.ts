@@ -579,7 +579,7 @@ export class OpenPaymentsService {
             if (interactRef && hash) {
               res({ interactRef, hash, tabId })
             }
-          } catch (e) {
+          } catch {
             /* do nothing */
           }
         }

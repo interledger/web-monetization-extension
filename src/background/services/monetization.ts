@@ -384,7 +384,7 @@ export class MonetizationService {
           // Do not include search params
           url = `${tabUrl.origin}${tabUrl.pathname}`
         }
-      } catch (_) {
+      } catch {
         // noop
       }
     }

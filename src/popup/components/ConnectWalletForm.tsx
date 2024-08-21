@@ -58,7 +58,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
           symbol: getCurrencySymbol(walletAddress.assetCode),
           scale: walletAddress.assetScale
         })
-      } catch (e) {
+      } catch {
         setError('walletAddressUrl', {
           type: 'validate',
           message: 'Invalid wallet address.'

@@ -36,7 +36,7 @@ declare const cloneInto: CloneInto | undefined
 let cloneIntoRef: CloneInto | undefined
 try {
   cloneIntoRef = cloneInto
-} catch (e) {
+} catch {
   cloneIntoRef = undefined
 }
 
