@@ -6,7 +6,7 @@ const { BROWSERS } = require('./constants.cjs')
  * @param {Pick<import('github-script').AsyncFunctionArguments, 'github' | 'context'>} AsyncFunctionArguments
  * @param {string} name
  */
-async function getBrowserArfifacts({ github, context }, name) {
+async function getBrowserArtifacts({ github, context }, name) {
   const result = await github.rest.actions.listArtifactsForRepo({
     owner: context.repo.owner,
     repo: context.repo.repo,
@@ -22,7 +22,7 @@ async function getBrowserArfifacts({ github, context }, name) {
 async function getPRArtifacts({ github, context }, prNumber) {
   const data = await Promise.all(
     BROWSERS.map((browser) =>
-      getBrowserArfifacts({ github, context }, `${prNumber}-${browser}`)
+      getBrowserArtifacts({ github, context }, `${prNumber}-${browser}`)
     )
   )
 
