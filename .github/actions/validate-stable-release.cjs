@@ -6,6 +6,10 @@
  * @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments
  */
 module.exports = async ({ github, context }) => {
+  if (context.ref !== 'refs/heads/main') {
+    throw new Error('This action only works on main branch')
+  }
+
   const { owner, repo } = context.repo
   const previewVersionTag = process.env.INPUT_VERSION
   if (!previewVersionTag) {

@@ -42,6 +42,12 @@ jobs:
             const script = require('./.github/actions/get-built-version.cjs')
             await script({ github, context, core })
 
+      - name: Delete existing release # To keep the workflow idempotent.
+        run: gh release delete v${{ steps.version.outputs.version }}-preview --cleanup-tag --yes
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
