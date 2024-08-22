@@ -1,7 +1,7 @@
 import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { PopupStateContext } from '@/popup/lib/context'
-import { message } from '@/popup/lib/messages'
+import { useMessage } from '@/popup/lib/context'
 import {
   getCurrencySymbol,
   charIsNumber,
@@ -25,6 +25,7 @@ const BUTTON_STATE = {
 }
 
 export const PayWebsiteForm = () => {
+  const message = useMessage()
   const [buttonState, setButtonState] =
     React.useState<keyof typeof BUTTON_STATE>('idle')
   const isIdle = useMemo(() => buttonState === 'idle', [buttonState])

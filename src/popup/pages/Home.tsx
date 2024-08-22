@@ -1,8 +1,11 @@
 import React from 'react'
-import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
+import {
+  ReducerActionType,
+  usePopupState,
+  useMessage
+} from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
-import { message } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import {
   formatNumber,
@@ -15,12 +18,8 @@ import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid'
 
-const updateRateOfPay = debounceAsync(
-  (rateOfPay: string) => message.send('UPDATE_RATE_OF_PAY', { rateOfPay }),
-  1000
-)
-
 export const Component = () => {
+  const message = useMessage()
   const {
     state: {
       enabled,
@@ -34,7 +33,7 @@ export const Component = () => {
       hasAllSessionsInvalid
     },
     dispatch
-  } = React.useContext(PopupStateContext)
+  } = usePopupState()
 
   const rate = React.useMemo(() => {
     const r = Number(rateOfPay) / 10 ** walletAddress.assetScale
@@ -49,6 +48,16 @@ export const Component = () => {
     return formatNumber(rounded, walletAddress.assetScale, true)
   }, [balance, walletAddress.assetScale])
 
+  const updateRateOfPay = React.useRef(
+    debounceAsync(async (rateOfPay: string) => {
+      const response = await message.send('UPDATE_RATE_OF_PAY', { rateOfPay })
+      if (!response.success) {
+        // TODO: Maybe reset to old state, but not while user is active (avoid
+        // sluggishness in UI)
+      }
+    }, 1000)
+  )
+
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const rateOfPay = event.currentTarget.value
     dispatch({
@@ -57,11 +66,7 @@ export const Component = () => {
         rateOfPay
       }
     })
-    const response = await updateRateOfPay(rateOfPay)
-    if (!response.success) {
-      // TODO: Maybe reset to old state, but not while user is active (avoid
-      // sluggishness in UI)
-    }
+    void updateRateOfPay.current(rateOfPay)
   }
 
   const onChangeWM = () => {

@@ -4,7 +4,6 @@ import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
-import { message } from '@/popup/lib/messages'
 import { debounceSync, getWalletInformation } from '@/shared/helpers'
 import {
   charIsNumber,
@@ -13,6 +12,7 @@ import {
   toWalletAddressUrl
 } from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
+import { useMessage } from '@/popup/lib/context'
 
 interface ConnectWalletFormInputs {
   walletAddressUrl: string
@@ -25,6 +25,7 @@ interface ConnectWalletFormProps {
 }
 
 export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
+  const message = useMessage()
   const {
     register,
     handleSubmit,

@@ -4,7 +4,7 @@ import React from 'react'
 import { Code } from '@/popup/components/ui/Code'
 import { PopupStore } from '@/shared/types'
 import { Button } from '@/popup/components/ui/Button'
-import { message } from '@/popup/lib/messages'
+import { useMessage } from '@/popup/lib/context'
 import { useForm } from 'react-hook-form'
 
 interface WalletInformationProps {
@@ -12,6 +12,7 @@ interface WalletInformationProps {
 }
 
 export const WalletInformation = ({ info }: WalletInformationProps) => {
+  const message = useMessage()
   const {
     handleSubmit,
     formState: { isSubmitting }

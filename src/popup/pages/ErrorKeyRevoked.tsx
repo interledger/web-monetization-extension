@@ -1,15 +1,19 @@
 import React from 'react'
 import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked'
-import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
-import { message } from '@/popup/lib/messages'
+import {
+  useMessage,
+  usePopupState,
+  ReducerActionType
+} from '@/popup/lib/context'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES_PATH } from '@/popup/Popup'
 
 export const Component = () => {
+  const message = useMessage()
   const {
     state: { publicKey, walletAddress },
     dispatch
-  } = React.useContext(PopupStateContext)
+  } = usePopupState()
   const navigate = useNavigate()
 
   const onReconnect = () => {

@@ -1,10 +1,11 @@
 import React, { type PropsWithChildren } from 'react'
 import type { Browser } from 'webextension-polyfill'
-import { message } from '@/popup/lib/messages'
 import { tFactory, type Translation } from '@/shared/helpers'
 import type { DeepNonNullable, PopupStore } from '@/shared/types'
 import {
   BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
+  MessageManager,
+  type PopupToBackgroundMessage,
   type BackgroundToPopupMessage
 } from '@/shared/messages'
 
@@ -103,6 +104,7 @@ interface PopupContextProviderProps {
 
 export function PopupContextProvider({ children }: PopupContextProviderProps) {
   const browser = useBrowser()
+  const message = useMessage()
   const [isLoading, setIsLoading] = React.useState(true)
   const [state, dispatch] = React.useReducer(reducer, {} as PopupState)
 
@@ -117,7 +119,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
     }
 
     get()
-  }, [])
+  }, [message])
 
   React.useEffect(() => {
     const port = browser.runtime.connect({ name: CONNECTION_NAME })
@@ -181,4 +183,23 @@ export const TranslationContextProvider = ({ children }: PropsWithChildren) => {
 }
 
 export const useTranslation = () => React.useContext(TranslationContext)
+// #endregion
+
+// #region Translation
+const MessageContext = React.createContext<
+  MessageManager<PopupToBackgroundMessage>
+>({} as MessageManager<PopupToBackgroundMessage>)
+
+export const MessageContextProvider = ({ children }: PropsWithChildren) => {
+  const browser = useBrowser()
+  const message = new MessageManager<PopupToBackgroundMessage>({ browser })
+
+  return (
+    <MessageContext.Provider value={message}>
+      {children}
+    </MessageContext.Provider>
+  )
+}
+
+export const useMessage = () => React.useContext(MessageContext)
 // #endregion

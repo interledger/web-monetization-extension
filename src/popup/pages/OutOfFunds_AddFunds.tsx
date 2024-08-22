@@ -1,12 +1,12 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { AddFunds } from '@/popup/components/OutOfFunds'
-import { usePopupState } from '@/popup/lib/context'
-import { message } from '@/popup/lib/messages'
+import { usePopupState, useMessage } from '@/popup/lib/context'
 
 export type State = { recurring: boolean }
 
 export const Component = () => {
+  const message = useMessage()
   const {
     state: { grants, walletAddress }
   } = usePopupState()
