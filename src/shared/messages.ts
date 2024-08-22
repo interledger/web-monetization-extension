@@ -20,10 +20,10 @@ export type Response<TPayload = void> =
 
 type MessageMap = Record<string, { input: unknown; output: unknown }>
 type MessagesWithInput<T extends MessageMap> = {
-  [K in keyof T as T[K]['input'] extends void ? never : K]: T[K]
+  [K in keyof T as T[K]['input'] extends never ? never : K]: T[K]
 }
 type MessagesWithoutInput<T extends MessageMap> = {
-  [K in keyof T as T[K]['input'] extends void ? K : never]: T[K]
+  [K in keyof T as T[K]['input'] extends never ? K : never]: T[K]
 }
 
 export class MessageManager<TMessages extends MessageMap> {
@@ -103,36 +103,36 @@ export interface UpdateRateOfPayPayload {
 
 export type PopupToBackgroundMessage = {
   GET_CONTEXT_DATA: {
-    input: void
+    input: never
     output: PopupState
   }
   CONNECT_WALLET: {
     input: ConnectWalletPayload
-    output: void
+    output: never
   }
   RECONNECT_WALLET: {
-    input: void
-    output: void
+    input: never
+    output: never
   }
   ADD_FUNDS: {
     input: AddFundsPayload
-    output: void
+    output: never
   }
   DISCONNECT_WALLET: {
-    input: void
-    output: void
+    input: never
+    output: never
   }
   TOGGLE_WM: {
-    input: void
-    output: void
+    input: never
+    output: never
   }
   PAY_WEBSITE: {
     input: PayWebsitePayload
-    output: void
+    output: never
   }
   UPDATE_RATE_OF_PAY: {
     input: UpdateRateOfPayPayload
-    output: void
+    output: never
   }
 }
 // #endregion
@@ -167,18 +167,18 @@ export type ContentToBackgroundMessage = {
   }
   STOP_MONETIZATION: {
     input: StopMonetizationPayload[]
-    output: void
+    output: never
   }
   START_MONETIZATION: {
     input: StartMonetizationPayload[]
-    output: void
+    output: never
   }
   RESUME_MONETIZATION: {
     input: ResumeMonetizationPayload[]
-    output: void
+    output: never
   }
   IS_WM_ENABLED: {
-    input: void
+    input: never
     output: boolean
   }
 }
@@ -215,11 +215,11 @@ export interface EmitToggleWMPayload {
 export type BackgroundToContentMessage = {
   MONETIZATION_EVENT: {
     input: MonetizationEventPayload
-    output: void
+    output: never
   }
   EMIT_TOGGLE_WM: {
     input: EmitToggleWMPayload
-    output: void
+    output: never
   }
 }
 
