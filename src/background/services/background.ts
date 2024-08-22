@@ -131,6 +131,7 @@ export class Background {
         this.logger.debug('Received message', message)
         try {
           switch (message.action) {
+            // region Popup
             case 'GET_CONTEXT_DATA':
               return success(await this.monetizationService.getPopupData())
 
@@ -169,11 +170,19 @@ export class Background {
               return
             }
 
+            case 'UPDATE_RATE_OF_PAY':
+              return success(
+                await this.storage.updateRate(message.payload.rateOfPay)
+              )
+
             case 'PAY_WEBSITE':
               return success(
                 await this.monetizationService.pay(message.payload.amount)
               )
 
+            // endregion
+
+            // region Content
             case 'CHECK_WALLET_ADDRESS_URL':
               return success(
                 await getWalletInformation(message.payload.walletAddressUrl)
@@ -200,13 +209,10 @@ export class Background {
               )
               return
 
-            case 'UPDATE_RATE_OF_PAY':
-              return success(
-                await this.storage.updateRate(message.payload.rateOfPay)
-              )
-
             case 'IS_WM_ENABLED':
               return success(await this.storage.getWMState())
+
+            // endregion
 
             default:
               return
