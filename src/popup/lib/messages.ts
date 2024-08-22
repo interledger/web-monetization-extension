@@ -10,7 +10,7 @@ import { PopupState } from '@/popup/lib/context'
 
 export const message = new MessageManager<
   PopupToBackgroundMessage | BackgroundToContentMessage
->(browser)
+>({ browser })
 
 export const getContextData = async () => {
   return await message.send<PopupState>({

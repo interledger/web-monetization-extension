@@ -6,7 +6,9 @@ import {
   MessageManager
 } from '@/shared/messages'
 
-export const message = new MessageManager<BackgroundToContentMessage>(browser)
+export const message = new MessageManager<BackgroundToContentMessage>({
+  browser
+})
 
 interface SendMonetizationEventParams {
   tabId: number

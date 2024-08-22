@@ -168,11 +168,18 @@ export type BackgroundToContentBackgroundMessage = {
   >
 }[BackgroundToContentAction]
 
+interface Cradle {
+  browser: Browser
+}
+
 export type ToContentMessage = BackgroundToContentBackgroundMessage
 // #endregion
 
 export class MessageManager<TMessages> {
-  constructor(private browser: Browser) {}
+  private browser: Cradle['browser']
+  constructor({ browser }: Cradle) {
+    this.browser = browser
+  }
 
   async send<TResponse = undefined>(
     message: TMessages

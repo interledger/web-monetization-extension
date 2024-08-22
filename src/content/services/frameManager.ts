@@ -1,9 +1,9 @@
-import { stopMonetization } from '../lib/messages'
 import { ContentToContentAction } from '../messages'
-import type {
-  ResumeMonetizationPayload,
-  StartMonetizationPayload,
-  StopMonetizationPayload
+import {
+  ContentToBackgroundAction,
+  type ResumeMonetizationPayload,
+  type StartMonetizationPayload,
+  type StopMonetizationPayload
 } from '@/shared/messages'
 import type { Cradle } from '@/content/container'
 
@@ -11,6 +11,7 @@ export class FrameManager {
   private window: Cradle['window']
   private document: Cradle['document']
   private logger: Cradle['logger']
+  private message: Cradle['message']
 
   private documentObserver: MutationObserver
   private frameAllowAttrObserver: MutationObserver
@@ -19,11 +20,12 @@ export class FrameManager {
     { frameId: string | null; requestIds: string[] }
   >()
 
-  constructor({ window, document, logger }: Cradle) {
+  constructor({ window, document, logger, message }: Cradle) {
     Object.assign(this, {
       window,
       document,
-      logger
+      logger,
+      message
     })
 
     this.documentObserver = new MutationObserver((records) =>
@@ -107,7 +109,12 @@ export class FrameManager {
         requestId,
         intent: 'remove'
       })) || []
-    stopMonetization(stopMonetizationTags)
+    if (stopMonetizationTags.length) {
+      this.message.send({
+        action: ContentToBackgroundAction.STOP_MONETIZATION,
+        payload: stopMonetizationTags
+      })
+    }
 
     this.frames.delete(frame)
   }
