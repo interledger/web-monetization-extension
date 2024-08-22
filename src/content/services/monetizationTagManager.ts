@@ -89,7 +89,7 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private async resumeAllMonetization() {
-    const response = await this.message.send('IS_WM_ENABLED', undefined)
+    const response = await this.message.send('IS_WM_ENABLED')
 
     if (response.success && response.payload) {
       const resumeMonetizationTags: ResumeMonetizationPayload[] = []

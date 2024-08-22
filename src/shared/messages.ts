@@ -19,6 +19,12 @@ export type Response<TPayload = void> =
   | ErrorResponse
 
 type MessageMap = Record<string, { input: unknown; output: unknown }>
+type MessagesWithInput<T extends MessageMap> = {
+  [K in keyof T as T[K]['input'] extends void ? never : K]: T[K]
+}
+type MessagesWithoutInput<T extends MessageMap> = {
+  [K in keyof T as T[K]['input'] extends void ? K : never]: T[K]
+}
 
 export class MessageManager<TMessages extends MessageMap> {
   private browser: Browser
@@ -26,10 +32,18 @@ export class MessageManager<TMessages extends MessageMap> {
     this.browser = browser
   }
 
-  async send<T extends keyof TMessages>(
-    action: T,
-    payload: TMessages[T]['input']
-  ): Promise<Response<TMessages[T]['output']>> {
+  async send<TT extends MessagesWithInput<TMessages>, K extends keyof TT>(
+    action: K,
+    payload: TT[K]['input']
+  ): Promise<Response<TT[K]['output']>>
+  async send<TT extends MessagesWithoutInput<TMessages>, K extends keyof TT>(
+    action: K,
+    payload?: never
+  ): Promise<Response<TT[K]['output']>>
+  async send<K extends keyof TMessages>(
+    action: K,
+    payload?: TMessages[K]['input'] extends void ? never : TMessages[K]['input']
+  ): Promise<Response<TMessages[K]['output']>> {
     return await this.browser.runtime.sendMessage({ action, payload })
   }
 

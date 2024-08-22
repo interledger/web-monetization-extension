@@ -36,7 +36,7 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
       {/* TODO: Improve error handling */}
       <form
         onSubmit={handleSubmit(async () => {
-          await message.send('DISCONNECT_WALLET', undefined)
+          await message.send('DISCONNECT_WALLET')
           window.location.reload()
         })}
       >

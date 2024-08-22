@@ -108,7 +108,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
 
   React.useEffect(() => {
     async function get() {
-      const response = await message.send('GET_CONTEXT_DATA', undefined)
+      const response = await message.send('GET_CONTEXT_DATA')
 
       if (response.success) {
         dispatch({ type: ReducerActionType.SET_DATA, data: response.payload })

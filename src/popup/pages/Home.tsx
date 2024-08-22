@@ -65,7 +65,7 @@ export const Component = () => {
   }
 
   const onChangeWM = () => {
-    message.send('TOGGLE_WM', undefined)
+    message.send('TOGGLE_WM')
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
   }
 
