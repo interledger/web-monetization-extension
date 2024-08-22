@@ -68,7 +68,7 @@ interface AddFundsProps {
   info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
   recurring: boolean
   defaultAmount: AmountValue
-  requestAddFunds: (details: AddFundsPayload) => Promise<Response<void>>
+  requestAddFunds: (details: AddFundsPayload) => Promise<Response>
 }
 
 export function AddFunds({
