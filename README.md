@@ -78,6 +78,8 @@ Inside this project, you'll see the following folders and files:
 ```
 .
 ├── .github/ # GitHub Workflows
+├── docs/ # Repository documentation
+├── esbuild/ # Esbuild configuration
 ├── scripts/ # Script to build the extension (production, development)
 ├── src/ # Extension's source code
 │   ├── _locales/ # Files for multi-lang support
@@ -87,7 +89,6 @@ Inside this project, you'll see the following folders and files:
 │   ├── popup/ # Source code for the popup UI
 │   ├── shared/ # Shared utilities
 │   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
-├── webpack/ # Webpack configuration
 ├── jest.config.ts
 ├── jest.setup.ts
 ├── package.json
