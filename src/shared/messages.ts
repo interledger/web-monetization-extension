@@ -3,6 +3,7 @@ import type { Browser } from 'webextension-polyfill'
 import type { AmountValue, Storage } from '@/shared/types'
 import type { PopupState } from '@/popup/lib/context'
 
+// #region MessageManager
 export interface SuccessResponse<TPayload = undefined> {
   success: true
   payload: TPayload
@@ -17,15 +18,56 @@ export type Response<TPayload = undefined> =
   | SuccessResponse<TPayload>
   | ErrorResponse
 
-export type MessageHKT<
-  TAction,
-  TPayload = undefined
-> = TPayload extends undefined
-  ? { action: TAction }
-  : { action: TAction; payload: TPayload }
+type MessageMap = Record<string, { input: unknown; output: unknown }>
+
+export class MessageManager<TMessages extends MessageMap> {
+  private browser: Browser
+  constructor({ browser }: { browser: Browser }) {
+    this.browser = browser
+  }
+
+  async send<T extends keyof TMessages>(
+    action: T,
+    payload: TMessages[T]['input']
+  ): Promise<Response<TMessages[T]['output']>> {
+    return await this.browser.runtime.sendMessage({ action, payload })
+  }
+
+  async sendToTab<T extends keyof TMessages>(
+    tabId: number,
+    frameId: number,
+    action: T,
+    payload: TMessages[T]['input']
+  ): Promise<
+    TMessages[T]['output'] extends void
+      ? ErrorResponse
+      : Response<TMessages[T]['output']>
+  > {
+    const message = { action, payload }
+    return await this.browser.tabs.sendMessage(tabId, message, { frameId })
+  }
+
+  async sendToActiveTab<T extends keyof TMessages>(
+    action: T,
+    payload: TMessages[T]['input']
+  ): Promise<
+    TMessages[T]['output'] extends void
+      ? ErrorResponse
+      : Response<TMessages[T]['output']>
+  > {
+    const window = await this.browser.windows.getCurrent()
+    const activeTabs = await this.browser.tabs.query({
+      active: true,
+      windowId: window.id
+    })
+    const activeTab = activeTabs[0]
+    const message = { action, payload }
+    return await this.browser.tabs.sendMessage(activeTab.id as number, message)
+  }
+}
+// #endregion
 
 // #region Popup ↦ BG
-
 export interface ConnectWalletPayload {
   walletAddressUrl: string
   amount: string
@@ -82,14 +124,6 @@ export type PopupToBackgroundMessage = {
 // #endregion
 
 // #region Content ↦ BG
-export enum ContentToBackgroundAction {
-  CHECK_WALLET_ADDRESS_URL = 'CHECK_WALLET_ADDRESS_URL',
-  START_MONETIZATION = 'START_MONETIZATION',
-  STOP_MONETIZATION = 'STOP_MONETIZATION',
-  RESUME_MONETIZATION = 'RESUME_MONETIZATION',
-  IS_WM_ENABLED = 'IS_WM_ENABLED'
-}
-
 export interface CheckWalletAddressUrlPayload {
   walletAddressUrl: string
 }
@@ -111,14 +145,6 @@ export interface ResumeMonetizationPayload {
 export interface IsTabMonetizedPayload {
   value: boolean
 }
-
-type MessageMap = Record<
-  string,
-  {
-    input: unknown
-    output: unknown
-  }
->
 
 export type ContentToBackgroundMessage = {
   CHECK_WALLET_ADDRESS_URL: {
@@ -142,11 +168,11 @@ export type ContentToBackgroundMessage = {
     output: boolean
   }
 }
-
 // #endregion
+
+// #region To BG
 type ToBackgroundMessageMap = PopupToBackgroundMessage &
-  ContentToBackgroundMessage &
-  BackgroundToContentMessage
+  ContentToBackgroundMessage
 
 export type ToBackgroundMessage = {
   [K in keyof ToBackgroundMessageMap]: {
@@ -154,26 +180,9 @@ export type ToBackgroundMessage = {
     payload: ToBackgroundMessageMap[K]['input']
   }
 }[keyof ToBackgroundMessageMap]
+// #endregion
 
 // #region BG ↦ Content
-export type ToContentMessage = {
-  [K in keyof BackgroundToContentMessage]: {
-    action: K
-    payload: BackgroundToContentMessage[K]['input']
-  }
-}[keyof BackgroundToContentMessage]
-
-export type BackgroundToContentMessage = {
-  MONETIZATION_EVENT: {
-    input: MonetizationEventPayload
-    output: void
-  }
-  EMIT_TOGGLE_WM: {
-    input: EmitToggleWMPayload
-    output: void
-  }
-}
-
 export interface MonetizationEventDetails {
   amountSent: PaymentCurrencyAmount
   incomingPayment: OutgoingPayment['receiver']
@@ -189,59 +198,29 @@ export interface EmitToggleWMPayload {
   enabled: boolean
 }
 
-interface Cradle {
-  browser: Browser
+export type BackgroundToContentMessage = {
+  MONETIZATION_EVENT: {
+    input: MonetizationEventPayload
+    output: void
+  }
+  EMIT_TOGGLE_WM: {
+    input: EmitToggleWMPayload
+    output: void
+  }
 }
 
+export type ToContentMessage = {
+  [K in keyof BackgroundToContentMessage]: {
+    action: K
+    payload: BackgroundToContentMessage[K]['input']
+  }
+}[keyof BackgroundToContentMessage]
 // #endregion
 
-export class MessageManager<TMessages extends MessageMap> {
-  private browser: Cradle['browser']
-  constructor({ browser }: Cradle) {
-    this.browser = browser
-  }
-
-  async send<T extends keyof TMessages>(
-    action: T,
-    payload: TMessages[T]['input']
-  ): Promise<Response<TMessages[T]['output']>> {
-    return await this.browser.runtime.sendMessage({ action, payload })
-  }
-
-  async sendToTab<T extends keyof TMessages>(
-    tabId: number,
-    frameId: number,
-    action: T,
-    payload: TMessages[T]['input']
-  ): Promise<
-    TMessages[T]['output'] extends void
-      ? ErrorResponse
-      : Response<TMessages[T]['output']>
-  > {
-    const message = { action, payload }
-    return await this.browser.tabs.sendMessage(tabId, message, { frameId })
-  }
-
-  async sendToActiveTab<T extends keyof TMessages>(
-    action: T,
-    payload: TMessages[T]['input']
-  ): Promise<
-    TMessages[T]['output'] extends void
-      ? ErrorResponse
-      : Response<TMessages[T]['output']>
-  > {
-    const window = await this.browser.windows.getCurrent()
-    const activeTabs = await this.browser.tabs.query({
-      active: true,
-      windowId: window.id
-    })
-    const activeTab = activeTabs[0]
-    const message = { action, payload }
-    return await this.browser.tabs.sendMessage(activeTab.id as number, message)
-  }
-}
-
 // #region BG ↦ Popup
+export const BACKGROUND_TO_POPUP_CONNECTION_NAME = 'popup'
+
+// These methods are fire-and-forget, nothing is returned.
 export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>
   SET_IS_MONETIZED: boolean
@@ -255,6 +234,4 @@ export type BackgroundToPopupMessage = {
     data: BackgroundToPopupMessagesMap[K]
   }
 }[keyof BackgroundToPopupMessagesMap]
-
-export const BACKGROUND_TO_POPUP_CONNECTION_NAME = 'popup'
 // #endregion
