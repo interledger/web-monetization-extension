@@ -3,13 +3,12 @@ import { mozClone } from '../utils'
 import type { MonetizationTagDetails } from '../types'
 import type { WalletAddress } from '@interledger/open-payments/dist/types'
 import { checkWalletAddressUrlFormat } from '../utils'
-import {
-  ContentToBackgroundAction,
-  type EmitToggleWMPayload,
-  type MonetizationEventPayload,
-  type ResumeMonetizationPayload,
-  type StartMonetizationPayload,
-  type StopMonetizationPayload
+import type {
+  EmitToggleWMPayload,
+  MonetizationEventPayload,
+  ResumeMonetizationPayload,
+  StartMonetizationPayload,
+  StopMonetizationPayload
 } from '@/shared/messages'
 import { ContentToContentAction } from '../messages'
 import type { Cradle } from '@/content/container'
@@ -90,9 +89,7 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private async resumeAllMonetization() {
-    const response = await this.message.send<boolean>({
-      action: ContentToBackgroundAction.IS_WM_ENABLED
-    })
+    const response = await this.message.send('IS_WM_ENABLED', undefined)
 
     if (response.success && response.payload) {
       const resumeMonetizationTags: ResumeMonetizationPayload[] = []
@@ -462,10 +459,7 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (this.isTopFrame) {
       if (tags.length) {
-        void this.message.send({
-          action: ContentToBackgroundAction.START_MONETIZATION,
-          payload: tags
-        })
+        void this.message.send('START_MONETIZATION', tags)
       }
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
@@ -481,19 +475,13 @@ export class MonetizationTagManager extends EventEmitter {
 
   private async sendStopMonetization(tags: StopMonetizationPayload[]) {
     if (!tags.length) return
-    await this.message.send({
-      action: ContentToBackgroundAction.STOP_MONETIZATION,
-      payload: tags
-    })
+    await this.message.send('STOP_MONETIZATION', tags)
   }
 
   private sendResumeMonetization(tags: ResumeMonetizationPayload[]) {
     if (this.isTopFrame) {
       if (tags.length) {
-        void this.message.send({
-          action: ContentToBackgroundAction.RESUME_MONETIZATION,
-          payload: tags
-        })
+        void this.message.send('RESUME_MONETIZATION', tags)
       }
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
@@ -525,9 +513,8 @@ export class MonetizationTagManager extends EventEmitter {
     const walletAddressUrl = tag.href.trim()
     try {
       checkWalletAddressUrlFormat(walletAddressUrl)
-      const response = await this.message.send<WalletAddress>({
-        action: ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL,
-        payload: { walletAddressUrl }
+      const response = await this.message.send('CHECK_WALLET_ADDRESS_URL', {
+        walletAddressUrl
       })
 
       if (response.success === false) {
@@ -554,18 +541,12 @@ export class MonetizationTagManager extends EventEmitter {
       switch (message) {
         case ContentToContentAction.START_MONETIZATION:
           if (payload.length) {
-            void this.message.send({
-              action: ContentToBackgroundAction.START_MONETIZATION,
-              payload
-            })
+            void this.message.send('START_MONETIZATION', payload)
           }
           return
         case ContentToContentAction.RESUME_MONETIZATION:
           if (payload.length) {
-            void this.message.send({
-              action: ContentToBackgroundAction.RESUME_MONETIZATION,
-              payload
-            })
+            void this.message.send('RESUME_MONETIZATION', payload)
           }
           return
         default:

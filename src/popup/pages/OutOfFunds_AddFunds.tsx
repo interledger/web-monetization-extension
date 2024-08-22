@@ -2,7 +2,7 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { AddFunds } from '@/popup/components/OutOfFunds'
 import { usePopupState } from '@/popup/lib/context'
-import { addFunds } from '@/popup/lib/messages'
+import { message } from '@/popup/lib/messages'
 
 export type State = { recurring: boolean }
 
@@ -21,7 +21,7 @@ export const Component = () => {
       defaultAmount={defaultAmount}
       recurring={state.recurring}
       requestAddFunds={async (data) => {
-        const res = await addFunds(data)
+        const res = await message.send('ADD_FUNDS', data)
         return res
       }}
     />

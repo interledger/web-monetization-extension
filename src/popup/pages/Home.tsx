@@ -2,7 +2,7 @@ import React from 'react'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
-import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
+import { message } from '../lib/messages'
 import { Label } from '../components/ui/Label'
 import {
   formatNumber,
@@ -15,7 +15,10 @@ import { debounceAsync } from '@/shared/helpers'
 import { Switch } from '../components/ui/Switch'
 import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid'
 
-const updateRateOfPay = debounceAsync(updateRateOfPay_, 1000)
+const updateRateOfPay = debounceAsync(
+  (rateOfPay: string) => message.send('UPDATE_RATE_OF_PAY', { rateOfPay }),
+  1000
+)
 
 export const Component = () => {
   const {
@@ -54,7 +57,7 @@ export const Component = () => {
         rateOfPay
       }
     })
-    const response = await updateRateOfPay({ rateOfPay })
+    const response = await updateRateOfPay(rateOfPay)
     if (!response.success) {
       // TODO: Maybe reset to old state, but not while user is active (avoid
       // sluggishness in UI)
@@ -62,7 +65,7 @@ export const Component = () => {
   }
 
   const onChangeWM = () => {
-    toggleWM()
+    message.send('TOGGLE_WM', undefined)
     dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
   }
 

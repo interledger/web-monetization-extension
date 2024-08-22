@@ -1,9 +1,8 @@
 import { ContentToContentAction } from '../messages'
-import {
-  ContentToBackgroundAction,
-  type ResumeMonetizationPayload,
-  type StartMonetizationPayload,
-  type StopMonetizationPayload
+import type {
+  ResumeMonetizationPayload,
+  StartMonetizationPayload,
+  StopMonetizationPayload
 } from '@/shared/messages'
 import type { Cradle } from '@/content/container'
 
@@ -110,10 +109,7 @@ export class FrameManager {
         intent: 'remove'
       })) || []
     if (stopMonetizationTags.length) {
-      this.message.send({
-        action: ContentToBackgroundAction.STOP_MONETIZATION,
-        payload: stopMonetizationTags
-      })
+      this.message.send('STOP_MONETIZATION', stopMonetizationTags)
     }
 
     this.frames.delete(frame)

@@ -1,6 +1,6 @@
 import React, { type PropsWithChildren } from 'react'
 import type { Browser } from 'webextension-polyfill'
-import { getContextData } from '@/popup/lib/messages'
+import { message } from '@/popup/lib/messages'
 import { tFactory, type Translation } from '@/shared/helpers'
 import type { DeepNonNullable, PopupStore } from '@/shared/types'
 import {
@@ -108,7 +108,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
 
   React.useEffect(() => {
     async function get() {
-      const response = await getContextData()
+      const response = await message.send('GET_CONTEXT_DATA', undefined)
 
       if (response.success) {
         dispatch({ type: ReducerActionType.SET_DATA, data: response.payload })

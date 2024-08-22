@@ -4,7 +4,7 @@ import { Input } from '@/popup/components/ui/Input'
 import { Label } from '@/popup/components/ui/Label'
 import { Switch } from '@/popup/components/ui/Switch'
 import { Code } from '@/popup/components/ui/Code'
-import { connectWallet } from '@/popup/lib/messages'
+import { message } from '@/popup/lib/messages'
 import { debounceSync, getWalletInformation } from '@/shared/helpers'
 import {
   charIsNumber,
@@ -107,7 +107,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        const response = await connectWallet({
+        const response = await message.send('CONNECT_WALLET', {
           ...data,
           walletAddressUrl: toWalletAddressUrl(data.walletAddressUrl)
         })

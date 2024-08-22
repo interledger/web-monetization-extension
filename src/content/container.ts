@@ -33,7 +33,7 @@ export const configureContainer = () => {
     browser: asValue(browser),
     document: asValue(document),
     window: asValue(window),
-    message: asClass(MessageManager).singleton(),
+    message: asClass(MessageManager<ContentToBackgroundMessage>).singleton(),
     frameManager: asClass(FrameManager)
       .singleton()
       .inject(() => ({

@@ -1,7 +1,7 @@
 import React from 'react'
 import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked'
 import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
-import { reconnectWallet, disconnectWallet } from '@/popup/lib/messages'
+import { message } from '@/popup/lib/messages'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES_PATH } from '@/popup/Popup'
 
@@ -31,9 +31,9 @@ export const Component = () => {
   return (
     <ErrorKeyRevoked
       info={{ publicKey, walletAddress }}
-      reconnectWallet={reconnectWallet}
+      reconnectWallet={() => message.send('RECONNECT_WALLET', undefined)}
       onReconnect={onReconnect}
-      disconnectWallet={disconnectWallet}
+      disconnectWallet={() => message.send('DISCONNECT_WALLET', undefined)}
       onDisconnect={onDisconnect}
     />
   )

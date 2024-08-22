@@ -4,7 +4,7 @@ import React from 'react'
 import { Code } from '@/popup/components/ui/Code'
 import { PopupStore } from '@/shared/types'
 import { Button } from '@/popup/components/ui/Button'
-import { disconnectWallet } from '@/popup/lib/messages'
+import { message } from '@/popup/lib/messages'
 import { useForm } from 'react-hook-form'
 
 interface WalletInformationProps {
@@ -36,7 +36,7 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
       {/* TODO: Improve error handling */}
       <form
         onSubmit={handleSubmit(async () => {
-          await disconnectWallet()
+          await message.send('DISCONNECT_WALLET', undefined)
           window.location.reload()
         })}
       >

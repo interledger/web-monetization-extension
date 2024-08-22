@@ -4,7 +4,6 @@ import {
   type OutgoingPayment,
   type WalletAddress
 } from '@interledger/open-payments/dist/types'
-import { sendMonetizationEvent } from '../lib/messages'
 import { bigIntMax, convert } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
 import {
@@ -16,7 +15,12 @@ import {
 } from './openPayments'
 import { getNextSendableAmount } from '@/background/utils'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
-import type { MonetizationEventDetails } from '@/shared/messages'
+import type {
+  BackgroundToContentMessage,
+  MessageManager,
+  MonetizationEventDetails,
+  MonetizationEventPayload
+} from '@/shared/messages'
 import type { AmountValue } from '@/shared/types'
 import type { Logger } from '@/shared/logger'
 
@@ -54,7 +58,8 @@ export class PaymentSession {
     private events: EventsService,
     private tabState: TabState,
     private url: string,
-    private logger: Logger
+    private logger: Logger,
+    private message: MessageManager<BackgroundToContentMessage>
   ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
@@ -223,13 +228,9 @@ export class PaymentSession {
     this.debug(`Overpaying: waitTime=${waitTime}`)
 
     if (monetizationEvent && source !== 'tab-change') {
-      sendMonetizationEvent({
-        tabId: this.tabId,
-        frameId: this.frameId,
-        payload: {
-          requestId: this.requestId,
-          details: monetizationEvent
-        }
+      this.sendMonetizationEvent({
+        requestId: this.requestId,
+        details: monetizationEvent
       })
     }
 
@@ -276,6 +277,15 @@ export class PaymentSession {
         )
       }, waitTime)
     }
+  }
+
+  private async sendMonetizationEvent(payload: MonetizationEventPayload) {
+    await this.message.sendToTab(
+      this.tabId,
+      this.frameId,
+      'MONETIZATION_EVENT',
+      payload
+    )
   }
 
   private get canContinuePayment() {
@@ -392,22 +402,18 @@ export class PaymentSession {
       if (outgoingPayment) {
         const { receiveAmount, receiver: incomingPayment } = outgoingPayment
 
-        sendMonetizationEvent({
-          tabId: this.tabId,
-          frameId: this.frameId,
-          payload: {
-            requestId: this.requestId,
-            details: {
-              amountSent: {
-                currency: receiveAmount.assetCode,
-                value: transformBalance(
-                  receiveAmount.value,
-                  receiveAmount.assetScale
-                )
-              },
-              incomingPayment,
-              paymentPointer: this.receiver.id
-            }
+        this.sendMonetizationEvent({
+          requestId: this.requestId,
+          details: {
+            amountSent: {
+              currency: receiveAmount.assetCode,
+              value: transformBalance(
+                receiveAmount.value,
+                receiveAmount.assetScale
+              )
+            },
+            incomingPayment,
+            paymentPointer: this.receiver.id
           }
         })
       }
@@ -439,13 +445,9 @@ export class PaymentSession {
         paymentPointer: this.receiver.id
       }
 
-      sendMonetizationEvent({
-        tabId: this.tabId,
-        frameId: this.frameId,
-        payload: {
-          requestId: this.requestId,
-          details: monetizationEventDetails
-        }
+      this.sendMonetizationEvent({
+        requestId: this.requestId,
+        details: monetizationEventDetails
       })
 
       // TO DO: find a better source of truth for deciding if overpaying is applicable

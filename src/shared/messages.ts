@@ -1,6 +1,7 @@
 import type { WalletAddress, OutgoingPayment } from '@interledger/open-payments'
 import type { Browser } from 'webextension-polyfill'
 import type { AmountValue, Storage } from '@/shared/types'
+import type { PopupState } from '@/popup/lib/context'
 
 export interface SuccessResponse<TPayload = undefined> {
   success: true
@@ -24,16 +25,6 @@ export type MessageHKT<
   : { action: TAction; payload: TPayload }
 
 // #region Popup ↦ BG
-export enum PopupToBackgroundAction {
-  GET_CONTEXT_DATA = 'GET_CONTEXT_DATA',
-  CONNECT_WALLET = 'CONNECT_WALLET',
-  ADD_FUNDS = 'ADD_FUNDS',
-  RECONNECT_WALLET = 'RECONNECT_WALLET',
-  DISCONNECT_WALLET = 'DISCONNECT_WALLET',
-  TOGGLE_WM = 'TOGGLE_WM',
-  PAY_WEBSITE = 'PAY_WEBSITE',
-  UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
-}
 
 export interface ConnectWalletPayload {
   walletAddressUrl: string
@@ -54,23 +45,40 @@ export interface UpdateRateOfPayPayload {
   rateOfPay: string
 }
 
-export interface PopupToBackgroundActionPayload {
-  [PopupToBackgroundAction.GET_CONTEXT_DATA]: undefined
-  [PopupToBackgroundAction.CONNECT_WALLET]: ConnectWalletPayload
-  [PopupToBackgroundAction.RECONNECT_WALLET]: undefined
-  [PopupToBackgroundAction.ADD_FUNDS]: AddFundsPayload
-  [PopupToBackgroundAction.DISCONNECT_WALLET]: undefined
-  [PopupToBackgroundAction.TOGGLE_WM]: undefined
-  [PopupToBackgroundAction.PAY_WEBSITE]: PayWebsitePayload
-  [PopupToBackgroundAction.UPDATE_RATE_OF_PAY]: UpdateRateOfPayPayload
-}
-
 export type PopupToBackgroundMessage = {
-  [K in PopupToBackgroundAction]: MessageHKT<
-    K,
-    PopupToBackgroundActionPayload[K]
-  >
-}[PopupToBackgroundAction]
+  GET_CONTEXT_DATA: {
+    input: void
+    output: PopupState
+  }
+  CONNECT_WALLET: {
+    input: ConnectWalletPayload
+    output: void
+  }
+  RECONNECT_WALLET: {
+    input: void
+    output: void
+  }
+  ADD_FUNDS: {
+    input: AddFundsPayload
+    output: void
+  }
+  DISCONNECT_WALLET: {
+    input: void
+    output: void
+  }
+  TOGGLE_WM: {
+    input: void
+    output: void
+  }
+  PAY_WEBSITE: {
+    input: PayWebsitePayload
+    output: void
+  }
+  UPDATE_RATE_OF_PAY: {
+    input: UpdateRateOfPayPayload
+    output: void
+  }
+}
 // #endregion
 
 // #region Content ↦ BG
@@ -104,42 +112,66 @@ export interface IsTabMonetizedPayload {
   value: boolean
 }
 
-export interface ContentToBackgroundActionPayload {
-  [ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL]: CheckWalletAddressUrlPayload
-  [ContentToBackgroundAction.START_MONETIZATION]: StartMonetizationPayload[]
-  [ContentToBackgroundAction.STOP_MONETIZATION]: StopMonetizationPayload[]
-  [ContentToBackgroundAction.RESUME_MONETIZATION]: ResumeMonetizationPayload[]
-  [ContentToBackgroundAction.IS_WM_ENABLED]: undefined
-}
+type MessageMap = Record<
+  string,
+  {
+    input: unknown
+    output: unknown
+  }
+>
 
 export type ContentToBackgroundMessage = {
-  [K in ContentToBackgroundAction]: MessageHKT<
-    K,
-    ContentToBackgroundActionPayload[K]
-  >
-}[ContentToBackgroundAction]
-// #endregion
-
-export type ToBackgroundMessage =
-  | PopupToBackgroundMessage
-  | ContentToBackgroundMessage
-  | BackgroundToContentMessage
-
-// #region BG ↦ Content
-export type BackgroundToContentMessage = {
-  [K in BackgroundToContentAction]: MessageHKT<
-    K,
-    BackgroundToContentActionPayload[K]
-  >
-}[BackgroundToContentAction]
-
-export interface BackgroundToContentActionPayload {
-  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
+  CHECK_WALLET_ADDRESS_URL: {
+    input: CheckWalletAddressUrlPayload
+    output: WalletAddress
+  }
+  STOP_MONETIZATION: {
+    input: StopMonetizationPayload[]
+    output: void
+  }
+  START_MONETIZATION: {
+    input: StartMonetizationPayload[]
+    output: void
+  }
+  RESUME_MONETIZATION: {
+    input: ResumeMonetizationPayload[]
+    output: void
+  }
+  IS_WM_ENABLED: {
+    input: undefined
+    output: boolean
+  }
 }
 
-export enum BackgroundToContentAction {
-  MONETIZATION_EVENT = 'MONETIZATION_EVENT',
-  EMIT_TOGGLE_WM = 'EMIT_TOGGLE_WM'
+// #endregion
+type ToBackgroundMessageMap = PopupToBackgroundMessage &
+  ContentToBackgroundMessage &
+  BackgroundToContentMessage
+
+export type ToBackgroundMessage = {
+  [K in keyof ToBackgroundMessageMap]: {
+    action: K
+    payload: ToBackgroundMessageMap[K]['input']
+  }
+}[keyof ToBackgroundMessageMap]
+
+// #region BG ↦ Content
+export type ToContentMessage = {
+  [K in keyof BackgroundToContentMessage]: {
+    action: K
+    payload: BackgroundToContentMessage[K]['input']
+  }
+}[keyof BackgroundToContentMessage]
+
+export type BackgroundToContentMessage = {
+  MONETIZATION_EVENT: {
+    input: MonetizationEventPayload
+    output: void
+  }
+  EMIT_TOGGLE_WM: {
+    input: EmitToggleWMPayload
+    output: void
+  }
 }
 
 export interface MonetizationEventDetails {
@@ -157,53 +189,54 @@ export interface EmitToggleWMPayload {
   enabled: boolean
 }
 
-export interface BackgroundToContentActionPayload {
-  [BackgroundToContentAction.MONETIZATION_EVENT]: MonetizationEventPayload
-  [BackgroundToContentAction.EMIT_TOGGLE_WM]: EmitToggleWMPayload
-}
-export type BackgroundToContentBackgroundMessage = {
-  [K in BackgroundToContentAction]: MessageHKT<
-    K,
-    BackgroundToContentActionPayload[K]
-  >
-}[BackgroundToContentAction]
-
 interface Cradle {
   browser: Browser
 }
 
-export type ToContentMessage = BackgroundToContentBackgroundMessage
 // #endregion
 
-export class MessageManager<TMessages> {
+export class MessageManager<TMessages extends MessageMap> {
   private browser: Cradle['browser']
   constructor({ browser }: Cradle) {
     this.browser = browser
   }
 
-  async send<TResponse = undefined>(
-    message: TMessages
-  ): Promise<Response<TResponse>> {
-    return await this.browser.runtime.sendMessage(message)
+  async send<T extends keyof TMessages>(
+    action: T,
+    payload: TMessages[T]['input']
+  ): Promise<Response<TMessages[T]['output']>> {
+    return await this.browser.runtime.sendMessage({ action, payload })
   }
 
-  async sendToTab<TResponse = void>(
+  async sendToTab<T extends keyof TMessages>(
     tabId: number,
     frameId: number,
-    message: TMessages
-  ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
+    action: T,
+    payload: TMessages[T]['input']
+  ): Promise<
+    TMessages[T]['output'] extends void
+      ? ErrorResponse
+      : Response<TMessages[T]['output']>
+  > {
+    const message = { action, payload }
     return await this.browser.tabs.sendMessage(tabId, message, { frameId })
   }
 
-  async sendToActiveTab<TResponse = void>(
-    message: TMessages
-  ): Promise<TResponse extends void ? ErrorResponse : Response<TResponse>> {
+  async sendToActiveTab<T extends keyof TMessages>(
+    action: T,
+    payload: TMessages[T]['input']
+  ): Promise<
+    TMessages[T]['output'] extends void
+      ? ErrorResponse
+      : Response<TMessages[T]['output']>
+  > {
     const window = await this.browser.windows.getCurrent()
     const activeTabs = await this.browser.tabs.query({
       active: true,
       windowId: window.id
     })
     const activeTab = activeTabs[0]
+    const message = { action, payload }
     return await this.browser.tabs.sendMessage(activeTab.id as number, message)
   }
 }

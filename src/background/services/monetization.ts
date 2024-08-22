@@ -5,7 +5,6 @@ import {
   StopMonetizationPayload
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
-import { emitToggleWM } from '../lib/messages'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
 import { isOutOfBalanceError } from './openPayments'
 import { isOkState, removeQueryParams } from '@/shared/helpers'
@@ -21,6 +20,7 @@ export class MonetizationService {
   private browser: Cradle['browser']
   private events: Cradle['events']
   private tabState: Cradle['tabState']
+  private message: Cradle['message']
 
   constructor({
     logger,
@@ -29,7 +29,8 @@ export class MonetizationService {
     storage,
     events,
     openPaymentsService,
-    tabState
+    tabState,
+    message
   }: Cradle) {
     Object.assign(this, {
       logger,
@@ -38,7 +39,8 @@ export class MonetizationService {
       storage,
       browser,
       events,
-      tabState
+      tabState,
+      message
     })
 
     this.registerEventListeners()
@@ -98,7 +100,8 @@ export class MonetizationService {
         this.events,
         this.tabState,
         removeQueryParams(url!),
-        this.logger
+        this.logger,
+        this.message
       )
 
       sessions.set(requestId, session)
@@ -236,7 +239,7 @@ export class MonetizationService {
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled'])
     await this.storage.set({ enabled: !enabled })
-    emitToggleWM({ enabled: !enabled })
+    await this.message.sendToActiveTab('EMIT_TOGGLE_WM', { enabled: !enabled })
   }
 
   async pay(amount: string) {

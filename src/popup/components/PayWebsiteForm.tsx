@@ -1,7 +1,7 @@
 import { Button } from '@/popup/components/ui/Button'
 import { Input } from '@/popup/components/ui/Input'
 import { PopupStateContext } from '@/popup/lib/context'
-import { payWebsite } from '@/popup/lib/messages'
+import { message } from '@/popup/lib/messages'
 import {
   getCurrencySymbol,
   charIsNumber,
@@ -44,7 +44,7 @@ export const PayWebsiteForm = () => {
 
     setButtonState('loading')
 
-    const response = await payWebsite(data)
+    const response = await message.send('PAY_WEBSITE', { amount: data.amount })
 
     if (!response.success) {
       setButtonState('idle')
