@@ -1,15 +1,15 @@
-import React, { useContext, useMemo } from 'react'
+import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { ArrowBack, Settings } from '../Icons'
 import { ROUTES_PATH } from '@/popup/Popup'
-import { PopupStateContext, useBrowser } from '@/popup/lib/context'
+import { useBrowser, usePopupState } from '@/popup/lib/context'
 
 const NavigationButton = () => {
   const location = useLocation()
   const {
     state: { connected }
-  } = useContext(PopupStateContext)
-  return useMemo(() => {
+  } = usePopupState()
+  return React.useMemo(() => {
     if (!connected) return null
 
     if (location.pathname.includes('/s/')) {
