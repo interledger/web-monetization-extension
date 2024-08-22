@@ -4,7 +4,7 @@ import type { AmountValue, Storage } from '@/shared/types'
 import type { PopupState } from '@/popup/lib/context'
 
 // #region MessageManager
-export interface SuccessResponse<TPayload = undefined> {
+export interface SuccessResponse<TPayload = void> {
   success: true
   payload: TPayload
 }
@@ -14,7 +14,7 @@ export interface ErrorResponse {
   message: string
 }
 
-export type Response<TPayload = undefined> =
+export type Response<TPayload = void> =
   | SuccessResponse<TPayload>
   | ErrorResponse
 
@@ -164,7 +164,7 @@ export type ContentToBackgroundMessage = {
     output: void
   }
   IS_WM_ENABLED: {
-    input: undefined
+    input: void
     output: boolean
   }
 }

@@ -11,8 +11,8 @@ import type { Response } from '@/shared/messages'
 
 interface Props {
   info: Pick<PopupStore, 'publicKey' | 'walletAddress'>
-  disconnectWallet: () => Promise<Response<void>>
-  reconnectWallet: () => Promise<Response<void>>
+  disconnectWallet: () => Promise<Response>
+  reconnectWallet: () => Promise<Response>
   onReconnect?: () => void
   onDisconnect?: () => void
 }
