@@ -1,9 +1,5 @@
 import type { Browser } from 'webextension-polyfill'
-import {
-  type ToBackgroundMessage,
-  PopupToBackgroundAction,
-  ContentToBackgroundAction
-} from '@/shared/messages'
+import type { ToBackgroundMessage } from '@/shared/messages'
 import {
   failure,
   getNextOccurrence,
@@ -135,24 +131,25 @@ export class Background {
         this.logger.debug('Received message', message)
         try {
           switch (message.action) {
-            case PopupToBackgroundAction.GET_CONTEXT_DATA:
+            // region Popup
+            case 'GET_CONTEXT_DATA':
               return success(await this.monetizationService.getPopupData())
 
-            case PopupToBackgroundAction.CONNECT_WALLET:
+            case 'CONNECT_WALLET':
               await this.openPaymentsService.connectWallet(message.payload)
               if (message.payload.recurring) {
                 this.scheduleResetOutOfFundsState()
               }
               return
 
-            case PopupToBackgroundAction.RECONNECT_WALLET: {
+            case 'RECONNECT_WALLET': {
               await this.openPaymentsService.reconnectWallet()
               await this.monetizationService.resumePaymentSessionActiveTab()
               await this.updateVisualIndicatorsForCurrentTab()
               return success(undefined)
             }
 
-            case PopupToBackgroundAction.ADD_FUNDS:
+            case 'ADD_FUNDS':
               await this.openPaymentsService.addFunds(message.payload)
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
               if (message.payload.recurring) {
@@ -160,57 +157,62 @@ export class Background {
               }
               return
 
-            case PopupToBackgroundAction.DISCONNECT_WALLET:
+            case 'DISCONNECT_WALLET':
               await this.openPaymentsService.disconnectWallet()
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS)
               await this.updateVisualIndicatorsForCurrentTab()
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} })
               return
 
-            case PopupToBackgroundAction.TOGGLE_WM: {
+            case 'TOGGLE_WM': {
               await this.monetizationService.toggleWM()
               await this.updateVisualIndicatorsForCurrentTab()
               return
             }
 
-            case PopupToBackgroundAction.PAY_WEBSITE:
+            case 'UPDATE_RATE_OF_PAY':
+              return success(
+                await this.storage.updateRate(message.payload.rateOfPay)
+              )
+
+            case 'PAY_WEBSITE':
               return success(
                 await this.monetizationService.pay(message.payload.amount)
               )
 
-            case ContentToBackgroundAction.CHECK_WALLET_ADDRESS_URL:
+            // endregion
+
+            // region Content
+            case 'CHECK_WALLET_ADDRESS_URL':
               return success(
                 await getWalletInformation(message.payload.walletAddressUrl)
               )
 
-            case ContentToBackgroundAction.START_MONETIZATION:
+            case 'START_MONETIZATION':
               await this.monetizationService.startPaymentSession(
                 message.payload,
                 sender
               )
               return
 
-            case ContentToBackgroundAction.STOP_MONETIZATION:
+            case 'STOP_MONETIZATION':
               await this.monetizationService.stopPaymentSession(
                 message.payload,
                 sender
               )
               return
 
-            case ContentToBackgroundAction.RESUME_MONETIZATION:
+            case 'RESUME_MONETIZATION':
               await this.monetizationService.resumePaymentSession(
                 message.payload,
                 sender
               )
               return
 
-            case PopupToBackgroundAction.UPDATE_RATE_OF_PAY:
-              return success(
-                await this.storage.updateRate(message.payload.rateOfPay)
-              )
-
-            case ContentToBackgroundAction.IS_WM_ENABLED:
+            case 'IS_WM_ENABLED':
               return success(await this.storage.getWMState())
+
+            // endregion
 
             default:
               return

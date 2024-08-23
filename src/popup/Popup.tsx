@@ -1,6 +1,7 @@
 import { MainLayout } from '@/popup/components/layout/MainLayout'
 import {
   BrowserContextProvider,
+  MessageContextProvider,
   PopupContextProvider,
   TranslationContextProvider
 } from './lib/context'
@@ -70,11 +71,13 @@ export const Popup = () => {
   return (
     <LazyMotion features={domAnimation} strict>
       <BrowserContextProvider browser={browser}>
-        <TranslationContextProvider>
-          <PopupContextProvider>
-            <RouterProvider router={router} />
-          </PopupContextProvider>
-        </TranslationContextProvider>
+        <MessageContextProvider>
+          <TranslationContextProvider>
+            <PopupContextProvider>
+              <RouterProvider router={router} />
+            </PopupContextProvider>
+          </TranslationContextProvider>
+        </MessageContextProvider>
       </BrowserContextProvider>
     </LazyMotion>
   )

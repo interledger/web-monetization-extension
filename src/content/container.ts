@@ -5,12 +5,17 @@ import { ContentScript } from './services/contentScript'
 import { MonetizationTagManager } from './services/monetizationTagManager'
 import { LOG_LEVEL } from '@/shared/defines'
 import { FrameManager } from './services/frameManager'
+import {
+  type ContentToBackgroundMessage,
+  MessageManager
+} from '@/shared/messages'
 
 export interface Cradle {
   logger: Logger
   browser: Browser
   document: Document
   window: Window
+  message: MessageManager<ContentToBackgroundMessage>
   monetizationTagManager: MonetizationTagManager
   frameManager: FrameManager
   contentScript: ContentScript
@@ -28,6 +33,7 @@ export const configureContainer = () => {
     browser: asValue(browser),
     document: asValue(document),
     window: asValue(window),
+    message: asClass(MessageManager<ContentToBackgroundMessage>).singleton(),
     frameManager: asClass(FrameManager)
       .singleton()
       .inject(() => ({

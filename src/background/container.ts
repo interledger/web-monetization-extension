@@ -15,6 +15,10 @@ import {
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
 import { tFactory, type Translation } from '@/shared/helpers'
+import {
+  MessageManager,
+  type BackgroundToContentMessage
+} from '@/shared/messages'
 
 export interface Cradle {
   logger: Logger
@@ -24,6 +28,7 @@ export interface Cradle {
   storage: StorageService
   openPaymentsService: OpenPaymentsService
   monetizationService: MonetizationService
+  message: MessageManager<BackgroundToContentMessage>
   sendToPopup: SendToPopup
   tabEvents: TabEvents
   background: Background
@@ -64,6 +69,7 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('monetization')
       })),
+    message: asClass(MessageManager<BackgroundToContentMessage>).singleton(),
     tabEvents: asClass(TabEvents).singleton(),
     sendToPopup: asClass(SendToPopup).singleton(),
     background: asClass(Background)

@@ -1,7 +1,4 @@
-import {
-  BackgroundToContentAction,
-  type ToContentMessage
-} from '@/shared/messages'
+import type { ToContentMessage } from '@/shared/messages'
 import { failure } from '@/shared/helpers'
 import type { Cradle } from '@/content/container'
 
@@ -52,13 +49,13 @@ export class ContentScript {
       async (message: ToContentMessage) => {
         try {
           switch (message.action) {
-            case BackgroundToContentAction.MONETIZATION_EVENT:
+            case 'MONETIZATION_EVENT':
               this.monetizationTagManager.dispatchMonetizationEvent(
                 message.payload
               )
               return
 
-            case BackgroundToContentAction.EMIT_TOGGLE_WM:
+            case 'EMIT_TOGGLE_WM':
               this.monetizationTagManager.toggleWM(message.payload)
 
               return
