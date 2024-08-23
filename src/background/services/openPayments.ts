@@ -341,7 +341,12 @@ export class OpenPaymentsService {
     })
 
     await this.initClient(walletAddress.id)
-    await this.completeGrant(amount, walletAddress, recurring)
+    await this.completeGrant(
+      amount,
+      walletAddress,
+      recurring,
+      InteractionIntent.CONNECT
+    )
 
     await this.storage.set({
       walletAddress,
@@ -359,7 +364,12 @@ export class OpenPaymentsService {
       'recurringGrant'
     ])
 
-    await this.completeGrant(amount, walletAddress!, recurring)
+    await this.completeGrant(
+      amount,
+      walletAddress!,
+      recurring,
+      InteractionIntent.FUNDS
+    )
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
@@ -375,7 +385,7 @@ export class OpenPaymentsService {
     amount: string,
     walletAddress: WalletAddress,
     recurring: boolean,
-    intent: InteractionIntent = InteractionIntent.CONNECT
+    intent: InteractionIntent
   ): Promise<GrantDetails> {
     const transformedAmount = toAmount({
       value: amount,
