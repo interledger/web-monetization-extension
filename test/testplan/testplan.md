@@ -40,7 +40,7 @@ Persona 2: A website owner that wants to receive WM payments.
 | **Persona 1**: A website visitor that wants to pay websites that are web monetized. | Any PC with internet access. | A Web Monetization enabled digital wallet from which payments will be made. | Any operating system (OS). A chromium-based Web browser (e.g. Chrome, Edge, Brave) or Firefox |
 | **Persona 2**: A website owner that wants to receive WM payments. | Any device with internet access (e.g. PC, tablet, mobile device). | A Web Monetization enabled digital wallet into which payments will be received. | Any operating system (OS). Any Web browser |
 
-### Report issues
+### Report Issues
 1. Use any screen recording application to record the steps and results of your testing.
 2. Log bugs or issues, and tracking their resolution status in GitHub (link).
 
@@ -55,7 +55,7 @@ Learn more about [compatible wallets here](https://webmonetization.org/docs/reso
 > (1) Setup your wallet accounts, currencies, balances etc.  
 > (2) Obtain the wallet address or payment pointer to use for Web Monetization.
 
-### Test data
+### Test Data
 This is a guide how you can setup conditions for testing the Web Monetization extension on websites:
 
  | Web monetized websites           | Non monetized websites       |
@@ -63,17 +63,13 @@ This is a guide how you can setup conditions for testing the Web Monetization ex
  | One valid monetization link tag  | No monetization link tags    |
  | Multiple valid monetization link tags with wallet addresses: <ul><li>from the same wallet providers</li><li>from different wallet providers</li><li>with different currencies</li><li>with some link tags enabled & some disabled</li></ul> | <ul><li>One disabled link tag</li><li>Multiple disabled link tags</li></ul> |
 
- ### Test playground
+### Test Playground
  Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly create different monetization conditions on a test website for monetization.
  Use the playground to add, remove, or disable any number or combination of wallet addresses and payment pointers on the playground.
 
-### Functional Test Cases
-These test cases are defined from the point of view of a website visitor that wants to use Web Monetization to pay.
-
-#### Risk Areas
-**Goal**: To lower the barriers to Web Monetization adoption.
-**Approach**: Identify and prioritise risks to the adoption of the WM extension. 
-Based on these risks, the sections that follow will detail the actual test cases.
+### Risk Areas
+This section defines and priorities the main risks to the adoption of Web Monetization.
+Based on these risks, the sections that follow detail the actual test cases.
 
 We use 4 risk priorities: `critical`  |  `high`  |  `medium`  |  `low`
 
@@ -86,15 +82,15 @@ We use 4 risk priorities: `critical`  |  `high`  |  `medium`  |  `low`
  | R5         | UX that is poor                                             | critical     | <ul><li>Build UX that supports ease of use</li><li>Provide fast and responsive helpdesk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and functionality</li></ul>
  | R6         | Unable to control payments                                  | critical     | <ul><li>Ability to control when, who & how much to pay</li></ul>
 
-#### Test Cases
+### Functional Test Cases
 This diagram shows the test cases that will be covered (source: [Miro Board link](https://miro.com/app/board/uXjVKu354WI=/?moveToWidget=3458764595787822957&cot=14)).  
 
-<img src="assets/WM-Extenstion-Test-Cases.jpg" width=100%>
+<img src="assets/WM-Extenstion-Test-Cases.jpg" width=150%>
 
-##### Basic Test Cases
+#### Basic Test Cases
 The test case IDs below align with the numbering shown in the test case diagram above.
 
-**Test ID**: 1  
+##### Test ID: 1  
 **Function**: Connect to a wallet  
 **Description**: Connect the extension to a Web Monetization enabled digital wallet.  
 **Risk**: R2 (onboarding) and R5 (UX)  
@@ -114,3 +110,63 @@ The test case IDs below align with the numbering shown in the test case diagram 
 1. The wallet owner receives an interaction prompt from their wallet, to authorize the connection and access to the amount.  
 2. The icon and behaviour of the extension will depend on the Web Monetization status of a visited website.
 
+##### Test ID: 2.3.1.1
+**Function**: Make continuous payments  
+**Description**: Send continuous WM payments to a monetized website  
+**Risk**: R3 (security of funds)  
+**Preconditions**:  
+1. The extension is connected to your wallet. 
+2. The extension has a positive remaining balance.
+3. Your wallet balance is equal to or greater than the extension’s remaining balance.
+
+**Steps**: 
+1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.  
+2. Visit a non-monetized website. Open the extension to observe its available options.
+
+**Expected results**:  
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
+ | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
+ | Opening the extension displays a **rate of pay** slider:<ul><li>On the left, the current hourly rate in the currency of the wallet.</li><li>The default is equivalent to 0.60 USD.</li><li>The remaining balance, updated in near real-time (i.e. every few seconds).</li></ul>  | Opening the extension displays: <ul><li>This website is not monetized.</li></ul>
+
+ ##### Test ID: 2.3.3.1.1
+ **Function**: Pay one-time when extension and wallet have enough funds  
+ **Description**: Send a one-time payment to a monetized website when the remaining balance for the extension is sufficient for the payment, and the wallet has sufficient funds  
+ **Risk**: R3 (security of funds) and R6 (control my payments)  
+ **Preconditions**: 
+ 1. The extension is connected to your wallet.
+ 2. The extension has a positive remaining balance.
+ 3. Your wallet balance is equal to or greater than the extension’s remaining balance.
+
+**Steps**: 
+1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+3. Open the extension and make a one-time payment, a positive amount that is lower than the “remaining balance” of the extension.
+4. Visit a non-monetized website. Open the extension to observe its available options.
+
+**Expected results**:  
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
+ | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
+ | Opening the extension displays: <ol><li>**Rate of pay slider**: rate of pay and currency on the left, the remaining balance of the extension’s authorized amount on the right side</li><li>**“Send now” button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, and the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero</li><li>**Remaining balance**: decreased by the value of the one-time payment</li></ol> | Opening the extension displays: <ol><li>This website is not monetized</li></ol> |
+
+##### Test ID: 2.3.3.1.2
+**Function**: Pay one-time when wallet is out of funds  
+**Description**: Send a one-time payment to a monetized website when the extension has a sufficient remaining balance but the wallet has insufficient funds  
+**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Preconditions**:   
+1. The extension is connected to your wallet.
+2. The extension’s remaining balance is greater than the one-time payment you are going to make.
+3. There are insufficient funds in your wallet for the one-time payment you want to make.  
+
+**Steps**:  
+1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+2. Open the extension and make a one-time payment, a positive amount that is lower than the “remaining balance” of the extension, and ensure that the amount is greater than the available balance of the connected wallet.
+3. Visit a non-monetized website. Open the extension to observe its available options.  
+
+**Expected results**:  
+
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
+ | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**“Send now” button**: clicking the button to send a one-time payment results in…<continue_here>...</li></ul> | Opening the extension displays: <ol><li>This website is not monetized</li></ol> |
+
+ 
