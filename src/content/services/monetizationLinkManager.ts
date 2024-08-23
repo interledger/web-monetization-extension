@@ -5,9 +5,9 @@ import { checkWalletAddressUrlFormat, mozClone } from '../utils'
 import type {
   // EmitToggleWMPayload,
   MonetizationEventPayload,
-  // ResumeMonetizationPayload,
-  StartMonetizationPayload
-  // StopMonetizationPayload
+  ResumeMonetizationPayload,
+  StartMonetizationPayload,
+  StopMonetizationPayload
 } from '@/shared/messages'
 import { ContentToContentAction } from '../messages'
 import type { Cradle } from '@/content/container'
@@ -54,14 +54,6 @@ export class MonetizationLinkManager extends EventEmitter {
     //   this.onMonetizationTagAttrsChange(records)
     // )
 
-    // document.addEventListener('visibilitychange', async () => {
-    //   if (document.visibilityState === 'visible') {
-    //     await this.resumeAllMonetization()
-    //   } else {
-    //     this.stopAllMonetization()
-    //   }
-    // })
-
     this.isTopFrame = window === window.top
     this.isFirstLevelFrame = window.parent === window.top
     this.id = crypto.randomUUID()
@@ -102,6 +94,14 @@ export class MonetizationLinkManager extends EventEmitter {
    * Check if iframe or not
    */
   private async run() {
+    this.document.addEventListener('visibilitychange', async () => {
+      if (this.document.visibilityState === 'visible') {
+        this.resumeMonetization()
+      } else {
+        this.stopMonetization()
+      }
+    })
+
     this.document.querySelectorAll('[onmonetization]').forEach((node) => {
       this.fireOnMonetizationAttrChangedEvent(node)
     })
@@ -221,6 +221,36 @@ export class MonetizationLinkManager extends EventEmitter {
       this.window.parent.postMessage(
         {
           message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
+          id: this.id,
+          payload: payload
+        },
+        '*'
+      )
+    }
+  }
+
+  private stopMonetization(intent?: StopMonetizationPayload['intent']) {
+    const payload: StopMonetizationPayload[] = [
+      ...this.monetizationLinks.values()
+    ].map(({ requestId }) => ({ requestId, intent }))
+
+    if (!payload.length) return
+    void this.message.send('STOP_MONETIZATION', payload)
+  }
+
+  private resumeMonetization() {
+    const payload: ResumeMonetizationPayload[] = [
+      ...this.monetizationLinks.values()
+    ].map(({ requestId }) => ({ requestId }))
+
+    if (this.isTopFrame) {
+      if (payload.length) {
+        void this.message.send('RESUME_MONETIZATION', payload)
+      }
+    } else if (this.isFirstLevelFrame) {
+      this.window.parent.postMessage(
+        {
+          message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
           id: this.id,
           payload: payload
         },
