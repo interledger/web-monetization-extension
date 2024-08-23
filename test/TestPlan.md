@@ -56,7 +56,38 @@ Learn more about [compatible wallets here](https://webmonetization.org/docs/reso
 > (2) Obtain the wallet address or payment pointer to use for Web Monetization.
 
 ### Test data
-| Web monetized websites           | Non monetized websites       |
-| :----------------------------    | :--------------------------- |
-| One valid monetization link tag  | No monetization link tags    |
+This is a guide how you can setup conditions for testing the Web Monetization extension on websites:
+
+ | Web monetized websites           | Non monetized websites       |
+ | :----------------------------    | :--------------------------- |
+ | One valid monetization link tag  | No monetization link tags    |
+ | Multiple valid monetization link tags with wallet addresses: <ul><li>from the same wallet providers</li><li>from different wallet providers</li><li>with different currencies</li><li>with some link tags enabled & some disabled</li></ul> | <ul><li>One disabled link tag</li><li>Multiple disabled link tags</li></ul> |
+
+ ### Test playground
+ Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly create different monetization conditions on a test website for monetization.
+ Use the playground to add, remove, or disable any number or combination of wallet addresses and payment pointers on the playground.
+
+### Functional test cases
+These test cases are defined from the point of view of a website visitor that wants to use Web Monetization to pay.
+
+#### Risk areas
+**Goal**: To lower the barriers to Web Monetization adoption.
+**Approach**: Identify and prioritise risks to the adoption of the WM extension. 
+Based on these risks, the sections that follow will detail the actual test cases.
+
+We use 4 risk priorities: `critical`  |  `high`  |  `medium`  |  `low`
+
+ | Ref.       | Risk                                                        | Priority     | How to mitigate the risk       |
+ | :--------- | :---------------------------------------------------------- | :----------- | :----------------------------- |
+ | R1         | Product not easily accessible                               | high         | The extension is: <ul><li>Readily accessible where the majority of people are, on the Web</li><li>Easy to find</li></ul> |
+ | R2         | Onboarding is long or complicated                           | critical     | <ul><li>Installation is simple</li><li>Onboarding that is simple and clear</li><li>Support a reasonably quick start</li><li>Provide good quality support to simplify obtaining a wallet for sending or receiving WM payments (i.e. easy to contact, responsive, proactive support)</li></ul>  |
+ | R3         | Lack of trust about the security of funds                   | critical     | <ul><li>Uncertainty about the security of my funds:<ul><li>Is my money safe?</li><li>Where is my money?</li><li>Can I easily see how much I have used?</li><li>Can I easily query issues about WM funds sent or received?</li></ul></li><li>Provide assurance and clarity about the security of funds</li><li>Allow users to view the balance of funds available to the extension from their wallet, in real-time</li><li>Build confidence by providing resources to empower people to use the tech for themselves, with real money, or in a playground environment using “play” money</li></ul> |
+ | R4         | Lack of understanding about the standard or the technology  | high         | <ul><li>Provide accessible, good quality resources to simplify understanding:<ul><li>Web Monetization</li><li>The extension</li><li>How to start using the extension</li><li>How to monetize own content</li></ul></li><li>Provide good quality of docs (accurate, comprehensive, complete)</li><li>How WM works & what to expect</li><li>Understanding the technology</li><li>Access to the (draft) standard spec. & WICG GitHub repository</li></ul>
+ | R5         | UX that is poor                                             | critical     | <ul><li>Build UX that supports ease of use</li><li>Provide fast and responsive helpdesk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and functionality</li></ul>
+ | R6         | Unable to control payments                                  | critical     | <ul><li>Ability to control when, who & how much to pay</li></ul>
+
+This diagram shows the test cases that will be covered (source: [Miro Board link](https://miro.com/app/board/uXjVKu354WI=/?moveToWidget=3458764595787822957&cot=14)).  
+
+<img src="https://github.com/user-attachments/assets/ba1dbc9a-ad5e-464b-8cd3-cf31900b2159" width=150%>
+
 
