@@ -398,11 +398,10 @@ export class MonetizationLinkManager extends EventEmitter {
           target instanceof HTMLLinkElement &&
           target.href !== record.oldValue
         ) {
+          stopMonetizationPayload.push(this.onRemovedLink(target))
           const payloadEntry = await this.checkLink(target)
           if (payloadEntry) {
             startMonetizationPayload.push(payloadEntry.details)
-          } else {
-            stopMonetizationPayload.push(this.onRemovedLink(target))
           }
           handledTags.add(target)
         }
