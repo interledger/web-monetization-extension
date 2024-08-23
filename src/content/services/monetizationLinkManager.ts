@@ -66,7 +66,7 @@ export class MonetizationLinkManager extends EventEmitter {
 
   start(): void {
     if (isDocumentReady(this.document)) {
-      this.run()
+      void this.run()
       return
     }
 
@@ -74,13 +74,13 @@ export class MonetizationLinkManager extends EventEmitter {
       'readystatechange',
       () => {
         if (isDocumentReady(this.document)) {
-          this.run()
+          void this.run()
         } else {
           document.addEventListener(
             'visibilitychange',
             () => {
               if (isDocumentReady(this.document)) {
-                this.run()
+                void this.run()
               }
             },
             { once: true }
@@ -134,7 +134,7 @@ export class MonetizationLinkManager extends EventEmitter {
       this.monetizationLinks.set(link, details)
     }
 
-    void this.sendStartMonetization(validLinks.map((e) => e.details))
+    await this.sendStartMonetization(validLinks.map((e) => e.details))
   }
 
   /** @throws never throws */
@@ -413,6 +413,26 @@ export class MonetizationLinkManager extends EventEmitter {
     void this.sendStartMonetization(startMonetizationPayload)
   }
 
+  private async onAddedNode(node: Node) {
+    if (node instanceof HTMLElement) {
+      this.dispatchOnMonetizationAttrChangedEvent(node)
+    }
+
+    if (node instanceof HTMLLinkElement) {
+      return await this.onAddedLink(node)
+    }
+    return null
+  }
+
+  private async onAddedLink(link: HTMLLinkElement) {
+    this.observeLinkAttrs(link)
+    const res = await this.checkLink(link)
+    if (res) {
+      this.monetizationLinks.set(link, res.details)
+    }
+    return res
+  }
+
   private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayload {
     const details = this.monetizationLinks.get(link)
     if (!details) {
@@ -426,23 +446,6 @@ export class MonetizationLinkManager extends EventEmitter {
     this.monetizationLinks.delete(link)
 
     return { requestId: details.requestId, intent: 'remove' }
-  }
-
-  private async onAddedNode(node: Node) {
-    if (node instanceof HTMLElement) {
-      this.dispatchOnMonetizationAttrChangedEvent(node)
-    }
-
-    if (node instanceof HTMLLinkElement) {
-      this.observeLinkAttrs(node)
-      return await this.onAddedLink(node)
-    }
-    return null
-  }
-
-  private async onAddedLink(link: HTMLLinkElement) {
-    // this.observeMonetizationTagAttrs(link)
-    return await this.checkLink(link)
   }
 }
 
