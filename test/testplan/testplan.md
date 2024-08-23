@@ -67,10 +67,10 @@ This is a guide how you can setup conditions for testing the Web Monetization ex
  Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly create different monetization conditions on a test website for monetization.
  Use the playground to add, remove, or disable any number or combination of wallet addresses and payment pointers on the playground.
 
-### Functional test cases
+### Functional Test Cases
 These test cases are defined from the point of view of a website visitor that wants to use Web Monetization to pay.
 
-#### Risk areas
+#### Risk Areas
 **Goal**: To lower the barriers to Web Monetization adoption.
 **Approach**: Identify and prioritise risks to the adoption of the WM extension. 
 Based on these risks, the sections that follow will detail the actual test cases.
@@ -86,8 +86,31 @@ We use 4 risk priorities: `critical`  |  `high`  |  `medium`  |  `low`
  | R5         | UX that is poor                                             | critical     | <ul><li>Build UX that supports ease of use</li><li>Provide fast and responsive helpdesk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and functionality</li></ul>
  | R6         | Unable to control payments                                  | critical     | <ul><li>Ability to control when, who & how much to pay</li></ul>
 
+#### Test Cases
 This diagram shows the test cases that will be covered (source: [Miro Board link](https://miro.com/app/board/uXjVKu354WI=/?moveToWidget=3458764595787822957&cot=14)).  
 
-<img src="https://github.com/user-attachments/assets/ba1dbc9a-ad5e-464b-8cd3-cf31900b2159" width=150%>
+<img src="assets/WM-Extenstion-Test-Cases.jpg" width=100%>
 
+##### Basic Test Cases
+The test case IDs below align with the numbering shown in the test case diagram above.
+
+**Test ID**: 1  
+**Function**: Connect to a wallet  
+**Description**: Connect the extension to a Web Monetization enabled digital wallet.  
+**Risk**: R2 (onboarding) and R5 (UX)  
+**Preconditions**:  
+1. You have already downloaded and installed the Web Monetization extension. 
+2. Your digital wallet sign-up and account activation is complete (learn more from the [Prerequisites](#Prerequisites) section)
+
+**Steps**:  
+1. Open the WM extension and copy the extension’s key.
+2. Open the digital wallet, and load the extension’s key into the wallet.  
+3. From the digital wallet, find and copy the wallet address or payment pointer.  
+4. Open the WM extension, and enter the wallet address or payment pointer.  
+5. Enter the amount you want to make available to the extension, from your wallet (the amount must be a positive value).  
+6. Monthly renewal of amount remains disabled.  
+
+**Expected results**:  
+1. The wallet owner receives an interaction prompt from their wallet, to authorize the connection and access to the amount.  
+2. The icon and behaviour of the extension will depend on the Web Monetization status of a visited website.
 
