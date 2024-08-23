@@ -102,9 +102,12 @@ export class MonetizationLinkManager extends EventEmitter {
       }
     })
 
-    this.document.querySelectorAll('[onmonetization]').forEach((node) => {
-      this.fireOnMonetizationAttrChangedEvent(node)
-    })
+    this.document
+      .querySelectorAll<HTMLElement>('[onmonetization]')
+      .forEach((node) => {
+        this.dispatchOnMonetizationAttrChangedEvent(node)
+      })
+
     this.documentObserver.observe(this.document, {
       subtree: true,
       childList: true,
@@ -204,12 +207,22 @@ export class MonetizationLinkManager extends EventEmitter {
     }
   }
 
-  private observeMonetizationLinkAttrs(link: HTMLLinkElement) {
-    this.logger.debug(link)
+  private dispatchOnMonetizationAttrChangedEvent(
+    node: HTMLElement,
+    { changeDetected = false } = {}
+  ) {
+    const attribute = node.getAttribute('onmonetization')
+    if (!attribute && !changeDetected) return
+
+    const customEvent = new CustomEvent('__wm_ext_onmonetization_attr_change', {
+      bubbles: true,
+      detail: mozClone({ attribute }, this.document)
+    })
+    node.dispatchEvent(customEvent)
   }
 
-  private fireOnMonetizationAttrChangedEvent(node: Element) {
-    this.logger.debug(node)
+  private observeMonetizationLinkAttrs(link: HTMLLinkElement) {
+    this.logger.debug(link)
   }
 
   private sendStartMonetization(payload: StartMonetizationPayload[]) {
@@ -289,7 +302,17 @@ export class MonetizationLinkManager extends EventEmitter {
       this.sendStartMonetization(startMonetizationPayload)
     }
 
-    // this.onOnMonetizationChangeObserved(records)
+    for (const record of records) {
+      if (
+        record.type === 'attributes' &&
+        record.target instanceof HTMLElement &&
+        record.attributeName === 'onmonetization'
+      ) {
+        this.dispatchOnMonetizationAttrChangedEvent(record.target, {
+          changeDetected: true
+        })
+      }
+    }
   }
 
   private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayload {
@@ -309,7 +332,7 @@ export class MonetizationLinkManager extends EventEmitter {
 
   private async onAddedNode(node: Node) {
     if (node instanceof HTMLElement) {
-      this.fireOnMonetizationAttrChangedEvent(node)
+      this.dispatchOnMonetizationAttrChangedEvent(node)
     }
 
     if (node instanceof HTMLLinkElement) {
