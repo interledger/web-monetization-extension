@@ -260,11 +260,10 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 }
 
-function isDocumentReady(document: Document) {
+function isDocumentReady(doc: Document) {
   return (
-    (document.readyState === 'interactive' ||
-      document.readyState === 'complete') &&
-    document.visibilityState === 'visible'
+    (doc.readyState === 'interactive' || doc.readyState === 'complete') &&
+    doc.visibilityState === 'visible'
   )
 }
 
