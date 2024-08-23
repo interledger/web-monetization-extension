@@ -33,7 +33,7 @@ export class MonetizationLinkManager extends EventEmitter {
   private isTopFrame: boolean
   private isFirstLevelFrame: boolean
   private documentObserver: MutationObserver
-  private monetizationTagAttrObserver: MutationObserver
+  private monetizationLinkAttrObserver: MutationObserver
   private id: string
   // only entries corresponding to valid wallet addresses are here
   private monetizationLinks = new Map<HTMLLinkElement, MonetizationTagDetails>()
@@ -50,9 +50,10 @@ export class MonetizationLinkManager extends EventEmitter {
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records)
     )
-    // this.monetizationTagAttrObserver = new MutationObserver((records) =>
-    //   this.onMonetizationTagAttrsChange(records)
-    // )
+
+    this.monetizationLinkAttrObserver = new MutationObserver((records) =>
+      this.onLinkAttrChange(records)
+    )
 
     this.isTopFrame = window === window.top
     this.isFirstLevelFrame = window.parent === window.top
@@ -90,15 +91,17 @@ export class MonetizationLinkManager extends EventEmitter {
     )
   }
 
+  end() {}
+
   /**
    * Check if iframe or not
    */
   private async run() {
-    this.document.addEventListener('visibilitychange', async () => {
+    this.document.addEventListener('visibilitychange', () => {
       if (this.document.visibilityState === 'visible') {
-        this.resumeMonetization()
+        void this.resumeMonetization()
       } else {
-        this.stopMonetization()
+        void this.stopMonetization()
       }
     })
 
@@ -119,22 +122,20 @@ export class MonetizationLinkManager extends EventEmitter {
       this.isTopFrame
     )
 
-    for (const elem of monetizationLinks) {
-      this.observeMonetizationLinkAttrs(elem)
+    for (const link of monetizationLinks) {
+      this.observeLinkAttrs(link)
     }
 
-    const validMonetizationLinks = (
+    const validLinks = (
       await Promise.all(monetizationLinks.map((elem) => this.checkLink(elem)))
     ).filter(isNotNull)
 
-    for (const { link, details } of validMonetizationLinks) {
+    for (const { link, details } of validLinks) {
       this.monetizationLinks.set(link, details)
     }
 
-    this.sendStartMonetization(validMonetizationLinks.map((e) => e.details))
+    void this.sendStartMonetization(validLinks.map((e) => e.details))
   }
-
-  end() {}
 
   /** @throws never throws */
   private async checkLink(link: HTMLLinkElement) {
@@ -145,7 +146,7 @@ export class MonetizationLinkManager extends EventEmitter {
       return null
     }
 
-    const walletAddress = await this.validateWalletAddress(link)
+    const walletAddress = await this.validateLink(link)
     if (!walletAddress) {
       return null
     }
@@ -160,10 +161,10 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   /** @throws never throws */
-  private async validateWalletAddress(
-    tag: HTMLLinkElement
+  private async validateLink(
+    link: HTMLLinkElement
   ): Promise<WalletAddress | null> {
-    const walletAddressUrl = tag.href.trim()
+    const walletAddressUrl = link.href.trim()
     try {
       checkWalletAddressUrlFormat(walletAddressUrl)
       const response = await this.message.send('CHECK_WALLET_ADDRESS_URL', {
@@ -176,13 +177,21 @@ export class MonetizationLinkManager extends EventEmitter {
         )
       }
 
-      this.dispatchLoadEvent(tag)
+      this.dispatchLoadEvent(link)
       return response.payload
     } catch (e) {
       this.logger.error(e)
-      this.dispatchErrorEvent(tag)
+      this.dispatchErrorEvent(link)
       return null
     }
+  }
+
+  private observeLinkAttrs(link: HTMLLinkElement) {
+    this.monetizationLinkAttrObserver.observe(link, {
+      childList: false,
+      attributeOldValue: true,
+      attributeFilter: ['href', 'disabled', 'rel', 'crossorigin', 'type']
+    })
   }
 
   private dispatchLoadEvent(tag: HTMLLinkElement) {
@@ -221,15 +230,27 @@ export class MonetizationLinkManager extends EventEmitter {
     node.dispatchEvent(customEvent)
   }
 
-  private observeMonetizationLinkAttrs(link: HTMLLinkElement) {
-    this.logger.debug(link)
+  private async stopMonetization() {
+    const payload: StopMonetizationPayload[] = [
+      ...this.monetizationLinks.values()
+    ].map(({ requestId }) => ({ requestId }))
+
+    await this.sendStopMonetization(payload)
   }
 
-  private sendStartMonetization(payload: StartMonetizationPayload[]) {
+  private async resumeMonetization() {
+    const payload: ResumeMonetizationPayload[] = [
+      ...this.monetizationLinks.values()
+    ].map(({ requestId }) => ({ requestId }))
+
+    await this.sendResumeMonetization(payload)
+  }
+
+  private async sendStartMonetization(payload: StartMonetizationPayload[]) {
     if (!payload.length) return
 
     if (this.isTopFrame) {
-      void this.message.send('START_MONETIZATION', payload)
+      await this.message.send('START_MONETIZATION', payload)
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
         {
@@ -242,23 +263,15 @@ export class MonetizationLinkManager extends EventEmitter {
     }
   }
 
-  private stopMonetization(intent?: StopMonetizationPayload['intent']) {
-    const payload: StopMonetizationPayload[] = [
-      ...this.monetizationLinks.values()
-    ].map(({ requestId }) => ({ requestId, intent }))
-
+  private async sendStopMonetization(payload: StopMonetizationPayload[]) {
     if (!payload.length) return
-    void this.message.send('STOP_MONETIZATION', payload)
+    await this.message.send('STOP_MONETIZATION', payload)
   }
 
-  private resumeMonetization() {
-    const payload: ResumeMonetizationPayload[] = [
-      ...this.monetizationLinks.values()
-    ].map(({ requestId }) => ({ requestId }))
-
+  private async sendResumeMonetization(payload: ResumeMonetizationPayload[]) {
     if (this.isTopFrame) {
       if (payload.length) {
-        void this.message.send('RESUME_MONETIZATION', payload)
+        await this.message.send('RESUME_MONETIZATION', payload)
       }
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
@@ -284,9 +297,8 @@ export class MonetizationLinkManager extends EventEmitter {
         })
       }
     }
-    if (stopMonetizationPayload.length) {
-      await this.message.send('STOP_MONETIZATION', stopMonetizationPayload)
-    }
+
+    await this.sendStopMonetization(stopMonetizationPayload)
 
     if (this.isTopFrame) {
       const addedNodes = records
@@ -299,7 +311,7 @@ export class MonetizationLinkManager extends EventEmitter {
         .filter(isNotNull)
         .map(({ details }) => details)
 
-      this.sendStartMonetization(startMonetizationPayload)
+      void this.sendStartMonetization(startMonetizationPayload)
     }
 
     for (const record of records) {
@@ -313,6 +325,92 @@ export class MonetizationLinkManager extends EventEmitter {
         })
       }
     }
+  }
+
+  private async onLinkAttrChange(records: MutationRecord[]) {
+    const handledTags = new Set<Node>()
+    const startMonetizationPayload: StartMonetizationPayload[] = []
+    const stopMonetizationPayload: StopMonetizationPayload[] = []
+
+    // Check for a non specified link with the type now specified and
+    // just treat it as a newly seen, monetization tag
+    for (const record of records) {
+      const target = record.target as HTMLLinkElement
+      if (handledTags.has(target)) {
+        continue
+      }
+
+      const hasTarget = this.monetizationLinks.has(target)
+      const linkRelSpecified =
+        target instanceof HTMLLinkElement && target.rel === 'monetization'
+      // this will also handle the case of a @disabled tag that
+      // is not tracked, becoming enabled
+      if (!hasTarget && linkRelSpecified) {
+        const payloadEntry = await this.checkLink(target)
+        if (payloadEntry) {
+          this.monetizationLinks.set(target, payloadEntry.details)
+          startMonetizationPayload.push(payloadEntry.details)
+        }
+        handledTags.add(target)
+      } else if (hasTarget && !linkRelSpecified) {
+        const payloadEntry = this.onRemovedLink(target)
+        stopMonetizationPayload.push(payloadEntry)
+        handledTags.add(target)
+      } else if (!hasTarget && !linkRelSpecified) {
+        // ignore these changes
+        handledTags.add(target)
+      } else if (hasTarget && linkRelSpecified) {
+        if (
+          record.type === 'attributes' &&
+          record.attributeName === 'disabled' &&
+          target instanceof HTMLLinkElement &&
+          target.getAttribute('disabled') !== record.oldValue
+        ) {
+          const wasDisabled = record.oldValue !== null
+          const isDisabled = target.hasAttribute('disabled')
+          if (wasDisabled != isDisabled) {
+            try {
+              const details = this.monetizationLinks.get(target)
+              if (!details) {
+                throw new Error('Could not find details for monetization node')
+              }
+              if (isDisabled) {
+                stopMonetizationPayload.push({
+                  requestId: details.requestId,
+                  intent: 'disable'
+                })
+              } else {
+                startMonetizationPayload.push(details)
+              }
+            } catch {
+              const payloadEntry = await this.checkLink(target)
+              if (payloadEntry) {
+                this.monetizationLinks.set(target, payloadEntry.details)
+                startMonetizationPayload.push(payloadEntry.details)
+              }
+            }
+
+            handledTags.add(target)
+          }
+        } else if (
+          record.type === 'attributes' &&
+          record.attributeName === 'href' &&
+          target instanceof HTMLLinkElement &&
+          target.href !== record.oldValue
+        ) {
+          const payloadEntry = await this.checkLink(target)
+          if (payloadEntry) {
+            startMonetizationPayload.push(payloadEntry.details)
+          } else {
+            stopMonetizationPayload.push(this.onRemovedLink(target))
+          }
+          handledTags.add(target)
+        }
+      }
+    }
+
+    await this.sendStopMonetization(stopMonetizationPayload)
+    void this.sendStartMonetization(startMonetizationPayload)
   }
 
   private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayload {
@@ -336,6 +434,7 @@ export class MonetizationLinkManager extends EventEmitter {
     }
 
     if (node instanceof HTMLLinkElement) {
+      this.observeLinkAttrs(node)
       return await this.onAddedLink(node)
     }
     return null
