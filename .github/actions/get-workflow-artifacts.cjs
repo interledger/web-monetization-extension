@@ -47,14 +47,14 @@ function formatBytes(bytes, decimals = 2) {
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
 module.exports = async ({ github, context, core }) => {
+  console.log(JSON.stringify(context, null, 2))
+
   const { owner, repo } = context.repo
   const baseUrl = context.payload.repository?.html_url
-  const suiteId = context.payload.workflow_run.check_suite_id
-  const runId = context.payload.workflow_run.id
-  const conclusion = context.payload.workflow_run.conclusion
-  const sha = context.payload.workflow_run.pull_requests[0].head.sha
-  const prNumber = context.payload.workflow_run.pull_requests[0].number
-  const jobLogsUrl = `${baseUrl}/actions/runs/${context.payload.workflow_run.id}`
+  const runId = context.runId
+  const sha = context.sha
+  const prNumber = context.payload.pull_request?.number
+  const jobLogsUrl = `${baseUrl}/actions/runs/${runId}`
   const template = await fs.readFile(
     './.github/actions/templates/build-status.md',
     'utf8'
@@ -63,22 +63,17 @@ module.exports = async ({ github, context, core }) => {
   /** @type {string[]} */
   const tableRows = []
 
-  core.setOutput('conclusion', conclusion)
-
-  if (conclusion === 'cancelled') {
-    return
-  }
-
   const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
     owner,
     repo,
     run_id: runId
   })
 
+  console.log(JSON.stringify({ artifacts: artifacts.data.artifacts }, null, 2))
+
   artifacts.data.artifacts.forEach((artifact) => {
     const key = /** @type {Browser} */ (artifact.name.split('-')[1])
-    ARTIFACTS_DATA[key].url =
-      `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`
+    ARTIFACTS_DATA[key].url = `${jobLogsUrl}/artifacts/${artifact.id}`
     ARTIFACTS_DATA[key].size = formatBytes(artifact.size_in_bytes)
   })
 
@@ -99,7 +94,7 @@ module.exports = async ({ github, context, core }) => {
 
   const tableBody = tableRows.join('')
   const commentBody = template
-    .replace(TEMPLATE_VARS.conclusion, conclusion)
+    .replace(TEMPLATE_VARS.conclusion, 'success')
     .replace(TEMPLATE_VARS.sha, sha)
     .replace(TEMPLATE_VARS.jobLogs, `<a href="${jobLogsUrl}">Run #${runId}</a>`)
     .replace(TEMPLATE_VARS.tableBody, tableBody)
