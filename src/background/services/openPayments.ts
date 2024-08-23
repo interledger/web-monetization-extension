@@ -359,7 +359,12 @@ export class OpenPaymentsService {
       'recurringGrant'
     ])
 
-    await this.completeGrant(amount, walletAddress!, recurring)
+    await this.completeGrant(
+      amount,
+      walletAddress!,
+      recurring,
+      InteractionIntent.FUNDS
+    )
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
