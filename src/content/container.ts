@@ -2,7 +2,7 @@ import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
 import browser, { type Browser } from 'webextension-polyfill'
 import { createLogger, Logger } from '@/shared/logger'
 import { ContentScript } from './services/contentScript'
-import { MonetizationTagManager } from './services/monetizationTagManager'
+import { MonetizationLinkManager } from './services/monetizationLinkManager'
 import { LOG_LEVEL } from '@/shared/defines'
 import { FrameManager } from './services/frameManager'
 import {
@@ -16,7 +16,7 @@ export interface Cradle {
   document: Document
   window: Window
   message: MessageManager<ContentToBackgroundMessage>
-  monetizationTagManager: MonetizationTagManager
+  monetizationTagManager: MonetizationLinkManager
   frameManager: FrameManager
   contentScript: ContentScript
 }
@@ -39,7 +39,7 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('content-script:frameManager')
       })),
-    monetizationTagManager: asClass(MonetizationTagManager)
+    monetizationTagManager: asClass(MonetizationLinkManager)
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('content-script:tagManager')
