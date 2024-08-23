@@ -47,9 +47,9 @@ export class MonetizationLinkManager extends EventEmitter {
       message
     })
 
-    // this.documentObserver = new MutationObserver((records) =>
-    //   this.onWholeDocumentObserved(records)
-    // )
+    this.documentObserver = new MutationObserver((records) =>
+      this.onWholeDocumentObserved(records)
+    )
     // this.monetizationTagAttrObserver = new MutationObserver((records) =>
     //   this.onMonetizationTagAttrsChange(records)
     // )
@@ -105,11 +105,11 @@ export class MonetizationLinkManager extends EventEmitter {
     this.document.querySelectorAll('[onmonetization]').forEach((node) => {
       this.fireOnMonetizationAttrChangedEvent(node)
     })
-    // this.documentObserver.observe(this.document, {
-    //   subtree: true,
-    //   childList: true,
-    //   attributeFilter: ['onmonetization']
-    // })
+    this.documentObserver.observe(this.document, {
+      subtree: true,
+      childList: true,
+      attributeFilter: ['onmonetization']
+    })
 
     const monetizationLinks = getMonetizationLinkTags(
       this.document,
@@ -257,6 +257,70 @@ export class MonetizationLinkManager extends EventEmitter {
         '*'
       )
     }
+  }
+
+  private async onWholeDocumentObserved(records: MutationRecord[]) {
+    const stopMonetizationPayload: StopMonetizationPayload[] = []
+
+    for (const record of records) {
+      if (record.type === 'childList') {
+        record.removedNodes.forEach(async (node) => {
+          if (!(node instanceof HTMLLinkElement)) return
+          const payloadEntry = this.onRemovedLink(node)
+          stopMonetizationPayload.push(payloadEntry)
+        })
+      }
+    }
+    if (stopMonetizationPayload.length) {
+      await this.message.send('STOP_MONETIZATION', stopMonetizationPayload)
+    }
+
+    if (this.isTopFrame) {
+      const addedNodes = records
+        .filter((e) => e.type === 'childList')
+        .flatMap((e) => [...e.addedNodes])
+      const allAddedLinkTags = await Promise.all(
+        addedNodes.map((node) => this.onAddedNode(node))
+      )
+      const startMonetizationPayload = allAddedLinkTags
+        .filter(isNotNull)
+        .map(({ details }) => details)
+
+      this.sendStartMonetization(startMonetizationPayload)
+    }
+
+    // this.onOnMonetizationChangeObserved(records)
+  }
+
+  private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayload {
+    const details = this.monetizationLinks.get(link)
+    if (!details) {
+      throw new Error(
+        'Could not find details for monetization node ' +
+          // node is removed, so the reference can not be displayed
+          link.outerHTML.slice(0, 200)
+      )
+    }
+
+    this.monetizationLinks.delete(link)
+
+    return { requestId: details.requestId, intent: 'remove' }
+  }
+
+  private async onAddedNode(node: Node) {
+    if (node instanceof HTMLElement) {
+      this.fireOnMonetizationAttrChangedEvent(node)
+    }
+
+    if (node instanceof HTMLLinkElement) {
+      return await this.onAddedLink(node)
+    }
+    return null
+  }
+
+  private async onAddedLink(link: HTMLLinkElement) {
+    // this.observeMonetizationTagAttrs(link)
+    return await this.checkLink(link)
   }
 }
 

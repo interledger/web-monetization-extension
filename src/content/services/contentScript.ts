@@ -56,7 +56,7 @@ export class ContentScript {
               return
 
             case 'EMIT_TOGGLE_WM':
-              this.monetizationTagManager.toggleWM(message.payload)
+              // this.monetizationTagManager.toggleWM(message.payload)
 
               return
 
