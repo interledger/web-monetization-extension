@@ -1,12 +1,12 @@
 import type { ToContentMessage } from '@/shared/messages';
-import { failure } from '@/shared/helpers';
 import type { Cradle } from '@/content/container';
+import { failure } from '@/shared/helpers';
 
 export class ContentScript {
   private browser: Cradle['browser'];
   private window: Cradle['window'];
   private logger: Cradle['logger'];
-  private monetizationTagManager: Cradle['monetizationTagManager'];
+  private monetizationLinkManager: Cradle['monetizationLinkManager'];
   private frameManager: Cradle['frameManager'];
 
   private isFirstLevelFrame: boolean;
@@ -16,14 +16,14 @@ export class ContentScript {
     browser,
     window,
     logger,
-    monetizationTagManager,
+    monetizationLinkManager,
     frameManager,
   }: Cradle) {
     Object.assign(this, {
       browser,
       window,
       logger,
-      monetizationTagManager,
+      monetizationLinkManager,
       frameManager,
     });
 
@@ -40,7 +40,7 @@ export class ContentScript {
 
       if (this.isTopFrame) this.frameManager.start();
 
-      this.monetizationTagManager.start();
+      this.monetizationLinkManager.start();
     }
   }
 
@@ -50,7 +50,7 @@ export class ContentScript {
         try {
           switch (message.action) {
             case 'MONETIZATION_EVENT':
-              this.monetizationTagManager.dispatchMonetizationEvent(
+              this.monetizationLinkManager.dispatchMonetizationEvent(
                 message.payload,
               );
               return;

@@ -16,7 +16,7 @@ export interface Cradle {
   document: Document;
   window: Window;
   message: MessageManager<ContentToBackgroundMessage>;
-  monetizationTagManager: MonetizationLinkManager;
+  monetizationLinkManager: MonetizationLinkManager;
   frameManager: FrameManager;
   contentScript: ContentScript;
 }
@@ -39,7 +39,7 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('content-script:frameManager'),
       })),
-    monetizationTagManager: asClass(MonetizationLinkManager)
+    monetizationLinkManager: asClass(MonetizationLinkManager)
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('content-script:tagManager'),
