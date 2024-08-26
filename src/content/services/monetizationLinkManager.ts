@@ -12,18 +12,6 @@ import type {
 import { ContentToContentAction } from '../messages';
 import type { Cradle } from '@/content/container';
 
-// observeLinks() {
-// find all links in the page
-// observe changes to links - add/remove/attr-changes
-// validate link tags
-// }
-
-// observe page visibility
-
-// on change: start/stop/pause/resume monetization
-
-// handle events from background - monetization/load/error events
-
 export class MonetizationLinkManager extends EventEmitter {
   private window: Cradle['window'];
   private document: Cradle['document'];
