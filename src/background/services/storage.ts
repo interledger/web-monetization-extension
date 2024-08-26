@@ -4,11 +4,11 @@ import type {
   GrantDetails,
   Storage,
   StorageKey,
-  WalletAmount
-} from '@/shared/types'
-import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers'
-import { computeBalance } from '../utils'
-import type { Cradle } from '../container'
+  WalletAmount,
+} from '@/shared/types';
+import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers';
+import { computeBalance } from '../utils';
+import type { Cradle } from '../container';
 
 const defaultStorage = {
   /**
@@ -30,59 +30,59 @@ const defaultStorage = {
   oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
   minRateOfPay: null,
-  maxRateOfPay: null
-} satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
+  maxRateOfPay: null,
+} satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>;
 
 export class StorageService {
-  private browser: Cradle['browser']
-  private events: Cradle['events']
+  private browser: Cradle['browser'];
+  private events: Cradle['events'];
 
-  private setSpentAmountRecurring: ThrottleBatch<[amount: string]>
-  private setSpentAmountOneTime: ThrottleBatch<[amount: string]>
+  private setSpentAmountRecurring: ThrottleBatch<[amount: string]>;
+  private setSpentAmountOneTime: ThrottleBatch<[amount: string]>;
   // used as an optimization/cache
-  private currentState: Storage['state'] | null = null
+  private currentState: Storage['state'] | null = null;
 
   constructor({ browser, events }: Cradle) {
-    Object.assign(this, { browser, events })
+    Object.assign(this, { browser, events });
 
     this.setSpentAmountRecurring = new ThrottleBatch(
       (amount) => this.setSpentAmount('recurring', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
-      1000
-    )
+      1000,
+    );
     this.setSpentAmountOneTime = new ThrottleBatch(
       (amount) => this.setSpentAmount('one-time', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
-      1000
-    )
+      1000,
+    );
   }
 
   async get<TKey extends StorageKey>(
-    keys?: TKey[]
+    keys?: TKey[],
   ): Promise<{ [Key in TKey[][number]]: Storage[Key] }> {
-    const data = await this.browser.storage.local.get(keys)
-    return data as { [Key in TKey[][number]]: Storage[Key] }
+    const data = await this.browser.storage.local.get(keys);
+    return data as { [Key in TKey[][number]]: Storage[Key] };
   }
 
   async set<TKey extends StorageKey>(data: {
-    [K in TKey]: Storage[TKey]
+    [K in TKey]: Storage[TKey];
   }): Promise<void> {
-    await this.browser.storage.local.set(data)
+    await this.browser.storage.local.set(data);
   }
 
   async clear(): Promise<void> {
-    await this.set(defaultStorage)
-    this.currentState = { ...defaultStorage.state }
+    await this.set(defaultStorage);
+    this.currentState = { ...defaultStorage.state };
   }
 
   /**
    * Needs to run before any other storage `set` call.
    */
   async populate(): Promise<void> {
-    const data = await this.get(Object.keys(defaultStorage) as StorageKey[])
+    const data = await this.get(Object.keys(defaultStorage) as StorageKey[]);
 
     if (Object.keys(data).length === 0) {
-      await this.set(defaultStorage)
+      await this.set(defaultStorage);
     }
   }
 
@@ -90,36 +90,36 @@ export class StorageService {
    * Migrate storage to given target version.
    */
   async migrate(targetVersion: Storage['version'] = defaultStorage.version) {
-    const storage = this.browser.storage.local
+    const storage = this.browser.storage.local;
 
-    let { version = 1 } = await this.get(['version'])
+    let { version = 1 } = await this.get(['version']);
     if (version === targetVersion) {
-      return null
+      return null;
     }
 
-    let data = await storage.get()
+    let data = await storage.get();
     while (version < targetVersion) {
-      ++version
-      const migrate = MIGRATIONS[version]
+      ++version;
+      const migrate = MIGRATIONS[version];
       if (!migrate) {
-        throw new Error(`No migration available to reach version "${version}"`)
+        throw new Error(`No migration available to reach version "${version}"`);
       }
-      const [newData, deleteKeys = []] = migrate(data)
-      data = { ...newData, version }
-      await storage.set(data)
-      await storage.remove(deleteKeys)
+      const [newData, deleteKeys = []] = migrate(data);
+      data = { ...newData, version };
+      await storage.set(data);
+      await storage.remove(deleteKeys);
     }
-    return data as unknown as Storage
+    return data as unknown as Storage;
   }
 
   async getWMState(): Promise<boolean> {
-    const { enabled } = await this.get(['enabled'])
+    const { enabled } = await this.get(['enabled']);
 
-    return enabled
+    return enabled;
   }
 
   async keyPairExists(): Promise<boolean> {
-    const keys = await this.get(['privateKey', 'publicKey', 'keyId'])
+    const keys = await this.get(['privateKey', 'publicKey', 'keyId']);
     if (
       keys.privateKey &&
       typeof keys.privateKey === 'string' &&
@@ -128,48 +128,48 @@ export class StorageService {
       keys.keyId &&
       typeof keys.keyId === 'string'
     ) {
-      return true
+      return true;
     }
 
-    return false
+    return false;
   }
 
   async setState(state: Storage['state']): Promise<boolean> {
-    const prevState = this.currentState ?? (await this.get(['state'])).state
+    const prevState = this.currentState ?? (await this.get(['state'])).state;
 
-    const newState: Storage['state'] = { ...this.currentState }
+    const newState: Storage['state'] = { ...this.currentState };
     for (const key of Object.keys(state) as ExtensionState[]) {
-      newState[key] = state[key]
+      newState[key] = state[key];
     }
-    this.currentState = newState
+    this.currentState = newState;
     if (prevState && objectEquals(prevState, newState)) {
-      return false
+      return false;
     }
 
-    await this.set({ state: newState })
+    await this.set({ state: newState });
     this.events.emit('storage.state_update', {
       state: newState,
-      prevState: prevState
-    })
-    return true
+      prevState: prevState,
+    });
+    return true;
   }
 
   updateSpentAmount(grant: GrantDetails['type'], amount: string) {
     if (grant === 'recurring') {
-      this.setSpentAmountRecurring.enqueue(amount)
+      this.setSpentAmountRecurring.enqueue(amount);
     } else if (grant === 'one-time') {
-      this.setSpentAmountOneTime.enqueue(amount)
+      this.setSpentAmountOneTime.enqueue(amount);
     }
   }
 
   private async setSpentAmount(grant: GrantDetails['type'], amount: string) {
     if (grant === 'recurring') {
-      await this.set({ recurringGrantSpentAmount: amount })
+      await this.set({ recurringGrantSpentAmount: amount });
     } else if (grant === 'one-time') {
-      await this.set({ oneTimeGrantSpentAmount: amount })
+      await this.set({ oneTimeGrantSpentAmount: amount });
     }
-    const balance = await this.getBalance()
-    this.events.emit('storage.balance_update', balance)
+    const balance = await this.getBalance();
+    this.events.emit('storage.balance_update', balance);
   }
 
   async getBalance(): Promise<
@@ -179,27 +179,27 @@ export class StorageService {
       'recurringGrant',
       'recurringGrantSpentAmount',
       'oneTimeGrant',
-      'oneTimeGrantSpentAmount'
-    ])
+      'oneTimeGrantSpentAmount',
+    ]);
     const balanceRecurring = computeBalance(
       data.recurringGrant,
-      data.recurringGrantSpentAmount
-    )
+      data.recurringGrantSpentAmount,
+    );
     const balanceOneTime = computeBalance(
       data.oneTimeGrant,
-      data.oneTimeGrantSpentAmount
-    )
-    const balance = balanceRecurring + balanceOneTime
+      data.oneTimeGrantSpentAmount,
+    );
+    const balance = balanceRecurring + balanceOneTime;
     return {
       total: balance.toString(),
       recurring: balanceRecurring.toString(),
-      oneTime: balanceOneTime.toString()
-    }
+      oneTime: balanceOneTime.toString(),
+    };
   }
 
   async updateRate(rate: string): Promise<void> {
-    await this.set({ rateOfPay: rate })
-    this.events.emit('storage.rate_of_pay_update', { rate })
+    await this.set({ rateOfPay: rate });
+    this.events.emit('storage.rate_of_pay_update', { rate });
   }
 }
 
@@ -207,8 +207,8 @@ export class StorageService {
  * @param existingData Existing data from previous version.
  */
 type Migration = (
-  existingData: Record<string, any>
-) => [data: Record<string, any>, deleteKeys?: string[]]
+  existingData: Record<string, any>,
+) => [data: Record<string, any>, deleteKeys?: string[]];
 
 // There was never a migration to reach 1.
 //
@@ -216,16 +216,16 @@ type Migration = (
 // require user to reinstall and setup extension from scratch.
 const MIGRATIONS: Record<Storage['version'], Migration> = {
   2: (data) => {
-    const deleteKeys = ['amount', 'token', 'grant', 'hasHostPermissions']
+    const deleteKeys = ['amount', 'token', 'grant', 'hasHostPermissions'];
 
-    data.recurringGrant = null
-    data.recurringGrantSpentAmount = '0'
-    data.oneTimeGrant = null
-    data.oneTimeGrantSpentAmount = '0'
-    data.state = null
+    data.recurringGrant = null;
+    data.recurringGrantSpentAmount = '0';
+    data.oneTimeGrant = null;
+    data.oneTimeGrantSpentAmount = '0';
+    data.state = null;
 
     if (data.amount?.value && data.token && data.grant) {
-      const type = data.amount.interval ? 'recurring' : 'one-time'
+      const type = data.amount.interval ? 'recurring' : 'one-time';
 
       const grantDetails: GrantDetails = {
         type,
@@ -233,37 +233,37 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
           value: data.amount.value as string,
           ...(type === 'recurring'
             ? { interval: data.amount.interval as string }
-            : {})
+            : {}),
         } as Required<WalletAmount>,
         accessToken: {
           value: data.token.value as string,
-          manageUrl: data.token.manage as string
+          manageUrl: data.token.manage as string,
         },
         continue: {
           url: data.grant.continueUri as string,
-          accessToken: data.grant.accessToken as string
-        }
-      }
+          accessToken: data.grant.accessToken as string,
+        },
+      };
 
       if (type === 'recurring') {
-        data.recurringGrant = grantDetails
+        data.recurringGrant = grantDetails;
       } else {
-        data.oneTimeGrant = grantDetails
+        data.oneTimeGrant = grantDetails;
       }
     }
 
     if (data.hasHostPermissions === false) {
-      data.state = 'missing_host_permissions'
+      data.state = 'missing_host_permissions';
     }
 
-    return [data, deleteKeys]
+    return [data, deleteKeys];
   },
   3: (data) => {
     const newState =
       data.state && typeof data.state === 'string'
         ? { [data.state as ExtensionState]: true }
-        : {}
-    data.state = newState satisfies Storage['state']
-    return [data]
-  }
-}
+        : {};
+    data.state = newState satisfies Storage['state'];
+    return [data];
+  },
+};

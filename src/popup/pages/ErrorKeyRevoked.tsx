@@ -1,36 +1,36 @@
-import React from 'react'
-import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked'
+import React from 'react';
+import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked';
 import {
   useMessage,
   usePopupState,
-  ReducerActionType
-} from '@/popup/lib/context'
-import { useNavigate } from 'react-router-dom'
-import { ROUTES_PATH } from '@/popup/Popup'
+  ReducerActionType,
+} from '@/popup/lib/context';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES_PATH } from '@/popup/Popup';
 
 export const Component = () => {
-  const message = useMessage()
+  const message = useMessage();
   const {
     state: { publicKey, walletAddress },
-    dispatch
-  } = usePopupState()
-  const navigate = useNavigate()
+    dispatch,
+  } = usePopupState();
+  const navigate = useNavigate();
 
   const onReconnect = () => {
     dispatch({
       type: 'SET_STATE',
-      data: { state: {}, prevState: {} }
-    })
-    navigate(ROUTES_PATH.HOME)
-  }
+      data: { state: {}, prevState: {} },
+    });
+    navigate(ROUTES_PATH.HOME);
+  };
 
   const onDisconnect = () => {
     dispatch({
       type: ReducerActionType.SET_CONNECTED,
-      data: { value: false }
-    })
-    navigate(ROUTES_PATH.HOME)
-  }
+      data: { value: false },
+    });
+    navigate(ROUTES_PATH.HOME);
+  };
 
   return (
     <ErrorKeyRevoked
@@ -40,5 +40,5 @@ export const Component = () => {
       disconnectWallet={() => message.send('DISCONNECT_WALLET')}
       onDisconnect={onDisconnect}
     />
-  )
-}
+  );
+};

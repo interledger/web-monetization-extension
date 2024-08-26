@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -16,8 +16,8 @@ export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {
         d="M2.204 6.447A6 6 0 108 2"
       />
     </svg>
-  )
-}
+  );
+};
 
 export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -46,8 +46,8 @@ export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
         />
       </g>
     </svg>
-  )
-}
+  );
+};
 
 export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -76,8 +76,8 @@ export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
         />
       </g>
     </svg>
-  )
-}
+  );
+};
 
 export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -110,8 +110,8 @@ export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
         </g>
       </g>
     </svg>
-  )
-}
+  );
+};
 
 export const WarningSign = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -141,8 +141,8 @@ export const WarningSign = (props: React.SVGProps<SVGSVGElement>) => {
         />
       </g>
     </svg>
-  )
-}
+  );
+};
 
 export const ClipboardIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -159,8 +159,8 @@ export const ClipboardIcon = (props: React.SVGProps<SVGSVGElement>) => {
         fill="currentColor"
       />
     </svg>
-  )
-}
+  );
+};
 
 export const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -179,8 +179,8 @@ export const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => {
         d="m4.5 12.75 6 6 9-13.5"
       />
     </svg>
-  )
-}
+  );
+};
 
 export const XIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -199,5 +199,5 @@ export const XIcon = (props: React.SVGProps<SVGSVGElement>) => {
         d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
       />
     </svg>
-  )
-}
+  );
+};

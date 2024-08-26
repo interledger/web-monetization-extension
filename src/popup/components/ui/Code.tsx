@@ -1,10 +1,10 @@
-import React from 'react'
-import { Button } from './Button'
-import { CheckIcon, ClipboardIcon } from '../Icons'
-import { cn } from '@/shared/helpers'
+import React from 'react';
+import { Button } from './Button';
+import { CheckIcon, ClipboardIcon } from '../Icons';
+import { cn } from '@/shared/helpers';
 
 interface CodeProps extends React.HTMLAttributes<HTMLDivElement> {
-  value: string
+  value: string;
 }
 
 export const Code = ({ value, className, ...props }: CodeProps) => {
@@ -12,7 +12,7 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
     <div
       className={cn(
         'flex items-center justify-between break-all rounded-xl bg-nav-active px-4 py-4 text-sm text-medium',
-        className
+        className,
       )}
       {...props}
     >
@@ -21,23 +21,23 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
       </code>
       <CopyButton value={value} />
     </div>
-  )
-}
+  );
+};
 
 interface CopyButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
-  value: string
+  value: string;
 }
 
 const CopyButton = ({ value, ...props }: CopyButtonProps) => {
-  const [hasCopied, setHasCopied] = React.useState(false)
+  const [hasCopied, setHasCopied] = React.useState(false);
 
   React.useEffect(() => {
     if (hasCopied === true) {
       setTimeout(() => {
-        setHasCopied(false)
-      }, 2000)
+        setHasCopied(false);
+      }, 2000);
     }
-  }, [hasCopied])
+  }, [hasCopied]);
 
   return (
     <Button
@@ -47,8 +47,8 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
       size="icon"
       className="rounded-sm text-primary"
       onClick={() => {
-        navigator.clipboard.writeText(value)
-        setHasCopied(true)
+        navigator.clipboard.writeText(value);
+        setHasCopied(true);
       }}
     >
       {hasCopied ? (
@@ -57,5 +57,5 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
         <ClipboardIcon className="h-6 w-6" />
       )}
     </Button>
-  )
-}
+  );
+};

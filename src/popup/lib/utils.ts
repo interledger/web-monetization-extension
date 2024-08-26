@@ -4,65 +4,65 @@ export const getCurrencySymbol = (assetCode: string): string => {
     style: 'currency',
     currencyDisplay: 'symbol',
     maximumFractionDigits: 0,
-    minimumFractionDigits: 0
+    minimumFractionDigits: 0,
   })
     .format(0)
     .replace(/0/g, '')
-    .trim()
-}
+    .trim();
+};
 
 export const transformBalance = (
   amount: string | bigint,
-  scale: number
+  scale: number,
 ): string => {
-  const value = BigInt(amount)
-  const divisor = BigInt(10 ** scale)
+  const value = BigInt(amount);
+  const divisor = BigInt(10 ** scale);
 
-  const integerPart = (value / divisor).toString()
-  const fractionalPart = (value % divisor).toString().padStart(scale, '0')
+  const integerPart = (value / divisor).toString();
+  const fractionalPart = (value % divisor).toString().padStart(scale, '0');
 
-  return `${integerPart}.${fractionalPart}`
-}
+  return `${integerPart}.${fractionalPart}`;
+};
 
 export function charIsNumber(char?: string) {
-  return !!(char || '').match(/\d|\./)
+  return !!(char || '').match(/\d|\./);
 }
 
 export function roundWithPrecision(num: number, precision: number) {
-  const multiplier = Math.pow(10, precision)
-  return Math.round(num * multiplier) / multiplier
+  const multiplier = Math.pow(10, precision);
+  return Math.round(num * multiplier) / multiplier;
 }
 
 export function formatNumber(
   value: number,
   scale: number,
-  allowExponential = false
+  allowExponential = false,
 ): string {
   // TO DO: handle scale 0
 
-  if (!value) return '0.00'
+  if (!value) return '0.00';
   // to avoid floating point issues on multiplication
-  const pow2 = +(value * 100).toFixed(9)
-  const pow4 = +(value * 10 ** 4).toFixed(9)
+  const pow2 = +(value * 100).toFixed(9);
+  const pow4 = +(value * 10 ** 4).toFixed(9);
 
   if (scale <= 2 || (pow2 >= 1 && pow2 - Math.floor(pow2) === 0)) {
-    return value.toFixed(2)
+    return value.toFixed(2);
   } else if (scale >= 3 && scale <= 4) {
-    return value.toString()
+    return value.toString();
   } else {
     if (pow4 >= 1 || !allowExponential) {
-      let fixedScale = 5
-      let powN = +(value * 10 ** fixedScale).toFixed(9)
+      let fixedScale = 5;
+      let powN = +(value * 10 ** fixedScale).toFixed(9);
       while (powN - Math.floor(powN) > 0 && fixedScale < scale) {
-        ++fixedScale
-        powN = +(value * 10 ** fixedScale).toFixed(9)
+        ++fixedScale;
+        powN = +(value * 10 ** fixedScale).toFixed(9);
       }
 
-      return value.toFixed(fixedScale)
-    } else return value.toExponential()
+      return value.toFixed(fixedScale);
+    } else return value.toExponential();
   }
 }
 
 export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace('$', 'https://') : s
+  return s.startsWith('$') ? s.replace('$', 'https://') : s;
 }

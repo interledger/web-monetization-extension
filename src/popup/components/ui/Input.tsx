@@ -1,38 +1,38 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React, { forwardRef } from 'react'
-import { cn } from '@/shared/helpers'
-import { Label } from '@/popup/components/ui/Label'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React, { forwardRef } from 'react';
+import { cn } from '@/shared/helpers';
+import { Label } from '@/popup/components/ui/Label';
 
 const inputVariants = cva(
   [
     'h-14 w-full rounded-xl border border-2 px-4 text-base text-medium',
     'focus:border-focus focus:outline-none',
-    'placeholder-disabled'
+    'placeholder-disabled',
   ],
 
   {
     variants: {
       variant: {
-        default: 'border-base'
+        default: 'border-base',
       },
       disabled: {
-        true: 'border-transparent bg-disabled'
-      }
+        true: 'border-transparent bg-disabled',
+      },
     },
     defaultVariants: {
-      variant: 'default'
-    }
-  }
-)
+      variant: 'default',
+    },
+  },
+);
 
 export interface InputProps
   extends VariantProps<typeof inputVariants>,
     React.InputHTMLAttributes<HTMLInputElement> {
-  errorMessage?: string
-  disabled?: boolean
-  addOn?: React.ReactNode
-  label?: React.ReactNode
-  description?: React.ReactNode
+  errorMessage?: string;
+  disabled?: boolean;
+  addOn?: React.ReactNode;
+  label?: React.ReactNode;
+  description?: React.ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -46,9 +46,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     className,
     ...props
   },
-  ref
+  ref,
 ) {
-  const id = React.useId()
+  const id = React.useId();
   return (
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
@@ -67,7 +67,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             inputVariants({ disabled }),
             addOn && 'pl-10',
             errorMessage && 'border-error',
-            className
+            className,
           )}
           disabled={disabled ?? false}
           aria-disabled={disabled ?? false}
@@ -80,5 +80,5 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         <p className="px-2 text-sm text-error">{errorMessage}</p>
       )}
     </div>
-  )
-})
+  );
+});

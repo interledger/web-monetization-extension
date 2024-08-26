@@ -1,17 +1,17 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React, { useEffect, useMemo, useState } from 'react'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React, { useEffect, useMemo, useState } from 'react';
 
-import { cn } from '@/shared/helpers'
+import { cn } from '@/shared/helpers';
 
 export interface RadioProps {
-  checked?: boolean
-  label?: string
-  value: string
-  name: string
-  id?: string
-  disabled?: boolean
-  onChange?: any
-  noSelected?: boolean
+  checked?: boolean;
+  label?: string;
+  value: string;
+  name: string;
+  id?: string;
+  disabled?: boolean;
+  onChange?: any;
+  noSelected?: boolean;
 }
 
 export const Radio = ({
@@ -22,14 +22,14 @@ export const Radio = ({
   disabled,
   onChange,
   checked,
-  noSelected
+  noSelected,
 }: RadioProps): JSX.Element => {
-  const inputId = id || `id-${name}-${value}`
-  const divId = `div-${inputId}`
+  const inputId = id || `id-${name}-${value}`;
+  const divId = `div-${inputId}`;
 
   useEffect(() => {
-    if (checked) document.getElementById(divId)?.focus()
-  }, [checked, divId])
+    if (checked) document.getElementById(divId)?.focus();
+  }, [checked, divId]);
 
   return (
     <div
@@ -62,31 +62,31 @@ export const Radio = ({
         )}
       </label>
     </div>
-  )
-}
+  );
+};
 
 const radioGroupVariants = cva(['flex gap-3'], {
   variants: {
     variant: {
       default: 'flex-col',
-      inline: 'flex-row'
+      inline: 'flex-row',
     },
     fullWidth: {
-      true: 'w-full'
-    }
+      true: 'w-full',
+    },
   },
   defaultVariants: {
-    variant: 'default'
-  }
-})
+    variant: 'default',
+  },
+});
 
 export interface RadioGroupProps
   extends VariantProps<typeof radioGroupVariants>,
     React.InputHTMLAttributes<HTMLInputElement> {
-  disabled?: boolean
-  items: Omit<RadioProps, 'name'>[]
-  name: string
-  handleChange?: (value: string) => void
+  disabled?: boolean;
+  items: Omit<RadioProps, 'name'>[];
+  name: string;
+  handleChange?: (value: string) => void;
 }
 
 export const RadioGroup = ({
@@ -97,27 +97,27 @@ export const RadioGroup = ({
   disabled,
   className,
   handleChange,
-  value
+  value,
 }: RadioGroupProps) => {
   const checkedItem = useMemo(
     () => items.findIndex((item) => item.checked || item.value === value),
-    [items, value]
-  )
-  const [selected, setSelected] = useState(checkedItem)
+    [items, value],
+  );
+  const [selected, setSelected] = useState(checkedItem);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.code === 'ArrowRight' || event.code === 'ArrowDown') {
-      event.preventDefault()
+      event.preventDefault();
 
-      const nextIndex = (selected >= 0 ? selected + 1 : 1) % items.length
-      setSelected(nextIndex)
+      const nextIndex = (selected >= 0 ? selected + 1 : 1) % items.length;
+      setSelected(nextIndex);
     } else if (event.code === 'ArrowLeft' || event.code === 'ArrowUp') {
-      event.preventDefault()
+      event.preventDefault();
 
-      const prevIndex = selected > 0 ? selected - 1 : items.length - 1
-      setSelected(prevIndex)
+      const prevIndex = selected > 0 ? selected - 1 : items.length - 1;
+      setSelected(prevIndex);
     }
-  }
+  };
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -125,15 +125,15 @@ export const RadioGroup = ({
         selected === -1 &&
         (event.code === 'Enter' || event.code === 'Space')
       ) {
-        setSelected(0)
+        setSelected(0);
       }
-    }
+    };
 
-    document.addEventListener('keypress', handleKeyPress)
+    document.addEventListener('keypress', handleKeyPress);
     return () => {
-      document.removeEventListener('keypress', handleKeyPress)
-    }
-  }, [selected])
+      document.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [selected]);
 
   return (
     <div
@@ -151,11 +151,11 @@ export const RadioGroup = ({
           checked={selected === index}
           noSelected={selected === -1 && index === 0}
           onChange={() => {
-            setSelected(index)
-            if (handleChange) handleChange(item.value)
+            setSelected(index);
+            if (handleChange) handleChange(item.value);
           }}
         />
       ))}
     </div>
-  )
-}
+  );
+};
