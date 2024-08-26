@@ -7,6 +7,7 @@ import type {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload,
+  StopMonetizationPayloadEntry,
 } from '@/shared/messages';
 import { ContentToContentAction } from '../messages';
 import type { Cradle } from '@/content/container';
@@ -243,7 +244,7 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private async stopMonetization() {
-    const payload: StopMonetizationPayload[] = [
+    const payload: StopMonetizationPayload = [
       ...this.monetizationLinks.values(),
     ].map(({ requestId }) => ({ requestId }));
 
@@ -251,7 +252,7 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private async resumeMonetization() {
-    const payload: ResumeMonetizationPayload[] = [
+    const payload: ResumeMonetizationPayload = [
       ...this.monetizationLinks.values(),
     ].map(({ requestId }) => ({ requestId }));
 
@@ -259,7 +260,7 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private async sendStartMonetization(
-    payload: StartMonetizationPayload[],
+    payload: StartMonetizationPayload,
     onlyToTopIframe = false,
   ) {
     if (!payload.length) return;
@@ -278,13 +279,13 @@ export class MonetizationLinkManager extends EventEmitter {
     }
   }
 
-  private async sendStopMonetization(payload: StopMonetizationPayload[]) {
+  private async sendStopMonetization(payload: StopMonetizationPayload) {
     if (!payload.length) return;
     await this.message.send('STOP_MONETIZATION', payload);
   }
 
   private async sendResumeMonetization(
-    payload: ResumeMonetizationPayload[],
+    payload: ResumeMonetizationPayload,
     onlyToTopIframe = false,
   ) {
     if (this.isTopFrame) {
@@ -304,7 +305,7 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
-    const stopMonetizationPayload: StopMonetizationPayload[] = [];
+    const stopMonetizationPayload: StopMonetizationPayload = [];
 
     for (const record of records) {
       if (record.type === 'childList') {
@@ -347,8 +348,8 @@ export class MonetizationLinkManager extends EventEmitter {
 
   private async onLinkAttrChange(records: MutationRecord[]) {
     const handledTags = new Set<Node>();
-    const startMonetizationPayload: StartMonetizationPayload[] = [];
-    const stopMonetizationPayload: StopMonetizationPayload[] = [];
+    const startMonetizationPayload: StartMonetizationPayload = [];
+    const stopMonetizationPayload: StopMonetizationPayload = [];
 
     // Check for a non specified link with the type now specified and
     // just treat it as a newly seen, monetization tag
@@ -450,7 +451,7 @@ export class MonetizationLinkManager extends EventEmitter {
     return res;
   }
 
-  private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayload {
+  private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayloadEntry {
     const details = this.monetizationLinks.get(link);
     if (!details) {
       throw new Error(

@@ -1,7 +1,7 @@
 import { ContentToContentAction } from '../messages';
 import type {
-  ResumeMonetizationPayload,
-  StartMonetizationPayload,
+  ResumeMonetizationPayloadEntry,
+  StartMonetizationPayloadEntry,
   StopMonetizationPayload,
 } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
@@ -103,7 +103,7 @@ export class FrameManager {
 
     const frameDetails = this.frames.get(frame);
 
-    const stopMonetizationTags: StopMonetizationPayload[] =
+    const stopMonetizationTags: StopMonetizationPayload =
       frameDetails?.requestIds.map((requestId) => ({
         requestId,
         intent: 'remove',
@@ -213,7 +213,7 @@ export class FrameManager {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map(
-                  (p: StartMonetizationPayload) => p.requestId,
+                  (p: StartMonetizationPayloadEntry) => p.requestId,
                 ),
               });
               event.source.postMessage(
@@ -234,7 +234,7 @@ export class FrameManager {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map(
-                  (p: ResumeMonetizationPayload) => p.requestId,
+                  (p: ResumeMonetizationPayloadEntry) => p.requestId,
                 ),
               });
               event.source.postMessage(

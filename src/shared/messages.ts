@@ -147,19 +147,22 @@ export interface CheckWalletAddressUrlPayload {
   walletAddressUrl: string;
 }
 
-export interface StartMonetizationPayload {
+export interface StartMonetizationPayloadEntry {
   walletAddress: WalletAddress;
   requestId: string;
 }
+export type StartMonetizationPayload = StartMonetizationPayloadEntry[];
 
-export interface StopMonetizationPayload {
+export interface StopMonetizationPayloadEntry {
   requestId: string;
   intent?: 'remove' | 'disable';
 }
+export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
-export interface ResumeMonetizationPayload {
+export interface ResumeMonetizationPayloadEntry {
   requestId: string;
 }
+export type ResumeMonetizationPayload = ResumeMonetizationPayloadEntry[];
 
 export interface IsTabMonetizedPayload {
   value: boolean;
@@ -171,15 +174,15 @@ export type ContentToBackgroundMessage = {
     output: WalletAddress;
   };
   STOP_MONETIZATION: {
-    input: StopMonetizationPayload[];
+    input: StopMonetizationPayload;
     output: never;
   };
   START_MONETIZATION: {
-    input: StartMonetizationPayload[];
+    input: StartMonetizationPayload;
     output: never;
   };
   RESUME_MONETIZATION: {
-    input: ResumeMonetizationPayload[];
+    input: ResumeMonetizationPayload;
     output: never;
   };
   IS_WM_ENABLED: {
