@@ -268,13 +268,9 @@ export class MonetizationLinkManager extends EventEmitter {
     if (this.isTopFrame) {
       await this.message.send('START_MONETIZATION', payload);
     } else if (this.isFirstLevelFrame && !onlyToTopIframe) {
-      this.window.parent.postMessage(
-        {
-          message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
-          id: this.id,
-          payload: payload,
-        },
-        '*',
+      this.postMessage(
+        ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
+        payload,
       );
     }
   }
@@ -293,13 +289,9 @@ export class MonetizationLinkManager extends EventEmitter {
         await this.message.send('RESUME_MONETIZATION', payload);
       }
     } else if (this.isFirstLevelFrame && !onlyToTopIframe) {
-      this.window.parent.postMessage(
-        {
-          message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
-          id: this.id,
-          payload: payload,
-        },
-        '*',
+      this.postMessage(
+        ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
+        payload,
       );
     }
   }
@@ -344,6 +336,10 @@ export class MonetizationLinkManager extends EventEmitter {
         });
       }
     }
+  }
+
+  private postMessage(message: ContentToContentAction, payload: any) {
+    this.window.parent.postMessage({ message, id: this.id, payload }, '*');
   }
 
   private async onLinkAttrChange(records: MutationRecord[]) {
