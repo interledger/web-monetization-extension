@@ -10,14 +10,14 @@ import {
   SendToPopup,
   EventsService,
   Heartbeat,
-  Deduplicator
+  Deduplicator,
 } from './services'
 import { createLogger, Logger } from '@/shared/logger'
 import { LOG_LEVEL } from '@/shared/defines'
 import { tFactory, type Translation } from '@/shared/helpers'
 import {
   MessageManager,
-  type BackgroundToContentMessage
+  type BackgroundToContentMessage,
 } from '@/shared/messages'
 
 export interface Cradle {
@@ -39,7 +39,7 @@ export interface Cradle {
 
 export const configureContainer = () => {
   const container = createContainer<Cradle>({
-    injectionMode: InjectionMode.PROXY
+    injectionMode: InjectionMode.PROXY,
   })
 
   const logger = createLogger(LOG_LEVEL)
@@ -52,22 +52,22 @@ export const configureContainer = () => {
     deduplicator: asClass(Deduplicator)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('deduplicator')
+        logger: logger.getLogger('deduplicator'),
       })),
     storage: asClass(StorageService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('storage')
+        logger: logger.getLogger('storage'),
       })),
     openPaymentsService: asClass(OpenPaymentsService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('open-payments')
+        logger: logger.getLogger('open-payments'),
       })),
     monetizationService: asClass(MonetizationService)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('monetization')
+        logger: logger.getLogger('monetization'),
       })),
     message: asClass(MessageManager<BackgroundToContentMessage>).singleton(),
     tabEvents: asClass(TabEvents).singleton(),
@@ -75,14 +75,14 @@ export const configureContainer = () => {
     background: asClass(Background)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('main')
+        logger: logger.getLogger('main'),
       })),
     tabState: asClass(TabState)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('tab-state')
+        logger: logger.getLogger('tab-state'),
       })),
-    heartbeat: asClass(Heartbeat).singleton()
+    heartbeat: asClass(Heartbeat).singleton(),
   })
 
   return container

@@ -17,7 +17,7 @@ export const WarningMessage = React.forwardRef<
       ref={ref}
       className={cn(
         'break-word mb-4 flex items-center gap-2 rounded-xl border border-orange-300 bg-orange-500/10 px-3 py-2',
-        className
+        className,
       )}
     >
       <WarningSign className="size-8 text-orange-500" />

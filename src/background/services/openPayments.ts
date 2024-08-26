@@ -3,19 +3,19 @@ import type {
   AccessToken,
   AmountValue,
   GrantDetails,
-  WalletAmount
+  WalletAmount,
 } from 'shared/types'
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
-  OpenPaymentsClientError
+  OpenPaymentsClientError,
 } from '@interledger/open-payments/dist/client'
 import {
   isFinalizedGrant,
   isPendingGrant,
   type IncomingPayment,
   type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
-  type WalletAddress
+  type WalletAddress,
 } from '@interledger/open-payments/dist/types'
 import * as ed from '@noble/ed25519'
 import { type Request } from 'http-message-signatures'
@@ -30,7 +30,7 @@ import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages'
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
-  MIN_RATE_OF_PAY
+  MIN_RATE_OF_PAY,
 } from '../config'
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines'
 import type { Cradle } from '../container'
@@ -92,17 +92,17 @@ type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
 
 const enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
-  HASH_FAILED = 'hash_failed'
+  HASH_FAILED = 'hash_failed',
 }
 
 const enum GrantResult {
   SUCCESS = 'grant_success',
-  ERROR = 'grant_error'
+  ERROR = 'grant_error',
 }
 
 const enum InteractionIntent {
   CONNECT = 'connect',
-  FUNDS = 'funds'
+  FUNDS = 'funds',
 }
 
 export class OpenPaymentsService {
@@ -150,7 +150,7 @@ export class OpenPaymentsService {
         'connected',
         'walletAddress',
         'oneTimeGrant',
-        'recurringGrant'
+        'recurringGrant',
       ])
 
     this.isGrantUsable.recurring = !!recurringGrant
@@ -174,7 +174,7 @@ export class OpenPaymentsService {
     }
 
     throw new Error(
-      'Could not create OpenPayments client. Missing `privateKey` and `keyId`.'
+      'Could not create OpenPayments client. Missing `privateKey` and `keyId`.',
     )
   }
 
@@ -182,10 +182,10 @@ export class OpenPaymentsService {
     return {
       'Content-Digest': createContentDigestHeader(
         JSON.stringify(JSON.parse(body)),
-        ['sha-512']
+        ['sha-512'],
       ),
       'Content-Length': new TextEncoder().encode(body).length.toString(),
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     }
   }
 
@@ -195,14 +195,14 @@ export class OpenPaymentsService {
       alg: 'ed25519',
       async sign(data: Uint8Array) {
         return Buffer.from(await ed.signAsync(data, key.slice(16)))
-      }
+      },
     }
   }
 
   private async createSignatureHeaders({
     request,
     privateKey,
-    keyId
+    keyId,
   }: SignOptions): Promise<SignatureHeaders> {
     const components = ['@method', '@target-uri']
     if (request.headers['Authorization'] || request.headers['authorization']) {
@@ -219,25 +219,25 @@ export class OpenPaymentsService {
         name: 'sig1',
         params: ['keyid', 'created'],
         fields: components,
-        key: signingKey
+        key: signingKey,
       },
       {
         url: request.url,
         method: request.method,
-        headers: request.headers
-      }
+        headers: request.headers,
+      },
     )
 
     return {
       Signature: headers['Signature'] as string,
-      'Signature-Input': headers['Signature-Input'] as string
+      'Signature-Input': headers['Signature-Input'] as string,
     }
   }
 
   private async createHeaders({
     request,
     privateKey,
-    keyId
+    keyId,
   }: SignOptions): Promise<Headers> {
     if (request.body) {
       const contentHeaders = this.createContentHeaders(request.body)
@@ -247,12 +247,12 @@ export class OpenPaymentsService {
     const signatureHeaders = await this.createSignatureHeaders({
       request,
       privateKey,
-      keyId
+      keyId,
     })
 
     return {
       ...request.headers,
-      ...signatureHeaders
+      ...signatureHeaders,
     }
   }
 
@@ -275,42 +275,42 @@ export class OpenPaymentsService {
             method: request.method,
             url: request.url,
             headers: JSON.parse(
-              JSON.stringify(Object.fromEntries(request.headers))
+              JSON.stringify(Object.fromEntries(request.headers)),
             ),
             body: request.body
               ? JSON.stringify(await request.json())
-              : undefined
+              : undefined,
           },
           privateKey: ed.etc.hexToBytes(privateKey),
-          keyId
+          keyId,
         })
 
         if (request.body) {
           initialRequest.headers.set(
             'Content-Type',
-            headers['Content-Type'] as string
+            headers['Content-Type'] as string,
           )
           initialRequest.headers.set(
             'Content-Digest',
-            headers['Content-Digest'] as string
+            headers['Content-Digest'] as string,
           )
         }
 
         initialRequest.headers.set('Signature', headers['Signature'])
         initialRequest.headers.set(
           'Signature-Input',
-          headers['Signature-Input']
+          headers['Signature-Input'],
         )
 
         return initialRequest
-      }
+      },
     })
   }
 
   async connectWallet({
     walletAddressUrl,
     amount,
-    recurring
+    recurring,
   }: ConnectWalletPayload) {
     const walletAddress = await getWalletInformation(walletAddressUrl)
     const exchangeRates = await getExchangeRates()
@@ -327,17 +327,17 @@ export class OpenPaymentsService {
     rateOfPay = getRateOfPay({
       rate: DEFAULT_RATE_OF_PAY,
       exchangeRate,
-      assetScale: walletAddress.assetScale
+      assetScale: walletAddress.assetScale,
     })
     minRateOfPay = getRateOfPay({
       rate: MIN_RATE_OF_PAY,
       exchangeRate,
-      assetScale: walletAddress.assetScale
+      assetScale: walletAddress.assetScale,
     })
     maxRateOfPay = getRateOfPay({
       rate: MAX_RATE_OF_PAY,
       exchangeRate,
-      assetScale: walletAddress.assetScale
+      assetScale: walletAddress.assetScale,
     })
 
     await this.initClient(walletAddress.id)
@@ -345,7 +345,7 @@ export class OpenPaymentsService {
       amount,
       walletAddress,
       recurring,
-      InteractionIntent.CONNECT
+      InteractionIntent.CONNECT,
     )
 
     await this.storage.set({
@@ -353,7 +353,7 @@ export class OpenPaymentsService {
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
-      connected: true
+      connected: true,
     })
   }
 
@@ -361,14 +361,14 @@ export class OpenPaymentsService {
     const { walletAddress, ...grants } = await this.storage.get([
       'walletAddress',
       'oneTimeGrant',
-      'recurringGrant'
+      'recurringGrant',
     ])
 
     await this.completeGrant(
       amount,
       walletAddress!,
       recurring,
-      InteractionIntent.FUNDS
+      InteractionIntent.FUNDS,
     )
 
     // cancel existing grants of same type, if any
@@ -385,19 +385,19 @@ export class OpenPaymentsService {
     amount: string,
     walletAddress: WalletAddress,
     recurring: boolean,
-    intent: InteractionIntent
+    intent: InteractionIntent,
   ): Promise<GrantDetails> {
     const transformedAmount = toAmount({
       value: amount,
       recurring,
-      assetScale: walletAddress.assetScale
+      assetScale: walletAddress.assetScale,
     })
 
     const clientNonce = crypto.randomUUID()
     const grant = await this.createOutgoingPaymentGrant({
       clientNonce,
       walletAddress,
-      amount: transformedAmount
+      amount: transformedAmount,
     }).catch((err) => {
       if (isInvalidClientError(err)) {
         const msg = this.t('connectWallet_error_invalidClient')
@@ -407,7 +407,7 @@ export class OpenPaymentsService {
     })
 
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
-      grant.interact.redirect
+      grant.interact.redirect,
     )
 
     await this.verifyInteractionHash({
@@ -415,13 +415,13 @@ export class OpenPaymentsService {
       interactNonce: grant.interact.finish,
       interactRef,
       hash,
-      authServer: walletAddress.authServer
+      authServer: walletAddress.authServer,
     }).catch(async (e) => {
       await this.redirectToWelcomeScreen(
         tabId,
         GrantResult.ERROR,
         intent,
-        ErrorCode.HASH_FAILED
+        ErrorCode.HASH_FAILED,
       )
       throw e
     })
@@ -429,17 +429,17 @@ export class OpenPaymentsService {
     const continuation = await this.client!.grant.continue(
       {
         url: grant.continue.uri,
-        accessToken: grant.continue.access_token.value
+        accessToken: grant.continue.access_token.value,
       },
       {
-        interact_ref: interactRef
-      }
+        interact_ref: interactRef,
+      },
     ).catch(async (e) => {
       await this.redirectToWelcomeScreen(
         tabId,
         GrantResult.ERROR,
         intent,
-        ErrorCode.CONTINUATION_FAILED
+        ErrorCode.CONTINUATION_FAILED,
       )
       throw e
     })
@@ -453,24 +453,24 @@ export class OpenPaymentsService {
       amount: transformedAmount as Required<WalletAmount>,
       accessToken: {
         value: continuation.access_token.value,
-        manageUrl: continuation.access_token.manage
+        manageUrl: continuation.access_token.manage,
       },
       continue: {
         accessToken: continuation.continue.access_token.value,
-        url: continuation.continue.uri
-      }
+        url: continuation.continue.uri,
+      },
     }
 
     if (grantDetails.type === 'recurring') {
       await this.storage.set({
         recurringGrant: grantDetails,
-        recurringGrantSpentAmount: '0'
+        recurringGrantSpentAmount: '0',
       })
       this.isGrantUsable.recurring = true
     } else {
       await this.storage.set({
         oneTimeGrant: grantDetails,
-        oneTimeGrantSpentAmount: '0'
+        oneTimeGrantSpentAmount: '0',
       })
       this.isGrantUsable.oneTime = true
     }
@@ -484,32 +484,32 @@ export class OpenPaymentsService {
     tabId: NonNullable<Tabs.Tab['id']>,
     result: GrantResult,
     intent: InteractionIntent,
-    errorCode?: ErrorCode
+    errorCode?: ErrorCode,
   ) {
     const url = new URL(OPEN_PAYMENTS_REDIRECT_URL)
     url.searchParams.set('result', result)
     url.searchParams.set('intent', intent)
     if (errorCode) url.searchParams.set('errorCode', errorCode)
     await this.browser.tabs.update(tabId, {
-      url: url.toString()
+      url: url.toString(),
     })
   }
 
   private async createOutgoingPaymentGrant({
     amount,
     walletAddress,
-    clientNonce
+    clientNonce,
   }: CreateOutgoingPaymentGrantParams) {
     const grant = await this.client!.grant.request(
       {
-        url: walletAddress.authServer
+        url: walletAddress.authServer,
       },
       {
         access_token: {
           access: [
             {
               type: 'quote',
-              actions: ['create']
+              actions: ['create'],
             },
             {
               type: 'outgoing-payment',
@@ -519,22 +519,22 @@ export class OpenPaymentsService {
                 debitAmount: {
                   value: amount.value,
                   assetScale: walletAddress.assetScale,
-                  assetCode: walletAddress.assetCode
+                  assetCode: walletAddress.assetCode,
                 },
-                interval: amount.interval
-              }
-            }
-          ]
+                interval: amount.interval,
+              },
+            },
+          ],
         },
         interact: {
           start: ['redirect'],
           finish: {
             method: 'redirect',
             uri: OPEN_PAYMENTS_REDIRECT_URL,
-            nonce: clientNonce
-          }
-        }
-      }
+            nonce: clientNonce,
+          },
+        },
+      },
     )
 
     if (!isPendingGrant(grant)) {
@@ -549,16 +549,16 @@ export class OpenPaymentsService {
     interactRef,
     interactNonce,
     hash,
-    authServer
+    authServer,
   }: VerifyInteractionHashParams): Promise<void> {
     const grantEndpoint = new URL(authServer).origin + '/'
     const data = new TextEncoder().encode(
-      `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`
+      `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`,
     )
 
     const digest = await crypto.subtle.digest('SHA-256', data)
     const calculatedHash = btoa(
-      String.fromCharCode.apply(null, new Uint8Array(digest))
+      String.fromCharCode.apply(null, new Uint8Array(digest)),
     )
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
   }
@@ -569,7 +569,7 @@ export class OpenPaymentsService {
         if (!tab.id) return
         const getInteractionInfo: TabUpdateCallback = async (
           tabId,
-          changeInfo
+          changeInfo,
         ) => {
           if (tabId !== tab.id) return
           try {
@@ -601,7 +601,7 @@ export class OpenPaymentsService {
   async disconnectWallet() {
     const { recurringGrant, oneTimeGrant } = await this.storage.get([
       'recurringGrant',
-      'oneTimeGrant'
+      'oneTimeGrant',
     ])
     if (!recurringGrant && !oneTimeGrant) {
       return
@@ -640,19 +640,19 @@ export class OpenPaymentsService {
     await this.storage.set({
       privateKey: bytesToHex(privateKey),
       publicKey: btoa(JSON.stringify(jwk)),
-      keyId
+      keyId,
     })
   }
 
   async createOutgoingPayment({
     walletAddress,
     amount,
-    incomingPaymentId
+    incomingPaymentId,
   }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
     const outgoingPayment = (await this.client!.outgoingPayment.create(
       {
         accessToken: this.token.value,
-        url: walletAddress.resourceServer
+        url: walletAddress.resourceServer,
       },
       {
         incomingPayment: incomingPaymentId,
@@ -660,18 +660,18 @@ export class OpenPaymentsService {
         debitAmount: {
           value: amount,
           assetCode: walletAddress.assetCode,
-          assetScale: walletAddress.assetScale
+          assetScale: walletAddress.assetScale,
         },
         metadata: {
-          source: 'Web Monetization'
-        }
-      }
+          source: 'Web Monetization',
+        },
+      },
     )) as OutgoingPayment
 
     if (outgoingPayment.grantSpentDebitAmount) {
       this.storage.updateSpentAmount(
         this.grant!.type,
-        outgoingPayment.grantSpentDebitAmount.value
+        outgoingPayment.grantSpentDebitAmount.value,
       )
     }
     await this.storage.setState({ out_of_funds: false })
@@ -682,12 +682,12 @@ export class OpenPaymentsService {
   async probeDebitAmount(
     amount: AmountValue,
     incomingPayment: IncomingPayment['id'],
-    sender: WalletAddress
+    sender: WalletAddress,
   ): Promise<void> {
     await this.client!.quote.create(
       {
         url: sender.resourceServer,
-        accessToken: this.token.value
+        accessToken: this.token.value,
       },
       {
         method: 'ilp',
@@ -696,9 +696,9 @@ export class OpenPaymentsService {
         debitAmount: {
           value: amount,
           assetCode: sender.assetCode,
-          assetScale: sender.assetScale
-        }
-      }
+          assetScale: sender.assetScale,
+        },
+      },
     )
   }
 
@@ -727,7 +727,7 @@ export class OpenPaymentsService {
     this.logger.debug('Switching from grant', this.grant?.type)
     const { oneTimeGrant, recurringGrant } = await this.storage.get([
       'oneTimeGrant',
-      'recurringGrant'
+      'recurringGrant',
     ])
     if (this.grant?.type === 'recurring') {
       this.isGrantUsable.recurring = false
@@ -752,11 +752,11 @@ export class OpenPaymentsService {
     const rotate = this.deduplicator.dedupe(this.client!.token.rotate)
     const newToken = await rotate({
       url: this.token.manageUrl,
-      accessToken: this.token.value
+      accessToken: this.token.value,
     })
     const accessToken: AccessToken = {
       value: newToken.access_token.value,
-      manageUrl: newToken.access_token.manage
+      manageUrl: newToken.access_token.manage,
     }
     if (this.grant.type === 'recurring') {
       this.storage.set({ recurringGrant: { ...this.grant, accessToken } })

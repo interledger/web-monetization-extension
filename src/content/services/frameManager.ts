@@ -2,7 +2,7 @@ import { ContentToContentAction } from '../messages'
 import type {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
-  StopMonetizationPayload
+  StopMonetizationPayload,
 } from '@/shared/messages'
 import type { Cradle } from '@/content/container'
 
@@ -24,15 +24,15 @@ export class FrameManager {
       window,
       document,
       logger,
-      message
+      message,
     })
 
     this.documentObserver = new MutationObserver((records) =>
-      this.onWholeDocumentObserved(records)
+      this.onWholeDocumentObserved(records),
     )
 
     this.frameAllowAttrObserver = new MutationObserver((records) =>
-      this.onFrameAllowAttrChange(records)
+      this.onFrameAllowAttrChange(records),
     )
   }
 
@@ -52,7 +52,7 @@ export class FrameManager {
   private observeDocumentForFrames() {
     this.documentObserver.observe(this.document, {
       subtree: true,
-      childList: true
+      childList: true,
     })
   }
 
@@ -60,7 +60,7 @@ export class FrameManager {
     this.frameAllowAttrObserver.observe(frame, {
       childList: false,
       attributeOldValue: true,
-      attributeFilter: ['allow']
+      attributeFilter: ['allow'],
     })
   }
 
@@ -94,7 +94,7 @@ export class FrameManager {
   private async onAddedFrame(frame: HTMLIFrameElement) {
     this.frames.set(frame, {
       frameId: null,
-      requestIds: []
+      requestIds: [],
     })
   }
 
@@ -106,7 +106,7 @@ export class FrameManager {
     const stopMonetizationTags: StopMonetizationPayload[] =
       frameDetails?.requestIds.map((requestId) => ({
         requestId,
-        intent: 'remove'
+        intent: 'remove',
       })) || []
     if (stopMonetizationTags.length) {
       this.message.send('STOP_MONETIZATION', stopMonetizationTags)
@@ -156,7 +156,7 @@ export class FrameManager {
           this.run()
         }
       },
-      { once: true }
+      { once: true },
     )
   }
 
@@ -185,7 +185,7 @@ export class FrameManager {
           ![
             ContentToContentAction.INITIALIZE_IFRAME,
             ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
-            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME
+            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
           ].includes(message)
         ) {
           return
@@ -203,7 +203,7 @@ export class FrameManager {
             event.stopPropagation()
             this.frames.set(frame, {
               frameId: id,
-              requestIds: []
+              requestIds: [],
             })
             return
 
@@ -213,16 +213,16 @@ export class FrameManager {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map(
-                  (p: StartMonetizationPayload) => p.requestId
-                )
+                  (p: StartMonetizationPayload) => p.requestId,
+                ),
               })
               event.source.postMessage(
                 {
                   message: ContentToContentAction.START_MONETIZATION,
                   id,
-                  payload
+                  payload,
                 },
-                '*'
+                '*',
               )
             }
 
@@ -234,16 +234,16 @@ export class FrameManager {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map(
-                  (p: ResumeMonetizationPayload) => p.requestId
-                )
+                  (p: ResumeMonetizationPayload) => p.requestId,
+                ),
               })
               event.source.postMessage(
                 {
                   message: ContentToContentAction.RESUME_MONETIZATION,
                   id,
-                  payload
+                  payload,
                 },
-                '*'
+                '*',
               )
             }
             return
@@ -252,7 +252,7 @@ export class FrameManager {
             return
         }
       },
-      { capture: true }
+      { capture: true },
     )
   }
 }

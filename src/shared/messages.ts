@@ -34,15 +34,17 @@ export class MessageManager<TMessages extends MessageMap> {
 
   async send<TT extends MessagesWithInput<TMessages>, K extends keyof TT>(
     action: K,
-    payload: TT[K]['input']
+    payload: TT[K]['input'],
   ): Promise<Response<TT[K]['output']>>
   async send<TT extends MessagesWithoutInput<TMessages>, K extends keyof TT>(
     action: K,
-    payload?: never
+    payload?: never,
   ): Promise<Response<TT[K]['output']>>
   async send<K extends keyof TMessages>(
     action: K,
-    payload?: TMessages[K]['input'] extends void ? never : TMessages[K]['input']
+    payload?: TMessages[K]['input'] extends void
+      ? never
+      : TMessages[K]['input'],
   ): Promise<Response<TMessages[K]['output']>> {
     return await this.browser.runtime.sendMessage({ action, payload })
   }
@@ -51,7 +53,7 @@ export class MessageManager<TMessages extends MessageMap> {
     tabId: number,
     frameId: number,
     action: T,
-    payload: TMessages[T]['input']
+    payload: TMessages[T]['input'],
   ): Promise<
     TMessages[T]['output'] extends void
       ? ErrorResponse
@@ -63,7 +65,7 @@ export class MessageManager<TMessages extends MessageMap> {
 
   async sendToActiveTab<T extends keyof TMessages>(
     action: T,
-    payload: TMessages[T]['input']
+    payload: TMessages[T]['input'],
   ): Promise<
     TMessages[T]['output'] extends void
       ? ErrorResponse
@@ -72,7 +74,7 @@ export class MessageManager<TMessages extends MessageMap> {
     const window = await this.browser.windows.getCurrent()
     const activeTabs = await this.browser.tabs.query({
       active: true,
-      windowId: window.id
+      windowId: window.id,
     })
     const activeTab = activeTabs[0]
     const message = { action, payload }

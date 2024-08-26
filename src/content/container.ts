@@ -7,7 +7,7 @@ import { LOG_LEVEL } from '@/shared/defines'
 import { FrameManager } from './services/frameManager'
 import {
   type ContentToBackgroundMessage,
-  MessageManager
+  MessageManager,
 } from '@/shared/messages'
 
 export interface Cradle {
@@ -23,7 +23,7 @@ export interface Cradle {
 
 export const configureContainer = () => {
   const container = createContainer<Cradle>({
-    injectionMode: InjectionMode.PROXY
+    injectionMode: InjectionMode.PROXY,
   })
 
   const logger = createLogger(LOG_LEVEL)
@@ -37,18 +37,18 @@ export const configureContainer = () => {
     frameManager: asClass(FrameManager)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('content-script:frameManager')
+        logger: logger.getLogger('content-script:frameManager'),
       })),
     monetizationTagManager: asClass(MonetizationTagManager)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('content-script:tagManager')
+        logger: logger.getLogger('content-script:tagManager'),
       })),
     contentScript: asClass(ContentScript)
       .singleton()
       .inject(() => ({
-        logger: logger.getLogger('content-script:main')
-      }))
+        logger: logger.getLogger('content-script:main'),
+      })),
   })
 
   return container

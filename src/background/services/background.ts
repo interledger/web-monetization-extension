@@ -4,7 +4,7 @@ import {
   failure,
   getNextOccurrence,
   getWalletInformation,
-  success
+  success,
 } from '@/shared/helpers'
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error'
 import { getCurrentActiveTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils'
@@ -34,7 +34,7 @@ export class Background {
     tabEvents,
     sendToPopup,
     events,
-    heartbeat
+    heartbeat,
   }: Cradle) {
     Object.assign(this, {
       browser,
@@ -45,7 +45,7 @@ export class Background {
       tabEvents,
       logger,
       events,
-      heartbeat
+      heartbeat,
     })
   }
 
@@ -76,7 +76,7 @@ export class Background {
 
     const renewDate = getNextOccurrence(recurringGrant.amount.interval)
     this.browser.alarms.create(ALARM_RESET_OUT_OF_FUNDS, {
-      when: renewDate.valueOf()
+      when: renewDate.valueOf(),
     })
     const resetOutOfFundsState: AlarmCallback = (alarm) => {
       if (alarm.name !== ALARM_RESET_OUT_OF_FUNDS) return
@@ -89,7 +89,7 @@ export class Background {
   bindWindowHandlers() {
     this.browser.windows.onFocusChanged.addListener(async () => {
       const windows = await this.browser.windows.getAll({
-        windowTypes: ['normal', 'panel', 'popup']
+        windowTypes: ['normal', 'panel', 'popup'],
       })
       windows.forEach(async (w) => {
         const activeTab = (
@@ -103,14 +103,14 @@ export class Background {
 
         if (w.focused) {
           this.logger.debug(
-            `Trying to resume monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
+            `Trying to resume monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`,
           )
           void this.monetizationService.resumePaymentSessionsByTabId(
-            activeTab.id
+            activeTab.id,
           )
         } else {
           this.logger.debug(
-            `Trying to pause monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`
+            `Trying to pause monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`,
           )
           void this.monetizationService.stopPaymentSessionsByTabId(activeTab.id)
         }
@@ -172,12 +172,12 @@ export class Background {
 
             case 'UPDATE_RATE_OF_PAY':
               return success(
-                await this.storage.updateRate(message.payload.rateOfPay)
+                await this.storage.updateRate(message.payload.rateOfPay),
               )
 
             case 'PAY_WEBSITE':
               return success(
-                await this.monetizationService.pay(message.payload.amount)
+                await this.monetizationService.pay(message.payload.amount),
               )
 
             // endregion
@@ -185,27 +185,27 @@ export class Background {
             // region Content
             case 'CHECK_WALLET_ADDRESS_URL':
               return success(
-                await getWalletInformation(message.payload.walletAddressUrl)
+                await getWalletInformation(message.payload.walletAddressUrl),
               )
 
             case 'START_MONETIZATION':
               await this.monetizationService.startPaymentSession(
                 message.payload,
-                sender
+                sender,
               )
               return
 
             case 'STOP_MONETIZATION':
               await this.monetizationService.stopPaymentSession(
                 message.payload,
-                sender
+                sender,
               )
               return
 
             case 'RESUME_MONETIZATION':
               await this.monetizationService.resumePaymentSession(
                 message.payload,
-                sender
+                sender,
               )
               return
 
@@ -225,7 +225,7 @@ export class Background {
           this.logger.error(message.action, e.message)
           return failure(e.message)
         }
-      }
+      },
     )
   }
 
@@ -252,7 +252,7 @@ export class Background {
     })
 
     this.events.on('storage.balance_update', (balance) =>
-      this.sendToPopup.send('SET_BALANCE', balance)
+      this.sendToPopup.send('SET_BALANCE', balance),
     )
   }
 
@@ -268,7 +268,7 @@ export class Background {
         if (migrated) {
           const prevVersion = data.version ?? 1
           this.logger.info(
-            `Migrated from ${prevVersion} to ${migrated.version}`
+            `Migrated from ${prevVersion} to ${migrated.version}`,
           )
         }
       }

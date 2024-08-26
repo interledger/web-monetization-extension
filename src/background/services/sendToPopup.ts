@@ -2,7 +2,7 @@ import type { Runtime } from 'webextension-polyfill'
 import {
   BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
   type BackgroundToPopupMessage,
-  type BackgroundToPopupMessagesMap
+  type BackgroundToPopupMessagesMap,
 } from '@/shared/messages'
 import type { Cradle } from '@/background/container'
 
@@ -41,7 +41,7 @@ export class SendToPopup {
 
   async send<T extends keyof BackgroundToPopupMessagesMap>(
     type: T,
-    data: BackgroundToPopupMessagesMap[T]
+    data: BackgroundToPopupMessagesMap[T],
   ) {
     if (!this.isConnected) {
       this.queue.set(type, data)

@@ -47,7 +47,7 @@ describe('formatNumber', () => {
 describe('toWalletAddressUrl', () => {
   it('converts from short form to long form', () => {
     expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
-      'https://wallet.com/bob'
+      'https://wallet.com/bob',
     )
   })
 })

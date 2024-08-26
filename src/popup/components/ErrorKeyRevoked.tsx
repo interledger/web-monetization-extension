@@ -24,12 +24,12 @@ export const ErrorKeyRevoked = ({
   disconnectWallet,
   reconnectWallet,
   onReconnect,
-  onDisconnect
+  onDisconnect,
 }: Props) => {
   const [screen, setScreen, clearScreen] = useLocalStorage<Screen>(
     'keyRevokedScreen',
     'main',
-    { maxAge: 2 * 60 }
+    { maxAge: 2 * 60 },
   )
 
   if (screen === 'main') {
@@ -67,7 +67,7 @@ interface MainScreenProps {
 const MainScreen = ({
   disconnectWallet,
   onDisconnect,
-  requestReconnect
+  requestReconnect,
 }: MainScreenProps) => {
   const t = useTranslation()
   const [errorMsg, setErrorMsg] = React.useState('')
@@ -127,14 +127,14 @@ interface ReconnectScreenProps {
 const ReconnectScreen = ({
   info,
   reconnectWallet,
-  onReconnect
+  onReconnect,
 }: ReconnectScreenProps) => {
   const t = useTranslation()
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
     clearErrors,
-    setError
+    setError,
   } = useForm({ criteriaMode: 'firstError', mode: 'onSubmit' })
 
   const requestReconnect = async () => {

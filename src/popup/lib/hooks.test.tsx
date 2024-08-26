@@ -21,7 +21,7 @@ describe('useLocalStorage', () => {
 
   function TestComponent({ maxAge = defaultMaxAge }: { maxAge?: number }) {
     const [data, setData, clear] = useLocalStorage('name', 'John Doe', {
-      maxAge
+      maxAge,
     })
     return (
       <>
@@ -54,7 +54,7 @@ describe('useLocalStorage', () => {
   it('gets localStorage value instead of default', () => {
     localStorage.setItem(
       'name',
-      JSON.stringify({ value: 'Johnny', expiresAt: defaultExpiresAt })
+      JSON.stringify({ value: 'Johnny', expiresAt: defaultExpiresAt }),
     )
     const { getByTestId } = render(<TestComponent />)
     expect(getByTestId('data')).toHaveTextContent('Johnny')
@@ -63,7 +63,7 @@ describe('useLocalStorage', () => {
   it('changes localStorage and state value', () => {
     localStorage.setItem(
       'name',
-      JSON.stringify({ value: 'Johnny', expiresAt: defaultExpiresAt })
+      JSON.stringify({ value: 'Johnny', expiresAt: defaultExpiresAt }),
     )
     const { getByTestId } = render(<TestComponent />)
 
@@ -79,7 +79,7 @@ describe('useLocalStorage', () => {
   it('changes localStorage and state value using callback', () => {
     localStorage.setItem(
       'name',
-      JSON.stringify({ value: 'Johnny', expiresAt: defaultExpiresAt })
+      JSON.stringify({ value: 'Johnny', expiresAt: defaultExpiresAt }),
     )
     const { getByTestId } = render(<TestComponent />)
 

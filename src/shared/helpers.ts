@@ -37,12 +37,12 @@ const isWalletAddress = (o: any): o is WalletAddress => {
 }
 
 export const getWalletInformation = async (
-  walletAddressUrl: string
+  walletAddressUrl: string,
 ): Promise<WalletAddress> => {
   const response = await fetch(walletAddressUrl, {
     headers: {
-      Accept: 'application/json'
-    }
+      Accept: 'application/json',
+    },
   })
   const json = await response.json()
 
@@ -54,22 +54,22 @@ export const getWalletInformation = async (
 }
 
 export const success = <TPayload = undefined>(
-  payload: TPayload
+  payload: TPayload,
 ): SuccessResponse<TPayload> => ({
   success: true,
-  payload
+  payload,
 })
 
 export const failure = (message: string) => ({
   success: false,
-  message
+  message,
 })
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export const notNullOrUndef = <T>(
   t: T | null | undefined,
-  name = '<unknown>'
+  name = '<unknown>',
 ): T | never => {
   if (t == null) {
     throw new Error(`Expecting not null for ${name}`)
@@ -80,7 +80,7 @@ export const notNullOrUndef = <T>(
 
 export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
   func: (...args: T) => R,
-  wait: number
+  wait: number,
 ) {
   let timeout: ReturnType<typeof setTimeout> | null = null
   return function (...args: T) {
@@ -100,8 +100,8 @@ export function throttle<T extends unknown[], R>(
   wait: number,
   options: Partial<{ leading: boolean; trailing: boolean }> = {
     leading: false,
-    trailing: false
-  }
+    trailing: false,
+  },
 ) {
   let result: R
   let timeout: ReturnType<typeof setTimeout> | null = null
@@ -153,7 +153,7 @@ export class ThrottleBatch<Args extends unknown[], R = unknown> {
   constructor(
     private func: (...arg: Args) => R,
     private argsReducer: (args: Args[]) => [...Args],
-    wait: number
+    wait: number,
   ) {
     this.throttled = throttle(() => this.flush(), wait, { leading: true })
   }
@@ -173,7 +173,7 @@ export class ThrottleBatch<Args extends unknown[], R = unknown> {
 
 export function debounceSync<T extends unknown[], R>(
   func: (...args: T) => R,
-  wait: number
+  wait: number,
 ) {
   let timeout: ReturnType<typeof setTimeout> | null = null
   return function (...args: T) {
@@ -209,7 +209,7 @@ export function tFactory(browser: Pick<Browser, 'i18n'>) {
    */
   return <T extends TranslationKeys>(
     key: T,
-    substitutions?: string | string[]
+    substitutions?: string | string[],
   ) => browser.i18n.getMessage(key, substitutions)
 }
 
@@ -236,7 +236,7 @@ const REPEATING_INTERVAL_REGEX =
 
 export const getNextOccurrence = (
   interval: RepeatingInterval,
-  base = new Date()
+  base = new Date(),
 ): Date => {
   const match = interval.match(REPEATING_INTERVAL_REGEX)
   if (!match) {

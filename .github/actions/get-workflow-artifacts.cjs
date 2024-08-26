@@ -12,13 +12,13 @@ const ARTIFACTS_DATA = {
   chrome: {
     name: 'Chrome',
     url: '',
-    size: ''
+    size: '',
   },
   firefox: {
     name: 'Firefox',
     url: '',
-    size: ''
-  }
+    size: '',
+  },
 }
 
 /**
@@ -57,7 +57,7 @@ module.exports = async ({ github, context, core }) => {
   const jobLogsUrl = `${baseUrl}/actions/runs/${context.payload.workflow_run.id}`
   const template = await fs.readFile(
     './.github/actions/templates/build-status.md',
-    'utf8'
+    'utf8',
   )
 
   /** @type {string[]} */
@@ -72,7 +72,7 @@ module.exports = async ({ github, context, core }) => {
   const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
     owner,
     repo,
-    run_id: runId
+    run_id: runId,
   })
 
   artifacts.data.artifacts.forEach((artifact) => {
@@ -87,12 +87,12 @@ module.exports = async ({ github, context, core }) => {
     if (!url && !size) {
       const badgeUrl = getBadge('failure', COLORS.red, name)
       tableRows.push(
-        `<tr><td align="center">${badgeUrl}</td><td align="center">N/A</td></tr>`
+        `<tr><td align="center">${badgeUrl}</td><td align="center">N/A</td></tr>`,
       )
     } else {
       const badgeUrl = getBadge('success', COLORS.green, `${name} (${size})`)
       tableRows.push(
-        `<tr><td align="center">${badgeUrl}</td><td align="center"><a href="${url}">Download</a></td></tr>`
+        `<tr><td align="center">${badgeUrl}</td><td align="center"><a href="${url}">Download</a></td></tr>`,
       )
     }
   })

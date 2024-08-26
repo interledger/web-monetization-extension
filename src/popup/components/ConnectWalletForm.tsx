@@ -9,7 +9,7 @@ import {
   charIsNumber,
   formatNumber,
   getCurrencySymbol,
-  toWalletAddressUrl
+  toWalletAddressUrl,
 } from '@/popup/lib/utils'
 import { useForm } from 'react-hook-form'
 import { useMessage } from '@/popup/lib/context'
@@ -32,7 +32,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     formState: { errors, isSubmitting },
     clearErrors,
     setError,
-    setValue
+    setValue,
   } = useForm<ConnectWalletFormInputs>({
     criteriaMode: 'firstError',
     mode: 'onSubmit',
@@ -40,8 +40,8 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     defaultValues: {
       recurring: localStorage?.getItem('recurring') === 'true' || false,
       amount: localStorage?.getItem('amountValue') || undefined,
-      walletAddressUrl: localStorage?.getItem('walletAddressUrl') || undefined
-    }
+      walletAddressUrl: localStorage?.getItem('walletAddressUrl') || undefined,
+    },
   })
   const [currencySymbol, setCurrencySymbol] = React.useState<{
     symbol: string
@@ -57,24 +57,24 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         const walletAddress = await getWalletInformation(url.toString())
         setCurrencySymbol({
           symbol: getCurrencySymbol(walletAddress.assetCode),
-          scale: walletAddress.assetScale
+          scale: walletAddress.assetScale,
         })
       } catch {
         setError('walletAddressUrl', {
           type: 'validate',
-          message: 'Invalid wallet address.'
+          message: 'Invalid wallet address.',
         })
       }
     },
-    [clearErrors, setError]
+    [clearErrors, setError],
   )
 
   const handleOnChangeAmount = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const amountValue = formatNumber(
       +e.currentTarget.value,
-      currencySymbol.scale
+      currencySymbol.scale,
     )
     debounceSync(() => {
       localStorage?.setItem('amountValue', amountValue)
@@ -82,7 +82,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
   }
 
   const handleOnChangeWalletAddressUrl = async (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const walletAddressUrl = e.currentTarget.value
     debounceSync(() => {
@@ -94,7 +94,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     const recurring = e.currentTarget.checked
     debounceSync(
       () => localStorage?.setItem('recurring', `${recurring}`),
-      100
+      100,
     )()
   }
 
@@ -110,12 +110,12 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
       onSubmit={handleSubmit(async (data) => {
         const response = await message.send('CONNECT_WALLET', {
           ...data,
-          walletAddressUrl: toWalletAddressUrl(data.walletAddressUrl)
+          walletAddressUrl: toWalletAddressUrl(data.walletAddressUrl),
         })
         if (!response.success) {
           setError('walletAddressUrl', {
             type: 'validate',
-            message: response.message
+            message: response.message,
           })
         }
       })}
@@ -150,7 +150,7 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             getWalletCurrency(e.currentTarget.value)
           },
-          onChange: handleOnChangeWalletAddressUrl
+          onChange: handleOnChangeWalletAddressUrl,
         })}
       />
       <Input
@@ -177,16 +177,16 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             setValue(
               'amount',
-              formatNumber(+e.currentTarget.value, currencySymbol.scale)
+              formatNumber(+e.currentTarget.value, currencySymbol.scale),
             )
           },
-          onChange: handleOnChangeAmount
+          onChange: handleOnChangeAmount,
         })}
       />
       <div className="px-2">
         <Switch
           {...register('recurring', {
-            onChange: handleOnChangeRecurring
+            onChange: handleOnChangeRecurring,
           })}
           label="Renew amount monthly"
         />

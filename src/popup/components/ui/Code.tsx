@@ -12,7 +12,7 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
     <div
       className={cn(
         'flex items-center justify-between break-all rounded-xl bg-nav-active px-4 py-4 text-sm text-medium',
-        className
+        className,
       )}
       {...props}
     >

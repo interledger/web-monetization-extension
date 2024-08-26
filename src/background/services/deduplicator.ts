@@ -22,7 +22,7 @@ export class Deduplicator {
 
   dedupe<T extends AsyncFn<any>>(
     fn: T,
-    { cacheFnArgs = false, wait = 5000 }: Partial<DedupeOptions> = {}
+    { cacheFnArgs = false, wait = 5000 }: Partial<DedupeOptions> = {},
   ): T {
     return ((...args: Parameters<T>): ReturnType<T> => {
       const key = this.generateCacheKey(fn, args, cacheFnArgs)
@@ -30,7 +30,7 @@ export class Deduplicator {
 
       if (entry) {
         this.logger.debug(
-          `Deduplicating function=${fn.name}, ${cacheFnArgs ? 'args=' + JSON.stringify(args) : 'without args'}`
+          `Deduplicating function=${fn.name}, ${cacheFnArgs ? 'args=' + JSON.stringify(args) : 'without args'}`,
         )
         return entry.promise as ReturnType<T>
       }
@@ -55,7 +55,7 @@ export class Deduplicator {
   private generateCacheKey<T>(
     fn: AsyncFn<T>,
     args: any[],
-    cacheFnArgs: boolean
+    cacheFnArgs: boolean,
   ): string {
     let key = fn.name
     if (cacheFnArgs) {

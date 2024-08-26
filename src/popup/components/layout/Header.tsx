@@ -7,7 +7,7 @@ import { useBrowser, usePopupState } from '@/popup/lib/context'
 const NavigationButton = () => {
   const location = useLocation()
   const {
-    state: { connected }
+    state: { connected },
   } = usePopupState()
   return React.useMemo(() => {
     if (!connected) return null

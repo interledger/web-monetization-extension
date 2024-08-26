@@ -6,7 +6,7 @@ import {
   BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
   MessageManager,
   type PopupToBackgroundMessage,
-  type BackgroundToPopupMessage
+  type BackgroundToPopupMessage,
 } from '@/shared/messages'
 
 // #region PopupState
@@ -14,7 +14,7 @@ export enum ReducerActionType {
   SET_DATA = 'SET_DATA',
   TOGGLE_WM = 'TOGGLE_WM',
   SET_CONNECTED = 'SET_CONNECTED',
-  UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY'
+  UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY',
 }
 
 export type PopupState = Required<
@@ -75,7 +75,7 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
     case ReducerActionType.TOGGLE_WM: {
       return {
         ...state,
-        enabled: !state.enabled
+        enabled: !state.enabled,
       }
     }
     case ReducerActionType.SET_CONNECTED:
@@ -83,7 +83,7 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
     case ReducerActionType.UPDATE_RATE_OF_PAY: {
       return {
         ...state,
-        rateOfPay: action.data.rateOfPay
+        rateOfPay: action.data.rateOfPay,
       }
     }
     case 'SET_STATE':
@@ -157,7 +157,7 @@ export const useBrowser = () => React.useContext(BrowserContext)
 
 export const BrowserContextProvider = ({
   browser,
-  children
+  children,
 }: PropsWithChildren<{ browser: Browser }>) => {
   return (
     <BrowserContext.Provider value={browser}>

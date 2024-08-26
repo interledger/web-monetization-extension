@@ -7,7 +7,7 @@ import {
   charIsNumber,
   formatNumber,
   getCurrencySymbol,
-  transformBalance
+  transformBalance,
 } from '@/popup/lib/utils'
 import { useTranslation } from '@/popup/lib/context'
 import { getNextOccurrence } from '@/shared/helpers'
@@ -26,7 +26,7 @@ export const OutOfFunds = ({
   info,
   grantOneTime,
   grantRecurring,
-  onChooseOption
+  onChooseOption,
 }: OutOfFundsProps) => {
   if (!grantOneTime && !grantRecurring) {
     throw new Error('Provide at least one of grantOneTime and grantRecurring')
@@ -75,7 +75,7 @@ export function AddFunds({
   info,
   defaultAmount,
   recurring,
-  requestAddFunds
+  requestAddFunds,
 }: AddFundsProps) {
   const t = useTranslation()
   const {
@@ -83,14 +83,14 @@ export function AddFunds({
     handleSubmit,
     formState: { errors, isSubmitting },
     setError,
-    setValue
+    setValue,
   } = useForm({
     criteriaMode: 'firstError',
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
     defaultValues: {
-      amount: transformBalance(defaultAmount, info.assetScale)
-    }
+      amount: transformBalance(defaultAmount, info.assetScale),
+    },
   })
 
   const currencySymbol = getCurrencySymbol(info.assetCode)
@@ -101,7 +101,7 @@ export function AddFunds({
       onSubmit={handleSubmit(async (data) => {
         const response = await requestAddFunds({
           amount: data.amount,
-          recurring: !!recurring
+          recurring: !!recurring,
         })
         if (!response.success) {
           setError('root', { message: response.message })
@@ -124,7 +124,7 @@ export function AddFunds({
         description={
           recurring
             ? t('outOfFundsAddFunds_label_amountDescriptionRecurring', [
-                getNextOccurrenceDate('P1M')
+                getNextOccurrenceDate('P1M'),
               ])
             : t('outOfFundsAddFunds_label_amountDescriptionOneTime')
         }
@@ -147,7 +147,7 @@ export function AddFunds({
           valueAsNumber: false,
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             setValue('amount', formatNumber(+e.currentTarget.value, 2))
-          }
+          },
         })}
       />
 
@@ -169,7 +169,7 @@ export function AddFunds({
 
 function RecurringAutoRenewInfo({
   grantRecurring,
-  info
+  info,
 }: Pick<OutOfFundsProps, 'grantRecurring' | 'info'>) {
   const t = useTranslation()
 
@@ -180,19 +180,19 @@ function RecurringAutoRenewInfo({
   const renewDate = getNextOccurrence(grantRecurring.interval, new Date())
   const renewDateLocalized = renewDate.toLocaleString(undefined, {
     dateStyle: 'medium',
-    timeStyle: 'short'
+    timeStyle: 'short',
   })
 
   return t('outOfFunds_error_textDoNothing', [
     `${currencySymbol}${amount}`,
-    renewDateLocalized
+    renewDateLocalized,
   ])
 }
 
 function getNextOccurrenceDate(period: 'P1M', baseDate = new Date()) {
   const date = getNextOccurrence(
     `R/${baseDate.toISOString()}/${period}`,
-    baseDate
+    baseDate,
   )
   return date.toLocaleDateString(undefined, { dateStyle: 'medium' })
 }

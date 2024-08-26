@@ -7,7 +7,7 @@ export function checkWalletAddressUrlFormat(walletAddressUrl: string): void {
     if (url.protocol !== 'https:') {
       throw new WalletAddressFormatError(
         `Wallet address URL must be specified as a fully resolved https:// url, ` +
-          `got ${JSON.stringify(walletAddressUrl)} `
+          `got ${JSON.stringify(walletAddressUrl)} `,
       )
     }
   } catch (e) {
@@ -15,7 +15,7 @@ export function checkWalletAddressUrlFormat(walletAddressUrl: string): void {
       throw e
     } else {
       throw new WalletAddressFormatError(
-        `Invalid wallet address URL: ${JSON.stringify(walletAddressUrl)}`
+        `Invalid wallet address URL: ${JSON.stringify(walletAddressUrl)}`,
       )
     }
   }
@@ -24,7 +24,7 @@ export function checkWalletAddressUrlFormat(walletAddressUrl: string): void {
 
   if (hash || search || port || username || password) {
     throw new WalletAddressFormatError(
-      `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({ hash, search, port, username, password })}`
+      `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({ hash, search, port, username, password })}`,
     )
   }
 }

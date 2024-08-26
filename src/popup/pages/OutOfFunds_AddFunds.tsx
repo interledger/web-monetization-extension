@@ -8,7 +8,7 @@ export type State = { recurring: boolean }
 export const Component = () => {
   const message = useMessage()
   const {
-    state: { grants, walletAddress }
+    state: { grants, walletAddress },
   } = usePopupState()
   const location = useLocation()
 

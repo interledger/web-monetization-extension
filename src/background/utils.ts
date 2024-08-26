@@ -7,7 +7,7 @@ export const getCurrentActiveTab = async (browser: Browser) => {
   const window = await browser.windows.getLastFocused()
   const activeTabs = await browser.tabs.query({
     active: true,
-    windowId: window.id
+    windowId: window.id,
   })
   return activeTabs[0]
 }
@@ -21,19 +21,19 @@ interface ToAmountParams {
 export const toAmount = ({
   value,
   recurring,
-  assetScale
+  assetScale,
 }: ToAmountParams): WalletAmount => {
   const interval = `R/${new Date().toISOString()}/P1M`
 
   return {
     value: Math.floor(parseFloat(value) * 10 ** assetScale).toString(),
-    ...(recurring ? { interval } : {})
+    ...(recurring ? { interval } : {}),
   }
 }
 
 export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
   'invalid client':
-    'Please make sure that you uploaded the public key for your desired wallet address.'
+    'Please make sure that you uploaded the public key for your desired wallet address.',
 }
 
 export interface GetRateOfPayParams {
@@ -45,7 +45,7 @@ export interface GetRateOfPayParams {
 export const getRateOfPay = ({
   rate,
   exchangeRate,
-  assetScale
+  assetScale,
 }: GetRateOfPayParams) => {
   const scaleDiff = assetScale - DEFAULT_SCALE
 
@@ -66,7 +66,7 @@ export const getExchangeRates = async (): Promise<ExchangeRates> => {
   const response = await fetch(EXCHANGE_RATES_URL)
   if (!response.ok) {
     throw new Error(
-      `Could not fetch exchange rates. [Status code: ${response.status}]`
+      `Could not fetch exchange rates. [Status code: ${response.status}]`,
     )
   }
   const rates = await response.json()
@@ -97,7 +97,7 @@ export const computeRate = (rate: string, sessionsCount: number): AmountValue =>
 
 export function computeBalance(
   grant?: GrantDetails | null,
-  grantSpentAmount?: AmountValue | null
+  grantSpentAmount?: AmountValue | null,
 ) {
   if (!grant?.amount) return 0n
   const total = BigInt(grant.amount.value)
@@ -110,7 +110,7 @@ export function computeBalance(
 export function* getNextSendableAmount(
   senderAssetScale: number,
   receiverAssetScale: number,
-  amount: bigint = 0n
+  amount: bigint = 0n,
 ): Generator<AmountValue, never, never> {
   const EXPONENTIAL_INCREASE = 0.5
 

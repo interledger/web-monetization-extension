@@ -17,14 +17,14 @@ export class ContentScript {
     window,
     logger,
     monetizationTagManager,
-    frameManager
+    frameManager,
   }: Cradle) {
     Object.assign(this, {
       browser,
       window,
       logger,
       monetizationTagManager,
-      frameManager
+      frameManager,
     })
 
     this.isTopFrame = window === window.top
@@ -51,7 +51,7 @@ export class ContentScript {
           switch (message.action) {
             case 'MONETIZATION_EVENT':
               this.monetizationTagManager.dispatchMonetizationEvent(
-                message.payload
+                message.payload,
               )
               return
 
@@ -67,7 +67,7 @@ export class ContentScript {
           this.logger.error(message.action, e.message)
           return failure(e.message)
         }
-      }
+      },
     )
   }
 

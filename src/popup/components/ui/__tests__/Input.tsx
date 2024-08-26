@@ -18,7 +18,7 @@ describe('Input', () => {
     expect(queryByLabelText('test input')).not.toHaveAttribute('disabled')
     expect(queryByLabelText('test input')).toHaveAttribute(
       'aria-disabled',
-      'false'
+      'false',
     )
     expect(queryByLabelText('test input')).not.toBeDisabled()
   })
@@ -32,7 +32,7 @@ describe('Input', () => {
 
   it('should have the `pl-10` class when the `addOn` variant is passed', () => {
     const { queryByLabelText } = render(
-      <Input aria-label="test input" addOn="$" />
+      <Input aria-label="test input" addOn="$" />,
     )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()
@@ -41,7 +41,7 @@ describe('Input', () => {
 
   it('should have the `bg-disabled` and `border-transparent` classes when the `disabled` variant is passed', () => {
     const { queryByLabelText } = render(
-      <Input aria-label="test input" disabled />
+      <Input aria-label="test input" disabled />,
     )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()
@@ -51,7 +51,7 @@ describe('Input', () => {
 
   it('should have the `aria-invalid` and `aria-describedby` attributes if errorMessage is present', () => {
     const { queryByLabelText, queryByText } = render(
-      <Input aria-label="test input" errorMessage="some error" />
+      <Input aria-label="test input" errorMessage="some error" />,
     )
 
     expect(queryByLabelText('test input')).toBeInTheDocument()

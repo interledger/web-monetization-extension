@@ -4,7 +4,7 @@ import type {
   GrantDetails,
   Storage,
   StorageKey,
-  WalletAmount
+  WalletAmount,
 } from '@/shared/types'
 import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers'
 import { computeBalance } from '../utils'
@@ -30,7 +30,7 @@ const defaultStorage = {
   oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
   minRateOfPay: null,
-  maxRateOfPay: null
+  maxRateOfPay: null,
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>
 
 export class StorageService {
@@ -48,17 +48,17 @@ export class StorageService {
     this.setSpentAmountRecurring = new ThrottleBatch(
       (amount) => this.setSpentAmount('recurring', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
-      1000
+      1000,
     )
     this.setSpentAmountOneTime = new ThrottleBatch(
       (amount) => this.setSpentAmount('one-time', amount),
       (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
-      1000
+      1000,
     )
   }
 
   async get<TKey extends StorageKey>(
-    keys?: TKey[]
+    keys?: TKey[],
   ): Promise<{ [Key in TKey[][number]]: Storage[Key] }> {
     const data = await this.browser.storage.local.get(keys)
     return data as { [Key in TKey[][number]]: Storage[Key] }
@@ -149,7 +149,7 @@ export class StorageService {
     await this.set({ state: newState })
     this.events.emit('storage.state_update', {
       state: newState,
-      prevState: prevState
+      prevState: prevState,
     })
     return true
   }
@@ -179,21 +179,21 @@ export class StorageService {
       'recurringGrant',
       'recurringGrantSpentAmount',
       'oneTimeGrant',
-      'oneTimeGrantSpentAmount'
+      'oneTimeGrantSpentAmount',
     ])
     const balanceRecurring = computeBalance(
       data.recurringGrant,
-      data.recurringGrantSpentAmount
+      data.recurringGrantSpentAmount,
     )
     const balanceOneTime = computeBalance(
       data.oneTimeGrant,
-      data.oneTimeGrantSpentAmount
+      data.oneTimeGrantSpentAmount,
     )
     const balance = balanceRecurring + balanceOneTime
     return {
       total: balance.toString(),
       recurring: balanceRecurring.toString(),
-      oneTime: balanceOneTime.toString()
+      oneTime: balanceOneTime.toString(),
     }
   }
 
@@ -207,7 +207,7 @@ export class StorageService {
  * @param existingData Existing data from previous version.
  */
 type Migration = (
-  existingData: Record<string, any>
+  existingData: Record<string, any>,
 ) => [data: Record<string, any>, deleteKeys?: string[]]
 
 // There was never a migration to reach 1.
@@ -233,16 +233,16 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
           value: data.amount.value as string,
           ...(type === 'recurring'
             ? { interval: data.amount.interval as string }
-            : {})
+            : {}),
         } as Required<WalletAmount>,
         accessToken: {
           value: data.token.value as string,
-          manageUrl: data.token.manage as string
+          manageUrl: data.token.manage as string,
         },
         continue: {
           url: data.grant.continueUri as string,
-          accessToken: data.grant.accessToken as string
-        }
+          accessToken: data.grant.accessToken as string,
+        },
       }
 
       if (type === 'recurring') {
@@ -265,5 +265,5 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
         : {}
     data.state = newState satisfies Storage['state']
     return [data]
-  }
+  },
 }

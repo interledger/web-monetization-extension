@@ -4,7 +4,7 @@ import { useMessage, usePopupState } from '@/popup/lib/context'
 import {
   getCurrencySymbol,
   charIsNumber,
-  formatNumber
+  formatNumber,
 } from '@/popup/lib/utils'
 import React, { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
@@ -20,13 +20,13 @@ interface PayWebsiteFormProps {
 const BUTTON_STATE = {
   idle: 'Send now',
   loading: <Spinner className="w-6 animate-spin" />,
-  success: 'Payment successful'
+  success: 'Payment successful',
 }
 
 export const PayWebsiteForm = () => {
   const message = useMessage()
   const {
-    state: { walletAddress, url }
+    state: { walletAddress, url },
   } = usePopupState()
   const [buttonState, setButtonState] =
     React.useState<keyof typeof BUTTON_STATE>('idle')
@@ -66,7 +66,7 @@ export const PayWebsiteForm = () => {
           <m.div
             transition={{
               duration: 0.3,
-              bounce: 0
+              bounce: 0,
             }}
             initial={{ height: 0 }}
             animate={{ height: 'auto' }}
@@ -108,9 +108,9 @@ export const PayWebsiteForm = () => {
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             setValue(
               'amount',
-              formatNumber(+e.currentTarget.value, walletAddress.assetScale)
+              formatNumber(+e.currentTarget.value, walletAddress.assetScale),
             )
-          }
+          },
         })}
       />
       <Button
@@ -118,7 +118,7 @@ export const PayWebsiteForm = () => {
         className={cn(
           'mt-8 w-full',
           !isIdle ? 'cursor-not-allowed' : null,
-          !isIdle && !isSubmitting ? 'disabled:opacity-100' : null
+          !isIdle && !isSubmitting ? 'disabled:opacity-100' : null,
         )}
         disabled={isSubmitting || !isIdle}
         aria-label="Send now"

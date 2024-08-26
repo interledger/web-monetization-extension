@@ -9,43 +9,43 @@ const ICONS = {
   default: {
     32: runtime.getURL('assets/icons/32x32/default.png'),
     48: runtime.getURL('assets/icons/48x48/default.png'),
-    128: runtime.getURL('assets/icons/128x128/default.png')
+    128: runtime.getURL('assets/icons/128x128/default.png'),
   },
   default_gray: {
     32: runtime.getURL('assets/icons/32x32/default-gray.png'),
     48: runtime.getURL('assets/icons/48x48/default-gray.png'),
-    128: runtime.getURL('assets/icons/128x128/default-gray.png')
+    128: runtime.getURL('assets/icons/128x128/default-gray.png'),
   },
   enabled_hasLinks: {
     32: runtime.getURL('assets/icons/32x32/enabled-has-links.png'),
     48: runtime.getURL('assets/icons/48x48/enabled-has-links.png'),
-    128: runtime.getURL('assets/icons/128x128/enabled-has-links.png')
+    128: runtime.getURL('assets/icons/128x128/enabled-has-links.png'),
   },
   enabled_noLinks: {
     32: runtime.getURL('assets/icons/32x32/enabled-no-links.png'),
     48: runtime.getURL('assets/icons/48x48/enabled-no-links.png'),
-    128: runtime.getURL('assets/icons/128x128/enabled-no-links.png')
+    128: runtime.getURL('assets/icons/128x128/enabled-no-links.png'),
   },
   enabled_warn: {
     32: runtime.getURL('assets/icons/32x32/enabled-warn.png'),
     48: runtime.getURL('assets/icons/48x48/enabled-warn.png'),
-    128: runtime.getURL('assets/icons/128x128/enabled-warn.png')
+    128: runtime.getURL('assets/icons/128x128/enabled-warn.png'),
   },
   disabled_hasLinks: {
     32: runtime.getURL('assets/icons/32x32/disabled-has-links.png'),
     48: runtime.getURL('assets/icons/48x48/disabled-has-links.png'),
-    128: runtime.getURL('assets/icons/128x128/disabled-has-links.png')
+    128: runtime.getURL('assets/icons/128x128/disabled-has-links.png'),
   },
   disabled_noLinks: {
     32: runtime.getURL('assets/icons/32x32/disabled-no-links.png'),
     48: runtime.getURL('assets/icons/48x48/disabled-no-links.png'),
-    128: runtime.getURL('assets/icons/128x128/disabled-no-links.png')
+    128: runtime.getURL('assets/icons/128x128/disabled-no-links.png'),
   },
   disabled_warn: {
     32: runtime.getURL('assets/icons/32x32/disabled-warn.png'),
     48: runtime.getURL('assets/icons/48x48/disabled-warn.png'),
-    128: runtime.getURL('assets/icons/128x128/disabled-warn.png')
-  }
+    128: runtime.getURL('assets/icons/128x128/disabled-warn.png'),
+  },
 }
 
 type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
@@ -64,7 +64,7 @@ export class TabEvents {
       tabState,
       sendToPopup,
       t,
-      browser
+      browser,
     })
   }
 
@@ -106,19 +106,19 @@ export class TabEvents {
       : false,
     hasTabAllSessionsInvalid: boolean = tabId
       ? this.tabState.tabHasAllSessionsInvalid(tabId)
-      : false
+      : false,
   ) => {
     const { enabled, connected, state } = await this.storage.get([
       'enabled',
       'connected',
-      'state'
+      'state',
     ])
     const { path, title, isMonetized } = this.getIconAndTooltip({
       enabled,
       connected,
       state,
       isTabMonetized,
-      hasTabAllSessionsInvalid
+      hasTabAllSessionsInvalid,
     })
 
     this.sendToPopup.send('SET_IS_MONETIZED', isMonetized)
@@ -130,7 +130,7 @@ export class TabEvents {
   private setIconAndTooltip = async (
     path: (typeof ICONS)[keyof typeof ICONS],
     title: string,
-    tabId?: TabId
+    tabId?: TabId,
   ) => {
     await this.browser.action.setIcon({ path, tabId })
     await this.browser.action.setTitle({ title, tabId })
@@ -141,7 +141,7 @@ export class TabEvents {
     connected,
     state,
     isTabMonetized,
-    hasTabAllSessionsInvalid
+    hasTabAllSessionsInvalid,
   }: {
     enabled: Storage['enabled']
     connected: Storage['connected']
@@ -176,7 +176,7 @@ export class TabEvents {
     return {
       path: iconData,
       isMonetized: isTabMonetized,
-      title
+      title,
     }
   }
 }

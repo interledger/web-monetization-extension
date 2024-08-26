@@ -15,7 +15,7 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
   const message = useMessage()
   const {
     handleSubmit,
-    formState: { isSubmitting }
+    formState: { isSubmitting },
   } = useForm()
 
   return (

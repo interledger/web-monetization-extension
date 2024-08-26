@@ -10,7 +10,7 @@ async function getBrowserArtifacts({ github, context }, name) {
   const result = await github.rest.actions.listArtifactsForRepo({
     owner: context.repo.owner,
     repo: context.repo.repo,
-    name
+    name,
   })
   return result.data.artifacts
 }
@@ -22,8 +22,8 @@ async function getBrowserArtifacts({ github, context }, name) {
 async function getPRArtifacts({ github, context }, prNumber) {
   const data = await Promise.all(
     BROWSERS.map((browser) =>
-      getBrowserArtifacts({ github, context }, `${prNumber}-${browser}`)
-    )
+      getBrowserArtifacts({ github, context }, `${prNumber}-${browser}`),
+    ),
   )
 
   /** @type {{id: number}[]} */
@@ -52,9 +52,9 @@ module.exports = async ({ github, context, core }) => {
       github.rest.actions.deleteArtifact({
         owner,
         repo,
-        artifact_id: artifact.id
-      })
-    )
+        artifact_id: artifact.id,
+      }),
+    ),
   )
 
   console.log(`Deleted ${artifacts.length} artifacts for PR #${prNumber}.`)

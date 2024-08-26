@@ -15,7 +15,7 @@ export const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
         ref={ref}
         className={cn(
           'break-word mb-4 flex items-center gap-2 rounded-xl border border-red-300 bg-red-500/10 px-3 py-2',
-          className
+          className,
         )}
       >
         <XIcon className="size-8 text-red-500" />
@@ -25,7 +25,7 @@ export const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
         </div>
       </div>
     )
-  }
+  },
 )
 
 ErrorMessage.displayName = 'ErrorMessage'

@@ -24,14 +24,14 @@ export class EventsService extends EventEmitter {
 
   on<TEvent extends keyof BackgroundEvents>(
     eventName: TEvent,
-    listener: (param: BackgroundEvents[TEvent]) => void
+    listener: (param: BackgroundEvents[TEvent]) => void,
   ): this {
     return super.on(eventName, listener)
   }
 
   once<TEvent extends keyof BackgroundEvents>(
     eventName: TEvent,
-    listener: (param: BackgroundEvents[TEvent]) => void
+    listener: (param: BackgroundEvents[TEvent]) => void,
   ): this {
     return super.once(eventName, listener)
   }

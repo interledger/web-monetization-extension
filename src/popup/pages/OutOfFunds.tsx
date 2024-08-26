@@ -7,7 +7,7 @@ import type { State } from '@/popup/pages/OutOfFunds_AddFunds'
 
 export const Component = () => {
   const {
-    state: { grants, walletAddress }
+    state: { grants, walletAddress },
   } = usePopupState()
   const navigate = useNavigate()
 

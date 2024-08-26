@@ -21,7 +21,7 @@ describe('Switch', () => {
     render(<Switch size="small" />)
     const switchElement = screen.getByRole('switch').nextSibling
     expect(switchElement).toHaveClass(
-      'w-9 h-[22px] before:h-4 before:w-4 before:left-[3px]'
+      'w-9 h-[22px] before:h-4 before:w-4 before:left-[3px]',
     )
   })
 

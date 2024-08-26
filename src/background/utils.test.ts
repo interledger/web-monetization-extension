@@ -22,7 +22,7 @@ describe('getNextSendableAmount', () => {
       '27508',
       '27515',
       '27527',
-      '27547'
+      '27547',
     ])
   })
 
@@ -36,7 +36,7 @@ describe('getNextSendableAmount', () => {
       '8027500',
       '15027500',
       '27027500',
-      '47027500'
+      '47027500',
     ])
   })
 
@@ -49,7 +49,7 @@ describe('getNextSendableAmount', () => {
       '150',
       '270',
       '470',
-      '800'
+      '800',
     ])
   })
 
@@ -62,7 +62,7 @@ describe('getNextSendableAmount', () => {
       '15',
       '27',
       '47',
-      '80'
+      '80',
     ])
   })
 
@@ -75,7 +75,7 @@ describe('getNextSendableAmount', () => {
       '15',
       '27',
       '47',
-      '80'
+      '80',
     ])
   })
 })

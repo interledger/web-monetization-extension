@@ -2,7 +2,7 @@ import type { Runtime } from 'webextension-polyfill'
 import {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
-  StopMonetizationPayload
+  StopMonetizationPayload,
 } from '@/shared/messages'
 import { PaymentSession } from './paymentSession'
 import { computeRate, getCurrentActiveTab, getSender, getTabId } from '../utils'
@@ -30,7 +30,7 @@ export class MonetizationService {
     events,
     openPaymentsService,
     tabState,
-    message
+    message,
   }: Cradle) {
     Object.assign(this, {
       logger,
@@ -40,7 +40,7 @@ export class MonetizationService {
       browser,
       events,
       tabState,
-      message
+      message,
     })
 
     this.registerEventListeners()
@@ -48,7 +48,7 @@ export class MonetizationService {
 
   async startPaymentSession(
     payload: StartMonetizationPayload[],
-    sender: Runtime.MessageSender
+    sender: Runtime.MessageSender,
   ) {
     if (!payload.length) {
       throw new Error('Unexpected: payload is empty')
@@ -58,18 +58,18 @@ export class MonetizationService {
       enabled,
       rateOfPay,
       connected,
-      walletAddress: connectedWallet
+      walletAddress: connectedWallet,
     } = await this.storage.get([
       'state',
       'enabled',
       'connected',
       'rateOfPay',
-      'walletAddress'
+      'walletAddress',
     ])
 
     if (!rateOfPay || !connectedWallet) {
       this.logger.error(
-        `Did not find rate of pay or connect wallet information. Received rate=${rateOfPay}, wallet=${connectedWallet}. Payment session will not be initialized.`
+        `Did not find rate of pay or connect wallet information. Received rate=${rateOfPay}, wallet=${connectedWallet}. Payment session will not be initialized.`,
       )
       return
     }
@@ -101,7 +101,7 @@ export class MonetizationService {
         this.tabState,
         removeQueryParams(url!),
         this.logger,
-        this.message
+        this.message,
       )
 
       sessions.set(requestId, session)
@@ -142,7 +142,7 @@ export class MonetizationService {
 
   async stopPaymentSession(
     payload: StopMonetizationPayload[],
-    sender: Runtime.MessageSender
+    sender: Runtime.MessageSender,
   ) {
     let needsAdjustAmount = false
     const tabId = getTabId(sender)
@@ -187,7 +187,7 @@ export class MonetizationService {
 
   async resumePaymentSession(
     payload: ResumeMonetizationPayload[],
-    sender: Runtime.MessageSender
+    sender: Runtime.MessageSender,
   ) {
     const tabId = getTabId(sender)
     const sessions = this.tabState.getSessions(tabId)
@@ -200,7 +200,7 @@ export class MonetizationService {
     const { state, connected, enabled } = await this.storage.get([
       'state',
       'connected',
-      'enabled'
+      'enabled',
     ])
     if (!enabled || !this.canTryPayment(connected, state)) return
 
@@ -221,7 +221,7 @@ export class MonetizationService {
     const { state, connected, enabled } = await this.storage.get([
       'state',
       'connected',
-      'enabled'
+      'enabled',
     ])
     if (!enabled || !this.canTryPayment(connected, state)) return
 
@@ -259,7 +259,7 @@ export class MonetizationService {
     const splitAmount = Number(amount) / payableSessions.length
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
-      payableSessions.map((session) => session.pay(splitAmount))
+      payableSessions.map((session) => session.pay(splitAmount)),
     )
 
     const totalSentAmount = results
@@ -278,7 +278,7 @@ export class MonetizationService {
 
   private canTryPayment(
     connected: Storage['connected'],
-    state: Storage['state']
+    state: Storage['state'],
   ): boolean {
     if (!connected) return false
     if (isOkState(state)) return true
@@ -372,7 +372,7 @@ export class MonetizationService {
       'walletAddress',
       'oneTimeGrant',
       'recurringGrant',
-      'publicKey'
+      'publicKey',
     ])
     const balance = await this.storage.getBalance()
     const tab = await getCurrentActiveTab(this.browser)
@@ -393,7 +393,7 @@ export class MonetizationService {
     }
     const isSiteMonetized = this.tabState.isTabMonetized(tab.id!)
     const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(
-      tab.id!
+      tab.id!,
     )
 
     return {
@@ -402,16 +402,16 @@ export class MonetizationService {
       url,
       grants: {
         oneTime: oneTimeGrant?.amount,
-        recurring: recurringGrant?.amount
+        recurring: recurringGrant?.amount,
       },
       isSiteMonetized,
-      hasAllSessionsInvalid
+      hasAllSessionsInvalid,
     }
   }
 
   private async adjustSessionsAmount(
     sessions: PaymentSession[],
-    rate: AmountValue
+    rate: AmountValue,
   ): Promise<boolean> {
     try {
       await Promise.all(sessions.map((session) => session.adjustAmount(rate)))

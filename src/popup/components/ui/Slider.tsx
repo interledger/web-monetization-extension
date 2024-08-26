@@ -38,7 +38,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
     disabled,
     ...props
   },
-  ref
+  ref,
 ) {
   return (
     <div className="w-full">

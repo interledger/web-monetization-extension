@@ -22,7 +22,7 @@ export const Radio = ({
   disabled,
   onChange,
   checked,
-  noSelected
+  noSelected,
 }: RadioProps): JSX.Element => {
   const inputId = id || `id-${name}-${value}`
   const divId = `div-${inputId}`
@@ -69,15 +69,15 @@ const radioGroupVariants = cva(['flex gap-3'], {
   variants: {
     variant: {
       default: 'flex-col',
-      inline: 'flex-row'
+      inline: 'flex-row',
     },
     fullWidth: {
-      true: 'w-full'
-    }
+      true: 'w-full',
+    },
   },
   defaultVariants: {
-    variant: 'default'
-  }
+    variant: 'default',
+  },
 })
 
 export interface RadioGroupProps
@@ -97,11 +97,11 @@ export const RadioGroup = ({
   disabled,
   className,
   handleChange,
-  value
+  value,
 }: RadioGroupProps) => {
   const checkedItem = useMemo(
     () => items.findIndex((item) => item.checked || item.value === value),
-    [items, value]
+    [items, value],
   )
   const [selected, setSelected] = useState(checkedItem)
 

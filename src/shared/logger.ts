@@ -13,7 +13,7 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
       const messages = [
         `%c${loggerName as string}`,
         'font-weight: bold; text-transform: uppercase; background: #2f8785; padding-inline: 5px;',
-        ...args
+        ...args,
       ]
       raw(...messages)
     }

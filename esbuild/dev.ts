@@ -7,7 +7,7 @@ import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck'
 export const getDevOptions = ({
   outDir,
   target,
-  channel
+  channel,
 }: Omit<BuildArgs, 'dev'> & {
   outDir: string
 }): BuildOptions => {
@@ -17,19 +17,19 @@ export const getDevOptions = ({
     minify: false,
     plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly', watch: true }),
-      liveReloadPlugin({ target })
+      liveReloadPlugin({ target }),
     ]),
     define: {
       NODE_ENV: JSON.stringify('development'),
       CONFIG_LOG_LEVEL: JSON.stringify('DEBUG'),
       CONFIG_PERMISSION_HOSTS: JSON.stringify({
-        origins: ['http://*/*', 'https://*/*']
+        origins: ['http://*/*', 'https://*/*'],
       }),
       CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['http:', 'https:']),
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
-        'https://webmonetization.org/welcome'
-      )
-    }
+        'https://webmonetization.org/welcome',
+      ),
+    },
   }
 }
 
@@ -72,7 +72,7 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
         const contents = await readFile(args.path, 'utf8')
         return {
           contents: reloadScriptBackground + '\n' + contents,
-          loader: 'ts' as const
+          loader: 'ts' as const,
         }
       })
 
@@ -80,9 +80,9 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
         const contents = await readFile(args.path, 'utf8')
         return {
           contents: contents + '\n\n\n' + reloadScriptPopup,
-          loader: 'tsx' as const
+          loader: 'tsx' as const,
         }
       })
-    }
+    },
   }
 }

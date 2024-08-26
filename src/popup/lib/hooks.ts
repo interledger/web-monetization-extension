@@ -13,7 +13,7 @@ import React from 'react'
 export function useLocalStorage<T>(
   key: string,
   defaultValue: T,
-  { maxAge = 1000 * 24 * 60 * 60 }: Partial<{ maxAge: number }> = {}
+  { maxAge = 1000 * 24 * 60 * 60 }: Partial<{ maxAge: number }> = {},
 ) {
   const hasLocalStorage = typeof localStorage !== 'undefined'
   maxAge *= 1000

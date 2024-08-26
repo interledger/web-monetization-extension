@@ -24,7 +24,7 @@ module.exports = async ({ github, context }) => {
     await github.rest.repos.getReleaseByTag({
       owner,
       repo,
-      tag: versionTag
+      tag: versionTag,
     })
     throw new Error('Release already promoted to stable')
   } catch (error) {

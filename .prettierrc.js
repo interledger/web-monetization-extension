@@ -1,6 +1,6 @@
 module.exports = {
   singleQuote: true,
-  trailingComma: 'none',
+  trailingComma: 'all',
   jsxSingleQuote: false,
   semi: false,
   plugins: ['prettier-plugin-tailwindcss'],
@@ -13,6 +13,6 @@ module.exports = {
     'twStyle',
     'twMerge',
     'twJoin',
-    'cn'
-  ]
+    'cn',
+  ],
 }

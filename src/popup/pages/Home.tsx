@@ -2,7 +2,7 @@ import React from 'react'
 import {
   ReducerActionType,
   usePopupState,
-  useMessage
+  useMessage,
 } from '@/popup/lib/context'
 import { WarningSign } from '@/popup/components/Icons'
 import { Slider } from '../components/ui/Slider'
@@ -10,7 +10,7 @@ import { Label } from '../components/ui/Label'
 import {
   formatNumber,
   getCurrencySymbol,
-  roundWithPrecision
+  roundWithPrecision,
 } from '../lib/utils'
 import { PayWebsiteForm } from '../components/PayWebsiteForm'
 import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
@@ -30,9 +30,9 @@ export const Component = () => {
       balance,
       walletAddress,
       url,
-      hasAllSessionsInvalid
+      hasAllSessionsInvalid,
     },
-    dispatch
+    dispatch,
   } = usePopupState()
 
   const rate = React.useMemo(() => {
@@ -55,7 +55,7 @@ export const Component = () => {
         // TODO: Maybe reset to old state, but not while user is active (avoid
         // sluggishness in UI)
       }
-    }, 1000)
+    }, 1000),
   )
 
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,8 +63,8 @@ export const Component = () => {
     dispatch({
       type: ReducerActionType.UPDATE_RATE_OF_PAY,
       data: {
-        rateOfPay
-      }
+        rateOfPay,
+      },
     })
     void updateRateOfPay.current(rateOfPay)
   }

@@ -13,7 +13,7 @@ import {
   options,
   SERVE_PORTS,
   Target,
-  TARGETS
+  TARGETS,
 } from '../esbuild/config'
 import { getDevOptions } from '../esbuild/dev'
 import { getProdOptions } from '../esbuild/prod'
@@ -46,7 +46,7 @@ sade('build [target]', true)
     }
 
     console.log(
-      `Building target: "${options.target}" with channel: "${options.channel}"`
+      `Building target: "${options.target}" with channel: "${options.channel}"`,
     )
     return options.dev ? buildWatch(options) : build(options)
   })
@@ -57,13 +57,13 @@ async function build({ target, channel }: BuildArgs) {
   const result = await esbuild.build({
     ...options,
     ...getProdOptions({ outDir: OUTPUT_DIR, target, channel }),
-    outdir: OUTPUT_DIR
+    outdir: OUTPUT_DIR,
   })
 
   if (result.metafile) {
     fs.writeFileSync(
       path.join(OUTPUT_DIR, 'meta.json'),
-      JSON.stringify(result.metafile)
+      JSON.stringify(result.metafile),
     )
   }
 }
@@ -73,14 +73,14 @@ async function buildWatch({ target, channel }: BuildArgs) {
   const ctx = await esbuild.context({
     ...options,
     ...getDevOptions({ outDir: OUTPUT_DIR, target, channel }),
-    outdir: OUTPUT_DIR
+    outdir: OUTPUT_DIR,
   })
 
   try {
     await ctx.serve({
       host: 'localhost',
       port: SERVE_PORTS[target],
-      servedir: OUTPUT_DIR
+      servedir: OUTPUT_DIR,
     })
   } catch (error) {
     console.log(error.message)

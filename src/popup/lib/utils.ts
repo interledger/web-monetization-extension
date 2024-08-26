@@ -4,7 +4,7 @@ export const getCurrencySymbol = (assetCode: string): string => {
     style: 'currency',
     currencyDisplay: 'symbol',
     maximumFractionDigits: 0,
-    minimumFractionDigits: 0
+    minimumFractionDigits: 0,
   })
     .format(0)
     .replace(/0/g, '')
@@ -13,7 +13,7 @@ export const getCurrencySymbol = (assetCode: string): string => {
 
 export const transformBalance = (
   amount: string | bigint,
-  scale: number
+  scale: number,
 ): string => {
   const value = BigInt(amount)
   const divisor = BigInt(10 ** scale)
@@ -36,7 +36,7 @@ export function roundWithPrecision(num: number, precision: number) {
 export function formatNumber(
   value: number,
   scale: number,
-  allowExponential = false
+  allowExponential = false,
 ): string {
   // TO DO: handle scale 0
 

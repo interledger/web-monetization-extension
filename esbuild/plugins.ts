@@ -11,14 +11,14 @@ import {
   SRC_DIR,
   ROOT_DIR,
   type BuildArgs,
-  type WebExtensionManifest
+  type WebExtensionManifest,
 } from './config'
 
 export const getPlugins = ({
   outDir,
   target,
   channel,
-  dev
+  dev,
 }: BuildArgs & {
   outDir: string
 }): ESBuildPlugin[] => {
@@ -33,36 +33,36 @@ export const getPlugins = ({
       name: 'crypto-for-extension',
       setup(build) {
         build.onResolve({ filter: /^crypto$/ }, () => ({
-          path: require.resolve('crypto-browserify')
+          path: require.resolve('crypto-browserify'),
         }))
-      }
+      },
     },
     ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
     esbuildStylePlugin({
       extract: true,
       postcss: {
-        plugins: [tailwind, autoprefixer]
-      }
+        plugins: [tailwind, autoprefixer],
+      },
     }),
     copy({
       resolveFrom: ROOT_DIR,
       assets: [
         {
           from: path.join(SRC_DIR, 'popup', 'index.html'),
-          to: path.join(outDir, 'popup', 'index.html')
+          to: path.join(outDir, 'popup', 'index.html'),
         },
         {
           from: path.join(SRC_DIR, '_locales/**/*'),
-          to: path.join(outDir, '_locales')
+          to: path.join(outDir, '_locales'),
         },
         {
           from: path.join(SRC_DIR, 'assets/**/*'),
-          to: path.join(outDir, 'assets')
-        }
+          to: path.join(outDir, 'assets'),
+        },
       ],
-      watch: dev
+      watch: dev,
     }),
-    processManifestPlugin({ outDir, dev, target, channel })
+    processManifestPlugin({ outDir, dev, target, channel }),
   ]
 }
 
@@ -73,7 +73,7 @@ function ignorePackagePlugin(ignores: RegExp[]): ESBuildPlugin {
     setup(build) {
       build.onResolve({ filter: /.*/, namespace: 'ignore' }, (args) => ({
         path: args.path,
-        namespace: 'ignore'
+        namespace: 'ignore',
       }))
       for (const ignorePattern of ignores) {
         build.onResolve({ filter: ignorePattern }, (args) => {
@@ -82,9 +82,9 @@ function ignorePackagePlugin(ignores: RegExp[]): ESBuildPlugin {
       }
 
       build.onLoad({ filter: /.*/, namespace: 'ignore' }, () => ({
-        contents: ''
+        contents: '',
       }))
-    }
+    },
   }
 }
 
@@ -92,7 +92,7 @@ function processManifestPlugin({
   outDir,
   target,
   channel,
-  dev
+  dev,
 }: BuildArgs & { outDir: string }): ESBuildPlugin {
   return {
     name: 'process-manifest',
@@ -102,7 +102,7 @@ function processManifestPlugin({
         const dest = path.join(outDir, 'manifest.json')
 
         const json = JSON.parse(
-          await fs.readFile(src, 'utf8')
+          await fs.readFile(src, 'utf8'),
         ) as WebExtensionManifest
         // Transform manifest as targets have different expectations
         // @ts-expect-error Only for IDE. No target accepts it
@@ -114,7 +114,7 @@ function processManifestPlugin({
           const [year, month, day] = [
             now.getFullYear(),
             now.getMonth() + 1,
-            now.getDate()
+            now.getDate(),
           ]
           json.version = `${year}.${month}.${day}`
           if (target !== 'firefox') {
@@ -145,7 +145,7 @@ function processManifestPlugin({
         if (target === 'firefox') {
           // @ts-expect-error Firefox doesn't support Service Worker in MV3 yet
           json.background = {
-            scripts: [json.background.service_worker]
+            scripts: [json.background.service_worker],
           }
           json.content_scripts?.forEach((contentScript) => {
             // TODO: Remove this when Firefox supports `world` - at least last 10
@@ -159,7 +159,7 @@ function processManifestPlugin({
 
         await fs.writeFile(dest, JSON.stringify(json, null, 2))
       })
-    }
+    },
   }
 }
 
@@ -169,9 +169,9 @@ function cleanPlugin(dirs: string[]): ESBuildPlugin {
     setup(build) {
       build.onStart(async () => {
         await Promise.all(
-          dirs.map((dir) => fs.rm(dir, { recursive: true, force: true }))
+          dirs.map((dir) => fs.rm(dir, { recursive: true, force: true })),
         )
       })
-    }
+    },
   }
 }

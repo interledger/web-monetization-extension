@@ -11,7 +11,7 @@ import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck'
 export const getProdOptions = ({
   outDir,
   target,
-  channel
+  channel,
 }: Omit<BuildArgs, 'dev'> & {
   outDir: string
 }): BuildOptions => {
@@ -22,7 +22,7 @@ export const getProdOptions = ({
     plugins: getPlugins({ outDir, dev: false, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly' }),
       preservePolyfillClassNamesPlugin({ outDir }),
-      zipPlugin({ outDir, target, channel })
+      zipPlugin({ outDir, target, channel }),
     ]),
     define: {
       NODE_ENV: JSON.stringify('production'),
@@ -30,16 +30,16 @@ export const getProdOptions = ({
       CONFIG_PERMISSION_HOSTS: JSON.stringify({ origins: ['https://*/*'] }),
       CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['https:']),
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
-        'https://webmonetization.org/welcome'
-      )
-    }
+        'https://webmonetization.org/welcome',
+      ),
+    },
   }
 }
 
 function zipPlugin({
   outDir,
   target,
-  channel
+  channel,
 }: {
   channel: Channel
   target: Target
@@ -50,7 +50,7 @@ function zipPlugin({
     setup(build) {
       build.onEnd(async () => {
         const manifest = JSON.parse(
-          await fs.readFile(path.join(outDir, 'manifest.json'), 'utf8')
+          await fs.readFile(path.join(outDir, 'manifest.json'), 'utf8'),
         ) as WebExtensionManifest
 
         let zipName = `${target}-${manifest.version}.zip`
@@ -70,7 +70,7 @@ function zipPlugin({
         archive.glob('**/*', { cwd: outDir, ignore: ['meta.json'] })
         await archive.finalize()
       })
-    }
+    },
   }
 }
 
@@ -78,7 +78,7 @@ function zipPlugin({
  * Unmangles the MonetizationEvent class
  */
 function preservePolyfillClassNamesPlugin({
-  outDir
+  outDir,
 }: {
   outDir: string
 }): ESBuildPlugin {
@@ -101,13 +101,13 @@ function preservePolyfillClassNamesPlugin({
           .replace(definitionRegex, `class MonetizationEvent extends Event`)
           .replace(
             `window.MonetizationEvent=${minifiedName}`,
-            `window.MonetizationEvent=MonetizationEvent`
+            `window.MonetizationEvent=MonetizationEvent`,
           )
           .replaceAll(`new ${minifiedName}`, 'new MonetizationEvent')
 
         await fs.writeFile(polyfillPath, result)
       })
-    }
+    },
   }
 }
 

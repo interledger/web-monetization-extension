@@ -16,7 +16,7 @@ const listenForLinkChange = (mutationsList: MutationRecord[]) => {
 
         return acc
       },
-      []
+      [],
     )
 
     if (monetizationLinks.length) {
@@ -41,7 +41,7 @@ export const loadObserver = () => {
   const observeOptions = {
     attributes: true,
     childList: true,
-    subtree: true
+    subtree: true,
   }
 
   observer.observe(document, observeOptions)

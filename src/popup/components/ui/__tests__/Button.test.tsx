@@ -6,7 +6,7 @@ import { Button } from '@/popup/components/ui/Button'
 describe('Button', () => {
   it('should render a button with the `aria-label` attribute', () => {
     const { queryByRole } = render(
-      <Button aria-label="test button">My Button</Button>
+      <Button aria-label="test button">My Button</Button>,
     )
 
     expect(queryByRole('button')).toBeInTheDocument()
@@ -15,7 +15,7 @@ describe('Button', () => {
 
   it('should default to `type="button"`', () => {
     const { queryByRole } = render(
-      <Button aria-label="test button">My Button</Button>
+      <Button aria-label="test button">My Button</Button>,
     )
 
     expect(queryByRole('button')).toBeInTheDocument()
@@ -24,7 +24,7 @@ describe('Button', () => {
 
   it('should not have the `disabled` attribute and `aria-disabled="false"` if `loading` is false', () => {
     const { queryByRole } = render(
-      <Button aria-label="test button">My Button</Button>
+      <Button aria-label="test button">My Button</Button>,
     )
 
     expect(queryByRole('button')).toBeInTheDocument()
@@ -37,7 +37,7 @@ describe('Button', () => {
     const { queryByRole } = render(
       <Button aria-label="test button" loading>
         My Button
-      </Button>
+      </Button>,
     )
 
     expect(queryByRole('button')).toBeInTheDocument()
@@ -48,7 +48,7 @@ describe('Button', () => {
 
   it('should have the `bg-button-base` class by default', () => {
     const { queryByRole } = render(
-      <Button aria-label="test button">My Button</Button>
+      <Button aria-label="test button">My Button</Button>,
     )
 
     expect(queryByRole('button')).toBeInTheDocument()
@@ -59,7 +59,7 @@ describe('Button', () => {
     const { queryByRole } = render(
       <Button aria-label="test button" variant="destructive">
         My Button
-      </Button>
+      </Button>,
     )
 
     expect(queryByRole('button')).toBeInTheDocument()

@@ -2,7 +2,7 @@ import {
   isPendingGrant,
   type IncomingPayment,
   type OutgoingPayment,
-  type WalletAddress
+  type WalletAddress,
 } from '@interledger/open-payments/dist/types'
 import { bigIntMax, convert } from '@/shared/helpers'
 import { transformBalance } from '@/popup/lib/utils'
@@ -11,7 +11,7 @@ import {
   isKeyRevokedError,
   isNonPositiveAmountError,
   isOutOfBalanceError,
-  isTokenExpiredError
+  isTokenExpiredError,
 } from './openPayments'
 import { getNextSendableAmount } from '@/background/utils'
 import type { EventsService, OpenPaymentsService, TabState } from '.'
@@ -19,7 +19,7 @@ import type {
   BackgroundToContentMessage,
   MessageManager,
   MonetizationEventDetails,
-  MonetizationEventPayload
+  MonetizationEventPayload,
 } from '@/shared/messages'
 import type { AmountValue } from '@/shared/types'
 import type { Logger } from '@/shared/logger'
@@ -59,7 +59,7 @@ export class PaymentSession {
     private tabState: TabState,
     private url: string,
     private logger: Logger,
-    private message: MessageManager<BackgroundToContentMessage>
+    private message: MessageManager<BackgroundToContentMessage>,
   ) {}
 
   async adjustAmount(rate: AmountValue): Promise<void> {
@@ -94,14 +94,14 @@ export class PaymentSession {
         const amountInReceiversScale = convert(
           amountToSend,
           senderAssetScale,
-          receiverAssetScale
+          receiverAssetScale,
         )
 
         if (amountInReceiversScale === 0n) {
           amountToSend = convert(
             MIN_SEND_AMOUNT,
             receiverAssetScale,
-            senderAssetScale
+            senderAssetScale,
           )
         }
       }
@@ -113,7 +113,7 @@ export class PaymentSession {
     const amountIter = getNextSendableAmount(
       senderAssetScale,
       receiverAssetScale,
-      bigIntMax(amountToSend, MIN_SEND_AMOUNT)
+      bigIntMax(amountToSend, MIN_SEND_AMOUNT),
     )
 
     amountToSend = BigInt(amountIter.next().value)
@@ -126,7 +126,7 @@ export class PaymentSession {
         await this.openPaymentsService.probeDebitAmount(
           amountToSend.toString(),
           this.incomingPaymentUrl,
-          this.sender
+          this.sender,
         )
         this.setAmount(amountToSend)
         break
@@ -139,7 +139,7 @@ export class PaymentSession {
         } else if (isInvalidReceiverError(e)) {
           this.markInvalid()
           this.events.emit('open_payments.invalid_receiver', {
-            tabId: this.tabId
+            tabId: this.tabId,
           })
           break
         } else {
@@ -205,13 +205,13 @@ export class PaymentSession {
   private debug(message: string) {
     this.logger.debug(
       `[PAYMENT SESSION] requestId=${this.requestId}; receiver=${this.receiver.id}\n\n`,
-      `   ${message}`
+      `   ${message}`,
     )
   }
 
   async start(source: PaymentSessionSource) {
     this.debug(
-      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled} isInvalid=${this.isInvalid}`
+      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled} isInvalid=${this.isInvalid}`,
     )
     if (this.active || this.isDisabled || this.isInvalid) return
     this.debug(`Session started; source=${source}`)
@@ -222,7 +222,7 @@ export class PaymentSession {
     const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
       this.tabId,
       this.url,
-      this.receiver.id
+      this.receiver.id,
     )
 
     this.debug(`Overpaying: waitTime=${waitTime}`)
@@ -230,7 +230,7 @@ export class PaymentSession {
     if (monetizationEvent && source !== 'tab-change') {
       this.sendMonetizationEvent({
         requestId: this.requestId,
-        details: monetizationEvent
+        details: monetizationEvent,
       })
     }
 
@@ -261,7 +261,7 @@ export class PaymentSession {
           () => {
             continuePayment()
           },
-          this.shouldRetryImmediately ? 0 : this.intervalInMs
+          this.shouldRetryImmediately ? 0 : this.intervalInMs,
         )
       })
     }
@@ -273,7 +273,7 @@ export class PaymentSession {
           () => {
             continuePayment()
           },
-          this.shouldRetryImmediately ? 0 : this.intervalInMs
+          this.shouldRetryImmediately ? 0 : this.intervalInMs,
         )
       }, waitTime)
     }
@@ -284,7 +284,7 @@ export class PaymentSession {
       this.tabId,
       this.frameId,
       'MONETIZATION_EVENT',
-      payload
+      payload,
     )
   }
 
@@ -308,16 +308,16 @@ export class PaymentSession {
   }
 
   private async createIncomingPayment(
-    source: IncomingPaymentSource
+    source: IncomingPaymentSource,
   ): Promise<IncomingPayment> {
     const expiresAt = new Date(
-      Date.now() + 1000 * (source === 'continuous' ? 60 * 10 : 30)
+      Date.now() + 1000 * (source === 'continuous' ? 60 * 10 : 30),
     ).toISOString()
 
     const incomingPaymentGrant =
       await this.openPaymentsService.client!.grant.request(
         {
-          url: this.receiver.authServer
+          url: this.receiver.authServer,
         },
         {
           access_token: {
@@ -325,11 +325,11 @@ export class PaymentSession {
               {
                 type: 'incoming-payment',
                 actions: ['create'],
-                identifier: this.receiver.id
-              }
-            ]
-          }
-        }
+                identifier: this.receiver.id,
+              },
+            ],
+          },
+        },
       )
 
     if (isPendingGrant(incomingPaymentGrant)) {
@@ -340,27 +340,27 @@ export class PaymentSession {
       await this.openPaymentsService.client!.incomingPayment.create(
         {
           url: this.receiver.resourceServer,
-          accessToken: incomingPaymentGrant.access_token.value
+          accessToken: incomingPaymentGrant.access_token.value,
         },
         {
           walletAddress: this.receiver.id,
           expiresAt,
           metadata: {
-            source: 'Web Monetization'
-          }
-        }
+            source: 'Web Monetization',
+          },
+        },
       )
 
     if (incomingPayment.expiresAt) {
       this.incomingPaymentExpiresAt = new Date(
-        incomingPayment.expiresAt
+        incomingPayment.expiresAt,
       ).valueOf()
     }
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
     await this.openPaymentsService.client!.grant.cancel({
       url: incomingPaymentGrant.continue.uri,
-      accessToken: incomingPaymentGrant.continue.access_token.value
+      accessToken: incomingPaymentGrant.continue.access_token.value,
     })
 
     return incomingPayment
@@ -378,7 +378,7 @@ export class PaymentSession {
           return
         }
         throw error
-      }
+      },
     )
     if (!incomingPayment) return
 
@@ -388,7 +388,7 @@ export class PaymentSession {
       outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
         walletAddress: this.sender,
         incomingPaymentId: incomingPayment.id,
-        amount: (amount * 10 ** this.sender.assetScale).toFixed(0)
+        amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
       })
     } catch (e) {
       if (isKeyRevokedError(e)) {
@@ -409,12 +409,12 @@ export class PaymentSession {
               currency: receiveAmount.assetCode,
               value: transformBalance(
                 receiveAmount.value,
-                receiveAmount.assetScale
-              )
+                receiveAmount.assetScale,
+              ),
             },
             incomingPayment,
-            paymentPointer: this.receiver.id
-          }
+            paymentPointer: this.receiver.id,
+          },
         })
       }
     }
@@ -433,21 +433,24 @@ export class PaymentSession {
         await this.openPaymentsService.createOutgoingPayment({
           walletAddress: this.sender,
           incomingPaymentId: this.incomingPaymentUrl,
-          amount: this.amount
+          amount: this.amount,
         })
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment
       const monetizationEventDetails: MonetizationEventDetails = {
         amountSent: {
           currency: receiveAmount.assetCode,
-          value: transformBalance(receiveAmount.value, receiveAmount.assetScale)
+          value: transformBalance(
+            receiveAmount.value,
+            receiveAmount.assetScale,
+          ),
         },
         incomingPayment,
-        paymentPointer: this.receiver.id
+        paymentPointer: this.receiver.id,
       }
 
       this.sendMonetizationEvent({
         requestId: this.requestId,
-        details: monetizationEventDetails
+        details: monetizationEventDetails,
       })
 
       // TO DO: find a better source of truth for deciding if overpaying is applicable
@@ -455,7 +458,7 @@ export class PaymentSession {
         this.tabState.saveOverpaying(this.tabId, this.url, {
           walletAddressId: this.receiver.id,
           monetizationEvent: monetizationEventDetails,
-          intervalInMs: this.intervalInMs
+          intervalInMs: this.intervalInMs,
         })
       }
       this.shouldRetryImmediately = false
@@ -484,7 +487,7 @@ export class PaymentSession {
           ) {
             this.markInvalid()
             this.events.emit('open_payments.invalid_receiver', {
-              tabId: this.tabId
+              tabId: this.tabId,
             })
           } else {
             this.shouldRetryImmediately = true

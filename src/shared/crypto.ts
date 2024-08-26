@@ -30,6 +30,6 @@ export function exportJWK(key: Uint8Array, kid: string) {
     kty: 'OKP',
     crv: 'Ed25519',
     x: base64Url,
-    kid
+    kid,
   }
 }

@@ -18,19 +18,19 @@ export class Heartbeat {
     // first minute that our extension stays alive.
     setTimeout(
       () => alarms.create('keep-alive-alarm-0', { periodInMinutes: 1 }),
-      0
+      0,
     )
     setTimeout(
       () => alarms.create('keep-alive-alarm-1', { periodInMinutes: 1 }),
-      15 * 1000
+      15 * 1000,
     )
     setTimeout(
       () => alarms.create('keep-alive-alarm-2', { periodInMinutes: 1 }),
-      30 * 1000
+      30 * 1000,
     )
     setTimeout(
       () => alarms.create('keep-alive-alarm-3', { periodInMinutes: 1 }),
-      45 * 1000
+      45 * 1000,
     )
 
     alarms.onAlarm.addListener(() => {

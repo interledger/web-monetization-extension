@@ -8,7 +8,7 @@ import type {
   MonetizationEventPayload,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
-  StopMonetizationPayload
+  StopMonetizationPayload,
 } from '@/shared/messages'
 import { ContentToContentAction } from '../messages'
 import type { Cradle } from '@/content/container'
@@ -39,14 +39,14 @@ export class MonetizationTagManager extends EventEmitter {
       window,
       document,
       logger,
-      message
+      message,
     })
 
     this.documentObserver = new MutationObserver((records) =>
-      this.onWholeDocumentObserved(records)
+      this.onWholeDocumentObserved(records),
     )
     this.monetizationTagAttrObserver = new MutationObserver((records) =>
-      this.onMonetizationTagAttrsChange(records)
+      this.onMonetizationTagAttrsChange(records),
     )
 
     document.addEventListener('visibilitychange', async () => {
@@ -81,8 +81,8 @@ export class MonetizationTagManager extends EventEmitter {
       tag.dispatchEvent(
         new CustomEvent('__wm_ext_monetization', {
           detail: mozClone(details, this.document),
-          bubbles: true
-        })
+          bubbles: true,
+        }),
       )
     })
     return
@@ -201,7 +201,7 @@ export class MonetizationTagManager extends EventEmitter {
             try {
               const { requestId, walletAddress } = this.getTagDetails(
                 target,
-                'onChangeDisabled'
+                'onChangeDisabled',
               )
               if (isDisabled) {
                 stopMonetizationTags.push({ requestId, intent: 'disable' })
@@ -262,7 +262,7 @@ export class MonetizationTagManager extends EventEmitter {
     this.monetizationTagAttrObserver.observe(tag, {
       childList: false,
       attributeOldValue: true,
-      attributeFilter: ['href', 'disabled', 'rel', 'crossorigin', 'type']
+      attributeFilter: ['href', 'disabled', 'rel', 'crossorigin', 'type'],
     })
   }
 
@@ -271,7 +271,7 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (!tagDetails) {
       throw new Error(
-        `${caller}: tag not tracked: ${tag.outerHTML.slice(0, 200)}`
+        `${caller}: tag not tracked: ${tag.outerHTML.slice(0, 200)}`,
       )
     }
 
@@ -282,7 +282,7 @@ export class MonetizationTagManager extends EventEmitter {
   async onChangedWalletAddressUrl(
     tag: MonetizationTag,
     wasDisabled = false,
-    isDisabled = false
+    isDisabled = false,
   ) {
     let stopMonetizationTag = null
 
@@ -304,7 +304,7 @@ export class MonetizationTagManager extends EventEmitter {
       ) {
         this.fireOnMonetizationAttrChangedEvent({
           node: record.target,
-          changeDetected: true
+          changeDetected: true,
         })
       }
     }
@@ -312,7 +312,7 @@ export class MonetizationTagManager extends EventEmitter {
 
   private fireOnMonetizationAttrChangedEvent({
     node,
-    changeDetected = false
+    changeDetected = false,
   }: FireOnMonetizationChangeIfHaveAttributeParams) {
     const attribute = node.getAttribute('onmonetization')
 
@@ -320,7 +320,7 @@ export class MonetizationTagManager extends EventEmitter {
 
     const customEvent = new CustomEvent('__wm_ext_onmonetization_attr_change', {
       bubbles: true,
-      detail: mozClone({ attribute }, this.document)
+      detail: mozClone({ attribute }, this.document),
     })
 
     node.dispatchEvent(customEvent)
@@ -353,11 +353,11 @@ export class MonetizationTagManager extends EventEmitter {
                 this.run()
               }
             },
-            { once: true }
+            { once: true },
           )
         }
       },
-      { once: true }
+      { once: true },
     )
   }
 
@@ -366,9 +366,9 @@ export class MonetizationTagManager extends EventEmitter {
       this.window.parent.postMessage(
         {
           message: ContentToContentAction.INITIALIZE_IFRAME,
-          id: this.id
+          id: this.id,
         },
-        '*'
+        '*',
       )
     }
 
@@ -376,7 +376,7 @@ export class MonetizationTagManager extends EventEmitter {
 
     if (this.isTopFrame) {
       monetizationTags = this.document.querySelectorAll(
-        'link[rel="monetization"]'
+        'link[rel="monetization"]',
       )
     } else {
       const monetizationTag: MonetizationTag | null =
@@ -418,7 +418,7 @@ export class MonetizationTagManager extends EventEmitter {
     this.documentObserver.observe(this.document, {
       subtree: true,
       childList: true,
-      attributeFilter: ['onmonetization']
+      attributeFilter: ['onmonetization'],
     })
   }
 
@@ -439,7 +439,7 @@ export class MonetizationTagManager extends EventEmitter {
   // Add tag to list & start monetization
   private async onAddedTag(
     tag: MonetizationTag,
-    crtRequestId?: string
+    crtRequestId?: string,
   ): Promise<StartMonetizationPayload | null> {
     const walletAddress = await this.checkTag(tag)
     if (!walletAddress) return null
@@ -447,7 +447,7 @@ export class MonetizationTagManager extends EventEmitter {
     const requestId = crtRequestId ?? crypto.randomUUID()
     const details: MonetizationTagDetails = {
       walletAddress,
-      requestId
+      requestId,
     }
 
     this.monetizationTags.set(tag, details)
@@ -466,9 +466,9 @@ export class MonetizationTagManager extends EventEmitter {
         {
           message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
           id: this.id,
-          payload: tags
+          payload: tags,
         },
-        '*'
+        '*',
       )
     }
   }
@@ -488,9 +488,9 @@ export class MonetizationTagManager extends EventEmitter {
         {
           message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
           id: this.id,
-          payload: tags
+          payload: tags,
         },
-        '*'
+        '*',
       )
     }
   }
@@ -508,18 +508,18 @@ export class MonetizationTagManager extends EventEmitter {
   }
 
   private async validateWalletAddress(
-    tag: MonetizationTag
+    tag: MonetizationTag,
   ): Promise<WalletAddress | null> {
     const walletAddressUrl = tag.href.trim()
     try {
       checkWalletAddressUrlFormat(walletAddressUrl)
       const response = await this.message.send('CHECK_WALLET_ADDRESS_URL', {
-        walletAddressUrl
+        walletAddressUrl,
       })
 
       if (response.success === false) {
         throw new Error(
-          `Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`
+          `Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`,
         )
       }
 

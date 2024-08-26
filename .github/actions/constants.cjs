@@ -10,7 +10,7 @@ const BADGE =
 const BROWSERS = ['chrome', 'firefox']
 const COLORS = {
   green: '3fb950',
-  red: 'd73a49'
+  red: 'd73a49',
 }
 const TEMPLATE_VARS = {
   tableBody: '{{ TABLE_BODY }}',
@@ -18,12 +18,12 @@ const TEMPLATE_VARS = {
   conclusion: '{{ CONCLUSION }}',
   badgeColor: '{{ BADGE_COLOR }}',
   badgeLabel: '{{ BADGE_LABEL }}',
-  jobLogs: '{{ JOB_LOGS }}'
+  jobLogs: '{{ JOB_LOGS }}',
 }
 
 module.exports = {
   BADGE,
   BROWSERS,
   COLORS,
-  TEMPLATE_VARS
+  TEMPLATE_VARS,
 }

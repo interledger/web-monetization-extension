@@ -28,7 +28,7 @@ import type { MonetizationEventPayload } from '@/shared/messages'
       } else {
         throw new Error('val must be a function, got ' + typeof val)
       }
-    }
+    },
   }
 
   const supportsOriginal = DOMTokenList.prototype.supports
@@ -44,7 +44,7 @@ import type { MonetizationEventPayload } from '@/shared/messages'
 
   const relList = Object.getOwnPropertyDescriptor(
     HTMLLinkElement.prototype,
-    'relList'
+    'relList',
   )!
   const relListGetOriginal = relList.get!
 
@@ -67,7 +67,7 @@ import type { MonetizationEventPayload } from '@/shared/messages'
 
     constructor(
       type: 'monetization',
-      eventInitDict: MonetizationEventPayload['details']
+      eventInitDict: MonetizationEventPayload['details'],
     ) {
       super(type, { bubbles: true })
       const { amountSent, incomingPayment, paymentPointer } = eventInitDict
@@ -103,10 +103,10 @@ import type { MonetizationEventPayload } from '@/shared/messages'
 
       const monetizationTag = event.target
       monetizationTag.dispatchEvent(
-        new MonetizationEvent('monetization', event.detail)
+        new MonetizationEvent('monetization', event.detail),
       )
     },
-    { capture: true }
+    { capture: true },
   )
 
   window.addEventListener(
@@ -120,6 +120,6 @@ import type { MonetizationEventPayload } from '@/shared/messages'
         ? new Function(attribute).bind(event.target)
         : null
     },
-    { capture: true }
+    { capture: true },
   )
 })()

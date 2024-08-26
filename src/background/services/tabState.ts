@@ -25,7 +25,7 @@ export class TabState {
 
   constructor({ logger }: Cradle) {
     Object.assign(this, {
-      logger
+      logger,
     })
   }
 
@@ -42,7 +42,7 @@ export class TabState {
   getOverpayingDetails(
     tabId: TabId,
     url: string,
-    walletAddressId: string
+    walletAddressId: string,
   ): { waitTime: number; monetizationEvent?: MonetizationEventDetails } {
     const key = this.getOverpayingStateKey(url, walletAddressId)
     const state = this.state.get(tabId)?.get(key)
@@ -51,19 +51,19 @@ export class TabState {
     if (state && state.expiresAtTimestamp > now) {
       return {
         waitTime: state.expiresAtTimestamp - now,
-        monetizationEvent: state.monetizationEvent
+        monetizationEvent: state.monetizationEvent,
       }
     }
 
     return {
-      waitTime: 0
+      waitTime: 0,
     }
   }
 
   saveOverpaying(
     tabId: TabId,
     url: string,
-    details: SaveOverpayingDetails
+    details: SaveOverpayingDetails,
   ): void {
     const { intervalInMs, walletAddressId, monetizationEvent } = details
     if (!intervalInMs) return
@@ -79,7 +79,7 @@ export class TabState {
       tabState.set(key, {
         monetizationEvent,
         expiresAtTimestamp: expiresAtTimestamp,
-        lastPaymentTimestamp: now
+        lastPaymentTimestamp: now,
       })
       this.state.set(tabId, tabState)
     } else {

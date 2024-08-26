@@ -3,7 +3,7 @@ import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked'
 import {
   useMessage,
   usePopupState,
-  ReducerActionType
+  ReducerActionType,
 } from '@/popup/lib/context'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES_PATH } from '@/popup/Popup'
@@ -12,14 +12,14 @@ export const Component = () => {
   const message = useMessage()
   const {
     state: { publicKey, walletAddress },
-    dispatch
+    dispatch,
   } = usePopupState()
   const navigate = useNavigate()
 
   const onReconnect = () => {
     dispatch({
       type: 'SET_STATE',
-      data: { state: {}, prevState: {} }
+      data: { state: {}, prevState: {} },
     })
     navigate(ROUTES_PATH.HOME)
   }
@@ -27,7 +27,7 @@ export const Component = () => {
   const onDisconnect = () => {
     dispatch({
       type: ReducerActionType.SET_CONNECTED,
-      data: { value: false }
+      data: { value: false },
     })
     navigate(ROUTES_PATH.HOME)
   }

@@ -22,20 +22,20 @@ export const options: BuildOptions = {
   entryPoints: [
     {
       in: path.join(SRC_DIR, 'background', 'index.ts'),
-      out: path.join('background', 'background')
+      out: path.join('background', 'background'),
     },
     {
       in: path.join(SRC_DIR, 'content', 'index.ts'),
-      out: path.join('content', 'content')
+      out: path.join('content', 'content'),
     },
     {
       in: path.join(SRC_DIR, 'content', 'polyfill.ts'),
-      out: path.join('polyfill', 'polyfill')
+      out: path.join('polyfill', 'polyfill'),
     },
     {
       in: path.join(SRC_DIR, 'popup', 'index.tsx'),
-      out: path.join('popup', 'popup')
-    }
+      out: path.join('popup', 'popup'),
+    },
   ],
   bundle: true,
   legalComments: 'none',
@@ -44,7 +44,7 @@ export const options: BuildOptions = {
   format: 'iife',
   write: true,
   logLevel: 'info',
-  treeShaking: true
+  treeShaking: true,
 }
 
 export type WebExtensionManifest = Manifest.WebExtensionManifest & {
@@ -53,5 +53,5 @@ export type WebExtensionManifest = Manifest.WebExtensionManifest & {
 
 export const SERVE_PORTS: Record<Target, number> = {
   chrome: 7000,
-  firefox: 7002
+  firefox: 7002,
 }
