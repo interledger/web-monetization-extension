@@ -1,25 +1,25 @@
-import React from 'react'
-import { useForm } from 'react-hook-form'
-import type { RecurringGrant, OneTimeGrant, AmountValue } from '@/shared/types'
-import type { AddFundsPayload, Response } from '@/shared/messages'
-import type { WalletAddress } from '@interledger/open-payments'
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import type { RecurringGrant, OneTimeGrant, AmountValue } from '@/shared/types';
+import type { AddFundsPayload, Response } from '@/shared/messages';
+import type { WalletAddress } from '@interledger/open-payments';
 import {
   charIsNumber,
   formatNumber,
   getCurrencySymbol,
   transformBalance,
-} from '@/popup/lib/utils'
-import { useTranslation } from '@/popup/lib/context'
-import { getNextOccurrence } from '@/shared/helpers'
-import { ErrorMessage } from '@/popup/components/ErrorMessage'
-import { Button } from '@/popup/components/ui/Button'
-import { Input } from '@/popup/components/ui/Input'
+} from '@/popup/lib/utils';
+import { useTranslation } from '@/popup/lib/context';
+import { getNextOccurrence } from '@/shared/helpers';
+import { ErrorMessage } from '@/popup/components/ErrorMessage';
+import { Button } from '@/popup/components/ui/Button';
+import { Input } from '@/popup/components/ui/Input';
 
 interface OutOfFundsProps {
-  info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
-  grantRecurring?: RecurringGrant['amount']
-  grantOneTime?: OneTimeGrant['amount']
-  onChooseOption: (recurring: boolean) => void
+  info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>;
+  grantRecurring?: RecurringGrant['amount'];
+  grantOneTime?: OneTimeGrant['amount'];
+  onChooseOption: (recurring: boolean) => void;
 }
 
 export const OutOfFunds = ({
@@ -29,9 +29,9 @@ export const OutOfFunds = ({
   onChooseOption,
 }: OutOfFundsProps) => {
   if (!grantOneTime && !grantRecurring) {
-    throw new Error('Provide at least one of grantOneTime and grantRecurring')
+    throw new Error('Provide at least one of grantOneTime and grantRecurring');
   }
-  const t = useTranslation()
+  const t = useTranslation();
 
   return (
     <div className="flex flex-col gap-4">
@@ -61,14 +61,14 @@ export const OutOfFunds = ({
         {t('outOfFunds_action_optionOneTime')}
       </Button>
     </div>
-  )
-}
+  );
+};
 
 interface AddFundsProps {
-  info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>
-  recurring: boolean
-  defaultAmount: AmountValue
-  requestAddFunds: (details: AddFundsPayload) => Promise<Response>
+  info: Pick<WalletAddress, 'id' | 'assetCode' | 'assetScale'>;
+  recurring: boolean;
+  defaultAmount: AmountValue;
+  requestAddFunds: (details: AddFundsPayload) => Promise<Response>;
 }
 
 export function AddFunds({
@@ -77,7 +77,7 @@ export function AddFunds({
   recurring,
   requestAddFunds,
 }: AddFundsProps) {
-  const t = useTranslation()
+  const t = useTranslation();
   const {
     register,
     handleSubmit,
@@ -91,9 +91,9 @@ export function AddFunds({
     defaultValues: {
       amount: transformBalance(defaultAmount, info.assetScale),
     },
-  })
+  });
 
-  const currencySymbol = getCurrencySymbol(info.assetCode)
+  const currencySymbol = getCurrencySymbol(info.assetCode);
 
   return (
     <form
@@ -102,9 +102,9 @@ export function AddFunds({
         const response = await requestAddFunds({
           amount: data.amount,
           recurring: !!recurring,
-        })
+        });
         if (!response.success) {
-          setError('root', { message: response.message })
+          setError('root', { message: response.message });
         }
       })}
     >
@@ -138,7 +138,7 @@ export function AddFunds({
             e.key !== 'Delete' &&
             e.key !== 'Tab'
           ) {
-            e.preventDefault()
+            e.preventDefault();
           }
         }}
         errorMessage={errors.amount?.message}
@@ -146,7 +146,7 @@ export function AddFunds({
           required: { value: true, message: 'Amount is required.' },
           valueAsNumber: false,
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            setValue('amount', formatNumber(+e.currentTarget.value, 2))
+            setValue('amount', formatNumber(+e.currentTarget.value, 2));
           },
         })}
       />
@@ -164,35 +164,35 @@ export function AddFunds({
           : t('outOfFundsAddFunds_action_addOneTime')}
       </Button>
     </form>
-  )
+  );
 }
 
 function RecurringAutoRenewInfo({
   grantRecurring,
   info,
 }: Pick<OutOfFundsProps, 'grantRecurring' | 'info'>) {
-  const t = useTranslation()
+  const t = useTranslation();
 
-  if (!grantRecurring) return null
+  if (!grantRecurring) return null;
 
-  const currencySymbol = getCurrencySymbol(info.assetCode)
-  const amount = transformBalance(grantRecurring.value, info.assetScale)
-  const renewDate = getNextOccurrence(grantRecurring.interval, new Date())
+  const currencySymbol = getCurrencySymbol(info.assetCode);
+  const amount = transformBalance(grantRecurring.value, info.assetScale);
+  const renewDate = getNextOccurrence(grantRecurring.interval, new Date());
   const renewDateLocalized = renewDate.toLocaleString(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',
-  })
+  });
 
   return t('outOfFunds_error_textDoNothing', [
     `${currencySymbol}${amount}`,
     renewDateLocalized,
-  ])
+  ]);
 }
 
 function getNextOccurrenceDate(period: 'P1M', baseDate = new Date()) {
   const date = getNextOccurrence(
     `R/${baseDate.toISOString()}/${period}`,
     baseDate,
-  )
-  return date.toLocaleDateString(undefined, { dateStyle: 'medium' })
+  );
+  return date.toLocaleDateString(undefined, { dateStyle: 'medium' });
 }

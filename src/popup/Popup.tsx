@@ -1,19 +1,19 @@
-import { MainLayout } from '@/popup/components/layout/MainLayout'
+import { MainLayout } from '@/popup/components/layout/MainLayout';
 import {
   BrowserContextProvider,
   MessageContextProvider,
   PopupContextProvider,
   TranslationContextProvider,
-} from './lib/context'
-import { LazyMotion, domAnimation } from 'framer-motion'
-import React from 'react'
-import browser from 'webextension-polyfill'
-import { ProtectedRoute } from '@/popup/components/ProtectedRoute'
+} from './lib/context';
+import { LazyMotion, domAnimation } from 'framer-motion';
+import React from 'react';
+import browser from 'webextension-polyfill';
+import { ProtectedRoute } from '@/popup/components/ProtectedRoute';
 import {
   RouteObject,
   RouterProvider,
   createMemoryRouter,
-} from 'react-router-dom'
+} from 'react-router-dom';
 
 export const ROUTES_PATH = {
   HOME: '/',
@@ -22,7 +22,7 @@ export const ROUTES_PATH = {
   OUT_OF_FUNDS: '/out-of-funds',
   OUT_OF_FUNDS_ADD_FUNDS: '/out-of-funds/s/add-funds',
   ERROR_KEY_REVOKED: '/error/key-revoked',
-} as const
+} as const;
 
 export const routes = [
   {
@@ -63,9 +63,9 @@ export const routes = [
       },
     ],
   },
-] satisfies RouteObject[]
+] satisfies RouteObject[];
 
-const router = createMemoryRouter(routes)
+const router = createMemoryRouter(routes);
 
 export const Popup = () => {
   return (
@@ -80,5 +80,5 @@ export const Popup = () => {
         </MessageContextProvider>
       </BrowserContextProvider>
     </LazyMotion>
-  )
-}
+  );
+};

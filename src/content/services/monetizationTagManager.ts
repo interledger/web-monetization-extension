@@ -1,193 +1,193 @@
-import { EventEmitter } from 'events'
-import { mozClone } from '../utils'
-import type { MonetizationTagDetails } from '../types'
-import type { WalletAddress } from '@interledger/open-payments/dist/types'
-import { checkWalletAddressUrlFormat } from '../utils'
+import { EventEmitter } from 'events';
+import { mozClone } from '../utils';
+import type { MonetizationTagDetails } from '../types';
+import type { WalletAddress } from '@interledger/open-payments/dist/types';
+import { checkWalletAddressUrlFormat } from '../utils';
 import type {
   EmitToggleWMPayload,
   MonetizationEventPayload,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload,
-} from '@/shared/messages'
-import { ContentToContentAction } from '../messages'
-import type { Cradle } from '@/content/container'
+} from '@/shared/messages';
+import { ContentToContentAction } from '../messages';
+import type { Cradle } from '@/content/container';
 
-export type MonetizationTag = HTMLLinkElement
+export type MonetizationTag = HTMLLinkElement;
 
 interface FireOnMonetizationChangeIfHaveAttributeParams {
-  node: HTMLElement
-  changeDetected?: boolean
+  node: HTMLElement;
+  changeDetected?: boolean;
 }
 
 export class MonetizationTagManager extends EventEmitter {
-  private window: Cradle['window']
-  private document: Cradle['document']
-  private logger: Cradle['logger']
-  private message: Cradle['message']
+  private window: Cradle['window'];
+  private document: Cradle['document'];
+  private logger: Cradle['logger'];
+  private message: Cradle['message'];
 
-  private isTopFrame: boolean
-  private isFirstLevelFrame: boolean
-  private documentObserver: MutationObserver
-  private monetizationTagAttrObserver: MutationObserver
-  private id: string
-  private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>()
+  private isTopFrame: boolean;
+  private isFirstLevelFrame: boolean;
+  private documentObserver: MutationObserver;
+  private monetizationTagAttrObserver: MutationObserver;
+  private id: string;
+  private monetizationTags = new Map<MonetizationTag, MonetizationTagDetails>();
 
   constructor({ window, document, logger, message }: Cradle) {
-    super()
+    super();
     Object.assign(this, {
       window,
       document,
       logger,
       message,
-    })
+    });
 
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records),
-    )
+    );
     this.monetizationTagAttrObserver = new MutationObserver((records) =>
       this.onMonetizationTagAttrsChange(records),
-    )
+    );
 
     document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible') {
-        await this.resumeAllMonetization()
+        await this.resumeAllMonetization();
       } else {
-        this.stopAllMonetization()
+        this.stopAllMonetization();
       }
-    })
+    });
 
-    this.isTopFrame = window === window.top
-    this.isFirstLevelFrame = window.parent === window.top
-    this.id = crypto.randomUUID()
+    this.isTopFrame = window === window.top;
+    this.isFirstLevelFrame = window.parent === window.top;
+    this.id = crypto.randomUUID();
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
-      this.bindMessageHandler()
+      this.bindMessageHandler();
     }
   }
 
   private dispatchLoadEvent(tag: MonetizationTag) {
-    tag.dispatchEvent(new Event('load'))
+    tag.dispatchEvent(new Event('load'));
   }
 
   private dispatchErrorEvent(tag: MonetizationTag) {
-    tag.dispatchEvent(new Event('error'))
+    tag.dispatchEvent(new Event('error'));
   }
 
   dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
     this.monetizationTags.forEach((tagDetails, tag) => {
-      if (tagDetails.requestId !== requestId) return
+      if (tagDetails.requestId !== requestId) return;
 
       tag.dispatchEvent(
         new CustomEvent('__wm_ext_monetization', {
           detail: mozClone(details, this.document),
           bubbles: true,
         }),
-      )
-    })
-    return
+      );
+    });
+    return;
   }
 
   private async resumeAllMonetization() {
-    const response = await this.message.send('IS_WM_ENABLED')
+    const response = await this.message.send('IS_WM_ENABLED');
 
     if (response.success && response.payload) {
-      const resumeMonetizationTags: ResumeMonetizationPayload[] = []
+      const resumeMonetizationTags: ResumeMonetizationPayload[] = [];
 
       this.monetizationTags.forEach((value) => {
         if (value.requestId && value.walletAddress) {
-          resumeMonetizationTags.push({ requestId: value.requestId })
+          resumeMonetizationTags.push({ requestId: value.requestId });
         }
-      })
+      });
 
-      this.sendResumeMonetization(resumeMonetizationTags)
+      this.sendResumeMonetization(resumeMonetizationTags);
     }
   }
 
   private stopAllMonetization(intent?: StopMonetizationPayload['intent']) {
-    const stopMonetizationTags: StopMonetizationPayload[] = []
+    const stopMonetizationTags: StopMonetizationPayload[] = [];
     this.monetizationTags.forEach((value) => {
       if (value.requestId && value.walletAddress) {
-        stopMonetizationTags.push({ requestId: value.requestId, intent })
+        stopMonetizationTags.push({ requestId: value.requestId, intent });
       }
-    })
+    });
 
-    this.sendStopMonetization(stopMonetizationTags)
+    this.sendStopMonetization(stopMonetizationTags);
   }
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
     const startMonetizationTagsPromises: Promise<StartMonetizationPayload | null>[] =
-      []
-    const stopMonetizationTags: StopMonetizationPayload[] = []
+      [];
+    const stopMonetizationTags: StopMonetizationPayload[] = [];
 
     for (const record of records) {
       if (record.type === 'childList') {
         record.removedNodes.forEach(async (node) => {
-          const stopMonetizationTag = this.checkRemoved(node)
+          const stopMonetizationTag = this.checkRemoved(node);
           if (stopMonetizationTag)
-            stopMonetizationTags.push(stopMonetizationTag)
-        })
+            stopMonetizationTags.push(stopMonetizationTag);
+        });
       }
     }
 
-    await this.sendStopMonetization(stopMonetizationTags)
+    await this.sendStopMonetization(stopMonetizationTags);
 
     if (this.isTopFrame) {
       for (const record of records) {
         if (record.type === 'childList') {
           record.addedNodes.forEach(async (node) => {
-            const startMonetizationTag = this.checkAdded(node)
-            startMonetizationTagsPromises.push(startMonetizationTag)
-          })
+            const startMonetizationTag = this.checkAdded(node);
+            startMonetizationTagsPromises.push(startMonetizationTag);
+          });
         }
       }
 
       Promise.allSettled(startMonetizationTagsPromises).then((result) => {
-        const startMonetizationTags: StartMonetizationPayload[] = []
+        const startMonetizationTags: StartMonetizationPayload[] = [];
         result.forEach((res) => {
           if (res.status === 'fulfilled' && res.value) {
-            startMonetizationTags.push(res.value)
+            startMonetizationTags.push(res.value);
           }
-        })
+        });
 
-        this.sendStartMonetization(startMonetizationTags)
-      })
+        this.sendStartMonetization(startMonetizationTags);
+      });
     }
 
-    this.onOnMonetizationChangeObserved(records)
+    this.onOnMonetizationChangeObserved(records);
   }
 
   async onMonetizationTagAttrsChange(records: MutationRecord[]) {
-    const handledTags = new Set<Node>()
-    const startMonetizationTags: StartMonetizationPayload[] = []
-    const stopMonetizationTags: StopMonetizationPayload[] = []
+    const handledTags = new Set<Node>();
+    const startMonetizationTags: StartMonetizationPayload[] = [];
+    const stopMonetizationTags: StopMonetizationPayload[] = [];
 
     // Check for a non specified link with the type now specified and
     // just treat it as a newly seen, monetization tag
     for (const record of records) {
-      const target = record.target as MonetizationTag
+      const target = record.target as MonetizationTag;
       if (handledTags.has(target)) {
-        continue
+        continue;
       }
-      const hasTarget = this.monetizationTags.has(target)
+      const hasTarget = this.monetizationTags.has(target);
       const typeSpecified =
-        target instanceof HTMLLinkElement && target.rel === 'monetization'
+        target instanceof HTMLLinkElement && target.rel === 'monetization';
       // this will also handle the case of a @disabled tag that
       // is not tracked, becoming enabled
       if (!hasTarget && typeSpecified) {
-        const startMonetizationTag = await this.onAddedTag(target)
+        const startMonetizationTag = await this.onAddedTag(target);
         if (startMonetizationTag)
-          startMonetizationTags.push(startMonetizationTag)
+          startMonetizationTags.push(startMonetizationTag);
 
-        handledTags.add(target)
+        handledTags.add(target);
       } else if (hasTarget && !typeSpecified) {
-        const stopMonetizationTag = this.onRemovedTag(target)
-        stopMonetizationTags.push(stopMonetizationTag)
+        const stopMonetizationTag = this.onRemovedTag(target);
+        stopMonetizationTags.push(stopMonetizationTag);
 
-        handledTags.add(target)
+        handledTags.add(target);
       } else if (!hasTarget && !typeSpecified) {
         // ignore these changes
-        handledTags.add(target)
+        handledTags.add(target);
       } else if (hasTarget && typeSpecified) {
         if (
           record.type === 'attributes' &&
@@ -195,27 +195,27 @@ export class MonetizationTagManager extends EventEmitter {
           target instanceof HTMLLinkElement &&
           target.getAttribute('disabled') !== record.oldValue
         ) {
-          const wasDisabled = record.oldValue !== null
-          const isDisabled = target.hasAttribute('disabled')
+          const wasDisabled = record.oldValue !== null;
+          const isDisabled = target.hasAttribute('disabled');
           if (wasDisabled != isDisabled) {
             try {
               const { requestId, walletAddress } = this.getTagDetails(
                 target,
                 'onChangeDisabled',
-              )
+              );
               if (isDisabled) {
-                stopMonetizationTags.push({ requestId, intent: 'disable' })
+                stopMonetizationTags.push({ requestId, intent: 'disable' });
               } else if (walletAddress) {
-                startMonetizationTags.push({ requestId, walletAddress })
+                startMonetizationTags.push({ requestId, walletAddress });
               }
             } catch {
-              const startMonetizationPayload = await this.onAddedTag(target)
+              const startMonetizationPayload = await this.onAddedTag(target);
               if (startMonetizationPayload) {
-                startMonetizationTags.push(startMonetizationPayload)
+                startMonetizationTags.push(startMonetizationPayload);
               }
             }
 
-            handledTags.add(target)
+            handledTags.add(target);
           }
         } else if (
           record.type === 'attributes' &&
@@ -224,38 +224,38 @@ export class MonetizationTagManager extends EventEmitter {
           target.href !== record.oldValue
         ) {
           const { startMonetizationTag, stopMonetizationTag } =
-            await this.onChangedWalletAddressUrl(target)
+            await this.onChangedWalletAddressUrl(target);
           if (startMonetizationTag)
-            startMonetizationTags.push(startMonetizationTag)
+            startMonetizationTags.push(startMonetizationTag);
           if (stopMonetizationTag)
-            stopMonetizationTags.push(stopMonetizationTag)
+            stopMonetizationTags.push(stopMonetizationTag);
 
-          handledTags.add(target)
+          handledTags.add(target);
         }
       }
     }
 
-    await this.sendStopMonetization(stopMonetizationTags)
-    this.sendStartMonetization(startMonetizationTags)
+    await this.sendStopMonetization(stopMonetizationTags);
+    this.sendStartMonetization(startMonetizationTags);
   }
 
   private async checkAdded(node: Node) {
     if (node instanceof HTMLElement) {
-      this.fireOnMonetizationAttrChangedEvent({ node })
+      this.fireOnMonetizationAttrChangedEvent({ node });
     }
 
     if (node instanceof HTMLLinkElement) {
-      this.observeMonetizationTagAttrs(node)
-      return await this.onAddedTag(node)
+      this.observeMonetizationTagAttrs(node);
+      return await this.onAddedTag(node);
     }
 
-    return null
+    return null;
   }
 
   private checkRemoved(node: Node) {
     return node instanceof HTMLLinkElement && this.monetizationTags.has(node)
       ? this.onRemovedTag(node)
-      : null
+      : null;
   }
 
   private observeMonetizationTagAttrs(tag: MonetizationTag) {
@@ -263,19 +263,19 @@ export class MonetizationTagManager extends EventEmitter {
       childList: false,
       attributeOldValue: true,
       attributeFilter: ['href', 'disabled', 'rel', 'crossorigin', 'type'],
-    })
+    });
   }
 
   private getTagDetails(tag: MonetizationTag, caller = '') {
-    const tagDetails = this.monetizationTags.get(tag)
+    const tagDetails = this.monetizationTags.get(tag);
 
     if (!tagDetails) {
       throw new Error(
         `${caller}: tag not tracked: ${tag.outerHTML.slice(0, 200)}`,
-      )
+      );
     }
 
-    return tagDetails
+    return tagDetails;
   }
 
   // If wallet address changed, remove old tag and add new one
@@ -284,15 +284,15 @@ export class MonetizationTagManager extends EventEmitter {
     wasDisabled = false,
     isDisabled = false,
   ) {
-    let stopMonetizationTag = null
+    let stopMonetizationTag = null;
 
     if (!wasDisabled && !isDisabled) {
-      stopMonetizationTag = this.onRemovedTag(tag)
+      stopMonetizationTag = this.onRemovedTag(tag);
     }
 
-    const startMonetizationTag = await this.onAddedTag(tag)
+    const startMonetizationTag = await this.onAddedTag(tag);
 
-    return { startMonetizationTag, stopMonetizationTag }
+    return { startMonetizationTag, stopMonetizationTag };
   }
 
   private onOnMonetizationChangeObserved(records: MutationRecord[]) {
@@ -305,7 +305,7 @@ export class MonetizationTagManager extends EventEmitter {
         this.fireOnMonetizationAttrChangedEvent({
           node: record.target,
           changeDetected: true,
-        })
+        });
       }
     }
   }
@@ -314,16 +314,16 @@ export class MonetizationTagManager extends EventEmitter {
     node,
     changeDetected = false,
   }: FireOnMonetizationChangeIfHaveAttributeParams) {
-    const attribute = node.getAttribute('onmonetization')
+    const attribute = node.getAttribute('onmonetization');
 
-    if (!attribute && !changeDetected) return
+    if (!attribute && !changeDetected) return;
 
     const customEvent = new CustomEvent('__wm_ext_onmonetization_attr_change', {
       bubbles: true,
       detail: mozClone({ attribute }, this.document),
-    })
+    });
 
-    node.dispatchEvent(customEvent)
+    node.dispatchEvent(customEvent);
   }
 
   private isDocumentReady() {
@@ -331,34 +331,34 @@ export class MonetizationTagManager extends EventEmitter {
       (document.readyState === 'interactive' ||
         document.readyState === 'complete') &&
       document.visibilityState === 'visible'
-    )
+    );
   }
 
   start(): void {
     if (this.isDocumentReady()) {
-      this.run()
-      return
+      this.run();
+      return;
     }
 
     document.addEventListener(
       'readystatechange',
       () => {
         if (this.isDocumentReady()) {
-          this.run()
+          this.run();
         } else {
           document.addEventListener(
             'visibilitychange',
             () => {
               if (this.isDocumentReady()) {
-                this.run()
+                this.run();
               }
             },
             { once: true },
-          )
+          );
         }
       },
       { once: true },
-    )
+    );
   }
 
   private run() {
@@ -369,71 +369,71 @@ export class MonetizationTagManager extends EventEmitter {
           id: this.id,
         },
         '*',
-      )
+      );
     }
 
-    let monetizationTags: NodeListOf<MonetizationTag> | MonetizationTag[]
+    let monetizationTags: NodeListOf<MonetizationTag> | MonetizationTag[];
 
     if (this.isTopFrame) {
       monetizationTags = this.document.querySelectorAll(
         'link[rel="monetization"]',
-      )
+      );
     } else {
       const monetizationTag: MonetizationTag | null =
-        this.document.querySelector('head link[rel="monetization"]')
-      monetizationTags = monetizationTag ? [monetizationTag] : []
+        this.document.querySelector('head link[rel="monetization"]');
+      monetizationTags = monetizationTag ? [monetizationTag] : [];
     }
 
     const startMonetizationTagsPromises: Promise<StartMonetizationPayload | null>[] =
-      []
+      [];
 
     monetizationTags.forEach(async (tag) => {
       try {
-        this.observeMonetizationTagAttrs(tag)
-        const startMonetizationTag = this.onAddedTag(tag)
-        startMonetizationTagsPromises.push(startMonetizationTag)
+        this.observeMonetizationTagAttrs(tag);
+        const startMonetizationTag = this.onAddedTag(tag);
+        startMonetizationTagsPromises.push(startMonetizationTag);
       } catch (e) {
-        this.logger.error(e)
+        this.logger.error(e);
       }
-    })
+    });
 
     Promise.allSettled(startMonetizationTagsPromises).then((result) => {
-      const startMonetizationTags: StartMonetizationPayload[] = []
+      const startMonetizationTags: StartMonetizationPayload[] = [];
       result.forEach((res) => {
         if (res.status === 'fulfilled' && res.value) {
-          startMonetizationTags.push(res.value)
+          startMonetizationTags.push(res.value);
         }
-      })
+      });
 
-      this.sendStartMonetization(startMonetizationTags)
-    })
+      this.sendStartMonetization(startMonetizationTags);
+    });
 
     const onMonetizations: NodeListOf<HTMLElement> =
-      this.document.querySelectorAll('[onmonetization]')
+      this.document.querySelectorAll('[onmonetization]');
 
     onMonetizations.forEach((node) => {
-      this.fireOnMonetizationAttrChangedEvent({ node })
-    })
+      this.fireOnMonetizationAttrChangedEvent({ node });
+    });
 
     this.documentObserver.observe(this.document, {
       subtree: true,
       childList: true,
       attributeFilter: ['onmonetization'],
-    })
+    });
   }
 
   stop() {
-    this.documentObserver.disconnect()
-    this.monetizationTagAttrObserver.disconnect()
-    this.monetizationTags.clear()
+    this.documentObserver.disconnect();
+    this.monetizationTagAttrObserver.disconnect();
+    this.monetizationTags.clear();
   }
 
   // Remove tag from list & stop monetization
   private onRemovedTag(tag: MonetizationTag): StopMonetizationPayload {
-    const { requestId } = this.getTagDetails(tag, 'onRemovedTag')
-    this.monetizationTags.delete(tag)
+    const { requestId } = this.getTagDetails(tag, 'onRemovedTag');
+    this.monetizationTags.delete(tag);
 
-    return { requestId, intent: 'remove' }
+    return { requestId, intent: 'remove' };
   }
 
   // Add tag to list & start monetization
@@ -441,25 +441,25 @@ export class MonetizationTagManager extends EventEmitter {
     tag: MonetizationTag,
     crtRequestId?: string,
   ): Promise<StartMonetizationPayload | null> {
-    const walletAddress = await this.checkTag(tag)
-    if (!walletAddress) return null
+    const walletAddress = await this.checkTag(tag);
+    if (!walletAddress) return null;
 
-    const requestId = crtRequestId ?? crypto.randomUUID()
+    const requestId = crtRequestId ?? crypto.randomUUID();
     const details: MonetizationTagDetails = {
       walletAddress,
       requestId,
-    }
+    };
 
-    this.monetizationTags.set(tag, details)
-    return { walletAddress, requestId }
+    this.monetizationTags.set(tag, details);
+    return { walletAddress, requestId };
   }
 
   private sendStartMonetization(tags: StartMonetizationPayload[]) {
-    if (!tags.length) return
+    if (!tags.length) return;
 
     if (this.isTopFrame) {
       if (tags.length) {
-        void this.message.send('START_MONETIZATION', tags)
+        void this.message.send('START_MONETIZATION', tags);
       }
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
@@ -469,19 +469,19 @@ export class MonetizationTagManager extends EventEmitter {
           payload: tags,
         },
         '*',
-      )
+      );
     }
   }
 
   private async sendStopMonetization(tags: StopMonetizationPayload[]) {
-    if (!tags.length) return
-    await this.message.send('STOP_MONETIZATION', tags)
+    if (!tags.length) return;
+    await this.message.send('STOP_MONETIZATION', tags);
   }
 
   private sendResumeMonetization(tags: ResumeMonetizationPayload[]) {
     if (this.isTopFrame) {
       if (tags.length) {
-        void this.message.send('RESUME_MONETIZATION', tags)
+        void this.message.send('RESUME_MONETIZATION', tags);
       }
     } else if (this.isFirstLevelFrame) {
       this.window.parent.postMessage(
@@ -491,76 +491,76 @@ export class MonetizationTagManager extends EventEmitter {
           payload: tags,
         },
         '*',
-      )
+      );
     }
   }
 
   // Check tag to be enabled and for valid wallet address
   private async checkTag(tag: MonetizationTag): Promise<WalletAddress | null> {
     if (!(tag instanceof HTMLLinkElement && tag.rel === 'monetization'))
-      return null
+      return null;
 
-    if (tag.hasAttribute('disabled')) return null
+    if (tag.hasAttribute('disabled')) return null;
 
-    const walletAddressInfo = await this.validateWalletAddress(tag)
+    const walletAddressInfo = await this.validateWalletAddress(tag);
 
-    return walletAddressInfo
+    return walletAddressInfo;
   }
 
   private async validateWalletAddress(
     tag: MonetizationTag,
   ): Promise<WalletAddress | null> {
-    const walletAddressUrl = tag.href.trim()
+    const walletAddressUrl = tag.href.trim();
     try {
-      checkWalletAddressUrlFormat(walletAddressUrl)
+      checkWalletAddressUrlFormat(walletAddressUrl);
       const response = await this.message.send('CHECK_WALLET_ADDRESS_URL', {
         walletAddressUrl,
-      })
+      });
 
       if (response.success === false) {
         throw new Error(
           `Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`,
-        )
+        );
       }
 
-      this.dispatchLoadEvent(tag)
-      return response.payload
+      this.dispatchLoadEvent(tag);
+      return response.payload;
     } catch (e) {
-      this.logger.error(e)
-      this.dispatchErrorEvent(tag)
-      return null
+      this.logger.error(e);
+      this.dispatchErrorEvent(tag);
+      return null;
     }
   }
 
   private bindMessageHandler() {
     this.window.addEventListener('message', (event) => {
-      const { message, id, payload } = event.data
+      const { message, id, payload } = event.data;
 
-      if (event.origin === window.location.href || id !== this.id) return
+      if (event.origin === window.location.href || id !== this.id) return;
 
       switch (message) {
         case ContentToContentAction.START_MONETIZATION:
           if (payload.length) {
-            void this.message.send('START_MONETIZATION', payload)
+            void this.message.send('START_MONETIZATION', payload);
           }
-          return
+          return;
         case ContentToContentAction.RESUME_MONETIZATION:
           if (payload.length) {
-            void this.message.send('RESUME_MONETIZATION', payload)
+            void this.message.send('RESUME_MONETIZATION', payload);
           }
-          return
+          return;
         default:
-          return
+          return;
       }
-    })
+    });
   }
 
   async toggleWM({ enabled }: EmitToggleWMPayload) {
     if (enabled) {
-      await this.resumeAllMonetization()
+      await this.resumeAllMonetization();
     } else {
       // TODO: https://github.com/interledger/web-monetization-extension/issues/452
-      this.stopAllMonetization()
+      this.stopAllMonetization();
     }
   }
 }

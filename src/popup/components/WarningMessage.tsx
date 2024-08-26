@@ -1,15 +1,15 @@
-import React from 'react'
-import { WarningSign } from './Icons'
-import { cn } from '@/shared/helpers'
+import React from 'react';
+import { WarningSign } from './Icons';
+import { cn } from '@/shared/helpers';
 
 interface WarningMessageProps extends React.HTMLAttributes<HTMLDivElement> {
-  warning?: string
+  warning?: string;
 }
 export const WarningMessage = React.forwardRef<
   HTMLDivElement,
   WarningMessageProps
 >(({ warning, className, children, ...props }, ref) => {
-  if (!warning) return null
+  if (!warning) return null;
 
   return (
     <div
@@ -26,7 +26,7 @@ export const WarningMessage = React.forwardRef<
         {children}
       </div>
     </div>
-  )
-})
+  );
+});
 
-WarningMessage.displayName = 'WarningMessage'
+WarningMessage.displayName = 'WarningMessage';

@@ -1,5 +1,5 @@
-import { asClass, asValue, createContainer, InjectionMode } from 'awilix'
-import browser, { type Browser } from 'webextension-polyfill'
+import { asClass, asValue, createContainer, InjectionMode } from 'awilix';
+import browser, { type Browser } from 'webextension-polyfill';
 import {
   OpenPaymentsService,
   StorageService,
@@ -11,38 +11,38 @@ import {
   EventsService,
   Heartbeat,
   Deduplicator,
-} from './services'
-import { createLogger, Logger } from '@/shared/logger'
-import { LOG_LEVEL } from '@/shared/defines'
-import { tFactory, type Translation } from '@/shared/helpers'
+} from './services';
+import { createLogger, Logger } from '@/shared/logger';
+import { LOG_LEVEL } from '@/shared/defines';
+import { tFactory, type Translation } from '@/shared/helpers';
 import {
   MessageManager,
   type BackgroundToContentMessage,
-} from '@/shared/messages'
+} from '@/shared/messages';
 
 export interface Cradle {
-  logger: Logger
-  browser: Browser
-  events: EventsService
-  deduplicator: Deduplicator
-  storage: StorageService
-  openPaymentsService: OpenPaymentsService
-  monetizationService: MonetizationService
-  message: MessageManager<BackgroundToContentMessage>
-  sendToPopup: SendToPopup
-  tabEvents: TabEvents
-  background: Background
-  t: Translation
-  tabState: TabState
-  heartbeat: Heartbeat
+  logger: Logger;
+  browser: Browser;
+  events: EventsService;
+  deduplicator: Deduplicator;
+  storage: StorageService;
+  openPaymentsService: OpenPaymentsService;
+  monetizationService: MonetizationService;
+  message: MessageManager<BackgroundToContentMessage>;
+  sendToPopup: SendToPopup;
+  tabEvents: TabEvents;
+  background: Background;
+  t: Translation;
+  tabState: TabState;
+  heartbeat: Heartbeat;
 }
 
 export const configureContainer = () => {
   const container = createContainer<Cradle>({
     injectionMode: InjectionMode.PROXY,
-  })
+  });
 
-  const logger = createLogger(LOG_LEVEL)
+  const logger = createLogger(LOG_LEVEL);
 
   container.register({
     logger: asValue(logger),
@@ -83,7 +83,7 @@ export const configureContainer = () => {
         logger: logger.getLogger('tab-state'),
       })),
     heartbeat: asClass(Heartbeat).singleton(),
-  })
+  });
 
-  return container
-}
+  return container;
+};

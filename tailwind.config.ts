@@ -1,5 +1,5 @@
-import { Config } from 'tailwindcss'
-import forms from '@tailwindcss/forms'
+import { Config } from 'tailwindcss';
+import forms from '@tailwindcss/forms';
 
 module.exports = {
   content: [
@@ -47,4 +47,4 @@ module.exports = {
     },
   },
   plugins: [forms],
-} satisfies Config
+} satisfies Config;

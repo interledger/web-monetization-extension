@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 /**
  * Store data in browser's local storage. Helpful in retrieving state after
@@ -15,47 +15,47 @@ export function useLocalStorage<T>(
   defaultValue: T,
   { maxAge = 1000 * 24 * 60 * 60 }: Partial<{ maxAge: number }> = {},
 ) {
-  const hasLocalStorage = typeof localStorage !== 'undefined'
-  maxAge *= 1000
+  const hasLocalStorage = typeof localStorage !== 'undefined';
+  maxAge *= 1000;
 
-  type Stored = { value: T; expiresAt: number }
+  type Stored = { value: T; expiresAt: number };
   const isWellFormed = React.useCallback((obj: any): obj is Stored => {
-    if (typeof obj !== 'object' || obj == null) return false
-    if (!obj.expiresAt || !Number.isSafeInteger(obj.expiresAt)) return false
-    return typeof obj.value !== 'undefined'
-  }, [])
+    if (typeof obj !== 'object' || obj == null) return false;
+    if (!obj.expiresAt || !Number.isSafeInteger(obj.expiresAt)) return false;
+    return typeof obj.value !== 'undefined';
+  }, []);
 
   const [value, setValue] = React.useState<T>(() => {
-    if (!hasLocalStorage) return defaultValue
+    if (!hasLocalStorage) return defaultValue;
 
-    const storedValue = localStorage.getItem(key)
-    if (!storedValue) return defaultValue
+    const storedValue = localStorage.getItem(key);
+    if (!storedValue) return defaultValue;
 
     try {
-      const data = JSON.parse(storedValue)
+      const data = JSON.parse(storedValue);
       if (isWellFormed(data) && data.expiresAt > Date.now()) {
-        return data.value
+        return data.value;
       } else {
-        localStorage.removeItem(key)
+        localStorage.removeItem(key);
       }
     } catch {
-      localStorage.removeItem(key)
+      localStorage.removeItem(key);
     }
-    return defaultValue
-  })
+    return defaultValue;
+  });
 
   React.useEffect(() => {
-    if (!hasLocalStorage) return
-    const expiresAt = Date.now() + maxAge
-    const data: Stored = { value, expiresAt }
-    localStorage.setItem(key, JSON.stringify(data))
-  }, [value, key, defaultValue, maxAge, hasLocalStorage])
+    if (!hasLocalStorage) return;
+    const expiresAt = Date.now() + maxAge;
+    const data: Stored = { value, expiresAt };
+    localStorage.setItem(key, JSON.stringify(data));
+  }, [value, key, defaultValue, maxAge, hasLocalStorage]);
 
   const clearStorage = () => {
     if (hasLocalStorage) {
-      localStorage.removeItem(key)
+      localStorage.removeItem(key);
     }
-  }
+  };
 
-  return [value, setValue, clearStorage] as const
+  return [value, setValue, clearStorage] as const;
 }

@@ -1,23 +1,23 @@
-import type { Cradle } from '../container'
+import type { Cradle } from '../container';
 
-type AsyncFn<T> = (...args: any[]) => Promise<T>
+type AsyncFn<T> = (...args: any[]) => Promise<T>;
 
 interface CacheEntry {
-  promise: Promise<any>
+  promise: Promise<any>;
 }
 
 interface DedupeOptions {
-  cacheFnArgs: boolean
-  wait: number
+  cacheFnArgs: boolean;
+  wait: number;
 }
 
 export class Deduplicator {
-  private logger: Cradle['logger']
+  private logger: Cradle['logger'];
 
-  private cache: Map<string, CacheEntry> = new Map()
+  private cache: Map<string, CacheEntry> = new Map();
 
   constructor({ logger }: Cradle) {
-    Object.assign(this, { logger })
+    Object.assign(this, { logger });
   }
 
   dedupe<T extends AsyncFn<any>>(
@@ -25,31 +25,31 @@ export class Deduplicator {
     { cacheFnArgs = false, wait = 5000 }: Partial<DedupeOptions> = {},
   ): T {
     return ((...args: Parameters<T>): ReturnType<T> => {
-      const key = this.generateCacheKey(fn, args, cacheFnArgs)
-      const entry = this.cache.get(key)
+      const key = this.generateCacheKey(fn, args, cacheFnArgs);
+      const entry = this.cache.get(key);
 
       if (entry) {
         this.logger.debug(
           `Deduplicating function=${fn.name}, ${cacheFnArgs ? 'args=' + JSON.stringify(args) : 'without args'}`,
-        )
-        return entry.promise as ReturnType<T>
+        );
+        return entry.promise as ReturnType<T>;
       }
 
-      const promise = fn(...args)
-      this.cache.set(key, { promise })
+      const promise = fn(...args);
+      this.cache.set(key, { promise });
 
       promise
         .then((res) => {
-          this.cache.set(key, { promise: Promise.resolve(res) })
-          return res
+          this.cache.set(key, { promise: Promise.resolve(res) });
+          return res;
         })
         .catch((err) => {
-          throw err
+          throw err;
         })
-        .finally(() => this.scheduleCacheClear(key, wait))
+        .finally(() => this.scheduleCacheClear(key, wait));
 
-      return promise as ReturnType<T>
-    }) as unknown as T
+      return promise as ReturnType<T>;
+    }) as unknown as T;
   }
 
   private generateCacheKey<T>(
@@ -57,21 +57,21 @@ export class Deduplicator {
     args: any[],
     cacheFnArgs: boolean,
   ): string {
-    let key = fn.name
+    let key = fn.name;
     if (cacheFnArgs) {
-      key += `_${JSON.stringify(args)}`
+      key += `_${JSON.stringify(args)}`;
     }
-    return key
+    return key;
   }
 
   private scheduleCacheClear(key: string, wait: number): void {
     setTimeout(() => {
-      this.logger.debug(`Attempting to remove key=${key} from cache.`)
-      const entry = this.cache.get(key)
+      this.logger.debug(`Attempting to remove key=${key} from cache.`);
+      const entry = this.cache.get(key);
       if (entry) {
-        this.logger.debug(`Removing key=${key} from cache.`)
-        this.cache.delete(key)
+        this.logger.debug(`Removing key=${key} from cache.`);
+        this.cache.delete(key);
       }
-    }, wait)
+    }, wait);
   }
 }

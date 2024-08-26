@@ -1,23 +1,23 @@
-import React from 'react'
-import { useForm } from 'react-hook-form'
-import { AnimatePresence, m } from 'framer-motion'
-import { WarningSign } from '@/popup/components/Icons'
-import { Button } from '@/popup/components/ui/Button'
-import { Code } from '@/popup/components/ui/Code'
-import { useTranslation } from '@/popup/lib/context'
-import { useLocalStorage } from '@/popup/lib/hooks'
-import type { PopupStore } from '@/shared/types'
-import type { Response } from '@/shared/messages'
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { AnimatePresence, m } from 'framer-motion';
+import { WarningSign } from '@/popup/components/Icons';
+import { Button } from '@/popup/components/ui/Button';
+import { Code } from '@/popup/components/ui/Code';
+import { useTranslation } from '@/popup/lib/context';
+import { useLocalStorage } from '@/popup/lib/hooks';
+import type { PopupStore } from '@/shared/types';
+import type { Response } from '@/shared/messages';
 
 interface Props {
-  info: Pick<PopupStore, 'publicKey' | 'walletAddress'>
-  disconnectWallet: () => Promise<Response>
-  reconnectWallet: () => Promise<Response>
-  onReconnect?: () => void
-  onDisconnect?: () => void
+  info: Pick<PopupStore, 'publicKey' | 'walletAddress'>;
+  disconnectWallet: () => Promise<Response>;
+  reconnectWallet: () => Promise<Response>;
+  onReconnect?: () => void;
+  onDisconnect?: () => void;
 }
 
-type Screen = 'main' | 'reconnect'
+type Screen = 'main' | 'reconnect';
 
 export const ErrorKeyRevoked = ({
   info,
@@ -30,7 +30,7 @@ export const ErrorKeyRevoked = ({
     'keyRevokedScreen',
     'main',
     { maxAge: 2 * 60 },
-  )
+  );
 
   if (screen === 'main') {
     return (
@@ -41,7 +41,7 @@ export const ErrorKeyRevoked = ({
           onDisconnect={onDisconnect}
         />
       </AnimatePresence>
-    )
+    );
   } else {
     return (
       <AnimatePresence mode="sync">
@@ -49,19 +49,19 @@ export const ErrorKeyRevoked = ({
           info={info}
           reconnectWallet={reconnectWallet}
           onReconnect={() => {
-            clearScreen()
-            onReconnect?.()
+            clearScreen();
+            onReconnect?.();
           }}
         />
       </AnimatePresence>
-    )
+    );
   }
-}
+};
 
 interface MainScreenProps {
-  disconnectWallet: Props['disconnectWallet']
-  onDisconnect?: Props['onDisconnect']
-  requestReconnect: () => void
+  disconnectWallet: Props['disconnectWallet'];
+  onDisconnect?: Props['onDisconnect'];
+  requestReconnect: () => void;
 }
 
 const MainScreen = ({
@@ -69,21 +69,21 @@ const MainScreen = ({
   onDisconnect,
   requestReconnect,
 }: MainScreenProps) => {
-  const t = useTranslation()
-  const [errorMsg, setErrorMsg] = React.useState('')
-  const [loading, setIsLoading] = React.useState(false)
+  const t = useTranslation();
+  const [errorMsg, setErrorMsg] = React.useState('');
+  const [loading, setIsLoading] = React.useState(false);
 
   const requestDisconnect = async () => {
-    setErrorMsg('')
+    setErrorMsg('');
     try {
-      setIsLoading(true)
-      await disconnectWallet()
-      onDisconnect?.()
+      setIsLoading(true);
+      await disconnectWallet();
+      onDisconnect?.();
     } catch (error) {
-      setErrorMsg(error.message)
+      setErrorMsg(error.message);
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   return (
     <m.div exit={{ opacity: 0 }} className="space-y-4 text-sm">
@@ -115,13 +115,13 @@ const MainScreen = ({
         </Button>
       </m.form>
     </m.div>
-  )
-}
+  );
+};
 
 interface ReconnectScreenProps {
-  info: Props['info']
-  reconnectWallet: Props['reconnectWallet']
-  onReconnect?: Props['onDisconnect']
+  info: Props['info'];
+  reconnectWallet: Props['reconnectWallet'];
+  onReconnect?: Props['onDisconnect'];
 }
 
 const ReconnectScreen = ({
@@ -129,27 +129,27 @@ const ReconnectScreen = ({
   reconnectWallet,
   onReconnect,
 }: ReconnectScreenProps) => {
-  const t = useTranslation()
+  const t = useTranslation();
   const {
     handleSubmit,
     formState: { errors, isSubmitting },
     clearErrors,
     setError,
-  } = useForm({ criteriaMode: 'firstError', mode: 'onSubmit' })
+  } = useForm({ criteriaMode: 'firstError', mode: 'onSubmit' });
 
   const requestReconnect = async () => {
-    clearErrors()
+    clearErrors();
     try {
-      const res = await reconnectWallet()
+      const res = await reconnectWallet();
       if (res.success) {
-        onReconnect?.()
+        onReconnect?.();
       } else {
-        setError('root', { message: res.message })
+        setError('root', { message: res.message });
       }
     } catch (error) {
-      setError('root', { message: error.message })
+      setError('root', { message: error.message });
     }
-  }
+  };
 
   return (
     <m.form
@@ -186,5 +186,5 @@ const ReconnectScreen = ({
         {t('keyRevoked_action_reconnectBtn')}
       </Button>
     </m.form>
-  )
-}
+  );
+};

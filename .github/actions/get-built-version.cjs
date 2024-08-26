@@ -1,6 +1,6 @@
 // @ts-check
 /* eslint-disable @typescript-eslint/no-require-imports */
-const fs = require('node:fs/promises')
+const fs = require('node:fs/promises');
 
 /**
  * Retrieves the manifest version from the built extension.
@@ -9,7 +9,7 @@ const fs = require('node:fs/promises')
 module.exports = async ({ core }) => {
   const manifest = await fs
     .readFile('./dist/chrome/manifest.json', 'utf8')
-    .then(JSON.parse)
+    .then(JSON.parse);
 
-  core.setOutput('version', manifest.version)
-}
+  core.setOutput('version', manifest.version);
+};

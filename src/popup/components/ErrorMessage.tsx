@@ -1,13 +1,13 @@
-import React from 'react'
-import { XIcon } from './Icons'
-import { cn } from '@/shared/helpers'
+import React from 'react';
+import { XIcon } from './Icons';
+import { cn } from '@/shared/helpers';
 
 interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> {
-  error?: string
+  error?: string;
 }
 export const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
   ({ error, className, children, ...props }, ref) => {
-    if (!error) return null
+    if (!error) return null;
 
     return (
       <div
@@ -24,8 +24,8 @@ export const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
           {children}
         </div>
       </div>
-    )
+    );
   },
-)
+);
 
-ErrorMessage.displayName = 'ErrorMessage'
+ErrorMessage.displayName = 'ErrorMessage';

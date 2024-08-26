@@ -1,8 +1,8 @@
-import { type VariantProps, cva } from 'class-variance-authority'
-import React, { forwardRef } from 'react'
+import { type VariantProps, cva } from 'class-variance-authority';
+import React, { forwardRef } from 'react';
 
-import { LoadingSpinner } from '@/popup/components/LoadingSpinner'
-import { cn } from '@/shared/helpers'
+import { LoadingSpinner } from '@/popup/components/LoadingSpinner';
+import { cn } from '@/shared/helpers';
 
 const buttonVariants = cva(
   [
@@ -34,14 +34,14 @@ const buttonVariants = cva(
       size: 'default',
     },
   },
-)
+);
 
 export interface ButtonProps
   extends VariantProps<typeof buttonVariants>,
     React.ButtonHTMLAttributes<HTMLButtonElement> {
-  loading?: boolean
+  loading?: boolean;
   /** Optional only when children are passed */
-  ['aria-label']?: string
+  ['aria-label']?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -72,6 +72,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading ? <LoadingSpinner /> : children}
       </button>
-    )
+    );
   },
-)
+);

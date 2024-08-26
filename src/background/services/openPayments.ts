@@ -4,91 +4,91 @@ import type {
   AmountValue,
   GrantDetails,
   WalletAmount,
-} from 'shared/types'
+} from 'shared/types';
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
   OpenPaymentsClientError,
-} from '@interledger/open-payments/dist/client'
+} from '@interledger/open-payments/dist/client';
 import {
   isFinalizedGrant,
   isPendingGrant,
   type IncomingPayment,
   type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress,
-} from '@interledger/open-payments/dist/types'
-import * as ed from '@noble/ed25519'
-import { type Request } from 'http-message-signatures'
-import { signMessage } from 'http-message-signatures/lib/httpbis'
-import { createContentDigestHeader } from 'httpbis-digest-headers'
-import type { Tabs } from 'webextension-polyfill'
-import { getExchangeRates, getRateOfPay, toAmount } from '../utils'
-import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto'
-import { bytesToHex } from '@noble/hashes/utils'
-import { getWalletInformation } from '@/shared/helpers'
-import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages'
+} from '@interledger/open-payments/dist/types';
+import * as ed from '@noble/ed25519';
+import { type Request } from 'http-message-signatures';
+import { signMessage } from 'http-message-signatures/lib/httpbis';
+import { createContentDigestHeader } from 'httpbis-digest-headers';
+import type { Tabs } from 'webextension-polyfill';
+import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
+import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
+import { bytesToHex } from '@noble/hashes/utils';
+import { getWalletInformation } from '@/shared/helpers';
+import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY,
-} from '../config'
-import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines'
-import type { Cradle } from '../container'
+} from '../config';
+import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
+import type { Cradle } from '../container';
 
 interface KeyInformation {
-  privateKey: string
-  keyId: string
+  privateKey: string;
+  keyId: string;
 }
 
 interface InteractionParams {
-  interactRef: string
-  hash: string
-  tabId: NonNullable<Tabs.Tab['id']>
+  interactRef: string;
+  hash: string;
+  tabId: NonNullable<Tabs.Tab['id']>;
 }
 
 export interface SignatureHeaders {
-  Signature: string
-  'Signature-Input': string
+  Signature: string;
+  'Signature-Input': string;
 }
 
 interface ContentHeaders {
-  'Content-Digest': string
-  'Content-Length': string
-  'Content-Type': string
+  'Content-Digest': string;
+  'Content-Length': string;
+  'Content-Type': string;
 }
-type Headers = SignatureHeaders & Partial<ContentHeaders>
+type Headers = SignatureHeaders & Partial<ContentHeaders>;
 
 interface RequestLike extends Request {
-  body?: string
+  body?: string;
 }
 
 interface SignOptions {
-  request: RequestLike
-  privateKey: Uint8Array
-  keyId: string
+  request: RequestLike;
+  privateKey: Uint8Array;
+  keyId: string;
 }
 
 interface VerifyInteractionHashParams {
-  clientNonce: string
-  interactRef: string
-  interactNonce: string
-  hash: string
-  authServer: string
+  clientNonce: string;
+  interactRef: string;
+  interactNonce: string;
+  hash: string;
+  authServer: string;
 }
 
 interface CreateOutgoingPaymentGrantParams {
-  clientNonce: string
-  walletAddress: WalletAddress
-  amount: WalletAmount
+  clientNonce: string;
+  walletAddress: WalletAddress;
+  amount: WalletAmount;
 }
 
 interface CreateOutgoingPaymentParams {
-  walletAddress: WalletAddress
-  incomingPaymentId: IncomingPayment['id']
-  amount: string
+  walletAddress: WalletAddress;
+  incomingPaymentId: IncomingPayment['id'];
+  amount: string;
 }
 
-type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0]
+type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0];
 
 const enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
@@ -106,42 +106,42 @@ const enum InteractionIntent {
 }
 
 export class OpenPaymentsService {
-  private browser: Cradle['browser']
-  private storage: Cradle['storage']
-  private deduplicator: Cradle['deduplicator']
-  private logger: Cradle['logger']
-  private t: Cradle['t']
+  private browser: Cradle['browser'];
+  private storage: Cradle['storage'];
+  private deduplicator: Cradle['deduplicator'];
+  private logger: Cradle['logger'];
+  private t: Cradle['t'];
 
-  client?: AuthenticatedClient
+  client?: AuthenticatedClient;
 
-  public switchGrant: OpenPaymentsService['_switchGrant']
+  public switchGrant: OpenPaymentsService['_switchGrant'];
 
-  private token: AccessToken
-  private grantDetails: GrantDetails | null
+  private token: AccessToken;
+  private grantDetails: GrantDetails | null;
   /** Whether a grant has enough balance to make payments */
-  private isGrantUsable = { recurring: false, oneTime: false }
+  private isGrantUsable = { recurring: false, oneTime: false };
 
   constructor({ browser, storage, deduplicator, logger, t }: Cradle) {
-    Object.assign(this, { browser, storage, deduplicator, logger, t })
+    Object.assign(this, { browser, storage, deduplicator, logger, t });
 
-    void this.initialize()
-    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this))
+    void this.initialize();
+    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
   }
 
   public isAnyGrantUsable() {
-    return this.isGrantUsable.recurring || this.isGrantUsable.oneTime
+    return this.isGrantUsable.recurring || this.isGrantUsable.oneTime;
   }
 
   private get grant() {
-    return this.grantDetails
+    return this.grantDetails;
   }
 
   private set grant(grantDetails) {
-    this.logger.debug(`🤝🏻 Using grant: ${grantDetails?.type || null}`)
-    this.grantDetails = grantDetails
+    this.logger.debug(`🤝🏻 Using grant: ${grantDetails?.type || null}`);
+    this.grantDetails = grantDetails;
     this.token = grantDetails
       ? grantDetails.accessToken
-      : { value: '', manageUrl: '' }
+      : { value: '', manageUrl: '' };
   }
 
   private async initialize() {
@@ -151,31 +151,31 @@ export class OpenPaymentsService {
         'walletAddress',
         'oneTimeGrant',
         'recurringGrant',
-      ])
+      ]);
 
-    this.isGrantUsable.recurring = !!recurringGrant
-    this.isGrantUsable.oneTime = !!oneTimeGrant
+    this.isGrantUsable.recurring = !!recurringGrant;
+    this.isGrantUsable.oneTime = !!oneTimeGrant;
 
     if (
       connected === true &&
       walletAddress &&
       (recurringGrant || oneTimeGrant)
     ) {
-      this.grant = recurringGrant || oneTimeGrant! // prefer recurring
-      await this.initClient(walletAddress.id)
+      this.grant = recurringGrant || oneTimeGrant!; // prefer recurring
+      await this.initClient(walletAddress.id);
     }
   }
 
   private async getPrivateKeyInformation(): Promise<KeyInformation> {
-    const data = await this.browser.storage.local.get(['privateKey', 'keyId'])
+    const data = await this.browser.storage.local.get(['privateKey', 'keyId']);
 
     if (data.privateKey && data.keyId) {
-      return data as unknown as KeyInformation
+      return data as unknown as KeyInformation;
     }
 
     throw new Error(
       'Could not create OpenPayments client. Missing `privateKey` and `keyId`.',
-    )
+    );
   }
 
   private createContentHeaders(body: string): ContentHeaders {
@@ -186,7 +186,7 @@ export class OpenPaymentsService {
       ),
       'Content-Length': new TextEncoder().encode(body).length.toString(),
       'Content-Type': 'application/json',
-    }
+    };
   }
 
   private createSigner(key: Uint8Array, keyId: string) {
@@ -194,9 +194,9 @@ export class OpenPaymentsService {
       id: keyId,
       alg: 'ed25519',
       async sign(data: Uint8Array) {
-        return Buffer.from(await ed.signAsync(data, key.slice(16)))
+        return Buffer.from(await ed.signAsync(data, key.slice(16)));
       },
-    }
+    };
   }
 
   private async createSignatureHeaders({
@@ -204,16 +204,16 @@ export class OpenPaymentsService {
     privateKey,
     keyId,
   }: SignOptions): Promise<SignatureHeaders> {
-    const components = ['@method', '@target-uri']
+    const components = ['@method', '@target-uri'];
     if (request.headers['Authorization'] || request.headers['authorization']) {
-      components.push('authorization')
+      components.push('authorization');
     }
 
     if (request.body) {
-      components.push('content-digest', 'content-length', 'content-type')
+      components.push('content-digest', 'content-length', 'content-type');
     }
 
-    const signingKey = this.createSigner(privateKey, keyId)
+    const signingKey = this.createSigner(privateKey, keyId);
     const { headers } = await signMessage(
       {
         name: 'sig1',
@@ -226,12 +226,12 @@ export class OpenPaymentsService {
         method: request.method,
         headers: request.headers,
       },
-    )
+    );
 
     return {
       Signature: headers['Signature'] as string,
       'Signature-Input': headers['Signature-Input'] as string,
-    }
+    };
   }
 
   private async createHeaders({
@@ -240,24 +240,24 @@ export class OpenPaymentsService {
     keyId,
   }: SignOptions): Promise<Headers> {
     if (request.body) {
-      const contentHeaders = this.createContentHeaders(request.body)
-      request.headers = { ...request.headers, ...contentHeaders }
+      const contentHeaders = this.createContentHeaders(request.body);
+      request.headers = { ...request.headers, ...contentHeaders };
     }
 
     const signatureHeaders = await this.createSignatureHeaders({
       request,
       privateKey,
       keyId,
-    })
+    });
 
     return {
       ...request.headers,
       ...signatureHeaders,
-    }
+    };
   }
 
   async initClient(walletAddressUrl: string) {
-    const { privateKey, keyId } = await this.getPrivateKeyInformation()
+    const { privateKey, keyId } = await this.getPrivateKeyInformation();
 
     this.client = await createAuthenticatedClient({
       validateResponses: false,
@@ -265,10 +265,10 @@ export class OpenPaymentsService {
       walletAddressUrl,
       authenticatedRequestInterceptor: async (request) => {
         if (!request.method || !request.url) {
-          throw new Error('Cannot intercept request: url or method missing')
+          throw new Error('Cannot intercept request: url or method missing');
         }
 
-        const initialRequest = request.clone()
+        const initialRequest = request.clone();
 
         const headers = await this.createHeaders({
           request: {
@@ -283,28 +283,28 @@ export class OpenPaymentsService {
           },
           privateKey: ed.etc.hexToBytes(privateKey),
           keyId,
-        })
+        });
 
         if (request.body) {
           initialRequest.headers.set(
             'Content-Type',
             headers['Content-Type'] as string,
-          )
+          );
           initialRequest.headers.set(
             'Content-Digest',
             headers['Content-Digest'] as string,
-          )
+          );
         }
 
-        initialRequest.headers.set('Signature', headers['Signature'])
+        initialRequest.headers.set('Signature', headers['Signature']);
         initialRequest.headers.set(
           'Signature-Input',
           headers['Signature-Input'],
-        )
+        );
 
-        return initialRequest
+        return initialRequest;
       },
-    })
+    });
   }
 
   async connectWallet({
@@ -312,41 +312,43 @@ export class OpenPaymentsService {
     amount,
     recurring,
   }: ConnectWalletPayload) {
-    const walletAddress = await getWalletInformation(walletAddressUrl)
-    const exchangeRates = await getExchangeRates()
+    const walletAddress = await getWalletInformation(walletAddressUrl);
+    const exchangeRates = await getExchangeRates();
 
-    let rateOfPay = DEFAULT_RATE_OF_PAY
-    let minRateOfPay = MIN_RATE_OF_PAY
-    let maxRateOfPay = MAX_RATE_OF_PAY
+    let rateOfPay = DEFAULT_RATE_OF_PAY;
+    let minRateOfPay = MIN_RATE_OF_PAY;
+    let maxRateOfPay = MAX_RATE_OF_PAY;
 
     if (!exchangeRates.rates[walletAddress.assetCode]) {
-      throw new Error(`Exchange rate for ${walletAddress.assetCode} not found.`)
+      throw new Error(
+        `Exchange rate for ${walletAddress.assetCode} not found.`,
+      );
     }
 
-    const exchangeRate = exchangeRates.rates[walletAddress.assetCode]
+    const exchangeRate = exchangeRates.rates[walletAddress.assetCode];
     rateOfPay = getRateOfPay({
       rate: DEFAULT_RATE_OF_PAY,
       exchangeRate,
       assetScale: walletAddress.assetScale,
-    })
+    });
     minRateOfPay = getRateOfPay({
       rate: MIN_RATE_OF_PAY,
       exchangeRate,
       assetScale: walletAddress.assetScale,
-    })
+    });
     maxRateOfPay = getRateOfPay({
       rate: MAX_RATE_OF_PAY,
       exchangeRate,
       assetScale: walletAddress.assetScale,
-    })
+    });
 
-    await this.initClient(walletAddress.id)
+    await this.initClient(walletAddress.id);
     await this.completeGrant(
       amount,
       walletAddress,
       recurring,
       InteractionIntent.CONNECT,
-    )
+    );
 
     await this.storage.set({
       walletAddress,
@@ -354,7 +356,7 @@ export class OpenPaymentsService {
       minRateOfPay,
       maxRateOfPay,
       connected: true,
-    })
+    });
   }
 
   async addFunds({ amount, recurring }: AddFundsPayload) {
@@ -362,23 +364,23 @@ export class OpenPaymentsService {
       'walletAddress',
       'oneTimeGrant',
       'recurringGrant',
-    ])
+    ]);
 
     await this.completeGrant(
       amount,
       walletAddress!,
       recurring,
       InteractionIntent.FUNDS,
-    )
+    );
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
-      await this.cancelGrant(grants.oneTimeGrant.continue)
+      await this.cancelGrant(grants.oneTimeGrant.continue);
     } else if (grants.recurringGrant && recurring) {
-      await this.cancelGrant(grants.recurringGrant.continue)
+      await this.cancelGrant(grants.recurringGrant.continue);
     }
 
-    await this.storage.setState({ out_of_funds: false })
+    await this.storage.setState({ out_of_funds: false });
   }
 
   private async completeGrant(
@@ -391,24 +393,24 @@ export class OpenPaymentsService {
       value: amount,
       recurring,
       assetScale: walletAddress.assetScale,
-    })
+    });
 
-    const clientNonce = crypto.randomUUID()
+    const clientNonce = crypto.randomUUID();
     const grant = await this.createOutgoingPaymentGrant({
       clientNonce,
       walletAddress,
       amount: transformedAmount,
     }).catch((err) => {
       if (isInvalidClientError(err)) {
-        const msg = this.t('connectWallet_error_invalidClient')
-        throw new Error(msg, { cause: err })
+        const msg = this.t('connectWallet_error_invalidClient');
+        throw new Error(msg, { cause: err });
       }
-      throw err
-    })
+      throw err;
+    });
 
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
-    )
+    );
 
     await this.verifyInteractionHash({
       clientNonce,
@@ -422,9 +424,9 @@ export class OpenPaymentsService {
         GrantResult.ERROR,
         intent,
         ErrorCode.HASH_FAILED,
-      )
-      throw e
-    })
+      );
+      throw e;
+    });
 
     const continuation = await this.client!.grant.continue(
       {
@@ -440,12 +442,14 @@ export class OpenPaymentsService {
         GrantResult.ERROR,
         intent,
         ErrorCode.CONTINUATION_FAILED,
-      )
-      throw e
-    })
+      );
+      throw e;
+    });
 
     if (!isFinalizedGrant(continuation)) {
-      throw new Error('Expected finalized grant. Received non-finalized grant.')
+      throw new Error(
+        'Expected finalized grant. Received non-finalized grant.',
+      );
     }
 
     const grantDetails: GrantDetails = {
@@ -459,25 +463,25 @@ export class OpenPaymentsService {
         accessToken: continuation.continue.access_token.value,
         url: continuation.continue.uri,
       },
-    }
+    };
 
     if (grantDetails.type === 'recurring') {
       await this.storage.set({
         recurringGrant: grantDetails,
         recurringGrantSpentAmount: '0',
-      })
-      this.isGrantUsable.recurring = true
+      });
+      this.isGrantUsable.recurring = true;
     } else {
       await this.storage.set({
         oneTimeGrant: grantDetails,
         oneTimeGrantSpentAmount: '0',
-      })
-      this.isGrantUsable.oneTime = true
+      });
+      this.isGrantUsable.oneTime = true;
     }
 
-    this.grant = grantDetails
-    await this.redirectToWelcomeScreen(tabId, GrantResult.SUCCESS, intent)
-    return grantDetails
+    this.grant = grantDetails;
+    await this.redirectToWelcomeScreen(tabId, GrantResult.SUCCESS, intent);
+    return grantDetails;
   }
 
   private async redirectToWelcomeScreen(
@@ -486,13 +490,13 @@ export class OpenPaymentsService {
     intent: InteractionIntent,
     errorCode?: ErrorCode,
   ) {
-    const url = new URL(OPEN_PAYMENTS_REDIRECT_URL)
-    url.searchParams.set('result', result)
-    url.searchParams.set('intent', intent)
-    if (errorCode) url.searchParams.set('errorCode', errorCode)
+    const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
+    url.searchParams.set('result', result);
+    url.searchParams.set('intent', intent);
+    if (errorCode) url.searchParams.set('errorCode', errorCode);
     await this.browser.tabs.update(tabId, {
       url: url.toString(),
-    })
+    });
   }
 
   private async createOutgoingPaymentGrant({
@@ -535,13 +539,15 @@ export class OpenPaymentsService {
           },
         },
       },
-    )
+    );
 
     if (!isPendingGrant(grant)) {
-      throw new Error('Expected interactive grant. Received non-pending grant.')
+      throw new Error(
+        'Expected interactive grant. Received non-pending grant.',
+      );
     }
 
-    return grant
+    return grant;
   }
 
   private async verifyInteractionHash({
@@ -551,97 +557,97 @@ export class OpenPaymentsService {
     hash,
     authServer,
   }: VerifyInteractionHashParams): Promise<void> {
-    const grantEndpoint = new URL(authServer).origin + '/'
+    const grantEndpoint = new URL(authServer).origin + '/';
     const data = new TextEncoder().encode(
       `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`,
-    )
+    );
 
-    const digest = await crypto.subtle.digest('SHA-256', data)
+    const digest = await crypto.subtle.digest('SHA-256', data);
     const calculatedHash = btoa(
       String.fromCharCode.apply(null, new Uint8Array(digest)),
-    )
-    if (calculatedHash !== hash) throw new Error('Invalid interaction hash')
+    );
+    if (calculatedHash !== hash) throw new Error('Invalid interaction hash');
   }
 
   private async getInteractionInfo(url: string): Promise<InteractionParams> {
     return await new Promise((res) => {
       this.browser.tabs.create({ url }).then((tab) => {
-        if (!tab.id) return
+        if (!tab.id) return;
         const getInteractionInfo: TabUpdateCallback = async (
           tabId,
           changeInfo,
         ) => {
-          if (tabId !== tab.id) return
+          if (tabId !== tab.id) return;
           try {
-            const tabUrl = new URL(changeInfo.url || '')
-            const interactRef = tabUrl.searchParams.get('interact_ref')
-            const hash = tabUrl.searchParams.get('hash')
-            const result = tabUrl.searchParams.get('result')
+            const tabUrl = new URL(changeInfo.url || '');
+            const interactRef = tabUrl.searchParams.get('interact_ref');
+            const hash = tabUrl.searchParams.get('hash');
+            const result = tabUrl.searchParams.get('result');
 
             if (
               (interactRef && hash) ||
               result === 'grant_rejected' ||
               result === 'grant_invalid'
             ) {
-              this.browser.tabs.onUpdated.removeListener(getInteractionInfo)
+              this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
             }
 
             if (interactRef && hash) {
-              res({ interactRef, hash, tabId })
+              res({ interactRef, hash, tabId });
             }
           } catch {
             /* do nothing */
           }
-        }
-        this.browser.tabs.onUpdated.addListener(getInteractionInfo)
-      })
-    })
+        };
+        this.browser.tabs.onUpdated.addListener(getInteractionInfo);
+      });
+    });
   }
 
   async disconnectWallet() {
     const { recurringGrant, oneTimeGrant } = await this.storage.get([
       'recurringGrant',
       'oneTimeGrant',
-    ])
+    ]);
     if (!recurringGrant && !oneTimeGrant) {
-      return
+      return;
     }
     if (recurringGrant) {
-      await this.cancelGrant(recurringGrant.continue)
-      this.isGrantUsable.recurring = false
+      await this.cancelGrant(recurringGrant.continue);
+      this.isGrantUsable.recurring = false;
     }
     if (oneTimeGrant) {
-      await this.cancelGrant(oneTimeGrant.continue)
-      this.isGrantUsable.oneTime = false
+      await this.cancelGrant(oneTimeGrant.continue);
+      this.isGrantUsable.oneTime = false;
     }
-    await this.storage.clear()
-    this.grant = null
+    await this.storage.clear();
+    this.grant = null;
   }
 
   private async cancelGrant(grantContinuation: GrantDetails['continue']) {
     try {
-      await this.client!.grant.cancel(grantContinuation)
+      await this.client!.grant.cancel(grantContinuation);
     } catch (error) {
       if (isInvalidClientError(error)) {
         // key already removed from wallet
-        return
+        return;
       }
-      throw error
+      throw error;
     }
   }
 
   async generateKeys() {
-    if (await this.storage.keyPairExists()) return
+    if (await this.storage.keyPairExists()) return;
 
-    const { privateKey, publicKey } = await generateEd25519KeyPair()
-    const keyId = crypto.randomUUID()
-    const jwk = exportJWK(publicKey, keyId)
+    const { privateKey, publicKey } = await generateEd25519KeyPair();
+    const keyId = crypto.randomUUID();
+    const jwk = exportJWK(publicKey, keyId);
 
     await this.storage.set({
       privateKey: bytesToHex(privateKey),
       publicKey: btoa(JSON.stringify(jwk)),
       keyId,
-    })
+    });
   }
 
   async createOutgoingPayment({
@@ -666,17 +672,17 @@ export class OpenPaymentsService {
           source: 'Web Monetization',
         },
       },
-    )) as OutgoingPayment
+    )) as OutgoingPayment;
 
     if (outgoingPayment.grantSpentDebitAmount) {
       this.storage.updateSpentAmount(
         this.grant!.type,
         outgoingPayment.grantSpentDebitAmount.value,
-      )
+      );
     }
-    await this.storage.setState({ out_of_funds: false })
+    await this.storage.setState({ out_of_funds: false });
 
-    return outgoingPayment
+    return outgoingPayment;
   }
 
   async probeDebitAmount(
@@ -699,20 +705,20 @@ export class OpenPaymentsService {
           assetScale: sender.assetScale,
         },
       },
-    )
+    );
   }
 
   async reconnectWallet() {
     try {
-      await this.rotateToken()
+      await this.rotateToken();
     } catch (error) {
       if (isInvalidClientError(error)) {
-        const msg = this.t('connectWallet_error_invalidClient')
-        throw new Error(msg, { cause: error })
+        const msg = this.t('connectWallet_error_invalidClient');
+        throw new Error(msg, { cause: error });
       }
-      throw error
+      throw error;
     }
-    await this.storage.setState({ key_revoked: false })
+    await this.storage.setState({ key_revoked: false });
   }
 
   /**
@@ -722,101 +728,101 @@ export class OpenPaymentsService {
    */
   private async _switchGrant(): Promise<GrantDetails['type'] | null> {
     if (!this.isAnyGrantUsable()) {
-      return null
+      return null;
     }
-    this.logger.debug('Switching from grant', this.grant?.type)
+    this.logger.debug('Switching from grant', this.grant?.type);
     const { oneTimeGrant, recurringGrant } = await this.storage.get([
       'oneTimeGrant',
       'recurringGrant',
-    ])
+    ]);
     if (this.grant?.type === 'recurring') {
-      this.isGrantUsable.recurring = false
+      this.isGrantUsable.recurring = false;
       if (oneTimeGrant) {
-        this.grant = oneTimeGrant
-        return 'one-time'
+        this.grant = oneTimeGrant;
+        return 'one-time';
       }
     } else if (this.grant?.type === 'one-time') {
-      this.isGrantUsable.oneTime = false
+      this.isGrantUsable.oneTime = false;
       if (recurringGrant) {
-        this.grant = recurringGrant
-        return 'recurring'
+        this.grant = recurringGrant;
+        return 'recurring';
       }
     }
-    return null
+    return null;
   }
 
   async rotateToken() {
     if (!this.grant) {
-      throw new Error('No grant to rotate token for')
+      throw new Error('No grant to rotate token for');
     }
-    const rotate = this.deduplicator.dedupe(this.client!.token.rotate)
+    const rotate = this.deduplicator.dedupe(this.client!.token.rotate);
     const newToken = await rotate({
       url: this.token.manageUrl,
       accessToken: this.token.value,
-    })
+    });
     const accessToken: AccessToken = {
       value: newToken.access_token.value,
       manageUrl: newToken.access_token.manage,
-    }
+    };
     if (this.grant.type === 'recurring') {
-      this.storage.set({ recurringGrant: { ...this.grant, accessToken } })
+      this.storage.set({ recurringGrant: { ...this.grant, accessToken } });
     } else {
-      this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } })
+      this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } });
     }
-    this.grant = { ...this.grant, accessToken }
+    this.grant = { ...this.grant, accessToken };
   }
 }
 
 const isOpenPaymentsClientError = (error: any) =>
-  error instanceof OpenPaymentsClientError
+  error instanceof OpenPaymentsClientError;
 
 export const isKeyRevokedError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
-  return isInvalidClientError(error) || isSignatureValidationError(error)
-}
+  if (!isOpenPaymentsClientError(error)) return false;
+  return isInvalidClientError(error) || isSignatureValidationError(error);
+};
 
 // AUTH SERVER error
 export const isInvalidClientError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
-  return error.status === 400 && error.code === 'invalid_client'
-}
+  if (!isOpenPaymentsClientError(error)) return false;
+  return error.status === 400 && error.code === 'invalid_client';
+};
 
 // RESOURCE SERVER error. Create outgoing payment and create quote can fail
 // with: `Signature validation error: could not find key in list of client keys`
 export const isSignatureValidationError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
+  if (!isOpenPaymentsClientError(error)) return false;
   return (
     error.status === 401 &&
     error.description?.includes('Signature validation error')
-  )
-}
+  );
+};
 
 export const isTokenExpiredError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
-  return isTokenInvalidError(error) || isTokenInactiveError(error)
-}
+  if (!isOpenPaymentsClientError(error)) return false;
+  return isTokenInvalidError(error) || isTokenInactiveError(error);
+};
 export const isTokenInvalidError = (error: OpenPaymentsClientError) => {
-  return error.status === 401 && error.description === 'Invalid Token'
-}
+  return error.status === 401 && error.description === 'Invalid Token';
+};
 export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
-  return error.status === 403 && error.description === 'Inactive Token'
-}
+  return error.status === 403 && error.description === 'Inactive Token';
+};
 
 // happens during quoting only
 export const isNonPositiveAmountError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
+  if (!isOpenPaymentsClientError(error)) return false;
   return (
     error.status === 400 &&
     error.description?.toLowerCase()?.includes('non-positive receive amount')
-  )
-}
+  );
+};
 
 export const isOutOfBalanceError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
-  return error.status === 403 && error.description === 'unauthorized'
-}
+  if (!isOpenPaymentsClientError(error)) return false;
+  return error.status === 403 && error.description === 'unauthorized';
+};
 
 export const isInvalidReceiverError = (error: any) => {
-  if (!isOpenPaymentsClientError(error)) return false
-  return error.status === 400 && error.description === 'invalid receiver'
-}
+  if (!isOpenPaymentsClientError(error)) return false;
+  return error.status === 400 && error.description === 'invalid receiver';
+};

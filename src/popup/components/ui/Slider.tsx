@@ -1,16 +1,16 @@
-import React, { forwardRef } from 'react'
+import React, { forwardRef } from 'react';
 
-import { cn } from '@/shared/helpers'
+import { cn } from '@/shared/helpers';
 
 export interface SliderProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
-  errorMessage?: string
-  disabled?: boolean
-  icon?: React.ReactNode
-  min?: number
-  max?: number
-  value?: number
-  onChange?: (_event: React.ChangeEvent<HTMLInputElement>) => void
+  errorMessage?: string;
+  disabled?: boolean;
+  icon?: React.ReactNode;
+  min?: number;
+  max?: number;
+  value?: number;
+  onChange?: (_event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const sliderClasses = `
@@ -27,7 +27,7 @@ const sliderClasses = `
   [&::-webkit-slider-thumb]:disabled:bg-disabled-strong
   w-full h-1 bg-disabled-strong rounded-lg
   appearance-none cursor-pointer dark:bg-disabled-strong
-`
+`;
 
 export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
   {
@@ -61,5 +61,5 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
         <p className="px-2 text-sm text-error">{errorMessage}</p>
       )}
     </div>
-  )
-})
+  );
+});

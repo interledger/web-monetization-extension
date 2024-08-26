@@ -2,7 +2,7 @@ module.exports = {
   singleQuote: true,
   trailingComma: 'all',
   jsxSingleQuote: false,
-  semi: false,
+  semi: true,
   plugins: ['prettier-plugin-tailwindcss'],
   tailwindFunctions: [
     'classnames',
@@ -15,4 +15,4 @@ module.exports = {
     'twJoin',
     'cn',
   ],
-}
+};

@@ -1,25 +1,25 @@
-import React from 'react'
+import React from 'react';
 import {
   ReducerActionType,
   usePopupState,
   useMessage,
-} from '@/popup/lib/context'
-import { WarningSign } from '@/popup/components/Icons'
-import { Slider } from '../components/ui/Slider'
-import { Label } from '../components/ui/Label'
+} from '@/popup/lib/context';
+import { WarningSign } from '@/popup/components/Icons';
+import { Slider } from '../components/ui/Slider';
+import { Label } from '../components/ui/Label';
 import {
   formatNumber,
   getCurrencySymbol,
   roundWithPrecision,
-} from '../lib/utils'
-import { PayWebsiteForm } from '../components/PayWebsiteForm'
-import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
-import { debounceAsync } from '@/shared/helpers'
-import { Switch } from '../components/ui/Switch'
-import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid'
+} from '../lib/utils';
+import { PayWebsiteForm } from '../components/PayWebsiteForm';
+import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized';
+import { debounceAsync } from '@/shared/helpers';
+import { Switch } from '../components/ui/Switch';
+import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid';
 
 export const Component = () => {
-  const message = useMessage()
+  const message = useMessage();
   const {
     state: {
       enabled,
@@ -33,53 +33,53 @@ export const Component = () => {
       hasAllSessionsInvalid,
     },
     dispatch,
-  } = usePopupState()
+  } = usePopupState();
 
   const rate = React.useMemo(() => {
-    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale
-    const roundedR = roundWithPrecision(r, walletAddress.assetScale)
+    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;
+    const roundedR = roundWithPrecision(r, walletAddress.assetScale);
 
-    return formatNumber(roundedR, walletAddress.assetScale, true)
-  }, [rateOfPay, walletAddress.assetScale])
+    return formatNumber(roundedR, walletAddress.assetScale, true);
+  }, [rateOfPay, walletAddress.assetScale]);
 
   const remainingBalance = React.useMemo(() => {
-    const val = Number(balance) / 10 ** walletAddress.assetScale
-    const rounded = roundWithPrecision(val, walletAddress.assetScale)
-    return formatNumber(rounded, walletAddress.assetScale, true)
-  }, [balance, walletAddress.assetScale])
+    const val = Number(balance) / 10 ** walletAddress.assetScale;
+    const rounded = roundWithPrecision(val, walletAddress.assetScale);
+    return formatNumber(rounded, walletAddress.assetScale, true);
+  }, [balance, walletAddress.assetScale]);
 
   const updateRateOfPay = React.useRef(
     debounceAsync(async (rateOfPay: string) => {
-      const response = await message.send('UPDATE_RATE_OF_PAY', { rateOfPay })
+      const response = await message.send('UPDATE_RATE_OF_PAY', { rateOfPay });
       if (!response.success) {
         // TODO: Maybe reset to old state, but not while user is active (avoid
         // sluggishness in UI)
       }
     }, 1000),
-  )
+  );
 
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const rateOfPay = event.currentTarget.value
+    const rateOfPay = event.currentTarget.value;
     dispatch({
       type: ReducerActionType.UPDATE_RATE_OF_PAY,
       data: {
         rateOfPay,
       },
-    })
-    void updateRateOfPay.current(rateOfPay)
-  }
+    });
+    void updateRateOfPay.current(rateOfPay);
+  };
 
   const onChangeWM = () => {
-    message.send('TOGGLE_WM')
-    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
-  }
+    message.send('TOGGLE_WM');
+    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} });
+  };
 
   if (!isSiteMonetized) {
-    return <SiteNotMonetized />
+    return <SiteNotMonetized />;
   }
 
   if (hasAllSessionsInvalid) {
-    return <AllSessionsInvalid />
+    return <AllSessionsInvalid />;
   }
 
   return (
@@ -124,5 +124,5 @@ export const Component = () => {
 
       {url ? <PayWebsiteForm /> : null}
     </div>
-  )
-}
+  );
+};
