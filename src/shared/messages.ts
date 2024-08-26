@@ -222,10 +222,6 @@ export type BackgroundToContentMessage = {
     input: MonetizationEventPayload;
     output: never;
   };
-  EMIT_TOGGLE_WM: {
-    input: EmitToggleWMPayload;
-    output: never;
-  };
 };
 
 export type ToContentMessage = {
