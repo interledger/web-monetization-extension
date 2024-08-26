@@ -213,10 +213,6 @@ export interface MonetizationEventPayload {
   details: MonetizationEventDetails;
 }
 
-export interface EmitToggleWMPayload {
-  enabled: boolean;
-}
-
 export type BackgroundToContentMessage = {
   MONETIZATION_EVENT: {
     input: MonetizationEventPayload;

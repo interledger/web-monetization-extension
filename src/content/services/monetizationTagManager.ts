@@ -4,7 +4,6 @@ import type { MonetizationTagDetails } from '../types';
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
 import { checkWalletAddressUrlFormat } from '../utils';
 import type {
-  EmitToggleWMPayload,
   MonetizationEventPayload,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
@@ -555,12 +554,12 @@ export class MonetizationTagManager extends EventEmitter {
     });
   }
 
-  async toggleWM({ enabled }: EmitToggleWMPayload) {
-    if (enabled) {
-      await this.resumeAllMonetization();
-    } else {
-      // TODO: https://github.com/interledger/web-monetization-extension/issues/452
-      this.stopAllMonetization();
-    }
-  }
+  // async toggleWM({ enabled }: EmitToggleWMPayload) {
+  //   if (enabled) {
+  //     await this.resumeAllMonetization();
+  //   } else {
+  //     // TODO: https://github.com/interledger/web-monetization-extension/issues/452
+  //     this.stopAllMonetization();
+  //   }
+  // }
 }

@@ -3,7 +3,6 @@ import type { MonetizationTagDetails } from '../types';
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
 import { checkWalletAddressUrlFormat, mozClone } from '../utils';
 import type {
-  // EmitToggleWMPayload,
   MonetizationEventPayload,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
