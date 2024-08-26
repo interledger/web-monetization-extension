@@ -50,7 +50,7 @@ export class MonetizationLinkManager extends EventEmitter {
     this.id = crypto.randomUUID();
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
-      // this.bindMessageHandler()
+      this.bindMessageHandler();
     }
   }
 
@@ -125,6 +125,28 @@ export class MonetizationLinkManager extends EventEmitter {
     }
 
     await this.sendStartMonetization(validLinks.map((e) => e.details));
+  }
+
+  private bindMessageHandler() {
+    type Message = {
+      message: ContentToContentAction;
+      id: string;
+      payload: any;
+    };
+    this.window.addEventListener('message', (event: MessageEvent<Message>) => {
+      const { message, id, payload } = event.data;
+
+      if (event.origin === window.location.href || id !== this.id) return;
+
+      switch (message) {
+        case ContentToContentAction.START_MONETIZATION:
+          return void this.sendStartMonetization(payload, true);
+        case ContentToContentAction.RESUME_MONETIZATION:
+          return void this.sendResumeMonetization(payload, true);
+        default:
+          return;
+      }
+    });
   }
 
   /** @throws never throws */
@@ -236,12 +258,15 @@ export class MonetizationLinkManager extends EventEmitter {
     await this.sendResumeMonetization(payload);
   }
 
-  private async sendStartMonetization(payload: StartMonetizationPayload[]) {
+  private async sendStartMonetization(
+    payload: StartMonetizationPayload[],
+    onlyToTopIframe = false,
+  ) {
     if (!payload.length) return;
 
     if (this.isTopFrame) {
       await this.message.send('START_MONETIZATION', payload);
-    } else if (this.isFirstLevelFrame) {
+    } else if (this.isFirstLevelFrame && !onlyToTopIframe) {
       this.window.parent.postMessage(
         {
           message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
@@ -258,12 +283,15 @@ export class MonetizationLinkManager extends EventEmitter {
     await this.message.send('STOP_MONETIZATION', payload);
   }
 
-  private async sendResumeMonetization(payload: ResumeMonetizationPayload[]) {
+  private async sendResumeMonetization(
+    payload: ResumeMonetizationPayload[],
+    onlyToTopIframe = false,
+  ) {
     if (this.isTopFrame) {
       if (payload.length) {
         await this.message.send('RESUME_MONETIZATION', payload);
       }
-    } else if (this.isFirstLevelFrame) {
+    } else if (this.isFirstLevelFrame && !onlyToTopIframe) {
       this.window.parent.postMessage(
         {
           message: ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,

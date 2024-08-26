@@ -38,7 +38,7 @@ export class ContentScript {
     if (this.isFirstLevelFrame) {
       this.logger.info('Content script started');
 
-      // if (this.isTopFrame) this.frameManager.start()
+      if (this.isTopFrame) this.frameManager.start();
 
       this.monetizationTagManager.start();
     }
