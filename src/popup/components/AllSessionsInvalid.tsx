@@ -1,9 +1,9 @@
-import React from 'react'
-import { WarningSign } from '@/popup/components/Icons'
-import { useTranslation } from '@/popup/lib/context'
+import React from 'react';
+import { WarningSign } from '@/popup/components/Icons';
+import { useTranslation } from '@/popup/lib/context';
 
 export const AllSessionsInvalid = () => {
-  const t = useTranslation()
+  const t = useTranslation();
   return (
     <div className="flex h-full flex-col items-center justify-center gap-1 p-1 text-lg">
       <div className="flex-shrink-0">
@@ -11,5 +11,5 @@ export const AllSessionsInvalid = () => {
       </div>
       <h3 className="text-medium">{t('allInvalidLinks_state_text')}</h3>
     </div>
-  )
-}
+  );
+};

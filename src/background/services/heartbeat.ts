@@ -1,14 +1,14 @@
-import type { Cradle } from '@/background/container'
+import type { Cradle } from '@/background/container';
 
 export class Heartbeat {
-  private browser: Cradle['browser']
+  private browser: Cradle['browser'];
 
   constructor({ browser }: Cradle) {
-    Object.assign(this, { browser })
+    Object.assign(this, { browser });
   }
 
   start() {
-    const alarms = this.browser.alarms
+    const alarms = this.browser.alarms;
     // The minimum supported cross-browser period is 1 minute. So, we create 4
     // alarms at a 0,15,30,45 seconds delay. So, we'll get an alarm every 15s -
     // and that'll help us keep the background script alive.
@@ -18,30 +18,30 @@ export class Heartbeat {
     // first minute that our extension stays alive.
     setTimeout(
       () => alarms.create('keep-alive-alarm-0', { periodInMinutes: 1 }),
-      0
-    )
+      0,
+    );
     setTimeout(
       () => alarms.create('keep-alive-alarm-1', { periodInMinutes: 1 }),
-      15 * 1000
-    )
+      15 * 1000,
+    );
     setTimeout(
       () => alarms.create('keep-alive-alarm-2', { periodInMinutes: 1 }),
-      30 * 1000
-    )
+      30 * 1000,
+    );
     setTimeout(
       () => alarms.create('keep-alive-alarm-3', { periodInMinutes: 1 }),
-      45 * 1000
-    )
+      45 * 1000,
+    );
 
     alarms.onAlarm.addListener(() => {
       // doing nothing is enough to keep it alive
-    })
+    });
   }
 
   stop() {
-    this.browser.alarms.clear('keep-alive-alarm-0')
-    this.browser.alarms.clear('keep-alive-alarm-1')
-    this.browser.alarms.clear('keep-alive-alarm-2')
-    this.browser.alarms.clear('keep-alive-alarm-3')
+    this.browser.alarms.clear('keep-alive-alarm-0');
+    this.browser.alarms.clear('keep-alive-alarm-1');
+    this.browser.alarms.clear('keep-alive-alarm-2');
+    this.browser.alarms.clear('keep-alive-alarm-3');
   }
 }

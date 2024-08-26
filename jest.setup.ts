@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom';
 
-import { chrome } from 'jest-chrome'
+import { chrome } from 'jest-chrome';
 
-Object.assign(global, { chrome: chrome, browser: chrome })
+Object.assign(global, { chrome: chrome, browser: chrome });
