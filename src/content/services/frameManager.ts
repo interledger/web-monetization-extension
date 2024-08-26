@@ -1,4 +1,4 @@
-import { ContentToContentAction } from '../messages';
+import type { ContentToContentMessage } from '../messages';
 import type {
   ResumeMonetizationPayloadEntry,
   StartMonetizationPayloadEntry,
@@ -176,21 +176,22 @@ export class FrameManager {
     this.observeDocumentForFrames();
   }
 
+  static handledMessages: ContentToContentMessage['message'][] = [
+    'INITIALIZE_IFRAME',
+    'IS_MONETIZATION_ALLOWED_ON_START',
+    'IS_MONETIZATION_ALLOWED_ON_RESUME',
+  ];
+
   private bindMessageHandler() {
     this.window.addEventListener(
       'message',
-      (event: any) => {
+      (event: MessageEvent<ContentToContentMessage>) => {
         const { message, payload, id } = event.data;
-        if (
-          ![
-            ContentToContentAction.INITIALIZE_IFRAME,
-            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
-            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
-          ].includes(message)
-        ) {
+        if (!FrameManager.handledMessages.includes(message)) {
           return;
         }
-        const frame = this.findIframe(event.source);
+        const eventSource = event.source as Window;
+        const frame = this.findIframe(eventSource);
         if (!frame) {
           event.stopPropagation();
           return;
@@ -199,7 +200,7 @@ export class FrameManager {
         if (event.origin === this.window.location.href) return;
 
         switch (message) {
-          case ContentToContentAction.INITIALIZE_IFRAME:
+          case 'INITIALIZE_IFRAME':
             event.stopPropagation();
             this.frames.set(frame, {
               frameId: id,
@@ -207,7 +208,7 @@ export class FrameManager {
             });
             return;
 
-          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START:
+          case 'IS_MONETIZATION_ALLOWED_ON_START':
             event.stopPropagation();
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
@@ -216,19 +217,15 @@ export class FrameManager {
                   (p: StartMonetizationPayloadEntry) => p.requestId,
                 ),
               });
-              event.source.postMessage(
-                {
-                  message: ContentToContentAction.START_MONETIZATION,
-                  id,
-                  payload,
-                },
+              eventSource.postMessage(
+                { message: 'START_MONETIZATION', id, payload },
                 '*',
               );
             }
 
             return;
 
-          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME:
+          case 'IS_MONETIZATION_ALLOWED_ON_RESUME':
             event.stopPropagation();
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
@@ -237,12 +234,8 @@ export class FrameManager {
                   (p: ResumeMonetizationPayloadEntry) => p.requestId,
                 ),
               });
-              event.source.postMessage(
-                {
-                  message: ContentToContentAction.RESUME_MONETIZATION,
-                  id,
-                  payload,
-                },
+              eventSource.postMessage(
+                { message: 'RESUME_MONETIZATION', id, payload },
                 '*',
               );
             }

@@ -9,7 +9,7 @@ import type {
   StopMonetizationPayload,
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
-import { ContentToContentAction } from '../messages';
+import type { ContentToContentMessage } from '../messages';
 import type { Cradle } from '@/content/container';
 
 export class MonetizationLinkManager extends EventEmitter {
@@ -129,25 +129,23 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private bindMessageHandler() {
-    type Message = {
-      message: ContentToContentAction;
-      id: string;
-      payload: any;
-    };
-    this.window.addEventListener('message', (event: MessageEvent<Message>) => {
-      const { message, id, payload } = event.data;
+    this.window.addEventListener(
+      'message',
+      (event: MessageEvent<ContentToContentMessage>) => {
+        const { message, id, payload } = event.data;
 
-      if (event.origin === window.location.href || id !== this.id) return;
+        if (event.origin === window.location.href || id !== this.id) return;
 
-      switch (message) {
-        case ContentToContentAction.START_MONETIZATION:
-          return void this.sendStartMonetization(payload, true);
-        case ContentToContentAction.RESUME_MONETIZATION:
-          return void this.sendResumeMonetization(payload, true);
-        default:
-          return;
-      }
-    });
+        switch (message) {
+          case 'START_MONETIZATION':
+            return void this.sendStartMonetization(payload, true);
+          case 'RESUME_MONETIZATION':
+            return void this.sendResumeMonetization(payload, true);
+          default:
+            return;
+        }
+      },
+    );
   }
 
   /** @throws never throws */
@@ -268,10 +266,7 @@ export class MonetizationLinkManager extends EventEmitter {
     if (this.isTopFrame) {
       await this.message.send('START_MONETIZATION', payload);
     } else if (this.isFirstLevelFrame && !onlyToTopIframe) {
-      this.postMessage(
-        ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
-        payload,
-      );
+      this.postMessage('IS_MONETIZATION_ALLOWED_ON_START', payload);
     }
   }
 
@@ -289,10 +284,7 @@ export class MonetizationLinkManager extends EventEmitter {
         await this.message.send('RESUME_MONETIZATION', payload);
       }
     } else if (this.isFirstLevelFrame && !onlyToTopIframe) {
-      this.postMessage(
-        ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
-        payload,
-      );
+      this.postMessage('IS_MONETIZATION_ALLOWED_ON_RESUME', payload);
     }
   }
 
@@ -338,7 +330,10 @@ export class MonetizationLinkManager extends EventEmitter {
     }
   }
 
-  private postMessage(message: ContentToContentAction, payload: any) {
+  private postMessage<K extends ContentToContentMessage['message']>(
+    message: K,
+    payload: Extract<ContentToContentMessage, { message: K }>['payload'],
+  ) {
     this.window.parent.postMessage({ message, id: this.id, payload }, '*');
   }
 
