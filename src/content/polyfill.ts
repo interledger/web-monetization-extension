@@ -1,5 +1,12 @@
 import type { MonetizationEventPayload } from '@/shared/messages';
 (function () {
+  const link = document.createElement('link');
+  if (link.relList.supports('monetization')) {
+    // eslint-disable-next-line no-console
+    console.debug('Monetization is already supported');
+    return;
+  }
+
   const handlers = new WeakMap();
   const attributes: PropertyDescriptor & ThisType<EventTarget> = {
     enumerable: true,
