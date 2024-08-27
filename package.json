@@ -91,7 +91,7 @@
     "overrides": {
       "safe-buffer": "5.2.1",
       "string_decoder": "1.3.0",
-      "readable-stream": "2.3.8",
+      "readable-stream": "4.5.2",
       "bn.js": "5.2.1",
       "structured-headers": "1.0.1"
     }
