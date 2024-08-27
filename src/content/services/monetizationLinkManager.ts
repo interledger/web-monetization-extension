@@ -213,7 +213,10 @@ export class MonetizationLinkManager extends EventEmitter {
     tag.dispatchEvent(new Event('error'));
   }
 
-  dispatchMonetizationEvent({ requestId, details }: MonetizationEventPayload) {
+  public dispatchMonetizationEvent({
+    requestId,
+    details,
+  }: MonetizationEventPayload) {
     for (const [tag, tagDetails] of this.monetizationLinks) {
       if (tagDetails.requestId !== requestId) continue;
 
