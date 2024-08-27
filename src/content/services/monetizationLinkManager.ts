@@ -49,10 +49,6 @@ export class MonetizationLinkManager extends EventEmitter {
     this.isTopFrame = window === window.top;
     this.isFirstLevelFrame = window.parent === window.top;
     this.id = crypto.randomUUID();
-
-    if (!this.isTopFrame && this.isFirstLevelFrame) {
-      this.bindMessageHandler();
-    }
   }
 
   start(): void {
@@ -82,19 +78,29 @@ export class MonetizationLinkManager extends EventEmitter {
     );
   }
 
-  end() {}
+  end() {
+    this.documentObserver.disconnect();
+    this.monetizationLinkAttrObserver.disconnect();
+    this.monetizationLinks.clear();
+    this.document.removeEventListener(
+      'visibilitychange',
+      this.onDocumentVisibilityChange,
+    );
+    this.window.removeEventListener('message', this.onWindowMessage);
+  }
 
   /**
    * Check if iframe or not
    */
   private async run() {
-    this.document.addEventListener('visibilitychange', () => {
-      if (this.document.visibilityState === 'visible') {
-        void this.resumeMonetization();
-      } else {
-        void this.stopMonetization();
-      }
-    });
+    this.document.addEventListener(
+      'visibilitychange',
+      this.onDocumentVisibilityChange,
+    );
+
+    if (!this.isTopFrame && this.isFirstLevelFrame) {
+      this.window.addEventListener('message', this.onWindowMessage);
+    }
 
     this.document
       .querySelectorAll<HTMLElement>('[onmonetization]')
@@ -128,25 +134,20 @@ export class MonetizationLinkManager extends EventEmitter {
     await this.sendStartMonetization(validLinks.map((e) => e.details));
   }
 
-  private bindMessageHandler() {
-    this.window.addEventListener(
-      'message',
-      (event: MessageEvent<ContentToContentMessage>) => {
-        const { message, id, payload } = event.data;
+  private onWindowMessage = (event: MessageEvent<ContentToContentMessage>) => {
+    const { message, id, payload } = event.data;
 
-        if (event.origin === window.location.href || id !== this.id) return;
+    if (event.origin === window.location.href || id !== this.id) return;
 
-        switch (message) {
-          case 'START_MONETIZATION':
-            return void this.sendStartMonetization(payload, true);
-          case 'RESUME_MONETIZATION':
-            return void this.sendResumeMonetization(payload, true);
-          default:
-            return;
-        }
-      },
-    );
-  }
+    switch (message) {
+      case 'START_MONETIZATION':
+        return void this.sendStartMonetization(payload, true);
+      case 'RESUME_MONETIZATION':
+        return void this.sendResumeMonetization(payload, true);
+      default:
+        return;
+    }
+  };
 
   /** @throws never throws */
   private async checkLink(link: HTMLLinkElement) {
@@ -290,6 +291,14 @@ export class MonetizationLinkManager extends EventEmitter {
       this.postMessage('IS_MONETIZATION_ALLOWED_ON_RESUME', payload);
     }
   }
+
+  private onDocumentVisibilityChange = async () => {
+    if (this.document.visibilityState === 'visible') {
+      await this.resumeMonetization();
+    } else {
+      await this.stopMonetization();
+    }
+  };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
     const stopMonetizationPayload: StopMonetizationPayload = [];
