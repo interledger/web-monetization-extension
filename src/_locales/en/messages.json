@@ -39,7 +39,7 @@
     "message": "Not enough funds to facilitate payment."
   },
   "pay_error_invalidReceivers": {
-    "message": "At the moment, you can not pay this website.",
+    "message": "At the moment, you cannot pay this website.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "pay_error_notMonetized": {
