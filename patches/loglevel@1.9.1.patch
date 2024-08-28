@@ -1,0 +1,86 @@
+diff --git a/lib/loglevel.js b/lib/loglevel.js
+index 307ab2fe1eeab3ffe0db1fcd0f81248d848f6648..bd5f860f69b5d943063be4f9e433ef4f9eaf3279 100644
+--- a/lib/loglevel.js
++++ b/lib/loglevel.js
+@@ -35,10 +35,10 @@
+     var defaultLogger = null;
+ 
+     // Cross-browser bind equivalent that works at least back to IE6
+-    function bindMethod(obj, methodName) {
++    function bindMethod(obj, methodName, prefix) {
+         var method = obj[methodName];
+         if (typeof method.bind === 'function') {
+-            return method.bind(obj);
++            return method.bind(obj, `%c${prefix}`, 'font-weight: bold; text-transform: uppercase; background: #2f8785; padding-inline: 5px;');
+         } else {
+             try {
+                 return Function.prototype.bind.call(method, obj);
+@@ -66,7 +66,7 @@
+ 
+     // Build the best logging method possible for this env
+     // Wherever possible we want to bind, not wrap, to preserve stack traces
+-    function realMethod(methodName) {
++    function realMethod(methodName, prefix) {
+         if (methodName === 'debug') {
+             methodName = 'log';
+         }
+@@ -76,7 +76,7 @@
+         } else if (methodName === 'trace' && isIE) {
+             return traceForIE;
+         } else if (console[methodName] !== undefined) {
+-            return bindMethod(console, methodName);
++            return bindMethod(console, methodName, prefix);
+         } else if (console.log !== undefined) {
+             return bindMethod(console, 'log');
+         } else {
+@@ -86,7 +86,7 @@
+ 
+     // These private functions always need `this` to be set properly
+ 
+-    function replaceLoggingMethods() {
++    function replaceLoggingMethods(prefix) {
+         /*jshint validthis:true */
+         var level = this.getLevel();
+ 
+@@ -95,7 +95,7 @@
+             var methodName = logMethods[i];
+             this[methodName] = (i < level) ?
+                 noop :
+-                this.methodFactory(methodName, level, this.name);
++                this.methodFactory(methodName, level, prefix);
+         }
+ 
+         // Define log.log as an alias for log.debug
+@@ -109,10 +109,10 @@
+ 
+     // In old IE versions, the console isn't present until you first open it.
+     // We build realMethod() replacements here that regenerate logging methods
+-    function enableLoggingWhenConsoleArrives(methodName) {
++    function enableLoggingWhenConsoleArrives(methodName, prefix) {
+         return function () {
+             if (typeof console !== undefinedType) {
+-                replaceLoggingMethods.call(this);
++                replaceLoggingMethods.call(this, prefix);
+                 this[methodName].apply(this, arguments);
+             }
+         };
+@@ -120,9 +120,9 @@
+ 
+     // By default, we use closely bound real methods wherever possible, and
+     // otherwise we wait for a console to appear, and then try again.
+-    function defaultMethodFactory(methodName, _level, _loggerName) {
++    function defaultMethodFactory(methodName, _level, prefix) {
+         /*jshint validthis:true */
+-        return realMethod(methodName) ||
++        return realMethod(methodName, prefix) ||
+                enableLoggingWhenConsoleArrives.apply(this, arguments);
+     }
+ 
+@@ -332,6 +332,7 @@
+                 defaultLogger.methodFactory
+             );
+         }
++        replaceLoggingMethods.call(logger, name)
+         return logger;
+     };
+ 

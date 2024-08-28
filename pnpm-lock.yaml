@@ -11,6 +11,11 @@ overrides:
   bn.js: 5.2.1
   structured-headers: 1.0.1
 
+patchedDependencies:
+  loglevel@1.9.1:
+    hash: xlvmbcoe3trrwxrkqrfhthhrry
+    path: patches/loglevel@1.9.1.patch
+
 importers:
 
   .:
@@ -50,7 +55,7 @@ importers:
         version: 2.1.2
       loglevel:
         specifier: ^1.9.1
-        version: 1.9.1
+        version: 1.9.1(patch_hash=xlvmbcoe3trrwxrkqrfhthhrry)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -7175,7 +7180,7 @@ snapshots:
 
   lodash@4.17.21: {}
 
-  loglevel@1.9.1: {}
+  loglevel@1.9.1(patch_hash=xlvmbcoe3trrwxrkqrfhthhrry): {}
 
   loose-envify@1.4.0:
     dependencies:

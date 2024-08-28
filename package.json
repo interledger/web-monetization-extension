@@ -94,6 +94,9 @@
       "readable-stream": "2.3.8",
       "bn.js": "5.2.1",
       "structured-headers": "1.0.1"
+    },
+    "patchedDependencies": {
+      "loglevel@1.9.1": "patches/loglevel@1.9.1.patch"
     }
   },
   "packageManager": "pnpm@9.7.1"
