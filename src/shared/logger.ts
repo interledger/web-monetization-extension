@@ -11,7 +11,7 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
     return raw.bind(
       log,
       `%c${loggerName as string}`,
-      'font-weight: bold; text-transform: uppercase; background: #2f8785; padding-inline: 5px;',
+      'font-weight: bold; text-transform: uppercase; background: #2f8785; color: #fff; padding-inline: 5px;',
     );
   };
   log.rebuild();
