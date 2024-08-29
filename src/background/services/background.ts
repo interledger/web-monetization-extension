@@ -236,7 +236,7 @@ export class Background {
   private async updateVisualIndicatorsForCurrentTab() {
     const activeTab = await getCurrentActiveTab(this.browser);
     if (activeTab?.id) {
-      void this.tabEvents.updateVisualIndicators(activeTab.id);
+      void this.tabEvents.updateVisualIndicators(activeTab.id, activeTab.url);
     }
   }
 
