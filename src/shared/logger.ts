@@ -8,15 +8,11 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
   const factory = log.methodFactory;
   log.methodFactory = (methodName, logLevel, loggerName) => {
     const raw = factory(methodName, logLevel, loggerName);
-
-    return function (...args) {
-      const messages = [
-        `%c${loggerName as string}`,
-        'font-weight: bold; text-transform: uppercase; background: #2f8785; padding-inline: 5px;',
-        ...args,
-      ];
-      raw(...messages);
-    };
+    return raw.bind(
+      log,
+      `%c${loggerName as string}`,
+      'font-weight: bold; text-transform: uppercase; background: #2f8785; color: #fff; padding-inline: 5px;',
+    );
   };
   log.rebuild();
 
