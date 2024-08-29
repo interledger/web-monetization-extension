@@ -25,8 +25,8 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       awilix:
-        specifier: ^10.0.2
-        version: 10.0.2
+        specifier: ^11.0.0
+        version: 11.0.0
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1309,9 +1309,9 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  awilix@10.0.2:
-    resolution: {integrity: sha512-hFatb7eZFdtiWjjmGRSm/K/uxZpmcBlM+YoeMB3VpOPXk3xa6+7zctg3LRbUzoimom5bwGrePF0jXReO6b4zNQ==}
-    engines: {node: '>=14.0.0'}
+  awilix@11.0.0:
+    resolution: {integrity: sha512-lnEm2TZu1OUWO1twi/3JrjSYu3RYjiOMiMQgfpwXj6uG4NSDtPSAWwTvqbpV7B8iWsXiC8GoMBKg1YsrUxPJhg==}
+    engines: {node: '>=16.3.0'}
 
   axe-core@4.9.1:
     resolution: {integrity: sha512-QbUdXJVTpvUTHU7871ppZkdOLBeGUKBQWHkHrvN2V9IQWGMt61zf3B45BtzjxEJzYuj0JBjBZP/hmYS/R9pmAw==}
@@ -5241,7 +5241,7 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.0.0
 
-  awilix@10.0.2:
+  awilix@11.0.0:
     dependencies:
       camel-case: 4.1.2
       fast-glob: 3.3.2
