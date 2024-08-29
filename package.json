@@ -17,6 +17,7 @@
     "format:fix": "prettier . --write --cache --cache-location='node_modules/.cache/prettiercache' --log-level=warn",
     "typecheck": "tsc --noEmit",
     "test": "jest --maxWorkers=2 --passWithNoTests",
+    "test:e2e": "playwright test",
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "@jgoz/esbuild-plugin-typecheck": "^4.0.1",
+    "@playwright/test": "^1.46.1",
     "@tailwindcss/forms": "^0.5.7",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^16.0.0",
