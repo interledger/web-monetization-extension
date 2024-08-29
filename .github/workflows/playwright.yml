@@ -40,7 +40,7 @@ jobs:
       matrix:
         include:
           - name: Chrome
-            project: chrome
+            project: chromium
             target: chrome
             runs-on: ubuntu-22.04
           # - name: Firefox
