@@ -1,12 +1,18 @@
 // cSpell:ignore serviceworker
 
 import path from 'node:path';
-import { test as base, chromium, type BrowserContext } from '@playwright/test';
+import {
+  test as base,
+  chromium,
+  type BrowserContext,
+  type Worker,
+} from '@playwright/test';
 import { DIST_DIR } from '../../esbuild/config';
 
 export const test = base.extend<{
   pathToExtension: string;
   context: BrowserContext;
+  background: Worker;
   extensionId: string;
 }>({
   pathToExtension: ({ browserName }, use) => {
@@ -43,13 +49,16 @@ export const test = base.extend<{
     await context.close();
   },
 
-  extensionId: async ({ context }, use) => {
+  background: async ({ context }, use) => {
     // chromium only atm
     let background = context.serviceWorkers()[0];
     if (!background) {
       background = await context.waitForEvent('serviceworker');
     }
+    use(background);
+  },
 
+  extensionId: async ({ background }, use) => {
     const extensionId = background.url().split('/')[2];
     await use(extensionId);
   },
