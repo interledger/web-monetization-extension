@@ -35,6 +35,7 @@ loglevel
 openapi
 apidevtools
 tailwindcss
+msedge
 
 # user names
 raducristianpopa

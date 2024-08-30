@@ -18,6 +18,7 @@
     "*.svg",
     "pnpm-lock.yaml",
     ".eslintrc.json",
+    ".gitignore",
     "cspell-dictionary.txt"
   ]
 }
