@@ -65,10 +65,10 @@ jobs:
         run: pnpm build ${{ matrix.target }} --channel=nightly
 
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install project=${{ matrix.project }} --with-deps
+        run: pnpm exec playwright install --project=${{ matrix.project }} --with-deps
 
       - name: Run Playwright tests
-        run: pnpm test:e2e --project=${{ matrix.project }}
+        run: xvfb-run pnpm test:e2e --project=${{ matrix.project }}
 
       - uses: actions/upload-artifact@v4
         if: always()
