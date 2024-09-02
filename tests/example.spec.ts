@@ -3,10 +3,10 @@ import { test, expect } from './fixtures/base';
 import { openPopup } from './pages/popup';
 
 let popup: Page;
-test.beforeEach(async ({ context, extensionId }) => {
-  popup = await openPopup(context, extensionId);
+test.beforeEach(async ({ context, browserName, extensionId }) => {
+  popup = await openPopup(context, browserName, extensionId);
 });
-test.afterAll(async () => {
+test.afterEach(async () => {
   await popup.close();
 });
 

@@ -27,6 +27,9 @@ iife
 backported
 autobuild
 buildscript
+networkidle
+webextensions
+firefoxUserPrefs
 
 # packages and 3rd party tools/libraries
 awilix
@@ -36,6 +39,7 @@ openapi
 apidevtools
 tailwindcss
 msedge
+xvfb
 
 # user names
 raducristianpopa

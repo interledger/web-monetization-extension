@@ -1,10 +1,19 @@
 import type { BrowserContext } from '@playwright/test';
 
-// TODO: add browserName param
-export async function openPopup(context: BrowserContext, extensionId: string) {
+export async function openPopup(
+  context: BrowserContext,
+  browserType: string,
+  extensionId: string,
+) {
   const popup = await context.newPage();
-  const url = `chrome-extension://${extensionId}/popup/index.html`;
+  let url: string;
+  if (browserType === 'chromium') {
+    url = `chrome-extension://${extensionId}/popup/index.html`;
+  } else if (browserType === 'firefox') {
+    url = `moz-extension://${extensionId}/popup/index.html`;
+  } else {
+    throw new Error('Unsupported browser: ' + browserType);
+  }
   await popup.goto(url);
-  await popup.waitForLoadState("networkidle");
   return popup;
 }
