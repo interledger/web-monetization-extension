@@ -1,25 +1,10 @@
-import type { BrowserContext, Worker } from '@playwright/test';
+import type { BrowserContext } from '@playwright/test';
 
 // TODO: add browserName param
-export async function openPopup(
-  context: BrowserContext,
-  background: Worker,
-  extensionId: string,
-) {
-  // load a page from which to open the extension popup, make it the active tab
-  const page = await context.newPage();
+export async function openPopup(context: BrowserContext, extensionId: string) {
   const popup = await context.newPage();
-
-  await popup.goto(`chrome-extension://${extensionId}/popup/index.html`);
-
-  await background.evaluate(async () => {
-    // @ts-expect-error TODO
-    chrome.action.openPopup();
-  });
-
-  await page.bringToFront();
-  return {
-    page: page,
-    popup: popup,
-  };
+  const url = `chrome-extension://${extensionId}/popup/index.html`;
+  await popup.goto(url);
+  await popup.waitForLoadState("networkidle");
+  return popup;
 }

@@ -1,9 +1,17 @@
+import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/base';
 import { openPopup } from './pages/popup';
 
-test('should load popup', async ({ context, background, extensionId }) => {
-  const { popup } = await openPopup(context, background, extensionId);
+let popup: Page;
+test.beforeEach(async ({ context, extensionId }) => {
+  popup = await openPopup(context, extensionId);
+});
+test.afterAll(async () => {
+  await popup.close();
+});
 
+test('should load popup', async () => {
+  await popup.bringToFront();
   await expect(popup).toHaveTitle('Web Monetization Extension');
   await expect(popup.locator('#popup-container')).toBeAttached();
   await expect(popup.locator('header')).toHaveText('Web Monetization');
@@ -13,22 +21,12 @@ test('should load popup', async ({ context, background, extensionId }) => {
   );
 });
 
-test('shows connect form if not connected', async ({
-  context,
-  background,
-  extensionId,
-}) => {
-  const { page, popup } = await openPopup(context, background, extensionId);
-
+test('shows connect form if not connected', async ({ page }) => {
   await page.goto('https://example.com');
 
   await expect(popup).toHaveTitle('Web Monetization Extension');
   await expect(popup.locator('#popup-container')).toBeAttached();
   await expect(popup.locator('header')).toHaveText('Web Monetization');
-  await expect(popup.locator('header img')).toHaveAttribute(
-    'src',
-    /logo\.svg$/,
-  );
 
   await expect(popup.locator('form')).toBeVisible();
   await expect(popup.locator('form button[type="submit"]')).toBeVisible();
