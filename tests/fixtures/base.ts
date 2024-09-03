@@ -89,10 +89,12 @@ export const test = base.extend<{
   },
 
   extensionId: async ({ background, browserName }, use) => {
+    let extensionId: string;
     if (browserName === 'firefox') {
-      return FIREFOX_ADDON_UUID;
+      extensionId = FIREFOX_ADDON_UUID;
+    } else {
+      extensionId = background.url().split('/')[2];
     }
-    const extensionId = background.url().split('/')[2];
     await use(extensionId);
   },
 });
