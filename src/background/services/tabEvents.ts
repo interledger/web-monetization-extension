@@ -1,6 +1,7 @@
 import browser from 'webextension-polyfill';
 import type { Browser } from 'webextension-polyfill';
 import { isOkState, removeQueryParams } from '@/shared/helpers';
+import { ALLOWED_PROTOCOLS } from '@/shared/defines';
 import type { Storage, TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 
@@ -81,7 +82,7 @@ export class TabEvents {
       if (clearOverpaying) {
         this.tabState.clearOverpayingByTabId(tabId);
       }
-      void this.updateVisualIndicators(tabId);
+      void this.updateVisualIndicators(tabId, url);
     }
   };
 
@@ -91,16 +92,18 @@ export class TabEvents {
   };
 
   onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
-    await this.updateVisualIndicators(info.tabId);
+    const tab = await this.browser.tabs.get(info.tabId);
+    await this.updateVisualIndicators(info.tabId, tab?.url);
   };
 
   onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
     if (!tab.id) return;
-    await this.updateVisualIndicators(tab.id);
+    await this.updateVisualIndicators(tab.id, tab.url);
   };
 
   updateVisualIndicators = async (
     tabId: TabId,
+    tabUrl?: string,
     isTabMonetized: boolean = tabId
       ? this.tabState.isTabMonetized(tabId)
       : false,
@@ -108,6 +111,9 @@ export class TabEvents {
       ? this.tabState.tabHasAllSessionsInvalid(tabId)
       : false,
   ) => {
+    const canMonetizeTab = ALLOWED_PROTOCOLS.some((scheme) =>
+      tabUrl?.startsWith(scheme),
+    );
     const { enabled, connected, state } = await this.storage.get([
       'enabled',
       'connected',
@@ -117,6 +123,7 @@ export class TabEvents {
       enabled,
       connected,
       state,
+      canMonetizeTab,
       isTabMonetized,
       hasTabAllSessionsInvalid,
     });
@@ -140,18 +147,20 @@ export class TabEvents {
     enabled,
     connected,
     state,
+    canMonetizeTab,
     isTabMonetized,
     hasTabAllSessionsInvalid,
   }: {
     enabled: Storage['enabled'];
     connected: Storage['connected'];
     state: Storage['state'];
+    canMonetizeTab: boolean;
     isTabMonetized: boolean;
     hasTabAllSessionsInvalid: boolean;
   }) {
     let title = this.t('appName');
     let iconData = ICONS.default;
-    if (!connected) {
+    if (!connected || !canMonetizeTab) {
       // use defaults
     } else if (!isOkState(state) || hasTabAllSessionsInvalid) {
       iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn;
