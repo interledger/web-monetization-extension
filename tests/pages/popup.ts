@@ -2,18 +2,23 @@ import type { BrowserContext } from '@playwright/test';
 
 export async function openPopup(
   context: BrowserContext,
-  browserType: string,
+  browserName: string,
   extensionId: string,
 ) {
   const popup = await context.newPage();
-  let url: string;
-  if (browserType === 'chromium') {
-    url = `chrome-extension://${extensionId}/popup/index.html`;
-  } else if (browserType === 'firefox') {
-    url = `moz-extension://${extensionId}/popup/index.html`;
-  } else {
-    throw new Error('Unsupported browser: ' + browserType);
-  }
+  const url = getPopupUrl(browserName, extensionId);
   await popup.goto(url);
   return popup;
+}
+
+function getPopupUrl(browserName: string, extensionId: string) {
+  let url: string;
+  if (browserName === 'chromium') {
+    url = `chrome-extension://${extensionId}/popup/index.html`;
+  } else if (browserName === 'firefox') {
+    url = `moz-extension://${extensionId}/popup/index.html`;
+  } else {
+    throw new Error('Unsupported browser: ' + browserName);
+  }
+  return url;
 }
