@@ -3,11 +3,14 @@ import { test, expect } from './fixtures/base';
 import { openPopup } from './pages/popup';
 
 let popup: Page;
-test.beforeEach(async ({ context, browserName, extensionId }) => {
-  popup = await openPopup(context, browserName, extensionId);
+test.beforeAll(async ({ persistentContext, browserName, extensionId }) => {
+  popup = await openPopup(persistentContext, browserName, extensionId);
 });
-test.afterEach(async () => {
+test.afterAll(async () => {
   await popup.close();
+});
+test.beforeEach(async () => {
+  await popup.reload();
 });
 
 test('should load popup', async () => {
