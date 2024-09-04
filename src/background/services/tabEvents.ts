@@ -92,7 +92,8 @@ export class TabEvents {
   };
 
   onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
-    await this.updateVisualIndicators(info.tabId);
+    const tab = await this.browser.tabs.get(info.tabId);
+    await this.updateVisualIndicators(info.tabId, tab?.url);
   };
 
   onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
@@ -110,7 +111,6 @@ export class TabEvents {
       ? this.tabState.tabHasAllSessionsInvalid(tabId)
       : false,
   ) => {
-    tabUrl ||= (await this.browser.tabs.get(tabId)).url;
     const canMonetizeTab = ALLOWED_PROTOCOLS.some((scheme) =>
       tabUrl?.startsWith(scheme),
     );
