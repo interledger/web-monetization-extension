@@ -52,3 +52,8 @@ jobs:
             > [!warning]
             > The Nightly build is for adventurous folks. It's updated daily with less-tested features and improvements.
           prerelease: true
+
+      - name: Ensure release is published
+        run: gh release edit nightly --draft=false
+        env:
+          GH_TOKEN: ${{ github.token }}

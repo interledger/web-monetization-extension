@@ -92,6 +92,8 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
       return { ...state, isSiteMonetized: action.data };
     case 'SET_BALANCE':
       return { ...state, balance: action.data.total };
+    case 'SET_ALL_SESSIONS_INVALID':
+      return { ...state, hasAllSessionsInvalid: action.data };
     default:
       return state;
   }
@@ -127,6 +129,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
         case 'SET_BALANCE':
         case 'SET_STATE':
         case 'SET_IS_MONETIZED':
+        case 'SET_ALL_SESSIONS_INVALID':
           return dispatch(message);
       }
     });
