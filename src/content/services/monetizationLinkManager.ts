@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import type { MonetizationTagDetails } from '../types';
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
+import { isNotNull } from '@/shared/helpers';
 import { mozClone, WalletAddressFormatError } from '../utils';
 import type {
   MonetizationEventPayload,
@@ -519,8 +520,4 @@ function getMonetizationLinkTags(
     );
     return monetizationTag ? [monetizationTag] : [];
   }
-}
-
-function isNotNull<T>(value: T | null): value is T {
-  return value !== null;
 }

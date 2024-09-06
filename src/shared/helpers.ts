@@ -222,6 +222,10 @@ export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
   return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort());
 }
 
+export function isNotNull<T>(value: T | null): value is T {
+  return value !== null;
+}
+
 export const removeQueryParams = (urlString: string) => {
   const url = new URL(urlString);
   return url.origin + url.pathname;
