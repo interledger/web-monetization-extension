@@ -179,7 +179,7 @@ export class MonetizationLinkManager extends EventEmitter {
     const walletAddressUrl = link.href.trim();
     try {
       checkWalletAddressUrlFormat(walletAddressUrl);
-      const response = await this.message.send('CHECK_WALLET_ADDRESS_URL', {
+      const response = await this.message.send('GET_WALLET_ADDRESS_INFO', {
         walletAddressUrl,
       });
 

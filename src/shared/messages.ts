@@ -143,7 +143,7 @@ export type PopupToBackgroundMessage = {
 // #endregion
 
 // #region Content ↦ BG
-export interface CheckWalletAddressUrlPayload {
+export interface GetWalletAddressInfoPayload {
   walletAddressUrl: string;
 }
 
@@ -169,8 +169,8 @@ export interface IsTabMonetizedPayload {
 }
 
 export type ContentToBackgroundMessage = {
-  CHECK_WALLET_ADDRESS_URL: {
-    input: CheckWalletAddressUrlPayload;
+  GET_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload;
     output: WalletAddress;
   };
   STOP_MONETIZATION: {

@@ -185,7 +185,7 @@ export class Background {
             // endregion
 
             // region Content
-            case 'CHECK_WALLET_ADDRESS_URL':
+            case 'GET_WALLET_ADDRESS_INFO':
               return success(
                 await getWalletInformation(message.payload.walletAddressUrl),
               );
