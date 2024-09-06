@@ -2,6 +2,7 @@
 import { Buffer } from 'node:buffer';
 import net from 'node:net';
 import path from 'node:path';
+import type { KeyObject } from 'node:crypto';
 import {
   chromium,
   firefox,
@@ -17,7 +18,7 @@ export const authFile = path.join(
   __dirname,
   '..',
   '..',
-  'playwright/.auth/rafiki-money.json',
+  'test-results/.auth/rafiki-money.json',
 );
 
 const FIREFOX_ADDON_UUID = crypto.randomUUID();
@@ -211,4 +212,53 @@ export function getExtensionId(browserName: string, background: Worker) {
     extensionId = background.url().split('/')[2];
   }
   return extensionId;
+}
+
+export type KeyInfo = {
+  /** UUID-v4 */
+  keyId: string;
+  /** Format: -----BEGIN PRIVATE KEY-----  */
+  privateKey: string;
+  /** Format: -----BEGIN PUBLIC KEY----- */
+  publicKey: string;
+};
+
+export async function loadKeysToExtension(
+  background: Background,
+  keyInfo: KeyInfo,
+) {
+  const { importSPKI, importPKCS8, exportJWK } = await import('jose');
+  const { bytesToHex } = await import('@noble/hashes/utils');
+
+  const keyId = keyInfo.keyId;
+  const privateKey = await importPKCS8(keyInfo.privateKey, 'Ed25519').then(
+    (keyLike) => {
+      const bytes = (keyLike as KeyObject).export({
+        type: 'pkcs8',
+        format: 'der',
+      });
+      return bytesToHex(bytes);
+    },
+  );
+  const publicKey = await importSPKI(keyInfo.publicKey, 'Ed25519')
+    .then((r) => exportJWK(r))
+    .then((r) => btoa(JSON.stringify(r)));
+
+  await background.evaluate(
+    async ({ privateKey, publicKey, keyId }) => {
+      return await chrome.storage.local.set({
+        privateKey,
+        publicKey,
+        keyId,
+      });
+    },
+    { keyId, privateKey, publicKey },
+  );
+
+  const res = await background.evaluate(() => {
+    return chrome.storage.local.get(['privateKey', 'publicKey', 'keyId']);
+  });
+  if (!res || !res.keyId || !res.privateKey || !res.publicKey) {
+    throw new Error('Could not load keys to extension');
+  }
 }

@@ -172,6 +172,9 @@ importers:
       jest-transform-stub:
         specifier: ^2.0.0
         version: 2.0.0
+      jose:
+        specifier: ^5.8.0
+        version: 5.8.0
       postcss:
         specifier: ^8.4.41
         version: 8.4.41
@@ -2645,6 +2648,9 @@ packages:
 
   jose@4.15.4:
     resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
+
+  jose@5.8.0:
+    resolution: {integrity: sha512-E7CqYpL/t7MMnfGnK/eg416OsFCVUrU/Y3Vwe7QjKhu/BkS1Ms455+2xsqZQVN57/U2MHMBvEb5SrmAZWAIntA==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -7052,6 +7058,8 @@ snapshots:
   jiti@1.21.0: {}
 
   jose@4.15.4: {}
+
+  jose@5.8.0: {}
 
   js-tokens@4.0.0: {}
 
