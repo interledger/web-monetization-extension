@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import type { MonetizationTagDetails } from '../types';
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
-import { checkWalletAddressUrlFormat, mozClone } from '../utils';
+import { mozClone, WalletAddressFormatError } from '../utils';
 import type {
   MonetizationEventPayload,
   ResumeMonetizationPayload,
@@ -178,7 +178,7 @@ export class MonetizationLinkManager extends EventEmitter {
   ): Promise<WalletAddress | null> {
     const walletAddressUrl = link.href.trim();
     try {
-      checkWalletAddressUrlFormat(walletAddressUrl);
+      MonetizationLinkManager.checkHrefFormat(walletAddressUrl);
       const response = await this.message.send('GET_WALLET_ADDRESS_INFO', {
         walletAddressUrl,
       });
@@ -467,6 +467,34 @@ export class MonetizationLinkManager extends EventEmitter {
     this.monetizationLinks.delete(link);
 
     return { requestId: details.requestId, intent: 'remove' };
+  }
+
+  static checkHrefFormat(href: string): void {
+    let url: URL;
+    try {
+      url = new URL(href);
+      if (url.protocol !== 'https:') {
+        throw new WalletAddressFormatError(
+          `Wallet address URL must be specified as a fully resolved https:// url, ` +
+            `got ${JSON.stringify(href)} `,
+        );
+      }
+    } catch (e) {
+      if (e instanceof WalletAddressFormatError) {
+        throw e;
+      }
+      throw new WalletAddressFormatError(
+        `Invalid wallet address URL: ${JSON.stringify(href)}`,
+      );
+    }
+
+    const { hash, search, port, username, password } = url;
+
+    if (hash || search || port || username || password) {
+      throw new WalletAddressFormatError(
+        `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({ hash, search, port, username, password })}`,
+      );
+    }
   }
 }
 
