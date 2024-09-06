@@ -42,11 +42,6 @@ export class ContentScript {
 
       this.monetizationLinkManager.start();
     }
-
-    this.browser.runtime.connect().onDisconnect.addListener(() => {
-      this.logger.info('Disconnected, cleaning up');
-      this.monetizationLinkManager.end();
-    });
   }
 
   bindMessageHandler() {
