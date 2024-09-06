@@ -12,6 +12,14 @@ import { DIST_DIR } from '../../esbuild/config';
 
 export type Background = Worker;
 
+// https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+export const authFile = path.join(
+  __dirname,
+  '..',
+  '..',
+  'playwright/.auth/rafiki-money.json',
+);
+
 const FIREFOX_ADDON_UUID = crypto.randomUUID();
 
 // From https://github.com/microsoft/playwright/issues/7297#issuecomment-1211763085
