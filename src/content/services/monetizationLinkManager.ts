@@ -53,7 +53,15 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   start(): void {
-    if (isDocumentReady(this.document)) {
+    const isDocumentReady = () => {
+      const doc = this.document;
+      return (
+        (doc.readyState === 'interactive' || doc.readyState === 'complete') &&
+        doc.visibilityState === 'visible'
+      );
+    };
+
+    if (isDocumentReady()) {
       void this.run();
       return;
     }
@@ -61,13 +69,13 @@ export class MonetizationLinkManager extends EventEmitter {
     document.addEventListener(
       'readystatechange',
       () => {
-        if (isDocumentReady(this.document)) {
+        if (isDocumentReady()) {
           void this.run();
         } else {
           document.addEventListener(
             'visibilitychange',
             () => {
-              if (isDocumentReady(this.document)) {
+              if (isDocumentReady()) {
                 void this.run();
               }
             },
@@ -499,12 +507,6 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 }
 
-function isDocumentReady(doc: Document) {
-  return (
-    (doc.readyState === 'interactive' || doc.readyState === 'complete') &&
-    doc.visibilityState === 'visible'
-  );
-}
 
 function getMonetizationLinkTags(
   document: Document,
