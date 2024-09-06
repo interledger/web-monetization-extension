@@ -187,7 +187,7 @@ export class MonetizationLinkManager extends EventEmitter {
   ): Promise<WalletAddress | null> {
     const walletAddressUrl = link.href.trim();
     try {
-      MonetizationLinkManager.checkHrefFormat(walletAddressUrl);
+      checkHrefFormat(walletAddressUrl);
       const response = await this.message.send('GET_WALLET_ADDRESS_INFO', {
         walletAddressUrl,
       });
@@ -477,36 +477,7 @@ export class MonetizationLinkManager extends EventEmitter {
 
     return { requestId: details.requestId, intent: 'remove' };
   }
-
-  static checkHrefFormat(href: string): void {
-    let url: URL;
-    try {
-      url = new URL(href);
-      if (url.protocol !== 'https:') {
-        throw new WalletAddressFormatError(
-          `Wallet address URL must be specified as a fully resolved https:// url, ` +
-            `got ${JSON.stringify(href)} `,
-        );
-      }
-    } catch (e) {
-      if (e instanceof WalletAddressFormatError) {
-        throw e;
-      }
-      throw new WalletAddressFormatError(
-        `Invalid wallet address URL: ${JSON.stringify(href)}`,
-      );
-    }
-
-    const { hash, search, port, username, password } = url;
-
-    if (hash || search || port || username || password) {
-      throw new WalletAddressFormatError(
-        `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({ hash, search, port, username, password })}`,
-      );
-    }
-  }
 }
-
 
 function getMonetizationLinkTags(
   document: Document,
@@ -521,5 +492,33 @@ function getMonetizationLinkTags(
       'head link[rel="monetization"]',
     );
     return monetizationTag ? [monetizationTag] : [];
+  }
+}
+
+function checkHrefFormat(href: string): void {
+  let url: URL;
+  try {
+    url = new URL(href);
+    if (url.protocol !== 'https:') {
+      throw new WalletAddressFormatError(
+        `Wallet address URL must be specified as a fully resolved https:// url, ` +
+          `got ${JSON.stringify(href)} `,
+      );
+    }
+  } catch (e) {
+    if (e instanceof WalletAddressFormatError) {
+      throw e;
+    }
+    throw new WalletAddressFormatError(
+      `Invalid wallet address URL: ${JSON.stringify(href)}`,
+    );
+  }
+
+  const { hash, search, port, username, password } = url;
+
+  if (hash || search || port || username || password) {
+    throw new WalletAddressFormatError(
+      `Wallet address URL must not contain query/fragment/port/username/password elements. Received: ${JSON.stringify({ hash, search, port, username, password })}`,
+    );
   }
 }
