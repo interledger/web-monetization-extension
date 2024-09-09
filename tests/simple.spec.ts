@@ -4,7 +4,7 @@ test.beforeEach(async ({ popup }) => {
   await popup.reload();
 });
 
-test.only('should monetize site with single wallet address', async ({
+test('should monetize site with single wallet address', async ({
   page,
   popup,
 }) => {
@@ -36,9 +36,9 @@ test.only('should monetize site with single wallet address', async ({
   await page.bringToFront();
   await popup.waitForSelector(`[data-testid="home-page"]`);
 
-  expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
-  expect(popup.getByRole('textbox').all()).toHaveLength(1);
+  await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
+  expect(await popup.getByRole('textbox').all()).toHaveLength(1);
 
-  expect(popup.getByLabel('Continuous payment stream')).toBeVisible();
-  expect(popup.getByRole('checkbox').all()).toHaveLength(1);
+  await expect(popup.getByLabel('Continuous payment stream')).toBeVisible();
+  expect(await popup.getByRole('switch').all()).toHaveLength(1);
 });
