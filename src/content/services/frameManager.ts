@@ -6,6 +6,12 @@ import type {
 } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
 
+const HANDLED_MESSAGES: ContentToContentMessage['message'][] = [
+  'INITIALIZE_IFRAME',
+  'IS_MONETIZATION_ALLOWED_ON_START',
+  'IS_MONETIZATION_ALLOWED_ON_RESUME',
+];
+
 export class FrameManager {
   private window: Cradle['window'];
   private document: Cradle['document'];
@@ -176,18 +182,12 @@ export class FrameManager {
     this.observeDocumentForFrames();
   }
 
-  static handledMessages: ContentToContentMessage['message'][] = [
-    'INITIALIZE_IFRAME',
-    'IS_MONETIZATION_ALLOWED_ON_START',
-    'IS_MONETIZATION_ALLOWED_ON_RESUME',
-  ];
-
   private bindMessageHandler() {
     this.window.addEventListener(
       'message',
       (event: MessageEvent<ContentToContentMessage>) => {
         const { message, payload, id } = event.data;
-        if (!FrameManager.handledMessages.includes(message)) {
+        if (!HANDLED_MESSAGES.includes(message)) {
           return;
         }
         const eventSource = event.source as Window;
