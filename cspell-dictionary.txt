@@ -30,6 +30,7 @@ buildscript
 networkidle
 webextensions
 firefoxUserPrefs
+textbox
 
 # packages and 3rd party tools/libraries
 awilix

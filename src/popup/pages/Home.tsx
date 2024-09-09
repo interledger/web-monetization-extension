@@ -83,7 +83,7 @@ export const Component = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-testid="home-page">
       {enabled ? (
         <div className="space-y-2">
           <Label className="px-2 text-base font-medium text-medium">

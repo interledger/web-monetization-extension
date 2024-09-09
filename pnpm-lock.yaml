@@ -91,6 +91,9 @@ importers:
       '@types/archiver':
         specifier: ^6.0.2
         version: 6.0.2
+      '@types/chrome':
+        specifier: ^0.0.270
+        version: 0.0.270
       '@types/github-script':
         specifier: github:actions/github-script
         version: github-script@https://codeload.github.com/actions/github-script/tar.gz/35b1cdd1b2c1fc704b1cd9758d10f67e833fcb02
@@ -984,6 +987,9 @@ packages:
 
   '@types/chrome@0.0.114':
     resolution: {integrity: sha512-i7qRr74IrxHtbnrZSKUuP5Uvd5EOKwlwJq/yp7+yTPihOXnPhNQO4Z5bqb1XTnrjdbUKEJicaVVbhcgtRijmLA==}
+
+  '@types/chrome@0.0.270':
+    resolution: {integrity: sha512-ADvkowV7YnJfycZZxL2brluZ6STGW+9oKG37B422UePf2PCXuFA/XdERI0T18wtuWPx0tmFeZqq6MOXVk1IC+Q==}
 
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
@@ -4863,6 +4869,11 @@ snapshots:
       '@babel/types': 7.24.0
 
   '@types/chrome@0.0.114':
+    dependencies:
+      '@types/filesystem': 0.0.35
+      '@types/har-format': 1.2.15
+
+  '@types/chrome@0.0.270':
     dependencies:
       '@types/filesystem': 0.0.35
       '@types/har-format': 1.2.15

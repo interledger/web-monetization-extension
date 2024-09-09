@@ -45,7 +45,7 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
           type="submit"
           variant="destructive"
           className="w-full"
-          aria-label="Connect your wallet"
+          aria-label="Disconnect your wallet"
           disabled={isSubmitting}
           loading={isSubmitting}
         >

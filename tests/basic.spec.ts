@@ -1,27 +1,11 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/base';
-import { connectWallet, openPopup } from './pages/popup';
-import { authFile } from './fixtures/helpers';
-
-test.use({ storageState: authFile });
+import { fillPopup, getMessage, openPopup } from './pages/popup';
 
 let popup: Page;
-test.beforeAll(
-  async ({ persistentContext, background, browserName, extensionId }) => {
-    popup = await openPopup(persistentContext, browserName, extensionId);
-
-    const keyInfo = {
-      keyId: process.env.CONNECT_KEY_ID!,
-      privateKey: process.env.CONNECT_PRIVATE_KEY!,
-      publicKey: process.env.CONNECT_PUBLIC_KEY!,
-    };
-    await connectWallet(background, keyInfo, popup, {
-      walletAddressUrl: process.env.CONNECT_WALLET_ADDRESS_URL!,
-      amount: '10',
-      recurring: false,
-    });
-  },
-);
+test.beforeAll(async ({ persistentContext, browserName, extensionId }) => {
+  popup = await openPopup(persistentContext, browserName, extensionId);
+});
 test.afterAll(async () => {
   await popup.close();
 });
@@ -51,5 +35,21 @@ test('shows connect form if not connected', async ({ page }) => {
   await expect(popup.locator('form button[type="submit"]')).toBeVisible();
   await expect(popup.locator('form button[type="submit"]')).toHaveText(
     'Connect',
+  );
+});
+
+test('should fail to connect if key not added', async () => {
+  const { CONNECT_WALLET_ADDRESS_URL } = process.env;
+  expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
+
+  const connectButton = await fillPopup(popup, {
+    walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
+    amount: '10',
+    recurring: false,
+  });
+  await connectButton.click();
+
+  await expect(popup.locator('p.text-error')).toHaveText(
+    getMessage('connectWallet_error_invalidClient'),
   );
 });

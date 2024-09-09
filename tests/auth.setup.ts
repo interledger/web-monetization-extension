@@ -1,8 +1,12 @@
-import { test as setup, expect } from './fixtures/base';
+import { test as setup, expect } from '@playwright/test';
 import { authFile } from './fixtures/helpers';
 
 setup('authenticate', async ({ page }) => {
   const { WALLET_URL_ORIGIN, WALLET_USERNAME, WALLET_PASSWORD } = process.env;
+
+  expect(WALLET_URL_ORIGIN).toBeDefined();
+  expect(WALLET_USERNAME).toBeDefined();
+  expect(WALLET_PASSWORD).toBeDefined();
 
   await page.goto(`${WALLET_URL_ORIGIN!}/auth/login`);
   await page.getByLabel('E-mail').fill(WALLET_USERNAME!);

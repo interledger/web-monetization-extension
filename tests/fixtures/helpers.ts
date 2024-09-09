@@ -1,7 +1,9 @@
+/// <reference types="chrome"/>
 // cSpell:ignore serviceworker
 import { Buffer } from 'node:buffer';
 import net from 'node:net';
 import path from 'node:path';
+import { readFile } from 'node:fs/promises';
 import type { KeyObject } from 'node:crypto';
 import {
   chromium,
@@ -10,6 +12,8 @@ import {
   type Worker,
 } from '@playwright/test';
 import { DIST_DIR } from '../../esbuild/config';
+
+export { ROOT_DIR, SRC_DIR, DIST_DIR } from '../../esbuild/config';
 
 export type Background = Worker;
 
@@ -161,6 +165,9 @@ export async function loadContext(browserName: string) {
   if (!context) {
     throw new Error('Unknown browser: ' + browserName);
   }
+
+  const { cookies } = await readFile(authFile, 'utf8').then(JSON.parse);
+  await context.addCookies(cookies);
 
   return context;
 }
