@@ -15,8 +15,14 @@ export async function openPopup(
   browserName: string,
   extensionId: string,
 ) {
-  const popup = await context.newPage();
   const url = getPopupUrl(browserName, extensionId);
+  const page = await context.newPage();
+  const popupPromise = page.waitForEvent('popup');
+  await page.evaluate((popupUrl) => {
+    return window.open(popupUrl, '', 'popup=true,width=448,height=600');
+  }, url);
+  const popup = await popupPromise;
+  await page.close();
   await popup.goto(url);
   return popup;
 }
