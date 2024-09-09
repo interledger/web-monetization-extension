@@ -5,21 +5,17 @@ import { connectWallet, disconnectWallet, openPopup } from '../pages/popup';
 export const test = base.extend<{ page: Page }, { popup: Page }>({
   popup: [
     async (
-      { persistentContext, browserName, background, extensionId },
+      { persistentContext: context, browserName, background, extensionId },
       use,
     ) => {
-      const popup = await openPopup(
-        persistentContext,
-        browserName,
-        extensionId,
-      );
+      const popup = await openPopup(context, browserName, extensionId);
 
       const keyInfo = {
         keyId: process.env.CONNECT_KEY_ID!,
         privateKey: process.env.CONNECT_PRIVATE_KEY!,
         publicKey: process.env.CONNECT_PUBLIC_KEY!,
       };
-      await connectWallet(persistentContext, background, keyInfo, popup, {
+      await connectWallet(context, background, keyInfo, popup, {
         walletAddressUrl: process.env.CONNECT_WALLET_ADDRESS_URL!,
         amount: '10',
         recurring: false,
