@@ -1,8 +1,7 @@
 import { EventEmitter } from 'events';
-import type { MonetizationTagDetails } from '../types';
-import type { WalletAddress } from '@interledger/open-payments/dist/types';
 import { isNotNull } from '@/shared/helpers';
 import { mozClone, WalletAddressFormatError } from '../utils';
+import type { WalletAddress } from '@interledger/open-payments/dist/types';
 import type {
   MonetizationEventPayload,
   ResumeMonetizationPayload,
@@ -10,8 +9,9 @@ import type {
   StopMonetizationPayload,
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
-import type { ContentToContentMessage } from '../messages';
 import type { Cradle } from '@/content/container';
+import type { MonetizationTagDetails } from '../types';
+import type { ContentToContentMessage } from '../messages';
 
 export class MonetizationLinkManager extends EventEmitter {
   private window: Cradle['window'];
