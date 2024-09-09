@@ -123,10 +123,7 @@ export class MonetizationLinkManager extends EventEmitter {
       attributeFilter: ['onmonetization'],
     });
 
-    const monetizationLinks = getMonetizationLinkTags(
-      this.document,
-      this.isTopFrame,
-    );
+    const monetizationLinks = this.getMonetizationLinkTags();
 
     for (const link of monetizationLinks) {
       this.observeLinkAttrs(link);
@@ -157,6 +154,21 @@ export class MonetizationLinkManager extends EventEmitter {
         return;
     }
   };
+
+  private getMonetizationLinkTags(): HTMLLinkElement[] {
+    if (this.isTopFrame) {
+      return Array.from(
+        this.document.querySelectorAll<HTMLLinkElement>(
+          'link[rel="monetization"]',
+        ),
+      );
+    } else {
+      const monetizationTag = this.document.querySelector<HTMLLinkElement>(
+        'head link[rel="monetization"]',
+      );
+      return monetizationTag ? [monetizationTag] : [];
+    }
+  }
 
   /** @throws never throws */
   private async checkLink(link: HTMLLinkElement) {
@@ -476,22 +488,6 @@ export class MonetizationLinkManager extends EventEmitter {
     this.monetizationLinks.delete(link);
 
     return { requestId: details.requestId, intent: 'remove' };
-  }
-}
-
-function getMonetizationLinkTags(
-  document: Document,
-  isTopFrame: boolean,
-): HTMLLinkElement[] {
-  if (isTopFrame) {
-    return Array.from(
-      document.querySelectorAll<HTMLLinkElement>('link[rel="monetization"]'),
-    );
-  } else {
-    const monetizationTag = document.querySelector<HTMLLinkElement>(
-      'head link[rel="monetization"]',
-    );
-    return monetizationTag ? [monetizationTag] : [];
   }
 }
 
