@@ -243,11 +243,12 @@ export class MonetizationService {
 
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled']);
-    await this.storage.set({ enabled: !enabled });
-    if (enabled) {
-      this.stopAllSessions();
-    } else {
+    const nowEnabled = !enabled;
+    await this.storage.set({ enabled: nowEnabled });
+    if (nowEnabled) {
       await this.resumePaymentSessionActiveTab();
+    } else {
+      this.stopAllSessions();
     }
   }
 
