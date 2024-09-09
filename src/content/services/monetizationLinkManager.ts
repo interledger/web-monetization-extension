@@ -10,7 +10,6 @@ import type {
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
-import type { MonetizationTagDetails } from '../types';
 import type { ContentToContentMessage } from '../messages';
 
 export class MonetizationLinkManager extends EventEmitter {
@@ -27,7 +26,7 @@ export class MonetizationLinkManager extends EventEmitter {
   // only entries corresponding to valid wallet addresses are here
   private monetizationLinks = new Map<
     HTMLLinkElement,
-    MonetizationTagDetails
+    { walletAddress: WalletAddress; requestId: string }
   >();
 
   constructor({ window, document, logger, message }: Cradle) {
