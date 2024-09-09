@@ -4,7 +4,6 @@ import { Buffer } from 'node:buffer';
 import net from 'node:net';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
-import type { KeyObject } from 'node:crypto';
 import {
   chromium,
   firefox,
