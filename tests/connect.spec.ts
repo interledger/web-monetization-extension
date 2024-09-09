@@ -4,7 +4,6 @@ import { test, expect } from './fixtures/base';
 import {
   connectWallet,
   disconnectWallet,
-  fillPopup,
   getMessage,
   openPopup,
 } from './pages/popup';
@@ -22,44 +21,6 @@ test.beforeEach(async () => {
   await popup.reload();
 });
 
-test.describe('shows error with invalid wallet address', () => {
-  test('invalid URL', async ({ background }) => {
-    const connectButton = await fillPopup(popup, {
-      walletAddressUrl: 'abc',
-      amount: '10',
-      recurring: false,
-    });
-    await connectButton.click();
-    await expect(popup.locator('p.text-error')).toHaveText('Failed to fetch');
-    expect(
-      await background.evaluate(() => {
-        return chrome.storage.local.get(['connected']);
-      }),
-    ).toEqual({ connected: false });
-  });
-
-  test('invalid wallet address', async ({ background }) => {
-    const connectButton = await fillPopup(popup, {
-      walletAddressUrl: 'https://example.com',
-      amount: '10',
-      recurring: false,
-    });
-    await expect(popup.locator('p.text-error')).toContainText(
-      'Invalid wallet address.',
-    );
-
-    await connectButton.click();
-    await expect(popup.locator('p.text-error')).toContainText(
-      'Unexpected token',
-    );
-    expect(
-      await background.evaluate(() => {
-        return chrome.storage.local.get(['connected']);
-      }),
-    ).toEqual({ connected: false });
-  });
-});
-
 test('connects with correct details provided', async ({
   persistentContext,
   background,
@@ -75,18 +36,17 @@ test('connects with correct details provided', async ({
   expect(CONNECT_PUBLIC_KEY).toBeDefined();
   expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
 
-  const keyInfo = {
-    keyId: CONNECT_KEY_ID!,
-    privateKey: CONNECT_PRIVATE_KEY!,
-    publicKey: CONNECT_PUBLIC_KEY!,
-  };
-
   expect(
     await background.evaluate(() => {
       return chrome.storage.local.get(['connected']);
     }),
   ).toEqual({ connected: false });
 
+  const keyInfo = {
+    keyId: CONNECT_KEY_ID!,
+    privateKey: CONNECT_PRIVATE_KEY!,
+    publicKey: CONNECT_PUBLIC_KEY!,
+  };
   await connectWallet(persistentContext, background, keyInfo, popup, {
     walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
     amount: '10',

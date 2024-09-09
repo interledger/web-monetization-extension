@@ -76,6 +76,7 @@ export async function connectWallet(
 export async function disconnectWallet(popup: Popup) {
   await popup.locator(`[href="/settings"]`).click();
   await popup.locator('button').getByText('Disconnect').click();
+  await popup.getByTestId('connect-wallet-form').waitFor({ state: 'visible' });
 }
 
 export type ConnectDetails = {

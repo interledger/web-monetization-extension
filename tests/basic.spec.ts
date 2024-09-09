@@ -38,18 +38,56 @@ test('shows connect form if not connected', async ({ page }) => {
   );
 });
 
-test('should fail to connect if key not added', async () => {
-  const { CONNECT_WALLET_ADDRESS_URL } = process.env;
-  expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
-
-  const connectButton = await fillPopup(popup, {
-    walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
-    amount: '10',
-    recurring: false,
+test.describe('should fail to connect if:', () => {
+  test('invalid URL provided', async ({ background }) => {
+    const connectButton = await fillPopup(popup, {
+      walletAddressUrl: 'abc',
+      amount: '10',
+      recurring: false,
+    });
+    await connectButton.click();
+    await expect(popup.locator('p.text-error')).toHaveText('Failed to fetch');
+    expect(
+      await background.evaluate(() => {
+        return chrome.storage.local.get(['connected']);
+      }),
+    ).toEqual({ connected: false });
   });
-  await connectButton.click();
 
-  await expect(popup.locator('p.text-error')).toHaveText(
-    getMessage('connectWallet_error_invalidClient'),
-  );
+  test('invalid wallet address provided', async ({ background }) => {
+    const connectButton = await fillPopup(popup, {
+      walletAddressUrl: 'https://example.com',
+      amount: '10',
+      recurring: false,
+    });
+    await expect(popup.locator('p.text-error')).toContainText(
+      'Invalid wallet address.',
+    );
+
+    await connectButton.click();
+    await expect(popup.locator('p.text-error')).toContainText(
+      'Unexpected token',
+    );
+    expect(
+      await background.evaluate(() => {
+        return chrome.storage.local.get(['connected']);
+      }),
+    ).toEqual({ connected: false });
+  });
+
+  test('public key not added', async () => {
+    const { CONNECT_WALLET_ADDRESS_URL } = process.env;
+    expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
+
+    const connectButton = await fillPopup(popup, {
+      walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
+      amount: '10',
+      recurring: false,
+    });
+    await connectButton.click();
+
+    await expect(popup.locator('p.text-error')).toHaveText(
+      getMessage('connectWallet_error_invalidClient'),
+    );
+  });
 });
