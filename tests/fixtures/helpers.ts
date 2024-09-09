@@ -224,9 +224,9 @@ export function getExtensionId(browserName: string, background: Worker) {
 export type KeyInfo = {
   /** UUID-v4 */
   keyId: string;
-  /** Format: -----BEGIN PRIVATE KEY-----  */
+  /** Format: Hex encoded Ed25519 private key */
   privateKey: string;
-  /** Format: -----BEGIN PUBLIC KEY----- */
+  /** Format: Base64 encoded Ed25519 public key */
   publicKey: string;
 };
 
@@ -234,33 +234,13 @@ export async function loadKeysToExtension(
   background: Background,
   keyInfo: KeyInfo,
 ) {
-  const { importSPKI, importPKCS8, exportJWK } = await import('jose');
-  const { bytesToHex } = await import('@noble/hashes/utils');
-
-  const keyId = keyInfo.keyId;
-  const privateKey = await importPKCS8(keyInfo.privateKey, 'Ed25519').then(
-    (keyLike) => {
-      const bytes = (keyLike as KeyObject).export({
-        type: 'pkcs8',
-        format: 'der',
-      });
-      return bytesToHex(bytes);
-    },
-  );
-  const publicKey = await importSPKI(keyInfo.publicKey, 'Ed25519')
-    .then((r) => exportJWK(r))
-    .then((r) => btoa(JSON.stringify(r)));
-
-  await background.evaluate(
-    async ({ privateKey, publicKey, keyId }) => {
-      return await chrome.storage.local.set({
-        privateKey,
-        publicKey,
-        keyId,
-      });
-    },
-    { keyId, privateKey, publicKey },
-  );
+  await background.evaluate(async ({ privateKey, publicKey, keyId }) => {
+    return await chrome.storage.local.set({
+      privateKey,
+      publicKey,
+      keyId,
+    });
+  }, keyInfo);
 
   const res = await background.evaluate(() => {
     return chrome.storage.local.get(['privateKey', 'publicKey', 'keyId']);

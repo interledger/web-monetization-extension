@@ -17,7 +17,7 @@
     "format:fix": "prettier . --write --cache --cache-location='node_modules/.cache/prettiercache' --log-level=warn",
     "typecheck": "tsc --noEmit",
     "test": "jest --maxWorkers=2 --passWithNoTests",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --project=chromium",
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
@@ -76,7 +76,6 @@
     "jest-chrome": "^0.8.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-transform-stub": "^2.0.0",
-    "jose": "^5.8.0",
     "postcss": "^8.4.41",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.6",
