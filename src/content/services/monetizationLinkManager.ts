@@ -108,6 +108,7 @@ export class MonetizationLinkManager extends EventEmitter {
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.addEventListener('message', this.onWindowMessage);
+      this.postMessage('INITIALIZE_IFRAME', undefined);
     }
 
     this.document
@@ -146,9 +147,9 @@ export class MonetizationLinkManager extends EventEmitter {
 
     switch (message) {
       case 'START_MONETIZATION':
-        return void this.sendStartMonetization(payload, true);
+        return void this.message.send('START_MONETIZATION', payload);
       case 'RESUME_MONETIZATION':
-        return void this.sendResumeMonetization(payload, true);
+        return void this.message.send('RESUME_MONETIZATION', payload);
       default:
         return;
     }
