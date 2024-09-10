@@ -112,7 +112,7 @@ The test case IDs below align with the numbering shown in the test case diagram 
 
 ##### Test ID: 2.3.1.1
 **Function**: Make continuous payments  
-**Description**: Send continuous WM payments to a monetized website  
+**Description**: Send continuous WM payments to a monetized website.  
 **Risk**: R3 (security of funds)  
 **Preconditions**:  
 1. The extension is connected to your wallet. 
@@ -130,7 +130,7 @@ The test case IDs below align with the numbering shown in the test case diagram 
  | Opening the extension displays a **rate of pay** slider:<ul><li>On the left, the current hourly rate in the currency of the wallet.</li><li>The default is equivalent to 0.60 USD.</li><li>The remaining balance, updated in near real-time (i.e. every few seconds).</li></ul>  | Opening the extension displays: <ul><li>This website is not monetized.</li></ul>
 
  ##### Test ID: 2.3.3.1.1
- **Function**: Pay one-time when extension and wallet have enough funds  
+ **Function**: Pay one-time when extension and wallet have enough funds.  
  **Description**: Send a one-time payment to a monetized website when the remaining balance for the extension is sufficient for the payment, and the wallet has sufficient funds  
  **Risk**: R3 (security of funds) and R6 (control my payments)  
  **Preconditions**: 
@@ -151,7 +151,7 @@ The test case IDs below align with the numbering shown in the test case diagram 
 
 ##### Test ID: 2.3.3.1.2
 **Function**: Pay one-time when wallet is out of funds  
-**Description**: Send a one-time payment to a monetized website when the extension has a sufficient remaining balance but the wallet has insufficient funds  
+**Description**: Send a one-time payment to a monetized website when the extension has a sufficient remaining balance but the wallet has insufficient funds.  
 **Risk**: R3 (security of funds) and R6 (control my payments)  
 **Preconditions**:   
 1. The extension is connected to your wallet.
@@ -167,6 +167,46 @@ The test case IDs below align with the numbering shown in the test case diagram 
 
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
- | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**“Send now” button**: clicking the button to send a one-time payment results in…<continue_here>...</li></ul> | Opening the extension displays: <ol><li>This website is not monetized</li></ol> |
+ | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
+ | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in…<continue_here>...</li></ul> | Opening the extension displays: <ol><li>This website is not monetized.</li></ol> |
 
- 
+##### Test ID: 2.3.3.2
+**Function**: Pay one-time when extension funds are insufficient.  
+**Description**: Send a one-time payment to a monetized website for an amount that is greater than the remaining balance of the extension, while the wallet does have sufficient funds.  
+**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Preconditions**:   
+1. The extension is connected to your wallet.
+2. The extension’s remaining balance is lower than the one-time payment you will make.
+3. Your wallet balance is greater or equal to the one-time payment you will make.  
+
+**Steps**:  
+1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+2. Open the extension and make a one-time payment, a positive amount where the value is greater than the “remaining balance” of the extension.
+3. Visit a non-monetized website. Open the extension to observe its available options.  
+
+**Expected results**:  
+
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
+ | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
+ | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: 
+`Not enough funds to facilitate payment`</li></ul> | Opening the extension displays: <ol><li>This website is not monetized.</li></ol> |
+
+##### Test ID: 2.3.2
+**Function**: Disable continuous payments.  
+**Description**: Disable the extension’s ability to make any continuous Web Monetization payments.  
+**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Preconditions**:   
+1. The extension is connected to your wallet.
+
+**Steps**:  
+1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+2. Open the extension, and view of the remaining balance available to the extension.
+3. Disable “Continuous payment stream”.
+4. Observe the extension's icon when you visit a web monetized and non-monetized websites.
+
+**Expected results**:  
+
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
+ | The extension icon appears inactive (i.e. grey in colour), with a green tick  | The extension icon appears inactive (i.e. grey), but with a red X  |
