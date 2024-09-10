@@ -1,15 +1,15 @@
 name: End-to-End Tests
 on:
-  issue_comment:
+  pull_request_review_comment:
     types: [created]
 
 concurrency:
-  group: ${{ github.event.issue.number }}
+  group: ${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   test-e2e:
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/test') }}
+    if: ${{ contains(github.event.comment.body, '/test') }}
     strategy:
       fail-fast: false
       matrix:
@@ -36,24 +36,12 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4
         continue-on-error: true
         with:
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.pull_request.number }}
           comment-id: ${{ github.event.comment.id }}
           reactions: '+1'
           reactions-edit-mode: replace
 
-      - name: Identify PR
-        id: request
-        uses: octokit/request-action@v2.0.0
-        with:
-          route: ${{ github.event.issue.pull_request.url }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: actions/checkout@v4
-      - name: Checkout PR
-        run: gh pr checkout ${{ github.event.issue.number }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Environment setup
         uses: ./.github/actions/setup
