@@ -36,8 +36,10 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4
         continue-on-error: true
         with:
+          issue-number: ${{ github.event.issue.number }}
           comment-id: ${{ github.event.comment.id }}
           reactions: '+1'
+          reactions-edit-mode: replace
 
       - uses: actions/checkout@v4
       - name: Environment setup
