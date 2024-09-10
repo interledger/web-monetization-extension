@@ -189,8 +189,7 @@ The test case IDs below align with the numbering shown in the test case diagram 
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
  | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
- | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: 
-`Not enough funds to facilitate payment`</li></ul> | Opening the extension displays: <ol><li>This website is not monetized.</li></ol> |
+ | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Not enough funds to facilitate payment`</li></ul> | Opening the extension displays: <ol><li>This website is not monetized.</li></ol> |
 
 ##### Test ID: 2.3.2
 **Function**: Disable continuous payments.  
@@ -210,3 +209,43 @@ The test case IDs below align with the numbering shown in the test case diagram 
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
  | The extension icon appears inactive (i.e. grey in colour), with a green tick  | The extension icon appears inactive (i.e. grey), but with a red X  |
+ | Opening the extension shows that: <ul><li>The rate of pay slider is replaced with text “Web Monetization has been turned off”</li><li>Making a one-time payment remains available.</li><li>Enabling “Continuous payment stream” is available.</li><li>**Action**: Re-enable the “Continuous payment stream” toggle, and confirm that:<ul><li>The hourly rate of pay slider gets displayed.</li><li>Remaining balance is displayed and is unchanged from what it was prior to disabling continuous payments.</li><li>The “Web Monetization has been turned off” text is no longer visible.</li></ul></li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+
+##### Test ID: 2.2.1 and 2.1
+**Function**: Change rate of pay **and** View available balance.  
+**Description**: Adjust the hourly rate at which the extension makes continuous payments.  
+**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Preconditions**:   
+1. The extension is connected to your wallet.
+2. The extension has a positive remaining balance.
+3. Your wallet balance is greater or equal to your extension's balance.  
+
+**Steps**:  
+1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+2. Open the extension: <ol><li>Ensure that “Continuous payment stream” is enabled.</li><li>Use the slider to change the hourly rate for continuous WM payments.</li><li>Take note of the remaining balance available to the extension.</li></ol>  
+3. Spend some time, perhaps 3 to 5 minutes each, on a web monetized website and on a non-monetized website. 
+4. On each site or page that you visit,  open the extension to view the remaining balance on the extension
+
+**Expected results**:  
+
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
+ | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
+ | Opening the extension shows that the remaining balance of the extension has decreased by the correct amount, based on your hourly rate of pay. | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+
+##### Test ID: 2.4
+**Function**: Disconnect wallet.  
+**Description**: Disconnect the extension from the connected wallet.  
+**Risk**: R5 (user experience)  
+**Preconditions**:  
+1. The extension is connected to your wallet
+
+**Steps**:  
+1. Open the extension, and go to the settings of the extension.
+2. On the settings page, click Disconnect.
+
+**Expected results**:  
+Once disconnected, the settings page gets replaced by the landing page of the extension, with the following fields displayed:  
+1. The read-only public key of the extension.
+2. The wallet address or payment pointer that had been used for the most recent wallet connection.
+3. The currency and value that had been authorised for the most recent wallet connection.
