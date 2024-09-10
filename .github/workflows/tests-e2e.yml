@@ -2,6 +2,8 @@ name: End-to-End Tests
 on:
   issue_comment:
     types: [created]
+  pull_request:
+    branches: [main, 'v[0-9]+.x']
 
 concurrency:
   group: ${{ github.event.issue.number }}
