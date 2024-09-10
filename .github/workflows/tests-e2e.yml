@@ -1,40 +1,15 @@
 name: End-to-End Tests
 on:
-  push:
-    branches:
-      - main
-      - 'v[0-9]+.x'
-  pull_request:
-    types:
-      # Only run when label "e2e-needed" is added to avoid waste
-      - labeled
-      - unlabeled
-    branches:
-      - main
-      - 'v[0-9]+.x'
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: ${{ github.event.issue.number }}
+  cancel-in-progress: true
 
 jobs:
-  check:
-    runs-on: ubuntu-22.04
-    outputs:
-      run: ${{ steps.check.outputs.run }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Environment setup
-        # Even if not needed, setup env to improve cache-hit for next steps
-        uses: ./.github/actions/setup
-
-      - name: Check if e2e tests should be run
-        uses: actions/github-script@v7
-        id: check
-        with:
-          script: |
-            core.setOutput('run', 'true')
-            // const script = require('./.github/actions/should-run-e2e-tests.cjs')
-            // await script({ github, context, core })
-
-  test:
-    needs: check
+  test-e2e:
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/test') }}
     strategy:
       fail-fast: false
       matrix:
@@ -52,11 +27,18 @@ jobs:
           #   target: chrome
           #   runs-on: windows-2022
 
-    timeout-minutes: 10
-    name: ${{ matrix.name }}
+    timeout-minutes: 15
+    name: E2E Tests - ${{ matrix.name }}
     runs-on: ${{ matrix.runs-on }}
-    if: needs.check.outputs.run == 'true'
+    environment: test
     steps:
+      - name: React to comment
+        uses: peter-evans/create-or-update-comment@v4
+        continue-on-error: true
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: '+1'
+
       - uses: actions/checkout@v4
       - name: Environment setup
         uses: ./.github/actions/setup
@@ -69,6 +51,14 @@ jobs:
 
       - name: Run Playwright tests
         run: xvfb-run pnpm test:e2e --project=${{ matrix.project }}
+        env:
+          WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
+          WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
+          WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}
+          CONNECT_WALLET_ADDRESS_URL: ${{ vars.E2E_CONNECT_WALLET_ADDRESS_URL }}
+          CONNECT_KEY_ID: ${{ vars.E2E_CONNECT_KEY_ID }}
+          CONNECT_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
+          CONNECT_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
 
       - uses: actions/upload-artifact@v4
         if: always()

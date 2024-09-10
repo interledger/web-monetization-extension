@@ -14,9 +14,54 @@ defaults:
     shell: bash
 
 jobs:
+  test-e2e:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Chrome
+            project: chromium
+            target: chrome
+            runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    name: E2E Tests - ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    environment: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build ${{ matrix.target }} --channel=nightly
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install ${{ matrix.project }} --with-deps
+
+      - name: Run Playwright tests
+        run: xvfb-run pnpm test:e2e --project=${{ matrix.project }}
+        env:
+          WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
+          WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
+          WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}
+          CONNECT_WALLET_ADDRESS_URL: ${{ vars.E2E_CONNECT_WALLET_ADDRESS_URL }}
+          CONNECT_KEY_ID: ${{ vars.E2E_CONNECT_KEY_ID }}
+          CONNECT_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
+          CONNECT_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 3
+
   build-nightly:
     name: Create Release
     runs-on: ubuntu-22.04
+    needs: test-e2e
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
