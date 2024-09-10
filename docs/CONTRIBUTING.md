@@ -42,7 +42,11 @@ To get the `CONNECT_KEY_ID`, `CONNECT_PRIVATE_KEY` and `CONNECT_PUBLIC_KEY`:
        .join('\n'),
    );
    ```
+1. Then copy `CONNECT_PUBLIC_KEY` key to https://rafiki.money/settings/developer-keys under your wallet address.
+1. Now you're ready to run the tests.
 
-Then copy `CONNECT_PUBLIC_KEY` key to https://rafiki.money/settings/developer-keys under your wallet address.
+### How to run in CI
 
-Now you're ready to run the tests.
+For a pull request, users with write access to repository can trigger the workflow to run end-to-end tests by adding a review-comment with text `/test` (from PR Files tab).
+
+End-to-end tests run automatically daily before creating the Nightly release. You can also trigger that workflow manually from [Actions Dashboard](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml).

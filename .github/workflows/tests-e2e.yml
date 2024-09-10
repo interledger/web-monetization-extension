@@ -1,7 +1,7 @@
 name: End-to-End Tests
 on:
-  pull_request_review_comment:
-    types: [created]
+  pull_request_review:
+    types: [submitted]
 
 concurrency:
   group: ${{ github.event.pull_request.number }}
@@ -9,7 +9,10 @@ concurrency:
 
 jobs:
   test-e2e:
-    if: ${{ contains(github.event.comment.body, '/test') }}
+    if: ${{
+      contains(github.event.review.body, '/test') &&
+      contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
+      }}
     strategy:
       fail-fast: false
       matrix:
@@ -32,15 +35,6 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     environment: test
     steps:
-      - name: React to comment
-        uses: peter-evans/create-or-update-comment@v4
-        continue-on-error: true
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-id: ${{ github.event.comment.id }}
-          reactions: '+1'
-          reactions-edit-mode: replace
-
       - uses: actions/checkout@v4
 
       - name: Environment setup
