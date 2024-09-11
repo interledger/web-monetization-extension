@@ -21,7 +21,7 @@ export const Component = () => {
           walletAddressUrl:
             localStorage?.getItem('connect.walletAddressUrl') || undefined,
         }}
-        onChange={(key, val) => {
+        saveValue={(key, val) => {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
         getWalletInfo={getWalletInformation}

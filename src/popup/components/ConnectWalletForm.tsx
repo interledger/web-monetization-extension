@@ -23,7 +23,7 @@ interface ConnectWalletFormInputs {
 interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<ConnectWalletFormInputs>;
-  onChange: (
+  saveValue?: (
     key: keyof ConnectWalletFormInputs,
     val: ConnectWalletFormInputs[typeof key],
   ) => void;
@@ -36,8 +36,8 @@ export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
   getWalletInfo,
-  onChange,
   connectWallet,
+  saveValue = () => {},
   onConnect = () => {},
 }: ConnectWalletFormProps) => {
   const {
@@ -131,7 +131,7 @@ export const ConnectWalletForm = ({
           onBlur(e: React.FocusEvent<HTMLInputElement>) {
             const walletAddressUrl = e.currentTarget.value;
             getWalletCurrency(walletAddressUrl);
-            onChange('walletAddressUrl', walletAddressUrl);
+            saveValue('walletAddressUrl', walletAddressUrl);
           },
         })}
       />
@@ -160,7 +160,7 @@ export const ConnectWalletForm = ({
             const val = +e.currentTarget.value;
             const amountValue = formatNumber(val, currencySymbol.scale);
             setValue('amount', amountValue);
-            onChange('amount', amountValue);
+            saveValue('amount', amountValue);
           },
         })}
       />
@@ -168,7 +168,7 @@ export const ConnectWalletForm = ({
         <Switch
           {...register('recurring', {
             onChange(ev: React.FocusEvent<HTMLInputElement>) {
-              onChange('recurring', ev.currentTarget.checked);
+              saveValue('recurring', ev.currentTarget.checked);
             },
           })}
           label="Renew amount monthly"
