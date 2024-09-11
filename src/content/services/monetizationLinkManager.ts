@@ -332,10 +332,10 @@ export class MonetizationLinkManager extends EventEmitter {
     payload: ResumeMonetizationPayload,
     onlyToTopIframe = false,
   ) {
+    if (!payload.length) return;
+
     if (this.isTopFrame) {
-      if (payload.length) {
-        await this.message.send('RESUME_MONETIZATION', payload);
-      }
+      await this.message.send('RESUME_MONETIZATION', payload);
     } else if (this.isFirstLevelFrame && !onlyToTopIframe) {
       this.postMessage('IS_MONETIZATION_ALLOWED_ON_RESUME', payload);
     }
