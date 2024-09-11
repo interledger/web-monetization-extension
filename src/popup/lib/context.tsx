@@ -10,12 +10,6 @@ import {
 } from '@/shared/messages';
 
 // #region PopupState
-export enum ReducerActionType {
-  SET_DATA = 'SET_DATA',
-  TOGGLE_WM = 'TOGGLE_WM',
-  SET_CONNECTED = 'SET_CONNECTED',
-  UPDATE_RATE_OF_PAY = 'UPDATE_RATE_OF_PAY',
-}
 
 export type PopupState = Required<
   DeepNonNullable<Omit<PopupStore, 'state'>> & Pick<PopupStore, 'state'>
@@ -27,31 +21,27 @@ export interface PopupContext {
 }
 
 interface ReducerActionMock {
-  type: ReducerActionType;
+  type: string;
   data?: any;
 }
 
 interface SetDataAction extends ReducerActionMock {
-  type: ReducerActionType.SET_DATA;
+  type: 'SET_DATA';
   data: PopupState;
 }
 
 interface ToggleWMAction extends ReducerActionMock {
-  type: ReducerActionType.TOGGLE_WM;
+  type: 'TOGGLE_WM';
 }
 
 interface SetConnected extends ReducerActionMock {
-  type: ReducerActionType.SET_CONNECTED;
-  data: {
-    value: boolean;
-  };
+  type: 'SET_CONNECTED';
+  data: { connected: boolean };
 }
 
 interface UpdateRateOfPayAction extends ReducerActionMock {
-  type: ReducerActionType.UPDATE_RATE_OF_PAY;
-  data: {
-    rateOfPay: string;
-  };
+  type: 'UPDATE_RATE_OF_PAY';
+  data: { rateOfPay: string };
 }
 
 type BackgroundToPopupAction = BackgroundToPopupMessage;
@@ -69,23 +59,14 @@ export const usePopupState = () => React.useContext(PopupStateContext);
 
 const reducer = (state: PopupState, action: ReducerActions): PopupState => {
   switch (action.type) {
-    case ReducerActionType.SET_DATA: {
+    case 'SET_DATA':
       return action.data;
-    }
-    case ReducerActionType.TOGGLE_WM: {
-      return {
-        ...state,
-        enabled: !state.enabled,
-      };
-    }
-    case ReducerActionType.SET_CONNECTED:
-      return { ...state, connected: action.data.value };
-    case ReducerActionType.UPDATE_RATE_OF_PAY: {
-      return {
-        ...state,
-        rateOfPay: action.data.rateOfPay,
-      };
-    }
+    case 'TOGGLE_WM':
+      return { ...state, enabled: !state.enabled };
+    case 'SET_CONNECTED':
+      return { ...state, connected: action.data.connected };
+    case 'UPDATE_RATE_OF_PAY':
+      return { ...state, rateOfPay: action.data.rateOfPay };
     case 'SET_STATE':
       return { ...state, state: action.data.state };
     case 'SET_IS_MONETIZED':
@@ -114,7 +95,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
       const response = await message.send('GET_CONTEXT_DATA');
 
       if (response.success) {
-        dispatch({ type: ReducerActionType.SET_DATA, data: response.payload });
+        dispatch({ type: 'SET_DATA', data: response.payload });
         setIsLoading(false);
       }
     }
