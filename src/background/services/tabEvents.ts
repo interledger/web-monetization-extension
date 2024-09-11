@@ -1,51 +1,49 @@
-import browser from 'webextension-polyfill';
-import type { Browser } from 'webextension-polyfill';
 import { isOkState, removeQueryParams } from '@/shared/helpers';
 import { ALLOWED_PROTOCOLS } from '@/shared/defines';
 import type { Storage, TabId } from '@/shared/types';
+import type { Browser } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
 
-const runtime = browser.runtime;
 const ICONS = {
   default: {
-    32: runtime.getURL('assets/icons/32x32/default.png'),
-    48: runtime.getURL('assets/icons/48x48/default.png'),
-    128: runtime.getURL('assets/icons/128x128/default.png'),
+    32: '/assets/icons/32x32/default.png',
+    48: '/assets/icons/48x48/default.png',
+    128: '/assets/icons/128x128/default.png',
   },
   default_gray: {
-    32: runtime.getURL('assets/icons/32x32/default-gray.png'),
-    48: runtime.getURL('assets/icons/48x48/default-gray.png'),
-    128: runtime.getURL('assets/icons/128x128/default-gray.png'),
+    32: '/assets/icons/32x32/default-gray.png',
+    48: '/assets/icons/48x48/default-gray.png',
+    128: '/assets/icons/128x128/default-gray.png',
   },
   enabled_hasLinks: {
-    32: runtime.getURL('assets/icons/32x32/enabled-has-links.png'),
-    48: runtime.getURL('assets/icons/48x48/enabled-has-links.png'),
-    128: runtime.getURL('assets/icons/128x128/enabled-has-links.png'),
+    32: '/assets/icons/32x32/enabled-has-links.png',
+    48: '/assets/icons/48x48/enabled-has-links.png',
+    128: '/assets/icons/128x128/enabled-has-links.png',
   },
   enabled_noLinks: {
-    32: runtime.getURL('assets/icons/32x32/enabled-no-links.png'),
-    48: runtime.getURL('assets/icons/48x48/enabled-no-links.png'),
-    128: runtime.getURL('assets/icons/128x128/enabled-no-links.png'),
+    32: '/assets/icons/32x32/enabled-no-links.png',
+    48: '/assets/icons/48x48/enabled-no-links.png',
+    128: '/assets/icons/128x128/enabled-no-links.png',
   },
   enabled_warn: {
-    32: runtime.getURL('assets/icons/32x32/enabled-warn.png'),
-    48: runtime.getURL('assets/icons/48x48/enabled-warn.png'),
-    128: runtime.getURL('assets/icons/128x128/enabled-warn.png'),
+    32: '/assets/icons/32x32/enabled-warn.png',
+    48: '/assets/icons/48x48/enabled-warn.png',
+    128: '/assets/icons/128x128/enabled-warn.png',
   },
   disabled_hasLinks: {
-    32: runtime.getURL('assets/icons/32x32/disabled-has-links.png'),
-    48: runtime.getURL('assets/icons/48x48/disabled-has-links.png'),
-    128: runtime.getURL('assets/icons/128x128/disabled-has-links.png'),
+    32: '/assets/icons/32x32/disabled-has-links.png',
+    48: '/assets/icons/48x48/disabled-has-links.png',
+    128: '/assets/icons/128x128/disabled-has-links.png',
   },
   disabled_noLinks: {
-    32: runtime.getURL('assets/icons/32x32/disabled-no-links.png'),
-    48: runtime.getURL('assets/icons/48x48/disabled-no-links.png'),
-    128: runtime.getURL('assets/icons/128x128/disabled-no-links.png'),
+    32: '/assets/icons/32x32/disabled-no-links.png',
+    48: '/assets/icons/48x48/disabled-no-links.png',
+    128: '/assets/icons/128x128/disabled-no-links.png',
   },
   disabled_warn: {
-    32: runtime.getURL('assets/icons/32x32/disabled-warn.png'),
-    48: runtime.getURL('assets/icons/48x48/disabled-warn.png'),
-    128: runtime.getURL('assets/icons/128x128/disabled-warn.png'),
+    32: '/assets/icons/32x32/disabled-warn.png',
+    48: '/assets/icons/48x48/disabled-warn.png',
+    128: '/assets/icons/128x128/disabled-warn.png',
   },
 };
 
