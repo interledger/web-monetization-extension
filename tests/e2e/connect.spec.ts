@@ -1,7 +1,6 @@
 /// <reference types="chrome"/>
 import { test, expect } from './fixtures/base';
 import { connectWallet, disconnectWallet } from './pages/popup';
-import { i18n } from './helpers';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
@@ -11,6 +10,7 @@ test('connects with correct details provided', async ({
   persistentContext,
   background,
   popup,
+  i18n,
 }) => {
   const {
     CONNECT_KEY_ID,

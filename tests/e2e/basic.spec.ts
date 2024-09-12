@@ -1,6 +1,5 @@
 import { test, expect } from './fixtures/base';
 import { fillPopup } from './pages/popup';
-import { i18n } from './helpers';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
@@ -68,7 +67,7 @@ test.describe('should fail to connect if:', () => {
     ).toEqual({ connected: false });
   });
 
-  test('public key not added', async ({ popup }) => {
+  test('public key not added', async ({ popup, i18n }) => {
     const { CONNECT_WALLET_ADDRESS_URL } = process.env;
     expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
 

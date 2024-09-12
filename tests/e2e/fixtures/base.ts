@@ -3,6 +3,7 @@ import {
   getBackground,
   getExtensionId,
   loadContext,
+  BrowserIntl,
   type Background,
 } from './helpers';
 import { openPopup, type Popup } from '../pages/popup';
@@ -10,6 +11,7 @@ import { openPopup, type Popup } from '../pages/popup';
 type BaseScopeWorker = {
   persistentContext: BrowserContext;
   background: Background;
+  i18n: BrowserIntl;
   /**
    * IMPORTANT: This is created once per test file. Mutating/closing could
    * impact other tests in same file.
@@ -36,6 +38,14 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
     async ({ persistentContext: context, browserName }, use) => {
       const background = await getBackground(browserName, context);
       await use(background);
+    },
+    { scope: 'worker' },
+  ],
+
+  i18n: [
+    async ({ browserName }, use) => {
+      const i18n = new BrowserIntl(browserName);
+      await use(i18n);
     },
     { scope: 'worker' },
   ],
