@@ -1,4 +1,4 @@
-import { test as setup, expect } from '@playwright/test';
+import { test as setup, expect } from './fixtures/base';
 import { authFile } from './fixtures/helpers';
 
 // Authenticate with wallet once in "setup" so we don't have to do it over and

@@ -171,7 +171,13 @@ export async function loadContext({ browserName, channel }: BrowserInfo) {
 
   // Note that loading this directly via config -> use({ storageState }) doesn't
   // work correctly with our browser context. So, we addCookies manually.
-  const { cookies } = await readFile(authFile, 'utf8').then(JSON.parse);
+  const { cookies } = await readFile(authFile, 'utf8')
+    .then(JSON.parse)
+    .catch(() => {
+      // eslint-disable-next-line no-console
+      console.log('loadContext: authFile does not exist');
+      return { cookies: [] };
+    });
   await context.addCookies(cookies);
 
   return context;
