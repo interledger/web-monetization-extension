@@ -20,7 +20,7 @@ jobs:
       matrix:
         include:
           - name: Chrome
-            project: chromium
+            project: chrome
             target: chrome
             runs-on: ubuntu-22.04
           - name: Edge
@@ -47,6 +47,7 @@ jobs:
       - name: Run Playwright tests
         run: xvfb-run pnpm exec playwright test --project=${{ matrix.project }}
         env:
+          PLAYWRIGHT_PROJECT: ${{ matrix.project }}
           WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
           WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
           WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}

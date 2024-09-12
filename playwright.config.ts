@@ -29,11 +29,19 @@ export default defineConfig({
   use: { trace: 'on-first-retry' },
 
   projects: [
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+      use: { channel: process.env.PLAYWRIGHT_PROJECT },
+    },
 
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'], storageState: authFile },
+      name: 'chrome',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: authFile,
+        channel: 'chrome',
+      },
       dependencies: ['setup'],
     },
 
@@ -44,13 +52,13 @@ export default defineConfig({
     //   dependencies: ['setup'],
     // },
 
+    // Safari is surely a no-go for now
     // {
     //   name: 'webkit',
     //   use: { ...devices['Desktop Safari'], storageState: authFile },
     //   dependencies: ['setup'],
     // },
 
-    /* Test against branded browsers. */
     {
       name: 'msedge',
       use: {

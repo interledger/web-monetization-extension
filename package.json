@@ -17,7 +17,7 @@
     "format:fix": "prettier . --write --cache --cache-location='node_modules/.cache/prettiercache' --log-level=warn",
     "typecheck": "tsc --noEmit",
     "test": "jest --maxWorkers=2 --passWithNoTests",
-    "test:e2e": "playwright test --project=chromium",
+    "test:e2e": "playwright test --project=chrome",
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
