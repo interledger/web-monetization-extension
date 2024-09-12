@@ -23,6 +23,10 @@ jobs:
             project: chromium
             target: chrome
             runs-on: ubuntu-22.04
+          - name: Edge
+            project: edge
+            target: chrome
+            runs-on: ubuntu-22.04
     timeout-minutes: 15
     name: E2E Tests - ${{ matrix.name }}
     runs-on: ${{ matrix.runs-on }}

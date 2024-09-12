@@ -25,10 +25,10 @@ jobs:
           #   project: firefox
           #   target: firefox
           #   runs-on: ubuntu-22.04
-          # - name: Edge
-          #   project: edge
-          #   target: chrome
-          #   runs-on: windows-2022
+          - name: Edge
+            project: edge
+            target: chrome
+            runs-on: ubuntu-22.04
 
     timeout-minutes: 15
     name: E2E Tests - ${{ matrix.name }}
