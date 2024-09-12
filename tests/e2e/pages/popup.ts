@@ -7,12 +7,14 @@ import {
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
 
+type BrowserInfo = { browserName: string; channel: string | undefined };
+
 export async function openPopup(
   context: BrowserContext,
-  browserName: string,
+  { browserName, channel }: BrowserInfo,
   extensionId: string,
 ) {
-  const url = getPopupUrl(browserName, extensionId);
+  const url = getPopupUrl({ browserName, channel }, extensionId);
   const page = await context.newPage();
   const popupPromise = page.waitForEvent('popup');
   await page.evaluate(() => {
@@ -24,10 +26,17 @@ export async function openPopup(
   return popup;
 }
 
-function getPopupUrl(browserName: string, extensionId: string) {
+function getPopupUrl(
+  { browserName, channel }: BrowserInfo,
+  extensionId: string,
+) {
   let url: string;
   if (browserName === 'chromium') {
-    url = `chrome-extension://${extensionId}/popup/index.html`;
+    if (channel === 'edge') {
+      url = `extension://${extensionId}/popup/index.html`;
+    } else {
+      url = `chrome-extension://${extensionId}/popup/index.html`;
+    }
   } else if (browserName === 'firefox') {
     url = `moz-extension://${extensionId}/popup/index.html`;
   } else {

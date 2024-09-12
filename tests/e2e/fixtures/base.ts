@@ -41,9 +41,13 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   ],
 
   popup: [
-    async ({ background, persistentContext: context, browserName }, use) => {
+    async ({ background, persistentContext, browserName, channel }, use) => {
       const extensionId = getExtensionId(browserName, background);
-      const popup = await openPopup(context, browserName, extensionId);
+      const popup = await openPopup(
+        persistentContext,
+        { browserName, channel },
+        extensionId,
+      );
 
       await use(popup);
       await popup.close();
