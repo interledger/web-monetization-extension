@@ -1,8 +1,7 @@
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { SRC_DIR } from '../../esbuild/config';
-
-type TranslationKeys = keyof typeof import('../../src/_locales/en/messages.json');
+import { TranslationKeys } from '../../src/shared/helpers';
 
 type TranslationData = Record<
   TranslationKeys,
