@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
-import { SRC_DIR } from '../../esbuild/config';
+import { BUILD_DIR } from './fixtures/helpers';
 import { TranslationKeys } from '../../src/shared/helpers';
 
 type TranslationData = Record<
@@ -8,44 +8,42 @@ type TranslationData = Record<
   { message: string; placeholders?: Record<string, { content: string }> }
 >;
 
-const MESSAGES = {
-  _cache: new Map<string, TranslationData>(),
-  get(lang: string) {
-    const cached = this._cache.get(lang);
+// Replacement of browser.i18n.getMessage related APIs
+export const i18n = new (class BrowserIntl {
+  private cache = new Map<string, TranslationData>();
+  private lang = 'en';
+
+  private get(lang: string) {
+    const cached = this.cache.get(lang);
     if (cached) return cached;
 
-    const filePath = path.join(SRC_DIR, '_locales', lang, 'messages.json');
+    const filePath = path.join(BUILD_DIR, '_locales', lang, 'messages.json');
     const data = JSON.parse(readFileSync(filePath, 'utf8')) as TranslationData;
-    this._cache.set(lang, data);
+    this.cache.set(lang, data);
     return data;
-  },
-};
-
-// Replacement of browser.i18n.getMessage
-export function getMessage(
-  key: TranslationKeys,
-  substitutions?: string | string[],
-  language = 'en',
-) {
-  const msg = MESSAGES.get(language)[key] || MESSAGES.get('en')[key];
-  if (typeof msg === 'undefined') {
-    throw new Error(`Message not found: ${key}`);
   }
 
-  let result = msg.message;
-  if (!msg.placeholders) return result;
+  getMessage(key: TranslationKeys, substitutions?: string | string[]) {
+    const msg = this.get(this.lang)[key] || this.get('en')[key];
+    if (typeof msg === 'undefined') {
+      throw new Error(`Message not found: ${key}`);
+    }
 
-  if (!substitutions) {
-    throw new Error('Missing substitutions');
-  }
+    let result = msg.message;
+    if (!msg.placeholders) return result;
 
-  if (typeof substitutions === 'string') {
-    substitutions = [substitutions];
-  }
+    if (!substitutions) {
+      throw new Error('Missing substitutions');
+    }
 
-  for (const [key, { content }] of Object.entries(msg.placeholders)) {
-    const idx = Number(content.replace('$', ''));
-    result = result.replaceAll(`$${key.toUpperCase()}$`, substitutions[idx]);
+    if (typeof substitutions === 'string') {
+      substitutions = [substitutions];
+    }
+
+    for (const [key, { content }] of Object.entries(msg.placeholders)) {
+      const idx = Number(content.replace('$', ''));
+      result = result.replaceAll(`$${key.toUpperCase()}$`, substitutions[idx]);
+    }
+    return result;
   }
-  return result;
-}
+})();

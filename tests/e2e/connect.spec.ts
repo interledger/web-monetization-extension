@@ -1,7 +1,7 @@
 /// <reference types="chrome"/>
 import { test, expect } from './fixtures/base';
 import { connectWallet, disconnectWallet } from './pages/popup';
-import { getMessage } from './helpers';
+import { i18n } from './helpers';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
@@ -45,7 +45,7 @@ test('connects with correct details provided', async ({
   await expect(settingsLink).toBeVisible();
 
   await expect(popup.locator('h3')).toHaveText(
-    getMessage('siteNotMonetized_state_text'),
+    i18n.getMessage('siteNotMonetized_state_text'),
   );
 
   const storage = await background.evaluate(() => {

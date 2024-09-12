@@ -13,12 +13,11 @@ import {
 } from '@playwright/test';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 
-export { ROOT_DIR, SRC_DIR, DIST_DIR } from '../../../esbuild/config';
-
 export type BrowserInfo = { browserName: string; channel: string | undefined };
 export type Background = Worker;
 
 export const testDir = path.join(ROOT_DIR, 'tests', 'e2e');
+export const BUILD_DIR = DIST_DIR;
 
 // https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
 export const authFile = path.join(
@@ -186,9 +185,9 @@ export async function loadContext(
 function getPathToExtension(browserName: string) {
   let pathToExtension: string;
   if (browserName === 'chromium') {
-    pathToExtension = path.join(DIST_DIR, 'chrome');
+    pathToExtension = path.join(BUILD_DIR, 'chrome');
   } else if (browserName === 'firefox') {
-    pathToExtension = path.join(DIST_DIR, 'firefox');
+    pathToExtension = path.join(BUILD_DIR, 'firefox');
   } else {
     throw new Error('Unknown browser: ' + browserName);
   }

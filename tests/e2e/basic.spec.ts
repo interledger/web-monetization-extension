@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/base';
 import { fillPopup } from './pages/popup';
-import { getMessage } from './helpers';
+import { i18n } from './helpers';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
@@ -80,7 +80,7 @@ test.describe('should fail to connect if:', () => {
     await connectButton.click();
 
     await expect(popup.locator('p.text-error')).toHaveText(
-      getMessage('connectWallet_error_invalidClient'),
+      i18n.getMessage('connectWallet_error_invalidClient'),
     );
   });
 });
