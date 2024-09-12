@@ -51,6 +51,6 @@ To get the `CONNECT_KEY_ID`, `CONNECT_PRIVATE_KEY` and `CONNECT_PUBLIC_KEY`:
 
 As these tests are expensive/time-consuming, these need to be triggered manually when needed, instead of on every pull request/commit.
 
-For a pull request, users with write access to repository can trigger the workflow to run end-to-end tests by adding a review-comment (from PR Files tab) with body `/test`.
+For a pull request, users with write access to repository can trigger the workflow to run end-to-end tests by adding a review-comment (from PR Files tab) with body `run e2e` (exactly).
 
 End-to-end tests run automatically daily before creating the Nightly release. You can also trigger that workflow manually from [Actions Dashboard](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml).
