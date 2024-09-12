@@ -22,6 +22,12 @@ export async function openPopup(
   const popup = await popupPromise;
   await page.close();
   await popup.goto(url); // window.open doesn't allow internal browser pages
+  try {
+    await popup.waitForSelector('#main', { timeout: 300 });
+  } catch {
+    await popup.reload({ waitUntil: 'networkidle' });
+    await popup.waitForSelector('#main', { timeout: 500 });
+  }
   return popup;
 }
 
