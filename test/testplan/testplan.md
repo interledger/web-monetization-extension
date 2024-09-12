@@ -4,8 +4,8 @@
 The purpose of this document is to guide end-user testing of the Web Monetization browser extension.
 
 ## Audience
-Any person interested in testing the beta release of the Web Monetization extension. 
-There is no requirement for technical competencies.
+Any person interested in testing the beta release of the Web Monetization extension.  
+There are no requirements for technical competencies.
 
 We focus on functional test cases, and the goal is to record and report the actual behaviour that was observed when it differs from the expected behaviour.
 
@@ -40,9 +40,9 @@ Persona 2: A website owner that wants to receive WM payments.
 | **Persona 1**: A website visitor that wants to pay websites that are web monetized. | Any PC with internet access. | A Web Monetization enabled digital wallet from which payments will be made. | Any operating system (OS). A chromium-based Web browser (e.g. Chrome, Edge, Brave) or Firefox |
 | **Persona 2**: A website owner that wants to receive WM payments. | Any device with internet access (e.g. PC, tablet, mobile device). | A Web Monetization enabled digital wallet into which payments will be received. | Any operating system (OS). Any Web browser |
 
-### Report Issues
+### Reporting Issues
 1. Use any screen recording application to record the steps and results of your testing.
-2. Log bugs or issues, and tracking their resolution status in GitHub (link).
+2. Log bugs or issues, and monitor their status and resolution on GitHub [link](https://github.com/interledger/web-monetization-extension/issues).
 
 ### Prerequisites
 The main prerequisite for sending or receiving Web Monetization payments is to have a Web Monetization-enabled digital wallet.  
@@ -90,7 +90,7 @@ This diagram shows the test cases that will be covered (source: [Miro Board link
 #### Basic Test Cases
 The test case IDs below align with the numbering shown in the test case diagram above.
 
-##### Test ID: 1  
+##### Test ID: 1
 **Function**: Connect to a wallet  
 **Description**: Connect the extension to a Web Monetization enabled digital wallet.  
 **Risk**: R2 (onboarding) and R5 (UX)  
@@ -124,10 +124,11 @@ The test case IDs below align with the numbering shown in the test case diagram 
 2. Visit a non-monetized website. Open the extension to observe its available options.
 
 **Expected results**:  
+
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
  | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
- | Opening the extension displays a **rate of pay** slider:<ul><li>On the left, the current hourly rate in the currency of the wallet.</li><li>The default is equivalent to 0.60 USD.</li><li>The remaining balance, updated in near real-time (i.e. every few seconds).</li></ul>  | Opening the extension displays: <ul><li>This website is not monetized.</li></ul>
+ | Opening the extension displays a **rate of pay** slider:<ul><li>On the left, the current hourly rate in the currency of the wallet.</li><li>The default is equivalent to 0.60 USD.</li><li>The remaining balance, updated in near real-time (i.e. every few seconds).</li></ul>  | Opening the extension displays <ul><li>This website is not monetized.</li></ul> |
 
  ##### Test ID: 2.3.3.1.1
  **Function**: Pay one-time when extension and wallet have enough funds.  
@@ -164,7 +165,6 @@ The test case IDs below align with the numbering shown in the test case diagram 
 3. Visit a non-monetized website. Open the extension to observe its available options.  
 
 **Expected results**:  
-
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
  | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
@@ -185,7 +185,6 @@ The test case IDs below align with the numbering shown in the test case diagram 
 3. Visit a non-monetized website. Open the extension to observe its available options.  
 
 **Expected results**:  
-
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
  | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
@@ -205,7 +204,6 @@ The test case IDs below align with the numbering shown in the test case diagram 
 4. Observe the extension's icon when you visit a web monetized and non-monetized websites.
 
 **Expected results**:  
-
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
  | The extension icon appears inactive (i.e. grey in colour), with a green tick  | The extension icon appears inactive (i.e. grey), but with a red X  |
@@ -227,7 +225,6 @@ The test case IDs below align with the numbering shown in the test case diagram 
 4. On each site or page that you visit,  open the extension to view the remaining balance on the extension
 
 **Expected results**:  
-
  | Web monetized websites                                   | Non monetized websites                                  |
  | :------------------------------------------------------- | :------------------------------------------------------ |
  | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
@@ -249,3 +246,43 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 1. The read-only public key of the extension.
 2. The wallet address or payment pointer that had been used for the most recent wallet connection.
 3. The currency and value that had been authorised for the most recent wallet connection.
+
+#### Edge Test Cases
+
+##### Test ID: 2.3.3.1.1 (b)
+**Function**: Partial one-time payment success due to some unpeered wallets.  
+**Description**: Make a one-time payment to a website where some of the receiving wallets are peered to the sending wallet, and some receiving wallets are not peered.  
+**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Preconditions**:  
+1. The extension is connected to your wallet.
+2. The extension has a positive remaining balance.
+3. Your wallet balance is equal to or greater than the extension’s remaining balance.  
+
+**Steps**:  
+1. Visit a monetized website that has multiple receiving wallets, such that some of the receiving wallet addresses or payment pointers are not peered with your wallet provider. <ol><li>Example: You can use the [Web Monetization Playground](https://webmonetization.org/play/) to create a test website that has a combination of receiving payment pointers or wallet addresses from at least 2 different wallet providers listed below: <ol><li>[Fynbos](https://wallet.fynbos.app/wallet)</li><li>[GateHub](https://gatehub.net/mobile)</li><li>[rafiki.money](https://rafiki.money/)</li></ol></li></ol>
+2. Open the extension and make a one-time payment, a positive amount that is lower than the “remaining balance” of the extension.
+3. Visit a non-monetized website. Open the extension to observe its available options.
+
+**Expected results**:  
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
+ | Extension icon: active (full colour), with a green tick  | Extension icon: active (full colour), but with a red X  |
+ | Opening the extension displays: <ol><li>**Slider**: the rate of pay and currency on the left, the remaining balance of the extension’s authorized amount on the right side.</li><li>“**Send now**” button: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, and the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero.</li><li>**Remaining balance**: if the monetized website you paid had 2 receiving wallet addresses, and only 1 of the receiving wallets was not peered to your wallet **then** the extension’s remaining wallet balance should have decreased by half of the one-time payment amount. **Reason**: if the monetized had 2 receiving wallets, then the one-time payment should be divided equally between the wallets. Only 1 of the receiving wallets should be able to receive their portion of the payment = partial success.</li></ol>  | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+
+ ##### Test ID: 2.3.3.1.1 (c)
+**Function**: Partial one-time payment success due to insufficient extension funds.  
+**Description**: Make a one-time payment that exceeds the extension’s remaining balance to a website with multiple receiving wallets that can receive a payment from your wallet (i.e. the receiving wallets are peered to your extension’s sending wallet).  
+**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Preconditions**:  
+1. The extension is connected to your wallet.
+2. The extension’s remaining balance is **lower** than the one-time payment you are going to make..
+3. There are enough funds in your wallet for the one-time payment you want to make.  
+
+**Steps**:  
+1. Visit a monetized website that has multiple receiving wallet addresses or payment pointers. <ol><li>**Example**: A combination of receiving payment pointers or wallet addresses from the same provider.</li><li>Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.</li></ol>
+2. Open the extension and make a one-time payment that exceeds the “remaining balance” of the extension by a small amount. <ol><li>**Example**: The extension’s remaining balance is $5 and the one-time payment is $6.</li></ol>
+3. Visit a non-monetized website. Open the extension to observe its available options.
+
+**Expected results**:  
+ | Web monetized websites                                   | Non monetized websites                                  |
+ | :------------------------------------------------------- | :------------------------------------------------------ |
