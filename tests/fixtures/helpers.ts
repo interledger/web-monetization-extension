@@ -138,7 +138,7 @@ export async function loadContext(browserName: string) {
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
     context = await chromium.launchPersistentContext('', {
-      headless: false,
+      headless: false, // headless isn't well supported with extensions
       args: [
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
@@ -165,13 +165,15 @@ export async function loadContext(browserName: string) {
     throw new Error('Unknown browser: ' + browserName);
   }
 
+  // Note that loading this directly via config -> use({ storageState }) doesn't
+  // work correctly with our browser context. So, we addCookies manually.
   const { cookies } = await readFile(authFile, 'utf8').then(JSON.parse);
   await context.addCookies(cookies);
 
   return context;
 }
 
-export function getPathToExtension(browserName: string) {
+function getPathToExtension(browserName: string) {
   let pathToExtension: string;
   if (browserName === 'chromium') {
     pathToExtension = path.join(DIST_DIR, 'chrome');
@@ -229,6 +231,11 @@ export type KeyInfo = {
   publicKey: string;
 };
 
+/**
+ * We load a consistent key-pair to extension and have it pre-connected with the
+ * wallet once, so we don't have to add/remove the keys every time to the wallet
+ * on each test run.
+ */
 export async function loadKeysToExtension(
   background: Background,
   keyInfo: KeyInfo,

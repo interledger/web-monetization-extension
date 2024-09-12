@@ -1,6 +1,8 @@
 import { test as setup, expect } from '@playwright/test';
 import { authFile } from './fixtures/helpers';
 
+// Authenticate with wallet once in "setup" so we don't have to do it over and
+// over for each test file.
 setup('authenticate', async ({ page }) => {
   const { WALLET_URL_ORIGIN, WALLET_USERNAME, WALLET_PASSWORD } = process.env;
 

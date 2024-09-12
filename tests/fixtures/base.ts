@@ -13,6 +13,8 @@ type BaseScopeWorker = {
 };
 
 export const test = base.extend<{ page: Page }, BaseScopeWorker>({
+  // Extensions only work with a persistent context.
+  // Ideally we wanted this fixture to be named "context", but it's already defined in default base context under the scope "test".
   persistentContext: [
     async ({ browserName }, use) => {
       const context = await loadContext(browserName);
@@ -22,6 +24,9 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
     { scope: 'worker' },
   ],
 
+  // This is the background service worker in Chrome, and background script
+  // context in Firefox. We can run extension APIs, such as
+  // `chrome.storage.local.get` in this context with `background.evaluate()`.
   background: [
     async ({ persistentContext: context, browserName }, use) => {
       const background = await getBackground(browserName, context);
@@ -30,6 +35,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
     { scope: 'worker' },
   ],
 
+  // Needed to get access to popup page
   extensionId: [
     async ({ background, browserName }, use) => {
       await use(getExtensionId(browserName, background));

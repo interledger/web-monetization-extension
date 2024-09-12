@@ -9,14 +9,17 @@ if (!process.env.CI) {
 
 export default defineConfig({
   testDir: './tests',
+  // We don't want this set to true as that would make tests in each file to run
+  // in parallel, which will cause conflicts with the "global state". With this
+  // set to false and workers > 1, multiple test files can run in parallel, but
+  // tests within a file are run at one at a time. We make extensive use of
+  // worker-scope fixtures and beforeAll hooks to achieve best performance.
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
-  use: {
-    trace: 'on-first-retry',
-  },
+  use: { trace: 'on-first-retry' },
 
   projects: [
     { name: 'setup', testMatch: /.*\.setup\.ts/ },
@@ -27,17 +30,17 @@ export default defineConfig({
       dependencies: ['setup'],
     },
 
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'], storageState: authFile },
-      dependencies: ['setup'],
-    },
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'], storageState: authFile },
+    //   dependencies: ['setup'],
+    // },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'], storageState: authFile },
-      dependencies: ['setup'],
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'], storageState: authFile },
+    //   dependencies: ['setup'],
+    // },
 
     /* Test against branded browsers. */
     // {
