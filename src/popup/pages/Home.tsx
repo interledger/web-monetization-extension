@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  ReducerActionType,
-  usePopupState,
-  useMessage,
-} from '@/popup/lib/context';
+import { usePopupState, useMessage } from '@/popup/lib/context';
 import { WarningSign } from '@/popup/components/Icons';
 import { Slider } from '../components/ui/Slider';
 import { Label } from '../components/ui/Label';
@@ -60,18 +56,13 @@ export const Component = () => {
 
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const rateOfPay = event.currentTarget.value;
-    dispatch({
-      type: ReducerActionType.UPDATE_RATE_OF_PAY,
-      data: {
-        rateOfPay,
-      },
-    });
+    dispatch({ type: 'UPDATE_RATE_OF_PAY', data: { rateOfPay } });
     void updateRateOfPay.current(rateOfPay);
   };
 
   const onChangeWM = () => {
     message.send('TOGGLE_WM');
-    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} });
+    dispatch({ type: 'TOGGLE_WM', data: {} });
   };
 
   if (!isSiteMonetized) {
