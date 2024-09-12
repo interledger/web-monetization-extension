@@ -1,14 +1,15 @@
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
-import { authFile } from './tests/fixtures/helpers';
+import { testDir, authFile } from './tests/e2e/fixtures/helpers';
 
 if (!process.env.CI) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('dotenv').config({ path: path.join(__dirname, 'tests', '.env') });
+  require('dotenv').config({ path: path.join(testDir, '.env') });
 }
 
 export default defineConfig({
-  testDir: './tests',
+  testDir,
+  outputDir: path.join(testDir, 'test-results'),
   // We don't want this set to true as that would make tests in each file to run
   // in parallel, which will cause conflicts with the "global state". With this
   // set to false and workers > 1, multiple test files can run in parallel, but
@@ -18,7 +19,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: [
+    ['list'],
+    [
+      'html',
+      { open: 'never', outputFolder: path.join(testDir, 'playwright-report') },
+    ],
+  ],
   use: { trace: 'on-first-retry' },
 
   projects: [

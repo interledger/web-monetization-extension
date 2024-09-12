@@ -10,18 +10,20 @@ import {
   type BrowserContext,
   type Worker,
 } from '@playwright/test';
-import { DIST_DIR } from '../../esbuild/config';
+import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 
-export { ROOT_DIR, SRC_DIR, DIST_DIR } from '../../esbuild/config';
+export { ROOT_DIR, SRC_DIR, DIST_DIR } from '../../../esbuild/config';
 
 export type Background = Worker;
 
+export const testDir = path.join(ROOT_DIR, 'tests', 'e2e');
+
 // https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
 export const authFile = path.join(
-  __dirname,
-  '..',
-  '..',
-  'test-results/.auth/rafiki-money.json',
+  testDir,
+  'test-results',
+  '.auth',
+  'rafiki-money.json',
 );
 
 const FIREFOX_ADDON_UUID = crypto.randomUUID();
