@@ -37,6 +37,7 @@ export default defineConfig({
       dependencies: ['setup'],
     },
 
+    // Firefox+Playwright doesn't work well enough at the moment.
     // {
     //   name: 'firefox',
     //   use: { ...devices['Desktop Firefox'], storageState: authFile },
