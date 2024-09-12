@@ -2,12 +2,11 @@ import type { BrowserContext } from '@playwright/test';
 import {
   loadKeysToExtension,
   type Background,
+  type BrowserInfo,
   type KeyInfo,
 } from '../fixtures/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
-
-type BrowserInfo = { browserName: string; channel: string | undefined };
 
 export async function openPopup(
   context: BrowserContext,

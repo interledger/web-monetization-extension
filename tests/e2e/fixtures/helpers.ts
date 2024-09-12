@@ -14,6 +14,7 @@ import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 
 export { ROOT_DIR, SRC_DIR, DIST_DIR } from '../../../esbuild/config';
 
+export type BrowserInfo = { browserName: string; channel: string | undefined };
 export type Background = Worker;
 
 export const testDir = path.join(ROOT_DIR, 'tests', 'e2e');
@@ -135,12 +136,13 @@ export const loadFirefoxAddon = (
   });
 };
 
-export async function loadContext(browserName: string) {
+export async function loadContext({ browserName, channel }: BrowserInfo) {
   const pathToExtension = getPathToExtension(browserName);
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
     context = await chromium.launchPersistentContext('', {
       headless: false, // headless isn't well supported with extensions
+      channel,
       args: [
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,

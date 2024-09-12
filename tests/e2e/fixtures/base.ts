@@ -21,8 +21,8 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   // Extensions only work with a persistent context.
   // Ideally we wanted this fixture to be named "context", but it's already defined in default base context under the scope "test".
   persistentContext: [
-    async ({ browserName }, use) => {
-      const context = await loadContext(browserName);
+    async ({ browserName, channel }, use) => {
+      const context = await loadContext({ browserName, channel });
       await use(context);
       await context.close();
     },
