@@ -24,7 +24,7 @@ jobs:
             target: chrome
             runs-on: ubuntu-22.04
           - name: Edge
-            project: edge
+            project: msedge
             target: chrome
             runs-on: ubuntu-22.04
     timeout-minutes: 15
@@ -45,7 +45,7 @@ jobs:
         run: pnpm exec playwright install ${{ matrix.project }} --with-deps
 
       - name: Run Playwright tests
-        run: xvfb-run pnpm test:e2e --project=${{ matrix.project }}
+        run: xvfb-run pnpm exec playwright test --project=${{ matrix.project }}
         env:
           WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
           WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
@@ -59,7 +59,7 @@ jobs:
         if: always()
         with:
           name: playwright-report-${{ matrix.project }}
-          path: playwright-report/
+          path: tests/e2e/playwright-report/
           retention-days: 3
 
   build-nightly:

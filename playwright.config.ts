@@ -52,7 +52,7 @@ export default defineConfig({
 
     /* Test against branded browsers. */
     {
-      name: 'edge',
+      name: 'msedge',
       use: {
         ...devices['Desktop Edge'],
         channel: 'msedge',
