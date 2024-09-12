@@ -10,7 +10,7 @@ concurrency:
 jobs:
   test-e2e:
     if: ${{
-      github.event.review.body == 'run e2e' &&
+      github.event.review.body == 'test-e2e' &&
       contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
       }}
     strategy:
