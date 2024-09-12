@@ -1,19 +1,11 @@
-import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/base';
-import { fillPopup, getMessage, openPopup } from './pages/popup';
+import { fillPopup, getMessage } from './pages/popup';
 
-let popup: Page;
-test.beforeAll(async ({ persistentContext, browserName, extensionId }) => {
-  popup = await openPopup(persistentContext, browserName, extensionId);
-});
-test.afterAll(async () => {
-  await popup.close();
-});
-test.beforeEach(async () => {
+test.beforeEach(async ({ popup }) => {
   await popup.reload();
 });
 
-test('should load popup', async () => {
+test('should load popup', async ({ popup }) => {
   await popup.bringToFront();
   await expect(popup).toHaveTitle('Web Monetization Extension');
   await expect(popup.locator('#popup-container')).toBeAttached();
@@ -24,7 +16,7 @@ test('should load popup', async () => {
   );
 });
 
-test('shows connect form if not connected', async ({ page }) => {
+test('shows connect form if not connected', async ({ page, popup }) => {
   await page.goto('https://example.com');
 
   await expect(popup).toHaveTitle('Web Monetization Extension');
@@ -39,7 +31,7 @@ test('shows connect form if not connected', async ({ page }) => {
 });
 
 test.describe('should fail to connect if:', () => {
-  test('invalid URL provided', async ({ background }) => {
+  test('invalid URL provided', async ({ background, popup }) => {
     const connectButton = await fillPopup(popup, {
       walletAddressUrl: 'abc',
       amount: '10',
@@ -54,7 +46,7 @@ test.describe('should fail to connect if:', () => {
     ).toEqual({ connected: false });
   });
 
-  test('invalid wallet address provided', async ({ background }) => {
+  test('invalid wallet address provided', async ({ background, popup }) => {
     const connectButton = await fillPopup(popup, {
       walletAddressUrl: 'https://example.com',
       amount: '10',
@@ -75,7 +67,7 @@ test.describe('should fail to connect if:', () => {
     ).toEqual({ connected: false });
   });
 
-  test('public key not added', async () => {
+  test('public key not added', async ({ popup }) => {
     const { CONNECT_WALLET_ADDRESS_URL } = process.env;
     expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
 

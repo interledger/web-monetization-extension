@@ -1,29 +1,15 @@
 /// <reference types="chrome"/>
-import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/base';
-import {
-  connectWallet,
-  disconnectWallet,
-  getMessage,
-  openPopup,
-} from './pages/popup';
+import { connectWallet, disconnectWallet, getMessage } from './pages/popup';
 
-let popup: Page;
-test.beforeAll(async ({ persistentContext, browserName, extensionId }) => {
-  popup = await openPopup(persistentContext, browserName, extensionId);
-});
-
-test.afterAll(async () => {
-  await popup.close();
-});
-
-test.beforeEach(async () => {
+test.beforeEach(async ({ popup }) => {
   await popup.reload();
 });
 
 test('connects with correct details provided', async ({
   persistentContext,
   background,
+  popup,
 }) => {
   const {
     CONNECT_KEY_ID,

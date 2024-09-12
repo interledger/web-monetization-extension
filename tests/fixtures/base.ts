@@ -5,11 +5,16 @@ import {
   loadContext,
   type Background,
 } from './helpers';
+import { openPopup, type Popup } from '../pages/popup';
 
 type BaseScopeWorker = {
   persistentContext: BrowserContext;
   background: Background;
-  extensionId: string;
+  /**
+   * IMPORTANT: This is created once per test file. Mutating/closing could
+   * impact other tests in same file.
+   */
+  popup: Popup;
 };
 
 export const test = base.extend<{ page: Page }, BaseScopeWorker>({
@@ -35,10 +40,13 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
     { scope: 'worker' },
   ],
 
-  // Needed to get access to popup page
-  extensionId: [
-    async ({ background, browserName }, use) => {
-      await use(getExtensionId(browserName, background));
+  popup: [
+    async ({ background, persistentContext: context, browserName }, use) => {
+      const extensionId = getExtensionId(browserName, background);
+      const popup = await openPopup(context, browserName, extensionId);
+
+      await use(popup);
+      await popup.close();
     },
     { scope: 'worker' },
   ],

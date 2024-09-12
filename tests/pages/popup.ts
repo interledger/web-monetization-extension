@@ -8,7 +8,7 @@ import {
   type KeyInfo,
 } from '../fixtures/helpers';
 
-type Popup = Awaited<ReturnType<typeof openPopup>>;
+export type Popup = Awaited<ReturnType<typeof openPopup>>;
 
 export async function openPopup(
   context: BrowserContext,
@@ -18,12 +18,12 @@ export async function openPopup(
   const url = getPopupUrl(browserName, extensionId);
   const page = await context.newPage();
   const popupPromise = page.waitForEvent('popup');
-  await page.evaluate((popupUrl) => {
-    return window.open(popupUrl, '', 'popup=true,width=448,height=600');
-  }, url);
+  await page.evaluate(() => {
+    return window.open('', '', 'popup=true,width=448,height=600');
+  });
   const popup = await popupPromise;
   await page.close();
-  await popup.goto(url);
+  await popup.goto(url); // window.open doesn't allow internal browser pages
   return popup;
 }
 

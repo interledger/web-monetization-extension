@@ -1,15 +1,11 @@
 import type { Page } from '@playwright/test';
 import { test as base } from './base';
-import { connectWallet, disconnectWallet, openPopup } from '../pages/popup';
+import { connectWallet, disconnectWallet, type Popup } from '../pages/popup';
 
-export const test = base.extend<{ page: Page }, { popup: Page }>({
+// With extension connected to the wallet.
+export const test = base.extend<{ page: Page }, { popup: Popup }>({
   popup: [
-    async (
-      { persistentContext: context, browserName, background, extensionId },
-      use,
-    ) => {
-      const popup = await openPopup(context, browserName, extensionId);
-
+    async ({ persistentContext: context, background, popup }, use) => {
       const keyInfo = {
         keyId: process.env.CONNECT_KEY_ID!,
         privateKey: process.env.CONNECT_PRIVATE_KEY!,
@@ -25,7 +21,6 @@ export const test = base.extend<{ page: Page }, { popup: Page }>({
       await use(popup);
 
       await disconnectWallet(popup);
-      await popup.close();
     },
     { scope: 'worker' },
   ],
