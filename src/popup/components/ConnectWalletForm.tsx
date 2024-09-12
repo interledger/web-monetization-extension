@@ -1,18 +1,18 @@
-import React, { useCallback, useEffect } from 'react';
+import React from 'react';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/popup/components/ui/Button';
 import { Input } from '@/popup/components/ui/Input';
 import { Label } from '@/popup/components/ui/Label';
 import { Switch } from '@/popup/components/ui/Switch';
 import { Code } from '@/popup/components/ui/Code';
-import { debounceSync, getWalletInformation } from '@/shared/helpers';
 import {
   charIsNumber,
   formatNumber,
   getCurrencySymbol,
   toWalletAddressUrl,
 } from '@/popup/lib/utils';
-import { useForm } from 'react-hook-form';
-import { useMessage } from '@/popup/lib/context';
+import type { WalletAddress } from '@interledger/open-payments';
+import type { Response } from '@/shared/messages';
 
 interface ConnectWalletFormInputs {
   walletAddressUrl: string;
@@ -22,10 +22,24 @@ interface ConnectWalletFormInputs {
 
 interface ConnectWalletFormProps {
   publicKey: string;
+  defaultValues: Partial<ConnectWalletFormInputs>;
+  saveValue?: (
+    key: keyof ConnectWalletFormInputs,
+    val: ConnectWalletFormInputs[typeof key],
+  ) => void;
+  getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
+  connectWallet: (data: ConnectWalletFormInputs) => Promise<Response>;
+  onConnect?: () => void;
 }
 
-export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
-  const message = useMessage();
+export const ConnectWalletForm = ({
+  publicKey,
+  defaultValues,
+  getWalletInfo,
+  connectWallet,
+  saveValue = () => {},
+  onConnect = () => {},
+}: ConnectWalletFormProps) => {
   const {
     register,
     handleSubmit,
@@ -37,24 +51,20 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
     criteriaMode: 'firstError',
     mode: 'onSubmit',
     reValidateMode: 'onBlur',
-    defaultValues: {
-      recurring: localStorage?.getItem('recurring') === 'true' || false,
-      amount: localStorage?.getItem('amountValue') || undefined,
-      walletAddressUrl: localStorage?.getItem('walletAddressUrl') || undefined,
-    },
+    defaultValues,
   });
   const [currencySymbol, setCurrencySymbol] = React.useState<{
     symbol: string;
     scale: number;
   }>({ symbol: '$', scale: 2 });
 
-  const getWalletCurrency = useCallback(
+  const getWalletCurrency = React.useCallback(
     async (walletAddressUrl: string): Promise<void> => {
       clearErrors('walletAddressUrl');
       if (!walletAddressUrl) return;
       try {
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
-        const walletAddress = await getWalletInformation(url.toString());
+        const walletAddress = await getWalletInfo(url.toString());
         setCurrencySymbol({
           symbol: getCurrencySymbol(walletAddress.assetCode),
           scale: walletAddress.assetScale,
@@ -66,58 +76,29 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         });
       }
     },
-    [clearErrors, setError],
+    [clearErrors, setError, getWalletInfo],
   );
 
-  const handleOnChangeAmount = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const amountValue = formatNumber(
-      +e.currentTarget.value,
-      currencySymbol.scale,
-    );
-    debounceSync(() => {
-      localStorage?.setItem('amountValue', amountValue);
-    }, 100)();
-  };
-
-  const handleOnChangeWalletAddressUrl = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const walletAddressUrl = e.currentTarget.value;
-    debounceSync(() => {
-      localStorage?.setItem('walletAddressUrl', walletAddressUrl);
-    }, 100)();
-  };
-
-  const handleOnChangeRecurring = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const recurring = e.currentTarget.checked;
-    debounceSync(
-      () => localStorage?.setItem('recurring', `${recurring}`),
-      100,
-    )();
-  };
-
-  useEffect(() => {
-    const walletAddressUrl =
-      localStorage?.getItem('walletAddressUrl') || undefined;
-    if (!walletAddressUrl) return;
-    getWalletCurrency(walletAddressUrl);
-  }, [getWalletCurrency]);
+  React.useEffect(() => {
+    if (defaultValues.walletAddressUrl) {
+      void getWalletCurrency(defaultValues.walletAddressUrl);
+    }
+  }, [defaultValues.walletAddressUrl, getWalletCurrency]);
 
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
-        const response = await message.send('CONNECT_WALLET', {
+        const response = await connectWallet({
           ...data,
           walletAddressUrl: toWalletAddressUrl(data.walletAddressUrl),
         });
-        if (!response.success) {
-          setError('walletAddressUrl', {
-            type: 'validate',
-            message: response.message,
-          });
+        if (response.success) {
+          return onConnect();
         }
+        setError('walletAddressUrl', {
+          type: 'validate',
+          message: response.message,
+        });
       })}
       className="space-y-4"
     >
@@ -147,10 +128,11 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         errorMessage={errors.walletAddressUrl?.message}
         {...register('walletAddressUrl', {
           required: { value: true, message: 'Wallet address URL is required.' },
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            getWalletCurrency(e.currentTarget.value);
+          onBlur(e: React.FocusEvent<HTMLInputElement>) {
+            const walletAddressUrl = e.currentTarget.value;
+            getWalletCurrency(walletAddressUrl);
+            saveValue('walletAddressUrl', walletAddressUrl);
           },
-          onChange: handleOnChangeWalletAddressUrl,
         })}
       />
       <Input
@@ -174,19 +156,20 @@ export const ConnectWalletForm = ({ publicKey }: ConnectWalletFormProps) => {
         {...register('amount', {
           required: { value: true, message: 'Amount is required.' },
           valueAsNumber: false,
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            setValue(
-              'amount',
-              formatNumber(+e.currentTarget.value, currencySymbol.scale),
-            );
+          onBlur(e: React.FocusEvent<HTMLInputElement>) {
+            const val = +e.currentTarget.value;
+            const amountValue = formatNumber(val, currencySymbol.scale);
+            setValue('amount', amountValue);
+            saveValue('amount', amountValue);
           },
-          onChange: handleOnChangeAmount,
         })}
       />
       <div className="px-2">
         <Switch
           {...register('recurring', {
-            onChange: handleOnChangeRecurring,
+            onChange(ev: React.FocusEvent<HTMLInputElement>) {
+              saveValue('recurring', ev.currentTarget.checked);
+            },
           })}
           label="Renew amount monthly"
         />
