@@ -1,6 +1,7 @@
 /// <reference types="chrome"/>
 import { test, expect } from './fixtures/base';
-import { connectWallet, disconnectWallet, getMessage } from './pages/popup';
+import { connectWallet, disconnectWallet } from './pages/popup';
+import { getMessage } from './helpers';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();

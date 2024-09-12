@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/base';
-import { fillPopup, getMessage } from './pages/popup';
+import { fillPopup } from './pages/popup';
+import { getMessage } from './helpers';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
