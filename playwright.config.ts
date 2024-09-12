@@ -32,7 +32,6 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: /.*\.setup\.ts/,
-      use: { channel: process.env.PLAYWRIGHT_PROJECT },
     },
 
     {

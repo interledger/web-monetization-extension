@@ -3,6 +3,10 @@ import { authFile } from './fixtures/helpers';
 
 // Authenticate with wallet once in "setup" so we don't have to do it over and
 // over for each test file.
+//
+// Note: this step presently runs with chromium, even if running tests for
+// msedge/firefox, as the 'setup' project doesn't know which project we're
+// running with when using `--project` on CLI.
 setup('authenticate', async ({ page }) => {
   const { WALLET_URL_ORIGIN, WALLET_USERNAME, WALLET_PASSWORD } = process.env;
 

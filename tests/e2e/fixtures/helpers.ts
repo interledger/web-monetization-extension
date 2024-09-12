@@ -8,6 +8,7 @@ import {
   chromium,
   firefox,
   type BrowserContext,
+  type WorkerInfo,
   type Worker,
 } from '@playwright/test';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
@@ -136,7 +137,10 @@ export const loadFirefoxAddon = (
   });
 };
 
-export async function loadContext({ browserName, channel }: BrowserInfo) {
+export async function loadContext(
+  { browserName, channel }: BrowserInfo,
+  workerInfo: WorkerInfo,
+) {
   const pathToExtension = getPathToExtension(browserName);
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
@@ -171,14 +175,10 @@ export async function loadContext({ browserName, channel }: BrowserInfo) {
 
   // Note that loading this directly via config -> use({ storageState }) doesn't
   // work correctly with our browser context. So, we addCookies manually.
-  const { cookies } = await readFile(authFile, 'utf8')
-    .then(JSON.parse)
-    .catch(() => {
-      // eslint-disable-next-line no-console
-      console.log('loadContext: authFile does not exist');
-      return { cookies: [] };
-    });
-  await context.addCookies(cookies);
+  if (workerInfo.project.name !== 'setup') {
+    const { cookies } = await readFile(authFile, 'utf8').then(JSON.parse);
+    await context.addCookies(cookies);
+  }
 
   return context;
 }
