@@ -47,7 +47,7 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Run Playwright tests
-        run: xvfb-run pnpm exec playwright test --project=${{ matrix.project }}
+        run: xvfb-run pnpm test:e2e:${{ matrix.project }}
         env:
           PLAYWRIGHT_PROJECT: ${{ matrix.project }}
           WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
