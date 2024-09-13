@@ -57,11 +57,12 @@ jobs:
           CONNECT_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
           CONNECT_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: AlexGidarakos/upload-encrypted-artifact@f682a88346288edaf376ab27f0f1a36573b962ea
         if: always()
         with:
-          name: playwright-report-${{ matrix.project }}
-          path: tests/e2e/playwright-report/
+          remote-name: playwright-report-${{ matrix.project }}
+          source: tests/e2e/playwright-report/
+          password: ${{ secrets.E2E_PLAYWRIGHT_REPORT_PASSWORD }}
           retention-days: 3
 
   build-nightly:
