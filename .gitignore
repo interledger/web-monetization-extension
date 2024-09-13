@@ -17,6 +17,7 @@ dist-firefox-v2
 public/manifest.json
 *.local
 coverage
+.env
 .husky
 .vscode
 
@@ -30,3 +31,9 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# playwright
+/tests/e2e/test-results/
+/tests/e2e/test-results/.auth
+/tests/e2e/playwright-report/
+/playwright/.cache/

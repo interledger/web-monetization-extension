@@ -21,6 +21,7 @@ export default {
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
+    '<rootDir>/tests/',
     '<rootDir>/jest.config.ts',
   ],
   transform: {

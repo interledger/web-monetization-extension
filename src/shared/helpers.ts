@@ -199,7 +199,8 @@ export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
   return BigInt(a) > BigInt(b) ? a : b;
 }
 
-type TranslationKeys = keyof typeof import('../_locales/en/messages.json');
+export type TranslationKeys =
+  keyof typeof import('../_locales/en/messages.json');
 
 export type Translation = ReturnType<typeof tFactory>;
 export function tFactory(browser: Pick<Browser, 'i18n'>) {

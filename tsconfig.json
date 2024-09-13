@@ -29,6 +29,7 @@
     "./jest.config.ts",
     "./jest.setup.ts",
     "./scripts/**/*",
+    "./tests/e2e/**/*",
     "./.github/actions/*.cjs",
     "esbuild/**/*"
   ],

@@ -29,6 +29,7 @@
   - any:
       - changed-files:
           - any-glob-to-any-file: '**/*.test.ts'
+          - any-glob-to-any-file: 'tests/**/*'
 
 'area: i18n':
   - any:
