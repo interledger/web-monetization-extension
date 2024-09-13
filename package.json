@@ -17,9 +17,10 @@
     "format:fix": "prettier . --write --cache --cache-location='node_modules/.cache/prettiercache' --log-level=warn",
     "typecheck": "tsc --noEmit",
     "test": "jest --maxWorkers=2 --passWithNoTests",
-    "test:e2e": "pnpm test:e2e:chrome",
+    "test:e2e": "playwright test",
     "test:e2e:chrome": "playwright test --project=chrome",
     "test:e2e:msedge": "playwright test --project=msedge",
+    "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {

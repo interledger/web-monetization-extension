@@ -146,9 +146,10 @@ export async function loadContext(
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
     context = await chromium.launchPersistentContext('', {
-      headless: false, // headless isn't well supported with extensions
+      headless: true,
       channel,
       args: [
+        `--headless=true`,
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],

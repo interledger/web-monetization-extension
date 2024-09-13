@@ -45,7 +45,7 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Run Playwright tests
-        run: xvfb-run pnpm test:e2e:${{ matrix.project }}
+        run: pnpm test:e2e:${{ matrix.project }}
         env:
           PLAYWRIGHT_PROJECT: ${{ matrix.project }}
           PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: '1'
