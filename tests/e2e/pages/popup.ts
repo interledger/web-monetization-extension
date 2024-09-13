@@ -73,9 +73,9 @@ export async function connectWallet(
       url.searchParams.has('clientUri')
     );
   });
+  await sleep(5000);
   await page.getByRole('button', { name: 'Accept' }).click();
 
-  await sleep(5000);
 
   const CONFIG_OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
   await page.waitForURL(
