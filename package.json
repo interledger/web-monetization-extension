@@ -17,6 +17,9 @@
     "format:fix": "prettier . --write --cache --cache-location='node_modules/.cache/prettiercache' --log-level=warn",
     "typecheck": "tsc --noEmit",
     "test": "jest --maxWorkers=2 --passWithNoTests",
+    "test:e2e": "pnpm test:e2e:chrome",
+    "test:e2e:chrome": "playwright test --project=chrome",
+    "test:e2e:msedge": "playwright test --project=msedge",
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
@@ -42,10 +45,12 @@
   },
   "devDependencies": {
     "@jgoz/esbuild-plugin-typecheck": "^4.0.1",
+    "@playwright/test": "^1.47.0",
     "@tailwindcss/forms": "^0.5.7",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@types/archiver": "^6.0.2",
+    "@types/chrome": "^0.0.270",
     "@types/github-script": "github:actions/github-script",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.16.2",
@@ -57,6 +62,7 @@
     "@typescript-eslint/parser": "^8.5.0",
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.5",
     "esbuild": "^0.23.1",
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",

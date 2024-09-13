@@ -87,6 +87,7 @@ export const ConnectWalletForm = ({
 
   return (
     <form
+      data-testid="connect-wallet-form"
       onSubmit={handleSubmit(async (data) => {
         const response = await connectWallet({
           ...data,
