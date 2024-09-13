@@ -85,6 +85,7 @@ Use the playground to add, remove, or disable any number or combination of walle
 This section defines and priorities the main risks to the adoption of Web Monetization.
 Based on these risks, the sections that follow detail the actual test cases.
 
+<!-- prettier-ignore-start -->
 We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 
 | Ref. | Risk                                                       | Priority | How to mitigate the risk                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -95,6 +96,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 | R4   | Lack of understanding about the standard or the technology | high     | <ul><li>Provide accessible, good quality resources to simplify understanding:<ul><li>Web Monetization</li><li>The extension</li><li>How to start using the extension</li><li>How to monetize own content</li></ul></li><li>Provide good quality of docs (accurate, comprehensive, complete)</li><li>How Web Monetization works & what to expect</li><li>Understanding the technology</li><li>Access to the [proposed Web Monetization standard specification](https://webmonetization.org/specification/) & the working group [WICG](https://github.com/WICG/webmonetization) GitHub repository</li></ul> |
 | R5   | UX that is poor                                            | critical | <ul><li>Build UX that supports ease of use</li><li>Provide fast and responsive help desk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and functionality</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                  |
 | R6   | Unable to control payments                                 | critical | <ul><li>Ability to control when, who & how much to pay</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+<!-- prettier-ignore-end -->
 
 ### Functional Test Cases
 
