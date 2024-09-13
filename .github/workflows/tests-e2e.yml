@@ -50,6 +50,7 @@ jobs:
         run: xvfb-run pnpm test:e2e:${{ matrix.project }}
         env:
           PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+          PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: '1'
           WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
           WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
           WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}

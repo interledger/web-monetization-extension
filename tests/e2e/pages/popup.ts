@@ -1,3 +1,4 @@
+// cSpell:ignore requestfinished
 import type { BrowserContext } from '@playwright/test';
 import {
   loadKeysToExtension,
@@ -5,7 +6,7 @@ import {
   type BrowserInfo,
   type KeyInfo,
 } from '../fixtures/helpers';
-import { sleep } from '@/shared/helpers';
+import { getWalletInformation } from '@/shared/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
 
@@ -63,6 +64,29 @@ export async function connectWallet(
   const connectButton = await fillPopup(popup, params);
   await connectButton.click();
 
+  const continueWaitMs = await (async () => {
+    const defaultWaitMs = 1001;
+    if (process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS !== '1') {
+      return Promise.resolve(defaultWaitMs);
+    }
+    const walletInfo = await getWalletInformation(params.walletAddressUrl);
+    return await new Promise<number>((resolve) => {
+      const authServer = new URL(walletInfo.authServer).href;
+      context.on('requestfinished', async function intercept(req) {
+        if (!req.serviceWorker()) return;
+        if (new URL(req.url()).href !== authServer) return;
+
+        const res = await req.response();
+        const json = await res?.json();
+        context.off('requestfinished', intercept);
+        if (typeof json?.continue?.wait !== 'number') {
+          return resolve(defaultWaitMs);
+        }
+        return resolve(json.continue.wait * 1000);
+      });
+    });
+  })();
+
   const page = await context.waitForEvent('page', (page) =>
     page.url().includes('/grant-interactions'),
   );
@@ -73,9 +97,8 @@ export async function connectWallet(
       url.searchParams.has('clientUri')
     );
   });
-  await sleep(5000);
+  await page.waitForTimeout(continueWaitMs);
   await page.getByRole('button', { name: 'Accept' }).click();
-
 
   const CONFIG_OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
   await page.waitForURL(
