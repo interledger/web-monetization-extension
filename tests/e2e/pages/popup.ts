@@ -5,6 +5,7 @@ import {
   type BrowserInfo,
   type KeyInfo,
 } from '../fixtures/helpers';
+import { sleep } from '@/shared/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
 
@@ -73,6 +74,8 @@ export async function connectWallet(
     );
   });
   await page.getByRole('button', { name: 'Accept' }).click();
+
+  await sleep(5000);
 
   const CONFIG_OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
   await page.waitForURL(
