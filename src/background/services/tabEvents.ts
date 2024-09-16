@@ -131,13 +131,15 @@ export class TabEvents {
     await this.setIconAndTooltip(path, title, tabId);
   };
 
-  // TODO: memoize this call
   private setIconAndTooltip = async (
     path: (typeof ICONS)[keyof typeof ICONS],
     title: string,
-    tabId?: TabId,
+    tabId: TabId,
   ) => {
-    await this.browser.action.setIcon({ path, tabId });
+    if (this.tabState.getIcon(tabId) !== path) {
+      this.tabState.setIcon(tabId, path);
+      await this.browser.action.setIcon({ path, tabId });
+    }
     await this.browser.action.setTitle({ title, tabId });
   };
 
