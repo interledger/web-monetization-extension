@@ -143,43 +143,46 @@ export type PopupToBackgroundMessage = {
 // #endregion
 
 // #region Content ↦ BG
-export interface CheckWalletAddressUrlPayload {
+export interface GetWalletAddressInfoPayload {
   walletAddressUrl: string;
 }
 
-export interface StartMonetizationPayload {
+export interface StartMonetizationPayloadEntry {
   walletAddress: WalletAddress;
   requestId: string;
 }
+export type StartMonetizationPayload = StartMonetizationPayloadEntry[];
 
-export interface StopMonetizationPayload {
+export interface StopMonetizationPayloadEntry {
   requestId: string;
   intent?: 'remove' | 'disable';
 }
+export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
-export interface ResumeMonetizationPayload {
+export interface ResumeMonetizationPayloadEntry {
   requestId: string;
 }
+export type ResumeMonetizationPayload = ResumeMonetizationPayloadEntry[];
 
 export interface IsTabMonetizedPayload {
   value: boolean;
 }
 
 export type ContentToBackgroundMessage = {
-  CHECK_WALLET_ADDRESS_URL: {
-    input: CheckWalletAddressUrlPayload;
+  GET_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload;
     output: WalletAddress;
   };
   STOP_MONETIZATION: {
-    input: StopMonetizationPayload[];
+    input: StopMonetizationPayload;
     output: never;
   };
   START_MONETIZATION: {
-    input: StartMonetizationPayload[];
+    input: StartMonetizationPayload;
     output: never;
   };
   RESUME_MONETIZATION: {
-    input: ResumeMonetizationPayload[];
+    input: ResumeMonetizationPayload;
     output: never;
   };
   IS_WM_ENABLED: {
@@ -213,17 +216,9 @@ export interface MonetizationEventPayload {
   details: MonetizationEventDetails;
 }
 
-export interface EmitToggleWMPayload {
-  enabled: boolean;
-}
-
 export type BackgroundToContentMessage = {
   MONETIZATION_EVENT: {
     input: MonetizationEventPayload;
-    output: never;
-  };
-  EMIT_TOGGLE_WM: {
-    input: EmitToggleWMPayload;
     output: never;
   };
 };

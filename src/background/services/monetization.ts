@@ -52,7 +52,7 @@ export class MonetizationService {
   }
 
   async startPaymentSession(
-    payload: StartMonetizationPayload[],
+    payload: StartMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
     if (!payload.length) {
@@ -146,7 +146,7 @@ export class MonetizationService {
   }
 
   async stopPaymentSession(
-    payload: StopMonetizationPayload[],
+    payload: StopMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
     let needsAdjustAmount = false;
@@ -191,7 +191,7 @@ export class MonetizationService {
   }
 
   async resumePaymentSession(
-    payload: ResumeMonetizationPayload[],
+    payload: ResumeMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
     const tabId = getTabId(sender);
@@ -243,8 +243,13 @@ export class MonetizationService {
 
   async toggleWM() {
     const { enabled } = await this.storage.get(['enabled']);
-    await this.storage.set({ enabled: !enabled });
-    await this.message.sendToActiveTab('EMIT_TOGGLE_WM', { enabled: !enabled });
+    const nowEnabled = !enabled;
+    await this.storage.set({ enabled: nowEnabled });
+    if (nowEnabled) {
+      await this.resumePaymentSessionActiveTab();
+    } else {
+      this.stopAllSessions();
+    }
   }
 
   async pay(amount: string) {
