@@ -49,8 +49,8 @@ importers:
         specifier: ^2.1.2
         version: 2.1.2
       loglevel:
-        specifier: ^1.9.1
-        version: 1.9.1
+        specifier: ^1.9.2
+        version: 1.9.2
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -96,7 +96,7 @@ importers:
         version: 0.0.270
       '@types/github-script':
         specifier: github:actions/github-script
-        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/35b1cdd1b2c1fc704b1cd9758d10f67e833fcb02
+        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2
       '@types/jest':
         specifier: ^29.5.12
         version: 29.5.12
@@ -2150,8 +2150,8 @@ packages:
   get-tsconfig@4.7.5:
     resolution: {integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==}
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/35b1cdd1b2c1fc704b1cd9758d10f67e833fcb02:
-    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/35b1cdd1b2c1fc704b1cd9758d10f67e833fcb02}
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
+    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2}
     version: 7.0.1
     engines: {node: '>=20.0.0 <21.0.0'}
 
@@ -2787,8 +2787,8 @@ packages:
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
-  loglevel@1.9.1:
-    resolution: {integrity: sha512-hP3I3kCrDIMuRwAwHltphhDM1r8i55H33GgqjXbrisuJhF4kRhW1dNuxsRklp4bXl8DSdLaNLuiL4A/LWRfxvg==}
+  loglevel@1.9.2:
+    resolution: {integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==}
     engines: {node: '>= 0.6.0'}
 
   loose-envify@1.4.0:
@@ -6350,7 +6350,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/35b1cdd1b2c1fc704b1cd9758d10f67e833fcb02:
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
     dependencies:
       '@actions/core': 1.10.1
       '@actions/exec': 1.1.1
@@ -7229,7 +7229,7 @@ snapshots:
 
   lodash@4.17.21: {}
 
-  loglevel@1.9.1: {}
+  loglevel@1.9.2: {}
 
   loose-envify@1.4.0:
     dependencies:
