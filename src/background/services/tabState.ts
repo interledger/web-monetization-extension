@@ -22,6 +22,7 @@ export class TabState {
 
   private state = new Map<TabId, Map<string, State>>();
   private sessions = new Map<TabId, Map<SessionId, PaymentSession>>();
+  private currentIcon = new Map<TabId, Record<number, string>>();
 
   constructor({ logger }: Cradle) {
     Object.assign(this, {
@@ -118,6 +119,14 @@ export class TabState {
     return [...this.sessions.values()].flatMap((s) => [...s.values()]);
   }
 
+  getIcon(tabId: TabId) {
+    return this.currentIcon.get(tabId);
+  }
+
+  setIcon(tabId: TabId, icon: Record<number, string>) {
+    this.currentIcon.set(tabId, icon);
+  }
+
   getAllTabs(): TabId[] {
     return [...this.sessions.keys()];
   }
@@ -128,6 +137,8 @@ export class TabState {
   }
 
   clearSessionsByTabId(tabId: TabId) {
+    this.currentIcon.delete(tabId);
+
     const sessions = this.getSessions(tabId);
     if (!sessions.size) return;
 
