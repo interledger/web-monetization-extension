@@ -1,7 +1,7 @@
 import type { MonetizationEventPayload } from '@/shared/messages';
 (function () {
   if (document.createElement('link').relList.supports('monetization')) {
-    // console.log('already patched');
+    // already patched
     return;
   }
 

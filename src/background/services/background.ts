@@ -62,10 +62,11 @@ export class Background {
     this.sendToPopup.start();
   }
 
+  // TODO: When Firefox 128 is old enough, inject directly via manifest.
+  // Also see: injectPolyfill in contentScript
+  // See: https://github.com/interledger/web-monetization-extension/issues/607
   async injectPolyfill() {
     try {
-      // TODO: When Firefox 128 is old enough, inject directly via manifest.
-      // Also see: injectPolyfill in contentScript
       await this.browser.scripting.registerContentScripts([
         {
           world: 'MAIN',
@@ -81,7 +82,11 @@ export class Background {
       // inject via contentScript later. Injection via contentScript is slow,
       // but apart from WM detection on page-load, everything else works fine.
       if (!error.message.includes(`world`)) {
-        this.logger.error(error);
+        this.logger.error(
+          `Content script execution world \`MAIN\` not supported by your browser.\n` +
+            `Check https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/scripting/ExecutionWorld#browser_compatibility for browser compatibility.`,
+          error,
+        );
       }
     }
   }
