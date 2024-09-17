@@ -51,6 +51,7 @@ export class Background {
 
   async start() {
     this.bindOnInstalled();
+    await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
     this.bindMessageHandler();
@@ -59,6 +60,30 @@ export class Background {
     this.bindTabHandlers();
     this.bindWindowHandlers();
     this.sendToPopup.start();
+  }
+
+  async injectPolyfill() {
+    try {
+      // TODO: When Firefox 128 is old enough, inject directly via manifest.
+      // Also see: injectPolyfill in contentScript
+      await this.browser.scripting.registerContentScripts([
+        {
+          world: 'MAIN',
+          id: 'polyfill',
+          allFrames: true,
+          js: ['polyfill/polyfill.js'],
+          matches: PERMISSION_HOSTS.origins,
+          runAt: 'document_start',
+        },
+      ]);
+    } catch (error) {
+      // Firefox <128 will throw saying world: MAIN isn't supported. So, we'll
+      // inject via contentScript later. Injection via contentScript is slow,
+      // but apart from WM detection on page-load, everything else works fine.
+      if (!error.message.includes(`world`)) {
+        this.logger.error(error);
+      }
+    }
   }
 
   async onStart() {

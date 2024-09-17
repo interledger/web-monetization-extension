@@ -147,11 +147,6 @@ function processManifestPlugin({
           json.background = {
             scripts: [json.background.service_worker],
           };
-          json.content_scripts?.forEach((contentScript) => {
-            // TODO: Remove this when Firefox supports `world` - at least last 10
-            // versions
-            contentScript.world = undefined;
-          });
           delete json.minimum_chrome_version;
         } else {
           delete json['browser_specific_settings'];
