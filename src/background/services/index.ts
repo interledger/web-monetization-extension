@@ -4,6 +4,7 @@ export { MonetizationService } from './monetization';
 export { Background } from './background';
 export { TabEvents } from './tabEvents';
 export { TabState } from './tabState';
+export { WindowState } from './windowState';
 export { SendToPopup } from './sendToPopup';
 export { EventsService } from './events';
 export { Deduplicator } from './deduplicator';

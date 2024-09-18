@@ -109,3 +109,4 @@ export type DeepNonNullable<T> = {
 };
 
 export type TabId = NonNullable<Tabs.Tab['id']>;
+export type WindowId = NonNullable<Tabs.Tab['windowId']>;

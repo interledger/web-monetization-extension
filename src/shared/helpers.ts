@@ -263,3 +263,28 @@ export const getNextOccurrence = (
 
   return date;
 };
+
+export type BrowserName = 'chrome' | 'edge' | 'firefox' | 'unknown';
+
+export const getBrowserName = (
+  browser: Browser,
+  userAgent: string,
+): BrowserName => {
+  const url = browser.runtime.getURL('');
+  if (url.startsWith('moz-extension://')) {
+    return 'firefox';
+  }
+  if (url.startsWith('extension://')) {
+    // works only in Playwright?
+    return 'edge';
+  }
+
+  if (url.startsWith('chrome-extension://')) {
+    if (userAgent.includes('Edg/')) {
+      return 'edge';
+    }
+    return 'chrome';
+  }
+
+  return 'unknown';
+};

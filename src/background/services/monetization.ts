@@ -1,4 +1,4 @@
-import type { Runtime } from 'webextension-polyfill';
+import type { Runtime, Tabs } from 'webextension-polyfill';
 import {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
@@ -371,7 +371,7 @@ export class MonetizationService {
     this.logger.debug(`All payment sessions stopped.`);
   }
 
-  async getPopupData(): Promise<PopupStore> {
+  async getPopupData(tab: Pick<Tabs.Tab, 'id' | 'url'>): Promise<PopupStore> {
     const storedData = await this.storage.get([
       'enabled',
       'connected',
@@ -385,10 +385,13 @@ export class MonetizationService {
       'publicKey',
     ]);
     const balance = await this.storage.getBalance();
-    const tab = await getCurrentActiveTab(this.browser);
 
     const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData;
 
+    const tabId = tab.id;
+    if (!tabId) {
+      throw new Error('Tab ID not found');
+    }
     let url;
     if (tab && tab.url) {
       try {
@@ -401,10 +404,8 @@ export class MonetizationService {
         // noop
       }
     }
-    const isSiteMonetized = this.tabState.isTabMonetized(tab.id!);
-    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(
-      tab.id!,
-    );
+    const isSiteMonetized = this.tabState.isTabMonetized(tabId);
+    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(tabId);
 
     return {
       ...dataFromStorage,
