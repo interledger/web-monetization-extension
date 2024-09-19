@@ -139,7 +139,7 @@ export class Background {
       });
       const popupWasOpen = popupOpen;
       popupOpen = this.sendToPopup.isPopupOpen;
-      if (popupWasOpen || this.sendToPopup.isPopupOpen) {
+      if (popupWasOpen || popupOpen) {
         // This is intentionally called after windows.getAll, to add a little
         // delay for popup port to open
         this.logger.debug('Popup is open, ignoring focus change');
@@ -155,9 +155,9 @@ export class Background {
             `[focus change] resume monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
           for (const tabId of tabIds) {
-            void this.monetizationService.resumePaymentSessionsByTabId(tabId);
+            await this.monetizationService.resumePaymentSessionsByTabId(tabId);
           }
-          void this.updateVisualIndicatorsForCurrentTab();
+          await this.updateVisualIndicatorsForCurrentTab();
         } else {
           this.logger.info(
             `[focus change] stop monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,

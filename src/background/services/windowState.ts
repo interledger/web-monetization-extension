@@ -56,13 +56,12 @@ export class WindowState {
   }
 
   /**
-   * Browsers like Edge, Vivaldi allow having multiple tabs in same "view". We
-   * can use this data to resume/pause monetization for multiple tabs on window
-   * focus change, not just the one active tab that browser APIs return.
+   * For given window, get the list of tabs that are currently in view.
    *
-   * For given window, we store the set of tabs that are currently in view. We
-   * only store per window, as we don't have anything like a view ID, and we
-   * reset the view when new tab is opened or switched.
+   * Browsers like Edge, Vivaldi allow having multiple tabs in same "view"
+   * (split-view, tab-tiling). We can use this data to resume/pause monetization
+   * for multiple tabs on window focus change, not just the one active tab that
+   * browser APIs return.
    */
   async getTabsForCurrentView(
     windowId: WindowId = this.getCurrentWindowId(),
