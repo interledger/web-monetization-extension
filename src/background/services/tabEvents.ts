@@ -97,12 +97,14 @@ export class TabEvents {
     }
   };
 
-  onRemovedTab: CallbackTab<'onRemoved'> = (tabId, _removeInfo) => {
+  onRemovedTab: CallbackTab<'onRemoved'> = (tabId, info) => {
+    this.windowState.removeTab(tabId, info.windowId);
     this.tabState.clearSessionsByTabId(tabId);
     this.tabState.clearOverpayingByTabId(tabId);
   };
 
   onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
+    this.windowState.addTab(info.tabId, info.windowId);
     const updated = this.windowState.setCurrentTabId(info.windowId, info.tabId);
     if (!updated) return;
     const tab = await this.browser.tabs.get(info.tabId);
@@ -111,11 +113,13 @@ export class TabEvents {
 
   onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
     if (!tab.id) return;
+    this.windowState.addTab(tab.id, tab.windowId);
     await this.updateVisualIndicators(tab.id, tab.url);
   };
 
   onFocussedTab = async (tab: Tabs.Tab) => {
     if (!tab.id) return;
+    this.windowState.addTab(tab.id, tab.windowId);
     const updated = this.windowState.setCurrentTabId(tab.windowId!, tab.id);
     if (!updated) return;
     const tabUrl = tab.url ?? (await this.browser.tabs.get(tab.id)).url;

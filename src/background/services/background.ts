@@ -124,40 +124,50 @@ export class Background {
   }
 
   bindWindowHandlers() {
-    this.browser.windows.onFocusChanged.addListener(async () => {
-      const windows = await this.browser.windows.getAll({
-        windowTypes: ['normal', 'panel', 'popup'],
-      });
-      for (const window of windows) {
-        const windowId = window.id!;
-        const tabId = this.windowState.getCurrentTabId();
-        if (!tabId) return;
-
-        if (window.focused) {
-          this.windowState.setCurrentWindowId(windowId);
-          if (this.sendToPopup.isPopupOpen) {
-            // This is intentionally called after windows.getAll, to add a little
-            // delay for popup port to open
-            this.logger.debug('Popup is open, ignoring focus change');
-            return;
-          }
-          this.logger.debug(
-            `[focus change] resume monetization for window=${windowId}, tabId=${tabId}`,
-          );
-          void this.monetizationService.resumePaymentSessionsByTabId(tabId);
-          void this.updateVisualIndicatorsForCurrentTab();
-        } else {
-          this.logger.debug(
-            `[focus change] stop monetization for window=${windowId}, tabId=${tabId}`,
-          );
-          void this.monetizationService.stopPaymentSessionsByTabId(tabId);
-        }
-      }
-    });
+    this.browser.windows.onCreated.addListener(
+      this.windowState.onWindowCreated,
+    );
 
     this.browser.windows.onRemoved.addListener(
       this.windowState.onWindowRemoved,
     );
+
+    let popupOpen = false;
+    this.browser.windows.onFocusChanged.addListener(async () => {
+      const windows = await this.browser.windows.getAll({
+        windowTypes: ['normal'],
+      });
+      const popupWasOpen = popupOpen;
+      popupOpen = this.sendToPopup.isPopupOpen;
+      if (popupWasOpen || this.sendToPopup.isPopupOpen) {
+        // This is intentionally called after windows.getAll, to add a little
+        // delay for popup port to open
+        this.logger.debug('Popup is open, ignoring focus change');
+        return;
+      }
+      for (const window of windows) {
+        const windowId = window.id!;
+
+        const tabIds = await this.windowState.getTabsForCurrentView(windowId);
+        if (window.focused) {
+          this.windowState.setCurrentWindowId(windowId);
+          this.logger.info(
+            `[focus change] resume monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
+          );
+          for (const tabId of tabIds) {
+            void this.monetizationService.resumePaymentSessionsByTabId(tabId);
+          }
+          void this.updateVisualIndicatorsForCurrentTab();
+        } else {
+          this.logger.info(
+            `[focus change] stop monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
+          );
+          for (const tabId of tabIds) {
+            void this.monetizationService.stopPaymentSessionsByTabId(tabId);
+          }
+        }
+      }
+    });
   }
 
   bindTabHandlers() {

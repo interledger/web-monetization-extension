@@ -221,6 +221,10 @@ export type BackgroundToContentMessage = {
     input: MonetizationEventPayload;
     output: never;
   };
+  IS_TAB_IN_VIEW: {
+    input: undefined;
+    output: boolean;
+  };
 };
 
 export type ToContentMessage = {
