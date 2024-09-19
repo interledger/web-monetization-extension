@@ -106,8 +106,10 @@ export class MonetizationLinkManager extends EventEmitter {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
-    this.onFocus();
-    this.window.addEventListener('focus', this.onFocus);
+    if (this.isTopFrame) {
+      this.onFocus();
+      this.window.addEventListener('focus', this.onFocus);
+    }
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.addEventListener('message', this.onWindowMessage);
