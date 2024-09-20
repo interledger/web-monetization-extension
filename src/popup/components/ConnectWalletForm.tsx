@@ -105,9 +105,15 @@ export const ConnectWalletForm = ({
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
+    const errors = {
+      walletAddressUrl: validateWalletAddressUrl(walletAddressUrl),
+      amount: validateAmount(amount, currencySymbol.symbol),
+    };
+    setErrors((e) => ({ ...e, ...errors }));
     if (errors.amount || errors.walletAddressUrl) {
       return;
     }
+
     try {
       setIsSubmitting(true);
       const res = await connectWallet({
@@ -212,7 +218,7 @@ export const ConnectWalletForm = ({
               return;
             }
 
-            const error = validateAmount(value);
+            const error = validateAmount(value, currencySymbol.symbol);
             setErrors((e) => ({ ...e, amount: error }));
 
             const amountValue = formatNumber(+value, currencySymbol.scale);
@@ -360,7 +366,7 @@ function validateWalletAddressUrl(value: string): string {
   return '';
 }
 
-function validateAmount(value: string): string {
+function validateAmount(value: string, currencySymbol: string): string {
   if (!value) {
     return 'Amount is required.';
   }
@@ -369,7 +375,7 @@ function validateAmount(value: string): string {
     return 'Amount must be a number.';
   }
   if (val <= 0) {
-    return 'Amount must be greater than 0.';
+    return `Amount must be greater than ${currencySymbol}${val}.`;
   }
   return '';
 }
