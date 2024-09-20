@@ -18,6 +18,9 @@ const inputVariants = cva(
       disabled: {
         true: 'border-transparent bg-disabled',
       },
+      readOnly: {
+        true: 'border-transparent bg-disabled',
+      },
     },
     defaultVariants: {
       variant: 'default',
@@ -30,6 +33,7 @@ export interface InputProps
     React.InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string;
   disabled?: boolean;
+  readOnly?: boolean;
   addOn?: React.ReactNode;
   addOnPosition?: 'left' | 'right';
   label?: React.ReactNode;

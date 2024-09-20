@@ -198,8 +198,8 @@ export const ConnectWalletForm = ({
           label="Amount"
           placeholder="5.00"
           defaultValue={amount}
-          disabled={!walletAddressInfo?.assetCode}
-          addOn={currencySymbol.symbol}
+          readOnly={!walletAddressInfo?.assetCode}
+          addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
           errorMessage={errors.amount}
           required={true}
           onKeyDown={(e) => {
