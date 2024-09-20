@@ -31,6 +31,7 @@ export interface InputProps
   errorMessage?: string;
   disabled?: boolean;
   addOn?: React.ReactNode;
+  addOnPosition?: 'left' | 'right';
   label?: React.ReactNode;
   description?: React.ReactNode;
 }
@@ -39,23 +40,32 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   {
     type = 'text',
     addOn,
+    addOnPosition = 'left',
     label,
     description,
     errorMessage,
     disabled,
     className,
+    id: providedId,
     ...props
   },
   ref,
 ) {
-  const id = React.useId();
+  let id = React.useId();
+  if (providedId) id = providedId;
+
   return (
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
       {description ? <p className="px-2 text-xs">{description}</p> : null}
       <div className="relative">
         {addOn ? (
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-sm font-medium">
+          <div
+            className={cn(
+              'pointer-events-none absolute inset-y-0 flex w-10 items-center justify-center text-sm font-medium',
+              addOnPosition === 'left' ? 'left-0' : 'right-0',
+            )}
+          >
             {addOn}
           </div>
         ) : null}
@@ -65,7 +75,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           type={type}
           className={cn(
             inputVariants({ disabled }),
-            addOn && 'pl-10',
+            addOn && (addOnPosition === 'left' ? 'pl-10' : 'pr-10'),
             errorMessage && 'border-error',
             className,
           )}

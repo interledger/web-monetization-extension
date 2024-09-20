@@ -44,10 +44,17 @@ export const getWalletInformation = async (
       Accept: 'application/json',
     },
   });
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('This wallet address does not exist.');
+    }
+    throw new Error('Failed to fetch wallet address.');
+  }
+
   const json = await response.json();
 
   if (!isWalletAddress(json)) {
-    throw new Error('Invalid wallet address response.');
+    throw new Error('Provided URL is not a valid wallet address.');
   }
 
   return json;
