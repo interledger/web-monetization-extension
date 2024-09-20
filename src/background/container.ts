@@ -11,6 +11,7 @@ import {
   EventsService,
   Heartbeat,
   Deduplicator,
+  KeyShareService,
 } from './services';
 import { createLogger, Logger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
@@ -27,6 +28,7 @@ export interface Cradle {
   deduplicator: Deduplicator;
   storage: StorageService;
   openPaymentsService: OpenPaymentsService;
+  keyShareService: KeyShareService;
   monetizationService: MonetizationService;
   message: MessageManager<BackgroundToContentMessage>;
   sendToPopup: SendToPopup;
@@ -63,6 +65,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('open-payments'),
+      })),
+    keyShareService: asClass(KeyShareService)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('key-share'),
       })),
     monetizationService: asClass(MonetizationService)
       .singleton()

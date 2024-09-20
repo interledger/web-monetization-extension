@@ -25,7 +25,20 @@ export const Component = () => {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
         getWalletInfo={getWalletInformation}
-        connectWallet={(data) => message.send('CONNECT_WALLET', data)}
+        connectWallet={async (data) => {
+          if (!data.skipAutoKeyShare) {
+            const res = await message.send('ADD_PUBLIC_KEY_TO_WALLET', {
+              walletAddressInfo: data.walletAddressInfo,
+            });
+            if (!res.success) {
+              return {
+                ...res,
+                message: 'ADD_PUBLIC_KEY_TO_WALLET:' + res.message,
+              };
+            }
+          }
+          return await message.send('CONNECT_WALLET', data);
+        }}
         onConnect={() => {
           // The popup closes due to redirects on connect, so we don't need to
           // update any state manually.

@@ -89,8 +89,14 @@ export class MessageManager<TMessages extends MessageMap> {
 // #region Popup ↦ BG
 export interface ConnectWalletPayload {
   walletAddressUrl: string;
+  walletAddressInfo: WalletAddress;
   amount: string;
   recurring: boolean;
+  skipAutoKeyShare: boolean;
+}
+
+export interface AddPublicKeyToWalletPayload {
+  walletAddressInfo: WalletAddress;
 }
 
 export interface AddFundsPayload {
@@ -113,6 +119,10 @@ export type PopupToBackgroundMessage = {
   };
   CONNECT_WALLET: {
     input: ConnectWalletPayload;
+    output: never;
+  };
+  ADD_PUBLIC_KEY_TO_WALLET: {
+    input: AddPublicKeyToWalletPayload;
     output: never;
   };
   RECONNECT_WALLET: {

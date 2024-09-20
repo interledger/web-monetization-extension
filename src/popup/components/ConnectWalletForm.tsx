@@ -13,7 +13,7 @@ import {
 } from '@/popup/lib/utils';
 import { cn } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
-import type { Response } from '@/shared/messages';
+import type { ConnectWalletPayload, Response } from '@/shared/messages';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -26,7 +26,7 @@ interface ConnectWalletFormProps {
   defaultValues: Partial<Inputs>;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
-  connectWallet: (data: Inputs) => Promise<Response>;
+  connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
   onConnect?: () => void;
 }
 
@@ -91,12 +91,16 @@ export const ConnectWalletForm = ({
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    const errors = {
+    const err = {
       walletAddressUrl: validateWalletAddressUrl(walletAddressUrl),
       amount: validateAmount(amount, currencySymbol.symbol),
     };
-    setErrors((e) => ({ ...e, ...errors }));
-    if (errors.amount || errors.walletAddressUrl) {
+    if (!walletAddressInfo) {
+      setErrors((e) => ({ ...e, walletAddressUrl: 'Not fetched yet?!' }));
+      return;
+    }
+    setErrors((e) => ({ ...e, ...err }));
+    if (err.amount || err.walletAddressUrl) {
       return;
     }
 
@@ -104,13 +108,20 @@ export const ConnectWalletForm = ({
       setIsSubmitting(true);
       const res = await connectWallet({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
+        walletAddressInfo,
         amount,
         recurring,
+        skipAutoKeyShare: !!errors.keyPair,
       });
       if (res.success) {
         onConnect();
       } else {
-        throw new Error(res.message);
+        if (res.message.startsWith('ADD_PUBLIC_KEY_TO_WALLET:')) {
+          const message = res.message.replace('ADD_PUBLIC_KEY_TO_WALLET:', '');
+          setErrors((e) => ({ ...e, keyPair: message }));
+        } else {
+          throw new Error(res.message);
+        }
       }
     } catch (error) {
       setErrors((e) => ({ ...e, connect: error.message }));

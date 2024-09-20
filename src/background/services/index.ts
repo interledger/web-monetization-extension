@@ -1,4 +1,5 @@
 export { OpenPaymentsService } from './openPayments';
+export { KeyShareService } from './keyShare';
 export { StorageService } from './storage';
 export { MonetizationService } from './monetization';
 export { Background } from './background';
