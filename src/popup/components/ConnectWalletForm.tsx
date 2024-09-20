@@ -74,7 +74,6 @@ export const ConnectWalletForm = ({
       if (!walletAddressUrl) return;
       try {
         setIsValidating((e) => ({ ...e, walletAddressUrl: true }));
-        setWalletAddressInfo(null);
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
         const walletAddress = await getWalletInfo(url.toString());
         setWalletAddressInfo(walletAddress);
@@ -172,6 +171,7 @@ export const ConnectWalletForm = ({
                 return;
               }
             }
+            setWalletAddressInfo(null);
             setWalletAddressUrl(value);
 
             const error = validateWalletAddressUrl(value);
