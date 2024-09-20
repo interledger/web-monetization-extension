@@ -74,6 +74,7 @@ export const ConnectWalletForm = ({
       if (!walletAddressUrl) return;
       try {
         setIsValidating((e) => ({ ...e, walletAddressUrl: true }));
+        setWalletAddressInfo(null);
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
         const walletAddress = await getWalletInfo(url.toString());
         setWalletAddressInfo(walletAddress);
@@ -88,20 +89,6 @@ export const ConnectWalletForm = ({
     },
     [getWalletInfo],
   );
-
-  React.useEffect(() => {
-    if (!walletAddressInfo) return;
-    setCurrencySymbol({
-      symbol: getCurrencySymbol(walletAddressInfo.assetCode),
-      scale: walletAddressInfo.assetScale,
-    });
-  }, [walletAddressInfo]);
-
-  React.useEffect(() => {
-    if (defaultValues.walletAddressUrl) {
-      void getWalletCurrency(defaultValues.walletAddressUrl);
-    }
-  }, [defaultValues.walletAddressUrl, getWalletCurrency]);
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
@@ -132,6 +119,20 @@ export const ConnectWalletForm = ({
       setIsSubmitting(false);
     }
   };
+
+  React.useEffect(() => {
+    if (!walletAddressInfo) return;
+    setCurrencySymbol({
+      symbol: getCurrencySymbol(walletAddressInfo.assetCode),
+      scale: walletAddressInfo.assetScale,
+    });
+  }, [walletAddressInfo]);
+
+  React.useEffect(() => {
+    if (defaultValues.walletAddressUrl) {
+      void getWalletCurrency(defaultValues.walletAddressUrl);
+    }
+  }, [defaultValues.walletAddressUrl, getWalletCurrency]);
 
   return (
     <form
