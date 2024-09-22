@@ -5,12 +5,7 @@ import {
   StopMonetizationPayload,
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
-import {
-  computeRate,
-  getCurrentActiveTab,
-  getSender,
-  getTabId,
-} from '../utils';
+import { computeRate, getSender, getTabId } from '../utils';
 import { isOutOfBalanceError } from './openPayments';
 import { isOkState, removeQueryParams } from '@/shared/helpers';
 import { ALLOWED_PROTOCOLS } from '@/shared/defines';
@@ -239,7 +234,7 @@ export class MonetizationService {
   }
 
   async resumePaymentSessionActiveTab() {
-    const currentTab = await getCurrentActiveTab(this.browser);
+    const currentTab = await this.windowState.getCurrentTab();
     if (!currentTab?.id) return;
     await this.resumePaymentSessionsByTabId(currentTab.id);
   }
@@ -319,7 +314,7 @@ export class MonetizationService {
       const tabIds = this.tabState.getAllTabs();
 
       // Move the current active tab to the front of the array
-      const currentTab = await getCurrentActiveTab(this.browser);
+      const currentTab = await this.windowState.getCurrentTab();
       if (currentTab?.id) {
         const idx = tabIds.indexOf(currentTab.id);
         if (idx !== -1) {
