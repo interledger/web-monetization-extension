@@ -25,6 +25,7 @@ export class MonetizationService {
   private browser: Cradle['browser'];
   private events: Cradle['events'];
   private tabState: Cradle['tabState'];
+  private windowState: Cradle['windowState'];
   private message: Cradle['message'];
 
   constructor({
@@ -35,6 +36,7 @@ export class MonetizationService {
     events,
     openPaymentsService,
     tabState,
+    windowState,
     message,
   }: Cradle) {
     Object.assign(this, {
@@ -45,6 +47,7 @@ export class MonetizationService {
       browser,
       events,
       tabState,
+      windowState,
       message,
     });
 
@@ -253,7 +256,7 @@ export class MonetizationService {
   }
 
   async pay(amount: string) {
-    const tab = await getCurrentActiveTab(this.browser);
+    const tab = await this.windowState.getCurrentTab();
     if (!tab || !tab.id) {
       throw new Error('Unexpected error: could not find active tab.');
     }
