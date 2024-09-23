@@ -169,10 +169,7 @@ export const ConnectWalletForm = ({
       className="space-y-4"
       onSubmit={handleSubmit}
     >
-      <div
-        className="pb-4"
-        hidden={!!errors.keyPair || autoKeyShareFailed || !!errors.connect}
-      >
+      <div>
         <h2 className="text-center text-lg text-strong">
           {t('connectWallet_text_title')}
         </h2>
