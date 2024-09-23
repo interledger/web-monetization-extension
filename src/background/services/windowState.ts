@@ -72,7 +72,8 @@ export class WindowState {
       tabs.map((tabId) =>
         this.message
           .sendToTab(tabId, TOP_FRAME_ID, 'IS_TAB_IN_VIEW', undefined)
-          .then((r) => (r.success ? r.payload : null)),
+          .then((r) => (r.success ? r.payload : null))
+          .catch(() => null),
       ),
     );
     return tabs.filter((_, i) => responses[i]);
