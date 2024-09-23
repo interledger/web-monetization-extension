@@ -217,17 +217,7 @@ export const ConnectWalletForm = ({
           addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
           errorMessage={errors.amount}
           required={true}
-          onKeyDown={(ev) => {
-            if (
-              (!charIsNumber(ev.key) &&
-                ev.key !== 'Backspace' &&
-                ev.key !== 'Delete' &&
-                ev.key !== 'Tab') ||
-              (ev.key === '.' && ev.currentTarget.value.includes('.'))
-            ) {
-              ev.preventDefault();
-            }
-          }}
+          onKeyDown={allowOnlyNumericInput}
           onBlur={(ev) => {
             const value = ev.currentTarget.value;
             if (value === amount && !ev.currentTarget.required) {
@@ -395,4 +385,16 @@ function validateAmount(value: string, currencySymbol: string): string {
     return `Amount must be greater than ${currencySymbol}${val}.`;
   }
   return '';
+}
+
+function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
+  if (
+    (!charIsNumber(ev.key) &&
+      ev.key !== 'Backspace' &&
+      ev.key !== 'Delete' &&
+      ev.key !== 'Tab') ||
+    (ev.key === '.' && ev.currentTarget.value.includes('.'))
+  ) {
+    ev.preventDefault();
+  }
 }
