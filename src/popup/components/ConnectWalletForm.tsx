@@ -223,40 +223,42 @@ export const ConnectWalletForm = ({
           !walletAddressInfo?.assetCode && 'opacity-75',
         )}
       >
-        <legend className="sr-only">
-          {t('connectWallet_labelGroup_amount')}
+        <legend className="flex items-center px-2 font-medium leading-6 text-medium">
+          {t('connectWallet_label_amount')}
         </legend>
-        <Input
-          id="connectAmount"
-          type="text"
-          inputMode="numeric"
-          label={t('connectWallet_label_amount')}
-          placeholder="5.00"
-          defaultValue={amount}
-          readOnly={!walletAddressInfo?.assetCode}
-          addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
-          errorMessage={errors.amount}
-          required={true}
-          onKeyDown={allowOnlyNumericInput}
-          onBlur={(ev) => {
-            const value = ev.currentTarget.value;
-            if (value === amount && !ev.currentTarget.required) {
-              return;
-            }
+        <div className="flex items-center gap-6">
+          <Input
+            id="connectAmount"
+            type="text"
+            inputMode="numeric"
+            aria-label="Amount"
+            placeholder="5.00"
+            className="max-w-32"
+            defaultValue={amount}
+            readOnly={!walletAddressInfo?.assetCode}
+            addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
+            aria-invalid={!!errors.amount}
+            aria-describedby={errors.amount}
+            required={true}
+            onKeyDown={allowOnlyNumericInput}
+            onBlur={(ev) => {
+              const value = ev.currentTarget.value;
+              if (value === amount && !ev.currentTarget.required) {
+                return;
+              }
 
-            const error = validateAmount(value, currencySymbol.symbol);
-            setErrors((_) => ({ ..._, amount: error ? t(error) : '' }));
+              const error = validateAmount(value, currencySymbol.symbol);
+              setErrors((_) => ({ ..._, amount: error ? t(error) : '' }));
 
-            const amountValue = formatNumber(+value, currencySymbol.scale);
-            if (!error) {
-              setAmount(amountValue);
-              ev.currentTarget.value = amountValue;
-            }
-            saveValue('amount', error ? value : amountValue);
-          }}
-        />
+              const amountValue = formatNumber(+value, currencySymbol.scale);
+              if (!error) {
+                setAmount(amountValue);
+                ev.currentTarget.value = amountValue;
+              }
+              saveValue('amount', error ? value : amountValue);
+            }}
+          />
 
-        <div className="px-2">
           <Switch
             size="small"
             label={t('connectWallet_label_recurring')}
@@ -268,6 +270,10 @@ export const ConnectWalletForm = ({
             }}
           />
         </div>
+
+        {errors.amount && (
+          <p className="px-2 text-sm text-error">{errors.amount}</p>
+        )}
       </fieldset>
 
       {(errors.keyPair || autoKeyShareFailed) && (
