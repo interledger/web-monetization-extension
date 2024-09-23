@@ -121,10 +121,6 @@ export type PopupToBackgroundMessage = {
     input: ConnectWalletPayload;
     output: never;
   };
-  ADD_PUBLIC_KEY_TO_WALLET: {
-    input: AddPublicKeyToWalletPayload;
-    output: never;
-  };
   RECONNECT_WALLET: {
     input: never;
     output: never;

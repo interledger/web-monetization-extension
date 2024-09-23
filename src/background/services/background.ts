@@ -17,7 +17,6 @@ const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
 export class Background {
   private browser: Cradle['browser'];
   private openPaymentsService: Cradle['openPaymentsService'];
-  private keyShareService: Cradle['keyShareService'];
   private monetizationService: Cradle['monetizationService'];
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
@@ -29,7 +28,6 @@ export class Background {
   constructor({
     browser,
     openPaymentsService,
-    keyShareService,
     monetizationService,
     storage,
     logger,
@@ -41,7 +39,6 @@ export class Background {
     Object.assign(this, {
       browser,
       openPaymentsService,
-      keyShareService,
       monetizationService,
       storage,
       sendToPopup,
@@ -176,13 +173,6 @@ export class Background {
                 this.scheduleResetOutOfFundsState();
               }
               return;
-
-            case 'ADD_PUBLIC_KEY_TO_WALLET':
-              return success(
-                await this.keyShareService.addPublicKeyToWallet(
-                  message.payload,
-                ),
-              );
 
             case 'RECONNECT_WALLET': {
               await this.openPaymentsService.reconnectWallet();

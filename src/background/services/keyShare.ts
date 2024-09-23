@@ -22,7 +22,7 @@ export class KeyShareService {
   private status: null | 'SUCCESS' | 'ERROR' = null;
   private tab: Tabs.Tab | null;
 
-  constructor({ browser, storage }: Cradle) {
+  constructor({ browser, storage }: Pick<Cradle, 'browser' | 'storage'>) {
     Object.assign(this, { browser, storage });
   }
 

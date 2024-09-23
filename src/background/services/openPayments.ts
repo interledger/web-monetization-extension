@@ -26,6 +26,7 @@ import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
 import { getWalletInformation } from '@/shared/helpers';
+import { KeyShareService } from './keyShare';
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
@@ -33,7 +34,7 @@ import {
   MIN_RATE_OF_PAY,
 } from '../config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
-import type { Cradle } from '../container';
+import type { Cradle } from '@/background/container';
 
 interface KeyInformation {
   privateKey: string;
@@ -311,6 +312,8 @@ export class OpenPaymentsService {
     walletAddressUrl,
     amount,
     recurring,
+    walletAddressInfo,
+    skipAutoKeyShare,
   }: ConnectWalletPayload) {
     const walletAddress = await getWalletInformation(walletAddressUrl);
     const exchangeRates = await getExchangeRates();
@@ -343,6 +346,20 @@ export class OpenPaymentsService {
     });
 
     await this.initClient(walletAddress.id);
+
+    if (!skipAutoKeyShare) {
+      const keyShare = new KeyShareService({
+        browser: this.browser,
+        storage: this.storage,
+      });
+      try {
+        await keyShare.addPublicKeyToWallet({ walletAddressInfo });
+      } catch (error) {
+        // TODO: add error with code to be used for logic in UI
+        throw new Error(`ADD_PUBLIC_KEY_TO_WALLET:${error.message}`);
+      }
+    }
+
     await this.completeGrant(
       amount,
       walletAddress,
