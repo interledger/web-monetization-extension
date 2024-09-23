@@ -88,6 +88,66 @@
   "outOfFundsAddFunds_action_addRecurring": {
     "message": "Add funds"
   },
+  "connectWallet_text_title": {
+    "message": "Let's get you set up!"
+  },
+  "connectWallet_text_desc": {
+    "message": ""
+  },
+  "connectWallet_label_walletAddress": {
+    "message": "Enter your wallet address or payment pointer"
+  },
+  "connectWallet_labelGroup_amount": {
+    "message": "Amount"
+  },
+  "connectWallet_label_amount": {
+    "message": "Enter the amount to allocate from your wallet"
+  },
+  "connectWallet_label_recurring": {
+    "message": "Renew monthly"
+  },
+  "connectWallet_label_publicKey": {
+    "message": "Please copy this key and paste it into your wallet manually and then connect."
+  },
+  "connectWallet_text_publicKeyLearnMore": {
+    "message": "Learn more."
+  },
+  "connectWallet_action_connect": {
+    "message": "Connect"
+  },
+  "connectWallet_text_autoPublicKeyNotice": {
+    "message": "We'll automatically add a key-pair with your wallet provider."
+  },
+  "connectWallet_text_autoPublicKeyNoticeLearnMore": {
+    "message": "Learn more"
+  },
+  "connectWallet_error_urlRequired": {
+    "message": "Wallet address is required."
+  },
+  "connectWallet_error_urlInvalidUrl": {
+    "message": "Invalid wallet address URL."
+  },
+  "connectWallet_error_urlInvalidUrlHttps": {
+    "message": "Wallet address must be a https:// URL or a payment pointer.'"
+  },
+  "connectWallet_error_amountRequired": {
+    "message": "Amount is required."
+  },
+  "connectWallet_error_amountInvalidNumber": {
+    "message": "Please provide a valid number as amount."
+  },
+  "connectWallet_error_amountMinimum": {
+    "message": "An amount greater than $AMOUNT$ is required.",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
+    }
+  },
+  "connectWallet_error_failedAutoKeyAdd": {
+    "message": "We couldn't automatically share the key-pair with your provider."
+  },
+  "connectWallet_error_failedAutoKeyAddWhy": {
+    "message": "Why?"
+  },
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
   },

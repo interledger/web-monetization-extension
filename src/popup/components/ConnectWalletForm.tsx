@@ -11,7 +11,8 @@ import {
   getCurrencySymbol,
   toWalletAddressUrl,
 } from '@/popup/lib/utils';
-import { cn } from '@/shared/helpers';
+import { useTranslation } from '@/popup/lib/context';
+import { cn, type TranslationKeys } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
 
@@ -38,6 +39,8 @@ export const ConnectWalletForm = ({
   saveValue = () => {},
   onConnect = () => {},
 }: ConnectWalletFormProps) => {
+  const t = useTranslation();
+
   const [walletAddressUrl, setWalletAddressUrl] = React.useState<
     Inputs['walletAddressUrl']
   >(defaultValues.walletAddressUrl || '');
@@ -89,14 +92,21 @@ export const ConnectWalletForm = ({
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    const err = {
-      walletAddressUrl: validateWalletAddressUrl(walletAddressUrl),
-      amount: validateAmount(amount, currencySymbol.symbol),
-    };
     if (!walletAddressInfo) {
       setErrors((_) => ({ ..._, walletAddressUrl: 'Not fetched yet?!' }));
       return;
     }
+
+    const errCodeWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
+    const errCodeAmount = validateAmount(amount);
+    const err = {
+      walletAddressUrl: errCodeWalletAddressUrl && t(errCodeWalletAddressUrl),
+      amount: errCodeAmount
+        ? errCodeAmount === 'connectWallet_error_amountMinimum'
+          ? t(errCodeAmount, [`${currencySymbol.symbol}${amount}`])
+          : t(errCodeAmount)
+        : '',
+    };
     setErrors((_) => ({ ..._, ...err }));
     if (err.amount || err.walletAddressUrl) {
       return;
@@ -158,16 +168,18 @@ export const ConnectWalletForm = ({
         hidden={!!errors.keyPair || autoKeyShareFailed || !!errors.connect}
       >
         <h2 className="text-center text-lg text-strong">
-          {"Let's get you set up!"}
+          {t('connectWallet_text_title')}
         </h2>
-        <p className="text-center text-sm text-weak">{`Just a few quick steps to connect the extension to your wallet`}</p>
+        <p className="text-center text-sm text-weak">
+          {t('connectWallet_text_desc')}
+        </p>
       </div>
 
       {errors.connect && <ErrorMessage error={errors.connect} />}
 
       <Input
         type="text"
-        label="Enter your wallet address or payment pointer"
+        label={t('connectWallet_label_walletAddress')}
         id="connectWalletAddressUrl"
         placeholder="https://ilp.rafiki.money/johndoe"
         errorMessage={errors.walletAddressUrl}
@@ -190,7 +202,11 @@ export const ConnectWalletForm = ({
           setWalletAddressInfo(null);
           setWalletAddressUrl(value);
 
-          const error = validateWalletAddressUrl(value);
+          const errorCode = validateWalletAddressUrl(value);
+          let error: string = errorCode;
+          if (errorCode) {
+            error = t(errorCode);
+          }
           setErrors((_) => ({ ..._, walletAddressUrl: error }));
           if (!error) {
             await getWalletInformation(value);
@@ -205,12 +221,14 @@ export const ConnectWalletForm = ({
           !walletAddressInfo?.assetCode && 'opacity-75',
         )}
       >
-        <legend className="sr-only">Amount</legend>
+        <legend className="sr-only">
+          {t('connectWallet_labelGroup_amount')}
+        </legend>
         <Input
           id="connectAmount"
           type="text"
           inputMode="numeric"
-          label="Enter the amount to allocate from your wallet"
+          label={t('connectWallet_label_amount')}
           placeholder="5.00"
           defaultValue={amount}
           readOnly={!walletAddressInfo?.assetCode}
@@ -224,7 +242,15 @@ export const ConnectWalletForm = ({
               return;
             }
 
-            const error = validateAmount(value, currencySymbol.symbol);
+            const errorCode = validateAmount(value);
+            let error: string = errorCode;
+            if (errorCode) {
+              if (errorCode === 'connectWallet_error_amountMinimum') {
+                error = t(errorCode, [`${currencySymbol}${Number(value)}`]);
+              } else {
+                error = t(errorCode);
+              }
+            }
             setErrors((_) => ({ ..._, amount: error }));
 
             const amountValue = formatNumber(+value, currencySymbol.scale);
@@ -239,7 +265,7 @@ export const ConnectWalletForm = ({
         <div className="px-2">
           <Switch
             size="small"
-            label="Renew monthly"
+            label={t('connectWallet_label_recurring')}
             defaultChecked={recurring}
             onChange={(ev) => {
               const value = ev.currentTarget.checked;
@@ -253,13 +279,13 @@ export const ConnectWalletForm = ({
       {(errors.keyPair || autoKeyShareFailed) && (
         <ManualKeyPairNeeded
           error={{
-            message: `We couldn't automatically share the key-pair with your provider.`,
+            message: t('connectWallet_error_failedAutoKeyAdd'),
             details: errors.keyPair,
-            whyText: `Why?`,
+            whyText: t('connectWallet_error_failedAutoKeyAddWhy'),
           }}
           hideError={autoKeyShareFailed}
-          text={`Please copy this key and paste it into your wallet manually and then connect.`}
-          learnMoreText={`Learn more.`}
+          text={t('connectWallet_label_publicKey')}
+          learnMoreText={t('connectWallet_text_publicKeyLearnMore')}
           publicKey={publicKey}
         />
       )}
@@ -277,15 +303,14 @@ export const ConnectWalletForm = ({
             !amount
           }
           loading={isSubmitting}
-          aria-label="Connect your wallet"
         >
-          Connect
+          {t('connectWallet_action_connect')}
         </Button>
 
         {!errors.keyPair && !autoKeyShareFailed && (
           <AutomaticKeyPairNote
-            text={`We'll automatically add a key-pair with your wallet provider.`}
-            learnMoreText={`Learn more`}
+            text={t('connectWallet_text_autoPublicKeyNotice')}
+            learnMoreText={t('connectWallet_text_autoPublicKeyNoticeLearnMore')}
           />
         )}
       </div>
@@ -355,34 +380,43 @@ const AutomaticKeyPairNote: React.FC<{
   );
 };
 
-function validateWalletAddressUrl(value: string): string {
+type ErrorCodeUrl = Extract<
+  TranslationKeys,
+  `connectWallet_error_url${string}`
+>;
+type ErrorCodeAmount = Extract<
+  TranslationKeys,
+  `connectWallet_error_amount${string}`
+>;
+
+function validateWalletAddressUrl(value: string): '' | ErrorCodeUrl {
   if (!value) {
-    return 'Wallet address is required.';
+    return 'connectWallet_error_urlRequired';
   }
   let url: URL;
   try {
     url = new URL(toWalletAddressUrl(value));
   } catch {
-    return 'Invalid wallet address URL.';
+    return 'connectWallet_error_urlInvalidUrl';
   }
 
   if (url.protocol !== 'https:') {
-    return 'Wallet address must be a https:// URL or a payment pointer.';
+    return 'connectWallet_error_urlInvalidUrlHttps';
   }
 
   return '';
 }
 
-function validateAmount(value: string, currencySymbol: string): string {
+function validateAmount(value: string): '' | ErrorCodeAmount {
   if (!value) {
-    return 'Amount is required.';
+    return 'connectWallet_error_amountRequired';
   }
   const val = Number(value);
   if (Number.isNaN(val)) {
-    return 'Please provide a valid number as amount.';
+    return 'connectWallet_error_amountInvalidNumber';
   }
   if (val <= 0) {
-    return `An amount greater than ${currencySymbol}${val} is required.`;
+    return 'connectWallet_error_amountMinimum';
   }
   return '';
 }
