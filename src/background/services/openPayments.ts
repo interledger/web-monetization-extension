@@ -26,7 +26,6 @@ import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
 import { getWalletInformation } from '@/shared/helpers';
-import { KeyShareService } from './keyShare';
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
@@ -505,17 +504,9 @@ export class OpenPaymentsService {
     return grantDetails;
   }
 
-  private async addPublicKeyToWallet(walletAddress: WalletAddress) {
-    const keyShare = new KeyShareService({
-      browser: this.browser,
-      storage: this.storage,
-    });
-    try {
-      await keyShare.addPublicKeyToWallet(walletAddress);
-    } catch (err) {
-      // TODO: add error with code to be used for logic in UI
-      throw new Error(`ADD_PUBLIC_KEY_TO_WALLET:${err.message}`);
-    }
+  private async addPublicKeyToWallet(_walletAddress: WalletAddress) {
+    const msg = `Automatic key addition is not not implemented for give wallet provider yet`;
+    throw new Error(`ADD_PUBLIC_KEY_TO_WALLET:${msg}`);
   }
 
   private async redirectToWelcomeScreen(

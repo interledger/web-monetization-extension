@@ -71,20 +71,17 @@ export const ConnectWalletForm = ({
 
   const getWalletCurrency = React.useCallback(
     async (walletAddressUrl: string): Promise<void> => {
-      setErrors((e) => ({ ...e, walletAddressUrl: '' }));
+      setErrors((_) => ({ ..._, walletAddressUrl: '' }));
       if (!walletAddressUrl) return;
       try {
-        setIsValidating((e) => ({ ...e, walletAddressUrl: true }));
+        setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
         const walletAddress = await getWalletInfo(url.toString());
         setWalletAddressInfo(walletAddress);
       } catch (error) {
-        setErrors((e) => ({
-          ...e,
-          walletAddressUrl: error.message,
-        }));
+        setErrors((_) => ({ ..._, walletAddressUrl: error.message }));
       } finally {
-        setIsValidating((e) => ({ ...e, walletAddressUrl: false }));
+        setIsValidating((_) => ({ ..._, walletAddressUrl: false }));
       }
     },
     [getWalletInfo],
@@ -97,10 +94,10 @@ export const ConnectWalletForm = ({
       amount: validateAmount(amount, currencySymbol.symbol),
     };
     if (!walletAddressInfo) {
-      setErrors((e) => ({ ...e, walletAddressUrl: 'Not fetched yet?!' }));
+      setErrors((_) => ({ ..._, walletAddressUrl: 'Not fetched yet?!' }));
       return;
     }
-    setErrors((e) => ({ ...e, ...err }));
+    setErrors((_) => ({ ..._, ...err }));
     if (err.amount || err.walletAddressUrl) {
       return;
     }
@@ -112,7 +109,7 @@ export const ConnectWalletForm = ({
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
-      setErrors((e) => ({ ...e, keyPair: '', connect: '' }));
+      setErrors((_) => ({ ..._, keyPair: '', connect: '' }));
       const res = await connectWallet({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
         amount,
@@ -124,17 +121,18 @@ export const ConnectWalletForm = ({
       } else {
         if (res.message.startsWith('ADD_PUBLIC_KEY_TO_WALLET:')) {
           const message = res.message.replace('ADD_PUBLIC_KEY_TO_WALLET:', '');
-          setErrors((e) => ({ ...e, keyPair: message }));
+          setErrors((_) => ({ ..._, keyPair: message }));
         } else {
           throw new Error(res.message);
         }
       }
     } catch (error) {
-      setErrors((e) => ({ ...e, connect: error.message }));
+      setErrors((_) => ({ ..._, connect: error.message }));
     } finally {
       setIsSubmitting(false);
     }
   };
+
   React.useEffect(() => {
     if (!walletAddressInfo) return;
     setCurrencySymbol({
@@ -167,41 +165,39 @@ export const ConnectWalletForm = ({
 
       {errors.connect && <ErrorMessage error={errors.connect} />}
 
-      <div className="space-y-2">
-        <Input
-          type="text"
-          label="Wallet address or payment pointer"
-          id="connectWalletAddressUrl"
-          placeholder="https://ilp.rafiki.money/johndoe"
-          errorMessage={errors.walletAddressUrl}
-          defaultValue={walletAddressUrl}
-          addOn={
-            isValidating.walletAddressUrl ? (
-              <LoadingSpinner color="gray" size="md" />
-            ) : null
+      <Input
+        type="text"
+        label="Wallet address or payment pointer"
+        id="connectWalletAddressUrl"
+        placeholder="https://ilp.rafiki.money/johndoe"
+        errorMessage={errors.walletAddressUrl}
+        defaultValue={walletAddressUrl}
+        addOn={
+          isValidating.walletAddressUrl ? (
+            <LoadingSpinner color="gray" size="md" />
+          ) : null
+        }
+        addOnPosition="right"
+        required={true}
+        autoComplete="on"
+        onBlur={async (ev) => {
+          const value = ev.currentTarget.value;
+          if (value === walletAddressUrl) {
+            if (value || !ev.currentTarget.required) {
+              return;
+            }
           }
-          addOnPosition="right"
-          required={true}
-          autoComplete="on"
-          onBlur={async (ev) => {
-            const value = ev.currentTarget.value;
-            if (value === walletAddressUrl) {
-              if (value || !ev.currentTarget.required) {
-                return;
-              }
-            }
-            setWalletAddressInfo(null);
-            setWalletAddressUrl(value);
+          setWalletAddressInfo(null);
+          setWalletAddressUrl(value);
 
-            const error = validateWalletAddressUrl(value);
-            setErrors((e) => ({ ...e, walletAddressUrl: error }));
-            if (!error) {
-              await getWalletCurrency(value);
-            }
-            saveValue('walletAddressUrl', value);
-          }}
-        />
-      </div>
+          const error = validateWalletAddressUrl(value);
+          setErrors((_) => ({ ..._, walletAddressUrl: error }));
+          if (!error) {
+            await getWalletCurrency(value);
+          }
+          saveValue('walletAddressUrl', value);
+        }}
+      />
 
       <fieldset
         className={cn(
@@ -239,7 +235,7 @@ export const ConnectWalletForm = ({
             }
 
             const error = validateAmount(value, currencySymbol.symbol);
-            setErrors((e) => ({ ...e, amount: error }));
+            setErrors((_) => ({ ..._, amount: error }));
 
             const amountValue = formatNumber(+value, currencySymbol.scale);
             if (!error) {
