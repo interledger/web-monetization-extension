@@ -99,16 +99,16 @@ export const ConnectWalletForm = ({
 
     const errCodeWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
     const errCodeAmount = validateAmount(amount);
-    const err = {
-      walletAddressUrl: errCodeWalletAddressUrl && t(errCodeWalletAddressUrl),
-      amount: errCodeAmount
-        ? errCodeAmount === 'connectWallet_error_amountMinimum'
-          ? t(errCodeAmount, [`${currencySymbol.symbol}${amount}`])
-          : t(errCodeAmount)
-        : '',
-    };
-    setErrors((_) => ({ ..._, ...err }));
-    if (err.amount || err.walletAddressUrl) {
+    if (errCodeAmount || errCodeWalletAddressUrl) {
+      setErrors((_) => ({
+        ..._,
+        walletAddressUrl: errCodeWalletAddressUrl && t(errCodeWalletAddressUrl),
+        amount: errCodeAmount
+          ? errCodeAmount === 'connectWallet_error_amountMinimum'
+            ? t(errCodeAmount, [`${currencySymbol.symbol}${amount}`])
+            : t(errCodeAmount)
+          : '',
+      }));
       return;
     }
 
