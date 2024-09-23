@@ -47,6 +47,7 @@ export const ConnectWalletForm = ({
   const [recurring, setRecurring] = React.useState<Inputs['recurring']>(
     defaultValues.recurring || false,
   );
+  const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(false);
 
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<WalletAddress | null>(null);
@@ -106,12 +107,18 @@ export const ConnectWalletForm = ({
 
     try {
       setIsSubmitting(true);
+      let skipAutoKeyShare = autoKeyShareFailed;
+      if (errors.keyPair) {
+        skipAutoKeyShare = true;
+        setAutoKeyShareFailed(true);
+      }
+      setErrors((e) => ({ ...e, keyPair: '', connect: '' }));
       const res = await connectWallet({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
         walletAddressInfo,
         amount,
         recurring,
-        skipAutoKeyShare: !!errors.keyPair,
+        skipAutoKeyShare,
       });
       if (res.success) {
         onConnect();
@@ -129,7 +136,6 @@ export const ConnectWalletForm = ({
       setIsSubmitting(false);
     }
   };
-
   React.useEffect(() => {
     if (!walletAddressInfo) return;
     setCurrencySymbol({
@@ -150,7 +156,10 @@ export const ConnectWalletForm = ({
       className="space-y-4"
       onSubmit={handleSubmit}
     >
-      <div className="pb-4" hidden={!!errors.keyPair || !!errors.connect}>
+      <div
+        className="pb-4"
+        hidden={!!errors.keyPair || autoKeyShareFailed || !!errors.connect}
+      >
         <h2 className="text-center text-lg text-strong">
           {"Let's get you set up!"}
         </h2>
@@ -256,13 +265,14 @@ export const ConnectWalletForm = ({
         </div>
       </fieldset>
 
-      {errors.keyPair && (
+      {(errors.keyPair || autoKeyShareFailed) && (
         <ManualKeyPairNeeded
           error={{
             message: `We couldn't automatically share the key-pair with your provider.`,
             details: errors.keyPair,
             whyText: `Why?`,
           }}
+          hideError={autoKeyShareFailed}
           text={`Please copy this key and paste it into your wallet manually and then connect.`}
           learnMoreText={`Learn more.`}
           publicKey={publicKey}
@@ -285,7 +295,7 @@ export const ConnectWalletForm = ({
           Connect
         </Button>
 
-        {!errors.keyPair && (
+        {!errors.keyPair && !autoKeyShareFailed && (
           <AutomaticKeyPairNote
             text={`We'll automatically add a key-pair with your wallet provider.`}
             learnMoreText={`Learn more`}
@@ -297,11 +307,12 @@ export const ConnectWalletForm = ({
 };
 
 const ManualKeyPairNeeded: React.FC<{
-  error?: { message: string; details: string; whyText: string } | null;
+  error: { message: string; details: string; whyText: string };
+  hideError?: boolean;
   text: string;
   learnMoreText: string;
   publicKey: string;
-}> = ({ error, text, learnMoreText, publicKey }) => {
+}> = ({ error, hideError, text, learnMoreText, publicKey }) => {
   const ErrorDetails = () => {
     if (!error) return null;
     return (
@@ -315,12 +326,9 @@ const ManualKeyPairNeeded: React.FC<{
   };
 
   return (
-    <div className="space-y-1">
-      {error && (
-        <div
-          className="border-weak border-t px-2 pt-2 text-xs text-error"
-          role="alert"
-        >
+    <div className="border-weak space-y-1 border-t pt-2">
+      {!hideError && (
+        <div className="px-2 text-xs text-error" role="alert">
           <span>{error.message}</span> <ErrorDetails />
         </div>
       )}
