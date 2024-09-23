@@ -1,6 +1,10 @@
 import React, { type PropsWithChildren } from 'react';
 import type { Browser } from 'webextension-polyfill';
-import { tFactory, type Translation } from '@/shared/helpers';
+import {
+  tFactory,
+  type IErrorWithKey,
+  type Translation,
+} from '@/shared/helpers';
 import type { DeepNonNullable, PopupStore } from '@/shared/types';
 import {
   BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
@@ -153,7 +157,9 @@ export const BrowserContextProvider = ({
 // #endregion
 
 // #region Translation
-const TranslationContext = React.createContext<Translation>((v: string) => v);
+const TranslationContext = React.createContext<Translation>(
+  (v: string | IErrorWithKey) => (typeof v === 'string' ? v : v.key),
+);
 
 export const useTranslation = () => React.useContext(TranslationContext);
 

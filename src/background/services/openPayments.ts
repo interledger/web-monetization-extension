@@ -25,7 +25,7 @@ import type { Tabs } from 'webextension-polyfill';
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
-import { getWalletInformation } from '@/shared/helpers';
+import { ErrorWithKey, getWalletInformation } from '@/shared/helpers';
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
@@ -505,8 +505,7 @@ export class OpenPaymentsService {
   }
 
   private async addPublicKeyToWallet(_walletAddress: WalletAddress) {
-    const msg = `Automatic key addition is not not implemented for give wallet provider yet`;
-    throw new Error(`ADD_PUBLIC_KEY_TO_WALLET:${msg}`);
+    throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
 
   private async redirectToWelcomeScreen(

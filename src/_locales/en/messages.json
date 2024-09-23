@@ -153,6 +153,9 @@
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
   },
+  "connectWalletKeyService_error_notImplemented": {
+    "message": "Automatic key addition is not not implemented for give wallet provider yet"
+  },
   "allInvalidLinks_state_text": {
     "message": "At the moment, you can not pay this website."
   }

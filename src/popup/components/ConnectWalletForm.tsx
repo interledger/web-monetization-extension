@@ -12,7 +12,13 @@ import {
   toWalletAddressUrl,
 } from '@/popup/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
-import { cn, type TranslationKeys } from '@/shared/helpers';
+import {
+  cn,
+  errorWithKey,
+  isErrorWithKey,
+  type IErrorWithKey,
+  type TranslationKeys,
+} from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
 
@@ -97,17 +103,13 @@ export const ConnectWalletForm = ({
       return;
     }
 
-    const errCodeWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
-    const errCodeAmount = validateAmount(amount);
-    if (errCodeAmount || errCodeWalletAddressUrl) {
+    const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
+    const errAmount = validateAmount(amount, currencySymbol.symbol);
+    if (errAmount || errWalletAddressUrl) {
       setErrors((_) => ({
         ..._,
-        walletAddressUrl: errCodeWalletAddressUrl && t(errCodeWalletAddressUrl),
-        amount: errCodeAmount
-          ? errCodeAmount === 'connectWallet_error_amountMinimum'
-            ? t(errCodeAmount, [`${currencySymbol.symbol}${amount}`])
-            : t(errCodeAmount)
-          : '',
+        walletAddressUrl: errWalletAddressUrl ? t(errWalletAddressUrl) : '',
+        amount: errAmount && t(errAmount),
       }));
       return;
     }
@@ -129,9 +131,13 @@ export const ConnectWalletForm = ({
       if (res.success) {
         onConnect();
       } else {
-        if (res.message.startsWith('ADD_PUBLIC_KEY_TO_WALLET:')) {
-          const message = res.message.replace('ADD_PUBLIC_KEY_TO_WALLET:', '');
-          setErrors((_) => ({ ..._, keyPair: message }));
+        if (isErrorWithKey(res.error)) {
+          const error = res.error;
+          if (error.key === 'connectWalletKeyService_error_notImplemented') {
+            setErrors((_) => ({ ..._, keyPair: t(error) }));
+          } else {
+            throw new Error(error.key);
+          }
         } else {
           throw new Error(res.message);
         }
@@ -202,12 +208,8 @@ export const ConnectWalletForm = ({
           setWalletAddressInfo(null);
           setWalletAddressUrl(value);
 
-          const errorCode = validateWalletAddressUrl(value);
-          let error: string = errorCode;
-          if (errorCode) {
-            error = t(errorCode);
-          }
-          setErrors((_) => ({ ..._, walletAddressUrl: error }));
+          const error = validateWalletAddressUrl(value);
+          setErrors((_) => ({ ..._, walletAddressUrl: error ? t(error) : '' }));
           if (!error) {
             await getWalletInformation(value);
           }
@@ -242,16 +244,8 @@ export const ConnectWalletForm = ({
               return;
             }
 
-            const errorCode = validateAmount(value);
-            let error: string = errorCode;
-            if (errorCode) {
-              if (errorCode === 'connectWallet_error_amountMinimum') {
-                error = t(errorCode, [`${currencySymbol}${Number(value)}`]);
-              } else {
-                error = t(errorCode);
-              }
-            }
-            setErrors((_) => ({ ..._, amount: error }));
+            const error = validateAmount(value, currencySymbol.symbol);
+            setErrors((_) => ({ ..._, amount: error ? t(error) : '' }));
 
             const amountValue = formatNumber(+value, currencySymbol.scale);
             if (!error) {
@@ -389,34 +383,41 @@ type ErrorCodeAmount = Extract<
   `connectWallet_error_amount${string}`
 >;
 
-function validateWalletAddressUrl(value: string): '' | ErrorCodeUrl {
+function validateWalletAddressUrl(
+  value: string,
+): '' | IErrorWithKey<ErrorCodeUrl> {
   if (!value) {
-    return 'connectWallet_error_urlRequired';
+    return errorWithKey('connectWallet_error_urlRequired');
   }
   let url: URL;
   try {
     url = new URL(toWalletAddressUrl(value));
   } catch {
-    return 'connectWallet_error_urlInvalidUrl';
+    return errorWithKey('connectWallet_error_urlInvalidUrl');
   }
 
   if (url.protocol !== 'https:') {
-    return 'connectWallet_error_urlInvalidNotHttps';
+    return errorWithKey('connectWallet_error_urlInvalidNotHttps');
   }
 
   return '';
 }
 
-function validateAmount(value: string): '' | ErrorCodeAmount {
+function validateAmount(
+  value: string,
+  currencySymbol: string,
+): '' | IErrorWithKey<ErrorCodeAmount> {
   if (!value) {
-    return 'connectWallet_error_amountRequired';
+    return errorWithKey('connectWallet_error_amountRequired');
   }
   const val = Number(value);
   if (Number.isNaN(val)) {
-    return 'connectWallet_error_amountInvalidNumber';
+    return errorWithKey('connectWallet_error_amountInvalidNumber', [
+      `${currencySymbol}${value}`,
+    ]);
   }
   if (val <= 0) {
-    return 'connectWallet_error_amountMinimum';
+    return errorWithKey('connectWallet_error_amountMinimum');
   }
   return '';
 }
