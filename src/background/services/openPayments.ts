@@ -312,7 +312,6 @@ export class OpenPaymentsService {
     walletAddressUrl,
     amount,
     recurring,
-    walletAddressInfo,
     skipAutoKeyShare,
   }: ConnectWalletPayload) {
     const walletAddress = await getWalletInformation(walletAddressUrl);
@@ -347,25 +346,30 @@ export class OpenPaymentsService {
 
     await this.initClient(walletAddress.id);
 
-    if (!skipAutoKeyShare) {
-      const keyShare = new KeyShareService({
-        browser: this.browser,
-        storage: this.storage,
-      });
-      try {
-        await keyShare.addPublicKeyToWallet({ walletAddressInfo });
-      } catch (error) {
-        // TODO: add error with code to be used for logic in UI
-        throw new Error(`ADD_PUBLIC_KEY_TO_WALLET:${error.message}`);
+    try {
+      await this.completeGrant(
+        amount,
+        walletAddress,
+        recurring,
+        InteractionIntent.CONNECT,
+      );
+    } catch (error) {
+      if (
+        error.message === this.t('connectWallet_error_invalidClient') &&
+        !skipAutoKeyShare
+      ) {
+        // add key to wallet and try again
+        await this.addPublicKeyToWallet(walletAddress);
+        await this.completeGrant(
+          amount,
+          walletAddress,
+          recurring,
+          InteractionIntent.CONNECT,
+        );
+      } else {
+        throw error;
       }
     }
-
-    await this.completeGrant(
-      amount,
-      walletAddress,
-      recurring,
-      InteractionIntent.CONNECT,
-    );
 
     await this.storage.set({
       walletAddress,
@@ -499,6 +503,19 @@ export class OpenPaymentsService {
     this.grant = grantDetails;
     await this.redirectToWelcomeScreen(tabId, GrantResult.SUCCESS, intent);
     return grantDetails;
+  }
+
+  private async addPublicKeyToWallet(walletAddress: WalletAddress) {
+    const keyShare = new KeyShareService({
+      browser: this.browser,
+      storage: this.storage,
+    });
+    try {
+      await keyShare.addPublicKeyToWallet(walletAddress);
+    } catch (err) {
+      // TODO: add error with code to be used for logic in UI
+      throw new Error(`ADD_PUBLIC_KEY_TO_WALLET:${err.message}`);
+    }
   }
 
   private async redirectToWelcomeScreen(

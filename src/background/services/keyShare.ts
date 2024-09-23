@@ -13,7 +13,7 @@ export class KeyShareService {
     Object.assign(this, { browser, storage });
   }
 
-  async addPublicKeyToWallet(_: { walletAddressInfo: WalletAddress }) {
+  async addPublicKeyToWallet(_walletAddress: WalletAddress) {
     throw new Error('Not implemented for provided wallet yet');
   }
 }

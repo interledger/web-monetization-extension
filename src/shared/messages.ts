@@ -89,7 +89,6 @@ export class MessageManager<TMessages extends MessageMap> {
 // #region Popup ↦ BG
 export interface ConnectWalletPayload {
   walletAddressUrl: string;
-  walletAddressInfo: WalletAddress;
   amount: string;
   recurring: boolean;
   skipAutoKeyShare: boolean;

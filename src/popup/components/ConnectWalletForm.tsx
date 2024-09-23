@@ -115,7 +115,6 @@ export const ConnectWalletForm = ({
       setErrors((e) => ({ ...e, keyPair: '', connect: '' }));
       const res = await connectWallet({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
-        walletAddressInfo,
         amount,
         recurring,
         skipAutoKeyShare,
