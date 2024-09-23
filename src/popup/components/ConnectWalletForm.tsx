@@ -287,7 +287,9 @@ export const ConnectWalletForm = ({
             isValidating.amount ||
             isValidating.walletAddressUrl ||
             !!errors.amount ||
-            !!errors.walletAddressUrl
+            !!errors.walletAddressUrl ||
+            !walletAddressUrl ||
+            !amount
           }
           loading={isSubmitting}
           aria-label="Connect your wallet"
