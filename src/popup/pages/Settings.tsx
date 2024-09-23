@@ -25,7 +25,7 @@ export const Component = () => {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
         getWalletInfo={getWalletInformation}
-        connectWallet={async (data) => message.send('CONNECT_WALLET', data)}
+        connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         onConnect={() => {
           // The popup closes due to redirects on connect, so we don't need to
           // update any state manually.

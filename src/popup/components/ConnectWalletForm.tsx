@@ -184,10 +184,10 @@ export const ConnectWalletForm = ({
           addOnPosition="right"
           required={true}
           autoComplete="on"
-          onBlur={async (e) => {
-            const value = e.currentTarget.value;
+          onBlur={async (ev) => {
+            const value = ev.currentTarget.value;
             if (value === walletAddressUrl) {
-              if (value || !e.currentTarget.required) {
+              if (value || !ev.currentTarget.required) {
                 return;
               }
             }
@@ -222,20 +222,20 @@ export const ConnectWalletForm = ({
           addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
           errorMessage={errors.amount}
           required={true}
-          onKeyDown={(e) => {
+          onKeyDown={(ev) => {
             if (
-              (!charIsNumber(e.key) &&
-                e.key !== 'Backspace' &&
-                e.key !== 'Delete' &&
-                e.key !== 'Tab') ||
-              (e.key === '.' && e.currentTarget.value.includes('.'))
+              (!charIsNumber(ev.key) &&
+                ev.key !== 'Backspace' &&
+                ev.key !== 'Delete' &&
+                ev.key !== 'Tab') ||
+              (ev.key === '.' && ev.currentTarget.value.includes('.'))
             ) {
-              e.preventDefault();
+              ev.preventDefault();
             }
           }}
-          onBlur={(e) => {
-            const value = e.currentTarget.value;
-            if (value === amount && !e.currentTarget.required) {
+          onBlur={(ev) => {
+            const value = ev.currentTarget.value;
+            if (value === amount && !ev.currentTarget.required) {
               return;
             }
 
@@ -245,7 +245,7 @@ export const ConnectWalletForm = ({
             const amountValue = formatNumber(+value, currencySymbol.scale);
             if (!error) {
               setAmount(amountValue);
-              e.currentTarget.value = amountValue;
+              ev.currentTarget.value = amountValue;
             }
             saveValue('amount', error ? value : amountValue);
           }}
@@ -256,7 +256,7 @@ export const ConnectWalletForm = ({
             size="small"
             label="Renew monthly"
             defaultChecked={recurring}
-            onChange={(ev: React.FocusEvent<HTMLInputElement>) => {
+            onChange={(ev) => {
               const value = ev.currentTarget.checked;
               setRecurring(value);
               saveValue('recurring', value);
