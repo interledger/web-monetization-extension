@@ -95,10 +95,6 @@ export interface ConnectWalletPayload {
   skipAutoKeyShare: boolean;
 }
 
-export interface AddPublicKeyToWalletPayload {
-  walletAddressInfo: WalletAddress;
-}
-
 export interface AddFundsPayload {
   amount: string;
   recurring: boolean;

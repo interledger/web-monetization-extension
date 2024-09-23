@@ -234,20 +234,6 @@ export function isNotNull<T>(value: T | null): value is T {
   return value !== null;
 }
 
-/**
- * Polyfill for `Promise.withResolvers()`
- */
-export function withResolvers<T>() {
-  let resolve: (value: T | PromiseLike<T>) => void;
-  let reject: (reason?: any) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  // @ts-expect-error we know TypeScript!
-  return { resolve, reject, promise };
-}
-
 export const removeQueryParams = (urlString: string) => {
   const url = new URL(urlString);
   return url.origin + url.pathname;
