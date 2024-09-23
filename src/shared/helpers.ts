@@ -95,6 +95,7 @@ export const errorWithKey = <T extends TranslationKeys = TranslationKeys>(
 ) => ({ key, substitutions });
 
 export const isErrorWithKey = (err: any): err is IErrorWithKey => {
+  if (!err || typeof err !== 'object') return false;
   return (
     err instanceof ErrorWithKey ||
     (typeof err.key === 'string' && Array.isArray(err.substitutions))
