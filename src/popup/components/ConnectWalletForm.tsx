@@ -69,7 +69,7 @@ export const ConnectWalletForm = ({
     scale: number;
   }>({ symbol: '$', scale: 2 });
 
-  const getWalletCurrency = React.useCallback(
+  const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<void> => {
       setErrors((_) => ({ ..._, walletAddressUrl: '' }));
       if (!walletAddressUrl) return;
@@ -143,9 +143,9 @@ export const ConnectWalletForm = ({
 
   React.useEffect(() => {
     if (defaultValues.walletAddressUrl) {
-      void getWalletCurrency(defaultValues.walletAddressUrl);
+      void getWalletInformation(defaultValues.walletAddressUrl);
     }
-  }, [defaultValues.walletAddressUrl, getWalletCurrency]);
+  }, [defaultValues.walletAddressUrl, getWalletInformation]);
 
   return (
     <form
@@ -167,7 +167,7 @@ export const ConnectWalletForm = ({
 
       <Input
         type="text"
-        label="Wallet address or payment pointer"
+        label="Enter your wallet address or payment pointer"
         id="connectWalletAddressUrl"
         placeholder="https://ilp.rafiki.money/johndoe"
         errorMessage={errors.walletAddressUrl}
@@ -193,7 +193,7 @@ export const ConnectWalletForm = ({
           const error = validateWalletAddressUrl(value);
           setErrors((_) => ({ ..._, walletAddressUrl: error }));
           if (!error) {
-            await getWalletCurrency(value);
+            await getWalletInformation(value);
           }
           saveValue('walletAddressUrl', value);
         }}
@@ -205,12 +205,12 @@ export const ConnectWalletForm = ({
           !walletAddressInfo?.assetCode && 'opacity-75',
         )}
       >
-        <legend className="sr-only">Amount to allocate from your wallet</legend>
+        <legend className="sr-only">Amount</legend>
         <Input
           id="connectAmount"
           type="text"
           inputMode="numeric"
-          label="Amount"
+          label="Enter the amount to allocate from your wallet"
           placeholder="5.00"
           defaultValue={amount}
           readOnly={!walletAddressInfo?.assetCode}
@@ -357,7 +357,7 @@ const AutomaticKeyPairNote: React.FC<{
 
 function validateWalletAddressUrl(value: string): string {
   if (!value) {
-    return 'Wallet address URL is required.';
+    return 'Wallet address is required.';
   }
   let url: URL;
   try {
@@ -379,10 +379,10 @@ function validateAmount(value: string, currencySymbol: string): string {
   }
   const val = Number(value);
   if (Number.isNaN(val)) {
-    return 'Amount must be a number.';
+    return 'Please provide a valid number as amount.';
   }
   if (val <= 0) {
-    return `Amount must be greater than ${currencySymbol}${val}.`;
+    return `An amount greater than ${currencySymbol}${val} is required.`;
   }
   return '';
 }
