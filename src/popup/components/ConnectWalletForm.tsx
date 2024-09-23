@@ -401,7 +401,7 @@ function validateWalletAddressUrl(value: string): '' | ErrorCodeUrl {
   }
 
   if (url.protocol !== 'https:') {
-    return 'connectWallet_error_urlInvalidUrlHttps';
+    return 'connectWallet_error_urlInvalidNotHttps';
   }
 
   return '';

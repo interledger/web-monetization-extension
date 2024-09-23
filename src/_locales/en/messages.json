@@ -92,7 +92,7 @@
     "message": "Let's get you set up!"
   },
   "connectWallet_text_desc": {
-    "message": ""
+    "message": "Just a few quick steps to connect the extension to your wallet"
   },
   "connectWallet_label_walletAddress": {
     "message": "Enter your wallet address or payment pointer"
@@ -119,7 +119,8 @@
     "message": "We'll automatically add a key-pair with your wallet provider."
   },
   "connectWallet_text_autoPublicKeyNoticeLearnMore": {
-    "message": "Learn more"
+    "message": "Learn more",
+    "description": "Learn more about how this works"
   },
   "connectWallet_error_urlRequired": {
     "message": "Wallet address is required."
@@ -127,7 +128,7 @@
   "connectWallet_error_urlInvalidUrl": {
     "message": "Invalid wallet address URL."
   },
-  "connectWallet_error_urlInvalidUrlHttps": {
+  "connectWallet_error_urlInvalidNotHttps": {
     "message": "Wallet address must be a https:// URL or a payment pointer.'"
   },
   "connectWallet_error_amountRequired": {
@@ -146,7 +147,8 @@
     "message": "We couldn't automatically share the key-pair with your provider."
   },
   "connectWallet_error_failedAutoKeyAddWhy": {
-    "message": "Why?"
+    "message": "Why?",
+    "description": "Clicking this will show reason for why automatic key-adding failed."
   },
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
