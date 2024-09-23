@@ -628,7 +628,7 @@ export class OpenPaymentsService {
     try {
       await this.client!.grant.cancel(grantContinuation);
     } catch (error) {
-      if (isInvalidClientError(error)) {
+      if (isInvalidClientError(error) || isInvalidContinuationError(error)) {
         // key already removed from wallet
         return;
       }
@@ -785,6 +785,11 @@ export const isKeyRevokedError = (error: any) => {
 export const isInvalidClientError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 400 && error.code === 'invalid_client';
+};
+
+export const isInvalidContinuationError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false;
+  return error.status === 401 && error.code === 'invalid_continuation';
 };
 
 // RESOURCE SERVER error. Create outgoing payment and create quote can fail
