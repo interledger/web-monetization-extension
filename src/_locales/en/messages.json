@@ -95,13 +95,13 @@
     "message": "Just a few quick steps to connect the extension to your wallet"
   },
   "connectWallet_label_walletAddress": {
-    "message": "Enter your wallet address or payment pointer"
+    "message": "Enter wallet address/payment pointer"
   },
   "connectWallet_labelGroup_amount": {
     "message": "Amount"
   },
   "connectWallet_label_amount": {
-    "message": "Enter the amount to allocate from your wallet"
+    "message": "Enter amount to allocate from wallet"
   },
   "connectWallet_label_recurring": {
     "message": "Renew monthly"
