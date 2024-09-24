@@ -4,6 +4,7 @@ import {
   failure,
   getNextOccurrence,
   getWalletInformation,
+  isErrorWithKey,
   success,
 } from '@/shared/helpers';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
@@ -275,6 +276,10 @@ export class Background {
               return;
           }
         } catch (e) {
+          if (isErrorWithKey(e)) {
+            this.logger.error(message.action, e);
+            return failure({ key: e.key, substitutions: e.substitutions });
+          }
           if (e instanceof OpenPaymentsClientError) {
             this.logger.error(message.action, e.message, e.description);
             return failure(
