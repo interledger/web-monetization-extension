@@ -255,7 +255,7 @@ export function tFactory(browser: Pick<Browser, 'i18n'>) {
     key: T,
     substitutions?: string[],
   ): string;
-  function t(err: ErrorWithKeyLike): string;
+  function t<T extends ErrorKeys>(err: ErrorWithKeyLike<T>): string;
   function t(key: string | ErrorWithKeyLike, substitutions?: string[]): string {
     if (typeof key === 'string') {
       return browser.i18n.getMessage(key, substitutions);
