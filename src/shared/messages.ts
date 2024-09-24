@@ -4,7 +4,7 @@ import type {
 } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
 import type { AmountValue, Storage } from '@/shared/types';
-import type { IErrorWithKey } from '@/shared/helpers';
+import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { PopupState } from '@/popup/lib/context';
 
 // #region MessageManager
@@ -16,7 +16,7 @@ export interface SuccessResponse<TPayload = void> {
 export interface ErrorResponse {
   success: false;
   message: string;
-  error?: IErrorWithKey;
+  error?: ErrorWithKeyLike;
 }
 
 export type Response<TPayload = void> =

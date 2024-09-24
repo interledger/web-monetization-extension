@@ -16,8 +16,8 @@ import {
   cn,
   errorWithKey,
   isErrorWithKey,
-  type IErrorWithKey,
-  type TranslationKeys,
+  type ErrorWithKeyLike,
+  type ErrorKeys,
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
@@ -377,18 +377,18 @@ const AutomaticKeyPairNote: React.FC<{
   );
 };
 
-type ErrorCodeUrl = Extract<
-  TranslationKeys,
+type ErrorCodeWalletAddressUrl = Extract<
+  ErrorKeys,
   `connectWallet_error_url${string}`
 >;
 type ErrorCodeAmount = Extract<
-  TranslationKeys,
+  ErrorKeys,
   `connectWallet_error_amount${string}`
 >;
 
 function validateWalletAddressUrl(
   value: string,
-): '' | IErrorWithKey<ErrorCodeUrl> {
+): '' | ErrorWithKeyLike<ErrorCodeWalletAddressUrl> {
   if (!value) {
     return errorWithKey('connectWallet_error_urlRequired');
   }
@@ -409,7 +409,7 @@ function validateWalletAddressUrl(
 function validateAmount(
   value: string,
   currencySymbol: string,
-): '' | IErrorWithKey<ErrorCodeAmount> {
+): '' | ErrorWithKeyLike<ErrorCodeAmount> {
   if (!value) {
     return errorWithKey('connectWallet_error_amountRequired');
   }

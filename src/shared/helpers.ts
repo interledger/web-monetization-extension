@@ -12,6 +12,8 @@ import type { Storage, RepeatingInterval, AmountValue } from './types';
 export type TranslationKeys =
   keyof typeof import('../_locales/en/messages.json');
 
+export type ErrorKeys = Extract<TranslationKeys, `${string}_error_${string}`>;
+
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
 };
@@ -66,19 +68,19 @@ export const getWalletInformation = async (
 /**
  * Error object with key and substitutions based on `_locales/[lang]/messages.json`
  */
-export interface IErrorWithKey<T extends TranslationKeys = TranslationKeys> {
-  key: Extract<TranslationKeys, T>;
+export interface ErrorWithKeyLike<T extends ErrorKeys = ErrorKeys> {
+  key: Extract<ErrorKeys, T>;
   // Could be empty, but required for checking if an object follows this interface
   substitutions: string[];
 }
 
-export class ErrorWithKey<T extends TranslationKeys = TranslationKeys>
+export class ErrorWithKey<T extends ErrorKeys = ErrorKeys>
   extends Error
-  implements IErrorWithKey<T>
+  implements ErrorWithKeyLike<T>
 {
   constructor(
-    public readonly key: IErrorWithKey<T>['key'],
-    public readonly substitutions: IErrorWithKey<T>['substitutions'] = [],
+    public readonly key: ErrorWithKeyLike<T>['key'],
+    public readonly substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
   ) {
     super(key);
   }
@@ -89,12 +91,12 @@ export class ErrorWithKey<T extends TranslationKeys = TranslationKeys>
  * instance.
  * Easier than creating object ourselves, but more performant than Error.
  */
-export const errorWithKey = <T extends TranslationKeys = TranslationKeys>(
-  key: IErrorWithKey<T>['key'],
-  substitutions: IErrorWithKey<T>['substitutions'] = [],
+export const errorWithKey = <T extends ErrorKeys = ErrorKeys>(
+  key: ErrorWithKeyLike<T>['key'],
+  substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
 ) => ({ key, substitutions });
 
-export const isErrorWithKey = (err: any): err is IErrorWithKey => {
+export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
   if (!err || typeof err !== 'object') return false;
   return (
     err instanceof ErrorWithKey ||
@@ -109,7 +111,7 @@ export const success = <TPayload = undefined>(
   payload,
 });
 
-export const failure = (message: string | IErrorWithKey) => ({
+export const failure = (message: string | ErrorWithKeyLike) => ({
   success: false as const,
   ...(typeof message === 'string'
     ? { message }
@@ -260,11 +262,8 @@ export function tFactory(browser: Pick<Browser, 'i18n'>) {
     key: T,
     substitutions?: string[],
   ): string;
-  function t<T extends TranslationKeys>(err: IErrorWithKey<T>): string;
-  function t<T extends TranslationKeys>(
-    key: T | IErrorWithKey<T>,
-    substitutions?: string[],
-  ): string {
+  function t<T extends ErrorKeys>(err: ErrorWithKeyLike<T>): string;
+  function t(key: string | ErrorWithKeyLike, substitutions?: string[]): string {
     if (typeof key === 'string') {
       return browser.i18n.getMessage(key, substitutions);
     }
