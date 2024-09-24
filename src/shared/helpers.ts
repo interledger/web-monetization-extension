@@ -9,6 +9,11 @@ import { parse, toSeconds } from 'iso8601-duration';
 import type { Browser } from 'webextension-polyfill';
 import type { Storage, RepeatingInterval, AmountValue } from './types';
 
+export type TranslationKeys =
+  keyof typeof import('../_locales/en/messages.json');
+
+export type ErrorKeys = Extract<TranslationKeys, `${string}_error_${string}`>;
+
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
 };
@@ -53,6 +58,45 @@ export const getWalletInformation = async (
   return json;
 };
 
+/**
+ * Error object with key and substitutions based on `_locales/[lang]/messages.json`
+ */
+export interface ErrorWithKeyLike<T extends ErrorKeys = ErrorKeys> {
+  key: Extract<ErrorKeys, T>;
+  // Could be empty, but required for checking if an object follows this interface
+  substitutions: string[];
+}
+
+export class ErrorWithKey<T extends ErrorKeys = ErrorKeys>
+  extends Error
+  implements ErrorWithKeyLike<T>
+{
+  constructor(
+    public readonly key: ErrorWithKeyLike<T>['key'],
+    public readonly substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
+  ) {
+    super(key);
+  }
+}
+
+/**
+ * Same as {@linkcode ErrorWithKey} but creates plain object instead of Error
+ * instance.
+ * Easier than creating object ourselves, but more performant than Error.
+ */
+export const errorWithKey = <T extends ErrorKeys = ErrorKeys>(
+  key: ErrorWithKeyLike<T>['key'],
+  substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
+) => ({ key, substitutions });
+
+export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
+  if (!err || typeof err !== 'object') return false;
+  return (
+    err instanceof ErrorWithKey ||
+    (typeof err.key === 'string' && Array.isArray(err.substitutions))
+  );
+};
+
 export const success = <TPayload = undefined>(
   payload: TPayload,
 ): SuccessResponse<TPayload> => ({
@@ -60,9 +104,11 @@ export const success = <TPayload = undefined>(
   payload,
 });
 
-export const failure = (message: string) => ({
-  success: false,
-  message,
+export const failure = (message: string | ErrorWithKeyLike) => ({
+  success: false as const,
+  ...(typeof message === 'string'
+    ? { message }
+    : { error: message, message: message.key }),
 });
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -199,19 +245,25 @@ export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
   return BigInt(a) > BigInt(b) ? a : b;
 }
 
-export type TranslationKeys =
-  keyof typeof import('../_locales/en/messages.json');
-
 export type Translation = ReturnType<typeof tFactory>;
 export function tFactory(browser: Pick<Browser, 'i18n'>) {
   /**
    * Helper over calling cumbersome `this.browser.i18n.getMessage(key)` with
    * added benefit that it type-checks if key exists in message.json
    */
-  return <T extends TranslationKeys>(
+  function t<T extends TranslationKeys>(
     key: T,
-    substitutions?: string | string[],
-  ) => browser.i18n.getMessage(key, substitutions);
+    substitutions?: string[],
+  ): string;
+  function t<T extends ErrorKeys>(err: ErrorWithKeyLike<T>): string;
+  function t(key: string | ErrorWithKeyLike, substitutions?: string[]): string {
+    if (typeof key === 'string') {
+      return browser.i18n.getMessage(key, substitutions);
+    }
+    const err = key;
+    return browser.i18n.getMessage(err.key, err.substitutions);
+  }
+  return t;
 }
 
 type Primitive = string | number | boolean | null | undefined;
