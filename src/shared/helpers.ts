@@ -56,10 +56,12 @@ export const getWalletInformation = async (
     throw new Error('Failed to fetch wallet address.');
   }
 
-  const json = await response.json();
-
+  const msgInvalidWalletAddress = `Provided URL is not a valid wallet address.`;
+  const json = await response.json().catch((error) => {
+    throw new Error(msgInvalidWalletAddress, { cause: error });
+  });
   if (!isWalletAddress(json)) {
-    throw new Error('Provided URL is not a valid wallet address.');
+    throw new Error(msgInvalidWalletAddress);
   }
 
   return json;
