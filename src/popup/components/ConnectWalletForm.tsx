@@ -221,14 +221,14 @@ export const ConnectWalletForm = ({
         )}
       >
         <legend className="flex items-center px-2 font-medium leading-6 text-medium">
-          {t('connectWallet_label_amount')}
+          {t('connectWallet_labelGroup_amount')}
         </legend>
         <div className="flex items-center gap-6">
           <Input
             id="connectAmount"
             type="text"
             inputMode="numeric"
-            aria-label="Amount"
+            aria-label={t('connectWallet_label_amount')}
             placeholder="5.00"
             className="max-w-32"
             defaultValue={amount}

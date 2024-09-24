@@ -98,10 +98,10 @@
     "message": "Enter wallet address/payment pointer"
   },
   "connectWallet_labelGroup_amount": {
-    "message": "Amount"
+    "message": "Enter amount to allocate from wallet"
   },
   "connectWallet_label_amount": {
-    "message": "Enter amount to allocate from wallet"
+    "message": "Amount"
   },
   "connectWallet_label_recurring": {
     "message": "Renew monthly"
@@ -154,7 +154,7 @@
     "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
   },
   "connectWalletKeyService_error_notImplemented": {
-    "message": "Automatic key addition is not not implemented for give wallet provider yet"
+    "message": "Automatic key addition is not not implemented for given wallet provider yet"
   },
   "allInvalidLinks_state_text": {
     "message": "At the moment, you can not pay this website."
