@@ -122,14 +122,29 @@ export type ConnectDetails = {
   recurring: boolean;
 };
 
-export async function fillPopup(popup: Popup, params: ConnectDetails) {
-  await popup
-    .getByLabel('Wallet address or payment pointer')
-    .fill(params.walletAddressUrl);
-  await popup.getByLabel('Amount', { exact: true }).fill(params.amount);
-  await popup
-    .getByLabel('Renew amount monthly')
-    .setChecked(params.recurring, { force: true });
+export async function fillPopup(popup: Popup, params: Partial<ConnectDetails>) {
+  const fields = getPopupFields(popup);
+  if (typeof params.walletAddressUrl !== 'undefined') {
+    await fields.walletAddressUrl.fill(params.walletAddressUrl);
+    await fields.walletAddressUrl.blur();
+  }
+  if (typeof params.amount !== 'undefined') {
+    await fields.amount.fill(params.amount);
+    await fields.amount.blur();
+  }
+  if (typeof params.recurring !== 'undefined') {
+    await fields.recurring.setChecked(params.recurring, { force: true });
+    await fields.recurring.blur();
+  }
 
-  return popup.getByRole('button', { name: 'Connect' });
+  return fields.connectButton;
+}
+
+export function getPopupFields(popup: Popup) {
+  return {
+    walletAddressUrl: popup.getByLabel('Enter wallet address/payment pointer'),
+    amount: popup.getByLabel('Amount', { exact: true }),
+    recurring: popup.getByLabel('Renew monthly'),
+    connectButton: popup.locator('button').getByText('Connect'),
+  };
 }

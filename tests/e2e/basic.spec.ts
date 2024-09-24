@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/base';
-import { fillPopup } from './pages/popup';
+import { fillPopup, getPopupFields } from './pages/popup';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
@@ -31,14 +31,19 @@ test('shows connect form if not connected', async ({ page, popup }) => {
 });
 
 test.describe('should fail to connect if:', () => {
-  test('invalid URL provided', async ({ background, popup }) => {
+  test('invalid URL provided', async ({ background, popup, i18n }) => {
+    const inputFields = getPopupFields(popup);
     const connectButton = await fillPopup(popup, {
       walletAddressUrl: 'abc',
-      amount: '10',
-      recurring: false,
     });
-    await connectButton.click();
-    await expect(popup.locator('p.text-error')).toHaveText('Failed to fetch');
+
+    await expect(connectButton).toBeDisabled();
+    await expect(popup.locator('p.text-error')).toHaveText(
+      i18n.getMessage('connectWallet_error_urlInvalidUrl'),
+    );
+    await expect(inputFields.amount).not.toBeEditable();
+    await expect(inputFields.recurring).toBeEditable();
+
     expect(
       await background.evaluate(() => {
         return chrome.storage.local.get(['connected']);
@@ -47,19 +52,18 @@ test.describe('should fail to connect if:', () => {
   });
 
   test('invalid wallet address provided', async ({ background, popup }) => {
+    const inputFields = getPopupFields(popup);
     const connectButton = await fillPopup(popup, {
       walletAddressUrl: 'https://example.com',
-      amount: '10',
-      recurring: false,
     });
+
+    await expect(inputFields.amount).not.toBeEditable();
+    await expect(inputFields.recurring).toBeEditable();
+    await expect(connectButton).toBeDisabled();
     await expect(popup.locator('p.text-error')).toContainText(
-      'Invalid wallet address.',
+      'not a valid wallet address',
     );
 
-    await connectButton.click();
-    await expect(popup.locator('p.text-error')).toContainText(
-      'Unexpected token',
-    );
     expect(
       await background.evaluate(() => {
         return chrome.storage.local.get(['connected']);
@@ -76,10 +80,20 @@ test.describe('should fail to connect if:', () => {
       amount: '10',
       recurring: false,
     });
-    await connectButton.click();
+    await expect(popup.locator('p.text-error')).not.toBeAttached();
+    await expect(connectButton).not.toBeDisabled();
 
-    await expect(popup.locator('p.text-error')).toHaveText(
+    await connectButton.click();
+    await popup.waitForTimeout(1000);
+    await expect(popup.locator('.text-error span').first()).toHaveText(
+      i18n.getMessage('connectWallet_error_failedAutoKeyAdd'),
+    );
+
+    await connectButton.click();
+    await popup.waitForTimeout(1000);
+    await expect(popup.getByTestId('ErrorMessage')).toHaveText(
       i18n.getMessage('connectWallet_error_invalidClient'),
     );
+    await expect(popup.getByTestId('ErrorMessage')).toHaveRole('alert');
   });
 });
