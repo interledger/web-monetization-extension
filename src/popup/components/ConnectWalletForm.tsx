@@ -51,7 +51,7 @@ export const ConnectWalletForm = ({
     Inputs['walletAddressUrl']
   >(defaultValues.walletAddressUrl || '');
   const [amount, setAmount] = React.useState<Inputs['amount']>(
-    defaultValues.amount || '',
+    defaultValues.amount || '5.00',
   );
   const [recurring, setRecurring] = React.useState<Inputs['recurring']>(
     defaultValues.recurring || false,
