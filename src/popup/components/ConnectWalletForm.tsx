@@ -16,6 +16,7 @@ import {
   cn,
   errorWithKey,
   isErrorWithKey,
+  sleep,
   type ErrorWithKeyLike,
   type ErrorKeys,
 } from '@/shared/helpers';
@@ -229,6 +230,26 @@ export const ConnectWalletForm = ({
         autoComplete="on"
         spellCheck={false}
         enterKeyHint="go"
+        onPaste={async (ev) => {
+          let value = ev.clipboardData.getData('text');
+          if (!value) return;
+          if (!validateWalletAddressUrl(value)) {
+            ev.preventDefault(); // full url was pasted
+          } else {
+            const input = ev.currentTarget;
+            await sleep(0); // allow paste to be complete
+            value = input.value;
+          }
+          if (value === walletAddressUrl) {
+            if (value || !ev.currentTarget.required) {
+              return;
+            }
+          }
+          await handleWalletAddressUrlChange(value, ev.currentTarget);
+          if (!errors.walletAddressUrl) {
+            document.getElementById('connectAmount')?.focus();
+          }
+        }}
         onBlur={async (ev) => {
           const value = ev.currentTarget.value;
           if (value === walletAddressUrl) {
@@ -425,6 +446,7 @@ function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
     (!charIsNumber(ev.key) &&
       ev.key !== 'Backspace' &&
       ev.key !== 'Delete' &&
+      ev.key !== 'Enter' &&
       ev.key !== 'Tab') ||
     (ev.key === '.' && ev.currentTarget.value.includes('.'))
   ) {
