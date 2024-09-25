@@ -228,6 +228,7 @@ export const ConnectWalletForm = ({
         required={true}
         autoComplete="on"
         spellCheck={false}
+        enterKeyHint="go"
         onBlur={async (ev) => {
           const value = ev.currentTarget.value;
           if (value === walletAddressUrl) {
