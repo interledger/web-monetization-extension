@@ -19,14 +19,12 @@ export const Component = () => {
   const {
     state: {
       enabled,
-      isSiteMonetized,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
       balance,
       walletAddress,
-      url,
-      hasAllSessionsInvalid,
+      tab,
     },
     dispatch,
   } = usePopupState();
@@ -65,12 +63,12 @@ export const Component = () => {
     dispatch({ type: 'TOGGLE_WM', data: {} });
   };
 
-  if (!isSiteMonetized) {
-    return <SiteNotMonetized />;
-  }
-
-  if (hasAllSessionsInvalid) {
-    return <AllSessionsInvalid />;
+  if (tab.status !== 'monetized') {
+    if (tab.status === 'all_sessions_invalid') {
+      return <AllSessionsInvalid />;
+    } else {
+      return <SiteNotMonetized />;
+    }
   }
 
   return (
@@ -113,7 +111,7 @@ export const Component = () => {
 
       <hr />
 
-      {url ? <PayWebsiteForm /> : null}
+      {tab.url ? <PayWebsiteForm /> : null}
     </div>
   );
 };

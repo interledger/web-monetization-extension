@@ -8,7 +8,7 @@ import {
   success,
 } from '@/shared/helpers';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getCurrentActiveTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
+import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
 import type { Cradle } from '@/background/container';
 
@@ -22,6 +22,7 @@ export class Background {
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
   private tabEvents: Cradle['tabEvents'];
+  private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
   private events: Cradle['events'];
   private heartbeat: Cradle['heartbeat'];
@@ -33,6 +34,7 @@ export class Background {
     storage,
     logger,
     tabEvents,
+    windowState,
     sendToPopup,
     events,
     heartbeat,
@@ -44,6 +46,7 @@ export class Background {
       storage,
       sendToPopup,
       tabEvents,
+      windowState,
       logger,
       events,
       heartbeat,
@@ -93,6 +96,10 @@ export class Background {
   }
 
   async onStart() {
+    const activeWindow = await this.browser.windows.getLastFocused();
+    if (activeWindow.id) {
+      this.windowState.setCurrentWindowId(activeWindow.id);
+    }
     await this.storage.populate();
     await this.checkPermissions();
     await this.scheduleResetOutOfFundsState();
@@ -118,36 +125,49 @@ export class Background {
   }
 
   bindWindowHandlers() {
+    this.browser.windows.onCreated.addListener(
+      this.windowState.onWindowCreated,
+    );
+
+    this.browser.windows.onRemoved.addListener(
+      this.windowState.onWindowRemoved,
+    );
+
+    let popupOpen = false;
     this.browser.windows.onFocusChanged.addListener(async () => {
       const windows = await this.browser.windows.getAll({
-        windowTypes: ['normal', 'panel', 'popup'],
+        windowTypes: ['normal'],
       });
-      windows.forEach(async (w) => {
-        const activeTab = (
-          await this.browser.tabs.query({ windowId: w.id, active: true })
-        )[0];
-        if (!activeTab?.id) return;
-        if (this.sendToPopup.isPopupOpen) {
-          this.logger.debug('Popup is open, ignoring focus change');
-          return;
-        }
+      const popupWasOpen = popupOpen;
+      popupOpen = this.sendToPopup.isPopupOpen;
+      if (popupWasOpen || popupOpen) {
+        // This is intentionally called after windows.getAll, to add a little
+        // delay for popup port to open
+        this.logger.debug('Popup is open, ignoring focus change');
+        return;
+      }
+      for (const window of windows) {
+        const windowId = window.id!;
 
-        if (w.focused) {
-          this.logger.debug(
-            `Trying to resume monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`,
+        const tabIds = await this.windowState.getTabsForCurrentView(windowId);
+        if (window.focused) {
+          this.windowState.setCurrentWindowId(windowId);
+          this.logger.info(
+            `[focus change] resume monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
-          void this.monetizationService.resumePaymentSessionsByTabId(
-            activeTab.id,
-          );
+          for (const tabId of tabIds) {
+            await this.monetizationService.resumePaymentSessionsByTabId(tabId);
+          }
+          await this.updateVisualIndicatorsForCurrentTab();
         } else {
-          this.logger.debug(
-            `Trying to pause monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`,
+          this.logger.info(
+            `[focus change] stop monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
-          void this.monetizationService.stopPaymentSessionsByTabId(
-            activeTab.id,
-          );
+          for (const tabId of tabIds) {
+            void this.monetizationService.stopPaymentSessionsByTabId(tabId);
+          }
         }
-      });
+      }
     });
   }
 
@@ -166,7 +186,11 @@ export class Background {
           switch (message.action) {
             // region Popup
             case 'GET_CONTEXT_DATA':
-              return success(await this.monetizationService.getPopupData());
+              return success(
+                await this.monetizationService.getPopupData(
+                  await this.windowState.getCurrentTab(),
+                ),
+              );
 
             case 'CONNECT_WALLET':
               await this.openPaymentsService.connectWallet(message.payload);
@@ -221,6 +245,10 @@ export class Background {
                 await getWalletInformation(message.payload.walletAddressUrl),
               );
 
+            case 'TAB_FOCUSED':
+              await this.tabEvents.onFocussedTab(getTab(sender));
+              return;
+
             case 'START_MONETIZATION':
               await this.monetizationService.startPaymentSession(
                 message.payload,
@@ -241,9 +269,6 @@ export class Background {
                 sender,
               );
               return;
-
-            case 'IS_WM_ENABLED':
-              return success(await this.storage.getWMState());
 
             // endregion
 
@@ -269,9 +294,9 @@ export class Background {
   }
 
   private async updateVisualIndicatorsForCurrentTab() {
-    const activeTab = await getCurrentActiveTab(this.browser);
+    const activeTab = await this.windowState.getCurrentTab();
     if (activeTab?.id) {
-      void this.tabEvents.updateVisualIndicators(activeTab.id, activeTab.url);
+      void this.tabEvents.updateVisualIndicators(activeTab);
     }
   }
 
@@ -288,7 +313,7 @@ export class Background {
 
     this.events.on('monetization.state_update', async (tabId) => {
       const tab = await this.browser.tabs.get(tabId);
-      void this.tabEvents.updateVisualIndicators(tabId, tab?.url);
+      void this.tabEvents.updateVisualIndicators(tab);
     });
 
     this.events.on('storage.balance_update', (balance) =>

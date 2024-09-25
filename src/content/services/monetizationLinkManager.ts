@@ -95,6 +95,7 @@ export class MonetizationLinkManager extends EventEmitter {
       this.onDocumentVisibilityChange,
     );
     this.window.removeEventListener('message', this.onWindowMessage);
+    this.window.removeEventListener('focus', this.onFocus);
   }
 
   /**
@@ -105,6 +106,8 @@ export class MonetizationLinkManager extends EventEmitter {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
+    this.onFocus();
+    this.window.addEventListener('focus', this.onFocus);
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.addEventListener('message', this.onWindowMessage);
@@ -346,6 +349,12 @@ export class MonetizationLinkManager extends EventEmitter {
       await this.resumeMonetization();
     } else {
       await this.stopMonetization();
+    }
+  };
+
+  private onFocus = async () => {
+    if (this.document.hasFocus()) {
+      await this.message.send('TAB_FOCUSED');
     }
   };
 

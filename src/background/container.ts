@@ -7,6 +7,7 @@ import {
   Background,
   TabEvents,
   TabState,
+  WindowState,
   SendToPopup,
   EventsService,
   Heartbeat,
@@ -14,7 +15,12 @@ import {
 } from './services';
 import { createLogger, Logger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
-import { tFactory, type Translation } from '@/shared/helpers';
+import {
+  getBrowserName,
+  tFactory,
+  type BrowserName,
+  type Translation,
+} from '@/shared/helpers';
 import {
   MessageManager,
   type BackgroundToContentMessage,
@@ -23,6 +29,7 @@ import {
 export interface Cradle {
   logger: Logger;
   browser: Browser;
+  browserName: BrowserName;
   events: EventsService;
   deduplicator: Deduplicator;
   storage: StorageService;
@@ -34,6 +41,7 @@ export interface Cradle {
   background: Background;
   t: Translation;
   tabState: TabState;
+  windowState: WindowState;
   heartbeat: Heartbeat;
 }
 
@@ -47,6 +55,7 @@ export const configureContainer = () => {
   container.register({
     logger: asValue(logger),
     browser: asValue(browser),
+    browserName: asValue(getBrowserName(browser, navigator.userAgent)),
     t: asValue(tFactory(browser)),
     events: asClass(EventsService).singleton(),
     deduplicator: asClass(Deduplicator)
@@ -81,6 +90,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('tab-state'),
+      })),
+    windowState: asClass(WindowState)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('window-state'),
       })),
     heartbeat: asClass(Heartbeat).singleton(),
   });

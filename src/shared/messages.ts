@@ -176,6 +176,10 @@ export type ContentToBackgroundMessage = {
     input: GetWalletAddressInfoPayload;
     output: WalletAddress;
   };
+  TAB_FOCUSED: {
+    input: never;
+    output: never;
+  };
   STOP_MONETIZATION: {
     input: StopMonetizationPayload;
     output: never;
@@ -187,10 +191,6 @@ export type ContentToBackgroundMessage = {
   RESUME_MONETIZATION: {
     input: ResumeMonetizationPayload;
     output: never;
-  };
-  IS_WM_ENABLED: {
-    input: never;
-    output: boolean;
   };
 };
 // #endregion
@@ -224,6 +224,10 @@ export type BackgroundToContentMessage = {
     input: MonetizationEventPayload;
     output: never;
   };
+  IS_TAB_IN_VIEW: {
+    input: undefined;
+    output: boolean;
+  };
 };
 
 export type ToContentMessage = {
@@ -240,9 +244,8 @@ export const BACKGROUND_TO_POPUP_CONNECTION_NAME = 'popup';
 // These methods are fire-and-forget, nothing is returned.
 export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>;
-  SET_IS_MONETIZED: boolean;
+  SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
-  SET_ALL_SESSIONS_INVALID: boolean;
 }
 
 export type BackgroundToPopupMessage = {
