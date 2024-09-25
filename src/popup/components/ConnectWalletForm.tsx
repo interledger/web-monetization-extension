@@ -193,10 +193,10 @@ export const ConnectWalletForm = ({
   return (
     <form
       data-testid="connect-wallet-form"
-      className="space-y-4"
+      className="flex flex-col gap-4"
       onSubmit={handleSubmit}
     >
-      <div>
+      <div className={cn(!!errors.connect && 'sr-only')}>
         <h2 className="text-center text-lg text-strong">
           {t('connectWallet_text_title')}
         </h2>
@@ -205,7 +205,9 @@ export const ConnectWalletForm = ({
         </p>
       </div>
 
-      {errors.connect && <ErrorMessage error={errors.connect} />}
+      {errors.connect && (
+        <ErrorMessage error={errors.connect} className="my-0" />
+      )}
 
       <Input
         type="text"
@@ -297,7 +299,12 @@ export const ConnectWalletForm = ({
         />
       )}
 
-      <div className={cn('space-y-1', !errors.keyPair && 'pt-4')}>
+      <div
+        className={cn(
+          'space-y-1',
+          !errors.keyPair && !autoKeyShareFailed && 'pt-4',
+        )}
+      >
         <Button
           type="submit"
           className="w-full"
