@@ -115,13 +115,6 @@
   "connectWallet_action_connect": {
     "message": "Connect"
   },
-  "connectWallet_text_autoPublicKeyNotice": {
-    "message": "We'll automatically add a key-pair with your wallet provider."
-  },
-  "connectWallet_text_autoPublicKeyNoticeLearnMore": {
-    "message": "Learn more",
-    "description": "Learn more about how this works"
-  },
   "connectWallet_error_urlRequired": {
     "message": "Wallet address is required."
   },
