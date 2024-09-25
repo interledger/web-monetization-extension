@@ -11,6 +11,7 @@ test('connects with correct details provided', async ({
   background,
   popup,
   i18n,
+  page,
 }) => {
   const {
     CONNECT_KEY_ID,
@@ -44,10 +45,6 @@ test('connects with correct details provided', async ({
   const settingsLink = popup.locator(`[href="/settings"]`).first();
   await expect(settingsLink).toBeVisible();
 
-  await expect(popup.locator('h3')).toHaveText(
-    i18n.getMessage('siteNotMonetized_state_text'),
-  );
-
   const storage = await background.evaluate(() => {
     return chrome.storage.local.get([
       'connected',
@@ -65,6 +62,11 @@ test('connects with correct details provided', async ({
       },
     },
   });
+
+  await page.goto('https://webmonetization.org/play/');
+  await expect(popup.locator('h3')).toHaveText(
+    i18n.getMessage('notMonetized_text_noLinks'),
+  );
 
   await disconnectWallet(popup);
   expect(
