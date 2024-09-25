@@ -22,16 +22,16 @@
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "notMonetized_text_noLinks": {
-    "message": "This website is not monetized"
+    "message": "This website is not monetized."
   },
   "notMonetized_text_newTab": {
-    "message": "You cannot monetize empty tabs"
+    "message": "The extension doesn't support empty tabs."
   },
   "notMonetized_text_internalPage": {
-    "message": "The extension can't access browser's internal pages"
+    "message": "The extension can't access browser's internal pages."
   },
   "notMonetized_text_unsupportedScheme": {
-    "message": "Web Monetization only works with https:// websites"
+    "message": "Web Monetization only works with https:// websites."
   },
   "keyRevoked_error_title": {
     "message": "Unauthorized access to wallet"
