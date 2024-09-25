@@ -1,7 +1,11 @@
+import type { Tabs } from 'webextension-polyfill';
 import type { MonetizationEventDetails } from '@/shared/messages';
-import type { TabId } from '@/shared/types';
+import type { PopupTabInfo, TabId } from '@/shared/types';
 import type { PaymentSession } from './paymentSession';
 import type { Cradle } from '@/background/container';
+import { removeQueryParams } from '@/shared/helpers';
+import { ALLOWED_PROTOCOLS } from '@/shared/defines';
+import { isBrowserInternalPage, isBrowserNewTabPage } from '@/background/utils';
 
 type State = {
   monetizationEvent: MonetizationEventDetails;
@@ -117,6 +121,46 @@ export class TabState {
 
   getAllSessions() {
     return [...this.sessions.values()].flatMap((s) => [...s.values()]);
+  }
+
+  getPopupTabData(tab: Pick<Tabs.Tab, 'id' | 'url'>): PopupTabInfo {
+    if (!tab.id) {
+      throw new Error('Tab does not have an ID');
+    }
+
+    let tabUrl: URL | null = null;
+    try {
+      tabUrl = new URL(tab.url ?? '');
+    } catch {
+      // noop
+    }
+
+    let url = '';
+    if (tabUrl && ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
+      // Do not include search params
+      url = removeQueryParams(tabUrl.href);
+    }
+
+    let status: PopupTabInfo['status'] = 'no_monetization_links';
+    if (!tabUrl) {
+      status = 'unsupported_scheme';
+    } else if (!ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
+      if (tabUrl && isBrowserInternalPage(tabUrl)) {
+        if (isBrowserNewTabPage(tabUrl)) {
+          status = 'new_tab';
+        } else {
+          status = 'internal_page';
+        }
+      } else {
+        status = 'unsupported_scheme';
+      }
+    } else if (this.tabHasAllSessionsInvalid(tab.id)) {
+      status = 'all_sessions_invalid';
+    } else if (this.isTabMonetized(tab.id)) {
+      status = 'monetized';
+    }
+
+    return { tabId: tab.id, url, status };
   }
 
   getIcon(tabId: TabId) {

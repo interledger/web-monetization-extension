@@ -296,7 +296,7 @@ export class Background {
   private async updateVisualIndicatorsForCurrentTab() {
     const activeTab = await this.windowState.getCurrentTab();
     if (activeTab?.id) {
-      void this.tabEvents.updateVisualIndicators(activeTab.id, activeTab.url);
+      void this.tabEvents.updateVisualIndicators(activeTab);
     }
   }
 
@@ -313,7 +313,7 @@ export class Background {
 
     this.events.on('monetization.state_update', async (tabId) => {
       const tab = await this.browser.tabs.get(tabId);
-      void this.tabEvents.updateVisualIndicators(tabId, tab?.url);
+      void this.tabEvents.updateVisualIndicators(tab);
     });
 
     this.events.on('storage.balance_update', (balance) =>
