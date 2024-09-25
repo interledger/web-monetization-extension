@@ -1,9 +1,10 @@
 import { isOkState, removeQueryParams } from '@/shared/helpers';
 import { ALLOWED_PROTOCOLS } from '@/shared/defines';
 import type { Storage, TabId } from '@/shared/types';
-import type { Browser } from 'webextension-polyfill';
+import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
 
+type IconPath = Record<number, string>;
 const ICONS = {
   default: {
     32: '/assets/icons/32x32/default.png',
@@ -45,7 +46,7 @@ const ICONS = {
     48: '/assets/icons/48x48/disabled-warn.png',
     128: '/assets/icons/128x128/disabled-warn.png',
   },
-};
+} satisfies Record<string, IconPath>;
 
 type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
   Parameters<Browser['tabs'][T]['addListener']>[0];
@@ -53,17 +54,29 @@ type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
 export class TabEvents {
   private storage: Cradle['storage'];
   private tabState: Cradle['tabState'];
+  private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
   private t: Cradle['t'];
   private browser: Cradle['browser'];
+  private browserName: Cradle['browserName'];
 
-  constructor({ storage, tabState, sendToPopup, t, browser }: Cradle) {
+  constructor({
+    storage,
+    tabState,
+    windowState,
+    sendToPopup,
+    t,
+    browser,
+    browserName,
+  }: Cradle) {
     Object.assign(this, {
       storage,
       tabState,
+      windowState,
       sendToPopup,
       t,
       browser,
+      browserName,
     });
   }
 
@@ -84,19 +97,33 @@ export class TabEvents {
     }
   };
 
-  onRemovedTab: CallbackTab<'onRemoved'> = (tabId, _removeInfo) => {
+  onRemovedTab: CallbackTab<'onRemoved'> = (tabId, info) => {
+    this.windowState.removeTab(tabId, info.windowId);
     this.tabState.clearSessionsByTabId(tabId);
     this.tabState.clearOverpayingByTabId(tabId);
   };
 
   onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
+    this.windowState.addTab(info.tabId, info.windowId);
+    const updated = this.windowState.setCurrentTabId(info.windowId, info.tabId);
+    if (!updated) return;
     const tab = await this.browser.tabs.get(info.tabId);
     await this.updateVisualIndicators(info.tabId, tab?.url);
   };
 
   onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
     if (!tab.id) return;
+    this.windowState.addTab(tab.id, tab.windowId);
     await this.updateVisualIndicators(tab.id, tab.url);
+  };
+
+  onFocussedTab = async (tab: Tabs.Tab) => {
+    if (!tab.id) return;
+    this.windowState.addTab(tab.id, tab.windowId);
+    const updated = this.windowState.setCurrentTabId(tab.windowId!, tab.id);
+    if (!updated) return;
+    const tabUrl = tab.url ?? (await this.browser.tabs.get(tab.id)).url;
+    await this.updateVisualIndicators(tab.id, tabUrl);
   };
 
   updateVisualIndicators = async (
@@ -128,20 +155,33 @@ export class TabEvents {
 
     this.sendToPopup.send('SET_IS_MONETIZED', isMonetized);
     this.sendToPopup.send('SET_ALL_SESSIONS_INVALID', hasTabAllSessionsInvalid);
-    await this.setIconAndTooltip(path, title, tabId);
+    await this.setIconAndTooltip(tabId, path, title);
   };
 
   private setIconAndTooltip = async (
-    path: (typeof ICONS)[keyof typeof ICONS],
-    title: string,
     tabId: TabId,
+    icon: IconPath,
+    title: string,
   ) => {
-    if (this.tabState.getIcon(tabId) !== path) {
-      this.tabState.setIcon(tabId, path);
-      await this.browser.action.setIcon({ path, tabId });
-    }
+    await this.setIcon(tabId, icon);
     await this.browser.action.setTitle({ title, tabId });
   };
+
+  private async setIcon(tabId: TabId, icon: IconPath) {
+    if (this.browserName === 'edge') {
+      // Edge has split-view, and if we specify a tabId, it will only set the
+      // icon for the left-pane when split-view is open. So, we ignore the
+      // tabId. As it's inefficient, we do it only for Edge.
+      // We'd have set this for a windowId, but that's not supported in Edge/Chrome
+      await this.browser.action.setIcon({ path: icon });
+      return;
+    }
+
+    if (this.tabState.getIcon(tabId) !== icon) {
+      this.tabState.setIcon(tabId, icon); // memoize
+      await this.browser.action.setIcon({ path: icon, tabId });
+    }
+  }
 
   private getIconAndTooltip({
     enabled,

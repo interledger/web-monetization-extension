@@ -108,4 +108,8 @@ export type DeepNonNullable<T> = {
   [P in keyof T]?: NonNullable<T[P]>;
 };
 
+export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
+
+export type Tab = RequiredFields<Tabs.Tab, 'id' | 'url'>;
 export type TabId = NonNullable<Tabs.Tab['id']>;
+export type WindowId = NonNullable<Tabs.Tab['windowId']>;

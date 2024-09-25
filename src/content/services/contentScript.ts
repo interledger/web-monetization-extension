@@ -1,6 +1,6 @@
 import type { ToContentMessage } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
-import { failure } from '@/shared/helpers';
+import { failure, success } from '@/shared/helpers';
 
 export class ContentScript {
   private browser: Cradle['browser'];
@@ -54,6 +54,8 @@ export class ContentScript {
                 message.payload,
               );
               return;
+            case 'IS_TAB_IN_VIEW':
+              return success(document.visibilityState === 'visible');
             default:
               return;
           }

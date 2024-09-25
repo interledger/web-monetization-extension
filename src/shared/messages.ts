@@ -175,6 +175,10 @@ export type ContentToBackgroundMessage = {
     input: GetWalletAddressInfoPayload;
     output: WalletAddress;
   };
+  TAB_FOCUSED: {
+    input: never;
+    output: never;
+  };
   STOP_MONETIZATION: {
     input: StopMonetizationPayload;
     output: never;
@@ -186,10 +190,6 @@ export type ContentToBackgroundMessage = {
   RESUME_MONETIZATION: {
     input: ResumeMonetizationPayload;
     output: never;
-  };
-  IS_WM_ENABLED: {
-    input: never;
-    output: boolean;
   };
 };
 // #endregion
@@ -222,6 +222,10 @@ export type BackgroundToContentMessage = {
   MONETIZATION_EVENT: {
     input: MonetizationEventPayload;
     output: never;
+  };
+  IS_TAB_IN_VIEW: {
+    input: undefined;
+    output: boolean;
   };
 };
 

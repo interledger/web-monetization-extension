@@ -1,16 +1,11 @@
-import type { Runtime } from 'webextension-polyfill';
+import type { Runtime, Tabs } from 'webextension-polyfill';
 import {
   ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload,
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
-import {
-  computeRate,
-  getCurrentActiveTab,
-  getSender,
-  getTabId,
-} from '../utils';
+import { computeRate, getSender, getTabId } from '../utils';
 import { isOutOfBalanceError } from './openPayments';
 import { isOkState, removeQueryParams } from '@/shared/helpers';
 import { ALLOWED_PROTOCOLS } from '@/shared/defines';
@@ -25,6 +20,7 @@ export class MonetizationService {
   private browser: Cradle['browser'];
   private events: Cradle['events'];
   private tabState: Cradle['tabState'];
+  private windowState: Cradle['windowState'];
   private message: Cradle['message'];
 
   constructor({
@@ -35,6 +31,7 @@ export class MonetizationService {
     events,
     openPaymentsService,
     tabState,
+    windowState,
     message,
   }: Cradle) {
     Object.assign(this, {
@@ -45,6 +42,7 @@ export class MonetizationService {
       browser,
       events,
       tabState,
+      windowState,
       message,
     });
 
@@ -236,7 +234,7 @@ export class MonetizationService {
   }
 
   async resumePaymentSessionActiveTab() {
-    const currentTab = await getCurrentActiveTab(this.browser);
+    const currentTab = await this.windowState.getCurrentTab();
     if (!currentTab?.id) return;
     await this.resumePaymentSessionsByTabId(currentTab.id);
   }
@@ -253,7 +251,7 @@ export class MonetizationService {
   }
 
   async pay(amount: string) {
-    const tab = await getCurrentActiveTab(this.browser);
+    const tab = await this.windowState.getCurrentTab();
     if (!tab || !tab.id) {
       throw new Error('Unexpected error: could not find active tab.');
     }
@@ -316,7 +314,7 @@ export class MonetizationService {
       const tabIds = this.tabState.getAllTabs();
 
       // Move the current active tab to the front of the array
-      const currentTab = await getCurrentActiveTab(this.browser);
+      const currentTab = await this.windowState.getCurrentTab();
       if (currentTab?.id) {
         const idx = tabIds.indexOf(currentTab.id);
         if (idx !== -1) {
@@ -371,7 +369,7 @@ export class MonetizationService {
     this.logger.debug(`All payment sessions stopped.`);
   }
 
-  async getPopupData(): Promise<PopupStore> {
+  async getPopupData(tab: Pick<Tabs.Tab, 'id' | 'url'>): Promise<PopupStore> {
     const storedData = await this.storage.get([
       'enabled',
       'connected',
@@ -385,10 +383,13 @@ export class MonetizationService {
       'publicKey',
     ]);
     const balance = await this.storage.getBalance();
-    const tab = await getCurrentActiveTab(this.browser);
 
     const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData;
 
+    const tabId = tab.id;
+    if (!tabId) {
+      throw new Error('Tab ID not found');
+    }
     let url;
     if (tab && tab.url) {
       try {
@@ -401,10 +402,8 @@ export class MonetizationService {
         // noop
       }
     }
-    const isSiteMonetized = this.tabState.isTabMonetized(tab.id!);
-    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(
-      tab.id!,
-    );
+    const isSiteMonetized = this.tabState.isTabMonetized(tabId);
+    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(tabId);
 
     return {
       ...dataFromStorage,

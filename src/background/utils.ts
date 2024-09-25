@@ -1,5 +1,10 @@
-import type { AmountValue, GrantDetails, WalletAmount } from '@/shared/types';
-import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
+import type {
+  AmountValue,
+  GrantDetails,
+  Tab,
+  WalletAmount,
+} from '@/shared/types';
+import type { Browser, Runtime } from 'webextension-polyfill';
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
 import { notNullOrUndef } from '@/shared/helpers';
 
@@ -81,8 +86,8 @@ export const getTabId = (sender: Runtime.MessageSender): number => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab').id, 'tab.id');
 };
 
-export const getTab = (sender: Runtime.MessageSender): Tabs.Tab => {
-  return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab');
+export const getTab = (sender: Runtime.MessageSender): Tab => {
+  return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab') as Tab;
 };
 
 export const getSender = (sender: Runtime.MessageSender) => {
