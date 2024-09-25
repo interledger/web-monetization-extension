@@ -6,6 +6,7 @@ import type {
 } from '@/shared/types';
 import type { Browser, Runtime } from 'webextension-polyfill';
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
+import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
 
 export const getCurrentActiveTab = async (browser: Browser) => {
@@ -95,6 +96,14 @@ export const getSender = (sender: Runtime.MessageSender) => {
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId');
 
   return { tabId, frameId, url: sender.url };
+};
+
+export const isBrowserInternalPage = (url: URL) => {
+  return INTERNAL_PAGE_URL_PROTOCOLS.has(url.protocol);
+};
+
+export const isBrowserNewTabPage = (url: URL) => {
+  return NEW_TAB_PAGES.some((e) => url.href.startsWith(e));
 };
 
 export const computeRate = (rate: string, sessionsCount: number): AmountValue =>

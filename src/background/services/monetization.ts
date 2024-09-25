@@ -8,7 +8,6 @@ import { PaymentSession } from './paymentSession';
 import { computeRate, getSender, getTabId } from '../utils';
 import { isOutOfBalanceError } from './openPayments';
 import { isOkState, removeQueryParams } from '@/shared/helpers';
-import { ALLOWED_PROTOCOLS } from '@/shared/defines';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
 import type { Cradle } from '../container';
 
@@ -386,35 +385,14 @@ export class MonetizationService {
 
     const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData;
 
-    const tabId = tab.id;
-    if (!tabId) {
-      throw new Error('Tab ID not found');
-    }
-    let url;
-    if (tab && tab.url) {
-      try {
-        const tabUrl = new URL(tab.url);
-        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
-          // Do not include search params
-          url = `${tabUrl.origin}${tabUrl.pathname}`;
-        }
-      } catch {
-        // noop
-      }
-    }
-    const isSiteMonetized = this.tabState.isTabMonetized(tabId);
-    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(tabId);
-
     return {
       ...dataFromStorage,
       balance: balance.total.toString(),
-      url,
+      tab: this.tabState.getPopupTabData(tab),
       grants: {
         oneTime: oneTimeGrant?.amount,
         recurring: recurringGrant?.amount,
       },
-      isSiteMonetized,
-      hasAllSessionsInvalid,
     };
   }
 

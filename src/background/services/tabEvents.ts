@@ -1,6 +1,5 @@
 import { isOkState, removeQueryParams } from '@/shared/helpers';
-import { ALLOWED_PROTOCOLS } from '@/shared/defines';
-import type { Storage, TabId } from '@/shared/types';
+import type { PopupTabInfo, Storage, TabId } from '@/shared/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
 
@@ -93,7 +92,8 @@ export class TabEvents {
       if (clearOverpaying) {
         this.tabState.clearOverpayingByTabId(tabId);
       }
-      void this.updateVisualIndicators(tabId, url);
+      if (!tab.id) return;
+      void this.updateVisualIndicators(tab);
     }
   };
 
@@ -108,13 +108,13 @@ export class TabEvents {
     const updated = this.windowState.setCurrentTabId(info.windowId, info.tabId);
     if (!updated) return;
     const tab = await this.browser.tabs.get(info.tabId);
-    await this.updateVisualIndicators(info.tabId, tab?.url);
+    await this.updateVisualIndicators(tab);
   };
 
   onCreatedTab: CallbackTab<'onCreated'> = async (tab) => {
     if (!tab.id) return;
     this.windowState.addTab(tab.id, tab.windowId);
-    await this.updateVisualIndicators(tab.id, tab.url);
+    await this.updateVisualIndicators(tab);
   };
 
   onFocussedTab = async (tab: Tabs.Tab) => {
@@ -122,40 +122,24 @@ export class TabEvents {
     this.windowState.addTab(tab.id, tab.windowId);
     const updated = this.windowState.setCurrentTabId(tab.windowId!, tab.id);
     if (!updated) return;
-    const tabUrl = tab.url ?? (await this.browser.tabs.get(tab.id)).url;
-    await this.updateVisualIndicators(tab.id, tabUrl);
+    await this.updateVisualIndicators(tab);
   };
 
-  updateVisualIndicators = async (
-    tabId: TabId,
-    tabUrl?: string,
-    isTabMonetized: boolean = tabId
-      ? this.tabState.isTabMonetized(tabId)
-      : false,
-    hasTabAllSessionsInvalid: boolean = tabId
-      ? this.tabState.tabHasAllSessionsInvalid(tabId)
-      : false,
-  ) => {
-    const canMonetizeTab = ALLOWED_PROTOCOLS.some((scheme) =>
-      tabUrl?.startsWith(scheme),
-    );
+  updateVisualIndicators = async (tab: Tabs.Tab) => {
+    const tabInfo = this.tabState.getPopupTabData(tab);
+    this.sendToPopup.send('SET_TAB_DATA', tabInfo);
     const { enabled, connected, state } = await this.storage.get([
       'enabled',
       'connected',
       'state',
     ]);
-    const { path, title, isMonetized } = this.getIconAndTooltip({
+    const { path, title } = this.getIconAndTooltip({
       enabled,
       connected,
       state,
-      canMonetizeTab,
-      isTabMonetized,
-      hasTabAllSessionsInvalid,
+      tabInfo,
     });
-
-    this.sendToPopup.send('SET_IS_MONETIZED', isMonetized);
-    this.sendToPopup.send('SET_ALL_SESSIONS_INVALID', hasTabAllSessionsInvalid);
-    await this.setIconAndTooltip(tabId, path, title);
+    await this.setIconAndTooltip(tabInfo.tabId, path, title);
   };
 
   private setIconAndTooltip = async (
@@ -187,26 +171,28 @@ export class TabEvents {
     enabled,
     connected,
     state,
-    canMonetizeTab,
-    isTabMonetized,
-    hasTabAllSessionsInvalid,
+    tabInfo,
   }: {
     enabled: Storage['enabled'];
     connected: Storage['connected'];
     state: Storage['state'];
-    canMonetizeTab: boolean;
-    isTabMonetized: boolean;
-    hasTabAllSessionsInvalid: boolean;
+    tabInfo: PopupTabInfo;
   }) {
     let title = this.t('appName');
     let iconData = ICONS.default;
-    if (!connected || !canMonetizeTab) {
+    if (!connected) {
       // use defaults
-    } else if (!isOkState(state) || hasTabAllSessionsInvalid) {
+    } else if (!isOkState(state) || tabInfo.status === 'all_sessions_invalid') {
       iconData = enabled ? ICONS.enabled_warn : ICONS.disabled_warn;
       const tabStateText = this.t('icon_state_actionRequired');
       title = `${title} - ${tabStateText}`;
+    } else if (
+      tabInfo.status !== 'monetized' &&
+      tabInfo.status !== 'no_monetization_links'
+    ) {
+      // use defaults
     } else {
+      const isTabMonetized = tabInfo.status === 'monetized';
       if (enabled) {
         iconData = isTabMonetized
           ? ICONS.enabled_hasLinks
@@ -222,10 +208,6 @@ export class TabEvents {
       title = `${title} - ${tabStateText}`;
     }
 
-    return {
-      path: iconData,
-      isMonetized: isTabMonetized,
-      title,
-    };
+    return { path: iconData, title };
   }
 }

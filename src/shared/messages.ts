@@ -243,9 +243,8 @@ export const BACKGROUND_TO_POPUP_CONNECTION_NAME = 'popup';
 // These methods are fire-and-forget, nothing is returned.
 export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>;
-  SET_IS_MONETIZED: boolean;
+  SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
-  SET_ALL_SESSIONS_INVALID: boolean;
 }
 
 export type BackgroundToPopupMessage = {

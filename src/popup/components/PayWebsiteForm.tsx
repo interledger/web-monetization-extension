@@ -26,7 +26,7 @@ const BUTTON_STATE = {
 export const PayWebsiteForm = () => {
   const message = useMessage();
   const {
-    state: { walletAddress, url },
+    state: { walletAddress, tab },
   } = usePopupState();
   const [buttonState, setButtonState] =
     React.useState<keyof typeof BUTTON_STATE>('idle');
@@ -84,7 +84,7 @@ export const PayWebsiteForm = () => {
         addOn={getCurrencySymbol(walletAddress.assetCode)}
         label={
           <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-            Pay <span className="text-ellipsis text-primary">{url}</span>
+            Pay <span className="text-ellipsis text-primary">{tab.url}</span>
           </p>
         }
         placeholder="0.00"

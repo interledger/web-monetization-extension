@@ -73,12 +73,10 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
       return { ...state, rateOfPay: action.data.rateOfPay };
     case 'SET_STATE':
       return { ...state, state: action.data.state };
-    case 'SET_IS_MONETIZED':
-      return { ...state, isSiteMonetized: action.data };
+    case 'SET_TAB_DATA':
+      return { ...state, tab: action.data };
     case 'SET_BALANCE':
       return { ...state, balance: action.data.total };
-    case 'SET_ALL_SESSIONS_INVALID':
-      return { ...state, hasAllSessionsInvalid: action.data };
     default:
       return state;
   }
@@ -113,8 +111,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
       switch (message.type) {
         case 'SET_BALANCE':
         case 'SET_STATE':
-        case 'SET_IS_MONETIZED':
-        case 'SET_ALL_SESSIONS_INVALID':
+        case 'SET_TAB_DATA':
           return dispatch(message);
       }
     });
