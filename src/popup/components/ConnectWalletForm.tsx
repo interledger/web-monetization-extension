@@ -352,9 +352,9 @@ export const ConnectWalletForm = ({
         </Button>
 
         {!errors.keyPair && !autoKeyShareFailed && (
-          <AutomaticKeyPairNote
-            text={t('connectWallet_text_autoPublicKeyNotice')}
-            learnMoreText={t('connectWallet_text_autoPublicKeyNoticeLearnMore')}
+          <Footer
+            text={t('connectWallet_text_footerNotice')}
+            learnMoreText={t('connectWallet_text_footerNoticeLearnMore')}
           />
         )}
       </div>
@@ -404,17 +404,16 @@ const ManualKeyPairNeeded: React.FC<{
   );
 };
 
-const AutomaticKeyPairNote: React.FC<{
+const Footer: React.FC<{
   text: string;
   learnMoreText: string;
 }> = ({ text, learnMoreText }) => {
   return (
     <p className="text-center text-xs text-weak">
-      {text}
-      <br />
+      {text}{' '}
       <a
         href="https://webmonetization.org"
-        className="text-primary"
+        className="text-primary hover:underline"
         target="_blank"
         rel="noreferrer"
       >

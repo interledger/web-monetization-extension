@@ -115,10 +115,10 @@
   "connectWallet_action_connect": {
     "message": "Connect"
   },
-  "connectWallet_text_autoPublicKeyNotice": {
-    "message": "We'll automatically add a key-pair with your wallet provider."
+  "connectWallet_text_footerNotice": {
+    "message": "We'll automatically connect with your wallet provider."
   },
-  "connectWallet_text_autoPublicKeyNoticeLearnMore": {
+  "connectWallet_text_footerNoticeLearnMore": {
     "message": "Learn more",
     "description": "Learn more about how this works"
   },
