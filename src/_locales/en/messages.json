@@ -18,7 +18,7 @@
     "message": "Permission to access your data for all websites is required to use Web Monetization."
   },
   "notMonetized_text_allInvalid": {
-    "message": "At the moment, you cannot pay this website",
+    "message": "At the moment, you cannot pay this website.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "notMonetized_text_noLinks": {
