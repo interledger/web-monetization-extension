@@ -107,7 +107,7 @@
     "message": "Renew monthly"
   },
   "connectWallet_label_publicKey": {
-    "message": "Please copy this key and paste it into your wallet manually and then connect."
+    "message": "Please copy this key, paste it into your wallet manually and then connect."
   },
   "connectWallet_text_publicKeyLearnMore": {
     "message": "Learn more."
@@ -144,7 +144,7 @@
     }
   },
   "connectWallet_error_failedAutoKeyAdd": {
-    "message": "We couldn't automatically share the key-pair with your provider."
+    "message": "We couldn't automatically connect to your wallet."
   },
   "connectWallet_error_failedAutoKeyAddWhy": {
     "message": "Why?",
