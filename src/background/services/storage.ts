@@ -2,6 +2,7 @@ import type {
   AmountValue,
   ExtensionState,
   GrantDetails,
+  PopupTransientState,
   Storage,
   StorageKey,
   WalletAmount,
@@ -41,6 +42,8 @@ export class StorageService {
   private setSpentAmountOneTime: ThrottleBatch<[amount: string]>;
   // used as an optimization/cache
   private currentState: Storage['state'] | null = null;
+
+  private popupTransientState: PopupTransientState = {};
 
   constructor({ browser, events }: Cradle) {
     Object.assign(this, { browser, events });
@@ -200,6 +203,21 @@ export class StorageService {
   async updateRate(rate: string): Promise<void> {
     await this.set({ rateOfPay: rate });
     this.events.emit('storage.rate_of_pay_update', { rate });
+  }
+
+  setPopupTransientState(
+    id: string,
+    update: (prev?: PopupTransientState[string]) => PopupTransientState[string],
+  ) {
+    const newState = update(this.popupTransientState[id]);
+    this.popupTransientState[id] = newState;
+
+    const state = this.getPopupTransientState();
+    this.events.emit('storage.popup_transient_state_update', state);
+  }
+
+  getPopupTransientState(): PopupTransientState {
+    return this.popupTransientState;
   }
 }
 

@@ -1,5 +1,10 @@
 import { EventEmitter } from 'events';
-import type { AmountValue, Storage, TabId } from '@/shared/types';
+import type {
+  AmountValue,
+  PopupTransientState,
+  Storage,
+  TabId,
+} from '@/shared/types';
 
 interface BackgroundEvents {
   'open_payments.key_revoked': void;
@@ -10,6 +15,7 @@ interface BackgroundEvents {
     state: Storage['state'];
     prevState: Storage['state'];
   };
+  'storage.popup_transient_state_update': PopupTransientState;
   'storage.balance_update': Record<
     'recurring' | 'oneTime' | 'total',
     AmountValue

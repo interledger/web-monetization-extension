@@ -108,6 +108,11 @@ export type PopupTabInfo = {
     | never; // just added for code formatting
 };
 
+export type PopupTransientState = Record<
+  string,
+  Record<string, unknown> | null
+>;
+
 export type PopupStore = Omit<
   Storage,
   | 'version'
@@ -119,6 +124,7 @@ export type PopupStore = Omit<
 > & {
   balance: AmountValue;
   tab: PopupTabInfo;
+  transientState: PopupTransientState;
   grants?: Partial<{
     oneTime: OneTimeGrant['amount'];
     recurring: RecurringGrant['amount'];
