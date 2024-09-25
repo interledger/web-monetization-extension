@@ -250,9 +250,7 @@ export const ConnectWalletForm = ({
             }
           }
           const ok = await handleWalletAddressUrlChange(value, input);
-          if (ok) {
-            document.getElementById('connectAmount')?.focus();
-          }
+          if (ok) document.getElementById('connectAmount')?.focus();
         }}
         onBlur={async (ev) => {
           const value = ev.currentTarget.value;
