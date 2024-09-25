@@ -50,13 +50,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     errorMessage,
     disabled,
     className,
-    id: providedId,
+    id,
     ...props
   },
   ref,
 ) {
-  let id = React.useId();
-  if (providedId) id = providedId;
+  const randomId = React.useId();
+  id ||= randomId; // cannot call useId conditionally, but use randomId only if default not provided
 
   return (
     <div className="space-y-2">
