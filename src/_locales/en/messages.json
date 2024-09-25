@@ -122,7 +122,7 @@
     "message": "Invalid wallet address URL."
   },
   "connectWallet_error_urlInvalidNotHttps": {
-    "message": "Wallet address must be a https:// URL or a payment pointer.'"
+    "message": "Wallet address must be a https:// URL or a payment pointer."
   },
   "connectWallet_error_amountRequired": {
     "message": "Amount is required."
