@@ -96,32 +96,35 @@ export const ConnectWalletForm = ({
     [getWalletInfo],
   );
 
-  const handleWalletAddressUrlChange = async (
-    value: string,
-    _input: HTMLInputElement,
-  ) => {
-    setWalletAddressInfo(null);
-    setWalletAddressUrl(value);
+  const handleWalletAddressUrlChange = React.useCallback(
+    async (value: string, _input: HTMLInputElement) => {
+      setWalletAddressInfo(null);
+      setWalletAddressUrl(value);
 
-    const error = validateWalletAddressUrl(value);
-    setErrors((_) => ({ ..._, walletAddressUrl: error ? t(error) : '' }));
-    if (!error) {
-      await getWalletInformation(value);
-    }
-    saveValue('walletAddressUrl', value);
-  };
+      const error = validateWalletAddressUrl(value);
+      setErrors((_) => ({ ..._, walletAddressUrl: error ? t(error) : '' }));
+      if (!error) {
+        await getWalletInformation(value);
+      }
+      saveValue('walletAddressUrl', value);
+    },
+    [saveValue, getWalletInformation, t],
+  );
 
-  const handleAmountChange = (value: string, input: HTMLInputElement) => {
-    const error = validateAmount(value, currencySymbol.symbol);
-    setErrors((_) => ({ ..._, amount: error ? t(error) : '' }));
+  const handleAmountChange = React.useCallback(
+    (value: string, input: HTMLInputElement) => {
+      const error = validateAmount(value, currencySymbol.symbol);
+      setErrors((_) => ({ ..._, amount: error ? t(error) : '' }));
 
-    const amountValue = formatNumber(+value, currencySymbol.scale);
-    if (!error) {
-      setAmount(amountValue);
-      input.value = amountValue;
-    }
-    saveValue('amount', error ? value : amountValue);
-  };
+      const amountValue = formatNumber(+value, currencySymbol.scale);
+      if (!error) {
+        setAmount(amountValue);
+        input.value = amountValue;
+      }
+      saveValue('amount', error ? value : amountValue);
+    },
+    [saveValue, currencySymbol, t],
+  );
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
