@@ -80,9 +80,9 @@ export const ConnectWalletForm = ({
   }>({ symbol: '$', scale: 2 });
 
   const getWalletInformation = React.useCallback(
-    async (walletAddressUrl: string): Promise<void> => {
+    async (walletAddressUrl: string): Promise<boolean> => {
       setErrors((_) => ({ ..._, walletAddressUrl: '' }));
-      if (!walletAddressUrl) return;
+      if (!walletAddressUrl) return false;
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
@@ -90,24 +90,28 @@ export const ConnectWalletForm = ({
         setWalletAddressInfo(walletAddress);
       } catch (error) {
         setErrors((_) => ({ ..._, walletAddressUrl: error.message }));
+        return false;
       } finally {
         setIsValidating((_) => ({ ..._, walletAddressUrl: false }));
       }
+      return true;
     },
     [getWalletInfo],
   );
 
   const handleWalletAddressUrlChange = React.useCallback(
-    async (value: string, _input: HTMLInputElement) => {
+    async (value: string, _input?: HTMLInputElement) => {
       setWalletAddressInfo(null);
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
       setErrors((_) => ({ ..._, walletAddressUrl: error ? t(error) : '' }));
-      if (!error) {
-        await getWalletInformation(value);
-      }
       saveValue('walletAddressUrl', value);
+      if (!error) {
+        const ok = await getWalletInformation(value);
+        return ok;
+      }
+      return false;
     },
     [saveValue, getWalletInformation, t],
   );
@@ -190,9 +194,9 @@ export const ConnectWalletForm = ({
 
   React.useEffect(() => {
     if (defaultValues.walletAddressUrl) {
-      void getWalletInformation(defaultValues.walletAddressUrl);
+      handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
     }
-  }, [defaultValues.walletAddressUrl, getWalletInformation]);
+  }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
 
   return (
     <form
@@ -231,22 +235,22 @@ export const ConnectWalletForm = ({
         spellCheck={false}
         enterKeyHint="go"
         onPaste={async (ev) => {
+          const input = ev.currentTarget;
           let value = ev.clipboardData.getData('text');
           if (!value) return;
           if (!validateWalletAddressUrl(value)) {
             ev.preventDefault(); // full url was pasted
           } else {
-            const input = ev.currentTarget;
             await sleep(0); // allow paste to be complete
             value = input.value;
           }
           if (value === walletAddressUrl) {
-            if (value || !ev.currentTarget.required) {
+            if (value || !input.required) {
               return;
             }
           }
-          await handleWalletAddressUrlChange(value, ev.currentTarget);
-          if (!errors.walletAddressUrl) {
+          const ok = await handleWalletAddressUrlChange(value, input);
+          if (ok) {
             document.getElementById('connectAmount')?.focus();
           }
         }}
