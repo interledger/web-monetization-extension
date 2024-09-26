@@ -1,5 +1,6 @@
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
+import type { TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type { ContentToBackgroundMessage } from '@/content/keyAutoAdd/lib/types';
 import { ErrorWithKey, withResolvers } from '@/shared/helpers';
@@ -30,26 +31,26 @@ export class KeyShareService {
   }
 
   async addPublicKeyToWallet(walletAddress: WalletAddress) {
-    const { publicKey } = await this.storage.get(['publicKey']);
-    if (!publicKey) {
-      // won't happen, just added for lint fix
-      throw new Error('No public key found');
-    }
     const info = walletAddressToProvider(walletAddress);
     try {
+      const { publicKey } = await this.storage.get(['publicKey']);
       this.setConnectState('adding-key');
       await this.process(info.url, {
         publicKey,
         walletAddressUrl: walletAddress.id,
       });
     } catch (error) {
-      if (this.tab?.id) {
-        // can redirect to OPEN_PAYMENTS_REDIRECT_URL
-        await this.browser.tabs.remove(this.tab.id);
-      }
       this.setConnectState('error-key');
       throw error;
     }
+  }
+
+  /**
+   * Allows re-using same tab for further processing. Available only after
+   * {@linkcode addPublicKeyToWallet} has been called.
+   */
+  get tabId(): TabId | undefined {
+    return this.tab?.id;
   }
 
   private async process(

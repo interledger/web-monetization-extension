@@ -3,6 +3,7 @@ import type {
   AccessToken,
   AmountValue,
   GrantDetails,
+  TabId,
   WalletAmount,
 } from 'shared/types';
 import {
@@ -26,7 +27,11 @@ import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
 import { KeyShareService } from './keyShare';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
-import { ErrorWithKey, getWalletInformation } from '@/shared/helpers';
+import {
+  ErrorWithKey,
+  getWalletInformation,
+  withResolvers,
+} from '@/shared/helpers';
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
@@ -44,7 +49,7 @@ interface KeyInformation {
 interface InteractionParams {
   interactRef: string;
   hash: string;
-  tabId: NonNullable<Tabs.Tab['id']>;
+  tabId: TabId;
 }
 
 export interface SignatureHeaders {
@@ -97,6 +102,7 @@ type TabRemovedCallback = Parameters<
 const enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
   HASH_FAILED = 'hash_failed',
+  KEY_ADD_FAILED = 'key_add_failed',
 }
 
 const enum GrantResult {
@@ -363,13 +369,14 @@ export class OpenPaymentsService {
       ) {
         // add key to wallet and try again
         try {
-          await this.addPublicKeyToWallet(walletAddress);
+          const tabId = await this.addPublicKeyToWallet(walletAddress);
           this.setConnectState('connecting');
           await this.completeGrant(
             amount,
             walletAddress,
             recurring,
             InteractionIntent.CONNECT,
+            tabId,
           );
         } catch (error) {
           this.setConnectState('error');
@@ -420,6 +427,7 @@ export class OpenPaymentsService {
     walletAddress: WalletAddress,
     recurring: boolean,
     intent: InteractionIntent,
+    existingTabId?: TabId,
   ): Promise<GrantDetails> {
     const transformedAmount = toAmount({
       value: amount,
@@ -442,6 +450,7 @@ export class OpenPaymentsService {
 
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
+      existingTabId,
     );
 
     await this.verifyInteractionHash({
@@ -516,14 +525,32 @@ export class OpenPaymentsService {
     return grantDetails;
   }
 
-  private async addPublicKeyToWallet(walletAddress: WalletAddress) {
+  /**
+   * Adds public key to wallet by "browser automation" - the content script
+   * takes control of tab when the correct message is sent, and adds the key
+   * through the wallet's dashboard.
+   * @returns tabId that we can reuse for further connecting, or redirects etc.
+   */
+  private async addPublicKeyToWallet(
+    walletAddress: WalletAddress,
+  ): Promise<TabId | undefined> {
     const keyShare = new KeyShareService({
       browser: this.browser,
       storage: this.storage,
     });
     try {
       await keyShare.addPublicKeyToWallet(walletAddress);
+      return keyShare.tabId;
     } catch (error) {
+      const tabId = keyShare.tabId;
+      if (tabId) {
+        await this.redirectToWelcomeScreen(
+          tabId,
+          GrantResult.ERROR,
+          InteractionIntent.CONNECT,
+          ErrorCode.KEY_ADD_FAILED,
+        );
+      }
       if (error instanceof ErrorWithKey) {
         throw error;
       } else {
@@ -624,48 +651,50 @@ export class OpenPaymentsService {
   }
 
   private async getInteractionInfo(url: string): Promise<InteractionParams> {
-    return await new Promise((resolve, reject) => {
-      this.browser.tabs.create({ url }).then((tab) => {
-        if (!tab.id) return;
-        const tabCloseListener: TabRemovedCallback = (tabId) => {
-          if (tabId !== tab.id) return;
+    const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
+    const tab = await this.browser.tabs.create({ url });
+    if (!tab.id) {
+      reject(new Error('Could not create tab'));
+      return promise;
+    }
+
+    const tabCloseListener: TabRemovedCallback = (tabId) => {
+      if (tabId !== tab.id) return;
+
+      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
+    };
+
+    const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
+      if (tabId !== tab.id) return;
+      try {
+        const tabUrl = new URL(changeInfo.url || '');
+        const interactRef = tabUrl.searchParams.get('interact_ref');
+        const hash = tabUrl.searchParams.get('hash');
+        const result = tabUrl.searchParams.get('result');
+
+        if (
+          (interactRef && hash) ||
+          result === 'grant_rejected' ||
+          result === 'grant_invalid'
+        ) {
+          this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
           this.browser.tabs.onRemoved.removeListener(tabCloseListener);
-          reject(new ErrorWithKey('connectWallet_error_tabClosed'));
-        };
+        }
 
-        const getInteractionInfo: TabUpdateCallback = async (
-          tabId,
-          changeInfo,
-        ) => {
-          if (tabId !== tab.id) return;
-          try {
-            const tabUrl = new URL(changeInfo.url || '');
-            const interactRef = tabUrl.searchParams.get('interact_ref');
-            const hash = tabUrl.searchParams.get('hash');
-            const result = tabUrl.searchParams.get('result');
+        if (interactRef && hash) {
+          resolve({ interactRef, hash, tabId });
+        }
+      } catch {
+        /* do nothing */
+      }
+    };
 
-            if (
-              (interactRef && hash) ||
-              result === 'grant_rejected' ||
-              result === 'grant_invalid'
-            ) {
-              this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
-              this.browser.tabs.onRemoved.removeListener(tabCloseListener);
-            }
+    this.browser.tabs.onRemoved.addListener(tabCloseListener);
+    this.browser.tabs.onUpdated.addListener(getInteractionInfo);
 
-            if (interactRef && hash) {
-              resolve({ interactRef, hash, tabId });
-            }
-          } catch {
-            /* do nothing */
-          }
-        };
-
-        this.browser.tabs.onRemoved.addListener(tabCloseListener);
-        this.browser.tabs.onUpdated.addListener(getInteractionInfo);
-      });
-    });
+    return promise;
   }
 
   async disconnectWallet() {
