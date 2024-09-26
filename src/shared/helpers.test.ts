@@ -4,6 +4,7 @@ import {
   objectEquals,
   removeQueryParams,
   getNextOccurrence,
+  withResolvers,
 } from './helpers';
 
 describe('objectEquals', () => {
@@ -31,6 +32,22 @@ describe('removeQueryParams', () => {
     expect(removeQueryParams('https://example.com')).toBe(
       'https://example.com/',
     );
+  });
+});
+
+describe('withResolvers', () => {
+  it('resolves', async () => {
+    const r = withResolvers<boolean>();
+    r.resolve(true);
+    r.reject(false);
+    await expect(r.promise).resolves.toBe(true);
+  });
+
+  it('rejects', async () => {
+    const r = withResolvers<boolean>();
+    r.reject(false);
+    r.resolve(true);
+    await expect(r.promise).rejects.toBe(false);
   });
 });
 
