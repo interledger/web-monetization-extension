@@ -20,9 +20,15 @@ interface ConnectWalletFormInputs {
   recurring: boolean;
 }
 
+export type ConnectState =
+  | { status: 'connecting' | 'error' }
+  | null
+  | undefined;
+
 interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<ConnectWalletFormInputs>;
+  state?: ConnectState;
   saveValue?: (
     key: keyof ConnectWalletFormInputs,
     val: ConnectWalletFormInputs[typeof key],
@@ -35,6 +41,7 @@ interface ConnectWalletFormProps {
 export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
+  state,
   getWalletInfo,
   connectWallet,
   saveValue = () => {},
@@ -178,8 +185,8 @@ export const ConnectWalletForm = ({
       <Button
         type="submit"
         className="w-full"
-        disabled={isSubmitting}
-        loading={isSubmitting}
+        disabled={isSubmitting || state?.status === 'connecting'}
+        loading={isSubmitting || state?.status === 'connecting'}
         aria-label="Connect your wallet"
       >
         Connect

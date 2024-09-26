@@ -346,12 +346,20 @@ export class OpenPaymentsService {
     });
 
     await this.initClient(walletAddress.id);
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'connecting',
+    }));
     await this.completeGrant(
       amount,
       walletAddress,
       recurring,
       InteractionIntent.CONNECT,
-    );
+    ).catch((error) => {
+      this.storage.setPopupTransientState('connect', () => ({
+        status: 'error',
+      }));
+      throw error;
+    });
 
     await this.storage.set({
       walletAddress,
@@ -360,6 +368,7 @@ export class OpenPaymentsService {
       maxRateOfPay,
       connected: true,
     });
+    this.storage.setPopupTransientState('connect', () => null);
   }
 
   async addFunds({ amount, recurring }: AddFundsPayload) {
