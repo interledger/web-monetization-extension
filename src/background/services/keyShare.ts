@@ -1,3 +1,4 @@
+// cSpell:ignore jwks
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
@@ -119,7 +120,6 @@ export class KeyShareService {
           ]),
         );
       } else if (message.action === 'PROGRESS') {
-        console.log(message);
         // can save progress to show in popup
       } else {
         reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
@@ -132,9 +132,10 @@ export class KeyShareService {
   }
 
   private async validate(walletAddressUrl: string, keyId: string) {
+    type JWKS = { keys: { kid: string }[] };
     const jwksUrl = new URL('jwks.json', walletAddressUrl + '/');
     const res = await fetch(jwksUrl.toString());
-    const jwks = await res.json();
+    const jwks: JWKS = await res.json();
     if (!jwks.keys.find((key) => key.kid === keyId)) {
       throw new Error('Key not found in jwks');
     }

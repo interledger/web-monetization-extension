@@ -3,9 +3,19 @@ export interface StepRunParams {
   publicKey: string;
 }
 
-export interface Step {
+export type StepRun<T = unknown, R = unknown> = (
+  params: StepRunParams,
+  prevStep: [
+    result: T extends (...args: any[]) => PromiseLike<any>
+      ? Awaited<ReturnType<T>>
+      : T,
+    id: string,
+  ],
+) => Promise<R>;
+
+export interface Step<T = any, R = any> {
   id: string;
-  run: (params: StepRunParams) => Promise<void>;
+  run: StepRun<T, R>;
 }
 
 export interface StepWithStatus {

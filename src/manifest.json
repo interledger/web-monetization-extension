@@ -21,7 +21,7 @@
     {
       "matches": ["https://rafiki.money/*/*"],
       "js": ["content/keyAutoAdd/testWallet.js"],
-      "run_at": "document_start"
+      "run_at": "document_end"
     }
   ],
   "background": {

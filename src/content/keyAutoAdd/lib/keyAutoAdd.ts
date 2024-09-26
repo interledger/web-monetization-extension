@@ -10,6 +10,8 @@ import type {
   StepWithStatus,
 } from './types';
 
+export type { StepRun } from './types';
+
 export class KeyAutoAdd {
   private port: Runtime.Port;
 
@@ -33,14 +35,18 @@ export class KeyAutoAdd {
 
   private async run({ walletAddressUrl, publicKey }: BeginPayload) {
     const params: StepRunParams = { walletAddressUrl, publicKey };
+    let prevStepId = '';
+    let prevStepResult: unknown = undefined;
     for (const [stepIdx, step] of this.steps.entries()) {
       step.status = 'active';
       this.postMessage('PROGRESS', { steps: this.steps });
       try {
-        await this.stepsInput.get(step.id)!.run(params);
+        prevStepResult = await this.stepsInput
+          .get(step.id)!
+          .run(params, prevStepId ? [prevStepResult, prevStepId] : [null, '']);
+        prevStepId = step.id;
         step.status = 'success';
       } catch (error) {
-        console.error(error)
         step.status = 'error';
         this.postMessage('ERROR', {
           error: { message: error.message },
