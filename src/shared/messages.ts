@@ -3,7 +3,7 @@ import type {
   OutgoingPayment,
 } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
-import type { AmountValue, Storage } from '@/shared/types';
+import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { PopupState } from '@/popup/lib/context';
 
@@ -246,6 +246,7 @@ export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>;
   SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
+  SET_TRANSIENT_STATE: PopupTransientState;
 }
 
 export type BackgroundToPopupMessage = {

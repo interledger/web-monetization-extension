@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePopupState, useMessage } from '@/popup/lib/context';
+import { usePopupState, useMessage, useTranslation } from '@/popup/lib/context';
 import { WarningSign } from '@/popup/components/Icons';
 import { Slider } from '../components/ui/Slider';
 import { Label } from '../components/ui/Label';
@@ -9,12 +9,12 @@ import {
   roundWithPrecision,
 } from '../lib/utils';
 import { PayWebsiteForm } from '../components/PayWebsiteForm';
-import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized';
+import { NotMonetized } from '@/popup/components/NotMonetized';
 import { debounceAsync } from '@/shared/helpers';
 import { Switch } from '../components/ui/Switch';
-import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid';
 
 export const Component = () => {
+  const t = useTranslation();
   const message = useMessage();
   const {
     state: {
@@ -64,10 +64,18 @@ export const Component = () => {
   };
 
   if (tab.status !== 'monetized') {
-    if (tab.status === 'all_sessions_invalid') {
-      return <AllSessionsInvalid />;
-    } else {
-      return <SiteNotMonetized />;
+    switch (tab.status) {
+      case 'all_sessions_invalid':
+        return <NotMonetized text={t('notMonetized_text_allInvalid')} />;
+      case 'internal_page':
+        return <NotMonetized text={t('notMonetized_text_internalPage')} />;
+      case 'new_tab':
+        return <NotMonetized text={t('notMonetized_text_newTab')} />;
+      case 'unsupported_scheme':
+        return <NotMonetized text={t('notMonetized_text_unsupportedScheme')} />;
+      case 'no_monetization_links':
+      default:
+        return <NotMonetized text={t('notMonetized_text_noLinks')} />;
     }
   }
 

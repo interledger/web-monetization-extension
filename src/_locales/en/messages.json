@@ -17,8 +17,21 @@
   "missingHostPermission_state_text": {
     "message": "Permission to access your data for all websites is required to use Web Monetization."
   },
-  "siteNotMonetized_state_text": {
+  "notMonetized_text_allInvalid": {
+    "message": "At the moment, you cannot pay this website.",
+    "description": "We cannot send money (probable cause: un-peered wallets)"
+  },
+  "notMonetized_text_noLinks": {
     "message": "This website is not monetized."
+  },
+  "notMonetized_text_newTab": {
+    "message": "The extension doesn't support empty tabs."
+  },
+  "notMonetized_text_internalPage": {
+    "message": "The extension can't access browser's internal pages."
+  },
+  "notMonetized_text_unsupportedScheme": {
+    "message": "Web Monetization only works with https:// websites."
   },
   "keyRevoked_error_title": {
     "message": "Unauthorized access to wallet"
@@ -155,8 +168,5 @@
   },
   "connectWalletKeyService_error_notImplemented": {
     "message": "Automatic key addition is not implemented for given wallet provider yet."
-  },
-  "allInvalidLinks_state_text": {
-    "message": "At the moment, you can not pay this website."
   }
 }

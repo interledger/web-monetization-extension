@@ -77,6 +77,8 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
       return { ...state, tab: action.data };
     case 'SET_BALANCE':
       return { ...state, balance: action.data.total };
+    case 'SET_TRANSIENT_STATE':
+      return { ...state, transientState: action.data };
     default:
       return state;
   }
@@ -112,6 +114,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
         case 'SET_BALANCE':
         case 'SET_STATE':
         case 'SET_TAB_DATA':
+        case 'SET_TRANSIENT_STATE':
           return dispatch(message);
       }
     });

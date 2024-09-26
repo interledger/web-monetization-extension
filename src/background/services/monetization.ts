@@ -389,6 +389,7 @@ export class MonetizationService {
       ...dataFromStorage,
       balance: balance.total.toString(),
       tab: this.tabState.getPopupTabData(tab),
+      transientState: this.storage.getPopupTransientState(),
       grants: {
         oneTime: oneTimeGrant?.amount,
         recurring: recurringGrant?.amount,

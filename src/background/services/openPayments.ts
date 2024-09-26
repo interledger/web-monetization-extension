@@ -21,7 +21,7 @@ import * as ed from '@noble/ed25519';
 import { type Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
-import type { Tabs } from 'webextension-polyfill';
+import type { Browser, Tabs } from 'webextension-polyfill';
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
@@ -89,6 +89,9 @@ interface CreateOutgoingPaymentParams {
 }
 
 type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0];
+type TabRemovedCallback = Parameters<
+  Browser['tabs']['onRemoved']['addListener']
+>[0];
 
 const enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
@@ -344,7 +347,7 @@ export class OpenPaymentsService {
     });
 
     await this.initClient(walletAddress.id);
-
+    this.setConnectState('connecting');
     try {
       await this.completeGrant(
         amount,
@@ -358,14 +361,20 @@ export class OpenPaymentsService {
         !skipAutoKeyShare
       ) {
         // add key to wallet and try again
-        await this.addPublicKeyToWallet(walletAddress);
-        await this.completeGrant(
-          amount,
-          walletAddress,
-          recurring,
-          InteractionIntent.CONNECT,
-        );
+        try {
+          await this.addPublicKeyToWallet(walletAddress);
+          await this.completeGrant(
+            amount,
+            walletAddress,
+            recurring,
+            InteractionIntent.CONNECT,
+          );
+        } catch (error) {
+          this.setConnectState('error');
+          throw error;
+        }
       } else {
+        this.setConnectState('error');
         throw error;
       }
     }
@@ -377,6 +386,7 @@ export class OpenPaymentsService {
       maxRateOfPay,
       connected: true,
     });
+    this.setConnectState(null);
   }
 
   async addFunds({ amount, recurring }: AddFundsPayload) {
@@ -508,6 +518,11 @@ export class OpenPaymentsService {
     throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
 
+  private setConnectState(status: 'connecting' | 'error' | null) {
+    const state = status ? { status } : null;
+    this.storage.setPopupTransientState('connect', () => state);
+  }
+
   private async redirectToWelcomeScreen(
     tabId: NonNullable<Tabs.Tab['id']>,
     result: GrantResult,
@@ -594,9 +609,16 @@ export class OpenPaymentsService {
   }
 
   private async getInteractionInfo(url: string): Promise<InteractionParams> {
-    return await new Promise((res) => {
+    return await new Promise((resolve, reject) => {
       this.browser.tabs.create({ url }).then((tab) => {
         if (!tab.id) return;
+        const tabCloseListener: TabRemovedCallback = (tabId) => {
+          if (tabId !== tab.id) return;
+
+          this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+          reject(new Error('Tab closed before getting interaction info'));
+        };
+
         const getInteractionInfo: TabUpdateCallback = async (
           tabId,
           changeInfo,
@@ -614,15 +636,18 @@ export class OpenPaymentsService {
               result === 'grant_invalid'
             ) {
               this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
+              this.browser.tabs.onRemoved.removeListener(tabCloseListener);
             }
 
             if (interactRef && hash) {
-              res({ interactRef, hash, tabId });
+              resolve({ interactRef, hash, tabId });
             }
           } catch {
             /* do nothing */
           }
         };
+
+        this.browser.tabs.onRemoved.addListener(tabCloseListener);
         this.browser.tabs.onUpdated.addListener(getInteractionInfo);
       });
     });

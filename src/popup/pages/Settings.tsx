@@ -1,5 +1,8 @@
 import React from 'react';
-import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
+import {
+  ConnectWalletForm,
+  type ConnectState,
+} from '@/popup/components/ConnectWalletForm';
 import { WalletInformation } from '@/popup/components/WalletInformation';
 import { useMessage, usePopupState } from '@/popup/lib/context';
 import { getWalletInformation } from '@/shared/helpers';
@@ -11,9 +14,11 @@ export const Component = () => {
   if (state.connected) {
     return <WalletInformation info={state} />;
   } else {
+    const connectState = state.transientState['connect'] as ConnectState;
     return (
       <ConnectWalletForm
         publicKey={state.publicKey}
+        state={connectState}
         defaultValues={{
           recurring:
             localStorage?.getItem('connect.recurring') === 'true' || false,

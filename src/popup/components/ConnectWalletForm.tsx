@@ -29,9 +29,15 @@ interface Inputs {
   recurring: boolean;
 }
 
+export type ConnectState =
+  | { status: 'connecting' | 'error' }
+  | null
+  | undefined;
+
 interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<Inputs>;
+  state?: ConnectState;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
@@ -41,6 +47,7 @@ interface ConnectWalletFormProps {
 export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
+  state,
   getWalletInfo,
   connectWallet,
   saveValue = () => {},
@@ -72,7 +79,9 @@ export const ConnectWalletForm = ({
     walletAddressUrl: false,
     amount: false,
   });
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(
+    state?.status === 'connecting',
+  );
 
   const [currencySymbol, setCurrencySymbol] = React.useState<{
     symbol: string;

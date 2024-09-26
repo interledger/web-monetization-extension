@@ -316,6 +316,10 @@ export class Background {
       void this.tabEvents.updateVisualIndicators(tab);
     });
 
+    this.events.on('storage.popup_transient_state_update', (state) => {
+      this.sendToPopup.send('SET_TRANSIENT_STATE', state);
+    });
+
     this.events.on('storage.balance_update', (balance) =>
       this.sendToPopup.send('SET_BALANCE', balance),
     );
