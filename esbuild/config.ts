@@ -29,6 +29,10 @@ export const options: BuildOptions = {
       out: path.join('content', 'content'),
     },
     {
+      in: path.join(SRC_DIR, 'content', 'keyAutoAdd', 'testWallet.ts'),
+      out: path.join('content', 'keyAutoAdd', 'testWallet'),
+    },
+    {
       in: path.join(SRC_DIR, 'content', 'polyfill.ts'),
       out: path.join('polyfill', 'polyfill'),
     },

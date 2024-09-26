@@ -1,6 +1,7 @@
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { Cradle } from '@/background/container';
+import type { ContentToBackgroundMessage } from '@/content/keyAutoAdd/lib/types';
 import { ErrorWithKey, withResolvers } from '@/shared/helpers';
 
 export const CONNECTION_NAME = 'key-share';
@@ -98,15 +99,20 @@ export class KeyShareService {
       });
     };
 
-    const onMessageListener: OnPortMessageListener = (message: {
-      action: string;
-      payload: any;
-    }) => {
+    const onMessageListener: OnPortMessageListener = (
+      message: ContentToBackgroundMessage,
+    ) => {
       if (message.action === 'SUCCESS') {
         resolve(message.payload);
       } else if (message.action === 'ERROR') {
-        reject(message.payload);
+        reject(
+          new ErrorWithKey('connectWalletKeyService_error_failed', [
+            message.payload.stepId,
+            message.payload.error.message,
+          ]),
+        );
       } else if (message.action === 'PROGRESS') {
+        console.log(message);
         // can save progress to show in popup
       } else {
         reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
