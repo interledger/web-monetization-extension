@@ -293,6 +293,20 @@ export const removeQueryParams = (urlString: string) => {
   return url.origin + url.pathname;
 };
 
+/**
+ * Polyfill for `Promise.withResolvers()`
+ */
+export function withResolvers<T>() {
+  let resolve: (value: T | PromiseLike<T>) => void;
+  let reject: (reason?: any) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  // @ts-expect-error we know TypeScript!
+  return { resolve, reject, promise };
+}
+
 export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false);
 };

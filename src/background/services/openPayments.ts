@@ -23,6 +23,7 @@ import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
+import { KeyShareService } from './keyShare';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
 import { ErrorWithKey, getWalletInformation } from '@/shared/helpers';
@@ -363,6 +364,7 @@ export class OpenPaymentsService {
         // add key to wallet and try again
         try {
           await this.addPublicKeyToWallet(walletAddress);
+          this.setConnectState('connecting');
           await this.completeGrant(
             amount,
             walletAddress,
@@ -514,8 +516,21 @@ export class OpenPaymentsService {
     return grantDetails;
   }
 
-  private async addPublicKeyToWallet(_walletAddress: WalletAddress) {
-    throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+  private async addPublicKeyToWallet(walletAddress: WalletAddress) {
+    const keyShare = new KeyShareService({
+      browser: this.browser,
+      storage: this.storage,
+    });
+    try {
+      await keyShare.addPublicKeyToWallet(walletAddress);
+    } catch (error) {
+      if (error instanceof ErrorWithKey) {
+        throw error;
+      } else {
+        // TODO: check if need to handle errors here
+        throw new Error(error.message, { cause: error });
+      }
+    }
   }
 
   private setConnectState(status: 'connecting' | 'error' | null) {
