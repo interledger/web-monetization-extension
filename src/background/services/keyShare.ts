@@ -33,12 +33,16 @@ export class KeyShareService {
   async addPublicKeyToWallet(walletAddress: WalletAddress) {
     const info = walletAddressToProvider(walletAddress);
     try {
-      const { publicKey } = await this.storage.get(['publicKey']);
+      const { publicKey, keyId } = await this.storage.get([
+        'publicKey',
+        'keyId',
+      ]);
       this.setConnectState('adding-key');
       await this.process(info.url, {
         publicKey,
         walletAddressUrl: walletAddress.id,
       });
+      await this.validate(walletAddress.id, keyId);
     } catch (error) {
       this.setConnectState('error-key');
       throw error;
@@ -104,8 +108,10 @@ export class KeyShareService {
       message: ContentToBackgroundMessage,
     ) => {
       if (message.action === 'SUCCESS') {
+        this.browser.runtime.onConnect.removeListener(onConnectListener);
         resolve(message.payload);
       } else if (message.action === 'ERROR') {
+        this.browser.runtime.onConnect.removeListener(onConnectListener);
         reject(
           new ErrorWithKey('connectWalletKeyService_error_failed', [
             message.payload.stepId,
@@ -123,6 +129,15 @@ export class KeyShareService {
     this.browser.runtime.onConnect.addListener(onConnectListener);
 
     return promise;
+  }
+
+  private async validate(walletAddressUrl: string, keyId: string) {
+    const jwksUrl = new URL('jwks.json', walletAddressUrl + '/');
+    const res = await fetch(jwksUrl.toString());
+    const jwks = await res.json();
+    if (!jwks.keys.find((key) => key.kid === keyId)) {
+      throw new Error('Key not found in jwks');
+    }
   }
 
   private setConnectState(status: 'adding-key' | 'error-key' | null) {

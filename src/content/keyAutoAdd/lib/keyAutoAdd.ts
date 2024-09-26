@@ -40,6 +40,7 @@ export class KeyAutoAdd {
         await this.stepsInput.get(step.id)!.run(params);
         step.status = 'success';
       } catch (error) {
+        console.error(error)
         step.status = 'error';
         this.postMessage('ERROR', {
           error: { message: error.message },
