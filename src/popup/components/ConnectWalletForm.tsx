@@ -346,6 +346,7 @@ export const ConnectWalletForm = ({
             isValidating.walletAddressUrl ||
             !!errors.amount ||
             !!errors.walletAddressUrl ||
+            isSubmitting ||
             !walletAddressUrl ||
             !amount
           }
