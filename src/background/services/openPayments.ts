@@ -616,7 +616,7 @@ export class OpenPaymentsService {
           if (tabId !== tab.id) return;
 
           this.browser.tabs.onRemoved.removeListener(tabCloseListener);
-          reject(new Error('Tab closed before getting interaction info'));
+          reject(new ErrorWithKey('connectWallet_error_tabClosed'));
         };
 
         const getInteractionInfo: TabUpdateCallback = async (

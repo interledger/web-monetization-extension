@@ -176,7 +176,7 @@ export const ConnectWalletForm = ({
           if (error.key === 'connectWalletKeyService_error_notImplemented') {
             setErrors((_) => ({ ..._, keyPair: t(error) }));
           } else {
-            throw new Error(error.key);
+            setErrors((_) => ({ ..._, connect: t(error) }));
           }
         } else {
           throw new Error(res.message);

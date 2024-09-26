@@ -166,6 +166,9 @@
   "connectWallet_error_invalidClient": {
     "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
   },
+  "connectWallet_error_tabClosed": {
+    "message": "Connect wallet cancelled. You closed the tab before completion."
+  },
   "connectWalletKeyService_error_notImplemented": {
     "message": "Automatic key addition is not implemented for given wallet provider yet."
   }
