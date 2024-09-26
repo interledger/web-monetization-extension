@@ -108,10 +108,11 @@ export type PopupTabInfo = {
     | never; // just added for code formatting
 };
 
-export type PopupTransientState = Record<
-  string,
-  Record<string, unknown> | null
->;
+export type PopupTransientState = Partial<{
+  connect: Partial<{
+    status: 'connecting' | 'error' | null;
+  }> | null;
+}>;
 
 export type PopupStore = Omit<
   Storage,

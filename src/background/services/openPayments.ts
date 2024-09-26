@@ -25,7 +25,7 @@ import type { Browser, Tabs } from 'webextension-polyfill';
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
-import { getWalletInformation } from '@/shared/helpers';
+import { ErrorWithKey, getWalletInformation } from '@/shared/helpers';
 import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
@@ -33,7 +33,7 @@ import {
   MIN_RATE_OF_PAY,
 } from '../config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
-import type { Cradle } from '../container';
+import type { Cradle } from '@/background/container';
 
 interface KeyInformation {
   privateKey: string;
@@ -314,6 +314,7 @@ export class OpenPaymentsService {
     walletAddressUrl,
     amount,
     recurring,
+    skipAutoKeyShare,
   }: ConnectWalletPayload) {
     const walletAddress = await getWalletInformation(walletAddressUrl);
     const exchangeRates = await getExchangeRates();
@@ -346,20 +347,37 @@ export class OpenPaymentsService {
     });
 
     await this.initClient(walletAddress.id);
-    this.storage.setPopupTransientState('connect', () => ({
-      status: 'connecting',
-    }));
-    await this.completeGrant(
-      amount,
-      walletAddress,
-      recurring,
-      InteractionIntent.CONNECT,
-    ).catch((error) => {
-      this.storage.setPopupTransientState('connect', () => ({
-        status: 'error',
-      }));
-      throw error;
-    });
+    this.setConnectState('connecting');
+    try {
+      await this.completeGrant(
+        amount,
+        walletAddress,
+        recurring,
+        InteractionIntent.CONNECT,
+      );
+    } catch (error) {
+      if (
+        error.message === this.t('connectWallet_error_invalidClient') &&
+        !skipAutoKeyShare
+      ) {
+        // add key to wallet and try again
+        try {
+          await this.addPublicKeyToWallet(walletAddress);
+          await this.completeGrant(
+            amount,
+            walletAddress,
+            recurring,
+            InteractionIntent.CONNECT,
+          );
+        } catch (error) {
+          this.setConnectState('error');
+          throw error;
+        }
+      } else {
+        this.setConnectState('error');
+        throw error;
+      }
+    }
 
     await this.storage.set({
       walletAddress,
@@ -368,7 +386,7 @@ export class OpenPaymentsService {
       maxRateOfPay,
       connected: true,
     });
-    this.storage.setPopupTransientState('connect', () => null);
+    this.setConnectState(null);
   }
 
   async addFunds({ amount, recurring }: AddFundsPayload) {
@@ -496,6 +514,15 @@ export class OpenPaymentsService {
     return grantDetails;
   }
 
+  private async addPublicKeyToWallet(_walletAddress: WalletAddress) {
+    throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+  }
+
+  private setConnectState(status: 'connecting' | 'error' | null) {
+    const state = status ? { status } : null;
+    this.storage.setPopupTransientState('connect', () => state);
+  }
+
   private async redirectToWelcomeScreen(
     tabId: NonNullable<Tabs.Tab['id']>,
     result: GrantResult,
@@ -589,7 +616,7 @@ export class OpenPaymentsService {
           if (tabId !== tab.id) return;
 
           this.browser.tabs.onRemoved.removeListener(tabCloseListener);
-          reject(new Error('Tab closed before getting interaction info'));
+          reject(new ErrorWithKey('connectWallet_error_tabClosed'));
         };
 
         const getInteractionInfo: TabUpdateCallback = async (

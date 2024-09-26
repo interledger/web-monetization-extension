@@ -205,9 +205,9 @@ export class StorageService {
     this.events.emit('storage.rate_of_pay_update', { rate });
   }
 
-  setPopupTransientState(
-    id: string,
-    update: (prev?: PopupTransientState[string]) => PopupTransientState[string],
+  setPopupTransientState<T extends keyof PopupTransientState>(
+    id: T,
+    update: (prev?: PopupTransientState[T]) => PopupTransientState[T],
   ) {
     const newState = update(this.popupTransientState[id]);
     this.popupTransientState[id] = newState;

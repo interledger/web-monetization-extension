@@ -101,7 +101,75 @@
   "outOfFundsAddFunds_action_addRecurring": {
     "message": "Add funds"
   },
+  "connectWallet_text_title": {
+    "message": "Let's get you set up!"
+  },
+  "connectWallet_text_desc": {
+    "message": "Just a few quick steps to connect the extension to your wallet"
+  },
+  "connectWallet_label_walletAddress": {
+    "message": "Enter wallet address/payment pointer"
+  },
+  "connectWallet_labelGroup_amount": {
+    "message": "Enter amount to allocate from wallet"
+  },
+  "connectWallet_label_amount": {
+    "message": "Amount"
+  },
+  "connectWallet_label_recurring": {
+    "message": "Renew monthly"
+  },
+  "connectWallet_label_publicKey": {
+    "message": "Please copy this key, paste it into your wallet manually and then connect."
+  },
+  "connectWallet_text_publicKeyLearnMore": {
+    "message": "Learn more."
+  },
+  "connectWallet_action_connect": {
+    "message": "Connect"
+  },
+  "connectWallet_text_footerNotice": {
+    "message": "We'll automatically connect with your wallet provider."
+  },
+  "connectWallet_text_footerNoticeLearnMore": {
+    "message": "Learn more",
+    "description": "Learn more about how this works"
+  },
+  "connectWallet_error_urlRequired": {
+    "message": "Wallet address is required."
+  },
+  "connectWallet_error_urlInvalidUrl": {
+    "message": "Invalid wallet address URL."
+  },
+  "connectWallet_error_urlInvalidNotHttps": {
+    "message": "Wallet address must be a https:// URL or a payment pointer."
+  },
+  "connectWallet_error_amountRequired": {
+    "message": "Amount is required."
+  },
+  "connectWallet_error_amountInvalidNumber": {
+    "message": "Please provide a valid number as amount."
+  },
+  "connectWallet_error_amountMinimum": {
+    "message": "An amount greater than $AMOUNT$ is required.",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
+    }
+  },
+  "connectWallet_error_failedAutoKeyAdd": {
+    "message": "We couldn't automatically connect to your wallet."
+  },
+  "connectWallet_error_failedAutoKeyAddWhy": {
+    "message": "Why?",
+    "description": "Clicking this will show reason for why automatic key-adding failed."
+  },
   "connectWallet_error_invalidClient": {
-    "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
+    "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
+  },
+  "connectWallet_error_tabClosed": {
+    "message": "Connect wallet cancelled. You closed the tab before completion."
+  },
+  "connectWalletKeyService_error_notImplemented": {
+    "message": "Automatic key addition is not implemented for given wallet provider yet."
   }
 }
