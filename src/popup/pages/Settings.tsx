@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  ConnectWalletForm,
-  type ConnectState,
-} from '@/popup/components/ConnectWalletForm';
+import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { WalletInformation } from '@/popup/components/WalletInformation';
 import { useMessage, usePopupState } from '@/popup/lib/context';
 import { getWalletInformation } from '@/shared/helpers';
@@ -14,7 +11,7 @@ export const Component = () => {
   if (state.connected) {
     return <WalletInformation info={state} />;
   } else {
-    const connectState = state.transientState['connect'] as ConnectState;
+    const connectState = state.transientState['connect'];
     return (
       <ConnectWalletForm
         publicKey={state.publicKey}

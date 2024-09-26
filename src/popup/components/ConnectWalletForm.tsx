@@ -22,6 +22,7 @@ import {
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
+import type { PopupTransientState } from '@/shared/types';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -29,15 +30,10 @@ interface Inputs {
   recurring: boolean;
 }
 
-export type ConnectState =
-  | { status: 'connecting' | 'error' }
-  | null
-  | undefined;
-
 interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<Inputs>;
-  state?: ConnectState;
+  state?: PopupTransientState['connect'];
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
