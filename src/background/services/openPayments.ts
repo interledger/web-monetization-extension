@@ -650,12 +650,17 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash');
   }
 
-  private async getInteractionInfo(url: string): Promise<InteractionParams> {
+  private async getInteractionInfo(
+    url: string,
+    existingTabId?: TabId,
+  ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
-    const tab = await this.browser.tabs.create({ url });
+    const tab = existingTabId
+      ? await this.browser.tabs.update(existingTabId, { url })
+      : await this.browser.tabs.create({ url });
     if (!tab.id) {
-      reject(new Error('Could not create tab'));
+      reject(new Error('Could not create/update tab'));
       return promise;
     }
 
