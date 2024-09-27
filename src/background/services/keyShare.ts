@@ -42,6 +42,7 @@ export class KeyShareService {
       this.setConnectState('connecting:adding-key');
       await this.process(info.url, {
         publicKey,
+        keyId,
         walletAddressUrl: walletAddress.id,
         nickName: 'web monetization extension',
       });

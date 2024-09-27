@@ -78,8 +78,31 @@ const getAccountDetails: Step<typeof findBuildId, Account[]> = async (
   return json.pageProps.accounts;
 };
 
+/**
+ * The test wallet associates key with an account. If the same key is associated
+ * with a different account (user disconnected and changed account), revoke from
+ * there first.
+ */
+const revokeExistingKey: Step<typeof getAccountDetails, Account[]> = async (
+  { keyId },
+  [accounts],
+) => {
+  outer: for (const account of accounts) {
+    for (const wallet of account.walletAddresses) {
+      for (const key of wallet.keys) {
+        if (key.id !== keyId) continue;
+
+        await revokeKey(account.id, wallet.id, key.id);
+        break outer;
+      }
+    }
+  }
+
+  return accounts;
+};
+
 const findAccountAndWalletId: Step<
-  typeof getAccountDetails,
+  typeof revokeExistingKey,
   { accountId: string; walletId: string }
 > = async ({ walletAddressUrl }, [accounts]) => {
   for (const account of accounts) {
@@ -129,6 +152,10 @@ new KeyAutoAdd([
     run: getAccountDetails,
   },
   {
+    id: 'Revoke existing key',
+    run: revokeExistingKey,
+  },
+  {
     id: 'Finding account & wallet ID',
     run: findAccountAndWalletId,
   },
@@ -137,3 +164,23 @@ new KeyAutoAdd([
     run: addKey,
   },
 ]).init();
+
+// region: Helpers
+
+async function revokeKey(accountId: string, walletId: string, keyId: string) {
+  const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json',
+    },
+    mode: 'cors',
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to revoke key: ${await res.text()}`);
+  }
+}
+
+// endregion

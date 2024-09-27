@@ -35,8 +35,18 @@ export class KeyAutoAdd {
     });
   }
 
-  private async run({ walletAddressUrl, publicKey, nickName }: BeginPayload) {
-    const params: StepRunParams = { walletAddressUrl, publicKey, nickName };
+  private async run({
+    walletAddressUrl,
+    publicKey,
+    nickName,
+    keyId,
+  }: BeginPayload) {
+    const params: StepRunParams = {
+      walletAddressUrl,
+      publicKey,
+      nickName,
+      keyId,
+    };
     let prevStepId = '';
     let prevStepResult: unknown = undefined;
     for (const [stepIdx, step] of this.steps.entries()) {

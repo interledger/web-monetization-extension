@@ -23,6 +23,7 @@ export interface StepWithStatus {
 export interface BeginPayload {
   walletAddressUrl: string;
   publicKey: string;
+  keyId: string;
   nickName: string;
 }
 
