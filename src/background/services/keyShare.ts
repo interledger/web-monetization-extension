@@ -3,7 +3,10 @@ import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
-import type { ContentToBackgroundMessage } from '@/content/keyAutoAdd/lib/types';
+import type {
+  BeginPayload,
+  ContentToBackgroundMessage,
+} from '@/content/keyAutoAdd/lib/types';
 import { ErrorWithKey, withResolvers } from '@/shared/helpers';
 
 export const CONNECTION_NAME = 'key-share';
@@ -17,8 +20,6 @@ type OnConnectCallback = Parameters<
 type OnPortMessageListener = Parameters<
   Runtime.Port['onMessage']['addListener']
 >[0];
-
-type BeginPayload = { walletAddressUrl: string; publicKey: string };
 
 export class KeyShareService {
   private browser: Cradle['browser'];
@@ -42,6 +43,7 @@ export class KeyShareService {
       await this.process(info.url, {
         publicKey,
         walletAddressUrl: walletAddress.id,
+        nickName: 'web monetization extension',
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
@@ -58,10 +60,7 @@ export class KeyShareService {
     return this.tab?.id;
   }
 
-  private async process(
-    url: string,
-    { walletAddressUrl, publicKey }: BeginPayload,
-  ) {
+  private async process(url: string, payload: BeginPayload) {
     const { resolve, reject, promise } = withResolvers();
 
     const tab = await this.browser.tabs.create({ url });
@@ -92,10 +91,7 @@ export class KeyShareService {
         return;
       }
 
-      port.postMessage({
-        action: 'BEGIN',
-        payload: { walletAddressUrl, publicKey },
-      });
+      port.postMessage({ action: 'BEGIN', payload });
 
       port.onMessage.addListener(onMessageListener);
 

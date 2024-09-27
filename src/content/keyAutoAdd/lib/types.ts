@@ -1,9 +1,8 @@
-export interface StepRunParams {
-  walletAddressUrl: string;
-  publicKey: string;
+export interface StepRunParams extends BeginPayload {
+  helpers: Record<string, never>;
 }
 
-export type StepRun<T = unknown, R = unknown> = (
+export type StepRun<T = unknown, R = void> = (
   params: StepRunParams,
   prevStep: [
     result: T extends (...args: any[]) => PromiseLike<any>
@@ -13,7 +12,7 @@ export type StepRun<T = unknown, R = unknown> = (
   ],
 ) => Promise<R>;
 
-export interface Step<T = any, R = any> {
+export interface Step<T = unknown, R = unknown> {
   id: string;
   run: StepRun<T, R>;
 }
@@ -23,10 +22,11 @@ export interface StepWithStatus {
   status: 'pending' | 'active' | 'error' | 'success' | 'skipped';
 }
 
-export type BeginPayload = {
+export interface BeginPayload {
   walletAddressUrl: string;
   publicKey: string;
-};
+  nickName: string;
+}
 
 export type BackgroundToContentMessagesMap = {
   BEGIN: BeginPayload;

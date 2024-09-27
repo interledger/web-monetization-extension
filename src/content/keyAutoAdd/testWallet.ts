@@ -76,7 +76,7 @@ const findAccountAndWalletId: Step<
 };
 
 const addKey: Step<typeof findAccountAndWalletId> = async (
-  { publicKey },
+  { publicKey, nickName },
   [{ accountId, walletId }],
 ) => {
   const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/upload-key`;
@@ -88,7 +88,7 @@ const addKey: Step<typeof findAccountAndWalletId> = async (
     },
     body: JSON.stringify({
       base64Key: publicKey,
-      nickname: 'web monetization extension',
+      nickname: nickName,
     }),
     mode: 'cors',
     credentials: 'include',
