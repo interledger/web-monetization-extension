@@ -69,7 +69,7 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
     new EventSource("http://localhost:${port}/esbuild").addEventListener(
       "change",
       (ev) => {
-        const patterns = ["background.js", "content.js", "polyfill.js"];
+        const patterns = ["background.js", "content.js", "polyfill.js", "keyAutoAdd/"];
         const data = JSON.parse(ev.data);
         if (data.updated.some((s) => patterns.some(e => s.includes(e)))) {
           globalThis.location.reload();

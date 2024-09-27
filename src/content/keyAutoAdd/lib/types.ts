@@ -1,6 +1,4 @@
-export interface StepRunParams extends BeginPayload {
-  helpers: Record<string, never>;
-}
+export type StepRunParams = BeginPayload;
 
 export type StepRun<T = unknown, R = void> = (
   params: StepRunParams,

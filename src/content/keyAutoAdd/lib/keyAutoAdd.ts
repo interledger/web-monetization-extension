@@ -12,6 +12,8 @@ import type {
 
 export type { StepRun } from './types';
 
+export const LOGIN_WAIT_TIMEOUT = 10 * 60 * 1000;
+
 export class KeyAutoAdd {
   private port: Runtime.Port;
 
@@ -34,12 +36,7 @@ export class KeyAutoAdd {
   }
 
   private async run({ walletAddressUrl, publicKey, nickName }: BeginPayload) {
-    const params: StepRunParams = {
-      walletAddressUrl,
-      publicKey,
-      nickName,
-      helpers: {},
-    };
+    const params: StepRunParams = { walletAddressUrl, publicKey, nickName };
     let prevStepId = '';
     let prevStepResult: unknown = undefined;
     for (const [stepIdx, step] of this.steps.entries()) {

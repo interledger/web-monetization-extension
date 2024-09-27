@@ -1,6 +1,11 @@
 // cSpell:ignore nextjs
 import { sleep } from '@/shared/helpers';
-import { KeyAutoAdd, type StepRun as Step } from './lib/keyAutoAdd';
+import {
+  KeyAutoAdd,
+  LOGIN_WAIT_TIMEOUT,
+  type StepRun as Step,
+} from './lib/keyAutoAdd';
+import { isTimedOut, waitForURL } from './lib/helpers';
 import { toWalletAddressUrl } from '@/popup/lib/utils';
 
 type Account = {
@@ -20,10 +25,22 @@ type AccountDetails = {
   };
 };
 
-const findBuildId: Step<never, { buildId: string }> = async () => {
-  if (!location.pathname.startsWith('/settings/developer-keys')) {
-    throw new Error('Not on keys page. Are you not logged in?');
+const waitForLogin: Step<never> = async () => {
+  const expectedUrl = 'https://rafiki.money/settings/developer-keys';
+  try {
+    await waitForURL(
+      (url) => (url.origin + url.pathname).startsWith(expectedUrl),
+      { timeout: LOGIN_WAIT_TIMEOUT },
+    );
+  } catch (error) {
+    if (isTimedOut(error)) {
+      throw new Error('Timed out waiting for login');
+    }
+    throw new Error('Failed to wait for login', { cause: error });
   }
+};
+
+const findBuildId: Step<never, { buildId: string }> = async () => {
   await sleep(1000);
 
   const NEXT_DATA = document.querySelector('script#__NEXT_DATA__')?.textContent;
@@ -99,6 +116,10 @@ const addKey: Step<typeof findAccountAndWalletId> = async (
 };
 
 new KeyAutoAdd([
+  {
+    id: 'Waiting for login',
+    run: waitForLogin,
+  },
   {
     id: 'Finding build ID',
     run: findBuildId,
