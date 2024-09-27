@@ -8,6 +8,7 @@ import {
 import { isTimedOut, waitForURL } from './lib/helpers';
 import { toWalletAddressUrl } from '@/popup/lib/utils';
 
+// region: Steps
 type Account = {
   id: string;
   walletAddresses: {
@@ -137,18 +138,9 @@ const addKey: Step<typeof findAccountAndWalletId> = async (
     throw new Error(`Failed to add key: ${await res.text()}`);
   }
 };
-
-new KeyAutoAdd([
-  { id: 'Waiting for login', run: waitForLogin },
-  { id: 'Finding build ID', run: findBuildId },
-  { id: 'Getting account details', run: getAccountDetails },
-  { id: 'Revoking existing key', run: revokeExistingKey },
-  { id: 'Finding account & wallet ID', run: findAccountAndWalletId },
-  { id: 'Adding key', run: addKey },
-]).init();
+// endregion
 
 // region: Helpers
-
 async function revokeKey(accountId: string, walletId: string, keyId: string) {
   const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
   const res = await fetch(url, {
@@ -164,5 +156,15 @@ async function revokeKey(accountId: string, walletId: string, keyId: string) {
     throw new Error(`Failed to revoke key: ${await res.text()}`);
   }
 }
+// endregion
 
+// region: Main
+new KeyAutoAdd([
+  { id: 'Waiting for login', run: waitForLogin },
+  { id: 'Finding build ID', run: findBuildId },
+  { id: 'Getting account details', run: getAccountDetails },
+  { id: 'Revoking existing key', run: revokeExistingKey },
+  { id: 'Finding account & wallet ID', run: findAccountAndWalletId },
+  { id: 'Adding key', run: addKey },
+]).init();
 // endregion
