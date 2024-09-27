@@ -1,6 +1,6 @@
 // cSpell:ignore nextjs
 import { sleep } from '@/shared/helpers';
-import { KeyAutoAdd, type StepRun } from './lib/keyAutoAdd';
+import { KeyAutoAdd, type StepRun as Step } from './lib/keyAutoAdd';
 import { toWalletAddressUrl } from '@/popup/lib/utils';
 
 type Account = {
@@ -20,7 +20,7 @@ type AccountDetails = {
   };
 };
 
-const stepFindBuildId: StepRun<never, { buildId: string }> = async () => {
+const findBuildId: Step<never, { buildId: string }> = async () => {
   if (!location.pathname.startsWith('/settings/developer-keys')) {
     throw new Error('Not on keys page. Are you not logged in?');
   }
@@ -43,10 +43,10 @@ const stepFindBuildId: StepRun<never, { buildId: string }> = async () => {
   }
 };
 
-const stepGetAccountDetails: StepRun<
-  typeof stepFindBuildId,
-  Account[]
-> = async (_, [{ buildId }]) => {
+const getAccountDetails: Step<typeof findBuildId, Account[]> = async (
+  _,
+  [{ buildId }],
+) => {
   const url = `https://rafiki.money/_next/data/${buildId}/settings/developer-keys.json`;
   const res = await fetch(url, {
     method: 'GET',
@@ -61,8 +61,8 @@ const stepGetAccountDetails: StepRun<
   return json.pageProps.accounts;
 };
 
-const findAccountAndWalletId: StepRun<
-  typeof stepGetAccountDetails,
+const findAccountAndWalletId: Step<
+  typeof getAccountDetails,
   { accountId: string; walletId: string }
 > = async ({ walletAddressUrl }, [accounts]) => {
   for (const account of accounts) {
@@ -75,7 +75,7 @@ const findAccountAndWalletId: StepRun<
   throw new Error('Failed to find account ID');
 };
 
-const addKey: StepRun<typeof findAccountAndWalletId> = async (
+const addKey: Step<typeof findAccountAndWalletId> = async (
   { publicKey },
   [{ accountId, walletId }],
 ) => {
@@ -100,19 +100,19 @@ const addKey: StepRun<typeof findAccountAndWalletId> = async (
 
 new KeyAutoAdd([
   {
-    id: 'Find build ID',
-    run: stepFindBuildId,
+    id: 'Finding build ID',
+    run: findBuildId,
   },
   {
-    id: 'Get account details',
-    run: stepGetAccountDetails,
+    id: 'Getting account details',
+    run: getAccountDetails,
   },
   {
-    id: 'Find account & wallet ID',
+    id: 'Finding account & wallet ID',
     run: findAccountAndWalletId,
   },
   {
-    id: 'Add key',
+    id: 'Adding key',
     run: addKey,
   },
 ]).init();
