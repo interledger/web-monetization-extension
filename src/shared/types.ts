@@ -110,7 +110,12 @@ export type PopupTabInfo = {
 
 export type PopupTransientState = Partial<{
   connect: Partial<{
-    status: 'connecting' | 'error' | 'adding-key' | 'error-key' | null;
+    status:
+      | 'connecting'
+      | 'connecting:adding-key'
+      | 'error'
+      | 'error:key-add'
+      | null;
   }> | null;
 }>;
 

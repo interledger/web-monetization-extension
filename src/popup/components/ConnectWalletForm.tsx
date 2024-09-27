@@ -76,7 +76,7 @@ export const ConnectWalletForm = ({
     amount: false,
   });
   const [isSubmitting, setIsSubmitting] = React.useState(
-    state?.status === 'connecting',
+    state?.status?.startsWith('connecting') || false,
   );
 
   const [currencySymbol, setCurrencySymbol] = React.useState<{

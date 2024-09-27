@@ -39,7 +39,7 @@ export class KeyShareService {
         'publicKey',
         'keyId',
       ]);
-      this.setConnectState('adding-key');
+      this.setConnectState('connecting:adding-key');
       await this.process(info.url, {
         publicKey,
         walletAddressUrl: walletAddress.id,
@@ -47,7 +47,7 @@ export class KeyShareService {
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
-      this.setConnectState('error-key');
+      this.setConnectState('error:key-add');
       throw error;
     }
   }
@@ -137,7 +137,9 @@ export class KeyShareService {
     }
   }
 
-  private setConnectState(status: 'adding-key' | 'error-key' | null) {
+  private setConnectState(
+    status: 'connecting:adding-key' | 'error:key-add' | null,
+  ) {
     const state = status ? { status } : null;
     this.storage.setPopupTransientState('connect', () => state);
   }
