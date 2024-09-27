@@ -65,6 +65,18 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
       }
     );`;
 
+  const reloadScriptContent = `
+    new EventSource("http://localhost:${port}/esbuild").addEventListener(
+      "change",
+      (ev) => {
+        const patterns = ["background.js", "content.js", "polyfill.js"];
+        const data = JSON.parse(ev.data);
+        if (data.updated.some((s) => patterns.some(e => s.includes(e)))) {
+          globalThis.location.reload();
+        }
+      },
+    );`;
+
   return {
     name: 'live-reload',
     setup(build) {
@@ -81,6 +93,13 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
         return {
           contents: contents + '\n\n\n' + reloadScriptPopup,
           loader: 'tsx' as const,
+        };
+      });
+      build.onLoad({ filter: /src\/content\// }, async (args) => {
+        const contents = await readFile(args.path, 'utf8');
+        return {
+          contents: contents + '\n\n\n' + reloadScriptContent,
+          loader: 'ts' as const,
         };
       });
     },
