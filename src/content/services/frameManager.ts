@@ -1,9 +1,5 @@
 import type { ContentToContentMessage } from '../messages';
-import type {
-  ResumeMonetizationPayloadEntry,
-  StartMonetizationPayloadEntry,
-  StopMonetizationPayload,
-} from '@/shared/messages';
+import type { StopMonetizationPayload } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
 
 const HANDLED_MESSAGES: ContentToContentMessage['message'][] = [
@@ -147,7 +143,9 @@ export class FrameManager {
   }
 
   start(): void {
-    this.bindMessageHandler();
+    this.window.addEventListener('message', this.onWindowMessage, {
+      capture: true,
+    });
 
     if (
       document.readyState === 'interactive' ||
@@ -166,9 +164,14 @@ export class FrameManager {
     );
   }
 
+  end(): void {
+    this.window.removeEventListener('message', this.onWindowMessage);
+    this.frameAllowAttrObserver.disconnect();
+    this.documentObserver.disconnect();
+  }
+
   private run() {
-    const frames: NodeListOf<HTMLIFrameElement> =
-      this.document.querySelectorAll('iframe');
+    const frames = this.document.querySelectorAll('iframe');
 
     frames.forEach(async (frame) => {
       try {
@@ -182,70 +185,60 @@ export class FrameManager {
     this.observeDocumentForFrames();
   }
 
-  private bindMessageHandler() {
-    this.window.addEventListener(
-      'message',
-      (event: MessageEvent<ContentToContentMessage>) => {
-        const { message, payload, id } = event.data;
-        if (!HANDLED_MESSAGES.includes(message)) {
-          return;
+  private onWindowMessage = (event: MessageEvent<ContentToContentMessage>) => {
+    const { message, payload, id } = event.data;
+    if (!HANDLED_MESSAGES.includes(message)) {
+      return;
+    }
+    const eventSource = event.source as Window;
+    const frame = this.findIframe(eventSource);
+    if (!frame) {
+      event.stopPropagation();
+      return;
+    }
+
+    if (event.origin === this.window.location.href) return;
+
+    switch (message) {
+      case 'INITIALIZE_IFRAME':
+        event.stopPropagation();
+        this.frames.set(frame, {
+          frameId: id,
+          requestIds: [],
+        });
+        return;
+
+      case 'IS_MONETIZATION_ALLOWED_ON_START':
+        event.stopPropagation();
+        if (frame.allow === 'monetization') {
+          this.frames.set(frame, {
+            frameId: id,
+            requestIds: payload.map((p) => p.requestId),
+          });
+          eventSource.postMessage(
+            { message: 'START_MONETIZATION', id, payload },
+            '*',
+          );
         }
-        const eventSource = event.source as Window;
-        const frame = this.findIframe(eventSource);
-        if (!frame) {
-          event.stopPropagation();
-          return;
+
+        return;
+
+      case 'IS_MONETIZATION_ALLOWED_ON_RESUME':
+        event.stopPropagation();
+        if (frame.allow === 'monetization') {
+          this.frames.set(frame, {
+            frameId: id,
+            requestIds: payload.map((p) => p.requestId),
+          });
+          eventSource.postMessage(
+            { message: 'RESUME_MONETIZATION', id, payload },
+            '*',
+          );
         }
+        return;
 
-        if (event.origin === this.window.location.href) return;
-
-        switch (message) {
-          case 'INITIALIZE_IFRAME':
-            event.stopPropagation();
-            this.frames.set(frame, {
-              frameId: id,
-              requestIds: [],
-            });
-            return;
-
-          case 'IS_MONETIZATION_ALLOWED_ON_START':
-            event.stopPropagation();
-            if (frame.allow === 'monetization') {
-              this.frames.set(frame, {
-                frameId: id,
-                requestIds: payload.map(
-                  (p: StartMonetizationPayloadEntry) => p.requestId,
-                ),
-              });
-              eventSource.postMessage(
-                { message: 'START_MONETIZATION', id, payload },
-                '*',
-              );
-            }
-
-            return;
-
-          case 'IS_MONETIZATION_ALLOWED_ON_RESUME':
-            event.stopPropagation();
-            if (frame.allow === 'monetization') {
-              this.frames.set(frame, {
-                frameId: id,
-                requestIds: payload.map(
-                  (p: ResumeMonetizationPayloadEntry) => p.requestId,
-                ),
-              });
-              eventSource.postMessage(
-                { message: 'RESUME_MONETIZATION', id, payload },
-                '*',
-              );
-            }
-            return;
-
-          default:
-            return;
-        }
-      },
-      { capture: true },
-    );
-  }
+      default:
+        return;
+    }
+  };
 }

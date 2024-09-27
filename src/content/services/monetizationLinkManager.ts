@@ -94,8 +94,8 @@ export class MonetizationLinkManager extends EventEmitter {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
+    // this.window.removeEventListener('focus', this.onFocus);
     this.window.removeEventListener('message', this.onWindowMessage);
-    this.window.removeEventListener('focus', this.onFocus);
   }
 
   /**
@@ -107,7 +107,7 @@ export class MonetizationLinkManager extends EventEmitter {
       this.onDocumentVisibilityChange,
     );
     this.onFocus();
-    this.window.addEventListener('focus', this.onFocus);
+    // this.window.addEventListener('focus', this.onFocus);
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.addEventListener('message', this.onWindowMessage);
@@ -127,6 +127,7 @@ export class MonetizationLinkManager extends EventEmitter {
     });
 
     const monetizationLinks = this.getMonetizationLinkTags();
+    console.log({ monetizationLinks });
 
     for (const link of monetizationLinks) {
       this.observeLinkAttrs(link);

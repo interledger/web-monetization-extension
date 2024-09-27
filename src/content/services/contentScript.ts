@@ -29,43 +29,45 @@ export class ContentScript {
 
     this.isTopFrame = window === window.top;
     this.isFirstLevelFrame = window.parent === window.top;
-
-    this.bindMessageHandler();
   }
 
   async start() {
-    await this.injectPolyfill();
+    // await this.injectPolyfill();
+    this.browser.runtime.onMessage.addListener(this.onMessage);
     if (this.isFirstLevelFrame) {
       this.logger.info('Content script started');
 
-      if (this.isTopFrame) this.frameManager.start();
+      // if (this.isTopFrame) this.frameManager.start();
 
       this.monetizationLinkManager.start();
     }
   }
 
-  bindMessageHandler() {
-    this.browser.runtime.onMessage.addListener(
-      async (message: ToContentMessage) => {
-        try {
-          switch (message.action) {
-            case 'MONETIZATION_EVENT':
-              this.monetizationLinkManager.dispatchMonetizationEvent(
-                message.payload,
-              );
-              return;
-            case 'IS_TAB_IN_VIEW':
-              return success(document.visibilityState === 'visible');
-            default:
-              return;
-          }
-        } catch (e) {
-          this.logger.error(message.action, e.message);
-          return failure(e.message);
-        }
-      },
-    );
+  public end() {
+    this.logger.info('Disconnected, cleaning up');
+    this.browser.runtime.onMessage.removeListener(this.onMessage);
+    this.monetizationLinkManager.end();
+    // if (this.isTopFrame) this.frameManager.end();
   }
+
+  private onMessage = async (message: ToContentMessage) => {
+    try {
+      switch (message.action) {
+        case 'MONETIZATION_EVENT':
+          this.monetizationLinkManager.dispatchMonetizationEvent(
+            message.payload,
+          );
+          return;
+        case 'IS_TAB_IN_VIEW':
+          return success(document.visibilityState === 'visible');
+        default:
+          return;
+      }
+    } catch (e) {
+      this.logger.error(message.action, e.message);
+      return failure(e.message);
+    }
+  };
 
   // TODO: When Firefox has good support for `world: MAIN`, inject this directly
   // via manifest.json https://bugzilla.mozilla.org/show_bug.cgi?id=1736575 and
