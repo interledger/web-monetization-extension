@@ -60,6 +60,7 @@ export class KeyAutoAdd {
         step.status = 'success';
       } catch (error) {
         step.status = 'error';
+        this.postMessage('PROGRESS', { steps: this.steps });
         this.postMessage('ERROR', {
           error: { message: error.message },
           stepId: step.id,
@@ -69,6 +70,7 @@ export class KeyAutoAdd {
         return;
       }
     }
+    this.postMessage('PROGRESS', { steps: this.steps });
     this.postMessage('SUCCESS', true);
     this.port.disconnect();
   }

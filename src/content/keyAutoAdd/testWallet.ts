@@ -142,7 +142,7 @@ new KeyAutoAdd([
   { id: 'Waiting for login', run: waitForLogin },
   { id: 'Finding build ID', run: findBuildId },
   { id: 'Getting account details', run: getAccountDetails },
-  { id: 'Revoke existing key', run: revokeExistingKey },
+  { id: 'Revoking existing key', run: revokeExistingKey },
   { id: 'Finding account & wallet ID', run: findAccountAndWalletId },
   { id: 'Adding key', run: addKey },
 ]).init();
