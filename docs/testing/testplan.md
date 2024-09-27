@@ -3,7 +3,7 @@
 ## Introduction
 
 The purpose of this document is to guide end-user testing of the Web Monetization browser extension.
-We focus on functional test cases. The goal is to report bugs, issues or differences observed from the expected behaviour.
+We focus on functional test cases. The goal is to report bugs, issues or differences observed from the expected behavior.
 
 ## Audience
 
@@ -92,7 +92,7 @@ These test cases are defined from the point of view of a website visitor that wa
 #### Risk Areas
 
 **Goal**: To lower the barriers to Web Monetization adoption.
-**Approach**: Identify and prioritise risks to the adoption of the WM extension.
+**Approach**: Identify and prioritize risks to the adoption of the WM extension.
 Based on these risks, the sections that follow will detail the actual test cases.
 
 <!-- prettier-ignore-start -->
@@ -104,7 +104,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 | R2   | Onboarding is long or complicated                          | critical | <ul><li>Installation is simple</li><li>Onboarding is simple and clear</li><li>Support a reasonably quick start</li><li>Provide good quality support to simplify obtaining a wallet for sending or receiving WM payments (i.e. easy to contact, responsive, proactive support)</li></ul>                                                                                                                                                                                                                                                                                                              |
 | R3   | Lack of trust about the security of funds                  | critical | <ul><li>Uncertainty about the security of my funds:<ul><li>Is my money safe?</li><li>Can I easily see how much I have used?</li><li>Can I easily query issues about WM funds?</li></ul></li><li>Provide assurance and clarity about the security of funds</li><li>Allow users to view the balance of funds available to the extension from their wallet, in real-time</li><li>Build confidence by providing resources to empower software architects, developers or testers to test the technology, either using real money, or in a playground environment using “play” money</li></ul>          |
 | R4   | Lack of understanding about the standard or the technology | high     | <ul><li>Provide accessible, good quality resources to simplify understanding:<ul><li>Web Monetization</li><li>The extension</li><li>How to start using the extension</li></ul></li><li>Provide good quality of docs (accurate, comprehensive, complete)</li><ul><li>How Web Monetization works & what to expect</li><li>Understanding the technology</li><li>Access to the [proposed Web Monetization standard specification](https://webmonetization.org/specification/) & the working group [WICG](https://github.com/WICG/webmonetization) GitHub repository</li></ul></ul> |
-| R5   | UX that is poor                                            | critical | <ul><li>BuilProvide user experience (UX) that supports ease of use</li><li>Provide fast and responsive help desk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and features</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                  |
+| R5   | UX that is poor                                            | critical | <ul><li>Provide user experience (UX) that supports ease of use</li><li>Provide fast and responsive help desk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and features</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                  |
 | R6   | Unable to control payments                                 | critical | <ul><li>Ability to control when, who & how much to pay</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 <!-- prettier-ignore-end -->
 
@@ -131,7 +131,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 
 **Expected results**:
 
-1. The wallet owner receives an interaction prompt from their wallet to authorise the connection and access to the amount.
+1. The wallet owner receives an interaction prompt from their wallet to authorize the connection and access to the amount.
 
 ##### Make continuous payments
 
@@ -201,7 +201,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
  | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
-| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorised amount on the right side.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay one-time when extension funds are insufficient
 
@@ -224,7 +224,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
-| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorised amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Not enough funds to facilitate payment`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Not enough funds to facilitate payment`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Disable continuous payments
 
@@ -290,7 +290,7 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 
 1. The read-only public key of the extension.
 2. The wallet address or payment pointer that had been used for the most recent wallet connection.
-3. The currency and value that had been authorised for the most recent wallet connection.
+3. The currency and value that had been authorized for the most recent wallet connection.
 
 #### Edge Test Cases
 
@@ -318,7 +318,7 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
-| Opening the extension displays: <ol><li>**Rate of pay slider**: the rate of pay and currency on the left, the remaining balance of the extension’s authorised amount on the right side.</li><li>“**Send now**” **button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero.</li><li>**Remaining balance**: if the monetized website had 2 receiving wallet addresses, then the extension attempts to pay the maximum number of wallets that it can pay, without exceeding its remaining balance **Reason**: When you try to send $6 to a web page that has 2 receiving wallet addresses, the extension divides the total amount by the number of wallet addresses (i.e. $6 divided by 2). The extension attempts the first transaction (i.e. send $3 to the first receiving wallet). After the first transaction succeeds, the remaining balance of the extension should decrease to $2. The second transaction fails (i.e cannot send $3 to the second receiving wallet) because the extension only has a remaining balance of $2.</li></ol> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ol><li>**Rate of pay slider**: the rate of pay and currency on the left, the remaining balance of the extension’s authorized amount on the right side.</li><li>“**Send now**” **button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero.</li><li>**Remaining balance**: if the monetized website had 2 receiving wallet addresses, then the extension attempts to pay the maximum number of wallets that it can pay, without exceeding its remaining balance **Reason**: When you try to send $6 to a web page that has 2 receiving wallet addresses, the extension divides the total amount by the number of wallet addresses (i.e. $6 divided by 2). The extension attempts the first transaction (i.e. send $3 to the first receiving wallet). After the first transaction succeeds, the remaining balance of the extension should decrease to $2. The second transaction fails (i.e cannot send $3 to the second receiving wallet) because the extension only has a remaining balance of $2.</li></ol> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay until the extension runs out of funds
 
