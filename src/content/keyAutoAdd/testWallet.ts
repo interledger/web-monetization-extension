@@ -26,14 +26,18 @@ type AccountDetails = {
   };
 };
 
-const waitForLogin: Step<never> = async () => {
+const waitForLogin: Step<never> = async ({ skip }) => {
   const expectedUrl = 'https://rafiki.money/settings/developer-keys';
   try {
-    await waitForURL(
+    const foundOnLoad = await waitForURL(
       (url) => (url.origin + url.pathname).startsWith(expectedUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
     );
+    if (foundOnLoad) {
+      skip('No existing keys that need to be revoked');
+    }
   } catch (error) {
+    if (KeyAutoAdd.isSkip(error)) throw error;
     if (isTimedOut(error)) {
       throw new Error('Timed out waiting for login');
     }
@@ -63,7 +67,7 @@ const findBuildId: Step<never, { buildId: string }> = async () => {
 
 const getAccountDetails: Step<typeof findBuildId, Account[]> = async (
   _,
-  [{ buildId }],
+  { buildId },
 ) => {
   const url = `https://rafiki.money/_next/data/${buildId}/settings/developer-keys.json`;
   const res = await fetch(url, {
@@ -85,27 +89,27 @@ const getAccountDetails: Step<typeof findBuildId, Account[]> = async (
  * there first.
  */
 const revokeExistingKey: Step<typeof getAccountDetails, Account[]> = async (
-  { keyId },
-  [accounts],
+  { keyId, skip },
+  accounts,
 ) => {
-  outer: for (const account of accounts) {
+  for (const account of accounts) {
     for (const wallet of account.walletAddresses) {
       for (const key of wallet.keys) {
-        if (key.id !== keyId) continue;
-
-        await revokeKey(account.id, wallet.id, key.id);
-        break outer;
+        if (key.id === keyId) {
+          await revokeKey(account.id, wallet.id, key.id);
+          return accounts;
+        }
       }
     }
   }
 
-  return accounts;
+  skip('No existing keys that need to be revoked');
 };
 
 const findAccountAndWalletId: Step<
   typeof revokeExistingKey,
   { accountId: string; walletId: string }
-> = async ({ walletAddressUrl }, [accounts]) => {
+> = async ({ walletAddressUrl }, accounts) => {
   for (const account of accounts) {
     for (const wallet of account.walletAddresses) {
       if (toWalletAddressUrl(wallet.url) === walletAddressUrl) {
@@ -118,7 +122,7 @@ const findAccountAndWalletId: Step<
 
 const addKey: Step<typeof findAccountAndWalletId> = async (
   { publicKey, nickName },
-  [{ accountId, walletId }],
+  { accountId, walletId },
 ) => {
   const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/upload-key`;
   const res = await fetch(url, {

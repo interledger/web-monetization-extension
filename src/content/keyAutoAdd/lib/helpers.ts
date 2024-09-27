@@ -46,10 +46,10 @@ export async function waitForURL(
   match: (url: URL) => boolean,
   { timeout = 10 * 1000 }: Partial<WaitForURLOptions> = {},
 ) {
-  const { resolve, reject, promise } = withResolvers<void>();
+  const { resolve, reject, promise } = withResolvers<boolean>();
 
   if (match(new URL(window.location.href))) {
-    resolve();
+    resolve(true);
     return promise;
   }
 
@@ -68,7 +68,7 @@ export async function waitForURL(
     url = window.location.href;
     if (match(new URL(url))) {
       observer.disconnect();
-      resolve();
+      resolve(false);
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });

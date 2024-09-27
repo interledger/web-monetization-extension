@@ -1,24 +1,41 @@
-export type StepRunParams = BeginPayload;
+import { ErrorResponse } from '@/shared/messages';
+
+export interface StepRunParams extends BeginPayload {
+  skip: (message?: string) => never;
+}
 
 export type StepRun<T = unknown, R = void> = (
   params: StepRunParams,
-  prevStep: [
-    result: T extends (...args: any[]) => PromiseLike<any>
-      ? Awaited<ReturnType<T>>
-      : T,
-    id: string,
-  ],
-) => Promise<R>;
+  prevStepResult: T extends (...args: any[]) => PromiseLike<any>
+    ? Exclude<Awaited<ReturnType<T>>, void | { type: symbol }>
+    : T,
+) => Promise<R | void>;
 
 export interface Step<T = unknown, R = unknown> {
   id: string;
   run: StepRun<T, R>;
 }
 
-export interface StepWithStatus {
-  id: Step['id'];
-  status: 'pending' | 'active' | 'error' | 'success' | 'skipped';
+interface StepWithStatusBase {
+  id: string;
+  status: string;
 }
+interface StepWithStatusNormal extends StepWithStatusBase {
+  status: 'pending' | 'active' | 'success';
+}
+interface StepWithStatusSkipped extends StepWithStatusBase {
+  status: 'skipped';
+  details: { message?: string };
+}
+interface StepWithStatusError extends StepWithStatusBase {
+  status: 'error';
+  details: Omit<ErrorResponse, 'success'>;
+}
+
+export type StepWithStatus =
+  | StepWithStatusNormal
+  | StepWithStatusSkipped
+  | StepWithStatusError;
 
 export interface BeginPayload {
   walletAddressUrl: string;
