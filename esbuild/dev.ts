@@ -99,7 +99,7 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
         const contents = await readFile(args.path, 'utf8');
         return {
           contents: contents + '\n\n\n' + reloadScriptContent,
-          loader: 'tsx' as const,
+          loader: 'ts' as const,
         };
       });
     },
