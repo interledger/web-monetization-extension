@@ -118,7 +118,7 @@ export class KeyShareService {
         );
       } else if (message.action === 'PROGRESS') {
         // can save progress to show in popup
-        console.table(message.payload.steps);
+        // console.table(message.payload.steps);
       } else {
         reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
       }
