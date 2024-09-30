@@ -1,11 +1,11 @@
 import browser, { type Runtime } from 'webextension-polyfill';
-import { CONNECTION_NAME } from '@/background/services/keyShare';
+import { CONNECTION_NAME } from '@/background/services/keyAutoAdd';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type {
-  BackgroundToContentMessage,
+  BackgroundToKeyAutoAddMessage,
   BeginPayload,
-  ContentToBackgroundMessage,
-  ContentToBackgroundMessagesMap,
+  KeyAutoAddToBackgroundMessage,
+  KeyAutoAddToBackgroundMessagesMap,
   Step,
   StepRunParams,
   StepWithStatus,
@@ -24,18 +24,20 @@ export class KeyAutoAdd {
   private steps: StepWithStatus[];
 
   constructor(steps: Step[]) {
-    this.stepsInput = new Map(steps.map((step) => [step.id, step]));
-    this.steps = steps.map((step) => ({ id: step.id, status: 'pending' }));
+    this.stepsInput = new Map(steps.map((step) => [step.name, step]));
+    this.steps = steps.map((step) => ({ name: step.name, status: 'pending' }));
   }
 
   init() {
     this.port = browser.runtime.connect({ name: CONNECTION_NAME });
 
-    this.port.onMessage.addListener((message: BackgroundToContentMessage) => {
-      if (message.action === 'BEGIN') {
-        this.run(message.payload);
-      }
-    });
+    this.port.onMessage.addListener(
+      (message: BackgroundToKeyAutoAddMessage) => {
+        if (message.action === 'BEGIN') {
+          this.run(message.payload);
+        }
+      },
+    );
   }
 
   private async run({
@@ -60,10 +62,10 @@ export class KeyAutoAdd {
       this.postMessage('PROGRESS', { steps: this.steps });
       try {
         prevStepResult = await this.stepsInput
-          .get(step.id)!
+          .get(step.name)!
           .run(params, prevStepId ? prevStepResult : null);
         step.status = 'success';
-        prevStepId = step.id;
+        prevStepId = step.name;
       } catch (error) {
         if (KeyAutoAdd.isSkip(error)) {
           this.steps[stepIdx] = {
@@ -81,7 +83,7 @@ export class KeyAutoAdd {
         };
         this.postMessage('ERROR', {
           error: { message: error.message },
-          stepId: step.id,
+          stepName: step.name,
           stepIdx,
         });
         this.port.disconnect();
@@ -93,11 +95,11 @@ export class KeyAutoAdd {
     this.port.disconnect();
   }
 
-  private postMessage<T extends keyof ContentToBackgroundMessagesMap>(
+  private postMessage<T extends keyof KeyAutoAddToBackgroundMessagesMap>(
     action: T,
-    payload: ContentToBackgroundMessagesMap[T],
+    payload: KeyAutoAddToBackgroundMessagesMap[T],
   ) {
-    const message = { action, payload } as ContentToBackgroundMessage;
+    const message = { action, payload } as KeyAutoAddToBackgroundMessage;
     this.port.postMessage(message);
   }
 

@@ -13,12 +13,12 @@ export type StepRun<T = unknown, R = void> = (
 ) => Promise<R | void>;
 
 export interface Step<T = unknown, R = unknown> {
-  id: string;
+  name: string;
   run: StepRun<T, R>;
 }
 
 interface StepWithStatusBase {
-  id: string;
+  name: Step['name'];
   status: string;
 }
 interface StepWithStatusNormal extends StepWithStatusBase {
@@ -45,30 +45,30 @@ export interface BeginPayload {
   nickName: string;
 }
 
-export type BackgroundToContentMessagesMap = {
+export type BackgroundToKeyAutoAddMessagesMap = {
   BEGIN: BeginPayload;
 };
 
-export type BackgroundToContentMessage = {
-  [K in keyof BackgroundToContentMessagesMap]: {
+export type BackgroundToKeyAutoAddMessage = {
+  [K in keyof BackgroundToKeyAutoAddMessagesMap]: {
     action: K;
-    payload: BackgroundToContentMessagesMap[K];
+    payload: BackgroundToKeyAutoAddMessagesMap[K];
   };
-}[keyof BackgroundToContentMessagesMap];
+}[keyof BackgroundToKeyAutoAddMessagesMap];
 
-export type ContentToBackgroundMessagesMap = {
+export type KeyAutoAddToBackgroundMessagesMap = {
   PROGRESS: { steps: StepWithStatus[] };
   SUCCESS: true;
   ERROR: {
     stepIdx: number;
-    stepId: StepWithStatus['id'];
+    stepName: StepWithStatus['name'];
     error: { message: string };
   };
 };
 
-export type ContentToBackgroundMessage = {
-  [K in keyof ContentToBackgroundMessagesMap]: {
+export type KeyAutoAddToBackgroundMessage = {
+  [K in keyof KeyAutoAddToBackgroundMessagesMap]: {
     action: K;
-    payload: ContentToBackgroundMessagesMap[K];
+    payload: KeyAutoAddToBackgroundMessagesMap[K];
   };
-}[keyof ContentToBackgroundMessagesMap];
+}[keyof KeyAutoAddToBackgroundMessagesMap];

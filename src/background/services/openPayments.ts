@@ -24,7 +24,7 @@ import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
-import { KeyShareService } from './keyShare';
+import { KeyAutoAddService } from './keyAutoAdd';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
 import {
@@ -534,15 +534,15 @@ export class OpenPaymentsService {
   private async addPublicKeyToWallet(
     walletAddress: WalletAddress,
   ): Promise<TabId | undefined> {
-    const keyShare = new KeyShareService({
+    const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
       storage: this.storage,
     });
     try {
-      await keyShare.addPublicKeyToWallet(walletAddress);
-      return keyShare.tabId;
+      await keyAutoAdd.addPublicKeyToWallet(walletAddress);
+      return keyAutoAdd.tabId;
     } catch (error) {
-      const tabId = keyShare.tabId;
+      const tabId = keyAutoAdd.tabId;
       if (tabId) {
         await this.redirectToWelcomeScreen(
           tabId,

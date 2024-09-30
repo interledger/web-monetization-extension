@@ -165,11 +165,11 @@ async function revokeKey(accountId: string, walletId: string, keyId: string) {
 
 // region: Main
 new KeyAutoAdd([
-  { id: 'Waiting for login', run: waitForLogin },
-  { id: 'Finding build ID', run: findBuildId },
-  { id: 'Getting account details', run: getAccountDetails },
-  { id: 'Revoking existing key', run: revokeExistingKey },
-  { id: 'Finding wallet', run: findWallet },
-  { id: 'Adding key', run: addKey },
+  { name: 'Waiting for login', run: waitForLogin },
+  { name: 'Finding build ID', run: findBuildId },
+  { name: 'Getting account details', run: getAccountDetails },
+  { name: 'Revoking existing key', run: revokeExistingKey },
+  { name: 'Finding wallet', run: findWallet },
+  { name: 'Adding key', run: addKey },
 ]).init();
 // endregion

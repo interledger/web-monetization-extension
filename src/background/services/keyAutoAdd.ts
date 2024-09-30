@@ -1,15 +1,15 @@
 // cSpell:ignore jwks
+import { ErrorWithKey, withResolvers } from '@/shared/helpers';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
-  ContentToBackgroundMessage,
+  KeyAutoAddToBackgroundMessage,
 } from '@/content/keyAutoAdd/lib/types';
-import { ErrorWithKey, withResolvers } from '@/shared/helpers';
 
-export const CONNECTION_NAME = 'key-share';
+export const CONNECTION_NAME = 'key-auto-add';
 
 type OnTabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
@@ -21,7 +21,7 @@ type OnPortMessageListener = Parameters<
   Runtime.Port['onMessage']['addListener']
 >[0];
 
-export class KeyShareService {
+export class KeyAutoAddService {
   private browser: Cradle['browser'];
   private storage: Cradle['storage'];
 
@@ -39,7 +39,7 @@ export class KeyShareService {
         'publicKey',
         'keyId',
       ]);
-      this.setConnectState('connecting:adding-key');
+      this.setConnectState('connecting:key');
       await this.process(info.url, {
         publicKey,
         keyId,
@@ -48,7 +48,7 @@ export class KeyShareService {
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
-      this.setConnectState('error:key-add');
+      this.setConnectState('error:key');
       throw error;
     }
   }
@@ -72,16 +72,9 @@ export class KeyShareService {
     }
 
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
-      if (tabId !== tab.id) {
-        // ignore. not our tab
-        return;
-      }
-
-      if (this.status === 'SUCCESS') {
-        // ok
-      } else {
-        reject(new Error('Tab closed before completion'));
-      }
+      if (tabId !== tab.id) return;
+      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
     this.browser.tabs.onRemoved.addListener(onTabCloseListener);
 
@@ -103,16 +96,18 @@ export class KeyShareService {
     };
 
     const onMessageListener: OnPortMessageListener = (
-      message: ContentToBackgroundMessage,
+      message: KeyAutoAddToBackgroundMessage,
     ) => {
       if (message.action === 'SUCCESS') {
         this.browser.runtime.onConnect.removeListener(onConnectListener);
+        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
         resolve(message.payload);
       } else if (message.action === 'ERROR') {
         this.browser.runtime.onConnect.removeListener(onConnectListener);
+        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
         reject(
           new ErrorWithKey('connectWalletKeyService_error_failed', [
-            message.payload.stepId,
+            message.payload.stepName,
             message.payload.error.message,
           ]),
         );
@@ -139,9 +134,7 @@ export class KeyShareService {
     }
   }
 
-  private setConnectState(
-    status: 'connecting:adding-key' | 'error:key-add' | null,
-  ) {
+  private setConnectState(status: 'connecting:key' | 'error:key' | null) {
     const state = status ? { status } : null;
     this.storage.setPopupTransientState('connect', () => state);
   }
