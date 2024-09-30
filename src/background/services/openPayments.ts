@@ -560,7 +560,8 @@ export class OpenPaymentsService {
       return keyAutoAdd.tabId;
     } catch (error) {
       const tabId = keyAutoAdd.tabId;
-      if (tabId) {
+      const isTabClosed = error.key === 'connectWallet_error_tabClosed';
+      if (tabId && !isTabClosed) {
         await this.redirectToWelcomeScreen(
           tabId,
           GrantResult.ERROR,
