@@ -32,7 +32,7 @@ Learn more about the providers for [Web Monetization compatible wallets here](ht
 #### Test Digital Wallet
 
 You have the option to use “play” money from the [Interledger Test Wallet application](https://rafiki.money/).  
-Here you can set up an account that is enabled for Web Monetization, and other Interledger functionality, without involving real money.  
+Here you can set up an account that is enabled for Web Monetization, and other Interledger functionality, without involving real money.
 
 You can learn more about the [Interledger Test Wallet here](https://rafiki.dev/integration/playground/testnet/).
 
@@ -203,7 +203,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 **Steps**:
 
 1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
-2. Open the extension and make a one-time payment where the amount: 
+2. Open the extension and make a one-time payment where the amount:
    1. Falls within your remaining balance shown in the extension.
    1. Is higher than your wallet’s available balance.
 3. Visit a non-monetized website. Open the extension to observe its available options.
