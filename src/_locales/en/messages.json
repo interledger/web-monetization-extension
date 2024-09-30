@@ -169,6 +169,9 @@
   "connectWallet_error_tabClosed": {
     "message": "Connect wallet cancelled. You closed the tab before completion."
   },
+  "connectWallet_error_grantRejected": {
+    "message": "Connect wallet cancelled. You rejected the request."
+  },
   "connectWalletKeyService_error_notImplemented": {
     "message": "Automatic key addition is not implemented for given wallet provider yet."
   },

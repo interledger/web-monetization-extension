@@ -708,6 +708,8 @@ export class OpenPaymentsService {
 
         if (interactRef && hash) {
           resolve({ interactRef, hash, tabId });
+        } else if (result === 'grant_rejected') {
+          reject(new ErrorWithKey('connectWallet_error_grantRejected'));
         }
       } catch {
         /* do nothing */
