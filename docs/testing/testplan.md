@@ -75,7 +75,7 @@ This table describes the different ways that you can set up a website that is mo
 
 Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly and seamlessly create the conditions of a monetized website, to use only for testing. When you add wallet addresses or payment pointers to the playground, the playground becomes a monetized website that you can use the Web Monetization extension to pay
 
-On the playground, you can use real money from a real wallet, or you can use “play” money from a “play wallet”. The play wallet is an Interledger Test Wallet application that can be used to set up an account that is enabled for Web Monetization, and other Interledger functionality. You can learn more about the [Interledger Test Wallet here](https://rafiki.dev/integration/playground/testnet/).
+On the playground, you can use real money from a real wallet, or you can use “play” money from a “test wallet”. The Interledger Test Wallet application can be used to set up an account that is enabled for Web Monetization, and other Interledger functionality, without involving “real money”. You can learn more about the [Interledger Test Wallet here](https://rafiki.dev/integration/playground/testnet/).
 
 **Important**
 
