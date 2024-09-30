@@ -132,6 +132,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 **Expected results**:
 
 1. The wallet owner receives an interaction prompt from their wallet to authorize the connection and access to the amount.
+2. On accepting, you get shown the message "Your wallet is now successfully connected to the extension."
 
 ##### Make continuous payments
 
