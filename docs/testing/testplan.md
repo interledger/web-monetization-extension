@@ -21,12 +21,20 @@ Any person interested in testing the beta release of the Web Monetization extens
 
 The main prerequisite for sending or receiving Web Monetization payments is to have a Web Monetization-enabled digital wallet. Web Monetization-enabled digital wallets are provided by licensed service providers. A wallet allows a user to send or receive Web Monetization payments. The wallet providers are regulated by the laws of the countries in which they operate.
 
-Below is a list of the available wallet providers:
+Below is a list of the available wallet providers if you want to use real money:
 
 - [Fynbos](https://wallet.fynbos.app/wallet)
 - [GateHub](https://gatehub.net/mobile)
 
-Wallet availability in a specific country, or availability in particular currency depends on the wallet provider. Learn more about the providers for [Web Monetization compatible wallets here](https://webmonetization.org/docs/resources/op-wallets/#fynbos).
+Wallet availability in a specific country, or availability in particular currency depends on the wallet provider.  
+Learn more about the providers for [Web Monetization compatible wallets here](https://webmonetization.org/docs/resources/op-wallets/).
+
+#### Test Digital Wallet
+
+You have the option to use “play” money from the [Interledger Test Wallet application](https://rafiki.money/).  
+Here you can set up an account that is enabled for Web Monetization, and other Interledger functionality, without involving real money.  
+
+You can learn more about the [Interledger Test Wallet here](https://rafiki.dev/integration/playground/testnet/).
 
 ## Testing
 
@@ -75,7 +83,7 @@ This table describes the different ways that you can set up a website that is mo
 
 Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly and seamlessly create the conditions of a monetized website, to use only for testing. When you add wallet addresses or payment pointers to the playground, the playground becomes a monetized website that you can use the Web Monetization extension to pay
 
-On the playground, you can use real money from a real wallet, or you can use “play” money from a “test wallet”. The Interledger Test Wallet application can be used to set up an account that is enabled for Web Monetization, and other Interledger functionality, without involving “real money”. You can learn more about the [Interledger Test Wallet here](https://rafiki.dev/integration/playground/testnet/).
+On the playground, you can use real money from a real wallet, or you can use “play” money from a “test wallet”.
 
 **Important**
 
