@@ -126,7 +126,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 2. Open the digital wallet, and load the extension’s key into the wallet.
 3. From the digital wallet, find and copy the wallet address or payment pointer.
 4. Open the WM extension, and enter the wallet address or payment pointer.
-5. Enter the amount you want to make available to the extension from your wallet (the amount must be a positive value).
+5. Enter the amount you want to make available to the extension from your wallet.
 6. Keep the option to renew monthly disabled.
 
 **Expected results**:
