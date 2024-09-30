@@ -1,7 +1,8 @@
-import { ErrorResponse } from '@/shared/messages';
+import type { ErrorWithKeyLike } from '@/shared/helpers';
+import type { ErrorResponse } from '@/shared/messages';
 
 export interface StepRunParams extends BeginPayload {
-  skip: (message?: string) => never;
+  skip: (message?: string | ErrorWithKeyLike) => never;
 }
 
 export type StepRun<T = unknown, R = void> = (
@@ -25,7 +26,7 @@ interface StepWithStatusNormal extends StepWithStatusBase {
 }
 interface StepWithStatusSkipped extends StepWithStatusBase {
   status: 'skipped';
-  details: { message?: string };
+  details: { message?: string | ErrorWithKeyLike };
 }
 interface StepWithStatusError extends StepWithStatusBase {
   status: 'error';

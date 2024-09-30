@@ -173,10 +173,19 @@
     "message": "Automatic key addition is not implemented for given wallet provider yet."
   },
   "connectWalletKeyService_error_failed": {
-    "message": "Automatic key addition failed at step `$STEP_ID$` with message `$MESSAGE$`.",
+    "message": "Automatic key addition failed at step “$STEP_ID$” with message “$MESSAGE$”.",
     "placeholders": {
-      "STEP_ID": { "content": "$1", "example": "Some step ID" },
-      "MESSAGE": { "content": "$2", "example": "Error message" }
+      "STEP_ID": { "content": "$1", "example": "Doing something" },
+      "MESSAGE": { "content": "$2", "example": "Could not do something" }
     }
+  },
+  "connectWalletKeyService_error_timeoutLogin": {
+    "message": "Timed out waiting for login"
+  },
+  "connectWalletKeyService_error_skipAlreadyLoggedIn": {
+    "message": "Already logged in"
+  },
+  "connectWalletKeyService_error_accountNotFound": {
+    "message": "Failed to find account for given wallet address. Are you logged in to some other account?"
   }
 }

@@ -1,5 +1,5 @@
 // cSpell:ignore nextjs
-import { sleep } from '@/shared/helpers';
+import { errorWithKey, ErrorWithKey, sleep } from '@/shared/helpers';
 import {
   KeyAutoAdd,
   LOGIN_WAIT_TIMEOUT,
@@ -28,20 +28,21 @@ type AccountDetails = {
 
 const waitForLogin: Step<never> = async ({ skip }) => {
   const expectedUrl = 'https://rafiki.money/settings/developer-keys';
+  let foundOnLoad = false;
   try {
-    const foundOnLoad = await waitForURL(
+    foundOnLoad = await waitForURL(
       (url) => (url.origin + url.pathname).startsWith(expectedUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
     );
-    if (foundOnLoad) {
-      skip('No existing keys that need to be revoked');
-    }
   } catch (error) {
-    if (KeyAutoAdd.isSkip(error)) throw error;
     if (isTimedOut(error)) {
-      throw new Error('Timed out waiting for login');
+      throw new ErrorWithKey('connectWalletKeyService_error_timeoutLogin');
     }
-    throw new Error('Failed to wait for login', { cause: error });
+    throw new Error(error);
+  }
+
+  if (foundOnLoad) {
+    skip(errorWithKey('connectWalletKeyService_error_skipAlreadyLoggedIn'));
   }
 };
 
@@ -50,16 +51,16 @@ const findBuildId: Step<never, { buildId: string }> = async () => {
 
   const NEXT_DATA = document.querySelector('script#__NEXT_DATA__')?.textContent;
   if (!NEXT_DATA) {
-    throw new Error('Failed to find `_NEXT_DATA_` script');
+    throw new Error('Failed to find `__NEXT_DATA__` script');
   }
   try {
     const buildId = JSON.parse(NEXT_DATA).buildId;
-    if (!buildId) {
-      throw new Error('Failed to parse `_NEXT_DATA_` script');
+    if (!buildId || typeof buildId !== 'string') {
+      throw new Error('Failed to get buildId from `__NEXT_DATA__` script');
     }
     return { buildId };
   } catch (error) {
-    throw new Error('Failed to parse `_NEXT_DATA_` script', {
+    throw new Error('Failed to parse `__NEXT_DATA__` script', {
       cause: error,
     });
   }
@@ -106,7 +107,7 @@ const revokeExistingKey: Step<typeof getAccountDetails, Account[]> = async (
   skip('No existing keys that need to be revoked');
 };
 
-const findAccountAndWalletId: Step<
+const findWallet: Step<
   typeof revokeExistingKey,
   { accountId: string; walletId: string }
 > = async ({ walletAddressUrl }, accounts) => {
@@ -117,10 +118,10 @@ const findAccountAndWalletId: Step<
       }
     }
   }
-  throw new Error('Failed to find account ID');
+  throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
 };
 
-const addKey: Step<typeof findAccountAndWalletId> = async (
+const addKey: Step<typeof findWallet> = async (
   { publicKey, nickName },
   { accountId, walletId },
 ) => {
@@ -139,7 +140,7 @@ const addKey: Step<typeof findAccountAndWalletId> = async (
     credentials: 'include',
   });
   if (!res.ok) {
-    throw new Error(`Failed to add key: ${await res.text()}`);
+    throw new Error(await res.text());
   }
 };
 // endregion
@@ -168,7 +169,7 @@ new KeyAutoAdd([
   { id: 'Finding build ID', run: findBuildId },
   { id: 'Getting account details', run: getAccountDetails },
   { id: 'Revoking existing key', run: revokeExistingKey },
-  { id: 'Finding account & wallet ID', run: findAccountAndWalletId },
+  { id: 'Finding wallet', run: findWallet },
   { id: 'Adding key', run: addKey },
 ]).init();
 // endregion

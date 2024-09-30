@@ -1,5 +1,6 @@
 import browser, { type Runtime } from 'webextension-polyfill';
 import { CONNECTION_NAME } from '@/background/services/keyShare';
+import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type {
   BackgroundToContentMessage,
   BeginPayload,
@@ -100,7 +101,9 @@ export class KeyAutoAdd {
     this.port.postMessage(message);
   }
 
-  static isSkip(err: unknown): err is { type: symbol; message?: string } {
+  static isSkip(
+    err: unknown,
+  ): err is { type: symbol; message?: string | ErrorWithKeyLike } {
     if (!err || typeof err !== 'object') return false;
     return 'type' in err && err.type === SYMBOL_SKIP;
   }
