@@ -31,6 +31,8 @@ export const Component = () => {
         onConnect={() => {
           // The popup closes due to redirects on connect, so we don't need to
           // update any state manually.
+          // But we reload it, as it's open all-time when running E2E tests
+          window.location.reload();
         }}
       />
     );

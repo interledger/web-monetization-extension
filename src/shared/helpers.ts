@@ -293,6 +293,10 @@ export const removeQueryParams = (urlString: string) => {
   return url.origin + url.pathname;
 };
 
+export const ensureEnd = (str: string, suffix: string) => {
+  return str.endsWith(suffix) ? str : str + suffix;
+};
+
 /**
  * Polyfill for `Promise.withResolvers()`
  */

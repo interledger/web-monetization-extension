@@ -1,5 +1,4 @@
-// cSpell:ignore jwks
-import { ErrorWithKey, withResolvers } from '@/shared/helpers';
+import { ErrorWithKey, ensureEnd, withResolvers } from '@/shared/helpers';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
@@ -132,7 +131,7 @@ export class KeyAutoAddService {
 
   private async validate(walletAddressUrl: string, keyId: string) {
     type JWKS = { keys: { kid: string }[] };
-    const jwksUrl = new URL('jwks.json', walletAddressUrl + '/');
+    const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
     const res = await fetch(jwksUrl.toString());
     const jwks: JWKS = await res.json();
     if (!jwks.keys.find((key) => key.kid === keyId)) {
