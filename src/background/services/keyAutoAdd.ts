@@ -152,9 +152,7 @@ export function walletAddressToProvider(walletAddress: WalletAddress): {
   const { host } = new URL(walletAddress.id);
   switch (host) {
     case 'ilp.rafiki.money':
-      return {
-        url: 'https://rafiki.money/settings/developer-keys',
-      };
+      return { url: 'https://rafiki.money/settings/developer-keys' };
     // case 'eu1.fynbos.me': // fynbos dev
     // case 'fynbos.me': // fynbos production
     default:
