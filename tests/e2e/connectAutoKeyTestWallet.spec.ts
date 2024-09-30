@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/base';
+import { ensureEnd, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
 import {
   acceptGrant,
@@ -8,10 +9,9 @@ import {
   waitForGrantConsentPage,
   waitForWelcomePage,
 } from './helpers/testWallet';
-import { ensureEnd, withResolvers } from '@/shared/helpers';
 import { getJWKS } from './helpers/common';
 
-test.only('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
+test('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
   page,
   popup,
   persistentContext: context,
