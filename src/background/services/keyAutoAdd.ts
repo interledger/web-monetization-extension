@@ -24,12 +24,18 @@ type OnPortMessageListener = Parameters<
 export class KeyAutoAddService {
   private browser: Cradle['browser'];
   private storage: Cradle['storage'];
+  private browserName: Cradle['browserName'];
+  private t: Cradle['t'];
 
-  private status: null | 'SUCCESS' | 'ERROR' = null;
   private tab: Tabs.Tab | null = null;
 
-  constructor({ browser, storage }: Pick<Cradle, 'browser' | 'storage'>) {
-    Object.assign(this, { browser, storage });
+  constructor({
+    browser,
+    storage,
+    browserName,
+    t,
+  }: Pick<Cradle, 'browser' | 'storage' | 'browserName' | 't'>) {
+    Object.assign(this, { browser, storage, browserName, t });
   }
 
   async addPublicKeyToWallet(walletAddress: WalletAddress) {
@@ -44,7 +50,7 @@ export class KeyAutoAddService {
         publicKey,
         keyId,
         walletAddressUrl: walletAddress.id,
-        nickName: 'web monetization extension',
+        nickName: this.t('appName') + ' - ' + this.browserName,
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {

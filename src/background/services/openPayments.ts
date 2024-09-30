@@ -120,6 +120,7 @@ export class OpenPaymentsService {
   private storage: Cradle['storage'];
   private deduplicator: Cradle['deduplicator'];
   private logger: Cradle['logger'];
+  private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
   client?: AuthenticatedClient;
@@ -131,8 +132,22 @@ export class OpenPaymentsService {
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false };
 
-  constructor({ browser, storage, deduplicator, logger, t }: Cradle) {
-    Object.assign(this, { browser, storage, deduplicator, logger, t });
+  constructor({
+    browser,
+    storage,
+    deduplicator,
+    logger,
+    t,
+    browserName,
+  }: Cradle) {
+    Object.assign(this, {
+      browser,
+      storage,
+      deduplicator,
+      logger,
+      t,
+      browserName,
+    });
 
     void this.initialize();
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
@@ -537,6 +552,8 @@ export class OpenPaymentsService {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
       storage: this.storage,
+      browserName: this.browserName,
+      t: this.t,
     });
     try {
       await keyAutoAdd.addPublicKeyToWallet(walletAddress);
