@@ -194,7 +194,9 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 **Steps**:
 
 1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
-2. Open the extension and make a one-time payment where the amount: <ol><li>Falls within your remaining balance shown in the extension.</li><li>Is higher than your wallet’s available balance.</li></ol>
+2. Open the extension and make a one-time payment where the amount: 
+   1. Falls within your remaining balance shown in the extension.
+   1. Is higher than your wallet’s available balance.
 3. Visit a non-monetized website. Open the extension to observe its available options.
 
 **Expected results**:  
