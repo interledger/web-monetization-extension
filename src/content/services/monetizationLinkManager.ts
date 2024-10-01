@@ -363,8 +363,9 @@ export class MonetizationLinkManager extends EventEmitter {
 
     for (const record of records) {
       if (record.type === 'childList') {
-        record.removedNodes.forEach(async (node) => {
+        record.removedNodes.forEach((node) => {
           if (!(node instanceof HTMLLinkElement)) return;
+          if (!node.relList.contains('monetization') || node.disabled) return;
           const payloadEntry = this.onRemovedLink(node);
           stopMonetizationPayload.push(payloadEntry);
         });
