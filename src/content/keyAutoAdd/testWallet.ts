@@ -68,10 +68,6 @@ const getAccountDetails: Step<never, Account[]> = async (_) => {
   const url = `https://rafiki.money/_next/data/${buildId}/settings/developer-keys.json`;
   const res = await fetch(url, {
     method: 'GET',
-    headers: {
-      accept: '*/*',
-      'x-nextjs-data': '1',
-    },
     mode: 'cors',
     credentials: 'include',
   });
