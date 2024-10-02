@@ -28,6 +28,7 @@ interface Inputs {
   walletAddressUrl: string;
   amount: string;
   recurring: boolean;
+  autoKeyAddConsent: boolean;
 }
 
 interface ConnectWalletFormProps {
@@ -62,8 +63,13 @@ export const ConnectWalletForm = ({
   const [recurring, setRecurring] = React.useState<Inputs['recurring']>(
     defaultValues.recurring || false,
   );
+
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
     isAutoKeyAddFailed(state),
+  );
+  const [showConsent, setShowConsent] = React.useState(false);
+  const autoKeyAddConsent = React.useRef<boolean>(
+    defaultValues.autoKeyAddConsent || false,
   );
 
   const resetState = React.useCallback(async () => {
@@ -156,12 +162,8 @@ export const ConnectWalletForm = ({
     [saveValue, currencySymbol, t],
   );
 
-  const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
-    ev.preventDefault();
-    if (!walletAddressInfo) {
-      setErrors((_) => ({ ..._, walletAddressUrl: 'Not fetched yet?!' }));
-      return;
-    }
+  const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
+    ev?.preventDefault();
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
     const errAmount = validateAmount(amount, currencySymbol.symbol);
@@ -186,7 +188,8 @@ export const ConnectWalletForm = ({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
         amount,
         recurring,
-        skipAutoKeyShare,
+        autoKeyAdd: !skipAutoKeyShare,
+        autoKeyAddConsent: autoKeyAddConsent.current,
       });
       if (res.success) {
         onConnect();
@@ -194,6 +197,10 @@ export const ConnectWalletForm = ({
         if (isErrorWithKey(res.error)) {
           const error = res.error;
           if (error.key.startsWith('connectWalletKeyService_error_')) {
+            if (error.key === 'connectWalletKeyService_error_noConsent') {
+              setShowConsent(true);
+              return;
+            }
             setErrors((_) => ({ ..._, keyPair: t(error) }));
           } else {
             setErrors((_) => ({ ..._, connect: t(error) }));
@@ -222,6 +229,26 @@ export const ConnectWalletForm = ({
       handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
     }
   }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
+
+  if (showConsent) {
+    return (
+      <AutoKeyAddConsent
+        onAccept={() => {
+          autoKeyAddConsent.current = true;
+          // saveValue('autoKeyAddConsent', true);
+          setShowConsent(false);
+          handleSubmit();
+        }}
+        onDecline={() => {
+          setErrors((_) => ({
+            ..._,
+            keyPair: t('connectWalletKeyService_error_noConsent'),
+          }));
+          setShowConsent(false);
+        }}
+      />
+    );
+  }
 
   return (
     <form
@@ -384,6 +411,27 @@ export const ConnectWalletForm = ({
             learnMoreText={t('connectWallet_text_footerNoticeLearnMore')}
           />
         )}
+      </div>
+    </form>
+  );
+};
+
+const AutoKeyAddConsent: React.FC<{
+  onAccept: () => void;
+  onDecline: () => void;
+}> = ({ onAccept, onDecline }) => {
+  const t = useTranslation();
+  return (
+    <form className="space-y-4" data-testid="connect-wallet-auto-key-consent">
+      <p className="text-medium">{t('connectWalletKeyService_text_consent')}</p>
+
+      <div className="mx-auto flex w-3/4 justify-around gap-4">
+        <Button onClick={onAccept}>
+          {t('connectWalletKeyService_label_consentAccept')}
+        </Button>
+        <Button onClick={onDecline} variant="destructive">
+          {t('connectWalletKeyService_label_consentDecline')}
+        </Button>
       </div>
     </form>
   );

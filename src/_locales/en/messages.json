@@ -172,8 +172,20 @@
   "connectWallet_error_grantRejected": {
     "message": "Connect wallet cancelled. You rejected the request."
   },
+  "connectWalletKeyService_text_consent": {
+    "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key. Please note, this process does not involve accessing or handling your funds."
+  },
+  "connectWalletKeyService_label_consentAccept": {
+    "message": "Accept"
+  },
+  "connectWalletKeyService_label_consentDecline": {
+    "message": "Decline"
+  },
   "connectWalletKeyService_error_notImplemented": {
     "message": "Automatic key addition is not implemented for given wallet provider yet."
+  },
+  "connectWalletKeyService_error_noConsent": {
+    "message": "You declined consent for automatic key addition."
   },
   "connectWalletKeyService_error_failed": {
     "message": "Automatic key addition failed at step “$STEP_ID$” with message “$MESSAGE$”.",

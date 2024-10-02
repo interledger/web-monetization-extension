@@ -168,6 +168,15 @@ export class KeyAutoAddService {
       }));
     }
   }
+
+  static supports(walletAddress: WalletAddress): boolean {
+    try {
+      void walletAddressToProvider(walletAddress);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export function walletAddressToProvider(walletAddress: WalletAddress): {

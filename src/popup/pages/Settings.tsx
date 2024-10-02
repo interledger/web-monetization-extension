@@ -22,6 +22,9 @@ export const Component = () => {
           amount: localStorage?.getItem('connect.amount') || undefined,
           walletAddressUrl:
             localStorage?.getItem('connect.walletAddressUrl') || undefined,
+          autoKeyAddConsent:
+            localStorage?.getItem('connect.autoKeyAddConsent') === 'true' ||
+            false,
         }}
         saveValue={(key, val) => {
           localStorage?.setItem(`connect.${key}`, val.toString());

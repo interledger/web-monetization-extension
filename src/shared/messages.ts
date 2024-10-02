@@ -93,7 +93,8 @@ export interface ConnectWalletPayload {
   walletAddressUrl: string;
   amount: string;
   recurring: boolean;
-  skipAutoKeyShare: boolean;
+  autoKeyAdd: boolean;
+  autoKeyAddConsent: boolean | null;
 }
 
 export interface AddFundsPayload {

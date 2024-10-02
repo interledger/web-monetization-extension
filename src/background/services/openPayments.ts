@@ -340,7 +340,13 @@ export class OpenPaymentsService {
       this.setConnectState(null);
       return;
     }
-    const { walletAddressUrl, amount, recurring, skipAutoKeyShare } = params;
+    const {
+      walletAddressUrl,
+      amount,
+      recurring,
+      autoKeyAdd,
+      autoKeyAddConsent,
+    } = params;
 
     const walletAddress = await getWalletInformation(walletAddressUrl);
     const exchangeRates = await getExchangeRates();
@@ -385,8 +391,19 @@ export class OpenPaymentsService {
       if (
         isErrorWithKey(error) &&
         error.key === 'connectWallet_error_invalidClient' &&
-        !skipAutoKeyShare
+        autoKeyAdd
       ) {
+        if (!KeyAutoAddService.supports(walletAddress)) {
+          this.updateConnectStateError(error);
+          throw new ErrorWithKey(
+            'connectWalletKeyService_error_notImplemented',
+          );
+        }
+        if (!autoKeyAddConsent) {
+          this.updateConnectStateError(error);
+          throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
+        }
+
         // add key to wallet and try again
         try {
           const tabId = await this.addPublicKeyToWallet(walletAddress);
