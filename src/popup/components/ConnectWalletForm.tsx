@@ -37,6 +37,7 @@ interface ConnectWalletFormProps {
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
+  clearConnectState: () => Promise<unknown>;
   onConnect?: () => void;
 }
 
@@ -46,6 +47,7 @@ export const ConnectWalletForm = ({
   state,
   getWalletInfo,
   connectWallet,
+  clearConnectState,
   saveValue = () => {},
   onConnect = () => {},
 }: ConnectWalletFormProps) => {
@@ -63,6 +65,12 @@ export const ConnectWalletForm = ({
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
     isAutoKeyAddFailed(state),
   );
+
+  const resetState = React.useCallback(async () => {
+    await clearConnectState();
+    setErrors((_) => ({ ..._, keyPair: '', connect: '' }));
+    setAutoKeyShareFailed(false);
+  }, [clearConnectState]);
 
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<WalletAddress | null>(null);
@@ -268,6 +276,7 @@ export const ConnectWalletForm = ({
             }
           }
           const ok = await handleWalletAddressUrlChange(value, input);
+          resetState();
           if (ok) document.getElementById('connectAmount')?.focus();
         }}
         onBlur={async (ev) => {
@@ -278,6 +287,7 @@ export const ConnectWalletForm = ({
             }
           }
           await handleWalletAddressUrlChange(value, ev.currentTarget);
+          resetState();
         }}
       />
 

@@ -335,12 +335,13 @@ export class OpenPaymentsService {
     });
   }
 
-  async connectWallet({
-    walletAddressUrl,
-    amount,
-    recurring,
-    skipAutoKeyShare,
-  }: ConnectWalletPayload) {
+  async connectWallet(params: ConnectWalletPayload | null) {
+    if (!params) {
+      this.setConnectState(null);
+      return;
+    }
+    const { walletAddressUrl, amount, recurring, skipAutoKeyShare } = params;
+
     const walletAddress = await getWalletInformation(walletAddressUrl);
     const exchangeRates = await getExchangeRates();
 

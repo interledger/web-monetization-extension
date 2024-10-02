@@ -194,7 +194,7 @@ export class Background {
 
             case 'CONNECT_WALLET':
               await this.openPaymentsService.connectWallet(message.payload);
-              if (message.payload.recurring) {
+              if (message.payload?.recurring) {
                 this.scheduleResetOutOfFundsState();
               }
               return success(undefined);

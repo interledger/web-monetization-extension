@@ -34,6 +34,7 @@ export const Component = () => {
           // But we reload it, as it's open all-time when running E2E tests
           window.location.reload();
         }}
+        clearConnectState={() => message.send('CONNECT_WALLET', null)}
       />
     );
   }
