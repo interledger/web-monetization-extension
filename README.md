@@ -88,6 +88,7 @@ Inside this project, you'll see the following folders and files:
 │   ├── content/ # Source  code for the content scripts
 │   │   └── keyAutoAdd/ # content scripts for automatic key addition to wallets
 │   ├── popup/ # Source code for the popup UI
+│   ├── pages/ # Source code for additional extension pages
 │   ├── shared/ # Shared utilities
 │   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
 ├── jest.config.ts
