@@ -34,7 +34,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["polyfill/*"],
+      "resources": ["polyfill/*", "pages/progress-connect/*"],
       "matches": ["<all_urls>"]
     }
   ],

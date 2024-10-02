@@ -52,6 +52,10 @@ export const getPlugins = ({
           to: path.join(outDir, 'popup', 'index.html'),
         },
         {
+          from: path.join(SRC_DIR, 'pages', 'progress-connect', 'index.html'),
+          to: path.join(outDir, 'pages', 'progress-connect', 'index.html'),
+        },
+        {
           from: path.join(SRC_DIR, '_locales/**/*'),
           to: path.join(outDir, '_locales'),
         },

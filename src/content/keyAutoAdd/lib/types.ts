@@ -3,6 +3,7 @@ import type { ErrorResponse } from '@/shared/messages';
 
 export interface StepRunParams extends BeginPayload {
   skip: (message: string | Error | ErrorWithKeyLike) => never;
+  setNotificationSize: (size: 'notification' | 'fullscreen') => void;
 }
 
 export type StepRun<T = unknown, R = void> = (
@@ -15,6 +16,7 @@ export type StepRun<T = unknown, R = void> = (
 export interface Step<T = unknown, R = unknown> {
   name: string;
   run: StepRun<T, R>;
+  maxDuration?: number;
 }
 
 export type Details = Omit<ErrorResponse, 'success'>;
@@ -24,7 +26,11 @@ interface StepWithStatusBase {
   status: string;
 }
 interface StepWithStatusNormal extends StepWithStatusBase {
-  status: 'pending' | 'active' | 'success';
+  status: 'pending' | 'success';
+}
+interface StepWithStatusActive extends StepWithStatusBase {
+  status: 'active';
+  expiresAt?: number;
 }
 interface StepWithStatusSkipped extends StepWithStatusBase {
   status: 'skipped';
@@ -37,6 +43,7 @@ interface StepWithStatusError extends StepWithStatusBase {
 
 export type StepWithStatus =
   | StepWithStatusNormal
+  | StepWithStatusActive
   | StepWithStatusSkipped
   | StepWithStatusError;
 
