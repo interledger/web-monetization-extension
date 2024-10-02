@@ -174,7 +174,6 @@ export class KeyAutoAdd {
         }
         const details = this.errorToDetails(error);
         this.setStatus(stepIdx, 'error', { details: details });
-        await sleep(2000);
         this.postMessage('ERROR', { details, stepName: step.name, stepIdx });
         this.port.disconnect();
         return;
