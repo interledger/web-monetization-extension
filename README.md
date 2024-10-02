@@ -75,7 +75,7 @@ All commands are run from the root of the project, from a terminal:
 
 Inside this project, you'll see the following folders and files:
 
-```
+```sh
 .
 ├── .github/ # GitHub Workflows
 ├── docs/ # Repository documentation
@@ -85,7 +85,8 @@ Inside this project, you'll see the following folders and files:
 │   ├── _locales/ # Files for multi-lang support
 │   ├── assets/ # Images for the extension (icon, etc.)
 │   ├── background/ # Source code for the background script/service worker
-│   ├── content/ # Source  code for the content script
+│   ├── content/ # Source  code for the content scripts
+│   │   └── keyAutoAdd/ # content scripts for automatic key addition to wallets
 │   ├── popup/ # Source code for the popup UI
 │   ├── shared/ # Shared utilities
 │   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build

@@ -106,6 +106,10 @@ export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
   );
 };
 
+export const errorWithKeyToJSON = (err: ErrorWithKeyLike): ErrorWithKeyLike => {
+  return { key: err.key, substitutions: err.substitutions };
+};
+
 export const success = <TPayload = undefined>(
   payload: TPayload,
 ): SuccessResponse<TPayload> => ({
@@ -291,6 +295,10 @@ export function isNotNull<T>(value: T | null): value is T {
 export const removeQueryParams = (urlString: string) => {
   const url = new URL(urlString);
   return url.origin + url.pathname;
+};
+
+export const ensureEnd = (str: string, suffix: string) => {
+  return str.endsWith(suffix) ? str : str + suffix;
 };
 
 /**

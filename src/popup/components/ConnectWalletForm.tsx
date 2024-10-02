@@ -76,7 +76,7 @@ export const ConnectWalletForm = ({
     amount: false,
   });
   const [isSubmitting, setIsSubmitting] = React.useState(
-    state?.status === 'connecting',
+    state?.status?.startsWith('connecting') || false,
   );
 
   const [currencySymbol, setCurrencySymbol] = React.useState<{
@@ -173,7 +173,7 @@ export const ConnectWalletForm = ({
       } else {
         if (isErrorWithKey(res.error)) {
           const error = res.error;
-          if (error.key === 'connectWalletKeyService_error_notImplemented') {
+          if (error.key.startsWith('connectWalletKeyService_error_')) {
             setErrors((_) => ({ ..._, keyPair: t(error) }));
           } else {
             setErrors((_) => ({ ..._, connect: t(error) }));

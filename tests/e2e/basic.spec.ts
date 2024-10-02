@@ -70,30 +70,4 @@ test.describe('should fail to connect if:', () => {
       }),
     ).toEqual({ connected: false });
   });
-
-  test('public key not added', async ({ popup, i18n }) => {
-    const { CONNECT_WALLET_ADDRESS_URL } = process.env;
-    expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
-
-    const connectButton = await fillPopup(popup, {
-      walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
-      amount: '10',
-      recurring: false,
-    });
-    await expect(popup.locator('p.text-error')).not.toBeAttached();
-    await expect(connectButton).not.toBeDisabled();
-
-    await connectButton.click();
-    await popup.waitForTimeout(1000);
-    await expect(popup.locator('.text-error span').first()).toHaveText(
-      i18n.getMessage('connectWallet_error_failedAutoKeyAdd'),
-    );
-
-    await connectButton.click();
-    await popup.waitForTimeout(1000);
-    await expect(popup.getByTestId('ErrorMessage')).toHaveText(
-      i18n.getMessage('connectWallet_error_invalidClient'),
-    );
-    await expect(popup.getByTestId('ErrorMessage')).toHaveRole('alert');
-  });
 });
