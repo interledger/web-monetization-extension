@@ -146,7 +146,7 @@ export class KeyAutoAdd {
     };
 
     await this.addNotification();
-    sleep(500).then(() => this.postMessage('PROGRESS', { steps: this.steps }));
+    this.postMessage('PROGRESS', { steps: this.steps });
 
     let prevStepId = '';
     let prevStepResult: unknown = undefined;

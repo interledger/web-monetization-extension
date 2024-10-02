@@ -49,7 +49,7 @@ export function useCountdown(expiresAt: number) {
     return () => {
       cancelAnimationFrame(requestId);
     };
-  });
+  }, [expiresAt]);
 
   return value;
 }
