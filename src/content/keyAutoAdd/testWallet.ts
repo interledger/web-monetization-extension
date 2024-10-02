@@ -46,30 +46,25 @@ const waitForLogin: Step<never> = async ({ skip }) => {
   }
 };
 
-const findBuildId: Step<never, { buildId: string }> = async () => {
+const getAccountDetails: Step<never, Account[]> = async (_) => {
   await sleep(1000);
 
   const NEXT_DATA = document.querySelector('script#__NEXT_DATA__')?.textContent;
   if (!NEXT_DATA) {
     throw new Error('Failed to find `__NEXT_DATA__` script');
   }
+  let buildId: string;
   try {
-    const buildId = JSON.parse(NEXT_DATA).buildId;
+    buildId = JSON.parse(NEXT_DATA).buildId;
     if (!buildId || typeof buildId !== 'string') {
       throw new Error('Failed to get buildId from `__NEXT_DATA__` script');
     }
-    return { buildId };
   } catch (error) {
     throw new Error('Failed to parse `__NEXT_DATA__` script', {
       cause: error,
     });
   }
-};
 
-const getAccountDetails: Step<typeof findBuildId, Account[]> = async (
-  _,
-  { buildId },
-) => {
   const url = `https://rafiki.money/_next/data/${buildId}/settings/developer-keys.json`;
   const res = await fetch(url, {
     method: 'GET',
@@ -166,7 +161,6 @@ async function revokeKey(accountId: string, walletId: string, keyId: string) {
 // region: Main
 new KeyAutoAdd([
   { name: 'Waiting for login', run: waitForLogin },
-  { name: 'Finding build ID', run: findBuildId },
   { name: 'Getting account details', run: getAccountDetails },
   { name: 'Revoking existing key', run: revokeExistingKey },
   { name: 'Finding wallet', run: findWallet },
