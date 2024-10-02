@@ -29,10 +29,13 @@ import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
 import {
   ErrorWithKey,
+  errorWithKeyToJSON,
   getWalletInformation,
+  isErrorWithKey,
   withResolvers,
+  type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
+import type { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
@@ -332,12 +335,13 @@ export class OpenPaymentsService {
     });
   }
 
-  async connectWallet({
-    walletAddressUrl,
-    amount,
-    recurring,
-    skipAutoKeyShare,
-  }: ConnectWalletPayload) {
+  async connectWallet(params: ConnectWalletPayload | null) {
+    if (!params) {
+      this.setConnectState(null);
+      return;
+    }
+    const { walletAddressUrl, amount, recurring, skipAutoKeyShare } = params;
+
     const walletAddress = await getWalletInformation(walletAddressUrl);
     const exchangeRates = await getExchangeRates();
 
@@ -379,7 +383,8 @@ export class OpenPaymentsService {
       );
     } catch (error) {
       if (
-        error.message === this.t('connectWallet_error_invalidClient') &&
+        isErrorWithKey(error) &&
+        error.key === 'connectWallet_error_invalidClient' &&
         !skipAutoKeyShare
       ) {
         // add key to wallet and try again
@@ -394,11 +399,11 @@ export class OpenPaymentsService {
             tabId,
           );
         } catch (error) {
-          this.setConnectState('error');
+          this.updateConnectStateError(error);
           throw error;
         }
       } else {
-        this.setConnectState('error');
+        this.updateConnectStateError(error);
         throw error;
       }
     }
@@ -457,6 +462,9 @@ export class OpenPaymentsService {
       amount: transformedAmount,
     }).catch((err) => {
       if (isInvalidClientError(err)) {
+        if (intent === InteractionIntent.CONNECT) {
+          throw new ErrorWithKey('connectWallet_error_invalidClient');
+        }
         const msg = this.t('connectWallet_error_invalidClient');
         throw new Error(msg, { cause: err });
       }
@@ -578,9 +586,20 @@ export class OpenPaymentsService {
     }
   }
 
-  private setConnectState(status: 'connecting' | 'error' | null) {
+  private setConnectState(status: 'connecting' | null) {
     const state = status ? { status } : null;
     this.storage.setPopupTransientState('connect', () => state);
+  }
+  private updateConnectStateError(err: ErrorWithKeyLike | { message: string }) {
+    this.storage.setPopupTransientState('connect', (state) => {
+      if (state?.status === 'error:key') {
+        return state;
+      }
+      return {
+        status: 'error',
+        error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
+      };
+    });
   }
 
   private async redirectToWelcomeScreen(

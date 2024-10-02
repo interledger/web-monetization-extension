@@ -115,7 +115,7 @@ export type PopupToBackgroundMessage = {
     output: PopupState;
   };
   CONNECT_WALLET: {
-    input: ConnectWalletPayload;
+    input: null | ConnectWalletPayload;
     output: void;
   };
   RECONNECT_WALLET: {

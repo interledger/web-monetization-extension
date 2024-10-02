@@ -1,8 +1,10 @@
 import {
   ErrorWithKey,
   ensureEnd,
+  errorWithKeyToJSON,
   isErrorWithKey,
   withResolvers,
+  type ErrorWithKeyLike,
 } from '@/shared/helpers';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
@@ -49,7 +51,7 @@ export class KeyAutoAddService {
         'publicKey',
         'keyId',
       ]);
-      this.setConnectState('connecting:key');
+      this.updateConnectState();
       await this.process(info.url, {
         publicKey,
         keyId,
@@ -59,7 +61,9 @@ export class KeyAutoAddService {
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
-      this.setConnectState('error:key');
+      if (!error.key || !error.key.startsWith('connectWallet_error_')) {
+        this.updateConnectState(error);
+      }
       throw error;
     }
   }
@@ -152,9 +156,17 @@ export class KeyAutoAddService {
     }
   }
 
-  private setConnectState(status: 'connecting:key' | 'error:key' | null) {
-    const state = status ? { status } : null;
-    this.storage.setPopupTransientState('connect', () => state);
+  private updateConnectState(err?: ErrorWithKeyLike | { message: string }) {
+    if (err) {
+      this.storage.setPopupTransientState('connect', () => ({
+        status: 'error:key',
+        error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
+      }));
+    } else {
+      this.storage.setPopupTransientState('connect', () => ({
+        status: 'connecting:key',
+      }));
+    }
   }
 }
 
