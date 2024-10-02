@@ -102,12 +102,12 @@ type TabRemovedCallback = Parameters<
 const enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
   HASH_FAILED = 'hash_failed',
-  KEY_ADD_FAILED = 'key_add_failed',
 }
 
 const enum GrantResult {
   SUCCESS = 'grant_success',
   ERROR = 'grant_error',
+  KEY_ADD_FAILED = 'key_add_failed',
 }
 
 const enum InteractionIntent {
@@ -564,9 +564,8 @@ export class OpenPaymentsService {
       if (tabId && !isTabClosed) {
         await this.redirectToWelcomeScreen(
           tabId,
-          GrantResult.ERROR,
+          GrantResult.KEY_ADD_FAILED,
           InteractionIntent.CONNECT,
-          ErrorCode.KEY_ADD_FAILED,
         );
       }
       if (error instanceof ErrorWithKey) {
