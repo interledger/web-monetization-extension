@@ -81,7 +81,7 @@ export const UIModeProvider = ({ children }: React.PropsWithChildren) => {
     return () => {
       window.removeEventListener('hashchange', onHashChange);
     };
-  });
+  }, []);
 
   return (
     <UIModeContext.Provider value={mode}>{children}</UIModeContext.Provider>
