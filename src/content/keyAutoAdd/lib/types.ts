@@ -2,7 +2,7 @@ import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { ErrorResponse } from '@/shared/messages';
 
 export interface StepRunParams extends BeginPayload {
-  skip: (message?: string | ErrorWithKeyLike) => never;
+  skip: (message: string | Error | ErrorWithKeyLike) => never;
 }
 
 export type StepRun<T = unknown, R = void> = (
@@ -17,6 +17,8 @@ export interface Step<T = unknown, R = unknown> {
   run: StepRun<T, R>;
 }
 
+export type Details = Omit<ErrorResponse, 'success'>;
+
 interface StepWithStatusBase {
   name: Step['name'];
   status: string;
@@ -26,11 +28,11 @@ interface StepWithStatusNormal extends StepWithStatusBase {
 }
 interface StepWithStatusSkipped extends StepWithStatusBase {
   status: 'skipped';
-  details: { message?: string | ErrorWithKeyLike };
+  details: Details;
 }
 interface StepWithStatusError extends StepWithStatusBase {
   status: 'error';
-  details: Omit<ErrorResponse, 'success'>;
+  details: Details;
 }
 
 export type StepWithStatus =
@@ -43,6 +45,7 @@ export interface BeginPayload {
   publicKey: string;
   keyId: string;
   nickName: string;
+  keyAddUrl: string;
 }
 
 export type BackgroundToKeyAutoAddMessagesMap = {
@@ -62,7 +65,7 @@ export type KeyAutoAddToBackgroundMessagesMap = {
   ERROR: {
     stepIdx: number;
     stepName: StepWithStatus['name'];
-    error: { message: string };
+    details: Details;
   };
 };
 

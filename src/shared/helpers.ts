@@ -106,6 +106,10 @@ export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
   );
 };
 
+export const errorWithKeyToJSON = (err: ErrorWithKeyLike): ErrorWithKeyLike => {
+  return { key: err.key, substitutions: err.substitutions };
+};
+
 export const success = <TPayload = undefined>(
   payload: TPayload,
 ): SuccessResponse<TPayload> => ({

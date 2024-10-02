@@ -26,12 +26,11 @@ type AccountDetails = {
   };
 };
 
-const waitForLogin: Step<never> = async ({ skip }) => {
-  const expectedUrl = 'https://rafiki.money/settings/developer-keys';
-  let foundOnLoad = false;
+const waitForLogin: Step<never> = async ({ skip, keyAddUrl }) => {
+  let alreadyLoggedIn = false;
   try {
-    foundOnLoad = await waitForURL(
-      (url) => (url.origin + url.pathname).startsWith(expectedUrl),
+    alreadyLoggedIn = await waitForURL(
+      (url) => (url.origin + url.pathname).startsWith(keyAddUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
     );
   } catch (error) {
@@ -41,7 +40,7 @@ const waitForLogin: Step<never> = async ({ skip }) => {
     throw new Error(error);
   }
 
-  if (foundOnLoad) {
+  if (alreadyLoggedIn) {
     skip(errorWithKey('connectWalletKeyService_error_skipAlreadyLoggedIn'));
   }
 };

@@ -1,4 +1,9 @@
-import { ErrorWithKey, ensureEnd, withResolvers } from '@/shared/helpers';
+import {
+  ErrorWithKey,
+  ensureEnd,
+  isErrorWithKey,
+  withResolvers,
+} from '@/shared/helpers';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
@@ -50,6 +55,7 @@ export class KeyAutoAddService {
         keyId,
         walletAddressUrl: walletAddress.id,
         nickName: this.t('appName') + ' - ' + this.browserName,
+        keyAddUrl: info.url,
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
@@ -110,10 +116,11 @@ export class KeyAutoAddService {
       } else if (message.action === 'ERROR') {
         this.browser.runtime.onConnect.removeListener(onConnectListener);
         this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+        const { stepName, details: err } = message.payload;
         reject(
           new ErrorWithKey('connectWalletKeyService_error_failed', [
-            message.payload.stepName,
-            message.payload.error.message,
+            stepName,
+            isErrorWithKey(err.error) ? this.t(err.error) : err.message,
           ]),
         );
       } else if (message.action === 'PROGRESS') {

@@ -1,9 +1,14 @@
 import browser, { type Runtime } from 'webextension-polyfill';
 import { CONNECTION_NAME } from '@/background/services/keyAutoAdd';
-import type { ErrorWithKeyLike } from '@/shared/helpers';
+import {
+  errorWithKeyToJSON,
+  isErrorWithKey,
+  type ErrorWithKeyLike,
+} from '@/shared/helpers';
 import type {
   BackgroundToKeyAutoAddMessage,
   BeginPayload,
+  Details,
   KeyAutoAddToBackgroundMessage,
   KeyAutoAddToBackgroundMessagesMap,
   Step,
@@ -45,47 +50,44 @@ export class KeyAutoAdd {
     publicKey,
     nickName,
     keyId,
+    keyAddUrl,
   }: BeginPayload) {
     const params: StepRunParams = {
       walletAddressUrl,
       publicKey,
       nickName,
       keyId,
-      skip: (message) => {
-        throw { type: SYMBOL_SKIP, message };
+      keyAddUrl,
+      skip: (details) => {
+        throw {
+          type: SYMBOL_SKIP,
+          details: typeof details === 'string' ? new Error(details) : details,
+        };
       },
     };
     let prevStepId = '';
     let prevStepResult: unknown = undefined;
-    for (const [stepIdx, step] of this.steps.entries()) {
-      step.status = 'active';
+    for (let stepIdx = 0; stepIdx < this.steps.length; stepIdx++) {
+      const step = this.steps[stepIdx];
+      this.setStatus(stepIdx, 'active', {});
       this.postMessage('PROGRESS', { steps: this.steps });
       try {
         prevStepResult = await this.stepsInput
           .get(step.name)!
           .run(params, prevStepId ? prevStepResult : null);
-        step.status = 'success';
+        this.setStatus(stepIdx, 'success', {});
         prevStepId = step.name;
       } catch (error) {
-        if (KeyAutoAdd.isSkip(error)) {
-          this.steps[stepIdx] = {
-            ...this.steps[stepIdx],
-            status: 'skipped',
-            details: { message: error.message },
-          };
+        if (this.isSkip(error)) {
+          const details = this.errorToDetails(
+            error.details.error || error.details,
+          );
+          this.setStatus(stepIdx, 'skipped', { details });
           continue;
         }
-        this.postMessage('PROGRESS', { steps: this.steps });
-        this.steps[stepIdx] = {
-          ...this.steps[stepIdx],
-          status: 'error',
-          details: { message: error.message },
-        };
-        this.postMessage('ERROR', {
-          error: { message: error.message },
-          stepName: step.name,
-          stepIdx,
-        });
+        const details = this.errorToDetails(error);
+        this.setStatus(stepIdx, 'error', { details: details });
+        this.postMessage('ERROR', { details, stepName: step.name, stepIdx });
         this.port.disconnect();
         return;
       }
@@ -103,10 +105,28 @@ export class KeyAutoAdd {
     this.port.postMessage(message);
   }
 
-  static isSkip(
-    err: unknown,
-  ): err is { type: symbol; message?: string | ErrorWithKeyLike } {
+  private setStatus<T extends StepWithStatus['status']>(
+    stepIdx: number,
+    status: T,
+    data: Omit<Extract<StepWithStatus, { status: T }>, 'name' | 'status'>,
+  ) {
+    // @ts-expect-error what's missing is part of data, TypeScript!
+    this.steps[stepIdx] = {
+      name: this.steps[stepIdx].name,
+      status,
+      ...data,
+    };
+    this.postMessage('PROGRESS', { steps: this.steps });
+  }
+
+  private isSkip(err: unknown): err is { type: symbol; details: Details } {
     if (!err || typeof err !== 'object') return false;
     return 'type' in err && err.type === SYMBOL_SKIP;
+  }
+
+  private errorToDetails(err: { message: string } | ErrorWithKeyLike) {
+    return isErrorWithKey(err)
+      ? { error: errorWithKeyToJSON(err), message: err.key }
+      : { message: err.message as string };
   }
 }
