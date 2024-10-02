@@ -26,13 +26,19 @@ type AccountDetails = {
   };
 };
 
-const waitForLogin: Step<never> = async ({ skip, keyAddUrl }) => {
-  let alreadyLoggedIn = false;
+const waitForLogin: Step<never> = async ({
+  skip,
+  setNotificationSize,
+  keyAddUrl,
+}) => {
+  let alreadyLoggedIn = window.location.href.startsWith(keyAddUrl);
+  if (!alreadyLoggedIn) setNotificationSize('notification');
   try {
     alreadyLoggedIn = await waitForURL(
       (url) => (url.origin + url.pathname).startsWith(keyAddUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
     );
+    setNotificationSize('fullscreen');
   } catch (error) {
     if (isTimedOut(error)) {
       throw new ErrorWithKey('connectWalletKeyService_error_timeoutLogin');
@@ -45,7 +51,10 @@ const waitForLogin: Step<never> = async ({ skip, keyAddUrl }) => {
   }
 };
 
-const getAccountDetails: Step<never, Account[]> = async (_) => {
+const getAccountDetails: Step<never, Account[]> = async ({
+  setNotificationSize,
+}) => {
+  setNotificationSize('fullscreen');
   await sleep(1000);
 
   const NEXT_DATA = document.querySelector('script#__NEXT_DATA__')?.textContent;
@@ -155,7 +164,11 @@ async function revokeKey(accountId: string, walletId: string, keyId: string) {
 
 // region: Main
 new KeyAutoAdd([
-  { name: 'Waiting for login', run: waitForLogin },
+  {
+    name: 'Waiting for you to login',
+    run: waitForLogin,
+    maxDuration: LOGIN_WAIT_TIMEOUT,
+  },
   { name: 'Getting account details', run: getAccountDetails },
   { name: 'Revoking existing key', run: revokeExistingKey },
   { name: 'Finding wallet', run: findWallet },

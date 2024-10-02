@@ -89,18 +89,21 @@ export class KeyAutoAddService {
     };
     this.browser.tabs.onRemoved.addListener(onTabCloseListener);
 
+    const ports = new Set<Runtime.Port>();
     const onConnectListener: OnConnectCallback = (port) => {
       if (port.name !== CONNECTION_NAME) return;
       if (port.error) {
         reject(new Error(port.error.message));
         return;
       }
+      ports.add(port);
 
       port.postMessage({ action: 'BEGIN', payload });
 
       port.onMessage.addListener(onMessageListener);
 
       port.onDisconnect.addListener(() => {
+        ports.delete(port);
         // wait for connect again so we can send message again if not connected,
         // and not errored already (e.g. page refreshed)
       });
@@ -108,6 +111,7 @@ export class KeyAutoAddService {
 
     const onMessageListener: OnPortMessageListener = (
       message: KeyAutoAddToBackgroundMessage,
+      port,
     ) => {
       if (message.action === 'SUCCESS') {
         this.browser.runtime.onConnect.removeListener(onConnectListener);
@@ -124,8 +128,10 @@ export class KeyAutoAddService {
           ]),
         );
       } else if (message.action === 'PROGRESS') {
-        // can save progress to show in popup
-        // console.table(message.payload.steps);
+        // can also save progress to show in popup
+        for (const p of ports) {
+          if (p !== port) p.postMessage(message);
+        }
       } else {
         reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
       }

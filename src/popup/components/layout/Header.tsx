@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowBack, Settings } from '../Icons';
+import { HeaderEmpty } from './HeaderEmpty';
 import { ROUTES_PATH } from '@/popup/Popup';
 import { useBrowser, usePopupState } from '@/popup/lib/context';
 
@@ -37,14 +38,8 @@ export const Header = () => {
   const Logo = browser.runtime.getURL('assets/images/logo.svg');
 
   return (
-    <header className="flex h-8 flex-row items-center justify-between">
-      <div className="flex flex-row items-center gap-3">
-        <img src={Logo} alt="Web Monetization Logo" className="h-6" />
-        <p className="text-xl text-strong">Web Monetization</p>
-      </div>
-      <div className="flex flex-row items-center gap-3">
-        <NavigationButton />
-      </div>
-    </header>
+    <HeaderEmpty logo={Logo}>
+      <NavigationButton />
+    </HeaderEmpty>
   );
 };
