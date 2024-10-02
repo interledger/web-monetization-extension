@@ -60,7 +60,9 @@ export const ConnectWalletForm = ({
   const [recurring, setRecurring] = React.useState<Inputs['recurring']>(
     defaultValues.recurring || false,
   );
-  const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(false);
+  const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
+    isAutoKeyAddFailed(state),
+  );
 
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<WalletAddress | null>(null);
@@ -68,8 +70,18 @@ export const ConnectWalletForm = ({
   const [errors, setErrors] = React.useState({
     walletAddressUrl: '',
     amount: '',
-    keyPair: '',
-    connect: '',
+    keyPair:
+      state?.status === 'error:key'
+        ? isErrorWithKey(state.error)
+          ? t(state.error)
+          : state.error
+        : '',
+    connect:
+      state?.status === 'error'
+        ? isErrorWithKey(state.error)
+          ? t(state.error)
+          : state.error
+        : '',
   });
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
@@ -239,6 +251,7 @@ export const ConnectWalletForm = ({
         autoComplete="on"
         spellCheck={false}
         enterKeyHint="go"
+        readOnly={isSubmitting}
         onPaste={async (ev) => {
           const input = ev.currentTarget;
           let value = ev.clipboardData.getData('text');
@@ -286,7 +299,7 @@ export const ConnectWalletForm = ({
             placeholder="5.00"
             className="max-w-32"
             defaultValue={amount}
-            readOnly={!walletAddressInfo?.assetCode}
+            readOnly={!walletAddressInfo?.assetCode || isSubmitting}
             addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
             aria-invalid={!!errors.amount}
             aria-describedby={errors.amount}
@@ -325,7 +338,7 @@ export const ConnectWalletForm = ({
             details: errors.keyPair,
             whyText: t('connectWallet_error_failedAutoKeyAddWhy'),
           }}
-          hideError={autoKeyShareFailed}
+          hideError={!errors.keyPair}
           text={t('connectWallet_label_publicKey')}
           learnMoreText={t('connectWallet_text_publicKeyLearnMore')}
           publicKey={publicKey}
@@ -407,6 +420,21 @@ const ManualKeyPairNeeded: React.FC<{
     </div>
   );
 };
+
+function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
+  if (state?.status === 'error') {
+    return (
+      isErrorWithKey(state.error) &&
+      state.error.key !== 'connectWallet_error_tabClosed'
+    );
+  } else if (state?.status === 'error:key') {
+    return (
+      isErrorWithKey(state.error) &&
+      state.error.key.startsWith('connectWalletKeyService_error_')
+    );
+  }
+  return false;
+}
 
 const Footer: React.FC<{
   text: string;
