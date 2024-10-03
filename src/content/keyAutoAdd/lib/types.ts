@@ -7,14 +7,14 @@ export interface StepRunHelpers {
   output: <T extends StepRun>(fn: T) => Awaited<ReturnType<T>>;
 }
 
-export type StepRun<T = unknown> = (
+export type StepRun<TOutput = unknown> = (
   payload: BeginPayload,
   helpers: StepRunHelpers,
-) => Promise<T>;
+) => Promise<TOutput>;
 
-export interface Step<T = unknown> {
+export interface Step<TOutput = unknown> {
   name: string;
-  run: StepRun<T>;
+  run: StepRun<TOutput>;
   maxDuration?: number;
 }
 
