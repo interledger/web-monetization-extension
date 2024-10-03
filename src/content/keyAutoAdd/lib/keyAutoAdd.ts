@@ -210,7 +210,7 @@ class SkipError extends Error {
   }
 }
 
-function errorToDetails(err: { message: string } | ErrorWithKeyLike) {
+function errorToDetails(err: { message: string } | ErrorWithKeyLike): Details {
   return isErrorWithKey(err)
     ? { error: errorWithKeyToJSON(err), message: err.key }
     : { message: err.message as string };
