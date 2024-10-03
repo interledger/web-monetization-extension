@@ -84,6 +84,14 @@ const getAccounts: Run<Account[]> = async (_, { setNotificationSize }) => {
  * The test wallet associates key with an account. If the same key is associated
  * with a different account (user disconnected and changed account), revoke from
  * there first.
+ *
+ * Why? Say, user connected once to `USD -> Addr#1`. Then disconnected. The key
+ * is still there in wallet added to `USD -> Addr#1` account. If now user wants
+ * to connect `EUR -> Addr#2` account, the extension still has the same key. So
+ * adding it again will throw an `internal server error`. But we'll continue
+ * getting `invalid_client` if we try to connect without the key added to new
+ * address. That's why we first revoke existing key (by ID) if any (from any
+ * existing account/address). It's a test-wallet specific thing.
  */
 const revokeExistingKey: Run<void> = async ({ keyId }, { skip, output }) => {
   const accounts = output(getAccounts);
