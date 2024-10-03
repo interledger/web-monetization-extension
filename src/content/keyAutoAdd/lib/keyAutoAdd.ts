@@ -43,7 +43,7 @@ export class KeyAutoAdd {
     this.port.onMessage.addListener(
       (message: BackgroundToKeyAutoAddMessage) => {
         if (message.action === 'BEGIN') {
-          this.run(message.payload);
+          this.runAll(message.payload);
         }
       },
     );
@@ -121,7 +121,7 @@ export class KeyAutoAdd {
     return promise;
   }
 
-  private async run(payload: BeginPayload) {
+  private async runAll(payload: BeginPayload) {
     const helpers: StepRunHelpers = {
       output: <T extends StepRun>(fn: T) => {
         if (!this.outputs.has(fn)) {
