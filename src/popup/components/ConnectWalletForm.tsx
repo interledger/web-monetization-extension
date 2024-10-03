@@ -205,7 +205,7 @@ export const ConnectWalletForm = ({
         }
       }
     } catch (error) {
-      setErrors((_) => ({ ..._, connect: error.message }));
+      setErrors((_) => ({ ..._, connect: toErrorInfo(error.message) }));
     } finally {
       setIsSubmitting(false);
     }
