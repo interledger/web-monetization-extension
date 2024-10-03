@@ -15,7 +15,8 @@ import type {
   KeyAutoAddToBackgroundMessage,
   KeyAutoAddToBackgroundMessagesMap,
   Step,
-  StepRunParams,
+  StepRun,
+  StepRunHelpers,
   StepWithStatus,
 } from './types';
 
@@ -29,6 +30,7 @@ export class KeyAutoAdd {
 
   private stepsInput: Map<string, Step>;
   private steps: StepWithStatus[];
+  private outputs = new Map<StepRun, unknown>();
 
   constructor(steps: Step[]) {
     this.stepsInput = new Map(steps.map((step) => [step.name, step]));
@@ -119,19 +121,15 @@ export class KeyAutoAdd {
     return promise;
   }
 
-  private async run({
-    walletAddressUrl,
-    publicKey,
-    nickName,
-    keyId,
-    keyAddUrl,
-  }: BeginPayload) {
-    const params: StepRunParams = {
-      walletAddressUrl,
-      publicKey,
-      nickName,
-      keyId,
-      keyAddUrl,
+  private async run(payload: BeginPayload) {
+    const helpers: StepRunHelpers = {
+      output: <T extends StepRun>(fn: T) => {
+        if (!this.outputs.has(fn)) {
+          // Was never run? Was skipped?
+          throw new Error('Given step has no output');
+        }
+        return this.outputs.get(fn) as Awaited<ReturnType<T>>;
+      },
       skip: (details) => {
         throw new SkipError(
           typeof details === 'string' ? { message: details } : details,
@@ -145,8 +143,6 @@ export class KeyAutoAdd {
     await this.addNotification();
     this.postMessage('PROGRESS', { steps: this.steps });
 
-    let prevStepId = '';
-    let prevStepResult: unknown = undefined;
     for (let stepIdx = 0; stepIdx < this.steps.length; stepIdx++) {
       const step = this.steps[stepIdx];
       const stepInfo = this.stepsInput.get(step.name)!;
@@ -156,11 +152,10 @@ export class KeyAutoAdd {
           : undefined,
       });
       try {
-        prevStepResult = await this.stepsInput
-          .get(step.name)!
-          .run(params, prevStepId ? prevStepResult : null);
+        const run = this.stepsInput.get(step.name)!.run;
+        const res = await run(payload, helpers);
+        this.outputs.set(run, res);
         this.setStatus(stepIdx, 'success', {});
-        prevStepId = step.name;
       } catch (error) {
         if (error instanceof SkipError) {
           const details = error.toJSON();
