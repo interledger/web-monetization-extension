@@ -27,7 +27,6 @@ interface Inputs {
   walletAddressUrl: string;
   amount: string;
   recurring: boolean;
-  autoKeyAddConsent: boolean;
 }
 
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
