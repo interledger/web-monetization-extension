@@ -23,8 +23,6 @@ export type { StepRun } from './types';
 
 export const LOGIN_WAIT_TIMEOUT = 10 * 60 * 1000;
 
-const SYMBOL_SKIP = Symbol.for('skip');
-
 export class KeyAutoAdd {
   private port: Runtime.Port;
   private ui: HTMLIFrameElement;
@@ -135,10 +133,9 @@ export class KeyAutoAdd {
       keyId,
       keyAddUrl,
       skip: (details) => {
-        throw {
-          type: SYMBOL_SKIP,
-          details: typeof details === 'string' ? new Error(details) : details,
-        };
+        throw new SkipError(
+          typeof details === 'string' ? { message: details } : details,
+        );
       },
       setNotificationSize: (size: 'notification' | 'fullscreen') => {
         this.setNotificationSize(size);
@@ -165,14 +162,12 @@ export class KeyAutoAdd {
         this.setStatus(stepIdx, 'success', {});
         prevStepId = step.name;
       } catch (error) {
-        if (this.isSkip(error)) {
-          const details = this.errorToDetails(
-            error.details.error || error.details,
-          );
+        if (error instanceof SkipError) {
+          const details = error.toJSON();
           this.setStatus(stepIdx, 'skipped', { details });
           continue;
         }
-        const details = this.errorToDetails(error);
+        const details = errorToDetails(error);
         this.setStatus(stepIdx, 'error', { details: details });
         this.postMessage('ERROR', { details, stepName: step.name, stepIdx });
         this.port.disconnect();
@@ -205,15 +200,23 @@ export class KeyAutoAdd {
     };
     this.postMessage('PROGRESS', { steps: this.steps });
   }
+}
 
-  private isSkip(err: unknown): err is { type: symbol; details: Details } {
-    if (!err || typeof err !== 'object') return false;
-    return 'type' in err && err.type === SYMBOL_SKIP;
+class SkipError extends Error {
+  public readonly error?: ErrorWithKeyLike;
+  constructor(err: ErrorWithKeyLike | { message: string }) {
+    const { message, error } = errorToDetails(err);
+    super(message);
+    this.error = error;
   }
 
-  private errorToDetails(err: { message: string } | ErrorWithKeyLike) {
-    return isErrorWithKey(err)
-      ? { error: errorWithKeyToJSON(err), message: err.key }
-      : { message: err.message as string };
+  toJSON(): Details {
+    return { message: this.message, error: this.error };
   }
+}
+
+function errorToDetails(err: { message: string } | ErrorWithKeyLike) {
+  return isErrorWithKey(err)
+    ? { error: errorWithKeyToJSON(err), message: err.key }
+    : { message: err.message as string };
 }
