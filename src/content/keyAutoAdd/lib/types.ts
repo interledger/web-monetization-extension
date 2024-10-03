@@ -1,21 +1,20 @@
 import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { ErrorResponse } from '@/shared/messages';
 
-export interface StepRunParams extends BeginPayload {
+export interface StepRunHelpers {
   skip: (message: string | Error | ErrorWithKeyLike) => never;
   setNotificationSize: (size: 'notification' | 'fullscreen') => void;
+  output: <T extends StepRun>(fn: T) => Awaited<ReturnType<T>>;
 }
 
-export type StepRun<T = unknown, R = void> = (
-  params: StepRunParams,
-  prevStepResult: T extends (...args: any[]) => PromiseLike<any>
-    ? Exclude<Awaited<ReturnType<T>>, void | { type: symbol }>
-    : T,
-) => Promise<R | void>;
+export type StepRun<TOutput = unknown> = (
+  payload: BeginPayload,
+  helpers: StepRunHelpers,
+) => Promise<TOutput>;
 
-export interface Step<T = unknown, R = unknown> {
+export interface Step<TOutput = unknown> {
   name: string;
-  run: StepRun<T, R>;
+  run: StepRun<TOutput>;
   maxDuration?: number;
 }
 
