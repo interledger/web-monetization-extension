@@ -404,13 +404,6 @@ export const ConnectWalletForm = ({
         >
           {t('connectWallet_action_connect')}
         </Button>
-
-        {!errors.keyPair && !autoKeyShareFailed && (
-          <Footer
-            text={t('connectWallet_text_footerNotice')}
-            learnMoreText={t('connectWallet_text_footerNoticeLearnMore')}
-          />
-        )}
       </div>
     </form>
   );
@@ -422,18 +415,42 @@ const AutoKeyAddConsent: React.FC<{
 }> = ({ onAccept, onDecline }) => {
   const t = useTranslation();
   return (
-    <form className="space-y-4" data-testid="connect-wallet-auto-key-consent">
-      <p className="text-medium">{t('connectWalletKeyService_text_consent')}</p>
+    <div className="flex h-full items-center">
+      <form
+        className="space-y-4 px-2 text-center"
+        data-testid="connect-wallet-auto-key-consent"
+      >
+        <div className="space-y-2">
+          <p className="text-medium">
+            {t('connectWalletKeyService_text_consentP1')}
+          </p>
+          <p className="text-medium">
+            {t('connectWalletKeyService_text_consentP2')}
+          </p>
+        </div>
 
-      <div className="mx-auto flex w-3/4 justify-around gap-4">
-        <Button onClick={onAccept}>
-          {t('connectWalletKeyService_label_consentAccept')}
-        </Button>
-        <Button onClick={onDecline} variant="destructive">
-          {t('connectWalletKeyService_label_consentDecline')}
-        </Button>
-      </div>
-    </form>
+        <div className="mx-auto flex w-3/4 justify-around gap-4">
+          <Button onClick={onAccept}>
+            {t('connectWalletKeyService_label_consentAccept')}
+          </Button>
+          <Button onClick={onDecline} variant="destructive">
+            {t('connectWalletKeyService_label_consentDecline')}
+          </Button>
+        </div>
+
+        <p className="text-xs text-weak">
+          {t('connectWallet_text_footerNotice')}{' '}
+          {/* <a
+          href="https://webmonetization.org"
+          className="text-primary hover:underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t('connectWallet_text_footerNoticeLearnMore')}
+        </a> */}
+        </p>
+      </form>
+    </div>
   );
 };
 
@@ -493,25 +510,6 @@ function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
   }
   return false;
 }
-
-const Footer: React.FC<{
-  text: string;
-  learnMoreText: string;
-}> = ({ text, learnMoreText }) => {
-  return (
-    <p className="text-center text-xs text-weak">
-      {text}{' '}
-      <a
-        href="https://webmonetization.org"
-        className="text-primary hover:underline"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {learnMoreText}
-      </a>
-    </p>
-  );
-};
 
 type ErrorCodeWalletAddressUrl = Extract<
   ErrorKeys,

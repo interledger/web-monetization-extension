@@ -172,8 +172,11 @@
   "connectWallet_error_grantRejected": {
     "message": "Connect wallet cancelled. You rejected the request."
   },
-  "connectWalletKeyService_text_consent": {
-    "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key. Please note, this process does not involve accessing or handling your funds."
+  "connectWalletKeyService_text_consentP1": {
+    "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key."
+  },
+  "connectWalletKeyService_text_consentP2": {
+    "message": "Please note, this process does not involve accessing or handling your funds."
   },
   "connectWalletKeyService_label_consentAccept": {
     "message": "Accept"
