@@ -128,13 +128,6 @@
   "connectWallet_action_connect": {
     "message": "Connect"
   },
-  "connectWallet_text_footerNotice": {
-    "message": "We'll automatically connect with your wallet provider."
-  },
-  "connectWallet_text_footerNoticeLearnMore": {
-    "message": "Learn more",
-    "description": "Learn more about how this works"
-  },
   "connectWallet_error_urlRequired": {
     "message": "Wallet address is required."
   },
@@ -173,13 +166,20 @@
     "message": "Connect wallet cancelled. You rejected the request."
   },
   "connectWalletKeyService_text_consentP1": {
-    "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key."
+    "message": "We'll automatically connect with your wallet provider."
+  },
+  "connectWalletKeyService_text_consentLearnMore": {
+    "message": "Learn more",
+    "description": "Learn more about how this works"
   },
   "connectWalletKeyService_text_consentP2": {
+    "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key."
+  },
+  "connectWalletKeyService_text_consentP3": {
     "message": "Please note, this process does not involve accessing or handling your funds."
   },
   "connectWalletKeyService_label_consentAccept": {
-    "message": "Accept"
+    "message": "Agree"
   },
   "connectWalletKeyService_label_consentDecline": {
     "message": "Decline"

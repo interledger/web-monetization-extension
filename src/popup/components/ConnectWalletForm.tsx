@@ -415,42 +415,37 @@ const AutoKeyAddConsent: React.FC<{
 }> = ({ onAccept, onDecline }) => {
   const t = useTranslation();
   return (
-    <div className="flex h-full items-center">
-      <form
-        className="space-y-4 px-2 text-center"
-        data-testid="connect-wallet-auto-key-consent"
-      >
-        <div className="space-y-2">
-          <p className="text-medium">
-            {t('connectWalletKeyService_text_consentP1')}
-          </p>
-          <p className="text-medium">
-            {t('connectWalletKeyService_text_consentP2')}
-          </p>
-        </div>
-
-        <div className="mx-auto flex w-3/4 justify-around gap-4">
-          <Button onClick={onAccept}>
-            {t('connectWalletKeyService_label_consentAccept')}
-          </Button>
-          <Button onClick={onDecline} variant="destructive">
-            {t('connectWalletKeyService_label_consentDecline')}
-          </Button>
-        </div>
-
-        <p className="text-xs text-weak">
-          {t('connectWallet_text_footerNotice')}{' '}
-          {/* <a
+    <form
+      className="space-y-4 text-center"
+      data-testid="connect-wallet-auto-key-consent"
+    >
+      <p className="text-lg leading-snug text-weak">
+        {t('connectWalletKeyService_text_consentP1')}{' '}
+        <a
+          hidden
           href="https://webmonetization.org"
           className="text-primary hover:underline"
           target="_blank"
           rel="noreferrer"
         >
-          {t('connectWallet_text_footerNoticeLearnMore')}
-        </a> */}
-        </p>
-      </form>
-    </div>
+          {t('connectWalletKeyService_text_consentLearnMore')}
+        </a>
+      </p>
+
+      <div className="space-y-2 pt-12 text-medium">
+        <p>{t('connectWalletKeyService_text_consentP2')}</p>
+        <p>{t('connectWalletKeyService_text_consentP3')}</p>
+      </div>
+
+      <div className="mx-auto flex w-3/4 justify-around gap-4">
+        <Button onClick={onAccept}>
+          {t('connectWalletKeyService_label_consentAccept')}
+        </Button>
+        <Button onClick={onDecline} variant="destructive">
+          {t('connectWalletKeyService_label_consentDecline')}
+        </Button>
+      </div>
+    </form>
   );
 };
 
