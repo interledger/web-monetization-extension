@@ -41,31 +41,25 @@ const waitForLogin: Run<void> = async (
   }
 };
 
-const findWallet: Run<{ walletId: string }> = async (
+const findWallet: Run<void> = async (
   { walletAddressUrl },
   { setNotificationSize },
 ) => {
   setNotificationSize('fullscreen');
   const url = `/?_data=${encodeURIComponent('routes/_index')}`;
   const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-    },
-    mode: 'cors',
+    headers: { accept: 'application/json' },
     credentials: 'include',
+  }).catch((error) => {
+    return Response.json(null, { status: 599, statusText: error.message });
   });
+  if (!res.ok) {
+    throw new Error(`Failed to get wallet details (${res.statusText})`);
+  }
   const data: IndexRouteResponse = await res.json();
-  if (!data?.walletInfo?.url) {
+  if (data?.walletInfo?.url !== walletAddressUrl) {
     throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
   }
-
-  if (data.walletInfo.url === walletAddressUrl) {
-    return { walletId: data.walletInfo.walletID };
-  }
-
-  throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
 };
 
 const findForm: Run<{
