@@ -350,6 +350,7 @@ export const ConnectWalletForm = ({
             details: errors.keyPair,
             whyText: t('connectWallet_error_failedAutoKeyAddWhy'),
           }}
+          retry={resetState}
           hideError={!errors.keyPair}
           text={t('connectWallet_label_publicKey')}
           learnMoreText={t('connectWallet_text_publicKeyLearnMore')}
@@ -394,10 +395,11 @@ export const ConnectWalletForm = ({
 const ManualKeyPairNeeded: React.FC<{
   error: { message: string; details: null | ErrorInfo; whyText: string };
   hideError?: boolean;
+  retry: () => Promise<void>;
   text: string;
   learnMoreText: string;
   publicKey: string;
-}> = ({ error, hideError, text, learnMoreText, publicKey }) => {
+}> = ({ error, hideError, text, learnMoreText, publicKey, retry }) => {
   const ErrorDetails = () => {
     if (!error || !error.details) return null;
     return (
@@ -406,6 +408,15 @@ const ManualKeyPairNeeded: React.FC<{
           {error.whyText}
         </summary>
         <span>{error.details.message}</span>
+        {canRetryAutoKeyAdd(error.details.info) && (
+          <button
+            type="button"
+            onClick={retry}
+            className="ml-1 inline-block text-primary underline"
+          >
+            Try again?
+          </button>
+        )}
       </details>
     );
   };
@@ -446,6 +457,14 @@ function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
     );
   }
   return false;
+}
+
+function canRetryAutoKeyAdd(err?: ErrorInfo['info']) {
+  if (!err) return false;
+  return (
+    err.cause?.key === 'connectWalletKeyService_error_timeoutLogin' ||
+    err.cause?.key === 'connectWalletKeyService_error_accountNotFound'
+  );
 }
 
 const Footer: React.FC<{
