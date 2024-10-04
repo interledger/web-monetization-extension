@@ -126,10 +126,14 @@ export class KeyAutoAddService {
         this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
         const { stepName, details: err } = message.payload;
         reject(
-          new ErrorWithKey('connectWalletKeyService_error_failed', [
-            stepName,
-            isErrorWithKey(err.error) ? this.t(err.error) : err.message,
-          ]),
+          new ErrorWithKey(
+            'connectWalletKeyService_error_failed',
+            [
+              stepName,
+              isErrorWithKey(err.error) ? this.t(err.error) : err.message,
+            ],
+            isErrorWithKey(err.error) ? err.error : undefined,
+          ),
         );
       } else if (message.action === 'PROGRESS') {
         // can also save progress to show in popup
