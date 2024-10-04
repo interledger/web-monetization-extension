@@ -523,6 +523,7 @@ function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
 function canRetryAutoKeyAdd(err?: ErrorInfo['info']) {
   if (!err) return false;
   return (
+    err.key === 'connectWalletKeyService_error_noConsent' ||
     err.cause?.key === 'connectWalletKeyService_error_timeoutLogin' ||
     err.cause?.key === 'connectWalletKeyService_error_accountNotFound'
   );
