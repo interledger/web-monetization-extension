@@ -167,13 +167,13 @@
     "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
   },
   "connectWallet_error_tabClosed": {
-    "message": "Connect wallet cancelled. You closed the tab before completion."
+    "message": "Wallet connection cancelled. The tab was closed before completion."
   },
   "connectWallet_error_grantRejected": {
-    "message": "Connect wallet cancelled. You rejected the request."
+    "message": "Wallet connection cancelled. The request was not authorized."
   },
   "connectWalletKeyService_error_notImplemented": {
-    "message": "Automatic key addition is not implemented for given wallet provider yet."
+    "message": "Automatic key addition is not yet implemented for the selected wallet provider."
   },
   "connectWalletKeyService_error_failed": {
     "message": "Automatic key addition failed at step “$STEP_ID$” with message “$MESSAGE$”.",
@@ -183,7 +183,7 @@
     }
   },
   "connectWalletKeyService_error_timeoutLogin": {
-    "message": "Timed out waiting for login"
+    "message": "Login attempt timed out."
   },
   "connectWalletKeyService_error_skipAlreadyLoggedIn": {
     "message": "Already logged in"
