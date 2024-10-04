@@ -245,12 +245,8 @@ export const ConnectWalletForm = ({
           handleSubmit();
         }}
         onDecline={() => {
-          setErrors((prev) => ({
-            ...prev,
-            keyPair: toErrorInfo(
-              errorWithKey('connectWalletKeyService_error_noConsent'),
-            ),
-          }));
+          const error = errorWithKey('connectWalletKeyService_error_noConsent');
+          setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           setShowConsent(false);
         }}
       />
