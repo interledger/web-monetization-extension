@@ -171,7 +171,7 @@ export class KeyAutoAddService {
 
   static supports(walletAddress: WalletAddress): boolean {
     try {
-      void walletAddressToProvider(walletAddress);
+      walletAddressToProvider(walletAddress);
       return true;
     } catch {
       return false;

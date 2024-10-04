@@ -201,9 +201,9 @@ export const ConnectWalletForm = ({
               setShowConsent(true);
               return;
             }
-            setErrors((_) => ({ ..._, keyPair: t(error) }));
+            setErrors((prev) => ({ ...prev, keyPair: t(error) }));
           } else {
-            setErrors((_) => ({ ..._, connect: t(error) }));
+            setErrors((prev) => ({ ...prev, connect: t(error) }));
           }
         } else {
           throw new Error(res.message);
@@ -240,8 +240,8 @@ export const ConnectWalletForm = ({
           handleSubmit();
         }}
         onDecline={() => {
-          setErrors((_) => ({
-            ..._,
+          setErrors((prev) => ({
+            ...prev,
             keyPair: t('connectWalletKeyService_error_noConsent'),
           }));
           setShowConsent(false);
