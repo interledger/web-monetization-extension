@@ -72,7 +72,7 @@ export const ConnectWalletForm = ({
 
   const resetState = React.useCallback(async () => {
     await clearConnectState();
-    setErrors((_) => ({ ..._, keyPair: null, connect: null }));
+    setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
     setAutoKeyShareFailed(false);
   }, [clearConnectState]);
 
@@ -109,7 +109,7 @@ export const ConnectWalletForm = ({
 
   const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<boolean> => {
-      setErrors((_) => ({ ..._, walletAddressUrl: null }));
+      setErrors((prev) => ({ ...prev, walletAddressUrl: null }));
       if (!walletAddressUrl) return false;
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
@@ -117,8 +117,8 @@ export const ConnectWalletForm = ({
         const walletAddress = await getWalletInfo(url.toString());
         setWalletAddressInfo(walletAddress);
       } catch (error) {
-        setErrors((_) => ({
-          ..._,
+        setErrors((prev) => ({
+          ...prev,
           walletAddressUrl: toErrorInfo(error.message),
         }));
         return false;
@@ -136,7 +136,7 @@ export const ConnectWalletForm = ({
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
-      setErrors((_) => ({ ..._, walletAddressUrl: toErrorInfo(error) }));
+      setErrors((prev) => ({ ...prev, walletAddressUrl: toErrorInfo(error) }));
       saveValue('walletAddressUrl', value);
       if (!error) {
         const ok = await getWalletInformation(value);
@@ -150,7 +150,7 @@ export const ConnectWalletForm = ({
   const handleAmountChange = React.useCallback(
     (value: string, input: HTMLInputElement) => {
       const error = validateAmount(value, currencySymbol.symbol);
-      setErrors((_) => ({ ..._, amount: toErrorInfo(error) }));
+      setErrors((prev) => ({ ...prev, amount: toErrorInfo(error) }));
 
       const amountValue = formatNumber(+value, currencySymbol.scale);
       if (!error) {
@@ -168,8 +168,8 @@ export const ConnectWalletForm = ({
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
     const errAmount = validateAmount(amount, currencySymbol.symbol);
     if (errAmount || errWalletAddressUrl) {
-      setErrors((_) => ({
-        ..._,
+      setErrors((prev) => ({
+        ...prev,
         walletAddressUrl: toErrorInfo(errWalletAddressUrl),
         amount: toErrorInfo(errAmount),
       }));
@@ -183,7 +183,7 @@ export const ConnectWalletForm = ({
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
-      setErrors((_) => ({ ..._, keyPair: null, connect: null }));
+      setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
         amount,
@@ -196,16 +196,16 @@ export const ConnectWalletForm = ({
         if (isErrorWithKey(res.error)) {
           const error = res.error;
           if (error.key.startsWith('connectWalletKeyService_error_')) {
-            setErrors((_) => ({ ..._, keyPair: toErrorInfo(error) }));
+            setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           } else {
-            setErrors((_) => ({ ..._, connect: toErrorInfo(error) }));
+            setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
           }
         } else {
           throw new Error(res.message);
         }
       }
     } catch (error) {
-      setErrors((_) => ({ ..._, connect: toErrorInfo(error.message) }));
+      setErrors((prev) => ({ ...prev, connect: toErrorInfo(error.message) }));
     } finally {
       setIsSubmitting(false);
     }
