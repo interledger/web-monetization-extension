@@ -18,7 +18,6 @@ import {
   isErrorWithKey,
   sleep,
   type ErrorWithKeyLike,
-  type ErrorKeys,
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
@@ -29,6 +28,10 @@ interface Inputs {
   amount: string;
   recurring: boolean;
 }
+
+type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
+type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
+type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
 interface ConnectWalletFormProps {
   publicKey: string;
@@ -62,34 +65,34 @@ export const ConnectWalletForm = ({
   const [recurring, setRecurring] = React.useState<Inputs['recurring']>(
     defaultValues.recurring || false,
   );
+
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
     isAutoKeyAddFailed(state),
   );
 
   const resetState = React.useCallback(async () => {
     await clearConnectState();
-    setErrors((_) => ({ ..._, keyPair: '', connect: '' }));
+    setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
     setAutoKeyShareFailed(false);
   }, [clearConnectState]);
+
+  const toErrorInfo = React.useCallback(
+    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
+      if (!err) return null;
+      if (typeof err === 'string') return { message: err };
+      return { message: t(err), info: err };
+    },
+    [t],
+  );
 
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<WalletAddress | null>(null);
 
-  const [errors, setErrors] = React.useState({
-    walletAddressUrl: '',
-    amount: '',
-    keyPair:
-      state?.status === 'error:key'
-        ? isErrorWithKey(state.error)
-          ? t(state.error)
-          : state.error
-        : '',
-    connect:
-      state?.status === 'error'
-        ? isErrorWithKey(state.error)
-          ? t(state.error)
-          : state.error
-        : '',
+  const [errors, setErrors] = React.useState<Errors>({
+    walletAddressUrl: null,
+    amount: null,
+    keyPair: state?.status === 'error:key' ? toErrorInfo(state.error) : null,
+    connect: state?.status === 'error' ? toErrorInfo(state.error) : null,
   });
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
@@ -106,7 +109,7 @@ export const ConnectWalletForm = ({
 
   const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<boolean> => {
-      setErrors((_) => ({ ..._, walletAddressUrl: '' }));
+      setErrors((prev) => ({ ...prev, walletAddressUrl: null }));
       if (!walletAddressUrl) return false;
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
@@ -114,14 +117,17 @@ export const ConnectWalletForm = ({
         const walletAddress = await getWalletInfo(url.toString());
         setWalletAddressInfo(walletAddress);
       } catch (error) {
-        setErrors((_) => ({ ..._, walletAddressUrl: error.message }));
+        setErrors((prev) => ({
+          ...prev,
+          walletAddressUrl: toErrorInfo(error.message),
+        }));
         return false;
       } finally {
         setIsValidating((_) => ({ ..._, walletAddressUrl: false }));
       }
       return true;
     },
-    [getWalletInfo],
+    [getWalletInfo, toErrorInfo],
   );
 
   const handleWalletAddressUrlChange = React.useCallback(
@@ -130,7 +136,7 @@ export const ConnectWalletForm = ({
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
-      setErrors((_) => ({ ..._, walletAddressUrl: error ? t(error) : '' }));
+      setErrors((prev) => ({ ...prev, walletAddressUrl: toErrorInfo(error) }));
       saveValue('walletAddressUrl', value);
       if (!error) {
         const ok = await getWalletInformation(value);
@@ -138,13 +144,13 @@ export const ConnectWalletForm = ({
       }
       return false;
     },
-    [saveValue, getWalletInformation, t],
+    [saveValue, getWalletInformation, toErrorInfo],
   );
 
   const handleAmountChange = React.useCallback(
     (value: string, input: HTMLInputElement) => {
       const error = validateAmount(value, currencySymbol.symbol);
-      setErrors((_) => ({ ..._, amount: error ? t(error) : '' }));
+      setErrors((prev) => ({ ...prev, amount: toErrorInfo(error) }));
 
       const amountValue = formatNumber(+value, currencySymbol.scale);
       if (!error) {
@@ -153,23 +159,19 @@ export const ConnectWalletForm = ({
       }
       saveValue('amount', error ? value : amountValue);
     },
-    [saveValue, currencySymbol, t],
+    [saveValue, currencySymbol, toErrorInfo],
   );
 
   const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    if (!walletAddressInfo) {
-      setErrors((_) => ({ ..._, walletAddressUrl: 'Not fetched yet?!' }));
-      return;
-    }
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
     const errAmount = validateAmount(amount, currencySymbol.symbol);
     if (errAmount || errWalletAddressUrl) {
-      setErrors((_) => ({
-        ..._,
-        walletAddressUrl: errWalletAddressUrl ? t(errWalletAddressUrl) : '',
-        amount: errAmount && t(errAmount),
+      setErrors((prev) => ({
+        ...prev,
+        walletAddressUrl: toErrorInfo(errWalletAddressUrl),
+        amount: toErrorInfo(errAmount),
       }));
       return;
     }
@@ -181,7 +183,7 @@ export const ConnectWalletForm = ({
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
-      setErrors((_) => ({ ..._, keyPair: '', connect: '' }));
+      setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
         amount,
@@ -194,16 +196,16 @@ export const ConnectWalletForm = ({
         if (isErrorWithKey(res.error)) {
           const error = res.error;
           if (error.key.startsWith('connectWalletKeyService_error_')) {
-            setErrors((_) => ({ ..._, keyPair: t(error) }));
+            setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           } else {
-            setErrors((_) => ({ ..._, connect: t(error) }));
+            setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
           }
         } else {
           throw new Error(res.message);
         }
       }
     } catch (error) {
-      setErrors((_) => ({ ..._, connect: error.message }));
+      setErrors((prev) => ({ ...prev, connect: toErrorInfo(error.message) }));
     } finally {
       setIsSubmitting(false);
     }
@@ -239,7 +241,7 @@ export const ConnectWalletForm = ({
       </div>
 
       {errors.connect && (
-        <ErrorMessage error={errors.connect} className="my-0" />
+        <ErrorMessage error={errors.connect.message} className="my-0" />
       )}
 
       <Input
@@ -247,7 +249,7 @@ export const ConnectWalletForm = ({
         label={t('connectWallet_label_walletAddress')}
         id="connectWalletAddressUrl"
         placeholder="https://ilp.rafiki.money/johndoe"
-        errorMessage={errors.walletAddressUrl}
+        errorMessage={errors.walletAddressUrl?.message}
         defaultValue={walletAddressUrl}
         addOn={
           isValidating.walletAddressUrl ? (
@@ -312,7 +314,7 @@ export const ConnectWalletForm = ({
             readOnly={!walletAddressInfo?.assetCode || isSubmitting}
             addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
             aria-invalid={!!errors.amount}
-            aria-describedby={errors.amount}
+            aria-describedby={errors.amount?.message}
             required={true}
             onKeyDown={allowOnlyNumericInput}
             onBlur={(ev) => {
@@ -337,7 +339,7 @@ export const ConnectWalletForm = ({
         </div>
 
         {errors.amount && (
-          <p className="px-2 text-sm text-error">{errors.amount}</p>
+          <p className="px-2 text-sm text-error">{errors.amount.message}</p>
         )}
       </fieldset>
 
@@ -390,20 +392,20 @@ export const ConnectWalletForm = ({
 };
 
 const ManualKeyPairNeeded: React.FC<{
-  error: { message: string; details: string; whyText: string };
+  error: { message: string; details: null | ErrorInfo; whyText: string };
   hideError?: boolean;
   text: string;
   learnMoreText: string;
   publicKey: string;
 }> = ({ error, hideError, text, learnMoreText, publicKey }) => {
   const ErrorDetails = () => {
-    if (!error) return null;
+    if (!error || !error.details) return null;
     return (
       <details className="group inline-block">
         <summary className="cursor-pointer list-none underline decoration-dotted group-open:sr-only">
           {error.whyText}
         </summary>
-        <span>{error.details}</span>
+        <span>{error.details.message}</span>
       </details>
     );
   };
@@ -465,18 +467,7 @@ const Footer: React.FC<{
   );
 };
 
-type ErrorCodeWalletAddressUrl = Extract<
-  ErrorKeys,
-  `connectWallet_error_url${string}`
->;
-type ErrorCodeAmount = Extract<
-  ErrorKeys,
-  `connectWallet_error_amount${string}`
->;
-
-function validateWalletAddressUrl(
-  value: string,
-): '' | ErrorWithKeyLike<ErrorCodeWalletAddressUrl> {
+function validateWalletAddressUrl(value: string): null | ErrorWithKeyLike {
   if (!value) {
     return errorWithKey('connectWallet_error_urlRequired');
   }
@@ -491,13 +482,13 @@ function validateWalletAddressUrl(
     return errorWithKey('connectWallet_error_urlInvalidNotHttps');
   }
 
-  return '';
+  return null;
 }
 
 function validateAmount(
   value: string,
   currencySymbol: string,
-): '' | ErrorWithKeyLike<ErrorCodeAmount> {
+): null | ErrorWithKeyLike {
   if (!value) {
     return errorWithKey('connectWallet_error_amountRequired');
   }
@@ -510,7 +501,7 @@ function validateAmount(
   if (val <= 0) {
     return errorWithKey('connectWallet_error_amountMinimum');
   }
-  return '';
+  return null;
 }
 
 function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
