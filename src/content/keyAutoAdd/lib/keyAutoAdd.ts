@@ -15,7 +15,8 @@ import type {
   KeyAutoAddToBackgroundMessage,
   KeyAutoAddToBackgroundMessagesMap,
   Step,
-  StepRunParams,
+  StepRun,
+  StepRunHelpers,
   StepWithStatus,
 } from './types';
 
@@ -23,14 +24,13 @@ export type { StepRun } from './types';
 
 export const LOGIN_WAIT_TIMEOUT = 10 * 60 * 1000;
 
-const SYMBOL_SKIP = Symbol.for('skip');
-
 export class KeyAutoAdd {
   private port: Runtime.Port;
   private ui: HTMLIFrameElement;
 
   private stepsInput: Map<string, Step>;
   private steps: StepWithStatus[];
+  private outputs = new Map<StepRun, unknown>();
 
   constructor(steps: Step[]) {
     this.stepsInput = new Map(steps.map((step) => [step.name, step]));
@@ -43,7 +43,7 @@ export class KeyAutoAdd {
     this.port.onMessage.addListener(
       (message: BackgroundToKeyAutoAddMessage) => {
         if (message.action === 'BEGIN') {
-          this.run(message.payload);
+          this.runAll(message.payload);
         }
       },
     );
@@ -121,24 +121,19 @@ export class KeyAutoAdd {
     return promise;
   }
 
-  private async run({
-    walletAddressUrl,
-    publicKey,
-    nickName,
-    keyId,
-    keyAddUrl,
-  }: BeginPayload) {
-    const params: StepRunParams = {
-      walletAddressUrl,
-      publicKey,
-      nickName,
-      keyId,
-      keyAddUrl,
+  private async runAll(payload: BeginPayload) {
+    const helpers: StepRunHelpers = {
+      output: <T extends StepRun>(fn: T) => {
+        if (!this.outputs.has(fn)) {
+          // Was never run? Was skipped?
+          throw new Error('Given step has no output');
+        }
+        return this.outputs.get(fn) as Awaited<ReturnType<T>>;
+      },
       skip: (details) => {
-        throw {
-          type: SYMBOL_SKIP,
-          details: typeof details === 'string' ? new Error(details) : details,
-        };
+        throw new SkipError(
+          typeof details === 'string' ? { message: details } : details,
+        );
       },
       setNotificationSize: (size: 'notification' | 'fullscreen') => {
         this.setNotificationSize(size);
@@ -148,8 +143,6 @@ export class KeyAutoAdd {
     await this.addNotification();
     this.postMessage('PROGRESS', { steps: this.steps });
 
-    let prevStepId = '';
-    let prevStepResult: unknown = undefined;
     for (let stepIdx = 0; stepIdx < this.steps.length; stepIdx++) {
       const step = this.steps[stepIdx];
       const stepInfo = this.stepsInput.get(step.name)!;
@@ -159,20 +152,17 @@ export class KeyAutoAdd {
           : undefined,
       });
       try {
-        prevStepResult = await this.stepsInput
-          .get(step.name)!
-          .run(params, prevStepId ? prevStepResult : null);
+        const run = this.stepsInput.get(step.name)!.run;
+        const res = await run(payload, helpers);
+        this.outputs.set(run, res);
         this.setStatus(stepIdx, 'success', {});
-        prevStepId = step.name;
       } catch (error) {
-        if (this.isSkip(error)) {
-          const details = this.errorToDetails(
-            error.details.error || error.details,
-          );
+        if (error instanceof SkipError) {
+          const details = error.toJSON();
           this.setStatus(stepIdx, 'skipped', { details });
           continue;
         }
-        const details = this.errorToDetails(error);
+        const details = errorToDetails(error);
         this.setStatus(stepIdx, 'error', { details: details });
         this.postMessage('ERROR', { details, stepName: step.name, stepIdx });
         this.port.disconnect();
@@ -205,15 +195,23 @@ export class KeyAutoAdd {
     };
     this.postMessage('PROGRESS', { steps: this.steps });
   }
+}
 
-  private isSkip(err: unknown): err is { type: symbol; details: Details } {
-    if (!err || typeof err !== 'object') return false;
-    return 'type' in err && err.type === SYMBOL_SKIP;
+class SkipError extends Error {
+  public readonly error?: ErrorWithKeyLike;
+  constructor(err: ErrorWithKeyLike | { message: string }) {
+    const { message, error } = errorToDetails(err);
+    super(message);
+    this.error = error;
   }
 
-  private errorToDetails(err: { message: string } | ErrorWithKeyLike) {
-    return isErrorWithKey(err)
-      ? { error: errorWithKeyToJSON(err), message: err.key }
-      : { message: err.message as string };
+  toJSON(): Details {
+    return { message: this.message, error: this.error };
   }
+}
+
+function errorToDetails(err: { message: string } | ErrorWithKeyLike): Details {
+  return isErrorWithKey(err)
+    ? { error: errorWithKeyToJSON(err), message: err.key }
+    : { message: err.message as string };
 }
