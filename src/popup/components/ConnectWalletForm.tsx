@@ -162,8 +162,8 @@ export const ConnectWalletForm = ({
     [saveValue, currencySymbol, toErrorInfo],
   );
 
-  const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
-    ev?.preventDefault();
+  const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
     const errAmount = validateAmount(amount, currencySymbol.symbol);
