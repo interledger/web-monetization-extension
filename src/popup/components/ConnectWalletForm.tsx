@@ -27,6 +27,7 @@ interface Inputs {
   walletAddressUrl: string;
   amount: string;
   recurring: boolean;
+  autoKeyAddConsent: boolean;
 }
 
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
@@ -68,6 +69,10 @@ export const ConnectWalletForm = ({
 
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
     isAutoKeyAddFailed(state),
+  );
+  const [showConsent, setShowConsent] = React.useState(false);
+  const autoKeyAddConsent = React.useRef<boolean>(
+    defaultValues.autoKeyAddConsent || false,
   );
 
   const resetState = React.useCallback(async () => {
@@ -162,8 +167,8 @@ export const ConnectWalletForm = ({
     [saveValue, currencySymbol, toErrorInfo],
   );
 
-  const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
-    ev.preventDefault();
+  const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
+    ev?.preventDefault();
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
     const errAmount = validateAmount(amount, currencySymbol.symbol);
@@ -188,7 +193,8 @@ export const ConnectWalletForm = ({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
         amount,
         recurring,
-        skipAutoKeyShare,
+        autoKeyAdd: !skipAutoKeyShare,
+        autoKeyAddConsent: autoKeyAddConsent.current,
       });
       if (res.success) {
         onConnect();
@@ -196,6 +202,10 @@ export const ConnectWalletForm = ({
         if (isErrorWithKey(res.error)) {
           const error = res.error;
           if (error.key.startsWith('connectWalletKeyService_error_')) {
+            if (error.key === 'connectWalletKeyService_error_noConsent') {
+              setShowConsent(true);
+              return;
+            }
             setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           } else {
             setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
@@ -224,6 +234,24 @@ export const ConnectWalletForm = ({
       handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
     }
   }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
+
+  if (showConsent) {
+    return (
+      <AutoKeyAddConsent
+        onAccept={() => {
+          autoKeyAddConsent.current = true;
+          // saveValue('autoKeyAddConsent', true);
+          setShowConsent(false);
+          handleSubmit();
+        }}
+        onDecline={() => {
+          const error = errorWithKey('connectWalletKeyService_error_noConsent');
+          setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
+          setShowConsent(false);
+        }}
+      />
+    );
+  }
 
   return (
     <form
@@ -380,13 +408,46 @@ export const ConnectWalletForm = ({
         >
           {t('connectWallet_action_connect')}
         </Button>
+      </div>
+    </form>
+  );
+};
 
-        {!errors.keyPair && !autoKeyShareFailed && (
-          <Footer
-            text={t('connectWallet_text_footerNotice')}
-            learnMoreText={t('connectWallet_text_footerNoticeLearnMore')}
-          />
-        )}
+const AutoKeyAddConsent: React.FC<{
+  onAccept: () => void;
+  onDecline: () => void;
+}> = ({ onAccept, onDecline }) => {
+  const t = useTranslation();
+  return (
+    <form
+      className="space-y-4 text-center"
+      data-testid="connect-wallet-auto-key-consent"
+    >
+      <p className="text-lg leading-snug text-weak">
+        {t('connectWalletKeyService_text_consentP1')}{' '}
+        <a
+          hidden
+          href="https://webmonetization.org"
+          className="text-primary hover:underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t('connectWalletKeyService_text_consentLearnMore')}
+        </a>
+      </p>
+
+      <div className="space-y-2 pt-12 text-medium">
+        <p>{t('connectWalletKeyService_text_consentP2')}</p>
+        <p>{t('connectWalletKeyService_text_consentP3')}</p>
+      </div>
+
+      <div className="mx-auto flex w-3/4 justify-around gap-4">
+        <Button onClick={onAccept}>
+          {t('connectWalletKeyService_label_consentAccept')}
+        </Button>
+        <Button onClick={onDecline} variant="destructive">
+          {t('connectWalletKeyService_label_consentDecline')}
+        </Button>
       </div>
     </form>
   );
@@ -462,29 +523,11 @@ function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
 function canRetryAutoKeyAdd(err?: ErrorInfo['info']) {
   if (!err) return false;
   return (
+    err.key === 'connectWalletKeyService_error_noConsent' ||
     err.cause?.key === 'connectWalletKeyService_error_timeoutLogin' ||
     err.cause?.key === 'connectWalletKeyService_error_accountNotFound'
   );
 }
-
-const Footer: React.FC<{
-  text: string;
-  learnMoreText: string;
-}> = ({ text, learnMoreText }) => {
-  return (
-    <p className="text-center text-xs text-weak">
-      {text}{' '}
-      <a
-        href="https://webmonetization.org"
-        className="text-primary hover:underline"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {learnMoreText}
-      </a>
-    </p>
-  );
-};
 
 function validateWalletAddressUrl(value: string): null | ErrorWithKeyLike {
   if (!value) {

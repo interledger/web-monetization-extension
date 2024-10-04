@@ -172,6 +172,15 @@ export class KeyAutoAddService {
       }));
     }
   }
+
+  static supports(walletAddress: WalletAddress): boolean {
+    try {
+      walletAddressToProvider(walletAddress);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 }
 
 export function walletAddressToProvider(walletAddress: WalletAddress): {
