@@ -15,29 +15,29 @@
     "message": "Action Required!"
   },
   "missingHostPermission_state_text": {
-    "message": "Permission to access your data for all websites is required to use Web Monetization."
+    "message": "Permission to access your data on all websites is required to use Web Monetization."
   },
   "notMonetized_text_allInvalid": {
-    "message": "At the moment, you cannot pay this website.",
+    "message": "You cannot make payments to this website at the moment.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "notMonetized_text_noLinks": {
     "message": "This website is not monetized."
   },
   "notMonetized_text_newTab": {
-    "message": "The extension doesn't support empty tabs."
+    "message": "The extension does not support empty tabs."
   },
   "notMonetized_text_internalPage": {
-    "message": "The extension can't access browser's internal pages."
+    "message": "The extension cannot access the browser's internal pages."
   },
   "notMonetized_text_unsupportedScheme": {
-    "message": "Web Monetization only works with https:// websites."
+    "message": "Web Monetization only works with websites using https://."
   },
   "keyRevoked_error_title": {
-    "message": "Unauthorized access to wallet"
+    "message": "Unauthorized access to the wallet."
   },
   "keyRevoked_error_text": {
-    "message": "It appears that the key has been revoked from your wallet. Authenticate wallet by adding the key again, or disconnect."
+    "message": "It appears the key has been revoked from your wallet. Please authenticate by adding the key again, or disconnect."
   },
   "keyRevoked_action_disconnect": {
     "message": "Yes, let me disconnect my wallet"
@@ -49,7 +49,7 @@
     "message": "Reconnect"
   },
   "pay_error_notEnoughFunds": {
-    "message": "Not enough funds to facilitate payment."
+    "message": "Insufficient funds to complete the payment."
   },
   "pay_error_invalidReceivers": {
     "message": "At the moment, you cannot pay this website.",
@@ -62,7 +62,7 @@
     "message": "Out of funds"
   },
   "outOfFunds_error_text": {
-    "message": "Funds have been depleted. You can no longer make payments."
+    "message": "Funds are depleted. You can no longer make payments."
   },
   "outOfFunds_error_textHint": {
     "message": "Please add funds."
@@ -90,7 +90,7 @@
     "message": "Enter the amount to add from the wallet."
   },
   "outOfFundsAddFunds_label_amountDescriptionRecurring": {
-    "message": "Enter the amount to add from the wallet. This amount will renew automatically every month (next: $NEXT_RENEW_DATE$).",
+    "message": "Enter the amount to add from your wallet. This amount will renew automatically each month (next: $NEXT_RENEW_DATE$).",
     "placeholders": {
       "NEXT_RENEW_DATE": { "content": "$1", "example": "Aug 22, 2024" }
     }
@@ -108,10 +108,10 @@
     "message": "Just a few quick steps to connect the extension to your wallet"
   },
   "connectWallet_label_walletAddress": {
-    "message": "Enter wallet address/payment pointer"
+    "message": "Enter your wallet address/payment pointer"
   },
   "connectWallet_labelGroup_amount": {
-    "message": "Enter amount to allocate from wallet"
+    "message": "Enter the amount to allocate from your wallet."
   },
   "connectWallet_label_amount": {
     "message": "Amount"
@@ -120,7 +120,7 @@
     "message": "Renew monthly"
   },
   "connectWallet_label_publicKey": {
-    "message": "Please copy this key, paste it into your wallet manually and then connect."
+    "message": "Please copy this key, paste it manually into your wallet, and then connect."
   },
   "connectWallet_text_publicKeyLearnMore": {
     "message": "Learn more."
@@ -129,26 +129,26 @@
     "message": "Connect"
   },
   "connectWallet_text_footerNotice": {
-    "message": "We'll automatically connect with your wallet provider."
+    "message": "We will automatically connect with your wallet provider."
   },
   "connectWallet_text_footerNoticeLearnMore": {
     "message": "Learn more",
     "description": "Learn more about how this works"
   },
   "connectWallet_error_urlRequired": {
-    "message": "Wallet address is required."
+    "message": "The wallet address is required."
   },
   "connectWallet_error_urlInvalidUrl": {
     "message": "Invalid wallet address URL."
   },
   "connectWallet_error_urlInvalidNotHttps": {
-    "message": "Wallet address must be a https:// URL or a payment pointer."
+    "message": "The wallet address must be a valid https:// URL or a payment pointer."
   },
   "connectWallet_error_amountRequired": {
-    "message": "Amount is required."
+    "message": "The amount is required."
   },
   "connectWallet_error_amountInvalidNumber": {
-    "message": "Please provide a valid number as amount."
+    "message": "Please enter a valid number for the amount."
   },
   "connectWallet_error_amountMinimum": {
     "message": "An amount greater than $AMOUNT$ is required.",
@@ -157,14 +157,14 @@
     }
   },
   "connectWallet_error_failedAutoKeyAdd": {
-    "message": "We couldn't automatically connect to your wallet."
+    "message": "Unable to automatically connect to your wallet."
   },
   "connectWallet_error_failedAutoKeyAddWhy": {
     "message": "Why?",
-    "description": "Clicking this will show reason for why automatic key-adding failed."
+    "description": "Click here to see the reason why automatic key addition failed."
   },
   "connectWallet_error_invalidClient": {
-    "message": "Failed to connect. Please make sure you have added the key to the correct wallet address."
+    "message": "Connection failed. Please ensure the key is added to the correct wallet."
   },
   "connectWallet_error_tabClosed": {
     "message": "Wallet connection cancelled. The tab was closed before completion."
@@ -183,12 +183,12 @@
     }
   },
   "connectWalletKeyService_error_timeoutLogin": {
-    "message": "Login attempt timed out."
+    "message": "The login attempt has timed out."
   },
   "connectWalletKeyService_error_skipAlreadyLoggedIn": {
-    "message": "Already logged in"
+    "message": "You are already logged in."
   },
   "connectWalletKeyService_error_accountNotFound": {
-    "message": "Failed to find account for given wallet address. Are you logged in to some other account?"
+    "message": "Failed to find an account for the provided wallet address. Are you logged into a different account?"
   }
 }
