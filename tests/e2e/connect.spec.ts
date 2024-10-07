@@ -35,7 +35,7 @@ test('connects with correct details provided', async ({
     privateKey: CONNECT_PRIVATE_KEY!,
     publicKey: CONNECT_PUBLIC_KEY!,
   };
-  await connectWallet(persistentContext, background, keyInfo, popup, {
+  await connectWallet(persistentContext, background, i18n, keyInfo, popup, {
     walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
     amount: '10',
     recurring: false,
