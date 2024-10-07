@@ -1,6 +1,7 @@
 import type { Browser } from 'webextension-polyfill';
 import type { ToBackgroundMessage } from '@/shared/messages';
 import {
+  errorWithKeyToJSON,
   failure,
   getNextOccurrence,
   getWalletInformation,
@@ -278,7 +279,7 @@ export class Background {
         } catch (e) {
           if (isErrorWithKey(e)) {
             this.logger.error(message.action, e);
-            return failure({ key: e.key, substitutions: e.substitutions });
+            return failure(errorWithKeyToJSON(e));
           }
           if (e instanceof OpenPaymentsClientError) {
             this.logger.error(message.action, e.message, e.description);
