@@ -111,7 +111,7 @@
     "message": "Enter your wallet address/payment pointer"
   },
   "connectWallet_labelGroup_amount": {
-    "message": "Enter the amount to allocate from your wallet."
+    "message": "Enter the amount to allocate from your wallet"
   },
   "connectWallet_label_amount": {
     "message": "Amount"
@@ -166,7 +166,7 @@
     "message": "Wallet connection cancelled. The request was not authorized."
   },
   "connectWalletKeyService_text_consentP1": {
-    "message": "We'll automatically connect with your wallet provider."
+    "message": "We will automatically connect with your wallet provider."
   },
   "connectWalletKeyService_text_consentLearnMore": {
     "message": "Learn more",
