@@ -1,6 +1,7 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import {
   loadKeysToExtension,
+  type BrowserIntl,
   type Background,
   type KeyInfo,
 } from '../fixtures/helpers';
@@ -13,13 +14,14 @@ const CONFIG_OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
 export async function connectWallet(
   context: BrowserContext,
   background: Background,
+  i18n: BrowserIntl,
   keyInfo: KeyInfo,
   popup: Popup,
   params: ConnectDetails,
 ) {
   await loadKeysToExtension(background, keyInfo);
 
-  const connectButton = await fillPopup(popup, params);
+  const connectButton = await fillPopup(popup, i18n, params);
   await connectButton.click();
 
   const continueWaitMs = await getContinueWaitTime(context, params);
