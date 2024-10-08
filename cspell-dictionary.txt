@@ -15,6 +15,7 @@ iframes
 unmangles
 data-testid
 nums
+webmonetization
 
 # scripts and 3rd party terms
 nvmrc
@@ -28,6 +29,7 @@ iife
 backported
 autobuild
 buildscript
+Camtasia
 
 # packages and 3rd party tools/libraries
 awilix
@@ -44,3 +46,13 @@ dianafulga
 jgoz
 amannn
 softprops
+
+# monetized website domain names
+ahimsakids
+alexlakatos
+radu
+lifebe
+storytogo
+ericahargreave
+roamancing
+naturallyours

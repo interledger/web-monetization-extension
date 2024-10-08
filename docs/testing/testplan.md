@@ -124,9 +124,7 @@ If you want to test the Web Monetization extension using real money, and you hav
 If you want to test the Web Monetization extension using real money, and you have a Fynbos Canada wallet connected to your extension, then you have two options:
 
 1. Visit and pay this monetized website:
-
    - [ericahargreave.com](http://ericahargreave.com)
-
 2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet address. Here is an example that you can use:
    - https://fynbos.me/erica
 
@@ -135,9 +133,7 @@ If you want to test the Web Monetization extension using real money, and you hav
 If you want to test the Web Monetization extension using real money, and you have a Fynbos South Africa wallet connected to your extension, then you have two options:
 
 1. Visit and pay this monetized website:
-
    - [www.radu.sh/fynbos](https://www.radu.sh/fynbos)
-
 2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is an example that you can use:
    - https://fynbos.me/makedev
 
@@ -158,8 +154,9 @@ If you want to test the Web Monetization extension using real money, and you hav
 
 Whether your extension is connected to the test wallet, [rafiki.money](https://rafiki.money) (which uses "play" money), or Fynbos US (which uses real money), or GateHub (which uses real money), you can use the extension to pay this website:
 
-- [roamancing.com/naturallyours](http://roamancing.com/naturallyours)  
-  This website has multiple receiving wallet addresses. It can receive play money into a test wallet, real money into a Fynbos US wallet, and real money into a GateHub wallet.
+- [roamancing.com/naturallyours](http://roamancing.com/naturallyours)
+
+This website has multiple receiving wallet addresses. It can receive play money into a test wallet, real money into a Fynbos US wallet, and real money into a GateHub wallet.
 
 ### Functional Test Cases
 
