@@ -74,6 +74,7 @@ export interface ErrorWithKeyLike<T extends ErrorKeys = ErrorKeys> {
   key: Extract<ErrorKeys, T>;
   // Could be empty, but required for checking if an object follows this interface
   substitutions: string[];
+  cause?: ErrorWithKeyLike;
 }
 
 export class ErrorWithKey<T extends ErrorKeys = ErrorKeys>
@@ -83,8 +84,9 @@ export class ErrorWithKey<T extends ErrorKeys = ErrorKeys>
   constructor(
     public readonly key: ErrorWithKeyLike<T>['key'],
     public readonly substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
+    public readonly cause?: ErrorWithKeyLike,
   ) {
-    super(key);
+    super(key, { cause });
   }
 }
 
@@ -96,7 +98,8 @@ export class ErrorWithKey<T extends ErrorKeys = ErrorKeys>
 export const errorWithKey = <T extends ErrorKeys = ErrorKeys>(
   key: ErrorWithKeyLike<T>['key'],
   substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
-) => ({ key, substitutions });
+  cause?: ErrorWithKeyLike,
+) => ({ key, substitutions, cause });
 
 export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
   if (!err || typeof err !== 'object') return false;
@@ -107,7 +110,8 @@ export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
 };
 
 export const errorWithKeyToJSON = (err: ErrorWithKeyLike): ErrorWithKeyLike => {
-  return { key: err.key, substitutions: err.substitutions };
+  const { key, substitutions, cause } = err;
+  return { key, substitutions, cause };
 };
 
 export const success = <TPayload = undefined>(

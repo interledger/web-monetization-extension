@@ -1,5 +1,5 @@
 import type { BrowserContext } from '@playwright/test';
-import type { BrowserInfo } from '../fixtures/helpers';
+import type { BrowserIntl, BrowserInfo } from '../fixtures/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
 
@@ -59,8 +59,12 @@ export type ConnectDetails = {
   recurring: boolean;
 };
 
-export async function fillPopup(popup: Popup, params: Partial<ConnectDetails>) {
-  const fields = getPopupFields(popup);
+export async function fillPopup(
+  popup: Popup,
+  i18n: BrowserIntl,
+  params: Partial<ConnectDetails>,
+) {
+  const fields = getPopupFields(popup, i18n);
   if (typeof params.walletAddressUrl !== 'undefined') {
     await fields.walletAddressUrl.fill(params.walletAddressUrl);
     await fields.walletAddressUrl.blur();
@@ -77,11 +81,19 @@ export async function fillPopup(popup: Popup, params: Partial<ConnectDetails>) {
   return fields.connectButton;
 }
 
-export function getPopupFields(popup: Popup) {
+export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
   return {
-    walletAddressUrl: popup.getByLabel('Enter wallet address/payment pointer'),
-    amount: popup.getByLabel('Amount', { exact: true }),
-    recurring: popup.getByLabel('Renew monthly'),
-    connectButton: popup.locator('button').getByText('Connect'),
+    walletAddressUrl: popup.getByLabel(
+      i18n.getMessage('connectWallet_label_walletAddress'),
+    ),
+    amount: popup.getByLabel(i18n.getMessage('connectWallet_label_amount'), {
+      exact: true,
+    }),
+    recurring: popup.getByLabel(
+      i18n.getMessage('connectWallet_label_recurring'),
+    ),
+    connectButton: popup
+      .locator('button')
+      .getByText(i18n.getMessage('connectWallet_action_connect')),
   };
 }

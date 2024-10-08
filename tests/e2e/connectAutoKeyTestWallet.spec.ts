@@ -16,6 +16,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   popup,
   persistentContext: context,
   background,
+  i18n,
 }) => {
   const username = process.env.WALLET_USERNAME!;
   const password = process.env.WALLET_PASSWORD!;
@@ -26,7 +27,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   const loginPageUrl = `https://rafiki.money/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
 
   const connectButton = await test.step('fill popup', async () => {
-    const connectButton = await fillPopup(popup, {
+    const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl,
       amount: '10',
       recurring: false,
@@ -42,9 +43,21 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     await page.close();
   });
 
-  page = await test.step('shows login page', async () => {
+  await test.step('asks for key-add consent', async () => {
     await connectButton.click();
+    await popup.waitForSelector(
+      `[data-testid="connect-wallet-auto-key-consent"]`,
+    );
 
+    expect(popup.getByTestId('connect-wallet-auto-key-consent')).toBeVisible();
+    await popup
+      .getByRole('button', {
+        name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
+      })
+      .click();
+  });
+
+  page = await test.step('shows login page', async () => {
     const openedPage = await context.waitForEvent('page', {
       predicate: (page) => page.url().startsWith(loginPageUrl),
       timeout: 3 * 1000,
