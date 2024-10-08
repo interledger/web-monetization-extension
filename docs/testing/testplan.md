@@ -19,7 +19,7 @@ Any person interested in testing the beta release of the Web Monetization extens
 
 ### Digital Wallets
 
-The main prerequisite for sending or receiving Web Monetization payments is to have a Web Monetization-enabled digital wallet. Web Monetization-enabled digital wallets are provided by licensed service providers. A wallet allows a user to send or receive Web Monetization payments. The wallet providers are regulated by the laws of the countries in which they operate.
+The main prerequisite for sending or receiving Web Monetization payments is to have a Web Monetization-enabled digital wallet. Web Monetization-enabled digital wallets are provided by licensed service providers. The wallet providers are regulated by the laws of the countries in which they operate.
 
 Below is a list of the available wallet providers if you want to use real money:
 
@@ -34,64 +34,132 @@ Learn more about the providers for [Web Monetization compatible wallets here](ht
 You have the option to use “play” money from the [Interledger Test Wallet application](https://rafiki.money/).  
 Here you can set up an account that is enabled for Web Monetization, and other Interledger functionality, without involving real money.
 
-You can learn more about the [Interledger Test Wallet here](https://rafiki.dev/integration/playground/testnet/).
-
 ## Testing
 
 ### Environment and Software
 
 The resources and tools that you will need to test Web Monetization depend on your desired role, and what you want to test.
+This test plan only focuses on the perspective of a website visitor who Wants to pay websites that are web monetized.
 
-We’ve identified three roles you can play when using Web Monetization:
-
-- Website visitor: Wants to pay websites that are web monetized
-- Website owner: Wants to receive Web Monetization payments
-- Web developer: Wants to explore Web Monetization functionality.
-
-This test plan only focuses on the perspective of a website visitor.
-
-| Role              | Hardware                    | Digital wallet                                                             | Environment & software                                                                                                    |
-| :---------------- | :-------------------------- | :------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
-| A website visitor | Any PC with internet access | A Web Monetization enabled digital wallet from which payments will be made | <ul><li>Any operating system (OS)</li> <li>A chromium-based Web browser (e.g. Chrome, Edge, Brave) or Firefox </li> </ul> |
+1. Hardware: Any PC with internet access
+2. Digital wallet: A Web Monetization enabled digital wallet from which payments will be made
+3. Environment & software:  
+   a. Any operating system (OS)
+   b. A chromium-based Web browser (e.g. Chrome, Edge, Brave) or Firefox
 
 ### Reporting Issues
 
-1. Use any screen recording application to record the steps and results of your testing.
+1. Use any screen recording application to record the steps and results of your testing (e.g. Loom, Camtasia etc.).
 2. Log bugs or issues, and monitor their status and resolution on GitHub [link](https://github.com/interledger/web-monetization-extension/issues).
+3. Join the `#webmonetization` channel on [Slack](https://communityinviter.com/apps/interledger/interledger-working-groups-slack).
 
 ### Prerequisites
 
 Before you start testing, sign-up for a wallet:
 
 1. The sign-up process depends on your digital wallet provider. Learn more from the [Dependencies](#Dependencies) section.
-2. Your wallet provider will likely need to verify your identity (info: this is mandated by the laws of each country, or jurisdiction).
-3. The identity verification process depends on your wallet provider, and your location (info: this can be within hours or days).
-4. Once your wallet provider completes all sign-up and verification processes, you should be able to:  
-   a. Setup and manage your wallet accounts, currencies, balances etc.  
-   b. Obtain the wallet address or payment pointer for your digital wallet.
-
-### Test Data
-
-This table describes the different ways that you can set up a website that is monetized, and a website that isn’t monetized, so that you can test the Web Monetization extension.
-
-| Web monetized websites                                                                                                                                                                                                                      | Non monetized websites    |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------ |
-| One valid monetization link tag                                                                                                                                                                                                             | No monetization link tags |
-| Multiple valid monetization link tags with wallet addresses: <ul><li>from the same wallet providers</li><li>from different wallet providers</li><li>with different currencies</li><li>with some link tags enabled & some disabled</li></ul> | All disabled link tags    |
+2. If you want to use a test wallet, the sign-up process is quick (within minutes).
+3. If you want to use a real wallet:  
+   a. Your wallet provider will likely need to verify your identity (info: this is mandated by the laws of each country, or jurisdiction).  
+   b. The identity verification process depends on your wallet provider, and your location (info: this can be within hours or days).  
+   c. Once your wallet provider completes all sign-up and verification processes, you should be able to:
+   - Setup and manage your wallet accounts, currencies, balances etc.
+   - Obtain the wallet address or payment pointer for your digital wallet.
 
 ### Test Playground
 
-Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly and seamlessly create the conditions of a monetized website, to use only for testing. When you add wallet addresses or payment pointers to the playground, the playground becomes a monetized website that you can use the Web Monetization extension to pay
+Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly create the conditions of a monetized website in a playground area, to use only for testing purposes.
 
-On the playground, you can use real money from a real wallet, or you can use “play” money from a “test wallet”.
+When you add a wallet address or payment pointer to the playground, it is added as a receiving wallet on the playground.  
+So, the playground behaves like a monetized website on which you can use the Web Monetization extension to pay.
+
+On the playground, you can add a wallet that uses real money from a real wallet, or you can add a wallet that uses “play” money from a “test wallet”.
 
 **Important**
 
-1. The playground itself is not web monetized.
+1. The playground itself is not web monetized. We do not receive any payments from you if you use this site.
 2. The playground becomes monetized when you add one or more receiving wallet addresses to it.
 3. If your Web Monetization extension is connected to a real wallet, then your extension will facilitate payments from your real wallet (i.e. real money).
-4. Similarly, if your extension is connected to a play wallet (i.e. rafiki.money), then the extension facilitates payments using play money.
+4. Similarly, if your extension is connected to a play wallet (e.g. rafiki.money), then the extension facilitates payments using play money.
 5. If you add your own wallet address to the playground, and then use the extension to pay the playground, you are paying yourself.
+
+### Test Data
+
+This section lists websites and wallets that you can pay using the Web Monetization extension.
+
+#### Use a test wallet & play money
+
+If you have a [rafiki.money](https://rafiki.money) test wallet address connected to your extension, then you can use the Web Monetization extension to pay with "play" money. You have two options:
+
+1. Visit any of these monetized websites that use a [rafiki.money](https://rafiki.money) test wallet:
+
+   - [ahimsakids.com](https://ahimsakids.com)
+   - [alexlakatos.com](https://alexlakatos.com)
+   - [radu.sh](https://radu.sh)
+   - [radu.sh/iframe](https://radu.sh/iframe)
+
+2. Visit the Web Monetization Playground, and add test payment pointers. Here are examples that you can use:
+   - https://ilp.rafiki.money/interledger-wm
+   - https://ilp.rafiki.money/wm-dev
+   - https://ilp.rafiki.money/laka_web
+   - https://ilp.rafiki.money/wm-receiving
+
+#### Websites and wallets using Fynbos US
+
+If you want to test the Web Monetization extension using real money, and you have a Fynbos US wallet connected to your extension, then you have two options:
+
+1. Visit and pay any of these monetized websites:
+
+   - [jeremiahLee.com](http://jeremiahLee.com)
+   - [lifebe.com.au](https://lifebe.com.au/)
+   - [storytogo.ca/classroom](https://storytogo.ca/classroom/)
+
+2. Visit the Web Monetization Playground, and add any Fynbos US wallet address. Here are examples that you can use:
+   - https://fynbos.me/jeremiah
+   - https://fynbos.me/adam
+   - https://fynbos.me/lori
+
+#### Websites and wallets using Fynbos Canada
+
+If you want to test the Web Monetization extension using real money, and you have a Fynbos Canada wallet connected to your extension, then you have two options:
+
+1. Visit and pay this monetized website:
+
+   - [ericahargreave.com](http://ericahargreave.com)
+
+2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet address. Here is an example that you can use:
+   - https://fynbos.me/erica
+
+#### Websites and wallets using Fynbos South Africa
+
+If you want to test the Web Monetization extension using real money, and you have a Fynbos South Africa wallet connected to your extension, then you have two options:
+
+1. Visit and pay this monetized website:
+
+   - [www.radu.sh/fynbos](https://www.radu.sh/fynbos)
+
+2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is an example that you can use:
+   - https://fynbos.me/makedev
+
+#### Websites and wallets using GateHub
+
+If you want to test the Web Monetization extension using real money, and you have a GateHub wallet connected to your extension, then you have two options:
+
+1. Visit and pay these monetized websites:
+
+   - [storytogo.ca](http://storytogo.ca)
+   - [roamancing.com](http://roamancing.com)
+
+2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet addresses. Here are examples that you can use:
+   - https://ilp.gatehub.net/276288680/EUR
+   - https://ilp.gatehub.net/870065172/USD
+
+#### Websites using multiple wallets
+
+Whether your extension is connected to the test wallet, [rafiki.money](https://rafiki.money) (which uses "play" money), or Fynbos US (which uses real money), or GateHub (which uses real money), you can use the extension to pay this website:
+
+- [roamancing.com/naturallyours](http://roamancing.com/naturallyours)  
+  This website has multiple receiving wallet addresses. It can receive play money into a test wallet, real money into a Fynbos US wallet, and real money into a GateHub wallet.
 
 ### Functional Test Cases
 
@@ -104,16 +172,17 @@ These test cases are defined from the point of view of a website visitor that wa
 Based on these risks, the sections that follow will detail the actual test cases.
 
 <!-- prettier-ignore-start -->
-We use 4 risk priorities: `critical` | `high` | `medium` | `low`
+We have 2 risk categories:  `critical` | `high` 
 
 | Ref. | Risk                                                       | Priority | How to mitigate the risk                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | :--- | :--------------------------------------------------------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1   | Product not easily accessible                              | high     | The extension is: <ul><li>Readily accessible where the majority of people are, on the Web</li><li>Easy to find</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| R2   | Onboarding is long or complicated                          | critical | <ul><li>Installation is simple</li><li>Onboarding is simple and clear</li><li>Support a reasonably quick start</li><li>Provide good quality support to simplify obtaining a wallet for sending or receiving WM payments (i.e. easy to contact, responsive, proactive support)</li></ul>                                                                                                                                                                                                                                                                                                              |
+| R1   | Onboarding is long or complicated                          | critical | <ul><li>Installation is simple</li><li>Onboarding is simple and clear</li><li>Support a reasonably quick start</li><li>Provide good quality support to simplify obtaining a wallet for sending or receiving WM payments (i.e. easy to contact, responsive, proactive support)</li></ul>                                                                                                                                                                                                                                                                                                              |
+| R2   | UX that is poor                                            | critical | <ul><li>Provide user experience (UX) that supports ease of use</li><li>Provide fast and responsive help desk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and features</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                  |
 | R3   | Lack of trust about the security of funds                  | critical | <ul><li>Uncertainty about the security of my funds:<ul><li>Is my money safe?</li><li>Can I easily see how much I have used?</li><li>Can I easily query issues about WM funds?</li></ul></li><li>Provide assurance and clarity about the security of funds</li><li>Allow users to view the balance of funds available to the extension from their wallet, in real-time</li><li>Build confidence by providing resources to empower software architects, developers or testers to test the technology, either using real money, or in a playground environment using “play” money</li></ul>          |
-| R4   | Lack of understanding about the standard or the technology | high     | <ul><li>Provide accessible, good quality resources to simplify understanding:<ul><li>Web Monetization</li><li>The extension</li><li>How to start using the extension</li></ul></li><li>Provide good quality of docs (accurate, comprehensive, complete)</li><ul><li>How Web Monetization works & what to expect</li><li>Understanding the technology</li><li>Access to the [proposed Web Monetization standard specification](https://webmonetization.org/specification/) & the working group [WICG](https://github.com/WICG/webmonetization) GitHub repository</li></ul></ul> |
-| R5   | UX that is poor                                            | critical | <ul><li>Provide user experience (UX) that supports ease of use</li><li>Provide fast and responsive help desk support to resolve issues</li><li>Gather user feedback, and continuously improve UX and features</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                  |
-| R6   | Unable to control payments                                 | critical | <ul><li>Ability to control when, who & how much to pay</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| R4   | Unable to control payments                                 | critical | <ul><li>Ability to control when, who & how much to pay</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| R5   | Product not easily accessible                              | high     | The extension is: <ul><li>Readily accessible where the majority of people are, on the Web</li><li>Easy to find</li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| R6   | Lack of understanding about the standard or the technology | high     | <ul><li>Provide accessible, good quality resources to simplify understanding:<ul><li>Web Monetization</li><li>The extension</li><li>How to start using the extension</li></ul></li><li>Provide good quality of docs (accurate, complete)</li><ul><li>How Web Monetization works & what to expect</li><li>Understanding the technology</li><li>Access to the [proposed Web Monetization standard specification](https://webmonetization.org/specification/) & the working group [WICG](https://github.com/WICG/webmonetization) GitHub repository</li></ul></ul> |
+
 <!-- prettier-ignore-end -->
 
 #### Basic Test Cases
@@ -121,8 +190,8 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 ##### Connect to a wallet
 
 **Test ID**: 1  
-**Description**: Connect the extension to a Web Monetization enabled digital wallet
-**Risk**: R2 (onboarding) and R5 (UX)  
+**Description**: Connect the extension to a Web Monetization enabled digital wallet  
+**Risk**: R1 (onboarding) and R2 (UX)  
 **Preconditions**:
 
 1. You have already downloaded and installed the Web Monetization extension.
@@ -145,7 +214,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 ##### Make continuous payments
 
 **Test ID**: 2  
-**Description**: Send continuous WM payments to a monetized website  
+**Description**: Send continuous Web Monetization payments to a monetized website  
 **Risk**: R3 (security of funds)  
 **Preconditions**:
 
@@ -155,8 +224,8 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 
 **Steps**:
 
-1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
-2. Visit a non-monetized website. Open the extension to observe its available options.
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
+2. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
 
 **Expected results**:
 
@@ -169,7 +238,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 
 **Test ID**: 3  
  **Description**: Send a one-time payment to a monetized website when the remaining balance for the extension is sufficient for the payment, and the wallet has sufficient funds  
- **Risk**: R3 (security of funds) and R6 (control my payments)  
+ **Risk**: R3 (security of funds) and R4 (control my payments)  
  **Preconditions**:
 
 1.  The extension is connected to your wallet.
@@ -178,9 +247,9 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 
 **Steps**:
 
-1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
 2. Open the extension and make a one-time payment of an amount that falls within your remaining balance shown in the extension.
-3. Visit a non-monetized website. Open the extension to observe its available options.
+3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
 
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
@@ -188,48 +257,22 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 | Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
 | Opening the extension displays: <ul><li>**Rate of pay slider**: rate of pay and currency on the left, the remaining balance of the extension is on the right side, and it decreased by the value of the one-time payment</li><li>**Amount**: the one-time payment amount field resets to zero</li><li>**“Send now” button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now” </li></ul> | Opening the extension displays: <ul><li>This website is not monetized</li></ul> |
 
-##### Pay one-time when wallet is out of funds
-
-**Test ID**: 4  
-**Description**: Send a one-time payment to a monetized website when the extension has a sufficient remaining balance but the wallet has insufficient funds  
-**Info**: This can happen when, for example, other unrelated transactions reduce the funds available in your wallet after you connect the extension  
-**Risk**: R3 (security of funds) and R6 (control my payments)  
-**Preconditions**:
-
-1. The extension is connected to your wallet.
-2. The extension’s remaining balance is greater than the one-time payment you are going to make.
-3. There are insufficient funds in your wallet for the one-time payment you want to make.
-
-**Steps**:
-
-1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
-2. Open the extension and make a one-time payment where the amount:
-   1. Falls within your remaining balance shown in the extension.
-   1. Is higher than your wallet’s available balance.
-3. Visit a non-monetized website. Open the extension to observe its available options.
-
-**Expected results**:  
- | Web monetized websites | Non monetized websites |
-| :------------------------------------------------------- | :------------------------------------------------------ |
-| Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
-| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
-
 ##### Pay one-time when extension funds are insufficient
 
-**Test ID**: 5  
+**Test ID**: 4  
 **Description**: Send a one-time payment to a monetized website that is greater than the remaining balance of the extension, while the wallet has sufficient funds  
-**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Risk**: R3 (security of funds) and R4 (control my payments)  
 **Preconditions**:
 
 1. The extension is connected to your wallet.
-2. The extension’s remaining balance is lower than the one-time payment you will make.
-3. Your wallet balance is greater or equal to the one-time payment you will make.
+2. Your extension has insufficient funds. The extension’s remaining balance is lower than the one-time payment you will make.
+3. Your wallet has sufficient funds. Your balance is greater or equal to the one-time payment you will make.
 
 **Steps**:
 
-1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
 2. Open the extension and make a one-time payment of an amount that falls within your remaining balance shown in the extension.
-3. Visit a non-monetized website. Open the extension to observe its available options.
+3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
 
 **Expected results**:  
 | Web monetized websites | Non monetized websites |
@@ -237,18 +280,45 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 | Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
 | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Not enough funds to facilitate payment`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
+##### Pay one-time when wallet is out of funds
+
+**Test ID**: 5  
+**Description**: Send a one-time payment to a monetized website when the extension has a sufficient remaining balance, but the wallet has insufficient funds  
+**Info**: This can happen when, for example, other unrelated transactions reduce the funds available in your wallet after you connect the extension  
+**Risk**: R3 (security of funds) and R4 (control my payments)  
+**Preconditions**:
+
+1. The extension is connected to your wallet.
+2. Your extension has sufficient funds. The extension’s remaining balance is greater than the one-time payment you are going to make.
+3. There are insufficient funds in your wallet for the one-time payment you want to make.  
+   a. You can set this up by using your digital wallet application to withdraw funds from your wallet AFTER you have connected the extension to your wallet.
+
+**Steps**:
+
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
+2. Open the extension and make a one-time payment where the amount:
+   1. Falls within your remaining balance shown in the extension.
+   1. Is higher than your wallet’s available balance.
+3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
+
+**Expected results**:  
+ | Web monetized websites | Non monetized websites |
+| :------------------------------------------------------- | :------------------------------------------------------ |
+| Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
+| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+
 ##### Disable continuous payments
 
 **Test ID**: 6  
 **Description**: Disable the extension’s ability to make any continuous Web Monetization payments  
-**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Risk**: R3 (security of funds) and R4 (control my payments)  
 **Preconditions**:
 
 1. The extension is connected to your wallet.
 
 **Steps**:
 
-1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
 2. Open the extension, and view of the **remaining balance** available to the extension.
 3. Disable “**Continuous payment stream**”.
 4. Observe the extension's icon when you visit a web monetized and non-monetized website.
@@ -263,7 +333,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 
 **Test ID**: 7  
 **Description**: Adjust the hourly rate at which the extension makes continuous payments  
-**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Risk**: R3 (security of funds) and R4 (control my payments)  
 **Preconditions**:
 
 1. The extension is connected to your wallet.
@@ -285,7 +355,7 @@ We use 4 risk priorities: `critical` | `high` | `medium` | `low`
 
 **Test ID**: 8  
 **Description**: Disconnect the extension from the connected wallet.  
-**Risk**: R5 (user experience)  
+**Risk**: R2 (user experience)  
 **Preconditions**:
 
 1. The extension is connected to your wallet
@@ -305,25 +375,30 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 
 #### Edge Test Cases
 
-##### Partial one-time payment success due to some un-peered wallets
+##### Partial one-time payment success
 
 **Test ID**: 9  
-**Description**: Make a one-time payment that exceeds the extension’s remaining balance to a website with multiple receiving wallets that can receive a payment from your wallet (i.e. the receiving wallets are peered to your extension’s sending wallet)  
-**Risk**: R3 (security of funds) and R6 (control my payments)  
+**Description**: Make a one-time payment to a website that has multiple receiving wallets, where some of the receiving wallets use real money, and some are test wallets that use "play" money  
+**Risk**: R3 (security of funds) and R4 (control my payments)  
 **Preconditions**:
 
 1. The extension is connected to your wallet.
-2. The extension’s remaining balance is lower than the one-time payment you are going to make.
-3. There are enough funds in your wallet for the one-time payment you want to make.
+2. Your extension has sufficient funds. The extension’s remaining balance is lower than the one-time payment you are going to make.
+3. Your wallet has sufficient funds for the payment.
 
 **Steps**:
 
-1. Visit a monetized website that has multiple receiving wallet addresses or payment pointers.  
-   a. **Example**: A combination of receiving payment pointers or wallet addresses from the same provider.
-   b. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
-2. Open the extension and make a one-time payment that exceeds the “remaining balance” of the extension by a small amount.
-   a. **Example**: The extension’s remaining balance is $5 and the one-time payment is $6.
-3. Visit a non-monetized website. Open the extension to observe its available options.
+1. Visit a monetized website that has multiple receiving wallet addresses or payment pointers:  
+   a. You can visit [roamancing.com/naturallyours](http://roamancing.com/naturallyours/).  
+   b. Alternatively, you can use the [Test Playground](#Test-Playground) to add payment pointers or wallet addresses from different wallet providers.  
+   As an example, you can add all of the following wallet addresses to the playground:
+
+   - https://ilp.rafiki.money/wm-dev
+   - https://fynbos.me/erica
+   - https://ilp.gatehub.net/276288680/EUR
+
+2. Open the extension and make a one-time payment.
+3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
 
 **Expected results**:  
 | Web monetized websites | Non monetized websites |
@@ -335,7 +410,7 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 
 **Test ID**: 10  
  **Description**: Make payments that deplete the extension funds to zero  
- **Risk**: R3 (security of funds) and R6 (control my payments)  
+ **Risk**: R3 (security of funds) and R4 (control my payments)  
  **Preconditions**:
 
 1. The extension is connected to your wallet.
@@ -344,9 +419,9 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 
 **Steps**:
 
-1. Visit a monetized website. Refer to the [Test Data](#Test-Data) section to explore different WM conditions for websites.
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
 2. Open the extension to make as many payments as it takes to use up the remaining balance, until it is zero.
-3. Visit a non-monetized website. Open the extension to observe its available options.
+3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
 
 **Expected results**:  
  | Visit monetized or non-monetized websites |
