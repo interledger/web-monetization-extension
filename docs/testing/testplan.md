@@ -45,7 +45,7 @@ This test plan only focuses on the perspective of a website visitor who Wants to
 2. Digital wallet: A Web Monetization enabled digital wallet from which payments will be made
 3. Environment & software:  
    a. Any operating system (OS)
-   b. A chromium-based Web browser (e.g. Chrome, Edge, Brave) or Firefox
+   b. A Chromium-based Web browser (e.g. Chrome, Edge, Vivaldi, Brave) or Firefox
 
 ### Reporting Issues
 
