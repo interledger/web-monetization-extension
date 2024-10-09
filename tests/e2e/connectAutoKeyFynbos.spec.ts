@@ -3,6 +3,7 @@ import { ensureEnd } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
 import {
   acceptGrant,
+  getContinueWaitTime,
   KEYS_PAGE_URL,
   LOGIN_PAGE_URL,
   revokeKey,
@@ -79,6 +80,10 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     return openedPage;
   });
 
+  const continueWaitMsPromise = getContinueWaitTime(context, {
+    walletAddressUrl,
+  });
+
   const revokeInfo = await test.step('adds key to wallet', async () => {
     const applicationName = await new Promise<string>((resolve) => {
       page.on('request', async function interceptApplicationName(req) {
@@ -151,7 +156,8 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   });
 
   await test.step('connects', async () => {
-    await acceptGrant(page, 2000);
+    const continueWaitMs = await continueWaitMsPromise;
+    await acceptGrant(page, continueWaitMs);
     await waitForWelcomePage(page);
 
     expect(
