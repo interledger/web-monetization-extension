@@ -50,7 +50,7 @@ This test plan only focuses on the perspective of a website visitor who Wants to
 ### Reporting Issues
 
 1. Use any screen recording application to record the steps and results of your testing (e.g. Loom, Camtasia etc.).
-2. Log bugs or issues, and monitor their status and resolution on GitHub [link](https://github.com/interledger/web-monetization-extension/issues).
+2. File bugs or other issues, and monitor their status and resolution on [GitHub](https://github.com/interledger/web-monetization-extension/issues).
 3. Join the `#webmonetization` channel on [Slack](https://communityinviter.com/apps/interledger/interledger-working-groups-slack).
 
 ### Prerequisites
