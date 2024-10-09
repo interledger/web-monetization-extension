@@ -93,10 +93,10 @@ If you have a [rafiki.money](https://rafiki.money) test wallet address connected
 
 1. Visit any of these monetized websites that use a [rafiki.money](https://rafiki.money) test wallet:
 
-   - [ahimsakids.com](https://ahimsakids.com)
-   - [alexlakatos.com](https://alexlakatos.com)
-   - [radu.sh](https://radu.sh)
-   - [radu.sh/iframe](https://radu.sh/iframe)
+   - https://ahimsakids.com
+   - https://alexlakatos.com
+   - https://radu.sh
+   - https://radu.sh/iframe (if you'd like to test how it works with iframes)
 
 2. Visit the Web Monetization Playground, and add test payment pointers. Here are examples that you can use:
    - https://ilp.rafiki.money/interledger-wm
