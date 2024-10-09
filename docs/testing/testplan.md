@@ -251,7 +251,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
 | :---------------------------- | :--------------------------------------------------- |
-| Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
+| Extension icon: active (full color), with a green tick | Extension icon: ![active icon (full color) but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
 | Opening the extension displays: <ul><li>**Rate of pay slider**: rate of pay and currency on the left, the remaining balance of the extension is on the right side, and it decreased by the value of the one-time payment</li><li>**Amount**: the one-time payment amount field resets to zero</li><li>**“Send now” button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now” </li></ul> | Opening the extension displays: <ul><li>This website is not monetized</li></ul> |
 
 ##### Pay one-time when extension funds are insufficient
