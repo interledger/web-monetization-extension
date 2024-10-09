@@ -89,7 +89,7 @@ This section lists websites and wallets that you can pay using the Web Monetizat
 
 #### Use a test wallet & play money
 
-If you have a [rafiki.money](https://rafiki.money) test wallet address connected to your extension, then you can use the Web Monetization extension to pay with "play" money. You have two options:
+If you have a [test wallet][testWallet] address connected to the extension, then you can use the Web Monetization extension to pay with "play" money. You have two options:
 
 1. Visit any of these monetized websites that use a [rafiki.money](https://rafiki.money) test wallet:
 
