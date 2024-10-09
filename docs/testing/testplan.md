@@ -98,7 +98,7 @@ If you have a [rafiki.money](https://rafiki.money) test wallet address connected
    - https://radu.sh
    - https://radu.sh/iframe (if you'd like to test how it works with iframes)
 
-2. Visit the Web Monetization Playground, and add test payment pointers. Here are examples that you can use:
+2. Visit the Web Monetization Playground, and add test payment pointers. Here are few examples that you can use:
    - https://ilp.rafiki.money/interledger-wm
    - https://ilp.rafiki.money/wm-dev
    - https://ilp.rafiki.money/laka_web
