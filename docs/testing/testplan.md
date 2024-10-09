@@ -24,7 +24,7 @@ The main prerequisite for sending or receiving Web Monetization payments is to h
 Below is a list of the available wallet providers if you want to use real money:
 
 - [Fynbos](https://wallet.fynbos.app)
-- [GateHub](https://gatehub.net/mobile)
+- [GateHub](https://gatehub.net)
 
 Wallet availability in a specific country, or availability in particular currency depends on the wallet provider.  
 We maintain a list of [Web Monetization compatible wallets](https://webmonetization.org/docs/resources/op-wallets/).
