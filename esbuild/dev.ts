@@ -1,15 +1,15 @@
-import { readFile } from 'node:fs/promises'
-import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild'
-import { SERVE_PORTS, type BuildArgs, type Target } from './config'
-import { getPlugins } from './plugins'
-import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck'
+import { readFile } from 'node:fs/promises';
+import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild';
+import { SERVE_PORTS, type BuildArgs, type Target } from './config';
+import { getPlugins } from './plugins';
+import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck';
 
 export const getDevOptions = ({
   outDir,
   target,
-  channel
+  channel,
 }: Omit<BuildArgs, 'dev'> & {
-  outDir: string
+  outDir: string;
 }): BuildOptions => {
   return {
     sourcemap: 'linked',
@@ -17,24 +17,24 @@ export const getDevOptions = ({
     minify: false,
     plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly', watch: true }),
-      liveReloadPlugin({ target })
+      liveReloadPlugin({ target }),
     ]),
     define: {
       NODE_ENV: JSON.stringify('development'),
       CONFIG_LOG_LEVEL: JSON.stringify('DEBUG'),
       CONFIG_PERMISSION_HOSTS: JSON.stringify({
-        origins: ['http://*/*', 'https://*/*']
+        origins: ['http://*/*', 'https://*/*'],
       }),
       CONFIG_ALLOWED_PROTOCOLS: JSON.stringify(['http:', 'https:']),
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
-        'https://webmonetization.org/welcome'
-      )
-    }
-  }
-}
+        'https://webmonetization.org/welcome',
+      ),
+    },
+  };
+};
 
 function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
-  const port = SERVE_PORTS[target]
+  const port = SERVE_PORTS[target];
   const reloadScriptBackground = `
     new EventSource("http://localhost:${port}/esbuild").addEventListener(
       "change",
@@ -49,7 +49,7 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
           await browser.runtime.reload();
         }
       }
-    );`
+    );`;
 
   const reloadScriptPopup = `
     new EventSource("http://localhost:${port}/esbuild").addEventListener(
@@ -63,26 +63,66 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
           globalThis.location.reload();
         }
       }
-    );`
+    );`;
+
+  const reloadScriptPages = `
+      new EventSource("http://localhost:${port}/esbuild").addEventListener(
+      "change",
+      (ev) => {
+        const data = JSON.parse(ev.data);
+        if (
+          data.added.some(s => s.includes("/pages/")) ||
+          data.updated.some(s => s.includes("/pages/"))
+        ) {
+          globalThis.location.reload();
+        }
+      }
+    );`;
+
+  const reloadScriptContent = `
+    new EventSource("http://localhost:${port}/esbuild").addEventListener(
+      "change",
+      (ev) => {
+        const patterns = ["background.js", "content.js", "polyfill.js", "keyAutoAdd/"];
+        const data = JSON.parse(ev.data);
+        if (data.updated.some((s) => patterns.some(e => s.includes(e)))) {
+          globalThis.location.reload();
+        }
+      },
+    );`;
 
   return {
     name: 'live-reload',
     setup(build) {
       build.onLoad({ filter: /src\/background\/index\.ts$/ }, async (args) => {
-        const contents = await readFile(args.path, 'utf8')
+        const contents = await readFile(args.path, 'utf8');
         return {
           contents: reloadScriptBackground + '\n' + contents,
-          loader: 'ts' as const
-        }
-      })
+          loader: 'ts' as const,
+        };
+      });
 
       build.onLoad({ filter: /src\/popup\/index\.tsx$/ }, async (args) => {
-        const contents = await readFile(args.path, 'utf8')
+        const contents = await readFile(args.path, 'utf8');
         return {
           contents: contents + '\n\n\n' + reloadScriptPopup,
-          loader: 'tsx' as const
-        }
-      })
-    }
-  }
+          loader: 'tsx' as const,
+        };
+      });
+      build.onLoad({ filter: /src\/pages\/.+\/index.tsx$/ }, async (args) => {
+        const contents = await readFile(args.path, 'utf8');
+        return {
+          contents: contents + '\n\n\n' + reloadScriptPages,
+          loader: 'tsx' as const,
+        };
+      });
+      build.onLoad({ filter: /src\/content\// }, async (args) => {
+        const contents = await readFile(args.path, 'utf8');
+        return {
+          contents: contents + '\n\n\n' + reloadScriptContent,
+          loader: 'ts' as const,
+        };
+      });
+    },
+  };
 }

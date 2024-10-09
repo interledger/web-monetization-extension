@@ -14,9 +14,67 @@ defaults:
     shell: bash
 
 jobs:
+  test-e2e:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Chrome
+            project: chrome
+            target: chrome
+            runs-on: ubuntu-22.04
+          - name: Edge
+            project: msedge
+            target: chrome
+            runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    name: E2E Tests - ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    environment: test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build ${{ matrix.target }} --channel=nightly
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: pnpm test:e2e:${{ matrix.project }}
+        env:
+          PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+          PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: '1'
+          WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
+          WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
+          WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}
+          CONNECT_WALLET_ADDRESS_URL: ${{ vars.E2E_CONNECT_WALLET_ADDRESS_URL }}
+          CONNECT_KEY_ID: ${{ vars.E2E_CONNECT_KEY_ID }}
+          CONNECT_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
+          CONNECT_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
+
+      - name: Encrypt report
+        shell: bash
+        working-directory: tests/e2e/playwright-report
+        run: |
+          zip -r -P ${{ secrets.E2E_PLAYWRIGHT_REPORT_PASSWORD }} ../playwright-report.zip *
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: tests/e2e/playwright-report.zip
+          retention-days: 3
+
   build-nightly:
     name: Create Release
     runs-on: ubuntu-22.04
+    needs: test-e2e
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -52,3 +110,8 @@ jobs:
             > [!warning]
             > The Nightly build is for adventurous folks. It's updated daily with less-tested features and improvements.
           prerelease: true
+
+      - name: Ensure release is published
+        run: gh release edit nightly --draft=false
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -19,6 +19,7 @@
     "paths": {
       "@/shared/*": ["./shared/*"],
       "@/popup/*": ["./popup/*"],
+      "@/pages/*": ["./pages/*"],
       "@/background/*": ["./background/*"],
       "@/content/*": ["./content/*"],
       "@/assets/*": ["./assets/*"]
@@ -29,6 +30,7 @@
     "./jest.config.ts",
     "./jest.setup.ts",
     "./scripts/**/*",
+    "./tests/e2e/**/*",
     "./.github/actions/*.cjs",
     "esbuild/**/*"
   ],

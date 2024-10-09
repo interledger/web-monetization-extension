@@ -1,11 +1,11 @@
-import React from 'react'
-import { PERMISSION_HOSTS } from '@/shared/defines'
-import { WarningSign } from '@/popup/components/Icons'
-import { useBrowser, useTranslation } from '@/popup/lib/context'
+import React from 'react';
+import { PERMISSION_HOSTS } from '@/shared/defines';
+import { WarningSign } from '@/popup/components/Icons';
+import { useBrowser, useTranslation } from '@/popup/lib/context';
 
 export const Component = () => {
-  const browser = useBrowser()
-  const t = useTranslation()
+  const browser = useBrowser();
+  const t = useTranslation();
   return (
     <div className="rounded-md bg-orange-50 p-4 text-sm">
       <div className="flex">
@@ -26,12 +26,12 @@ export const Component = () => {
           browser.permissions.request(PERMISSION_HOSTS).finally(() => {
             // So we open popup with refreshed state, avoiding additional message passing.
             // Firefox closes popup automatically.
-            window.close()
+            window.close();
           })
         }
       >
         Grant permission
       </button>
     </div>
-  )
-}
+  );
+};

@@ -16,6 +16,8 @@ unmangles
 data-testid
 nums
 webmonetization
+jwks
+requestfinished
 
 # scripts and 3rd party terms
 nvmrc
@@ -30,6 +32,10 @@ backported
 autobuild
 buildscript
 Camtasia
+networkidle
+webextensions
+firefoxUserPrefs
+textbox
 
 # packages and 3rd party tools/libraries
 awilix
@@ -38,6 +44,8 @@ loglevel
 openapi
 apidevtools
 tailwindcss
+msedge
+xvfb
 
 # user names
 raducristianpopa
@@ -46,6 +54,7 @@ dianafulga
 jgoz
 amannn
 softprops
+Gidarakos
 
 # monetized website domain names
 ahimsakids

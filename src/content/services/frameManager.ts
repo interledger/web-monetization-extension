@@ -1,91 +1,98 @@
-import { stopMonetization } from '../lib/messages'
-import { ContentToContentAction } from '../messages'
+import type { ContentToContentMessage } from '../messages';
 import type {
-  ResumeMonetizationPayload,
-  StartMonetizationPayload,
-  StopMonetizationPayload
-} from '@/shared/messages'
-import type { Cradle } from '@/content/container'
+  ResumeMonetizationPayloadEntry,
+  StartMonetizationPayloadEntry,
+  StopMonetizationPayload,
+} from '@/shared/messages';
+import type { Cradle } from '@/content/container';
+
+const HANDLED_MESSAGES: ContentToContentMessage['message'][] = [
+  'INITIALIZE_IFRAME',
+  'IS_MONETIZATION_ALLOWED_ON_START',
+  'IS_MONETIZATION_ALLOWED_ON_RESUME',
+];
 
 export class FrameManager {
-  private window: Cradle['window']
-  private document: Cradle['document']
-  private logger: Cradle['logger']
+  private window: Cradle['window'];
+  private document: Cradle['document'];
+  private logger: Cradle['logger'];
+  private message: Cradle['message'];
 
-  private documentObserver: MutationObserver
-  private frameAllowAttrObserver: MutationObserver
+  private documentObserver: MutationObserver;
+  private frameAllowAttrObserver: MutationObserver;
   private frames = new Map<
     HTMLIFrameElement,
     { frameId: string | null; requestIds: string[] }
-  >()
+  >();
 
-  constructor({ window, document, logger }: Cradle) {
+  constructor({ window, document, logger, message }: Cradle) {
     Object.assign(this, {
       window,
       document,
-      logger
-    })
+      logger,
+      message,
+    });
 
     this.documentObserver = new MutationObserver((records) =>
-      this.onWholeDocumentObserved(records)
-    )
+      this.onWholeDocumentObserved(records),
+    );
 
     this.frameAllowAttrObserver = new MutationObserver((records) =>
-      this.onFrameAllowAttrChange(records)
-    )
+      this.onFrameAllowAttrChange(records),
+    );
   }
 
   private findIframe(sourceWindow: Window): HTMLIFrameElement | null {
-    const iframes = this.frames.keys()
-    let frame
+    const iframes = this.frames.keys();
+    let frame;
 
     do {
-      frame = iframes.next()
-      if (frame.done) return null
-      if (frame.value.contentWindow === sourceWindow) return frame.value
-    } while (!frame.done)
+      frame = iframes.next();
+      if (frame.done) return null;
+      if (frame.value.contentWindow === sourceWindow) return frame.value;
+    } while (!frame.done);
 
-    return null
+    return null;
   }
 
   private observeDocumentForFrames() {
     this.documentObserver.observe(this.document, {
       subtree: true,
-      childList: true
-    })
+      childList: true,
+    });
   }
 
   private observeFrameAllowAttrs(frame: HTMLIFrameElement) {
     this.frameAllowAttrObserver.observe(frame, {
       childList: false,
       attributeOldValue: true,
-      attributeFilter: ['allow']
-    })
+      attributeFilter: ['allow'],
+    });
   }
 
   async onFrameAllowAttrChange(records: MutationRecord[]) {
-    const handledTags = new Set<Node>()
+    const handledTags = new Set<Node>();
 
     // Check for a non specified link with the type now specified and
     // just treat it as a newly seen, monetization tag
     for (const record of records) {
-      const target = record.target as HTMLIFrameElement
+      const target = record.target as HTMLIFrameElement;
       if (handledTags.has(target)) {
-        continue
+        continue;
       }
-      const hasTarget = this.frames.has(target)
+      const hasTarget = this.frames.has(target);
       const typeSpecified =
-        target instanceof HTMLIFrameElement && target.allow === 'monetization'
+        target instanceof HTMLIFrameElement && target.allow === 'monetization';
 
       if (!hasTarget && typeSpecified) {
-        await this.onAddedFrame(target)
-        handledTags.add(target)
+        await this.onAddedFrame(target);
+        handledTags.add(target);
       } else if (hasTarget && !typeSpecified) {
-        this.onRemovedFrame(target)
-        handledTags.add(target)
+        this.onRemovedFrame(target);
+        handledTags.add(target);
       } else if (!hasTarget && !typeSpecified) {
         // ignore these changes
-        handledTags.add(target)
+        handledTags.add(target);
       }
     }
   }
@@ -93,35 +100,37 @@ export class FrameManager {
   private async onAddedFrame(frame: HTMLIFrameElement) {
     this.frames.set(frame, {
       frameId: null,
-      requestIds: []
-    })
+      requestIds: [],
+    });
   }
 
   private async onRemovedFrame(frame: HTMLIFrameElement) {
-    this.logger.info('onRemovedFrame', frame)
+    this.logger.info('onRemovedFrame', frame);
 
-    const frameDetails = this.frames.get(frame)
+    const frameDetails = this.frames.get(frame);
 
-    const stopMonetizationTags: StopMonetizationPayload[] =
+    const stopMonetizationTags: StopMonetizationPayload =
       frameDetails?.requestIds.map((requestId) => ({
         requestId,
-        intent: 'remove'
-      })) || []
-    stopMonetization(stopMonetizationTags)
+        intent: 'remove',
+      })) || [];
+    if (stopMonetizationTags.length) {
+      this.message.send('STOP_MONETIZATION', stopMonetizationTags);
+    }
 
-    this.frames.delete(frame)
+    this.frames.delete(frame);
   }
 
   private onWholeDocumentObserved(records: MutationRecord[]) {
     for (const record of records) {
       if (record.type === 'childList') {
-        record.removedNodes.forEach((node) => this.check('removed', node))
+        record.removedNodes.forEach((node) => this.check('removed', node));
       }
     }
 
     for (const record of records) {
       if (record.type === 'childList') {
-        record.addedNodes.forEach((node) => this.check('added', node))
+        record.addedNodes.forEach((node) => this.check('added', node));
       }
     }
   }
@@ -129,127 +138,114 @@ export class FrameManager {
   async check(op: string, node: Node) {
     if (node instanceof HTMLIFrameElement) {
       if (op === 'added') {
-        this.observeFrameAllowAttrs(node)
-        await this.onAddedFrame(node)
+        this.observeFrameAllowAttrs(node);
+        await this.onAddedFrame(node);
       } else if (op === 'removed' && this.frames.has(node)) {
-        this.onRemovedFrame(node)
+        this.onRemovedFrame(node);
       }
     }
   }
 
   start(): void {
-    this.bindMessageHandler()
+    this.bindMessageHandler();
 
     if (
       document.readyState === 'interactive' ||
       document.readyState === 'complete'
     )
-      this.run()
+      this.run();
 
     document.addEventListener(
       'readystatechange',
       () => {
         if (document.readyState === 'interactive') {
-          this.run()
+          this.run();
         }
       },
-      { once: true }
-    )
+      { once: true },
+    );
   }
 
   private run() {
     const frames: NodeListOf<HTMLIFrameElement> =
-      this.document.querySelectorAll('iframe')
+      this.document.querySelectorAll('iframe');
 
     frames.forEach(async (frame) => {
       try {
-        this.observeFrameAllowAttrs(frame)
-        await this.onAddedFrame(frame)
+        this.observeFrameAllowAttrs(frame);
+        await this.onAddedFrame(frame);
       } catch (e) {
-        this.logger.error(e)
+        this.logger.error(e);
       }
-    })
+    });
 
-    this.observeDocumentForFrames()
+    this.observeDocumentForFrames();
   }
 
   private bindMessageHandler() {
     this.window.addEventListener(
       'message',
-      (event: any) => {
-        const { message, payload, id } = event.data
-        if (
-          ![
-            ContentToContentAction.INITIALIZE_IFRAME,
-            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
-            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME
-          ].includes(message)
-        ) {
-          return
+      (event: MessageEvent<ContentToContentMessage>) => {
+        const { message, payload, id } = event.data;
+        if (!HANDLED_MESSAGES.includes(message)) {
+          return;
         }
-        const frame = this.findIframe(event.source)
+        const eventSource = event.source as Window;
+        const frame = this.findIframe(eventSource);
         if (!frame) {
-          event.stopPropagation()
-          return
+          event.stopPropagation();
+          return;
         }
 
-        if (event.origin === this.window.location.href) return
+        if (event.origin === this.window.location.href) return;
 
         switch (message) {
-          case ContentToContentAction.INITIALIZE_IFRAME:
-            event.stopPropagation()
+          case 'INITIALIZE_IFRAME':
+            event.stopPropagation();
             this.frames.set(frame, {
               frameId: id,
-              requestIds: []
-            })
-            return
+              requestIds: [],
+            });
+            return;
 
-          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START:
-            event.stopPropagation()
+          case 'IS_MONETIZATION_ALLOWED_ON_START':
+            event.stopPropagation();
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map(
-                  (p: StartMonetizationPayload) => p.requestId
-                )
-              })
-              event.source.postMessage(
-                {
-                  message: ContentToContentAction.START_MONETIZATION,
-                  id,
-                  payload
-                },
-                '*'
-              )
+                  (p: StartMonetizationPayloadEntry) => p.requestId,
+                ),
+              });
+              eventSource.postMessage(
+                { message: 'START_MONETIZATION', id, payload },
+                '*',
+              );
             }
 
-            return
+            return;
 
-          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME:
-            event.stopPropagation()
+          case 'IS_MONETIZATION_ALLOWED_ON_RESUME':
+            event.stopPropagation();
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map(
-                  (p: ResumeMonetizationPayload) => p.requestId
-                )
-              })
-              event.source.postMessage(
-                {
-                  message: ContentToContentAction.RESUME_MONETIZATION,
-                  id,
-                  payload
-                },
-                '*'
-              )
+                  (p: ResumeMonetizationPayloadEntry) => p.requestId,
+                ),
+              });
+              eventSource.postMessage(
+                { message: 'RESUME_MONETIZATION', id, payload },
+                '*',
+              );
             }
-            return
+            return;
 
           default:
-            return
+            return;
         }
       },
-      { capture: true }
-    )
+      { capture: true },
+    );
   }
 }

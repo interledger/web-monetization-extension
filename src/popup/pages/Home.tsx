@@ -1,81 +1,86 @@
-import React from 'react'
-import { PopupStateContext, ReducerActionType } from '@/popup/lib/context'
-import { WarningSign } from '@/popup/components/Icons'
-import { Slider } from '../components/ui/Slider'
-import { toggleWM, updateRateOfPay as updateRateOfPay_ } from '../lib/messages'
-import { Label } from '../components/ui/Label'
+import React from 'react';
+import { usePopupState, useMessage, useTranslation } from '@/popup/lib/context';
+import { WarningSign } from '@/popup/components/Icons';
+import { Slider } from '../components/ui/Slider';
+import { Label } from '../components/ui/Label';
 import {
   formatNumber,
   getCurrencySymbol,
-  roundWithPrecision
-} from '../lib/utils'
-import { PayWebsiteForm } from '../components/PayWebsiteForm'
-import { SiteNotMonetized } from '@/popup/components/SiteNotMonetized'
-import { debounceAsync } from '@/shared/helpers'
-import { Switch } from '../components/ui/Switch'
-import { AllSessionsInvalid } from '@/popup/components/AllSessionsInvalid'
-
-const updateRateOfPay = debounceAsync(updateRateOfPay_, 1000)
+  roundWithPrecision,
+} from '../lib/utils';
+import { PayWebsiteForm } from '../components/PayWebsiteForm';
+import { NotMonetized } from '@/popup/components/NotMonetized';
+import { debounceAsync } from '@/shared/helpers';
+import { Switch } from '../components/ui/Switch';
 
 export const Component = () => {
+  const t = useTranslation();
+  const message = useMessage();
   const {
     state: {
       enabled,
-      isSiteMonetized,
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
       balance,
       walletAddress,
-      url,
-      hasAllSessionsInvalid
+      tab,
     },
-    dispatch
-  } = React.useContext(PopupStateContext)
+    dispatch,
+  } = usePopupState();
 
   const rate = React.useMemo(() => {
-    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale
-    const roundedR = roundWithPrecision(r, walletAddress.assetScale)
+    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;
+    const roundedR = roundWithPrecision(r, walletAddress.assetScale);
 
-    return formatNumber(roundedR, walletAddress.assetScale, true)
-  }, [rateOfPay, walletAddress.assetScale])
+    return formatNumber(roundedR, walletAddress.assetScale, true);
+  }, [rateOfPay, walletAddress.assetScale]);
 
   const remainingBalance = React.useMemo(() => {
-    const val = Number(balance) / 10 ** walletAddress.assetScale
-    const rounded = roundWithPrecision(val, walletAddress.assetScale)
-    return formatNumber(rounded, walletAddress.assetScale, true)
-  }, [balance, walletAddress.assetScale])
+    const val = Number(balance) / 10 ** walletAddress.assetScale;
+    const rounded = roundWithPrecision(val, walletAddress.assetScale);
+    return formatNumber(rounded, walletAddress.assetScale, true);
+  }, [balance, walletAddress.assetScale]);
+
+  const updateRateOfPay = React.useRef(
+    debounceAsync(async (rateOfPay: string) => {
+      const response = await message.send('UPDATE_RATE_OF_PAY', { rateOfPay });
+      if (!response.success) {
+        // TODO: Maybe reset to old state, but not while user is active (avoid
+        // sluggishness in UI)
+      }
+    }, 1000),
+  );
 
   const onRateChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const rateOfPay = event.currentTarget.value
-    dispatch({
-      type: ReducerActionType.UPDATE_RATE_OF_PAY,
-      data: {
-        rateOfPay
-      }
-    })
-    const response = await updateRateOfPay({ rateOfPay })
-    if (!response.success) {
-      // TODO: Maybe reset to old state, but not while user is active (avoid
-      // sluggishness in UI)
+    const rateOfPay = event.currentTarget.value;
+    dispatch({ type: 'UPDATE_RATE_OF_PAY', data: { rateOfPay } });
+    void updateRateOfPay.current(rateOfPay);
+  };
+
+  const onChangeWM = () => {
+    message.send('TOGGLE_WM');
+    dispatch({ type: 'TOGGLE_WM', data: {} });
+  };
+
+  if (tab.status !== 'monetized') {
+    switch (tab.status) {
+      case 'all_sessions_invalid':
+        return <NotMonetized text={t('notMonetized_text_allInvalid')} />;
+      case 'internal_page':
+        return <NotMonetized text={t('notMonetized_text_internalPage')} />;
+      case 'new_tab':
+        return <NotMonetized text={t('notMonetized_text_newTab')} />;
+      case 'unsupported_scheme':
+        return <NotMonetized text={t('notMonetized_text_unsupportedScheme')} />;
+      case 'no_monetization_links':
+      default:
+        return <NotMonetized text={t('notMonetized_text_noLinks')} />;
     }
   }
 
-  const onChangeWM = () => {
-    toggleWM()
-    dispatch({ type: ReducerActionType.TOGGLE_WM, data: {} })
-  }
-
-  if (!isSiteMonetized) {
-    return <SiteNotMonetized />
-  }
-
-  if (hasAllSessionsInvalid) {
-    return <AllSessionsInvalid />
-  }
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-testid="home-page">
       {enabled ? (
         <div className="space-y-2">
           <Label className="px-2 text-base font-medium text-medium">
@@ -114,7 +119,7 @@ export const Component = () => {
 
       <hr />
 
-      {url ? <PayWebsiteForm /> : null}
+      {tab.url ? <PayWebsiteForm /> : null}
     </div>
-  )
-}
+  );
+};

@@ -7,25 +7,26 @@ export default {
     '!src/**/*.css',
     '!src/**/*.svg',
     '!src/**/*.d.ts',
-    '!src/**/index.ts'
+    '!src/**/index.ts',
   ],
   coverageDirectory: 'coverage',
   coverageProvider: 'v8',
   maxWorkers: '50%',
   moduleFileExtensions: ['js', 'jsx', 'json', 'ts', 'tsx'],
   moduleNameMapper: {
-    '@/(.*)': '<rootDir>/src/$1'
+    '@/(.*)': '<rootDir>/src/$1',
   },
   setupFilesAfterEnv: ['./jest.setup.ts'],
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
-    '<rootDir>/jest.config.ts'
+    '<rootDir>/tests/',
+    '<rootDir>/jest.config.ts',
   ],
   transform: {
     '^.+\\.(js|jsx)$': 'babel-jest',
     '^.+\\.(ts|tsx)?$': 'ts-jest',
-    '\\.(css|less|scss|sass|svg)$': 'jest-transform-stub'
-  }
-}
+    '\\.(css|less|scss|sass|svg)$': 'jest-transform-stub',
+  },
+};

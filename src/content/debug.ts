@@ -11,38 +11,38 @@ const listenForLinkChange = (mutationsList: MutationRecord[]) => {
           link.getAttribute('href')?.match(/^http/) &&
           link.getAttribute('rel')?.match(/monetization/)
         ) {
-          acc.push(link)
+          acc.push(link);
         }
 
-        return acc
+        return acc;
       },
-      []
-    )
+      [],
+    );
 
     if (monetizationLinks.length) {
-      console.log(monetizationLinks)
+      console.log(monetizationLinks);
     }
   }
 
   if (mutationsList[0].type === 'attributes') {
-    const target = mutationsList[0].target as HTMLElement
+    const target = mutationsList[0].target as HTMLElement;
     if (
       target.tagName?.toLowerCase() === 'link' &&
       target.getAttribute('href')?.match(/^http/) &&
       target.getAttribute('rel')?.match(/monetization/)
     ) {
-      console.log('LINK ATTR CHANGED', target)
+      console.log('LINK ATTR CHANGED', target);
     }
   }
-}
+};
 
 export const loadObserver = () => {
-  const observer = new MutationObserver(listenForLinkChange)
+  const observer = new MutationObserver(listenForLinkChange);
   const observeOptions = {
     attributes: true,
     childList: true,
-    subtree: true
-  }
+    subtree: true,
+  };
 
-  observer.observe(document, observeOptions)
-}
+  observer.observe(document, observeOptions);
+};

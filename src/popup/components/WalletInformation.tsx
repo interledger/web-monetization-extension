@@ -1,21 +1,22 @@
-import { Input } from '@/popup/components/ui/Input'
-import { Label } from '@/popup/components/ui/Label'
-import React from 'react'
-import { Code } from '@/popup/components/ui/Code'
-import { PopupStore } from '@/shared/types'
-import { Button } from '@/popup/components/ui/Button'
-import { disconnectWallet } from '@/popup/lib/messages'
-import { useForm } from 'react-hook-form'
+import { Input } from '@/popup/components/ui/Input';
+import { Label } from '@/popup/components/ui/Label';
+import React from 'react';
+import { Code } from '@/popup/components/ui/Code';
+import { PopupStore } from '@/shared/types';
+import { Button } from '@/popup/components/ui/Button';
+import { useMessage } from '@/popup/lib/context';
+import { useForm } from 'react-hook-form';
 
 interface WalletInformationProps {
-  info: PopupStore
+  info: PopupStore;
 }
 
 export const WalletInformation = ({ info }: WalletInformationProps) => {
+  const message = useMessage();
   const {
     handleSubmit,
-    formState: { isSubmitting }
-  } = useForm()
+    formState: { isSubmitting },
+  } = useForm();
 
   return (
     <div className="space-y-4">
@@ -36,15 +37,15 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
       {/* TODO: Improve error handling */}
       <form
         onSubmit={handleSubmit(async () => {
-          await disconnectWallet()
-          window.location.reload()
+          await message.send('DISCONNECT_WALLET');
+          window.location.reload();
         })}
       >
         <Button
           type="submit"
           variant="destructive"
           className="w-full"
-          aria-label="Connect your wallet"
+          aria-label="Disconnect your wallet"
           disabled={isSubmitting}
           loading={isSubmitting}
         >
@@ -52,5 +53,5 @@ export const WalletInformation = ({ info }: WalletInformationProps) => {
         </Button>
       </form>
     </div>
-  )
-}
+  );
+};
