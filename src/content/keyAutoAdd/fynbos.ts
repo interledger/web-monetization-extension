@@ -62,7 +62,7 @@ const findWallet: Run<void> = async (
   }
 };
 
-const uploadKey: Run<void> = async ({ nickName, publicKey }) => {
+const getCSRFToken: Run<{ csrfToken: string; url: string }> = async () => {
   const url = `/settings/keys/add-public?_data=${encodeURIComponent('routes/settings_.keys_.add-public')}`;
   const res = await fetch(url, {
     headers: { accept: 'application/json' },
@@ -70,62 +70,35 @@ const uploadKey: Run<void> = async ({ nickName, publicKey }) => {
   }).catch((error) => {
     return Response.json(null, { status: 599, statusText: error.message });
   });
+  if (!res.ok) {
+    throw new Error(`Failed to retrieve CSRF token (${res.statusText})`);
+  }
 
-  const { csrfToken } = (await res.json()) as { csrfToken: string };
+  const { csrfToken }: { csrfToken: string } = await res.json();
+
+  return { csrfToken, url };
+};
+
+const uploadKey: Run<void> = async ({ nickName, publicKey }, { output }) => {
+  const { csrfToken, url } = output(getCSRFToken);
+
   const formData = new FormData();
-
   formData.set('csrfToken', csrfToken);
   formData.set('applicationName', nickName);
   formData.set('publicKey', publicKey);
 
-  await fetch(url, {
+  const res = await fetch(url, {
     method: 'POST',
     credentials: 'include',
     body: formData,
+  }).catch((error) => {
+    return Response.json(null, { status: 599, statusText: error.message });
   });
-};
 
-// const findForm: Run<{
-//   form: HTMLFormElement;
-//   nickNameField: HTMLInputElement;
-//   publicKeyField: HTMLTextAreaElement;
-// }> = async () => {
-//   const pathname = '/settings/keys/add-public';
-//   const link = await waitForElement<HTMLAnchorElement>(`a[href="${pathname}"]`);
-//   link.click();
-//   await waitForURL((url) => url.pathname === pathname);
-//
-//   const form = await waitForElement<HTMLFormElement>('form#add-public-key');
-//   const nickNameField = await waitForElement<HTMLInputElement>(
-//     'input#applicationName',
-//     { root: form },
-//   );
-//   const publicKeyField = await waitForElement<HTMLTextAreaElement>(
-//     'textarea#publicKey',
-//     { root: form },
-//   );
-//   return { form, nickNameField, publicKeyField };
-// };
-//
-// const addKey: Run<void> = async ({ publicKey, nickName }, { output }) => {
-//   const { form, nickNameField, publicKeyField } = output(findForm);
-//
-//   nickNameField.focus();
-//   nickNameField.value = nickName;
-//   nickNameField.blur();
-//
-//   publicKeyField.focus();
-//   publicKeyField.value = publicKey;
-//   publicKeyField.blur();
-//
-//   const submitButton = await waitForElement<HTMLButtonElement>(
-//     'button[type="submit"]',
-//     { root: form },
-//   );
-//   submitButton.click();
-//
-//   await waitForURL((url) => url.pathname === '/settings/keys');
-// };
+  if (!res.ok) {
+    throw new Error(`Failed to upload public key (${res.statusText})`);
+  }
+};
 // #endregion
 
 // #region: Helpers
@@ -140,8 +113,7 @@ new KeyAutoAdd([
     maxDuration: LOGIN_WAIT_TIMEOUT,
   },
   { name: 'Finding wallet', run: findWallet },
+  { name: 'Get CSRF Token', run: getCSRFToken },
   { name: 'Upload key', run: uploadKey },
-  // { name: 'Finding form to add public key', run: findForm },
-  // { name: 'Adding key', run: addKey },
 ]).init();
 // #endregion
