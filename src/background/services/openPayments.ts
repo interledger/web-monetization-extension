@@ -586,14 +586,14 @@ export class OpenPaymentsService {
     } catch (error) {
       const tabId = keyAutoAdd.tabId;
       const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      if (tabId && !isTabClosed) {
-        await this.redirectToWelcomeScreen(
-          tabId,
-          GrantResult.ERROR,
-          InteractionIntent.CONNECT,
-          ErrorCode.KEY_ADD_FAILED,
-        );
-      }
+      // if (tabId && !isTabClosed) {
+      //   await this.redirectToWelcomeScreen(
+      //     tabId,
+      //     GrantResult.ERROR,
+      //     InteractionIntent.CONNECT,
+      //     ErrorCode.KEY_ADD_FAILED,
+      //   );
+      // }
       if (error instanceof ErrorWithKey) {
         throw error;
       } else {
