@@ -54,6 +54,9 @@ jobs:
           CONNECT_KEY_ID: ${{ vars.E2E_CONNECT_KEY_ID }}
           CONNECT_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
           CONNECT_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
+          FYNBOS_WALLET_ADDRESS_URL: ${{ vars.E2E_FYNBOS_WALLET_ADDRESS_URL }}
+          FYNBOS_USERNAME: ${{ vars.E2E_FYNBOS_USERNAME }}
+          FYNBOS_PASSWORD: ${{ secrets.E2E_FYNBOS_PASSWORD }}
 
       - name: Encrypt report
         shell: bash

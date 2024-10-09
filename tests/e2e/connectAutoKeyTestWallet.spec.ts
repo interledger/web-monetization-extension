@@ -7,9 +7,8 @@ import {
   getContinueWaitTime,
   revokeKey,
   waitForGrantConsentPage,
-  waitForWelcomePage,
 } from './helpers/testWallet';
-import { getJWKS } from './helpers/common';
+import { getJWKS, waitForWelcomePage } from './helpers/common';
 
 test('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
   page,
