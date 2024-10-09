@@ -275,7 +275,7 @@ We have 2 risk categories:  `critical` | `high`
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
-| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Not enough funds to facilitate payment`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Insufficient funds to complete the payment.`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay one-time when wallet is out of funds
 
