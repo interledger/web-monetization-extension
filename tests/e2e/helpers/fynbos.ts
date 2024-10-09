@@ -28,7 +28,7 @@ export async function getContinueWaitTime(
   params: Pick<ConnectDetails, 'walletAddressUrl'>,
 ) {
   const continueWaitMs = await (async () => {
-    const defaultWaitMs = 1001;
+    const defaultWaitMs = 5001;
     if (process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS !== '1') {
       return Promise.resolve(defaultWaitMs);
     }
