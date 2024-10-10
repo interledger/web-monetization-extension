@@ -3,13 +3,6 @@
 
 import { withResolvers } from '@/shared/helpers';
 
-class TimeoutError extends Error {
-  name = 'TimeoutError';
-  constructor(message: string, { cause }: { cause: Event }) {
-    super(message, { cause });
-  }
-}
-
 interface WaitForOptions {
   timeout: number;
 }
@@ -48,6 +41,13 @@ export async function waitForURL(
   observer.observe(document.body, { childList: true, subtree: true });
 
   return promise;
+}
+
+class TimeoutError extends Error {
+  name = 'TimeoutError';
+  constructor(message: string, { cause }: { cause: Event }) {
+    super(message, { cause });
+  }
 }
 
 export function isTimedOut(e: any) {
