@@ -5,7 +5,7 @@ import {
   LOGIN_WAIT_TIMEOUT,
   type StepRun as Run,
 } from './lib/keyAutoAdd';
-import { isTimedOut, waitForElement, waitForURL } from './lib/helpers';
+import { isTimedOut, waitForURL } from './lib/helpers';
 // #region: Steps
 
 type IndexRouteResponse = {
@@ -62,51 +62,45 @@ const findWallet: Run<void> = async (
   }
 };
 
-const findForm: Run<{
-  form: HTMLFormElement;
-  nickNameField: HTMLInputElement;
-  publicKeyField: HTMLTextAreaElement;
-}> = async () => {
-  const pathname = '/settings/keys/add-public';
-  const link = await waitForElement<HTMLAnchorElement>(`a[href="${pathname}"]`);
-  link.click();
-  await waitForURL((url) => url.pathname === pathname);
+const addKey: Run<void> = async ({ nickName, publicKey }) => {
+  const url = `/settings/keys/add-public?_data=${encodeURIComponent('routes/settings_.keys_.add-public')}`;
+  const csrfToken = await getCSRFToken(url);
 
-  const form = await waitForElement<HTMLFormElement>('form#add-public-key');
-  const nickNameField = await waitForElement<HTMLInputElement>(
-    'input#applicationName',
-    { root: form },
-  );
-  const publicKeyField = await waitForElement<HTMLTextAreaElement>(
-    'textarea#publicKey',
-    { root: form },
-  );
-  return { form, nickNameField, publicKeyField };
-};
+  const formData = new FormData();
+  formData.set('csrfToken', csrfToken);
+  formData.set('applicationName', nickName);
+  formData.set('publicKey', publicKey);
 
-const addKey: Run<void> = async ({ publicKey, nickName }, { output }) => {
-  const { form, nickNameField, publicKeyField } = output(findForm);
+  const res = await fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  }).catch((error) => {
+    return Response.json(null, { status: 599, statusText: error.message });
+  });
 
-  nickNameField.focus();
-  nickNameField.value = nickName;
-  nickNameField.blur();
-
-  publicKeyField.focus();
-  publicKeyField.value = publicKey;
-  publicKeyField.blur();
-
-  const submitButton = await waitForElement<HTMLButtonElement>(
-    'button[type="submit"]',
-    { root: form },
-  );
-  submitButton.click();
-
-  await waitForURL((url) => url.pathname === '/settings/keys');
+  if (!res.ok) {
+    throw new Error(`Failed to upload public key (${res.statusText})`);
+  }
 };
 // #endregion
 
 // #region: Helpers
-// anything?
+const getCSRFToken = async (url: string) => {
+  const res = await fetch(url, {
+    headers: { accept: 'application/json' },
+    credentials: 'include',
+  }).catch((error) => {
+    return Response.json(null, { status: 599, statusText: error.message });
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to retrieve CSRF token (${res.statusText})`);
+  }
+
+  const { csrfToken }: { csrfToken: string } = await res.json();
+
+  return csrfToken;
+};
 // #endregion
 
 // #region: Main
@@ -117,7 +111,6 @@ new KeyAutoAdd([
     maxDuration: LOGIN_WAIT_TIMEOUT,
   },
   { name: 'Finding wallet', run: findWallet },
-  { name: 'Finding form to add public key', run: findForm },
   { name: 'Adding key', run: addKey },
 ]).init();
 // #endregion
