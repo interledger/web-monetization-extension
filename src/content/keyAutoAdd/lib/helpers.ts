@@ -23,7 +23,7 @@ export async function waitForURL(
   const abortSignal = AbortSignal.timeout(timeout);
   abortSignal.addEventListener('abort', (e) => {
     observer.disconnect();
-    reject(e);
+    reject(new TimeoutError(`Timeout waiting for URL`, { cause: e }));
   });
 
   let url = window.location.href;
@@ -43,11 +43,13 @@ export async function waitForURL(
   return promise;
 }
 
+class TimeoutError extends Error {
+  name = 'TimeoutError';
+  constructor(message: string, { cause }: { cause: Event }) {
+    super(message, { cause });
+  }
+}
+
 export function isTimedOut(e: any) {
-  return (
-    e instanceof Event &&
-    e.type === 'abort' &&
-    e.currentTarget instanceof AbortSignal &&
-    e.currentTarget.reason?.name === 'TimeoutError'
-  );
+  return e instanceof TimeoutError;
 }
