@@ -1,5 +1,4 @@
 import type { Page } from '@playwright/test';
-import type { Background } from '../fixtures/helpers';
 
 const OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
 
