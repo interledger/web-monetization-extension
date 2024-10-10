@@ -8,7 +8,7 @@ test('should monetize site with single wallet address', async ({
   page,
   popup,
 }) => {
-  const walletAddressUrl = process.env.CONNECT_WALLET_ADDRESS_URL!;
+  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const playgroundUrl = 'https://webmonetization.org/play/';
 
   await page.goto(playgroundUrl);

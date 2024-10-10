@@ -17,9 +17,9 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   background,
   i18n,
 }) => {
-  const username = process.env.WALLET_USERNAME!;
-  const password = process.env.WALLET_PASSWORD!;
-  const walletAddressUrl = process.env.CONNECT_WALLET_ADDRESS_URL!;
+  const username = process.env.TEST_WALLET_USERNAME;
+  const password = process.env.TEST_WALLET_PASSWORD;
+  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
   const loginPageUrl = `https://rafiki.money/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
 
