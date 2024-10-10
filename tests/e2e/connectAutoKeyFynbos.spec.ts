@@ -1,6 +1,7 @@
 import { test, expect } from './fixtures/base';
-import { ensureEnd } from '@/shared/helpers';
+import { getJWKS } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
+import { waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
   getContinueWaitTime,
@@ -9,7 +10,6 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/fynbos';
-import { getJWKS, waitForWelcomePage } from './helpers/common';
 
 const origin = new URL(KEYS_PAGE_URL).origin;
 
@@ -29,7 +29,6 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   const { keyId: kid } = await background.evaluate(() => {
     return chrome.storage.local.get<{ keyId: string }>(['keyId']);
   });
-  const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/')).href;
 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
@@ -47,7 +46,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   });
 
   await test.step('ensure key not added already', async () => {
-    const jwksBefore = await getJWKS(background, jwksUrl);
+    const jwksBefore = await getJWKS(walletAddressUrl);
     expect(jwksBefore.keys.length).toBeGreaterThanOrEqual(0);
     expect(jwksBefore.keys.find((key) => key.kid === kid)).toBeUndefined();
   });
@@ -142,7 +141,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
       });
     });
 
-    const jwks = await getJWKS(background, jwksUrl);
+    const jwks = await getJWKS(walletAddressUrl);
     expect(jwks.keys.length).toBeGreaterThan(0);
     const key = jwks.keys.find((key) => key.kid === kid);
     expect(key).toMatchObject({ kid });
@@ -172,7 +171,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
       });
     }
 
-    const { keys } = await getJWKS(background, jwksUrl);
+    const { keys } = await getJWKS(walletAddressUrl);
     expect(keys.find((key) => key.kid === kid)).toBeUndefined();
   });
 
