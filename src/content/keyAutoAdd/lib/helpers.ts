@@ -14,52 +14,6 @@ interface WaitForOptions {
   timeout: number;
 }
 
-interface WaitForElementOptions extends WaitForOptions {
-  root: HTMLElement | HTMLHtmlElement | Document;
-  /**
-   * Once a selector is matched, you can request an additional check to ensure
-   * this is the element you're looking for.
-   */
-  match: (el: HTMLElement) => boolean;
-}
-
-export function waitForElement<T extends HTMLElement = HTMLElement>(
-  selector: string,
-  {
-    root = document,
-    timeout = 10 * 1000,
-    match = () => true,
-  }: Partial<WaitForElementOptions> = {},
-): Promise<T> {
-  const { resolve, reject, promise } = withResolvers<T>();
-  if (document.querySelector(selector)) {
-    resolve(document.querySelector<T>(selector)!);
-    return promise;
-  }
-
-  const abortSignal = AbortSignal.timeout(timeout);
-  abortSignal.addEventListener('abort', (e) => {
-    observer.disconnect();
-    reject(
-      new TimeoutError(`Timeout waiting for element: {${selector}}`, {
-        cause: e,
-      }),
-    );
-  });
-
-  const observer = new MutationObserver(() => {
-    const el = document.querySelector<T>(selector);
-    if (el && match(el)) {
-      observer.disconnect();
-      resolve(el);
-    }
-  });
-
-  observer.observe(root, { childList: true, subtree: true });
-
-  return promise;
-}
-
 interface WaitForURLOptions extends WaitForOptions {}
 
 export async function waitForURL(
