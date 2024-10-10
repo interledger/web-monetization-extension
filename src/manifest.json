@@ -22,6 +22,11 @@
       "matches": ["https://rafiki.money/*/*"],
       "js": ["content/keyAutoAdd/testWallet.js"],
       "run_at": "document_end"
+    },
+    {
+      "matches": ["https://eu1.fynbos.dev/*", "https://wallet.fynbos.app/*"],
+      "js": ["content/keyAutoAdd/fynbos.js"],
+      "run_at": "document_end"
     }
   ],
   "background": {
