@@ -1,5 +1,5 @@
 import type { SuccessResponse } from '@/shared/messages';
-import type { WalletAddress } from '@interledger/open-payments/dist/types';
+import type { WalletAddress, JWKS } from '@interledger/open-payments';
 import { cx, CxOptions } from 'class-variance-authority';
 import { twMerge } from 'tailwind-merge';
 import { addSeconds } from 'date-fns/addSeconds';
@@ -68,8 +68,6 @@ export const getWalletInformation = async (
 };
 
 export const getJWKS = async (walletAddressUrl: string) => {
-  type JWK = { kid: string; alg: string; x: string; crv: string; kty: string };
-  type JWKS = { keys: JWK[] };
   const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
   const res = await fetch(jwksUrl.href);
   const json = await res.json();
