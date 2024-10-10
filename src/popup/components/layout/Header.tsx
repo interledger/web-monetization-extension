@@ -2,8 +2,10 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowBack, Settings } from '../Icons';
 import { HeaderEmpty } from './HeaderEmpty';
+import { Switch } from '@/popup/components/ui/Switch';
 import { ROUTES_PATH } from '@/popup/Popup';
-import { useBrowser, usePopupState } from '@/popup/lib/context';
+import { useBrowser, useMessage, usePopupState } from '@/popup/lib/context';
+import { isOkState } from '@/shared/helpers';
 
 const NavigationButton = () => {
   const location = useLocation();
@@ -33,12 +35,40 @@ const NavigationButton = () => {
   }, [location, connected]);
 };
 
+const ToggleWMButton: React.FC<{ toggleWM: () => void }> = ({ toggleWM }) => {
+  const {
+    state: { enabled, connected, state },
+  } = usePopupState();
+
+  if (!connected) return null;
+  if (!isOkState(state)) return null;
+
+  return (
+    <Switch
+      checked={enabled}
+      onChange={toggleWM}
+      size="small"
+      title="Enable/Disable Web Monetization"
+      aria-label="Continuous payment stream"
+    />
+  );
+};
+
 export const Header = () => {
+  const message = useMessage();
   const browser = useBrowser();
+  const { dispatch } = usePopupState();
+
+  const toggleWM = () => {
+    message.send('TOGGLE_WM');
+    dispatch({ type: 'TOGGLE_WM', data: {} });
+  };
+
   const Logo = browser.runtime.getURL('assets/images/logo.svg');
 
   return (
     <HeaderEmpty logo={Logo}>
+      <ToggleWMButton toggleWM={toggleWM} />
       <NavigationButton />
     </HeaderEmpty>
   );
