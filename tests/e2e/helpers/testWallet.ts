@@ -7,9 +7,9 @@ import {
 } from '../fixtures/helpers';
 import { fillPopup, type Popup, type ConnectDetails } from '../pages/popup';
 import { getWalletInformation } from '@/shared/helpers';
+import { waitForWelcomePage } from './common';
 
 export const KEYS_PAGE_URL = `https://rafiki.money/settings/developer-keys`;
-const CONFIG_OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
 
 export async function connectWallet(
   context: BrowserContext,
@@ -82,14 +82,6 @@ export async function waitForGrantConsentPage(page: Page) {
 export async function acceptGrant(page: Page, continueWaitMs: number) {
   await page.waitForTimeout(continueWaitMs);
   await page.getByRole('button', { name: 'Accept' }).click();
-}
-
-export async function waitForWelcomePage(page: Page) {
-  await page.waitForURL(
-    (url) =>
-      url.href.startsWith(CONFIG_OPEN_PAYMENTS_REDIRECT_URL) &&
-      url.searchParams.get('result') === 'grant_success',
-  );
 }
 
 export async function revokeKey(

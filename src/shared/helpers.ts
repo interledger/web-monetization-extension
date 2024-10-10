@@ -67,6 +67,15 @@ export const getWalletInformation = async (
   return json;
 };
 
+export const getJWKS = async (walletAddressUrl: string) => {
+  type JWK = { kid: string; alg: string; x: string; crv: string; kty: string };
+  type JWKS = { keys: JWK[] };
+  const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
+  const res = await fetch(jwksUrl.href);
+  const json = await res.json();
+  return json as JWKS;
+};
+
 /**
  * Error object with key and substitutions based on `_locales/[lang]/messages.json`
  */

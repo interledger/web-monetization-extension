@@ -1,15 +1,14 @@
 import { test, expect } from './fixtures/base';
-import { ensureEnd, withResolvers } from '@/shared/helpers';
+import { withResolvers, getJWKS } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
+import { waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
   KEYS_PAGE_URL,
   getContinueWaitTime,
   revokeKey,
   waitForGrantConsentPage,
-  waitForWelcomePage,
 } from './helpers/testWallet';
-import { getJWKS } from './helpers/common';
 
 test('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
   page,
@@ -21,8 +20,6 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   const username = process.env.WALLET_USERNAME!;
   const password = process.env.WALLET_PASSWORD!;
   const walletAddressUrl = process.env.CONNECT_WALLET_ADDRESS_URL!;
-
-  const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/')).href;
 
   const loginPageUrl = `https://rafiki.money/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
 
@@ -111,14 +108,14 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
       return chrome.storage.local.get<{ keyId: string }>(['keyId']);
     });
 
-    const jwksBefore = await getJWKS(page, jwksUrl);
+    const jwksBefore = await getJWKS(walletAddressUrl);
     expect(jwksBefore.keys.length).toBeGreaterThanOrEqual(0);
     expect(jwksBefore.keys.find((key) => key.kid === keyId)).toBeUndefined();
 
     pause.resolve();
     const { accountId, walletId } = await promise;
 
-    const jwks = await getJWKS(page, jwksUrl);
+    const jwks = await getJWKS(walletAddressUrl);
     expect(jwks.keys.length).toBeGreaterThan(0);
     const key = jwks.keys.find((key) => key.kid === keyId);
     expect(key).toMatchObject({ kid: keyId });
@@ -146,7 +143,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   await test.step('revoke key', async () => {
     await revokeKey(page, revokeInfo);
 
-    const { keys } = await getJWKS(page, jwksUrl);
+    const { keys } = await getJWKS(walletAddressUrl);
     expect(keys.find((key) => key.kid === revokeInfo.keyId)).toBeUndefined();
   });
 
