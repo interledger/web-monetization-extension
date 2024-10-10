@@ -86,7 +86,7 @@ const addKey: Run<void> = async ({ nickName, publicKey }) => {
 // #endregion
 
 // #region: Helpers
-const getCSRFToken = async (url: string) => {
+const getCSRFToken = async (url: string): Promise<string> => {
   const res = await fetch(url, {
     headers: { accept: 'application/json' },
     credentials: 'include',
