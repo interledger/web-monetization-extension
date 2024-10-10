@@ -62,25 +62,9 @@ const findWallet: Run<void> = async (
   }
 };
 
-const getCSRFToken: Run<{ csrfToken: string; url: string }> = async () => {
+const addKey: Run<void> = async ({ nickName, publicKey }) => {
   const url = `/settings/keys/add-public?_data=${encodeURIComponent('routes/settings_.keys_.add-public')}`;
-  const res = await fetch(url, {
-    headers: { accept: 'application/json' },
-    credentials: 'include',
-  }).catch((error) => {
-    return Response.json(null, { status: 599, statusText: error.message });
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to retrieve CSRF token (${res.statusText})`);
-  }
-
-  const { csrfToken }: { csrfToken: string } = await res.json();
-
-  return { csrfToken, url };
-};
-
-const uploadKey: Run<void> = async ({ nickName, publicKey }, { output }) => {
-  const { csrfToken, url } = output(getCSRFToken);
+  const csrfToken = await getCSRFToken(url);
 
   const formData = new FormData();
   formData.set('csrfToken', csrfToken);
@@ -102,7 +86,21 @@ const uploadKey: Run<void> = async ({ nickName, publicKey }, { output }) => {
 // #endregion
 
 // #region: Helpers
-// anything?
+const getCSRFToken = async (url: string) => {
+  const res = await fetch(url, {
+    headers: { accept: 'application/json' },
+    credentials: 'include',
+  }).catch((error) => {
+    return Response.json(null, { status: 599, statusText: error.message });
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to retrieve CSRF token (${res.statusText})`);
+  }
+
+  const { csrfToken }: { csrfToken: string } = await res.json();
+
+  return csrfToken;
+};
 // #endregion
 
 // #region: Main
@@ -113,7 +111,6 @@ new KeyAutoAdd([
     maxDuration: LOGIN_WAIT_TIMEOUT,
   },
   { name: 'Finding wallet', run: findWallet },
-  { name: 'Get CSRF Token', run: getCSRFToken },
-  { name: 'Upload key', run: uploadKey },
+  { name: 'Adding key', run: addKey },
 ]).init();
 // #endregion
