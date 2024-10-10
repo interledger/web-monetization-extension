@@ -11,7 +11,6 @@ import {
 import { PayWebsiteForm } from '../components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
 import { debounceAsync } from '@/shared/helpers';
-import { Switch } from '../components/ui/Switch';
 
 export const Component = () => {
   const t = useTranslation();
@@ -56,11 +55,6 @@ export const Component = () => {
     const rateOfPay = event.currentTarget.value;
     dispatch({ type: 'UPDATE_RATE_OF_PAY', data: { rateOfPay } });
     void updateRateOfPay.current(rateOfPay);
-  };
-
-  const onChangeWM = () => {
-    message.send('TOGGLE_WM');
-    dispatch({ type: 'TOGGLE_WM', data: {} });
   };
 
   if (tab.status !== 'monetized') {
@@ -111,11 +105,6 @@ export const Component = () => {
           </p>
         </div>
       )}
-      <Switch
-        checked={enabled}
-        onChange={onChangeWM}
-        label="Continuous payment stream"
-      />
 
       <hr />
 
