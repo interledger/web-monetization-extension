@@ -1,5 +1,7 @@
 import React from 'react';
 import { Switch } from '@/popup/components/ui/Switch';
+import { Label } from '@/popup/components/ui/Label';
+import { Slider } from '@/popup/components/ui/Slider';
 import { debounceAsync } from '@/shared/helpers';
 import {
   formatNumber,
@@ -11,9 +13,6 @@ import {
   usePopupState,
   type PopupState,
 } from '@/popup/lib/context';
-import { Label } from '../ui/Label';
-import { Slider } from '../ui/Slider';
-import { WarningSign } from '../Icons';
 
 export const RateOfPayScreen = () => {
   const message = useMessage();
