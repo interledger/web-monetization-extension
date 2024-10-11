@@ -15,7 +15,7 @@ export const MainLayout = () => {
     >
       <Header />
       <Divider />
-      <main className="h-full">
+      <main className="flex flex-1 flex-col">
         <Outlet />
       </main>
     </div>

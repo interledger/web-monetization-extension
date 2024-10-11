@@ -63,6 +63,9 @@ importers:
       react-router-dom:
         specifier: ^6.26.2
         version: 6.26.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-tabs:
+        specifier: ^6.0.2
+        version: 6.0.2(react@18.3.1)
       safe-buffer:
         specifier: 5.2.1
         version: 5.2.1
@@ -3496,6 +3499,11 @@ packages:
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=16.8'
+
+  react-tabs@6.0.2:
+    resolution: {integrity: sha512-aQXTKolnM28k3KguGDBSAbJvcowOQr23A+CUJdzJtOSDOtTwzEaJA+1U4KwhNL9+Obe+jFS7geuvA7ICQPXOnQ==}
+    peerDependencies:
+      react: ^18.0.0
 
   react@18.3.1:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
@@ -7980,6 +7988,12 @@ snapshots:
   react-router@6.26.2(react@18.3.1):
     dependencies:
       '@remix-run/router': 1.19.2
+      react: 18.3.1
+
+  react-tabs@6.0.2(react@18.3.1):
+    dependencies:
+      clsx: 2.0.0
+      prop-types: 15.8.1
       react: 18.3.1
 
   react@18.3.1:

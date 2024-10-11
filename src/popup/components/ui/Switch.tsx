@@ -33,12 +33,13 @@ export interface SwitchProps
   extends VariantProps<typeof switchVariants>,
     React.HTMLAttributes<HTMLInputElement> {
   checked?: boolean;
+  disabled?: boolean;
   label?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { size, label, className, onChange = () => {}, ...props },
+  { size, label, className, disabled = false, onChange = () => {}, ...props },
   ref,
 ) {
   return (
@@ -49,6 +50,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         type="checkbox"
         checked={props.checked}
         onChange={onChange}
+        disabled={disabled}
         {...props}
         className="peer pointer-events-none absolute -translate-x-[100%] opacity-0"
       />
