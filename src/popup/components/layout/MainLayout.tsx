@@ -10,12 +10,17 @@ const Divider = () => {
 export const MainLayout = () => {
   return (
     <div
-      className="flex h-popup w-popup flex-col space-y-4 border-base px-6 py-4"
+      className="flex h-popup w-popup flex-col"
       id="main"
+      style={{
+        backgroundImage: `url("https://webmonetization.org/img/bg-tile.svg")`,
+      }}
     >
-      <Header />
-      <Divider />
-      <main className="h-full">
+      <div className="space-y-4 bg-white px-6 py-4">
+        <Header />
+        <Divider />
+      </div>
+      <main className="h-full px-6 pb-4 pt-8">
         <Outlet />
       </main>
     </div>

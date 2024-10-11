@@ -31,8 +31,11 @@ export const Component = () => {
   }
 
   return (
-    <div className="space-y-6" data-testid="home-page">
-      <img src="/assets/images/pay-banner.png" alt="" />
+    <div className="h-full space-y-6" data-testid="home-page">
+      <header className="text-secondary-dark text-center text-3xl">
+        <h2 className="font-bold">Pay as you browse</h2>
+        <p className="font-light">Support content you love</p>
+      </header>
       <InfoBanner />
       <PayWebsiteForm />
     </div>

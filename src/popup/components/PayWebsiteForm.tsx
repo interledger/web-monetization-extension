@@ -61,7 +61,7 @@ export const PayWebsiteForm = () => {
 
   return (
     <form
-      className="space-y-2 rounded-md bg-gray-100 px-2 py-4"
+      className="space-y-4 rounded-md bg-gray-50 px-4 py-4 pb-12"
       onSubmit={onSubmit}
     >
       <AnimatePresence mode="sync">
