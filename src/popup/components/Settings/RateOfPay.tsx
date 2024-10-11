@@ -78,7 +78,7 @@ export const RateOfPayComponent: React.FC<Props> = ({
       <Switch
         checked={continuousPaymentsEnabled}
         onChange={toggleWM}
-        label="Continuous payment stream"
+        label="Continuous payments"
       />
 
       <RateOfPayInput
