@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/base';
-import { getJWKS } from '@/shared/helpers';
+import { getJWKS, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
 import { waitForWelcomePage } from './helpers/common';
 import {
@@ -10,8 +10,6 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/fynbos';
-
-const origin = new URL(KEYS_PAGE_URL).origin;
 
 test('Connect to Fynbos with automatic key addition when not logged-in to wallet', async ({
   page,
@@ -83,70 +81,33 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     walletAddressUrl,
   });
 
-  const revokeInfo = await test.step('adds key to wallet', async () => {
-    const applicationName = await new Promise<string>((resolve) => {
-      page.on('request', async function interceptApplicationName(req) {
-        if (req.serviceWorker()) return;
-        if (req.method() !== 'POST') return;
+  const keyNickName = await test.step('adds key to wallet', async () => {
+    const { resolve, promise } = withResolvers<string>();
+    page.on('request', async function interceptApplicationName(req) {
+      if (req.serviceWorker()) return;
+      if (req.method() !== 'POST') return;
 
-        const url = new URL(req.url());
-        if (
-          url.pathname.startsWith('/settings/keys/add-public') &&
-          url.searchParams.get('_data') === 'routes/settings_.keys_.add-public'
-        ) {
-          const applicationName = req.postDataJSON()?.applicationName;
-          if (applicationName) {
-            resolve(applicationName);
-            page.off('requestfinished', interceptApplicationName);
-          }
-        }
-      });
+      const url = new URL(req.url());
+      if (
+        url.pathname.startsWith('/settings/keys/add-public') &&
+        url.searchParams.get('_data') === 'routes/settings_.keys_.add-public'
+      ) {
+        const applicationName = req.postDataJSON()?.applicationName;
+        resolve(applicationName);
+        page.off('request', interceptApplicationName);
+      }
     });
+    const keyNickName = await promise;
+    expect(keyNickName).not.toBeFalsy();
 
-    const keyIds = await new Promise<string[]>((resolve, reject) => {
-      page.on('requestfinished', async function interceptKeyIds(req) {
-        if (req.serviceWorker()) return;
-
-        if (req.method() !== 'GET') return;
-        const url = new URL(req.url());
-        // https://eu1.fynbos.dev/settings/keys?_data=routes%2Fsettings.keys
-        if (url.origin !== 'https://eu1.fynbos.dev') return;
-        if (!url.pathname.startsWith('/settings/keys')) return;
-        if (url.searchParams.get('_data') !== 'routes/settings.keys') return;
-
-        const res = await req.response();
-        page.off('requestfinished', interceptKeyIds);
-        if (!res) {
-          reject('no response from routes/settings.keys API route');
-          return;
-        }
-        type Resp = {
-          keys: {
-            id: string;
-            applicationName: string;
-            publicKeyFingerprint: string;
-          }[];
-        };
-        const json: Resp = await res.json();
-        // We want to `json.keys.find(e => e.publicKeyFingerprint ===
-        // publicKeyFingerprint)` but we don't have that fingerprint handy
-        const keys = json.keys.filter(
-          (e) => e.applicationName === applicationName,
-        );
-        if (!keys.length) {
-          reject('no key found');
-          return;
-        }
-        resolve(keys.map((e) => e.id));
-      });
-    });
+    await waitForGrantConsentPage(page);
 
     const jwks = await getJWKS(walletAddressUrl);
     expect(jwks.keys.length).toBeGreaterThan(0);
     const key = jwks.keys.find((key) => key.kid === kid);
     expect(key).toMatchObject({ kid });
 
-    return { keyIds };
+    return keyNickName;
   });
 
   await test.step('shows connect consent page', async () => {
@@ -164,18 +125,45 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     ).toEqual({ connected: true });
   });
 
-  await test.step(`Cleanup: revoke keys (${revokeInfo.keyIds.length})`, async () => {
-    for (const keyId of revokeInfo.keyIds) {
-      await test.step(`revoke key ${keyId}`, async () => {
-        await revokeKey(page, origin, keyId);
+  await test.step('cleanup: revoke keys', async () => {
+    const keyIds = await test.step('get keys to revoke', async () => {
+      await page.goto(KEYS_PAGE_URL);
+      const data = await page.evaluate(async () => {
+        const res = await fetch(
+          `/settings/keys?_data=${encodeURIComponent('routes/settings.keys')}`,
+          { credentials: 'include' },
+        );
+        type Result = {
+          keys: {
+            id: string;
+            applicationName: string;
+            publicKeyFingerprint: string;
+          }[];
+        };
+        const data: Result = await res.json();
+        return data;
       });
-    }
 
-    const { keys } = await getJWKS(walletAddressUrl);
-    expect(keys.find((key) => key.kid === kid)).toBeUndefined();
+      return data.keys
+        .filter((e) => e.applicationName === keyNickName)
+        .map((e) => e.id);
+    });
+
+    test.slow(keyIds.length > 2, 'Revoking lots of older keys too');
+
+    await test.step(`revoke keys (${keyIds.length})`, async () => {
+      for (const keyId of keyIds) {
+        await test.step(`revoke key ${keyId}`, async () => {
+          await revokeKey(page, keyId);
+        });
+      }
+
+      const { keys } = await getJWKS(walletAddressUrl);
+      expect(keys.find((key) => key.kid === kid)).toBeUndefined();
+    });
   });
 
-  await test.step('Cleanup: disconnect wallet', async () => {
+  await test.step('cleanup: disconnect wallet', async () => {
     await disconnectWallet(popup);
   });
 });

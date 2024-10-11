@@ -66,15 +66,17 @@ const addKey: Run<void> = async ({ nickName, publicKey }) => {
   const url = `/settings/keys/add-public?_data=${encodeURIComponent('routes/settings_.keys_.add-public')}`;
   const csrfToken = await getCSRFToken(url);
 
-  const formData = new FormData();
-  formData.set('csrfToken', csrfToken);
-  formData.set('applicationName', nickName);
-  formData.set('publicKey', publicKey);
-
   const res = await fetch(url, {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+    },
     credentials: 'include',
-    body: formData,
+    body: toFormUrlEncoded({
+      csrfToken: csrfToken,
+      applicationName: nickName,
+      publicKey: publicKey,
+    }),
   }).catch((error) => {
     return Response.json(null, { status: 599, statusText: error.message });
   });
@@ -100,6 +102,12 @@ const getCSRFToken = async (url: string): Promise<string> => {
   const { csrfToken }: { csrfToken: string } = await res.json();
 
   return csrfToken;
+};
+
+const toFormUrlEncoded = (data: Record<string, string>) => {
+  return Object.entries(data)
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+    .join('&');
 };
 // #endregion
 

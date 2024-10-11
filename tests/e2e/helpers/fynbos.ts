@@ -58,8 +58,8 @@ export async function acceptGrant(page: Page, continueWaitMs: number) {
   await page.getByRole('button', { name: 'Approve', exact: true }).click();
 }
 
-export async function revokeKey(page: Page, origin: string, keyId: string) {
-  const baseUrl = `${origin}/settings/keys`;
+export async function revokeKey(page: Page, keyId: string) {
+  const baseUrl = KEYS_PAGE_URL;
   await page.goto(`${baseUrl}/${keyId}`);
   await page.getByRole('button', { name: 'Delete' }).click();
   await page.waitForURL(baseUrl, { timeout: 3000 });
