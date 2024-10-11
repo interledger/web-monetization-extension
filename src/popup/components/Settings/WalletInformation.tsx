@@ -53,7 +53,7 @@ export const WalletInformation: React.FC<WalletInformationProps> = ({
         </Button>
       </form>
 
-      <details className="mt-auto border-t">
+      <details className="border-t">
         <summary className="flex cursor-pointer items-center justify-between px-2 py-2 text-sm text-weak hover:text-strong">
           <span>Advanced</span>
           <span className="-rotate-90">
