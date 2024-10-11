@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import * as Tabs from '@radix-ui/react-tabs';
 import { WalletInformation } from '@/popup/components/Settings/WalletInformation';
 import { BudgetScreen } from '@/popup/components/Settings/Budget';
 import { RateOfPayScreen } from '@/popup/components/Settings/RateOfPay';
@@ -8,63 +8,74 @@ import { cn } from '@/shared/helpers';
 import { usePopupState } from '@/popup/lib/context';
 import { useLocalStorage } from '../lib/hooks';
 
-const TABS = ['Wallet', 'Budget', 'Rate'];
+const TABS = [
+  { id: 'wallet', title: 'Wallet' },
+  { id: 'budget', title: 'Budget' },
+  { id: 'wmRate', title: 'Rate' },
+];
+
+const isValidTabId = (id: string) => {
+  return TABS.some((e) => e.id === id);
+};
 
 export const Component = () => {
   const {
     state: { balance, grants, publicKey, walletAddress },
   } = usePopupState();
   const location = useLocation();
-  const [storedTabIndex, setStoredTabIndex] = useLocalStorage(
-    'settings.tabIndex',
-    0,
-    { maxAge: 10 * 60 * 1000, validate: (n) => n >= 0 && n < TABS.length },
+  const [storedTabId, setStoredTabId] = useLocalStorage(
+    'settings.tabId',
+    TABS[0].id,
+    { maxAge: 10 * 60 * 1000, validate: isValidTabId },
   );
-  const [tabIndex, setTabIndex] = React.useState(
-    location.state?.tabIndex ?? storedTabIndex ?? 0,
+  const [currentTabId, setCurrentTabId] = React.useState(
+    location.state?.tabId ?? storedTabId ?? TABS[0].id,
   );
 
   return (
-    <Tabs
+    <Tabs.Root
       className="flex flex-1 flex-col"
-      selectedIndex={tabIndex}
-      onSelect={(index) => {
-        setTabIndex(index);
-        setStoredTabIndex(index);
+      defaultValue={currentTabId}
+      onValueChange={(id) => {
+        setCurrentTabId(id);
+        setStoredTabId(id);
       }}
     >
-      <TabList className="mb-8 flex border-b border-gray-200">
-        {TABS.map((name, i) => (
-          <Tab
-            key={name}
+      <Tabs.List className="mb-8 flex border-b border-gray-200">
+        {TABS.map(({ id, title }) => (
+          <Tabs.TabsTrigger
+            key={id}
+            value={id}
             className={cn(
-              tabIndex === i
-                ? 'border-current text-secondary'
+              currentTabId === id
+                ? 'text-secondary border-current'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
               'cursor-pointer whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium focus:outline-none focus-visible:outline',
             )}
           >
-            {name}
-          </Tab>
+            {title}
+          </Tabs.TabsTrigger>
         ))}
-      </TabList>
+      </Tabs.List>
 
-      <TabPanel selectedClassName="h-full">
+      <Tabs.TabsContent value={TABS[0].id} className="h-full">
         <WalletInformation
           publicKey={publicKey}
           walletAddress={walletAddress}
         />
-      </TabPanel>
-      <TabPanel selectedClassName="h-full">
+      </Tabs.TabsContent>
+
+      <Tabs.TabsContent value={TABS[1].id} className="h-full">
         <BudgetScreen
           walletAddress={walletAddress}
           balance={balance}
           grants={grants}
         />
-      </TabPanel>
-      <TabPanel selectedClassName="h-full">
+      </Tabs.TabsContent>
+
+      <Tabs.TabsContent value={TABS[2].id} className="h-full">
         <RateOfPayScreen />
-      </TabPanel>
-    </Tabs>
+      </Tabs.TabsContent>
+    </Tabs.Root>
   );
 };
