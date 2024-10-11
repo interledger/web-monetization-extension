@@ -6,6 +6,7 @@ import { BudgetScreen } from '@/popup/components/Settings/Budget';
 import { RateOfPayScreen } from '@/popup/components/Settings/RateOfPay';
 import { cn } from '@/shared/helpers';
 import { usePopupState } from '@/popup/lib/context';
+import { useLocalStorage } from '../lib/hooks';
 
 const TABS = ['Wallet', 'Budget', 'Rate'];
 
@@ -14,13 +15,23 @@ export const Component = () => {
     state: { balance, grants, publicKey, walletAddress },
   } = usePopupState();
   const location = useLocation();
-  const [tabIndex, setTabIndex] = React.useState(location.state?.tabIndex || 0);
+  const [storedTabIndex, setStoredTabIndex] = useLocalStorage(
+    'settings.tabIndex',
+    0,
+    { maxAge: 10 * 60 * 1000, validate: (n) => n >= 0 && n < TABS.length },
+  );
+  const [tabIndex, setTabIndex] = React.useState(
+    location.state?.tabIndex ?? storedTabIndex ?? 0,
+  );
 
   return (
     <Tabs
       className="flex flex-1 flex-col"
       selectedIndex={tabIndex}
-      onSelect={(index) => setTabIndex(index)}
+      onSelect={(index) => {
+        setTabIndex(index);
+        setStoredTabIndex(index);
+      }}
     >
       <TabList className="mb-8 flex border-b border-gray-200">
         {TABS.map((name, i) => (
