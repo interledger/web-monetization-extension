@@ -60,7 +60,10 @@ export const PayWebsiteForm = () => {
   });
 
   return (
-    <form onSubmit={onSubmit}>
+    <form
+      className="space-y-2 rounded-md bg-gray-100 px-2 py-4"
+      onSubmit={onSubmit}
+    >
       <AnimatePresence mode="sync">
         {errors.root ? (
           <m.div
@@ -84,7 +87,8 @@ export const PayWebsiteForm = () => {
         addOn={getCurrencySymbol(walletAddress.assetCode)}
         label={
           <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-            Pay <span className="text-ellipsis text-primary">{tab.url}</span>
+            Support{' '}
+            <span className="text-ellipsis text-primary">{tab.url}</span>
           </p>
         }
         placeholder="0.00"
@@ -116,7 +120,7 @@ export const PayWebsiteForm = () => {
       <Button
         type="submit"
         className={cn(
-          'mt-8 w-full',
+          'w-full',
           !isIdle ? 'cursor-not-allowed' : null,
           !isIdle && !isSubmitting ? 'disabled:opacity-100' : null,
         )}
