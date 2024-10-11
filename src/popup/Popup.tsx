@@ -17,6 +17,7 @@ import {
 
 export const ROUTES_PATH = {
   HOME: '/',
+  CONNECT_WALLET: '/connect-wallet',
   SETTINGS: '/settings',
   MISSING_HOST_PERMISSION: '/missing-host-permission',
   OUT_OF_FUNDS: '/out-of-funds',
@@ -58,6 +59,10 @@ export const routes = [
           {
             path: ROUTES_PATH.SETTINGS,
             lazy: () => import('./pages/Settings'),
+          },
+          {
+            path: ROUTES_PATH.CONNECT_WALLET,
+            lazy: () => import('./pages/ConnectWallet'),
           },
         ],
       },
