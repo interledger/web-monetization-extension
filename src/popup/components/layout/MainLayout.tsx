@@ -10,7 +10,7 @@ const Divider = () => {
 export const MainLayout = () => {
   return (
     <div
-      className="flex h-popup w-popup flex-col gap-4 px-6 py-4 outline"
+      className="flex h-popup w-popup flex-col gap-4 px-6 py-4"
       id="main"
     >
       <Header />
