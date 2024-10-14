@@ -17,6 +17,7 @@ export class MonetizationLinkManager extends EventEmitter {
   private document: Cradle['document'];
   private logger: Cradle['logger'];
   private message: Cradle['message'];
+  private idleDetection: Cradle['idleDetection'];
 
   private isTopFrame: boolean;
   private isFirstLevelFrame: boolean;
@@ -29,13 +30,14 @@ export class MonetizationLinkManager extends EventEmitter {
     { walletAddress: WalletAddress; requestId: string }
   >();
 
-  constructor({ window, document, logger, message }: Cradle) {
+  constructor({ window, document, logger, message, idleDetection }: Cradle) {
     super();
     Object.assign(this, {
       window,
       document,
       logger,
       message,
+      idleDetection,
     });
 
     this.documentObserver = new MutationObserver((records) =>
@@ -106,6 +108,8 @@ export class MonetizationLinkManager extends EventEmitter {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
+    // I feel like this should be moved in the main service?
+    this.idleDetection.detectUserInactivity();
     this.onFocus();
     this.window.addEventListener('focus', this.onFocus);
 
