@@ -6,7 +6,7 @@ import { BudgetScreen } from '@/popup/components/Settings/Budget';
 import { RateOfPayScreen } from '@/popup/components/Settings/RateOfPay';
 import { cn } from '@/shared/helpers';
 import { usePopupState } from '@/popup/lib/context';
-import { useLocalStorage } from '../lib/hooks';
+import { useLocalStorage } from '@/popup/lib/hooks';
 
 const TABS = [
   { id: 'wallet', title: 'Wallet' },
@@ -28,8 +28,12 @@ export const Component = () => {
     TABS[0].id,
     { maxAge: 10 * 60 * 1000, validate: isValidTabId },
   );
+  const tabIdFromState =
+    location.state?.tabId && isValidTabId(location.state?.tabId)
+      ? (location.state.tabId as string)
+      : null;
   const [currentTabId, setCurrentTabId] = React.useState(
-    location.state?.tabId ?? storedTabId ?? TABS[0].id,
+    tabIdFromState ?? storedTabId ?? TABS[0].id,
   );
 
   return (
