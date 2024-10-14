@@ -31,8 +31,15 @@ export const Component = () => {
   }
 
   return (
-    <div className="h-full space-y-6" data-testid="home-page">
-      <header className="text-secondary-dark text-center text-3xl">
+    <div
+      className="-mx-6 -mb-4 flex h-full flex-col gap-6 px-6"
+      data-testid="home-page"
+      style={{
+        backgroundImage: `url("/assets/images/bg-tile.svg")`,
+        height: 'calc(100% + 1rem)',
+      }}
+    >
+      <header className="text-center text-3xl text-secondary-dark">
         <h2 className="font-bold">Pay as you browse</h2>
         <p className="font-light">Support content you love</p>
       </header>
