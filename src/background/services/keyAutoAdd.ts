@@ -187,8 +187,10 @@ export function walletAddressToProvider(walletAddress: WalletAddress): {
   switch (host) {
     case 'ilp.rafiki.money':
       return { url: 'https://rafiki.money/settings/developer-keys' };
-    // case 'eu1.fynbos.me': // fynbos dev
-    // case 'fynbos.me': // fynbos production
+    case 'eu1.fynbos.me':
+      return { url: 'https://eu1.fynbos.dev/settings/keys' };
+    case 'fynbos.me':
+      return { url: 'https://wallet.fynbos.app/settings/keys' };
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
