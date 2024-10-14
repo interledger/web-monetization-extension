@@ -13,6 +13,13 @@ declare global {
       TEST_WALLET_PUBLIC_KEY: string;
       /** Hex-encoded private key */
       TEST_WALLET_PRIVATE_KEY: string;
+
+      /** Fynbos wallet address (used for Fynbos specific tests only) */
+      FYNBOS_WALLET_ADDRESS_URL: string | undefined;
+      /** Login email for Fynbos wallet */
+      FYNBOS_USERNAME: string | undefined;
+      /** Login password for Fynbos wallet*/
+      FYNBOS_PASSWORD: string | undefined;
     }
   }
 }
