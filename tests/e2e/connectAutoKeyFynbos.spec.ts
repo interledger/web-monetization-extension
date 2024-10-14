@@ -110,7 +110,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     return keyNickName;
   });
 
-  await test.step('shows connect consent page', async () => {
+  await test.step('shows wallet consent page', async () => {
     await waitForGrantConsentPage(page);
     expect(page.getByRole('button', { name: 'Approve' })).toBeVisible();
   });
@@ -133,15 +133,14 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
           `/settings/keys?_data=${encodeURIComponent('routes/settings.keys')}`,
           { credentials: 'include' },
         );
-        type Result = {
+        const data = await res.json();
+        return data as {
           keys: {
             id: string;
             applicationName: string;
             publicKeyFingerprint: string;
           }[];
         };
-        const data: Result = await res.json();
-        return data;
       });
 
       return data.keys

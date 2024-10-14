@@ -23,7 +23,7 @@ const waitForLogin: Run<void> = async (
   let alreadyLoggedIn = window.location.href.startsWith(keyAddUrl);
   if (!alreadyLoggedIn) setNotificationSize('notification');
   try {
-    sleep(2000);
+    await sleep(2000);
     alreadyLoggedIn = await waitForURL(
       (url) => (url.origin + url.pathname).startsWith(keyAddUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
