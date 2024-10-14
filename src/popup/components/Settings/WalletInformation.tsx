@@ -1,12 +1,12 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import { ArrowBack } from '@/popup/components/Icons';
 import { Input } from '@/popup/components/ui/Input';
 import { Label } from '@/popup/components/ui/Label';
 import { Code } from '@/popup/components/ui/Code';
 import { Button } from '@/popup/components/ui/Button';
 import { useMessage } from '@/popup/lib/context';
 import type { PopupStore } from '@/shared/types';
-import { ArrowBack } from '../Icons';
 
 interface WalletInformationProps {
   publicKey: PopupStore['publicKey'];
