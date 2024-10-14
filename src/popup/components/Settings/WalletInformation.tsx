@@ -13,10 +13,10 @@ interface WalletInformationProps {
   walletAddress: PopupStore['walletAddress'];
 }
 
-export const WalletInformation: React.FC<WalletInformationProps> = ({
+export const WalletInformation = ({
   publicKey,
   walletAddress,
-}) => {
+}: WalletInformationProps) => {
   const message = useMessage();
   const {
     handleSubmit,

@@ -64,7 +64,7 @@ interface Props {
   toggleWM: () => void | Promise<void>;
 }
 
-export const RateOfPayComponent: React.FC<Props> = ({
+export const RateOfPayComponent = ({
   continuousPaymentsEnabled,
   rateOfPay,
   minRateOfPay,
@@ -72,7 +72,7 @@ export const RateOfPayComponent: React.FC<Props> = ({
   walletAddress,
   onRateChange,
   toggleWM,
-}) => {
+}: Props) => {
   return (
     <div className="space-y-8">
       <Switch
@@ -93,21 +93,23 @@ export const RateOfPayComponent: React.FC<Props> = ({
   );
 };
 
-const RateOfPayInput: React.FC<{
+type RateOfPayInputProps = {
   onRateChange: React.ChangeEventHandler<HTMLInputElement>;
   walletAddress: PopupState['walletAddress'];
   rateOfPay: PopupState['rateOfPay'];
   minRateOfPay: PopupState['minRateOfPay'];
   maxRateOfPay: PopupState['maxRateOfPay'];
   disabled?: boolean;
-}> = ({
+};
+
+const RateOfPayInput = ({
   onRateChange,
   walletAddress,
   rateOfPay,
   minRateOfPay,
   maxRateOfPay,
   disabled,
-}) => {
+}: RateOfPayInputProps) => {
   const rate = React.useMemo(() => {
     const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;
     const roundedR = roundWithPrecision(r, walletAddress.assetScale);

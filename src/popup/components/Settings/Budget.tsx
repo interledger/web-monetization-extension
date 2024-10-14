@@ -5,9 +5,9 @@ import { getNextOccurrence } from '@/shared/helpers';
 import { getCurrencySymbol, transformBalance } from '@/popup/lib/utils';
 import type { PopupState } from '@/popup/lib/context';
 
-export const BudgetScreen: React.FC<
-  Pick<PopupState, 'balance' | 'grants' | 'walletAddress'>
-> = ({ grants, walletAddress, balance }) => {
+type Props = Pick<PopupState, 'balance' | 'grants' | 'walletAddress'>;
+
+export const BudgetScreen = ({ grants, walletAddress, balance }: Props) => {
   return (
     <div className="space-y-8">
       <BudgetAmount walletAddress={walletAddress} grants={grants} />
@@ -16,10 +16,9 @@ export const BudgetScreen: React.FC<
   );
 };
 
-const BudgetAmount: React.FC<Pick<PopupState, 'grants' | 'walletAddress'>> = ({
-  grants,
-  walletAddress,
-}) => {
+type BudgetAmountProps = Pick<PopupState, 'grants' | 'walletAddress'>;
+
+const BudgetAmount = ({ grants, walletAddress }: BudgetAmountProps) => {
   const budget = transformBalance(
     grants.recurring?.value ?? grants.oneTime!.value,
     walletAddress.assetScale,
@@ -78,9 +77,12 @@ const BudgetAmount: React.FC<Pick<PopupState, 'grants' | 'walletAddress'>> = ({
   );
 };
 
-const RemainingBalance: React.FC<
-  Pick<PopupState, 'balance' | 'walletAddress'>
-> = ({ balance, walletAddress }) => {
+type RemainingBalanceProps = Pick<PopupState, 'balance' | 'walletAddress'>;
+
+const RemainingBalance = ({
+  balance,
+  walletAddress,
+}: RemainingBalanceProps) => {
   const amount = transformBalance(balance, walletAddress.assetScale);
   return (
     <div className="space-y-2">
