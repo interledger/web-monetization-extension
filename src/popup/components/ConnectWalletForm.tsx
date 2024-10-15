@@ -296,6 +296,7 @@ export const ConnectWalletForm = ({
           if (!value) return;
           if (!validateWalletAddressUrl(value)) {
             ev.preventDefault(); // full url was pasted
+            input.value = value;
           } else {
             await sleep(0); // allow paste to be complete
             value = input.value;
