@@ -95,7 +95,7 @@ export async function revokeKey(
   },
 ) {
   const { accountId, walletId, keyId } = info;
-  const url = `https://api.wallet.interledger-test.dev/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
+  const url = `${API_URL_ORIGIN}/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
 
   await page.goto(KEYS_PAGE_URL);
   await page.evaluate(async (url) => {
