@@ -9,7 +9,9 @@ import { fillPopup, type Popup, type ConnectDetails } from '../pages/popup';
 import { getWalletInformation } from '@/shared/helpers';
 import { waitForWelcomePage } from './common';
 
-export const KEYS_PAGE_URL = `https://rafiki.money/settings/developer-keys`;
+export const KEYS_PAGE_URL = `https://wallet.interledger-test.dev/settings/developer-keys`;
+export const LOGIN_PAGE_URL = `https://wallet.interledger-test.dev/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
+export const API_URL_ORIGIN = `https://api.wallet.interledger-test.dev`;
 
 export async function connectWallet(
   context: BrowserContext,
@@ -93,7 +95,7 @@ export async function revokeKey(
   },
 ) {
   const { accountId, walletId, keyId } = info;
-  const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
+  const url = `https://api.wallet.interledger-test.dev/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
 
   await page.goto(KEYS_PAGE_URL);
   await page.evaluate(async (url) => {
