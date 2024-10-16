@@ -61,6 +61,7 @@ export const PayWebsiteForm = () => {
     } else {
       setButtonState('success');
       setAmount('');
+      form.current?.reset();
       setTimeout(() => {
         setButtonState('idle');
       }, 3000);
