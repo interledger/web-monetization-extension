@@ -6,6 +6,8 @@
   :root {
     /* Text colors */
     --text-primary: 59 130 246;
+    --text-secondary: 86 183 181;
+    --text-secondary-dark: 52 152 152;
     --text-weak: 100 116 139;
     --text-medium: 51 65 85;
     --text-strong: 15 23 42;
