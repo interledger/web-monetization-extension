@@ -15,6 +15,8 @@ interface Props {
   amount: string;
   onChange: (amount: string, inputEl: HTMLInputElement) => void;
   onError: (error: ErrorWithKeyLike) => void;
+  className?: string;
+  placeholder?: string;
   errorMessage?: string;
   readOnly?: boolean;
   labelHidden?: boolean;
@@ -29,6 +31,8 @@ export const InputAmount = ({
   id,
   walletAddress,
   amount,
+  className,
+  placeholder,
   errorMessage,
   onChange,
   onError,
@@ -46,8 +50,8 @@ export const InputAmount = ({
       inputMode="numeric"
       label={labelHidden ? null : label}
       aria-label={labelHidden ? label : undefined}
-      placeholder="5.00"
-      className="max-w-32"
+      placeholder={placeholder}
+      className={className}
       defaultValue={amount}
       readOnly={readOnly}
       addOn={<span className="text-weak">{currencySymbol}</span>}

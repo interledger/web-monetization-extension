@@ -324,6 +324,8 @@ export const ConnectWalletForm = ({
               setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
             onChange={handleAmountChange}
+            className="max-w-32"
+            placeholder="5.00"
           />
 
           <Switch
