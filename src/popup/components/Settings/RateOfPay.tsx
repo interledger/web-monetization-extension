@@ -75,12 +75,6 @@ export const RateOfPayComponent = ({
 }: Props) => {
   return (
     <div className="space-y-8">
-      <Switch
-        checked={continuousPaymentsEnabled}
-        onChange={toggleWM}
-        label="Continuous payments"
-      />
-
       <RateOfPayInput
         onRateChange={(ev) => onRateChange(ev.currentTarget.value)}
         rateOfPay={rateOfPay}
@@ -89,6 +83,23 @@ export const RateOfPayComponent = ({
         walletAddress={walletAddress}
         disabled={!continuousPaymentsEnabled}
       />
+
+      <div className="space-y-2">
+        <Switch
+          checked={continuousPaymentsEnabled}
+          onChange={toggleWM}
+          label="Continuous payment"
+        />
+
+        {!continuousPaymentsEnabled ? (
+          <p className="text-weak">
+            Ongoing payments are now disabled. You can still make one time
+            payments.
+          </p>
+        ) : (
+          <p className="text-weak" />
+        )}
+      </div>
     </div>
   );
 };
