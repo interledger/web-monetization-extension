@@ -19,7 +19,7 @@ export const cn = (...inputs: CxOptions) => {
 };
 
 export const formatCurrency = (
-  value: string,
+  value: string | number,
   currency: string,
   maximumFractionDigits = 2,
   locale?: string,
@@ -28,7 +28,7 @@ export const formatCurrency = (
     style: 'currency',
     currency,
     maximumFractionDigits,
-  }).format(parseFloat(value));
+  }).format(Number(value));
 };
 
 const isWalletAddress = (o: any): o is WalletAddress => {
