@@ -1,21 +1,15 @@
-import { Button } from '@/popup/components/ui/Button';
-import { Input } from '@/popup/components/ui/Input';
-import { useMessage, usePopupState } from '@/popup/lib/context';
-import {
-  getCurrencySymbol,
-  charIsNumber,
-  formatNumber,
-} from '@/popup/lib/utils';
-import React, { useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
-import { Spinner } from './Icons';
-import { cn } from '@/shared/helpers';
-import { ErrorMessage } from './ErrorMessage';
+import { Button } from '@/popup/components/ui/Button';
+import { Spinner } from '@/popup/components/Icons';
+import { ErrorMessage } from '@/popup/components/ErrorMessage';
+import { InputAmount } from '@/popup/components/InputAmount';
+import { cn, ErrorWithKeyLike } from '@/shared/helpers';
+import { useMessage, usePopupState, useTranslation } from '@/popup/lib/context';
 
-interface PayWebsiteFormProps {
-  amount: string;
-}
+type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
+type ErrorsParams = 'amount' | 'pay';
+type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
 const BUTTON_STATE = {
   idle: 'Send now',
@@ -24,48 +18,64 @@ const BUTTON_STATE = {
 };
 
 export const PayWebsiteForm = () => {
+  const t = useTranslation();
   const message = useMessage();
   const {
     state: { walletAddress, tab },
   } = usePopupState();
+
+  const toErrorInfo = React.useCallback(
+    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
+      if (!err) return null;
+      if (typeof err === 'string') return { message: err };
+      return { message: t(err), info: err };
+    },
+    [t],
+  );
+
+  const [amount, setAmount] = React.useState('');
+  const [errors, setErrors] = React.useState<Errors>({
+    amount: null,
+    pay: null,
+  });
+
+  const form = React.useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [buttonState, setButtonState] =
     React.useState<keyof typeof BUTTON_STATE>('idle');
-  const isIdle = useMemo(() => buttonState === 'idle', [buttonState]);
+  const isIdle = React.useMemo(() => buttonState === 'idle', [buttonState]);
 
-  const {
-    register,
-    formState: { errors, isSubmitting },
-    setValue,
-    handleSubmit,
-    ...form
-  } = useForm<PayWebsiteFormProps>();
-
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
     if (buttonState !== 'idle') return;
+    setErrors({ amount: null, pay: null });
 
     setButtonState('loading');
+    setIsSubmitting(true);
 
-    const response = await message.send('PAY_WEBSITE', { amount: data.amount });
+    const response = await message.send('PAY_WEBSITE', { amount });
 
     if (!response.success) {
       setButtonState('idle');
-      form.setError('root', { message: response.message });
+      setErrors((prev) => ({ ...prev, pay: toErrorInfo(response.message) }));
     } else {
       setButtonState('success');
-      form.reset();
+      setAmount('');
       setTimeout(() => {
         setButtonState('idle');
-      }, 2000);
+      }, 3000);
     }
-  });
+    setIsSubmitting(false);
+  };
 
   return (
     <form
+      ref={form}
       className="space-y-4 rounded-md bg-gray-50 px-4 py-4 pb-12"
       onSubmit={onSubmit}
     >
       <AnimatePresence mode="sync">
-        {errors.root ? (
+        {errors.pay ? (
           <m.div
             transition={{
               duration: 0.3,
@@ -77,46 +87,32 @@ export const PayWebsiteForm = () => {
             className="overflow-hidden"
             key="form-error"
           >
-            <ErrorMessage error={errors.root.message} />
+            <ErrorMessage error={errors.pay.message} />
           </m.div>
         ) : null}
       </AnimatePresence>
-      <Input
-        type="text"
-        inputMode="numeric"
-        addOn={getCurrencySymbol(walletAddress.assetCode)}
+
+      <InputAmount
+        id="payAmount"
         label={
           <p className="overflow-hidden text-ellipsis whitespace-nowrap">
             Support{' '}
             <span className="text-ellipsis text-primary">{tab.url}</span>
           </p>
         }
+        walletAddress={walletAddress}
+        amount={amount}
         placeholder="0.00"
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.currentTarget.blur();
-            onSubmit();
-          } else if (
-            !charIsNumber(e.key) &&
-            e.key !== 'Backspace' &&
-            e.key !== 'Delete' &&
-            e.key !== 'Tab'
-          ) {
-            e.preventDefault();
-          }
-        }}
         errorMessage={errors.amount?.message}
-        {...register('amount', {
-          required: { value: true, message: 'Amount is required.' },
-          valueAsNumber: true,
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            setValue(
-              'amount',
-              formatNumber(+e.currentTarget.value, walletAddress.assetScale),
-            );
-          },
-        })}
+        onChange={(amountValue) => {
+          setErrors({ pay: null, amount: null });
+          setAmount(amountValue);
+        }}
+        onError={(error) =>
+          setErrors((prev) => ({ ...prev, amount: toErrorInfo(error) }))
+        }
       />
+
       <Button
         type="submit"
         className={cn(
@@ -124,7 +120,7 @@ export const PayWebsiteForm = () => {
           !isIdle ? 'cursor-not-allowed' : null,
           !isIdle && !isSubmitting ? 'disabled:opacity-100' : null,
         )}
-        disabled={isSubmitting || !isIdle}
+        disabled={isSubmitting || !isIdle || !amount || !!errors.amount}
         aria-label="Send now"
       >
         <AnimatePresence mode="popLayout" initial={false}>
