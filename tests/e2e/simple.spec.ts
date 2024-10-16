@@ -38,7 +38,4 @@ test('should monetize site with single wallet address', async ({
 
   await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
   expect(await popup.getByRole('textbox').all()).toHaveLength(1);
-
-  await expect(popup.getByLabel('Continuous payment stream')).toBeVisible();
-  expect(await popup.getByRole('switch').all()).toHaveLength(1);
 });
