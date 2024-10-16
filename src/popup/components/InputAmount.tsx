@@ -67,7 +67,7 @@ export const InputAmount = ({
         } else {
           const amountValue = formatNumber(+value, walletAddress.assetScale);
           input.value = amountValue;
-          onChange(value, input);
+          onChange(amountValue, input);
         }
       }}
     />

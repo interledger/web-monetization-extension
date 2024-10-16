@@ -6,7 +6,7 @@ import { Code } from '@/popup/components/ui/Code';
 import { ErrorMessage } from '@/popup/components/ErrorMessage';
 import { LoadingSpinner } from '@/popup/components/LoadingSpinner';
 import { InputAmount, validateAmount } from '@/popup/components/InputAmount';
-import { formatNumber, toWalletAddressUrl } from '@/popup/lib/utils';
+import { toWalletAddressUrl } from '@/popup/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import {
   cn,
@@ -144,13 +144,12 @@ export const ConnectWalletForm = ({
   );
 
   const handleAmountChange = React.useCallback(
-    (value: string) => {
+    (amountValue: string) => {
       setErrors((prev) => ({ ...prev, amount: null }));
-      const amountValue = formatNumber(+value, walletAddressInfo!.assetScale);
       setAmount(amountValue);
       saveValue('amount', amountValue);
     },
-    [saveValue, walletAddressInfo],
+    [saveValue],
   );
 
   const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
