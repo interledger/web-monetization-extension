@@ -70,7 +70,7 @@ const getAccounts: Run<Account[]> = async (_, { setNotificationSize }) => {
     });
   }
 
-  const url = `https://rafiki.money/_next/data/${buildId}/settings/developer-keys.json`;
+  const url = `/_next/data/${buildId}/settings/developer-keys.json`;
   const res = await fetch(url, {
     method: 'GET',
     mode: 'cors',
@@ -125,7 +125,7 @@ const findWallet: Run<{ accountId: string; walletId: string }> = async (
 
 const addKey: Run<void> = async ({ publicKey, nickName }, { output }) => {
   const { accountId, walletId } = output(findWallet);
-  const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/upload-key`;
+  const url = `https://api.${location.host}/accounts/${accountId}/wallet-addresses/${walletId}/upload-key`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -147,7 +147,7 @@ const addKey: Run<void> = async ({ publicKey, nickName }, { output }) => {
 
 // region: Helpers
 async function revokeKey(accountId: string, walletId: string, keyId: string) {
-  const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
+  const url = `https://api.${location.host}/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
   const res = await fetch(url, {
     method: 'PATCH',
     headers: {

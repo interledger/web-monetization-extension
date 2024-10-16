@@ -185,8 +185,10 @@ export function walletAddressToProvider(walletAddress: WalletAddress): {
 } {
   const { host } = new URL(walletAddress.id);
   switch (host) {
-    case 'ilp.rafiki.money':
-      return { url: 'https://rafiki.money/settings/developer-keys' };
+    case 'ilp.interledger-test.dev':
+      return {
+        url: 'https://wallet.interledger-test.dev/settings/developer-keys',
+      };
     case 'eu1.fynbos.me':
       return { url: 'https://eu1.fynbos.dev/settings/keys' };
     case 'fynbos.me':

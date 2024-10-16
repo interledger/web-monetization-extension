@@ -19,7 +19,7 @@
       "all_frames": true
     },
     {
-      "matches": ["https://rafiki.money/*/*"],
+      "matches": ["https://wallet.interledger-test.dev/*"],
       "js": ["content/keyAutoAdd/testWallet.js"],
       "run_at": "document_end"
     },
