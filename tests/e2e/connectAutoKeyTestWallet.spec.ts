@@ -4,7 +4,9 @@ import { disconnectWallet, fillPopup } from './pages/popup';
 import { waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
+  API_URL_ORIGIN,
   KEYS_PAGE_URL,
+  LOGIN_PAGE_URL,
   getContinueWaitTime,
   revokeKey,
   waitForGrantConsentPage,
@@ -21,8 +23,6 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   const password = process.env.TEST_WALLET_PASSWORD;
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-  const loginPageUrl = `https://rafiki.money/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
-
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl,
@@ -36,7 +36,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     await context.clearCookies();
 
     await page.goto(KEYS_PAGE_URL);
-    expect(page.url()).toBe(loginPageUrl);
+    expect(page.url()).toBe(LOGIN_PAGE_URL);
     await page.close();
   });
 
@@ -56,7 +56,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
 
   page = await test.step('shows login page', async () => {
     const openedPage = await context.waitForEvent('page', {
-      predicate: (page) => page.url().startsWith(loginPageUrl),
+      predicate: (page) => page.url().startsWith(LOGIN_PAGE_URL),
       timeout: 3 * 1000,
     });
     await openedPage.getByLabel('E-mail').fill(username);
@@ -82,7 +82,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
       if (req.serviceWorker()) return;
       if (req.method() !== 'POST') return;
       const url = new URL(req.url());
-      if (url.origin !== 'https://api.rafiki.money') return;
+      if (url.origin !== API_URL_ORIGIN) return;
       if (!url.pathname.startsWith('/accounts/')) return;
       if (!url.pathname.includes('/upload-key')) return;
 

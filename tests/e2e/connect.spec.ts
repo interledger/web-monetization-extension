@@ -58,7 +58,7 @@ test('connects with correct details provided', async ({
     oneTimeGrant: {
       type: 'one-time',
       amount: {
-        value: '10000000000', // asset scale 9
+        value: '1000', // asset scale 2
       },
     },
   });
