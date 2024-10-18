@@ -9,13 +9,10 @@ const Divider = () => {
 
 export const MainLayout = () => {
   return (
-    <div
-      className="flex h-popup w-popup flex-col space-y-4 border-base px-6 py-4"
-      id="main"
-    >
+    <div className="flex h-popup w-popup flex-col gap-4 px-6 py-4" id="main">
       <Header />
       <Divider />
-      <main className="h-full">
+      <main className="flex flex-1 flex-col">
         <Outlet />
       </main>
     </div>

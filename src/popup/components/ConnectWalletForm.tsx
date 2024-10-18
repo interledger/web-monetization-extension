@@ -5,12 +5,8 @@ import { Switch } from '@/popup/components/ui/Switch';
 import { Code } from '@/popup/components/ui/Code';
 import { ErrorMessage } from '@/popup/components/ErrorMessage';
 import { LoadingSpinner } from '@/popup/components/LoadingSpinner';
-import {
-  charIsNumber,
-  formatNumber,
-  getCurrencySymbol,
-  toWalletAddressUrl,
-} from '@/popup/lib/utils';
+import { InputAmount, validateAmount } from '@/popup/components/InputAmount';
+import { toWalletAddressUrl } from '@/popup/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import {
   cn,
@@ -107,11 +103,6 @@ export const ConnectWalletForm = ({
     state?.status?.startsWith('connecting') || false,
   );
 
-  const [currencySymbol, setCurrencySymbol] = React.useState<{
-    symbol: string;
-    scale: number;
-  }>({ symbol: '$', scale: 2 });
-
   const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<boolean> => {
       setErrors((prev) => ({ ...prev, walletAddressUrl: null }));
@@ -153,25 +144,19 @@ export const ConnectWalletForm = ({
   );
 
   const handleAmountChange = React.useCallback(
-    (value: string, input: HTMLInputElement) => {
-      const error = validateAmount(value, currencySymbol.symbol);
-      setErrors((prev) => ({ ...prev, amount: toErrorInfo(error) }));
-
-      const amountValue = formatNumber(+value, currencySymbol.scale);
-      if (!error) {
-        setAmount(amountValue);
-        input.value = amountValue;
-      }
-      saveValue('amount', error ? value : amountValue);
+    (amountValue: string) => {
+      setErrors((prev) => ({ ...prev, amount: null }));
+      setAmount(amountValue);
+      saveValue('amount', amountValue);
     },
-    [saveValue, currencySymbol, toErrorInfo],
+    [saveValue],
   );
 
   const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
     ev?.preventDefault();
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
-    const errAmount = validateAmount(amount, currencySymbol.symbol);
+    const errAmount = validateAmount(amount, walletAddressInfo!);
     if (errAmount || errWalletAddressUrl) {
       setErrors((prev) => ({
         ...prev,
@@ -220,14 +205,6 @@ export const ConnectWalletForm = ({
       setIsSubmitting(false);
     }
   };
-
-  React.useEffect(() => {
-    if (!walletAddressInfo) return;
-    setCurrencySymbol({
-      symbol: getCurrencySymbol(walletAddressInfo.assetCode),
-      scale: walletAddressInfo.assetScale,
-    });
-  }, [walletAddressInfo]);
 
   React.useEffect(() => {
     if (defaultValues.walletAddressUrl) {
@@ -332,27 +309,23 @@ export const ConnectWalletForm = ({
           {t('connectWallet_labelGroup_amount')}
         </legend>
         <div className="flex items-center gap-6">
-          <Input
+          <InputAmount
             id="connectAmount"
-            type="text"
-            inputMode="numeric"
-            aria-label={t('connectWallet_label_amount')}
-            placeholder="5.00"
-            className="max-w-32"
-            defaultValue={amount}
+            label={t('connectWallet_label_amount')}
+            labelHidden={true}
+            amount={amount}
+            walletAddress={
+              walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
+            }
+            errorMessage={errors.amount?.message}
+            errorHidden={true}
             readOnly={!walletAddressInfo?.assetCode || isSubmitting}
-            addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
-            aria-invalid={!!errors.amount}
-            aria-describedby={errors.amount?.message}
-            required={true}
-            onKeyDown={allowOnlyNumericInput}
-            onBlur={(ev) => {
-              const value = ev.currentTarget.value;
-              if (value === amount && !ev.currentTarget.required) {
-                return;
-              }
-              handleAmountChange(value, ev.currentTarget);
+            onError={(err) => {
+              setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
+            onChange={handleAmountChange}
+            className="max-w-32"
+            placeholder="5.00"
           />
 
           <Switch
@@ -546,36 +519,4 @@ function validateWalletAddressUrl(value: string): null | ErrorWithKeyLike {
   }
 
   return null;
-}
-
-function validateAmount(
-  value: string,
-  currencySymbol: string,
-): null | ErrorWithKeyLike {
-  if (!value) {
-    return errorWithKey('connectWallet_error_amountRequired');
-  }
-  const val = Number(value);
-  if (Number.isNaN(val)) {
-    return errorWithKey('connectWallet_error_amountInvalidNumber', [
-      `${currencySymbol}${value}`,
-    ]);
-  }
-  if (val <= 0) {
-    return errorWithKey('connectWallet_error_amountMinimum');
-  }
-  return null;
-}
-
-function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
-  if (
-    (!charIsNumber(ev.key) &&
-      ev.key !== 'Backspace' &&
-      ev.key !== 'Delete' &&
-      ev.key !== 'Enter' &&
-      ev.key !== 'Tab') ||
-    (ev.key === '.' && ev.currentTarget.value.includes('.'))
-  ) {
-    ev.preventDefault();
-  }
 }

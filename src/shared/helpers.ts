@@ -18,12 +18,17 @@ export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
 };
 
-export const formatCurrency = (value: any): string => {
-  if (value < 1) {
-    return `${Math.round(value * 100)}c`;
-  } else {
-    return `$${parseFloat(value).toFixed(2)}`;
-  }
+export const formatCurrency = (
+  value: string | number,
+  currency: string,
+  maximumFractionDigits = 2,
+  locale?: string,
+): string => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits,
+  }).format(Number(value));
 };
 
 const isWalletAddress = (o: any): o is WalletAddress => {
