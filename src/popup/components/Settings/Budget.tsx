@@ -1,46 +1,139 @@
 import React from 'react';
 import { Input } from '@/popup/components/ui/Input';
 import { Switch } from '@/popup/components/ui/Switch';
-import { getNextOccurrence } from '@/shared/helpers';
+import { ErrorWithKeyLike, getNextOccurrence } from '@/shared/helpers';
 import { getCurrencySymbol, transformBalance } from '@/popup/lib/utils';
-import type { PopupState } from '@/popup/lib/context';
+import {
+  useMessage,
+  useTranslation,
+  type PopupState,
+} from '@/popup/lib/context';
+import type { Response, UpdateBudgetPayload } from '@/shared/messages';
+import { InputAmount } from '../InputAmount';
+import { Button } from '../ui/Button';
 
 type Props = Pick<PopupState, 'balance' | 'grants' | 'walletAddress'>;
 
 export const BudgetScreen = ({ grants, walletAddress, balance }: Props) => {
+  const message = useMessage();
   return (
     <div className="space-y-8">
-      <BudgetAmount walletAddress={walletAddress} grants={grants} />
+      <BudgetAmount
+        walletAddress={walletAddress}
+        grants={grants}
+        handleChange={(payload) => message.send('UPDATE_BUDGET', payload)}
+      />
       <RemainingBalance walletAddress={walletAddress} balance={balance} />
     </div>
   );
 };
 
-type BudgetAmountProps = Pick<PopupState, 'grants' | 'walletAddress'>;
+type BudgetAmountProps = {
+  grants: PopupState['grants'];
+  walletAddress: PopupState['walletAddress'];
+  handleChange: (payload: UpdateBudgetPayload) => Promise<Response>;
+};
 
-const BudgetAmount = ({ grants, walletAddress }: BudgetAmountProps) => {
-  const budget = transformBalance(
-    grants.recurring?.value ?? grants.oneTime!.value,
-    walletAddress.assetScale,
+type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
+type ErrorsParams = 'amount' | 'root';
+type Errors = Record<ErrorsParams, ErrorInfo | null>;
+
+const BudgetAmount = ({
+  grants,
+  walletAddress,
+  handleChange,
+}: BudgetAmountProps) => {
+  const t = useTranslation();
+
+  const toErrorInfo = React.useCallback(
+    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
+      if (!err) return null;
+      if (typeof err === 'string') return { message: err };
+      return { message: t(err), info: err };
+    },
+    [t],
   );
 
-  const renewDate = grants.recurring?.interval
-    ? getNextOccurrence(grants.recurring.interval)
-    : null;
+  const originalValues = {
+    walletAddressUrl: walletAddress.id,
+    amount: transformBalance(
+      grants.recurring?.value ?? grants.oneTime!.value,
+      walletAddress.assetScale,
+    ),
+    recurring: !!grants.recurring?.interval,
+  };
+
+  const [amount, setAmount] = React.useState(originalValues.amount);
+  const [recurring, setRecurring] = React.useState(originalValues.recurring);
+  const [errors, setErrors] = React.useState<Errors>({
+    amount: null,
+    root: null,
+  });
+
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [changed, setChanged] = React.useState({
+    amount: false,
+    recurring: false,
+  });
+
+  const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const res = await handleChange({
+        walletAddressUrl: walletAddress.id,
+        amount,
+        recurring,
+      });
+      if (!res.success) {
+        setErrors((prev) => ({ ...prev, root: toErrorInfo(res.message) }));
+      } else {
+        setChanged({ amount: false, recurring: false });
+      }
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, root: toErrorInfo(error) }));
+    }
+    setIsSubmitting(false);
+  };
+
+  const renewDate = React.useMemo(() => {
+    let interval;
+    if (!changed.amount && !changed.recurring) {
+      interval = grants.recurring?.interval;
+    }
+    if (!interval) {
+      if (changed.recurring && !recurring) {
+        interval = undefined;
+      } else if ((changed.recurring && recurring) || changed.amount) {
+        interval = `R/${new Date().toISOString()}/P1M`;
+      } else if (grants.recurring?.interval) {
+        interval = grants.recurring.interval;
+      }
+    }
+    return interval ? getNextOccurrence(interval) : null;
+  }, [changed.amount, changed.recurring, grants.recurring, recurring]);
 
   return (
-    <div className="space-y-2">
+    <form className="space-y-2" onSubmit={onSubmit}>
       <div className="flex items-center gap-4">
-        <Input
+        <InputAmount
+          id="budgetAmount"
           label="Budget amount"
+          walletAddress={walletAddress}
           className="max-w-56"
-          addOn={
-            <span className="text-weak">
-              {getCurrencySymbol(walletAddress.assetCode)}
-            </span>
-          }
-          value={budget}
-          disabled={true}
+          amount={amount}
+          onChange={(amount) => {
+            setErrors((prev) => ({ ...prev, amount: null }));
+            setAmount(amount);
+            setChanged((prev) => ({
+              ...prev,
+              amount: amount !== originalValues.amount,
+            }));
+          }}
+          onError={(err) => {
+            setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
+          }}
+          errorMessage={errors.amount?.message}
         />
         <div>
           <span
@@ -51,8 +144,15 @@ const BudgetAmount = ({ grants, walletAddress }: BudgetAmountProps) => {
           </span>
           <Switch
             label="Monthly"
-            checked={!!grants.recurring?.interval}
-            disabled={true}
+            checked={recurring}
+            onChange={(ev) => {
+              const checked = ev.currentTarget.checked;
+              setRecurring(checked);
+              setChanged((prev) => ({
+                ...prev,
+                recurring: originalValues.recurring !== checked,
+              }));
+            }}
           />
         </div>
       </div>
@@ -73,7 +173,18 @@ const BudgetAmount = ({ grants, walletAddress }: BudgetAmountProps) => {
           .
         </p>
       )}
-    </div>
+
+      <div className="space-y-1">
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={(!changed.amount && !changed.recurring) || isSubmitting}
+          loading={isSubmitting}
+        >
+          Submit changes
+        </Button>
+      </div>
+    </form>
   );
 };
 

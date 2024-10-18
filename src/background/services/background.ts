@@ -238,6 +238,11 @@ export class Background {
                 await this.monetizationService.pay(message.payload.amount),
               );
 
+            case 'UPDATE_BUDGET':
+              return success(
+                await this.openPaymentsService.updateBudget(message.payload),
+              );
+
             // endregion
 
             // region Content

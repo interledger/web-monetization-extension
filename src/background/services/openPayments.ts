@@ -35,7 +35,11 @@ import {
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
+import type {
+  AddFundsPayload,
+  ConnectWalletPayload,
+  UpdateBudgetPayload,
+} from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
@@ -116,6 +120,7 @@ const enum GrantResult {
 const enum InteractionIntent {
   CONNECT = 'connect',
   FUNDS = 'funds',
+  BUDGET_UPDATE = 'budget_update',
 }
 
 export class OpenPaymentsService {
@@ -457,6 +462,21 @@ export class OpenPaymentsService {
     }
 
     await this.storage.setState({ out_of_funds: false });
+  }
+
+  async updateBudget({ amount, recurring }: UpdateBudgetPayload) {
+    const { walletAddress, ..._existingGrants } = await this.storage.get([
+      'walletAddress',
+      'oneTimeGrant',
+      'recurringGrant',
+    ]);
+
+    await this.completeGrant(
+      amount,
+      walletAddress!,
+      recurring,
+      InteractionIntent.BUDGET_UPDATE,
+    );
   }
 
   private async completeGrant(
