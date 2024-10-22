@@ -233,7 +233,7 @@ export const ConnectWalletForm = ({
   return (
     <form
       data-testid="connect-wallet-form"
-      className="flex flex-col gap-4"
+      className="my-auto flex flex-col gap-4"
       onSubmit={handleSubmit}
     >
       <div className={cn(!!errors.connect && 'sr-only')}>
