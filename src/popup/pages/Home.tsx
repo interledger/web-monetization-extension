@@ -89,10 +89,8 @@ const InfoBanner = () => {
       </dl>
 
       <p className="text-xs italic text-white/90">
-        <Link to={ROUTES_PATH.SETTINGS} className="hover:underline">
-          To adjust your budget or rate of pay, click on{' '}
-          <Settings className="inline-block h-4 w-4 fill-white align-top" />
-        </Link>
+        To adjust your budget or rate of pay, click on{' '}
+        <Settings className="inline-block h-4 w-4 fill-white align-top" />
       </p>
     </div>
   );
