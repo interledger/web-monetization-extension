@@ -1,12 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { usePopupState, useTranslation } from '@/popup/lib/context';
 import { Settings } from '@/popup/components/Icons';
 import { formatNumber, roundWithPrecision } from '../lib/utils';
 import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
 import { formatCurrency } from '@/shared/helpers';
-import { ROUTES_PATH } from '@/popup/Popup';
 
 export const Component = () => {
   const t = useTranslation();
