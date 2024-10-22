@@ -86,8 +86,8 @@ importers:
         specifier: ^0.5.9
         version: 0.5.9(tailwindcss@3.4.13(ts-node@10.9.2(@types/node@20.16.9)(typescript@5.6.2)))
       '@testing-library/jest-dom':
-        specifier: ^6.5.0
-        version: 6.5.0
+        specifier: ^6.6.2
+        version: 6.6.2
       '@testing-library/react':
         specifier: ^16.0.1
         version: 16.0.1(@testing-library/dom@10.1.0)(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1221,8 +1221,8 @@ packages:
     resolution: {integrity: sha512-wdsYKy5zupPyLCW2Je5DLHSxSfbIp6h80WoHOQc+RPtmPGA52O9x5MJEkv92Sjonpq+poOAtUKhh1kBGAXBrNA==}
     engines: {node: '>=18'}
 
-  '@testing-library/jest-dom@6.5.0':
-    resolution: {integrity: sha512-xGGHpBXYSHUUr6XsKBfs85TWlYKpTc37cSBBVrXcib2MkHLboWlkClhWF37JKlDb9KEq3dHs+f2xR7XJEWGBxA==}
+  '@testing-library/jest-dom@6.6.2':
+    resolution: {integrity: sha512-P6GJD4yqc9jZLbe98j/EkyQDTPgqftohZF5FBkHY5BUERZmcf4HeO2k0XaefEg329ux2p21i1A1DmyQ1kKw2Jw==}
     engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
 
   '@testing-library/react@16.0.1':
@@ -2262,6 +2262,7 @@ packages:
   eslint@8.57.1:
     resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@9.6.1:
@@ -5303,7 +5304,7 @@ snapshots:
       lz-string: 1.5.0
       pretty-format: 27.5.1
 
-  '@testing-library/jest-dom@6.5.0':
+  '@testing-library/jest-dom@6.6.2':
     dependencies:
       '@adobe/css-tools': 4.4.0
       aria-query: 5.3.0
