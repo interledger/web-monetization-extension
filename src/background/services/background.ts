@@ -207,6 +207,10 @@ export class Background {
               return success(undefined);
             }
 
+            case 'UPDATE_BUDGET':
+              await this.openPaymentsService.updateBudget(message.payload);
+              return success(undefined);
+
             case 'ADD_FUNDS':
               await this.openPaymentsService.addFunds(message.payload);
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
@@ -236,11 +240,6 @@ export class Background {
             case 'PAY_WEBSITE':
               return success(
                 await this.monetizationService.pay(message.payload.amount),
-              );
-
-            case 'UPDATE_BUDGET':
-              return success(
-                await this.openPaymentsService.updateBudget(message.payload),
               );
 
             // endregion

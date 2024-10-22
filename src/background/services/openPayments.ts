@@ -465,7 +465,7 @@ export class OpenPaymentsService {
   }
 
   async updateBudget({ amount, recurring }: UpdateBudgetPayload) {
-    const { walletAddress, ..._existingGrants } = await this.storage.get([
+    const { walletAddress, ...existingGrants } = await this.storage.get([
       'walletAddress',
       'oneTimeGrant',
       'recurringGrant',
@@ -477,6 +477,28 @@ export class OpenPaymentsService {
       recurring,
       InteractionIntent.BUDGET_UPDATE,
     );
+
+    // Revoke all existing grants.
+    // Note: Clear storage only if new grant type is not same as previous grant
+    // type (as completeGrant already sets new grant state)
+    if (existingGrants.oneTimeGrant) {
+      await this.cancelGrant(existingGrants.oneTimeGrant.continue);
+      if (recurring) {
+        this.storage.set({
+          oneTimeGrant: null,
+          oneTimeGrantSpentAmount: '0',
+        });
+      }
+    }
+    if (existingGrants.recurringGrant) {
+      await this.cancelGrant(existingGrants.recurringGrant.continue);
+      if (!recurring) {
+        this.storage.set({
+          recurringGrant: null,
+          recurringGrantSpentAmount: '0',
+        });
+      }
+    }
   }
 
   private async completeGrant(
@@ -499,7 +521,7 @@ export class OpenPaymentsService {
       amount: transformedAmount,
     }).catch((err) => {
       if (isInvalidClientError(err)) {
-        if (intent === InteractionIntent.CONNECT) {
+        if (intent !== InteractionIntent.FUNDS) {
           throw new ErrorWithKey('connectWallet_error_invalidClient');
         }
         const msg = this.t('connectWallet_error_invalidClient');

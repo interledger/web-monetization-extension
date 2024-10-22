@@ -1,6 +1,9 @@
 import React from 'react';
 import { Input } from '@/popup/components/ui/Input';
 import { Switch } from '@/popup/components/ui/Switch';
+import { Button } from '@/popup/components/ui/Button';
+import { InputAmount } from '@/popup/components/InputAmount';
+import { ErrorMessage } from '@/popup/components/ErrorMessage';
 import { ErrorWithKeyLike, getNextOccurrence } from '@/shared/helpers';
 import { getCurrencySymbol, transformBalance } from '@/popup/lib/utils';
 import {
@@ -9,8 +12,6 @@ import {
   type PopupState,
 } from '@/popup/lib/context';
 import type { Response, UpdateBudgetPayload } from '@/shared/messages';
-import { InputAmount } from '../InputAmount';
-import { Button } from '../ui/Button';
 
 type Props = Pick<PopupState, 'balance' | 'grants' | 'walletAddress'>;
 
@@ -18,12 +19,16 @@ export const BudgetScreen = ({ grants, walletAddress, balance }: Props) => {
   const message = useMessage();
   return (
     <div className="space-y-8">
+      <RemainingBalance walletAddress={walletAddress} balance={balance} />
       <BudgetAmount
         walletAddress={walletAddress}
         grants={grants}
         handleChange={(payload) => message.send('UPDATE_BUDGET', payload)}
+        onBudgetChanged={() => {
+          // TODO: send user to the settings/budget page, but with new data
+          window.location.reload();
+        }}
       />
-      <RemainingBalance walletAddress={walletAddress} balance={balance} />
     </div>
   );
 };
@@ -32,6 +37,7 @@ type BudgetAmountProps = {
   grants: PopupState['grants'];
   walletAddress: PopupState['walletAddress'];
   handleChange: (payload: UpdateBudgetPayload) => Promise<Response>;
+  onBudgetChanged: () => void;
 };
 
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
@@ -42,6 +48,7 @@ const BudgetAmount = ({
   grants,
   walletAddress,
   handleChange,
+  onBudgetChanged,
 }: BudgetAmountProps) => {
   const t = useTranslation();
 
@@ -78,6 +85,7 @@ const BudgetAmount = ({
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
+    setErrors({ amount: null, root: null });
     setIsSubmitting(true);
     try {
       const res = await handleChange({
@@ -86,10 +94,14 @@ const BudgetAmount = ({
         recurring,
       });
       if (!res.success) {
-        setErrors((prev) => ({ ...prev, root: toErrorInfo(res.message) }));
+        setErrors((prev) => ({
+          ...prev,
+          root: toErrorInfo(res.error || res.message),
+        }));
       } else {
         setChanged({ amount: false, recurring: false });
       }
+      onBudgetChanged();
     } catch (error) {
       setErrors((prev) => ({ ...prev, root: toErrorInfo(error) }));
     }
@@ -175,6 +187,8 @@ const BudgetAmount = ({
       )}
 
       <div className="space-y-1">
+        {errors.root?.message && <ErrorMessage error={errors.root.message} />}
+
         <Button
           type="submit"
           className="w-full"
