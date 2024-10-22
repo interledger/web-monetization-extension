@@ -1,12 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { usePopupState, useTranslation } from '@/popup/lib/context';
 import { Settings } from '@/popup/components/Icons';
 import { formatNumber, roundWithPrecision } from '../lib/utils';
 import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
 import { formatCurrency } from '@/shared/helpers';
-import { ROUTES_PATH } from '@/popup/Popup';
 
 export const Component = () => {
   const t = useTranslation();
@@ -89,10 +87,8 @@ const InfoBanner = () => {
       </dl>
 
       <p className="text-xs italic text-white/90">
-        <Link to={ROUTES_PATH.SETTINGS} className="hover:underline">
-          To adjust your budget or rate of pay, click on{' '}
-          <Settings className="inline-block h-4 w-4 fill-white align-top" />
-        </Link>
+        To adjust your budget or rate of pay, click on{' '}
+        <Settings className="inline-block h-4 w-4 fill-white align-top" />
       </p>
     </div>
   );
