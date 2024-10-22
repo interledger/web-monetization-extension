@@ -6,6 +6,7 @@ import { ErrorMessage } from '@/popup/components/ErrorMessage';
 import { InputAmount } from '@/popup/components/InputAmount';
 import { cn, ErrorWithKeyLike } from '@/shared/helpers';
 import { useMessage, usePopupState, useTranslation } from '@/popup/lib/context';
+import { roundWithPrecision } from '@/popup/lib/utils';
 
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'amount' | 'pay';
@@ -104,7 +105,10 @@ export const PayWebsiteForm = () => {
         walletAddress={walletAddress}
         amount={amount}
         placeholder="0.00"
-        min={2 / 10 ** walletAddress.assetScale}
+        min={roundWithPrecision(
+          2 / 10 ** walletAddress.assetScale,
+          walletAddress.assetScale,
+        )}
         errorMessage={errors.amount?.message}
         onChange={(amountValue) => {
           setErrors({ pay: null, amount: null });
