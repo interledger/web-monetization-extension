@@ -100,12 +100,9 @@ export function validateAmount(
 }
 
 function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
+  if (ev.key.length > 1 || ev.ctrlKey || ev.metaKey) return;
   if (
-    (!charIsNumber(ev.key) &&
-      ev.key !== 'Backspace' &&
-      ev.key !== 'Delete' &&
-      ev.key !== 'Enter' &&
-      ev.key !== 'Tab') ||
+    !charIsNumber(ev.key) ||
     (ev.key === '.' && ev.currentTarget.value.includes('.'))
   ) {
     ev.preventDefault();
