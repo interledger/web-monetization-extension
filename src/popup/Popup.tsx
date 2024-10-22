@@ -70,9 +70,7 @@ export const routes = [
   },
 ] satisfies RouteObject[];
 
-const router = createMemoryRouter(routes, {
-  initialEntries: [ROUTES_PATH.SETTINGS],
-});
+const router = createMemoryRouter(routes);
 
 export const Popup = () => {
   return (
