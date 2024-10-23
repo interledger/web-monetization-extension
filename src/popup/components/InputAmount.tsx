@@ -6,6 +6,7 @@ import {
   errorWithKey,
   ErrorWithKeyLike,
   formatCurrency,
+  throttle,
 } from '@/shared/helpers';
 
 interface Props {
@@ -43,6 +44,23 @@ export const InputAmount = ({
   readOnly,
 }: Props) => {
   const currencySymbol = getCurrencySymbol(walletAddress.assetCode);
+
+  const validateAmountOnChange = useThrottle(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const input = ev.target;
+      const value = input.value;
+      const error = validateAmount(value, walletAddress, min, max);
+      if (error) {
+        onError(error);
+      } else {
+        const amountValue = formatNumber(+value, walletAddress.assetScale);
+        onChange(amountValue, input);
+      }
+    },
+    350,
+    { trailing: true },
+  );
+
   return (
     <Input
       id={id}
@@ -59,6 +77,7 @@ export const InputAmount = ({
       aria-invalid={errorHidden ? !!errorMessage : false}
       required={true}
       onKeyDown={allowOnlyNumericInput}
+      onChange={validateAmountOnChange}
       onBlur={(ev) => {
         const input = ev.currentTarget;
         const value = input.value;
@@ -98,6 +117,19 @@ export function validateAmount(
   }
   return null;
 }
+
+const useThrottle: typeof throttle = (
+  callback,
+  delay,
+  options = { leading: false, trailing: false },
+) => {
+  const cbRef = React.useRef(callback);
+  React.useEffect(() => {
+    cbRef.current = callback;
+  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return React.useCallback(throttle(cbRef.current, delay, options), [delay]);
+};
 
 function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
   if (ev.key.length > 1 || ev.ctrlKey || ev.metaKey) return;
