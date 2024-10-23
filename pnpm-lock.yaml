@@ -28,8 +28,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       awilix:
-        specifier: ^11.0.0
-        version: 11.0.0
+        specifier: ^12.0.3
+        version: 12.0.3
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1618,8 +1618,8 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  awilix@11.0.0:
-    resolution: {integrity: sha512-lnEm2TZu1OUWO1twi/3JrjSYu3RYjiOMiMQgfpwXj6uG4NSDtPSAWwTvqbpV7B8iWsXiC8GoMBKg1YsrUxPJhg==}
+  awilix@12.0.3:
+    resolution: {integrity: sha512-UBFALNvqVOj4V4s6yPW9JYTwg3Bih4w9kQRoD/J/z0iskMBRiCUkakmgPmSHRzjxEcJac7FiQhSpvD5JvSoLew==}
     engines: {node: '>=16.3.0'}
 
   axe-core@4.10.0:
@@ -2262,6 +2262,7 @@ packages:
   eslint@8.57.1:
     resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@9.6.1:
@@ -5788,7 +5789,7 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.0.0
 
-  awilix@11.0.0:
+  awilix@12.0.3:
     dependencies:
       camel-case: 4.1.2
       fast-glob: 3.3.2
