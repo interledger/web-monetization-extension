@@ -11,7 +11,7 @@ export const Code = ({ value, className, ...props }: CodeProps) => {
   return (
     <div
       className={cn(
-        'flex items-center justify-between break-all rounded-xl bg-disabled px-4 py-4 text-sm text-medium',
+        'flex items-center justify-between break-all rounded-xl bg-disabled px-4 py-4 text-sm text-disabled',
         className,
       )}
       {...props}
