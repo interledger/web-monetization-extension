@@ -5,12 +5,8 @@ import { Switch } from '@/popup/components/ui/Switch';
 import { Code } from '@/popup/components/ui/Code';
 import { ErrorMessage } from '@/popup/components/ErrorMessage';
 import { LoadingSpinner } from '@/popup/components/LoadingSpinner';
-import {
-  charIsNumber,
-  formatNumber,
-  getCurrencySymbol,
-  toWalletAddressUrl,
-} from '@/popup/lib/utils';
+import { InputAmount, validateAmount } from '@/popup/components/InputAmount';
+import { toWalletAddressUrl } from '@/popup/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import {
   cn,
@@ -18,7 +14,6 @@ import {
   isErrorWithKey,
   sleep,
   type ErrorWithKeyLike,
-  type ErrorKeys,
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
@@ -28,7 +23,12 @@ interface Inputs {
   walletAddressUrl: string;
   amount: string;
   recurring: boolean;
+  autoKeyAddConsent: boolean;
 }
+
+type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
+type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
+type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
 interface ConnectWalletFormProps {
   publicKey: string;
@@ -37,6 +37,7 @@ interface ConnectWalletFormProps {
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
+  clearConnectState: () => Promise<unknown>;
   onConnect?: () => void;
 }
 
@@ -46,6 +47,7 @@ export const ConnectWalletForm = ({
   state,
   getWalletInfo,
   connectWallet,
+  clearConnectState,
   saveValue = () => {},
   onConnect = () => {},
 }: ConnectWalletFormProps) => {
@@ -60,33 +62,50 @@ export const ConnectWalletForm = ({
   const [recurring, setRecurring] = React.useState<Inputs['recurring']>(
     defaultValues.recurring || false,
   );
-  const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(false);
+
+  const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
+    isAutoKeyAddFailed(state),
+  );
+  const [showConsent, setShowConsent] = React.useState(false);
+  const autoKeyAddConsent = React.useRef<boolean>(
+    defaultValues.autoKeyAddConsent || false,
+  );
+
+  const resetState = React.useCallback(async () => {
+    await clearConnectState();
+    setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
+    setAutoKeyShareFailed(false);
+  }, [clearConnectState]);
+
+  const toErrorInfo = React.useCallback(
+    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
+      if (!err) return null;
+      if (typeof err === 'string') return { message: err };
+      return { message: t(err), info: err };
+    },
+    [t],
+  );
 
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<WalletAddress | null>(null);
 
-  const [errors, setErrors] = React.useState({
-    walletAddressUrl: '',
-    amount: '',
-    keyPair: '',
-    connect: '',
+  const [errors, setErrors] = React.useState<Errors>({
+    walletAddressUrl: null,
+    amount: null,
+    keyPair: state?.status === 'error:key' ? toErrorInfo(state.error) : null,
+    connect: state?.status === 'error' ? toErrorInfo(state.error) : null,
   });
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
     amount: false,
   });
   const [isSubmitting, setIsSubmitting] = React.useState(
-    state?.status === 'connecting',
+    state?.status?.startsWith('connecting') || false,
   );
-
-  const [currencySymbol, setCurrencySymbol] = React.useState<{
-    symbol: string;
-    scale: number;
-  }>({ symbol: '$', scale: 2 });
 
   const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<boolean> => {
-      setErrors((_) => ({ ..._, walletAddressUrl: '' }));
+      setErrors((prev) => ({ ...prev, walletAddressUrl: null }));
       if (!walletAddressUrl) return false;
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
@@ -94,14 +113,17 @@ export const ConnectWalletForm = ({
         const walletAddress = await getWalletInfo(url.toString());
         setWalletAddressInfo(walletAddress);
       } catch (error) {
-        setErrors((_) => ({ ..._, walletAddressUrl: error.message }));
+        setErrors((prev) => ({
+          ...prev,
+          walletAddressUrl: toErrorInfo(error.message),
+        }));
         return false;
       } finally {
         setIsValidating((_) => ({ ..._, walletAddressUrl: false }));
       }
       return true;
     },
-    [getWalletInfo],
+    [getWalletInfo, toErrorInfo],
   );
 
   const handleWalletAddressUrlChange = React.useCallback(
@@ -110,7 +132,7 @@ export const ConnectWalletForm = ({
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
-      setErrors((_) => ({ ..._, walletAddressUrl: error ? t(error) : '' }));
+      setErrors((prev) => ({ ...prev, walletAddressUrl: toErrorInfo(error) }));
       saveValue('walletAddressUrl', value);
       if (!error) {
         const ok = await getWalletInformation(value);
@@ -118,38 +140,28 @@ export const ConnectWalletForm = ({
       }
       return false;
     },
-    [saveValue, getWalletInformation, t],
+    [saveValue, getWalletInformation, toErrorInfo],
   );
 
   const handleAmountChange = React.useCallback(
-    (value: string, input: HTMLInputElement) => {
-      const error = validateAmount(value, currencySymbol.symbol);
-      setErrors((_) => ({ ..._, amount: error ? t(error) : '' }));
-
-      const amountValue = formatNumber(+value, currencySymbol.scale);
-      if (!error) {
-        setAmount(amountValue);
-        input.value = amountValue;
-      }
-      saveValue('amount', error ? value : amountValue);
+    (amountValue: string) => {
+      setErrors((prev) => ({ ...prev, amount: null }));
+      setAmount(amountValue);
+      saveValue('amount', amountValue);
     },
-    [saveValue, currencySymbol, t],
+    [saveValue],
   );
 
-  const handleSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
-    ev.preventDefault();
-    if (!walletAddressInfo) {
-      setErrors((_) => ({ ..._, walletAddressUrl: 'Not fetched yet?!' }));
-      return;
-    }
+  const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
+    ev?.preventDefault();
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
-    const errAmount = validateAmount(amount, currencySymbol.symbol);
+    const errAmount = validateAmount(amount, walletAddressInfo!);
     if (errAmount || errWalletAddressUrl) {
-      setErrors((_) => ({
-        ..._,
-        walletAddressUrl: errWalletAddressUrl ? t(errWalletAddressUrl) : '',
-        amount: errAmount && t(errAmount),
+      setErrors((prev) => ({
+        ...prev,
+        walletAddressUrl: toErrorInfo(errWalletAddressUrl),
+        amount: toErrorInfo(errAmount),
       }));
       return;
     }
@@ -161,41 +173,38 @@ export const ConnectWalletForm = ({
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
-      setErrors((_) => ({ ..._, keyPair: '', connect: '' }));
+      setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
         walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
         amount,
         recurring,
-        skipAutoKeyShare,
+        autoKeyAdd: !skipAutoKeyShare,
+        autoKeyAddConsent: autoKeyAddConsent.current,
       });
       if (res.success) {
         onConnect();
       } else {
         if (isErrorWithKey(res.error)) {
           const error = res.error;
-          if (error.key === 'connectWalletKeyService_error_notImplemented') {
-            setErrors((_) => ({ ..._, keyPair: t(error) }));
+          if (error.key.startsWith('connectWalletKeyService_error_')) {
+            if (error.key === 'connectWalletKeyService_error_noConsent') {
+              setShowConsent(true);
+              return;
+            }
+            setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           } else {
-            setErrors((_) => ({ ..._, connect: t(error) }));
+            setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
           }
         } else {
           throw new Error(res.message);
         }
       }
     } catch (error) {
-      setErrors((_) => ({ ..._, connect: error.message }));
+      setErrors((prev) => ({ ...prev, connect: toErrorInfo(error.message) }));
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  React.useEffect(() => {
-    if (!walletAddressInfo) return;
-    setCurrencySymbol({
-      symbol: getCurrencySymbol(walletAddressInfo.assetCode),
-      scale: walletAddressInfo.assetScale,
-    });
-  }, [walletAddressInfo]);
 
   React.useEffect(() => {
     if (defaultValues.walletAddressUrl) {
@@ -203,10 +212,28 @@ export const ConnectWalletForm = ({
     }
   }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
 
+  if (showConsent) {
+    return (
+      <AutoKeyAddConsent
+        onAccept={() => {
+          autoKeyAddConsent.current = true;
+          // saveValue('autoKeyAddConsent', true);
+          setShowConsent(false);
+          handleSubmit();
+        }}
+        onDecline={() => {
+          const error = errorWithKey('connectWalletKeyService_error_noConsent');
+          setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
+          setShowConsent(false);
+        }}
+      />
+    );
+  }
+
   return (
     <form
       data-testid="connect-wallet-form"
-      className="flex flex-col gap-4"
+      className="my-auto flex flex-col gap-4"
       onSubmit={handleSubmit}
     >
       <div className={cn(!!errors.connect && 'sr-only')}>
@@ -219,15 +246,15 @@ export const ConnectWalletForm = ({
       </div>
 
       {errors.connect && (
-        <ErrorMessage error={errors.connect} className="my-0" />
+        <ErrorMessage error={errors.connect.message} className="my-0" />
       )}
 
       <Input
         type="text"
         label={t('connectWallet_label_walletAddress')}
         id="connectWalletAddressUrl"
-        placeholder="https://ilp.rafiki.money/johndoe"
-        errorMessage={errors.walletAddressUrl}
+        placeholder="https://ilp.interledger-test.dev/johndoe"
+        errorMessage={errors.walletAddressUrl?.message}
         defaultValue={walletAddressUrl}
         addOn={
           isValidating.walletAddressUrl ? (
@@ -239,12 +266,14 @@ export const ConnectWalletForm = ({
         autoComplete="on"
         spellCheck={false}
         enterKeyHint="go"
+        readOnly={isSubmitting}
         onPaste={async (ev) => {
           const input = ev.currentTarget;
           let value = ev.clipboardData.getData('text');
           if (!value) return;
           if (!validateWalletAddressUrl(value)) {
             ev.preventDefault(); // full url was pasted
+            input.value = value;
           } else {
             await sleep(0); // allow paste to be complete
             value = input.value;
@@ -255,6 +284,7 @@ export const ConnectWalletForm = ({
             }
           }
           const ok = await handleWalletAddressUrlChange(value, input);
+          resetState();
           if (ok) document.getElementById('connectAmount')?.focus();
         }}
         onBlur={async (ev) => {
@@ -265,6 +295,7 @@ export const ConnectWalletForm = ({
             }
           }
           await handleWalletAddressUrlChange(value, ev.currentTarget);
+          resetState();
         }}
       />
 
@@ -278,27 +309,23 @@ export const ConnectWalletForm = ({
           {t('connectWallet_labelGroup_amount')}
         </legend>
         <div className="flex items-center gap-6">
-          <Input
+          <InputAmount
             id="connectAmount"
-            type="text"
-            inputMode="numeric"
-            aria-label={t('connectWallet_label_amount')}
-            placeholder="5.00"
-            className="max-w-32"
-            defaultValue={amount}
-            readOnly={!walletAddressInfo?.assetCode}
-            addOn={<span className="text-weak">{currencySymbol.symbol}</span>}
-            aria-invalid={!!errors.amount}
-            aria-describedby={errors.amount}
-            required={true}
-            onKeyDown={allowOnlyNumericInput}
-            onBlur={(ev) => {
-              const value = ev.currentTarget.value;
-              if (value === amount && !ev.currentTarget.required) {
-                return;
-              }
-              handleAmountChange(value, ev.currentTarget);
+            label={t('connectWallet_label_amount')}
+            labelHidden={true}
+            amount={amount}
+            walletAddress={
+              walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
+            }
+            errorMessage={errors.amount?.message}
+            errorHidden={true}
+            readOnly={!walletAddressInfo?.assetCode || isSubmitting}
+            onError={(err) => {
+              setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
+            onChange={handleAmountChange}
+            className="max-w-32"
+            placeholder="5.00"
           />
 
           <Switch
@@ -314,7 +341,7 @@ export const ConnectWalletForm = ({
         </div>
 
         {errors.amount && (
-          <p className="px-2 text-sm text-error">{errors.amount}</p>
+          <p className="px-2 text-sm text-error">{errors.amount.message}</p>
         )}
       </fieldset>
 
@@ -325,7 +352,8 @@ export const ConnectWalletForm = ({
             details: errors.keyPair,
             whyText: t('connectWallet_error_failedAutoKeyAddWhy'),
           }}
-          hideError={autoKeyShareFailed}
+          retry={resetState}
+          hideError={!errors.keyPair}
           text={t('connectWallet_label_publicKey')}
           learnMoreText={t('connectWallet_text_publicKeyLearnMore')}
           publicKey={publicKey}
@@ -354,33 +382,76 @@ export const ConnectWalletForm = ({
         >
           {t('connectWallet_action_connect')}
         </Button>
+      </div>
+    </form>
+  );
+};
 
-        {!errors.keyPair && !autoKeyShareFailed && (
-          <Footer
-            text={t('connectWallet_text_footerNotice')}
-            learnMoreText={t('connectWallet_text_footerNoticeLearnMore')}
-          />
-        )}
+const AutoKeyAddConsent: React.FC<{
+  onAccept: () => void;
+  onDecline: () => void;
+}> = ({ onAccept, onDecline }) => {
+  const t = useTranslation();
+  return (
+    <form
+      className="space-y-4 text-center"
+      data-testid="connect-wallet-auto-key-consent"
+    >
+      <p className="text-lg leading-snug text-weak">
+        {t('connectWalletKeyService_text_consentP1')}{' '}
+        <a
+          hidden
+          href="https://webmonetization.org"
+          className="text-primary hover:underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t('connectWalletKeyService_text_consentLearnMore')}
+        </a>
+      </p>
+
+      <div className="space-y-2 pt-12 text-medium">
+        <p>{t('connectWalletKeyService_text_consentP2')}</p>
+        <p>{t('connectWalletKeyService_text_consentP3')}</p>
+      </div>
+
+      <div className="mx-auto flex w-3/4 justify-around gap-4">
+        <Button onClick={onAccept}>
+          {t('connectWalletKeyService_label_consentAccept')}
+        </Button>
+        <Button onClick={onDecline} variant="destructive">
+          {t('connectWalletKeyService_label_consentDecline')}
+        </Button>
       </div>
     </form>
   );
 };
 
 const ManualKeyPairNeeded: React.FC<{
-  error: { message: string; details: string; whyText: string };
+  error: { message: string; details: null | ErrorInfo; whyText: string };
   hideError?: boolean;
+  retry: () => Promise<void>;
   text: string;
   learnMoreText: string;
   publicKey: string;
-}> = ({ error, hideError, text, learnMoreText, publicKey }) => {
+}> = ({ error, hideError, text, learnMoreText, publicKey, retry }) => {
   const ErrorDetails = () => {
-    if (!error) return null;
+    if (!error || !error.details) return null;
     return (
       <details className="group inline-block">
         <summary className="cursor-pointer list-none underline decoration-dotted group-open:sr-only">
           {error.whyText}
         </summary>
-        <span>{error.details}</span>
+        <span>{error.details.message}</span>
+        {canRetryAutoKeyAdd(error.details.info) && (
+          <button
+            type="button"
+            onClick={retry}
+            className="ml-1 inline-block text-primary underline"
+          >
+            Try again?
+          </button>
+        )}
       </details>
     );
   };
@@ -408,37 +479,31 @@ const ManualKeyPairNeeded: React.FC<{
   );
 };
 
-const Footer: React.FC<{
-  text: string;
-  learnMoreText: string;
-}> = ({ text, learnMoreText }) => {
+function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
+  if (state?.status === 'error') {
+    return (
+      isErrorWithKey(state.error) &&
+      state.error.key !== 'connectWallet_error_tabClosed'
+    );
+  } else if (state?.status === 'error:key') {
+    return (
+      isErrorWithKey(state.error) &&
+      state.error.key.startsWith('connectWalletKeyService_error_')
+    );
+  }
+  return false;
+}
+
+function canRetryAutoKeyAdd(err?: ErrorInfo['info']) {
+  if (!err) return false;
   return (
-    <p className="text-center text-xs text-weak">
-      {text}{' '}
-      <a
-        href="https://webmonetization.org"
-        className="text-primary hover:underline"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {learnMoreText}
-      </a>
-    </p>
+    err.key === 'connectWalletKeyService_error_noConsent' ||
+    err.cause?.key === 'connectWalletKeyService_error_timeoutLogin' ||
+    err.cause?.key === 'connectWalletKeyService_error_accountNotFound'
   );
-};
+}
 
-type ErrorCodeWalletAddressUrl = Extract<
-  ErrorKeys,
-  `connectWallet_error_url${string}`
->;
-type ErrorCodeAmount = Extract<
-  ErrorKeys,
-  `connectWallet_error_amount${string}`
->;
-
-function validateWalletAddressUrl(
-  value: string,
-): '' | ErrorWithKeyLike<ErrorCodeWalletAddressUrl> {
+function validateWalletAddressUrl(value: string): null | ErrorWithKeyLike {
   if (!value) {
     return errorWithKey('connectWallet_error_urlRequired');
   }
@@ -453,37 +518,5 @@ function validateWalletAddressUrl(
     return errorWithKey('connectWallet_error_urlInvalidNotHttps');
   }
 
-  return '';
-}
-
-function validateAmount(
-  value: string,
-  currencySymbol: string,
-): '' | ErrorWithKeyLike<ErrorCodeAmount> {
-  if (!value) {
-    return errorWithKey('connectWallet_error_amountRequired');
-  }
-  const val = Number(value);
-  if (Number.isNaN(val)) {
-    return errorWithKey('connectWallet_error_amountInvalidNumber', [
-      `${currencySymbol}${value}`,
-    ]);
-  }
-  if (val <= 0) {
-    return errorWithKey('connectWallet_error_amountMinimum');
-  }
-  return '';
-}
-
-function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
-  if (
-    (!charIsNumber(ev.key) &&
-      ev.key !== 'Backspace' &&
-      ev.key !== 'Delete' &&
-      ev.key !== 'Enter' &&
-      ev.key !== 'Tab') ||
-    (ev.key === '.' && ev.currentTarget.value.includes('.'))
-  ) {
-    ev.preventDefault();
-  }
+  return null;
 }

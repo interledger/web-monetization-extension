@@ -1,14 +1,9 @@
-// cSpell:ignore requestfinished
 import type { BrowserContext } from '@playwright/test';
-import {
-  loadKeysToExtension,
-  type Background,
-  type BrowserInfo,
-  type KeyInfo,
-} from '../fixtures/helpers';
-import { getWalletInformation } from '@/shared/helpers';
+import type { BrowserIntl, BrowserInfo } from '../fixtures/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
+
+export { connectWallet } from '../helpers/testWallet';
 
 export async function openPopup(
   context: BrowserContext,
@@ -52,64 +47,6 @@ function getPopupUrl(
   return url;
 }
 
-export async function connectWallet(
-  context: BrowserContext,
-  background: Background,
-  keyInfo: KeyInfo,
-  popup: Popup,
-  params: ConnectDetails,
-) {
-  await loadKeysToExtension(background, keyInfo);
-
-  const connectButton = await fillPopup(popup, params);
-  await connectButton.click();
-
-  const continueWaitMs = await (async () => {
-    const defaultWaitMs = 1001;
-    if (process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS !== '1') {
-      return Promise.resolve(defaultWaitMs);
-    }
-    const walletInfo = await getWalletInformation(params.walletAddressUrl);
-    return await new Promise<number>((resolve) => {
-      const authServer = new URL(walletInfo.authServer).href;
-      context.on('requestfinished', async function intercept(req) {
-        if (!req.serviceWorker()) return;
-        if (new URL(req.url()).href !== authServer) return;
-
-        const res = await req.response();
-        const json = await res?.json();
-        context.off('requestfinished', intercept);
-        if (typeof json?.continue?.wait !== 'number') {
-          return resolve(defaultWaitMs);
-        }
-        return resolve(json.continue.wait * 1000);
-      });
-    });
-  })();
-
-  const page = await context.waitForEvent('page', (page) =>
-    page.url().includes('/grant-interactions'),
-  );
-  await page.waitForURL((url) => {
-    return (
-      url.searchParams.has('interactId') &&
-      url.searchParams.has('nonce') &&
-      url.searchParams.has('clientUri')
-    );
-  });
-  await page.waitForTimeout(continueWaitMs);
-  await page.getByRole('button', { name: 'Accept' }).click();
-
-  const CONFIG_OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
-  await page.waitForURL(
-    (url) =>
-      url.href.startsWith(CONFIG_OPEN_PAYMENTS_REDIRECT_URL) &&
-      url.searchParams.get('result') === 'grant_success',
-  );
-  await page.close();
-  await popup.bringToFront();
-}
-
 export async function disconnectWallet(popup: Popup) {
   await popup.locator(`[href="/settings"]`).click();
   await popup.locator('button').getByText('Disconnect').click();
@@ -122,8 +59,12 @@ export type ConnectDetails = {
   recurring: boolean;
 };
 
-export async function fillPopup(popup: Popup, params: Partial<ConnectDetails>) {
-  const fields = getPopupFields(popup);
+export async function fillPopup(
+  popup: Popup,
+  i18n: BrowserIntl,
+  params: Partial<ConnectDetails>,
+) {
+  const fields = getPopupFields(popup, i18n);
   if (typeof params.walletAddressUrl !== 'undefined') {
     await fields.walletAddressUrl.fill(params.walletAddressUrl);
     await fields.walletAddressUrl.blur();
@@ -140,11 +81,19 @@ export async function fillPopup(popup: Popup, params: Partial<ConnectDetails>) {
   return fields.connectButton;
 }
 
-export function getPopupFields(popup: Popup) {
+export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
   return {
-    walletAddressUrl: popup.getByLabel('Enter wallet address/payment pointer'),
-    amount: popup.getByLabel('Amount', { exact: true }),
-    recurring: popup.getByLabel('Renew monthly'),
-    connectButton: popup.locator('button').getByText('Connect'),
+    walletAddressUrl: popup.getByLabel(
+      i18n.getMessage('connectWallet_label_walletAddress'),
+    ),
+    amount: popup.getByLabel(i18n.getMessage('connectWallet_label_amount'), {
+      exact: true,
+    }),
+    recurring: popup.getByLabel(
+      i18n.getMessage('connectWallet_label_recurring'),
+    ),
+    connectButton: popup
+      .locator('button')
+      .getByText(i18n.getMessage('connectWallet_action_connect')),
   };
 }

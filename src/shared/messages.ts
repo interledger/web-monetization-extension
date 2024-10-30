@@ -93,7 +93,8 @@ export interface ConnectWalletPayload {
   walletAddressUrl: string;
   amount: string;
   recurring: boolean;
-  skipAutoKeyShare: boolean;
+  autoKeyAdd: boolean;
+  autoKeyAddConsent: boolean | null;
 }
 
 export interface AddFundsPayload {
@@ -109,14 +110,24 @@ export interface UpdateRateOfPayPayload {
   rateOfPay: string;
 }
 
+export interface UpdateBudgetPayload {
+  walletAddressUrl: ConnectWalletPayload['walletAddressUrl'];
+  amount: ConnectWalletPayload['amount'];
+  recurring: ConnectWalletPayload['recurring'];
+}
+
 export type PopupToBackgroundMessage = {
   GET_CONTEXT_DATA: {
     input: never;
     output: PopupState;
   };
   CONNECT_WALLET: {
-    input: ConnectWalletPayload;
-    output: never;
+    input: null | ConnectWalletPayload;
+    output: void;
+  };
+  UPDATE_BUDGET: {
+    input: UpdateBudgetPayload;
+    output: void;
   };
   RECONNECT_WALLET: {
     input: never;

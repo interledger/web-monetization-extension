@@ -14,6 +14,8 @@ iframes
 unmangles
 data-testid
 nums
+jwks
+requestfinished
 
 # scripts and 3rd party terms
 nvmrc

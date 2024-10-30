@@ -32,8 +32,8 @@ test('shows connect form if not connected', async ({ page, popup }) => {
 
 test.describe('should fail to connect if:', () => {
   test('invalid URL provided', async ({ background, popup, i18n }) => {
-    const inputFields = getPopupFields(popup);
-    const connectButton = await fillPopup(popup, {
+    const inputFields = getPopupFields(popup, i18n);
+    const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl: 'abc',
     });
 
@@ -51,9 +51,13 @@ test.describe('should fail to connect if:', () => {
     ).toEqual({ connected: false });
   });
 
-  test('invalid wallet address provided', async ({ background, popup }) => {
-    const inputFields = getPopupFields(popup);
-    const connectButton = await fillPopup(popup, {
+  test('invalid wallet address provided', async ({
+    background,
+    popup,
+    i18n,
+  }) => {
+    const inputFields = getPopupFields(popup, i18n);
+    const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl: 'https://example.com',
     });
 
@@ -69,31 +73,5 @@ test.describe('should fail to connect if:', () => {
         return chrome.storage.local.get(['connected']);
       }),
     ).toEqual({ connected: false });
-  });
-
-  test('public key not added', async ({ popup, i18n }) => {
-    const { CONNECT_WALLET_ADDRESS_URL } = process.env;
-    expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
-
-    const connectButton = await fillPopup(popup, {
-      walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
-      amount: '10',
-      recurring: false,
-    });
-    await expect(popup.locator('p.text-error')).not.toBeAttached();
-    await expect(connectButton).not.toBeDisabled();
-
-    await connectButton.click();
-    await popup.waitForTimeout(1000);
-    await expect(popup.locator('.text-error span').first()).toHaveText(
-      i18n.getMessage('connectWallet_error_failedAutoKeyAdd'),
-    );
-
-    await connectButton.click();
-    await popup.waitForTimeout(1000);
-    await expect(popup.getByTestId('ErrorMessage')).toHaveText(
-      i18n.getMessage('connectWallet_error_invalidClient'),
-    );
-    await expect(popup.getByTestId('ErrorMessage')).toHaveRole('alert');
   });
 });

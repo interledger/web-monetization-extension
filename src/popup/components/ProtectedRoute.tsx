@@ -16,7 +16,7 @@ export const ProtectedRoute = () => {
     return <Navigate to={ROUTES_PATH.OUT_OF_FUNDS} />;
   }
   if (state.connected === false) {
-    return <Navigate to={ROUTES_PATH.SETTINGS} />;
+    return <Navigate to={ROUTES_PATH.CONNECT_WALLET} />;
   }
 
   return <Outlet />;

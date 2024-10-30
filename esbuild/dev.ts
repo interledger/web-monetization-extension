@@ -65,11 +65,25 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
       }
     );`;
 
+  const reloadScriptPages = `
+      new EventSource("http://localhost:${port}/esbuild").addEventListener(
+      "change",
+      (ev) => {
+        const data = JSON.parse(ev.data);
+        if (
+          data.added.some(s => s.includes("/pages/")) ||
+          data.updated.some(s => s.includes("/pages/"))
+        ) {
+          globalThis.location.reload();
+        }
+      }
+    );`;
+
   const reloadScriptContent = `
     new EventSource("http://localhost:${port}/esbuild").addEventListener(
       "change",
       (ev) => {
-        const patterns = ["background.js", "content.js", "polyfill.js"];
+        const patterns = ["background.js", "content.js", "polyfill.js", "keyAutoAdd/"];
         const data = JSON.parse(ev.data);
         if (data.updated.some((s) => patterns.some(e => s.includes(e)))) {
           globalThis.location.reload();
@@ -92,6 +106,13 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
         const contents = await readFile(args.path, 'utf8');
         return {
           contents: contents + '\n\n\n' + reloadScriptPopup,
+          loader: 'tsx' as const,
+        };
+      });
+      build.onLoad({ filter: /src\/pages\/.+\/index.tsx$/ }, async (args) => {
+        const contents = await readFile(args.path, 'utf8');
+        return {
+          contents: contents + '\n\n\n' + reloadScriptPages,
           loader: 'tsx' as const,
         };
       });

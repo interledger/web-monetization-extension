@@ -1,6 +1,7 @@
 import type { Browser } from 'webextension-polyfill';
 import type { ToBackgroundMessage } from '@/shared/messages';
 import {
+  errorWithKeyToJSON,
   failure,
   getNextOccurrence,
   getWalletInformation,
@@ -194,10 +195,10 @@ export class Background {
 
             case 'CONNECT_WALLET':
               await this.openPaymentsService.connectWallet(message.payload);
-              if (message.payload.recurring) {
+              if (message.payload?.recurring) {
                 this.scheduleResetOutOfFundsState();
               }
-              return;
+              return success(undefined);
 
             case 'RECONNECT_WALLET': {
               await this.openPaymentsService.reconnectWallet();
@@ -205,6 +206,10 @@ export class Background {
               await this.updateVisualIndicatorsForCurrentTab();
               return success(undefined);
             }
+
+            case 'UPDATE_BUDGET':
+              await this.openPaymentsService.updateBudget(message.payload);
+              return success(undefined);
 
             case 'ADD_FUNDS':
               await this.openPaymentsService.addFunds(message.payload);
@@ -278,7 +283,7 @@ export class Background {
         } catch (e) {
           if (isErrorWithKey(e)) {
             this.logger.error(message.action, e);
-            return failure({ key: e.key, substitutions: e.substitutions });
+            return failure(errorWithKeyToJSON(e));
           }
           if (e instanceof OpenPaymentsClientError) {
             this.logger.error(message.action, e.message, e.description);

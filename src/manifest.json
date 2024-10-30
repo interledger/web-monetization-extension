@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "name": "__MSG_appName__",
-  "version": "0.1.1.0",
+  "version": "0.2.0.0",
   "manifest_version": 3,
   "minimum_chrome_version": "110.0",
   "description": "__MSG_appDescription__",
@@ -17,6 +17,16 @@
       "js": ["content/content.js"],
       "run_at": "document_start",
       "all_frames": true
+    },
+    {
+      "matches": ["https://wallet.interledger-test.dev/*"],
+      "js": ["content/keyAutoAdd/testWallet.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["https://eu1.fynbos.dev/*", "https://wallet.fynbos.app/*"],
+      "js": ["content/keyAutoAdd/fynbos.js"],
+      "run_at": "document_end"
     }
   ],
   "background": {
@@ -29,7 +39,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["polyfill/*"],
+      "resources": ["polyfill/*", "pages/progress-connect/*"],
       "matches": ["<all_urls>"]
     }
   ],

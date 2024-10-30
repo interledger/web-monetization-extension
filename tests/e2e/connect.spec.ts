@@ -14,15 +14,15 @@ test('connects with correct details provided', async ({
   page,
 }) => {
   const {
-    CONNECT_KEY_ID,
-    CONNECT_PRIVATE_KEY,
-    CONNECT_PUBLIC_KEY,
-    CONNECT_WALLET_ADDRESS_URL,
+    TEST_WALLET_KEY_ID,
+    TEST_WALLET_PRIVATE_KEY,
+    TEST_WALLET_PUBLIC_KEY,
+    TEST_WALLET_ADDRESS_URL,
   } = process.env;
-  expect(CONNECT_KEY_ID).toBeDefined();
-  expect(CONNECT_PRIVATE_KEY).toBeDefined();
-  expect(CONNECT_PUBLIC_KEY).toBeDefined();
-  expect(CONNECT_WALLET_ADDRESS_URL).toBeDefined();
+  expect(TEST_WALLET_KEY_ID).toBeDefined();
+  expect(TEST_WALLET_PRIVATE_KEY).toBeDefined();
+  expect(TEST_WALLET_PUBLIC_KEY).toBeDefined();
+  expect(TEST_WALLET_ADDRESS_URL).toBeDefined();
 
   expect(
     await background.evaluate(() => {
@@ -31,12 +31,12 @@ test('connects with correct details provided', async ({
   ).toEqual({ connected: false });
 
   const keyInfo = {
-    keyId: CONNECT_KEY_ID!,
-    privateKey: CONNECT_PRIVATE_KEY!,
-    publicKey: CONNECT_PUBLIC_KEY!,
+    keyId: TEST_WALLET_KEY_ID,
+    privateKey: TEST_WALLET_PRIVATE_KEY,
+    publicKey: TEST_WALLET_PUBLIC_KEY,
   };
-  await connectWallet(persistentContext, background, keyInfo, popup, {
-    walletAddressUrl: CONNECT_WALLET_ADDRESS_URL!,
+  await connectWallet(persistentContext, background, i18n, keyInfo, popup, {
+    walletAddressUrl: TEST_WALLET_ADDRESS_URL,
     amount: '10',
     recurring: false,
   });
@@ -58,7 +58,7 @@ test('connects with correct details provided', async ({
     oneTimeGrant: {
       type: 'one-time',
       amount: {
-        value: '10000000000', // asset scale 9
+        value: '1000', // asset scale 2
       },
     },
   });

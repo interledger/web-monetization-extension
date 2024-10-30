@@ -1,5 +1,6 @@
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
 import type { Tabs } from 'webextension-polyfill';
+import type { ErrorWithKeyLike } from './helpers';
 
 /** Bigint amount, before transformation with assetScale */
 export type AmountValue = string;
@@ -109,9 +110,10 @@ export type PopupTabInfo = {
 };
 
 export type PopupTransientState = Partial<{
-  connect: Partial<{
-    status: 'connecting' | 'error' | null;
-  }> | null;
+  connect:
+    | null
+    | { status: 'connecting' | 'connecting:key' }
+    | { status: 'error' | 'error:key'; error: string | ErrorWithKeyLike };
 }>;
 
 export type PopupStore = Omit<
