@@ -9,7 +9,7 @@ overrides:
   string_decoder: 1.3.0
   readable-stream: 2.3.8
   bn.js: 5.2.1
-  structured-headers: 1.0.1
+  structured-headers: 2.0.0
 
 importers:
 
@@ -2262,6 +2262,7 @@ packages:
   eslint@8.57.1:
     resolution: {integrity: sha512-ypowyDxpVSYpkXr9WPv2PAZCtNip1Mv5KTW0SCurXv/9iOpcrH9PaqUElksqEB6pChqHGDRCFTyrZlGhnLNGiA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
 
   espree@9.6.1:
@@ -3940,9 +3941,9 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  structured-headers@1.0.1:
-    resolution: {integrity: sha512-QYBxdBtA4Tl5rFPuqmbmdrS9kbtren74RTJTcs0VSQNVV5iRhJD4QlYTLD0+81SBwUQctjEQzjTRI3WG4DzICA==}
-    engines: {node: '>= 14', npm: '>=6'}
+  structured-headers@2.0.0:
+    resolution: {integrity: sha512-qX9utDaDolZWTcAep0EZDSQASTu4mx16Jh5dBSpplfvK3ro1CF8mWqRByAwncRojnlaCCUZA2jPcCqKNnp7uCA==}
+    engines: {node: '>=18', npm: '>=6'}
 
   sucrase@3.35.0:
     resolution: {integrity: sha512-8EbVDiu9iN/nESwxeSxDKe0dunta1GOlHufmSSXxMD2z2/tMZpDMpvXQGsc+ajGo8y2uYUmixaSRUc/QPoQ0GA==}
@@ -7013,7 +7014,7 @@ snapshots:
 
   http-message-signatures@1.0.4:
     dependencies:
-      structured-headers: 1.0.1
+      structured-headers: 2.0.0
 
   http-proxy-agent@5.0.0:
     dependencies:
@@ -7025,7 +7026,7 @@ snapshots:
 
   httpbis-digest-headers@1.0.0:
     dependencies:
-      structured-headers: 1.0.1
+      structured-headers: 2.0.0
 
   https-proxy-agent@5.0.1:
     dependencies:
@@ -8592,7 +8593,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  structured-headers@1.0.1: {}
+  structured-headers@2.0.0: {}
 
   sucrase@3.35.0:
     dependencies:
