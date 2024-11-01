@@ -421,7 +421,7 @@ export class PaymentSession {
       }
     }
 
-    return outgoingPayment?.debitAmount;
+    return outgoingPayment;
   }
 
   private setAmount(amount: bigint): void {

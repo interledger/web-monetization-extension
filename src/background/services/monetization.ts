@@ -265,17 +265,38 @@ export class MonetizationService {
 
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
-    const results = await Promise.allSettled(
+    let results = await Promise.allSettled(
       payableSessions.map((session) => session.pay(splitAmount)),
+    );
+    const signal = AbortSignal.timeout(8_000); // can use other signals as well, such as popup closed etc.
+    results = await Promise.allSettled(
+      results.map((e) => {
+        if (e.status !== 'fulfilled') throw e.reason;
+        if (!e.value) return e.value;
+        const outgoingPaymentId = e.value.id;
+        return this.openPaymentsService.outgoingPaymentWaitForCompletion(
+          outgoingPaymentId,
+          { signal, maxAttempts: 10 },
+        );
+      }),
     );
 
     const totalSentAmount = results
       .filter((e) => e.status === 'fulfilled')
-      .reduce((acc, curr) => acc + BigInt(curr.value?.value ?? 0), 0n);
+      .reduce(
+        (acc, curr) => acc + BigInt(curr.value?.debitAmount?.value ?? 0),
+        0n,
+      );
     if (totalSentAmount === 0n) {
       const isNotEnoughFunds = results
         .filter((e) => e.status === 'rejected')
         .some((e) => isOutOfBalanceError(e.reason));
+      // TODO: If sentAmount is zero in all outgoing payments, and
+      // pay_error_outgoingPaymentCompletionLimitReached, it also likely means
+      // we don't have enough funds.
+      //
+      // TODO: If sentAmount is non-zero but not equal to debitAmount, show
+      // warning that not entire payment went through (yet?)
       if (isNotEnoughFunds) {
         throw new Error(this.t('pay_error_notEnoughFunds'));
       }

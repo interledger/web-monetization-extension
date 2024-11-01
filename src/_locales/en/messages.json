@@ -51,6 +51,13 @@
   "pay_error_notEnoughFunds": {
     "message": "Insufficient funds to complete the payment."
   },
+  "pay_error_outgoingPaymentFailed": {
+    "message": "Payment failed."
+  },
+  "pay_error_outgoingPaymentCompletionLimitReached": {
+    "message": "Payment not finished yet.",
+    "description": "We were polling for completion, but it's not finished yet"
+  },
   "pay_error_invalidReceivers": {
     "message": "At the moment, you cannot pay this website.",
     "description": "We cannot send money (probable cause: un-peered wallets)"

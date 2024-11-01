@@ -32,6 +32,7 @@ import {
   errorWithKeyToJSON,
   getWalletInformation,
   isErrorWithKey,
+  sleep,
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
@@ -694,7 +695,7 @@ export class OpenPaymentsService {
             },
             {
               type: 'outgoing-payment',
-              actions: ['create'],
+              actions: ['create', 'read'],
               identifier: walletAddress.id,
               limits: {
                 debitAmount: {
@@ -879,6 +880,43 @@ export class OpenPaymentsService {
     await this.storage.setState({ out_of_funds: false });
 
     return outgoingPayment;
+  }
+
+  async outgoingPaymentWaitForCompletion(
+    outgoingPaymentId: OutgoingPayment['id'],
+    {
+      signal,
+      maxAttempts = 10,
+    }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
+  ) {
+    let attempt = 0;
+    let outgoingPayment: undefined | OutgoingPayment;
+    while (++attempt <= maxAttempts) {
+      signal?.throwIfAborted();
+      try {
+        outgoingPayment = await this.client!.outgoingPayment.get({
+          url: outgoingPaymentId,
+          accessToken: this.token.value,
+        });
+        if (outgoingPayment.failed) {
+          throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
+        }
+        if (
+          outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
+        ) {
+          return outgoingPayment;
+        }
+        signal?.throwIfAborted();
+        await sleep(1500);
+      } catch (error) {
+        if (isTokenExpiredError(error)) {
+          await this.rotateToken();
+        } else {
+          throw error;
+        }
+      }
+    }
+    throw new ErrorWithKey('pay_error_outgoingPaymentCompletionLimitReached');
   }
 
   async probeDebitAmount(
