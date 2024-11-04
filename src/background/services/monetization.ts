@@ -274,10 +274,10 @@ export class MonetizationService {
         if (e.status !== 'fulfilled') throw e.reason;
         if (!e.value) return e.value;
         const outgoingPaymentId = e.value.id;
-        return this.openPaymentsService.outgoingPaymentWaitForCompletion(
-          outgoingPaymentId,
-          { signal, maxAttempts: 10 },
-        );
+        return this.openPaymentsService.pollOutgoingPayment(outgoingPaymentId, {
+          signal,
+          maxAttempts: 10,
+        });
       }),
     );
 

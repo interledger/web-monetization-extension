@@ -882,7 +882,8 @@ export class OpenPaymentsService {
     return outgoingPayment;
   }
 
-  async outgoingPaymentWaitForCompletion(
+  /** Polls for the completion of an outgoing payment */
+  async pollOutgoingPayment(
     outgoingPaymentId: OutgoingPayment['id'],
     {
       signal,
@@ -891,6 +892,7 @@ export class OpenPaymentsService {
   ) {
     let attempt = 0;
     let outgoingPayment: undefined | OutgoingPayment;
+    await sleep(2500);
     while (++attempt <= maxAttempts) {
       signal?.throwIfAborted();
       try {
@@ -904,6 +906,7 @@ export class OpenPaymentsService {
         if (
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
         ) {
+          // completed
           return outgoingPayment;
         }
         signal?.throwIfAborted();
