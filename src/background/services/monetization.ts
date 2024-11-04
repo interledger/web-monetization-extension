@@ -272,7 +272,6 @@ export class MonetizationService {
     results = await Promise.allSettled(
       results.map((e) => {
         if (e.status !== 'fulfilled') throw e.reason;
-        if (!e.value) return e.value;
         const outgoingPaymentId = e.value.id;
         return this.openPaymentsService.pollOutgoingPayment(outgoingPaymentId, {
           signal,
@@ -284,7 +283,7 @@ export class MonetizationService {
     const totalSentAmount = results
       .filter((e) => e.status === 'fulfilled')
       .reduce(
-        (acc, curr) => acc + BigInt(curr.value?.debitAmount?.value ?? 0),
+        (acc, curr) => acc + BigInt(curr.value.debitAmount?.value ?? 0),
         0n,
       );
     if (totalSentAmount === 0n) {
