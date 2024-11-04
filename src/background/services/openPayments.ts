@@ -884,20 +884,21 @@ export class OpenPaymentsService {
 
   /** Polls for the completion of an outgoing payment */
   async pollOutgoingPayment(
-    outgoingPaymentId: OutgoingPayment['id'],
+    outgoingPayment: OutgoingPayment,
     {
       signal,
       maxAttempts = 10,
     }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
-  ) {
+  ): Promise<
+    [error?: Error, outgoingPayment?: OutgoingPayment] | [error: Error]
+  > {
     let attempt = 0;
-    let outgoingPayment: undefined | OutgoingPayment;
     await sleep(2500);
     while (++attempt <= maxAttempts) {
-      signal?.throwIfAborted();
       try {
+        signal?.throwIfAborted();
         outgoingPayment = await this.client!.outgoingPayment.get({
-          url: outgoingPaymentId,
+          url: outgoingPayment.id,
           accessToken: this.token.value,
         });
         if (outgoingPayment.failed) {
@@ -907,7 +908,7 @@ export class OpenPaymentsService {
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
         ) {
           // completed
-          return outgoingPayment;
+          return [undefined, outgoingPayment];
         }
         signal?.throwIfAborted();
         await sleep(1500);
@@ -915,11 +916,15 @@ export class OpenPaymentsService {
         if (isTokenExpiredError(error)) {
           await this.rotateToken();
         } else {
-          throw error;
+          return [error, outgoingPayment];
         }
       }
     }
-    throw new ErrorWithKey('pay_error_outgoingPaymentCompletionLimitReached');
+
+    return [
+      new ErrorWithKey('pay_error_outgoingPaymentCompletionLimitReached'),
+      outgoingPayment,
+    ];
   }
 
   async probeDebitAmount(

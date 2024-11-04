@@ -270,13 +270,17 @@ export class MonetizationService {
     );
     const signal = AbortSignal.timeout(8_000); // can use other signals as well, such as popup closed etc.
     results = await Promise.allSettled(
-      results.map((e) => {
+      results.map(async (e) => {
         if (e.status !== 'fulfilled') throw e.reason;
-        const outgoingPaymentId = e.value.id;
-        return this.openPaymentsService.pollOutgoingPayment(outgoingPaymentId, {
-          signal,
-          maxAttempts: 10,
-        });
+        const [err, outgoingPayment] =
+          await this.openPaymentsService.pollOutgoingPayment(e.value, {
+            signal,
+            maxAttempts: 10,
+          });
+        if (outgoingPayment) {
+          return outgoingPayment;
+        }
+        throw err;
       }),
     );
 
