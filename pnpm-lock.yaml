@@ -34,8 +34,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0
       crypto-browserify:
-        specifier: ^3.12.0
-        version: 3.12.0
+        specifier: ^3.12.1
+        version: 3.12.1
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -99,7 +99,7 @@ importers:
         version: 0.0.272
       '@types/github-script':
         specifier: github:actions/github-script
-        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2
+        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4
       '@types/jest':
         specifier: ^29.5.13
         version: 29.5.13
@@ -1895,8 +1895,9 @@ packages:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
     engines: {node: '>= 8'}
 
-  crypto-browserify@3.12.0:
-    resolution: {integrity: sha512-fz4spIh+znjO2VjL+IdhEpRJ3YN6sMzITSBijk6FK2UvTqruSQW+/cCZTSNsMiZNvUeq0CqurF+dAbyiGOY6Wg==}
+  crypto-browserify@3.12.1:
+    resolution: {integrity: sha512-r4ESw/IlusD17lgQi1O20Fa3qNnsckR126TdUuBgAu7GBYSIPvdNyONd3Zrxh0xCwA4+6w/TDArBPsMvhur+KQ==}
+    engines: {node: '>= 0.10'}
 
   css.escape@1.5.1:
     resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
@@ -2443,8 +2444,8 @@ packages:
   get-tsconfig@4.7.5:
     resolution: {integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==}
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
-    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2}
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4:
+    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4}
     version: 7.0.1
     engines: {node: '>=20.0.0 <21.0.0'}
 
@@ -6105,7 +6106,7 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  crypto-browserify@3.12.0:
+  crypto-browserify@3.12.1:
     dependencies:
       browserify-cipher: 1.0.1
       browserify-sign: 4.2.3
@@ -6113,6 +6114,7 @@ snapshots:
       create-hash: 1.2.0
       create-hmac: 1.1.7
       diffie-hellman: 5.0.3
+      hash-base: 3.0.4
       inherits: 2.0.4
       pbkdf2: 3.1.2
       public-encrypt: 4.0.3
@@ -6814,7 +6816,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4:
     dependencies:
       '@actions/core': 1.10.1
       '@actions/exec': 1.1.1
