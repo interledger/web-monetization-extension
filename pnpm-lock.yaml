@@ -77,8 +77,8 @@ importers:
         version: 0.12.0
     devDependencies:
       '@jgoz/esbuild-plugin-typecheck':
-        specifier: ^4.0.1
-        version: 4.0.1(esbuild@0.24.0)(typescript@5.6.3)
+        specifier: ^4.0.2
+        version: 4.0.2(esbuild@0.24.0)(typescript@5.6.3)
       '@playwright/test':
         specifier: ^1.47.2
         version: 1.47.2
@@ -99,7 +99,7 @@ importers:
         version: 0.0.272
       '@types/github-script':
         specifier: github:actions/github-script
-        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2
+        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4
       '@types/jest':
         specifier: ^29.5.13
         version: 29.5.13
@@ -827,11 +827,11 @@ packages:
     resolution: {integrity: sha512-u3UPsIilWKOM3F9CXtrG8LEJmNxwoCQC/XVj4IKYXvvpx7QIi/Kg1LI5uDmDpKlac62NUtX7eLjRh+jVZcLOzw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  '@jgoz/esbuild-plugin-typecheck@4.0.1':
-    resolution: {integrity: sha512-0gATXkXWzKIZpC8hvZfHW4/cdwVyGaeO154/iVeOXWcxoAPnESJ9cgvTtl+QXiR4K/QMeeu2Ptcr472L7paMlQ==}
+  '@jgoz/esbuild-plugin-typecheck@4.0.2':
+    resolution: {integrity: sha512-EI0b2xLA+12YauKdXZ8wbdn3cKaKPBsh20S4Y0DyPENhhUALKYX6InuDMBD+9EKDHhcTqpCBkQVutFyx6l4RJA==}
     peerDependencies:
-      '@jgoz/esbuild-plugin-livereload': '>=2.1.1'
-      esbuild: 0.17.x || 0.18.x || 0.19.x || 0.20.x || 0.21.x || 0.22.x || 0.23.x
+      '@jgoz/esbuild-plugin-livereload': '>=2.1.2'
+      esbuild: 0.17.x || 0.18.x || 0.19.x || 0.20.x || 0.21.x || 0.22.x || 0.23.x || 0.24.x
       typescript: '>= 3.5'
     peerDependenciesMeta:
       '@jgoz/esbuild-plugin-livereload':
@@ -2443,8 +2443,8 @@ packages:
   get-tsconfig@4.7.5:
     resolution: {integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==}
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
-    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2}
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4:
+    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4}
     version: 7.0.1
     engines: {node: '>=20.0.0 <21.0.0'}
 
@@ -4941,7 +4941,7 @@ snapshots:
       '@types/yargs': 17.0.32
       chalk: 4.1.2
 
-  '@jgoz/esbuild-plugin-typecheck@4.0.1(esbuild@0.24.0)(typescript@5.6.3)':
+  '@jgoz/esbuild-plugin-typecheck@4.0.2(esbuild@0.24.0)(typescript@5.6.3)':
     dependencies:
       esbuild: 0.24.0
       typescript: 5.6.3
@@ -6814,7 +6814,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4:
     dependencies:
       '@actions/core': 1.10.1
       '@actions/exec': 1.1.1
