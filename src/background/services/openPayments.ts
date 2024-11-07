@@ -908,8 +908,7 @@ export class OpenPaymentsService {
         if (
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
         ) {
-          // completed
-          return outgoingPayment;
+          return outgoingPayment; // completed
         }
         signal?.throwIfAborted();
         await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
