@@ -16,8 +16,8 @@ importers:
   .:
     dependencies:
       '@interledger/open-payments':
-        specifier: ^6.13.1
-        version: 6.13.1
+        specifier: ^6.13.2
+        version: 6.13.2
       '@noble/ed25519':
         specifier: ^2.1.0
         version: 2.1.0
@@ -99,7 +99,7 @@ importers:
         version: 0.0.272
       '@types/github-script':
         specifier: github:actions/github-script
-        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2
+        version: github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4
       '@types/jest':
         specifier: ^29.5.13
         version: 29.5.13
@@ -238,8 +238,8 @@ packages:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
 
-  '@apidevtools/json-schema-ref-parser@10.1.0':
-    resolution: {integrity: sha512-3e+viyMuXdrcK8v5pvP+SDoAQ77FH6OyRmuK48SZKmdHJRFm87RsSs8qm6kP39a/pOPURByJw+OXzQIqcfmKtA==}
+  '@apidevtools/json-schema-ref-parser@11.7.2':
+    resolution: {integrity: sha512-4gY54eEGEstClvEkGnwVkTkrx0sqwemEFG5OSRRn3tD91XH0+Q8XIkYIfo7IwEWPpJZwILb9GUXeShtplRc/eA==}
     engines: {node: '>= 16'}
 
   '@babel/code-frame@7.23.5':
@@ -743,11 +743,11 @@ packages:
   '@interledger/http-signature-utils@2.0.2':
     resolution: {integrity: sha512-gTAPFMt7xwG1zv1rbrltcZTAqOw/ZJwkVdnNjQzu5G9JTfvJQzS6pcpiVUej1cblpewotbOzosgdX00f93q9zA==}
 
-  '@interledger/open-payments@6.13.1':
-    resolution: {integrity: sha512-LMNj051ee473ylQ1fPD8XUR0U/TCxQo1kaD/8iXZ85J/Hmp7Na5wTJ3WrYfk4HbW7O6efWuDvD4PqMSym2rmiQ==}
+  '@interledger/open-payments@6.13.2':
+    resolution: {integrity: sha512-siAnS+Rp+SEZtm+YSWVHWCA4EJB7a6pKBZ9SR61UV1kgrzVzVHAZ8HA0cNTteLEEdFuW1xqVv8zqz27lxdvLgA==}
 
-  '@interledger/openapi@2.0.1':
-    resolution: {integrity: sha512-eS5mzfb6sHa0M3YvlYl1ahlTQn7Jng2VF++agS5XeL93ZrFnSaniyARNdLU0r/tJcUQxKLVSCcoKn84mU9X+pg==}
+  '@interledger/openapi@2.0.2':
+    resolution: {integrity: sha512-HOQnALmRtRkGkh63OnFhoCVsK4BKhQosJyoBCe6Cuu+jp8Oj2fAqTNz8ys+h6s30cJcIpk2UBlsj4wZ3pj26Ug==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -1318,12 +1318,6 @@ packages:
 
   '@types/less@3.0.6':
     resolution: {integrity: sha512-PecSzorDGdabF57OBeQO/xFbAkYWo88g4Xvnsx7LRwqLC17I7OoKtA3bQB9uXkY6UkMWCOsA8HSVpaoitscdXw==}
-
-  '@types/lodash.clonedeep@4.5.9':
-    resolution: {integrity: sha512-19429mWC+FyaAhOLzsS8kZUsI+/GmBAQ0HFiCPsKGU+7pBXOQWhyrY6xNNDwUSX8SMZMJvuFVMF9O5dQOlQK9Q==}
-
-  '@types/lodash@4.17.1':
-    resolution: {integrity: sha512-X+2qazGS3jxLAIz5JDXDzglAF3KpijdhFxlf/V1+hEsOUc+HnWi81L/uv/EvGuV90WY+7mPGFCUDGfQC3Gj95Q==}
 
   '@types/node@20.16.9':
     resolution: {integrity: sha512-rkvIVJxsOfBejxK7I0FO5sa2WxFmJCzoDwcd88+fq/CUfynNywTo/1/T6hyFz22CyztsnLS9nVlHOnTI36RH5w==}
@@ -2443,8 +2437,8 @@ packages:
   get-tsconfig@4.7.5:
     resolution: {integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==}
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
-    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2}
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4:
+    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4}
     version: 7.0.1
     engines: {node: '>=20.0.0 <21.0.0'}
 
@@ -3068,9 +3062,6 @@ packages:
 
   lodash.camelcase@4.3.0:
     resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
-
-  lodash.clonedeep@4.5.0:
-    resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
 
   lodash.memoize@4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
@@ -4330,13 +4321,11 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.24
 
-  '@apidevtools/json-schema-ref-parser@10.1.0':
+  '@apidevtools/json-schema-ref-parser@11.7.2':
     dependencies:
       '@jsdevtools/ono': 7.1.3
       '@types/json-schema': 7.0.15
-      '@types/lodash.clonedeep': 4.5.9
       js-yaml: 4.1.0
-      lodash.clonedeep: 4.5.0
 
   '@babel/code-frame@7.23.5':
     dependencies:
@@ -4734,10 +4723,10 @@ snapshots:
       jose: 4.15.4
       uuid: 9.0.1
 
-  '@interledger/open-payments@6.13.1':
+  '@interledger/open-payments@6.13.2':
     dependencies:
       '@interledger/http-signature-utils': 2.0.2
-      '@interledger/openapi': 2.0.1
+      '@interledger/openapi': 2.0.2
       base64url: 3.0.1
       http-message-signatures: 0.1.2
       ky: 1.2.4
@@ -4746,9 +4735,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@interledger/openapi@2.0.1':
+  '@interledger/openapi@2.0.2':
     dependencies:
-      '@apidevtools/json-schema-ref-parser': 10.1.0
+      '@apidevtools/json-schema-ref-parser': 11.7.2
       ajv: 8.13.0
       ajv-formats: 2.1.1(ajv@8.13.0)
       koa: 2.15.3
@@ -5391,12 +5380,6 @@ snapshots:
   '@types/json-schema@7.0.15': {}
 
   '@types/less@3.0.6': {}
-
-  '@types/lodash.clonedeep@4.5.9':
-    dependencies:
-      '@types/lodash': 4.17.1
-
-  '@types/lodash@4.17.1': {}
 
   '@types/node@20.16.9':
     dependencies:
@@ -6814,7 +6797,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  github-script@https://codeload.github.com/actions/github-script/tar.gz/660ec11d825b714d112a6bb9727086bc2cc500b2:
+  github-script@https://codeload.github.com/actions/github-script/tar.gz/4020e461acd7a80762cdfff123a1fde368246fa4:
     dependencies:
       '@actions/core': 1.10.1
       '@actions/exec': 1.1.1
@@ -7684,8 +7667,6 @@ snapshots:
       p-locate: 5.0.0
 
   lodash.camelcase@4.3.0: {}
-
-  lodash.clonedeep@4.5.0: {}
 
   lodash.memoize@4.1.2: {}
 
