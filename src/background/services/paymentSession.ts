@@ -415,7 +415,7 @@ export class PaymentSession {
         throw e;
       } else if (isTokenExpiredError(e)) {
         await this.openPaymentsService.rotateToken();
-        return await this.pay(amount);
+        return await this.pay(amount); // retry
       } else {
         throw e;
       }
