@@ -9,6 +9,7 @@ import { transformBalance } from '@/popup/lib/utils';
 import {
   isInvalidReceiverError,
   isKeyRevokedError,
+  isMissingGrantPermissionsError,
   isNonPositiveAmountError,
   isOutOfBalanceError,
   isTokenExpiredError,
@@ -409,6 +410,8 @@ export class PaymentSession {
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
+        throw e;
+      } else if (isMissingGrantPermissionsError(e)) {
         throw e;
       } else if (isTokenExpiredError(e)) {
         await this.openPaymentsService.rotateToken();

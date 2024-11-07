@@ -6,11 +6,18 @@ import {
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
 import { computeRate, getSender, getTabId } from '../utils';
-import { isOutOfBalanceError } from './openPayments';
-import { isOkState, removeQueryParams } from '@/shared/helpers';
+import {
+  isMissingGrantPermissionsError,
+  isOutOfBalanceError,
+} from './openPayments';
+import {
+  OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
+  OUTGOING_PAYMENT_POLLING_MAX_DURATION,
+} from '@/background/config';
+import { isErrorWithKey, isOkState, removeQueryParams } from '@/shared/helpers';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
 import type { Cradle } from '../container';
-
+import type { OutgoingPayment } from '@interledger/open-payments';
 export class MonetizationService {
   private logger: Cradle['logger'];
   private t: Cradle['t'];
@@ -265,46 +272,65 @@ export class MonetizationService {
 
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
-    let results = await Promise.allSettled(
+    const results = await Promise.allSettled(
       payableSessions.map((session) => session.pay(splitAmount)),
     );
-    const signal = AbortSignal.timeout(8_000); // can use other signals as well, such as popup closed etc.
-    results = await Promise.allSettled(
-      results.map(async (e) => {
-        if (e.status !== 'fulfilled') throw e.reason;
-        const [err, outgoingPayment] =
-          await this.openPaymentsService.pollOutgoingPayment(e.value, {
-            signal,
-            maxAttempts: 10,
-          });
-        if (outgoingPayment) {
-          return outgoingPayment;
-        }
-        throw err;
-      }),
+
+    const outgoingPayments = new Map<string, OutgoingPayment | null>(
+      payableSessions.map((s, i) => [
+        s.id,
+        results[i].status === 'fulfilled' ? results[i].value : null,
+      ]),
+    );
+    this.logger.debug('polling outgoing payments for completion');
+    const signal = AbortSignal.timeout(OUTGOING_PAYMENT_POLLING_MAX_DURATION); // can use other signals as well, such as popup closed etc.
+    const pollingResults = await Promise.allSettled(
+      [...outgoingPayments]
+        .filter(([, outgoingPayment]) => outgoingPayment !== null)
+        .map(async ([sessionId, outgoingPaymentInitial]) => {
+          for await (const outgoingPayment of this.openPaymentsService.pollOutgoingPayment(
+            outgoingPaymentInitial!,
+            { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
+          )) {
+            outgoingPayments.set(sessionId, outgoingPayment);
+          }
+          return outgoingPayments.get(sessionId)!;
+        }),
     );
 
-    const totalSentAmount = results
-      .filter((e) => e.status === 'fulfilled')
-      .reduce(
-        (acc, curr) => acc + BigInt(curr.value.debitAmount?.value ?? 0),
-        0n,
-      );
+    const totalSentAmount = [...outgoingPayments.values()].reduce(
+      (acc, op) => acc + BigInt(op?.sentAmount?.value ?? 0),
+      0n,
+    );
     if (totalSentAmount === 0n) {
+      const pollingErrors = pollingResults
+        .filter((e) => e.status === 'rejected')
+        .map((e) => e.reason);
+      if (pollingErrors.some((e) => isMissingGrantPermissionsError(e))) {
+        // This permission request to read outgoing payments was added at a
+        // later time, so existing connected wallets won't have this permission.
+        // Assume as success for backward compatibility.
+        return;
+      }
+
       const isNotEnoughFunds = results
         .filter((e) => e.status === 'rejected')
         .some((e) => isOutOfBalanceError(e.reason));
-      // TODO: If sentAmount is zero in all outgoing payments, and
-      // pay_error_outgoingPaymentCompletionLimitReached, it also likely means
-      // we don't have enough funds.
-      //
-      // TODO: If sentAmount is non-zero but not equal to debitAmount, show
-      // warning that not entire payment went through (yet?)
-      if (isNotEnoughFunds) {
+      const isPollingLimitReached = pollingErrors.some(
+        (err) =>
+          (isErrorWithKey(err) &&
+            err.key === 'pay_error_outgoingPaymentCompletionLimitReached') ||
+          (err instanceof DOMException && err.name === 'TimeoutError'),
+      );
+
+      if (isNotEnoughFunds || isPollingLimitReached) {
         throw new Error(this.t('pay_error_notEnoughFunds'));
       }
       throw new Error('Could not facilitate payment for current website.');
     }
+
+    // TODO: If sentAmount is non-zero but less than to debitAmount, show
+    // warning that not entire payment went through (yet?)
   }
 
   private canTryPayment(

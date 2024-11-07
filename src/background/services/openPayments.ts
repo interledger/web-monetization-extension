@@ -45,6 +45,8 @@ import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY,
+  OUTGOING_PAYMENT_POLLING_INTERVAL,
+  OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
 } from '../config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import type { Cradle } from '@/background/container';
@@ -883,17 +885,15 @@ export class OpenPaymentsService {
   }
 
   /** Polls for the completion of an outgoing payment */
-  async pollOutgoingPayment(
+  async *pollOutgoingPayment(
     outgoingPayment: OutgoingPayment,
     {
       signal,
       maxAttempts = 10,
     }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
-  ): Promise<
-    [error?: Error, outgoingPayment?: OutgoingPayment] | [error: Error]
-  > {
+  ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
     let attempt = 0;
-    await sleep(2500);
+    await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
     while (++attempt <= maxAttempts) {
       try {
         signal?.throwIfAborted();
@@ -901,6 +901,7 @@ export class OpenPaymentsService {
           url: outgoingPayment.id,
           accessToken: this.token.value,
         });
+        yield outgoingPayment;
         if (outgoingPayment.failed) {
           throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
         }
@@ -908,23 +909,22 @@ export class OpenPaymentsService {
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
         ) {
           // completed
-          return [undefined, outgoingPayment];
+          return outgoingPayment;
         }
         signal?.throwIfAborted();
-        await sleep(1500);
+        await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
       } catch (error) {
-        if (isTokenExpiredError(error)) {
+        if (isMissingGrantPermissionsError(error)) {
+          throw error;
+        } else if (isTokenExpiredError(error)) {
           await this.rotateToken();
         } else {
-          return [error, outgoingPayment];
+          throw error;
         }
       }
     }
 
-    return [
-      new ErrorWithKey('pay_error_outgoingPaymentCompletionLimitReached'),
-      outgoingPayment,
-    ];
+    throw new ErrorWithKey('pay_error_outgoingPaymentCompletionLimitReached');
   }
 
   async probeDebitAmount(
@@ -1067,6 +1067,15 @@ export const isNonPositiveAmountError = (error: any) => {
 export const isOutOfBalanceError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 403 && error.description === 'unauthorized';
+};
+
+export const isMissingGrantPermissionsError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false;
+  return (
+    error.status === 403 &&
+    (error.description === 'Insufficient Grant' /* Fynbos */ ||
+      error.description === 'Inactive Token')
+  );
 };
 
 export const isInvalidReceiverError = (error: any) => {
