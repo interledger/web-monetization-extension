@@ -16,8 +16,9 @@ import {
 } from '@/background/config';
 import { isErrorWithKey, isOkState, removeQueryParams } from '@/shared/helpers';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
-import type { Cradle } from '../container';
 import type { OutgoingPayment } from '@interledger/open-payments';
+import type { Cradle } from '../container';
+
 export class MonetizationService {
   private logger: Cradle['logger'];
   private t: Cradle['t'];
