@@ -289,7 +289,7 @@ export class MonetizationService {
         .filter(([, outgoingPayment]) => outgoingPayment !== null)
         .map(async ([sessionId, outgoingPaymentInitial]) => {
           for await (const outgoingPayment of this.openPaymentsService.pollOutgoingPayment(
-            outgoingPaymentInitial!,
+            outgoingPaymentInitial!.id,
             { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
           )) {
             outgoingPayments.set(sessionId, outgoingPayment);

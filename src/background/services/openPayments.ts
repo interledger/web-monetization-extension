@@ -886,7 +886,7 @@ export class OpenPaymentsService {
 
   /** Polls for the completion of an outgoing payment */
   async *pollOutgoingPayment(
-    outgoingPayment: OutgoingPayment,
+    outgoingPaymentId: OutgoingPayment['id'],
     {
       signal,
       maxAttempts = 10,
@@ -897,8 +897,8 @@ export class OpenPaymentsService {
     while (++attempt <= maxAttempts) {
       try {
         signal?.throwIfAborted();
-        outgoingPayment = await this.client!.outgoingPayment.get({
-          url: outgoingPayment.id,
+        const outgoingPayment = await this.client!.outgoingPayment.get({
+          url: outgoingPaymentId,
           accessToken: this.token.value,
         });
         yield outgoingPayment;
