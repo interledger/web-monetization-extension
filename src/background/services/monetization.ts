@@ -1,5 +1,7 @@
 import type { Runtime, Tabs } from 'webextension-polyfill';
-import {
+import type {
+  PayWebsitePayload,
+  PayWebsiteResponse,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload,
@@ -14,7 +16,14 @@ import {
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
   OUTGOING_PAYMENT_POLLING_MAX_DURATION,
 } from '@/background/config';
-import { isErrorWithKey, isOkState, removeQueryParams } from '@/shared/helpers';
+import {
+  ErrorWithKey,
+  formatCurrency,
+  isErrorWithKey,
+  isOkState,
+  removeQueryParams,
+} from '@/shared/helpers';
+import { transformBalance } from '@/popup/lib/utils';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
 import type { OutgoingPayment } from '@interledger/open-payments';
 import type { Cradle } from '../container';
@@ -257,7 +266,7 @@ export class MonetizationService {
     }
   }
 
-  async pay(amount: string) {
+  async pay({ amount }: PayWebsitePayload): Promise<PayWebsiteResponse> {
     const tab = await this.windowState.getCurrentTab();
     if (!tab || !tab.id) {
       throw new Error('Unexpected error: could not find active tab.');
@@ -270,6 +279,9 @@ export class MonetizationService {
       }
       throw new Error(this.t('pay_error_notMonetized'));
     }
+
+    const { walletAddress } = await this.storage.get(['walletAddress']);
+    const { url: tabUrl } = this.tabState.getPopupTabData(tab);
 
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
@@ -307,11 +319,23 @@ export class MonetizationService {
       const pollingErrors = pollingResults
         .filter((e) => e.status === 'rejected')
         .map((e) => e.reason);
+
       if (pollingErrors.some((e) => isMissingGrantPermissionsError(e))) {
         // This permission request to read outgoing payments was added at a
         // later time, so existing connected wallets won't have this permission.
         // Assume as success for backward compatibility.
-        return;
+        const totalDebitAmount = [...outgoingPayments.values()].reduce(
+          (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
+          0n,
+        );
+        const { assetScale, assetCode } = walletAddress!;
+        const sentAmount = transformBalance(totalDebitAmount, assetScale);
+        return {
+          type: 'success',
+          sentAmount: sentAmount,
+          sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+          url: tabUrl,
+        };
       }
 
       const isNotEnoughFunds = results
@@ -320,18 +344,31 @@ export class MonetizationService {
       const isPollingLimitReached = pollingErrors.some(
         (err) =>
           (isErrorWithKey(err) &&
-            err.key === 'pay_error_outgoingPaymentCompletionLimitReached') ||
+            err.key === 'pay_warn_pay_warn_outgoingPaymentPollingIncomplete') ||
           (err instanceof DOMException && err.name === 'TimeoutError'),
       );
 
-      if (isNotEnoughFunds || isPollingLimitReached) {
-        throw new Error(this.t('pay_error_notEnoughFunds'));
+      if (isNotEnoughFunds) {
+        throw new ErrorWithKey('pay_error_notEnoughFunds');
       }
-      throw new Error('Could not facilitate payment for current website.');
+      if (isPollingLimitReached) {
+        throw new ErrorWithKey(
+          'pay_warn_pay_warn_outgoingPaymentPollingIncomplete',
+        );
+      }
+      throw new ErrorWithKey('pay_error_general');
     }
 
     // TODO: If sentAmount is non-zero but less than to debitAmount, show
     // warning that not entire payment went through (yet?)
+    const { assetCode, assetScale } = walletAddress!;
+    const sentAmount = transformBalance(totalSentAmount, assetScale);
+    return {
+      type: 'success',
+      sentAmount: sentAmount,
+      sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+      url: tabUrl,
+    };
   }
 
   private canTryPayment(

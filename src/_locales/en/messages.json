@@ -48,15 +48,21 @@
   "keyRevoked_action_reconnectBtn": {
     "message": "Reconnect"
   },
+  "pay_action_pay": {
+    "message": "Send now"
+  },
   "pay_error_notEnoughFunds": {
     "message": "Insufficient funds to complete the payment."
   },
   "pay_error_outgoingPaymentFailed": {
     "message": "Payment failed."
   },
-  "pay_error_outgoingPaymentCompletionLimitReached": {
-    "message": "Payment not finished yet.",
-    "description": "We were polling for completion, but it's not finished yet"
+  "pay_warn_pay_warn_outgoingPaymentPollingIncomplete": {
+    "message": "We could not verify if the payment was completed. Please ensure you've enough funds in your wallet.",
+    "description": "We were polling for completion, but it's not finished yet - could mean it'll never succeed or it'll take a long time to settle."
+  },
+  "pay_error_general": {
+    "message": "We were unable to process this transaction. Please try again!"
   },
   "pay_error_invalidReceivers": {
     "message": "At the moment, you cannot pay this website.",
@@ -64,6 +70,13 @@
   },
   "pay_error_notMonetized": {
     "message": "This website is not monetized."
+  },
+  "pay_state_success": {
+    "message": "Thanks for your support! $AMOUNT$ was sent to $WEBSITE_URL$.",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" },
+      "WEBSITE_URL": { "content": "$2", "example": "https://example.com" }
+    }
   },
   "outOfFunds_error_title": {
     "message": "Out of funds"

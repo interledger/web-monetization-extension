@@ -1,22 +1,14 @@
 import React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import { Button } from '@/popup/components/ui/Button';
-import { Spinner } from '@/popup/components/Icons';
-import { ErrorMessage } from '@/popup/components/ErrorMessage';
 import { InputAmount } from '@/popup/components/InputAmount';
-import { cn, ErrorWithKeyLike } from '@/shared/helpers';
+import { cn, type ErrorWithKeyLike } from '@/shared/helpers';
 import { useMessage, usePopupState, useTranslation } from '@/popup/lib/context';
 import { roundWithPrecision } from '@/popup/lib/utils';
 
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'amount' | 'pay';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
-
-const BUTTON_STATE = {
-  idle: 'Send now',
-  loading: <Spinner className="w-6 animate-spin" />,
-  success: 'Payment successful',
-};
 
 export const PayWebsiteForm = () => {
   const t = useTranslation();
@@ -42,30 +34,36 @@ export const PayWebsiteForm = () => {
 
   const form = React.useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [buttonState, setButtonState] =
-    React.useState<keyof typeof BUTTON_STATE>('idle');
-  const isIdle = React.useMemo(() => buttonState === 'idle', [buttonState]);
+  const [msg, setMsg] = React.useState<null | {
+    type: 'success' | 'warn';
+    message: string;
+  }>(null);
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    if (buttonState !== 'idle') return;
+    if (isSubmitting) return;
     setErrors({ amount: null, pay: null });
+    setMsg(null);
 
-    setButtonState('loading');
     setIsSubmitting(true);
 
     const response = await message.send('PAY_WEBSITE', { amount });
 
     if (!response.success) {
-      setButtonState('idle');
-      setErrors((prev) => ({ ...prev, pay: toErrorInfo(response.message) }));
+      setErrors((prev) => ({
+        ...prev,
+        pay: toErrorInfo(response.error || response.message),
+      }));
     } else {
-      setButtonState('success');
       setAmount('');
+      const { type, url, sentAmountFormatted } = response.payload;
+      const msg = t('pay_state_success', [sentAmountFormatted, url]);
+      if (type === 'success') {
+        setMsg({ type: 'success', message: msg });
+      } else {
+        setMsg({ type: 'warn', message: msg });
+      }
       form.current?.reset();
-      setTimeout(() => {
-        setButtonState('idle');
-      }, 3000);
     }
     setIsSubmitting(false);
   };
@@ -73,23 +71,35 @@ export const PayWebsiteForm = () => {
   return (
     <form
       ref={form}
-      className="space-y-4 rounded-md bg-gray-50 px-4 py-4 pb-12"
+      className={cn(
+        'space-y-2 rounded-md bg-gray-50 px-4 py-4',
+        !errors.pay && 'pb-12',
+      )}
       onSubmit={onSubmit}
     >
       <AnimatePresence mode="sync">
-        {errors.pay ? (
+        {errors.pay || !!msg ? (
           <m.div
-            transition={{
-              duration: 0.3,
-              bounce: 0,
-            }}
+            transition={{ duration: 0.3, bounce: 0 }}
             initial={{ height: 0 }}
             animate={{ height: 'auto' }}
             exit={{ height: 0 }}
             className="overflow-hidden"
-            key="form-error"
           >
-            <ErrorMessage error={errors.pay.message} />
+            <div
+              className={cn(
+                'break-word flex items-center gap-2 rounded-xl border px-3 py-2',
+                msg?.type === 'success'
+                  ? 'border-green-500 bg-green-500/10 text-secondary-dark'
+                  : errors.pay?.info?.key.includes('_warn_') ||
+                      msg?.type === 'warn'
+                    ? 'border-orange-600 bg-orange-100 text-orange-800'
+                    : 'border-red-300 bg-red-500/10',
+              )}
+              role="alert"
+            >
+              <div>{msg?.message || errors.pay?.message}</div>
+            </div>
           </m.div>
         ) : null}
       </AnimatePresence>
@@ -112,6 +122,7 @@ export const PayWebsiteForm = () => {
         errorMessage={errors.amount?.message}
         onChange={(amountValue) => {
           setErrors({ pay: null, amount: null });
+          setMsg(null);
           setAmount(amountValue);
         }}
         onError={(error) =>
@@ -121,13 +132,10 @@ export const PayWebsiteForm = () => {
 
       <Button
         type="submit"
-        className={cn(
-          'w-full',
-          !isIdle ? 'cursor-not-allowed' : null,
-          !isIdle && !isSubmitting ? 'disabled:opacity-100' : null,
-        )}
-        disabled={isSubmitting || !isIdle || !amount || !!errors.amount}
-        aria-label="Send now"
+        className={cn('w-full', !isSubmitting ? 'disabled:opacity-100' : null)}
+        disabled={isSubmitting || !amount || !!errors.amount}
+        loading={isSubmitting}
+        aria-label={t('pay_action_pay')}
       >
         <AnimatePresence mode="popLayout" initial={false}>
           <m.span
@@ -135,9 +143,8 @@ export const PayWebsiteForm = () => {
             initial={{ opacity: 0, y: -25 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 25 }}
-            key={buttonState}
           >
-            {BUTTON_STATE[buttonState]}
+            {t('pay_action_pay')}
           </m.span>
         </AnimatePresence>
       </Button>

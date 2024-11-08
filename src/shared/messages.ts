@@ -106,6 +106,13 @@ export interface PayWebsitePayload {
   amount: string;
 }
 
+export interface PayWebsiteResponse {
+  type: 'success' | 'warn';
+  url: string;
+  sentAmount: string;
+  sentAmountFormatted: string;
+}
+
 export interface UpdateRateOfPayPayload {
   rateOfPay: string;
 }
@@ -147,7 +154,7 @@ export type PopupToBackgroundMessage = {
   };
   PAY_WEBSITE: {
     input: PayWebsitePayload;
-    output: never;
+    output: PayWebsiteResponse;
   };
   UPDATE_RATE_OF_PAY: {
     input: UpdateRateOfPayPayload;

@@ -923,7 +923,9 @@ export class OpenPaymentsService {
       }
     }
 
-    throw new ErrorWithKey('pay_error_outgoingPaymentCompletionLimitReached');
+    throw new ErrorWithKey(
+      'pay_warn_pay_warn_outgoingPaymentPollingIncomplete',
+    );
   }
 
   async probeDebitAmount(
