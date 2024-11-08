@@ -15,15 +15,18 @@ Make sure you run `pnpm build chrome` before running tests.
 1. Copy `tests/e2e/.env.example` to `tests/e2e/.env`
 2. Update `tests/e2e/.env` with your secrets.
 
-| Environment Variable      | Description                                                 | Secret? |
-| ------------------------- | ----------------------------------------------------------- | ------- |
-| `TEST_WALLET_ORIGIN`      | URL origin of the test wallet (e.g. https://rafiki.money)   | -       |
-| `TEST_WALLET_USERNAME`    | -- Login email for the test wallet                          | -       |
-| `TEST_WALLET_PASSWORD`    | -- Login password for the test wallet                       | Yes     |
-| `TEST_WALLET_ADDRESS_URL` | Your wallet address URL that will be connected to extension | -       |
-| `TEST_WALLET_KEY_ID`      | ID of the key that will be connected to extension (UUID v4) | -       |
-| `TEST_WALLET_PRIVATE_KEY` | Private key (hex-encoded Ed25519 private key)               | Yes     |
-| `TEST_WALLET_PUBLIC_KEY`  | Public key (base64-encoded Ed25519 public key)              | -       |
+| Environment Variable        | Description                                                 | Secret? | Optional? |
+| --------------------------- | ----------------------------------------------------------- | ------- | --------- |
+| `TEST_WALLET_ORIGIN`        | URL origin of the test wallet (e.g. https://rafiki.money)   | -       | -         |
+| `TEST_WALLET_USERNAME`      | -- Login email for the test wallet                          | -       | -         |
+| `TEST_WALLET_PASSWORD`      | -- Login password for the test wallet                       | Yes     | -         |
+| `TEST_WALLET_ADDRESS_URL`   | Your wallet address URL that will be connected to extension | -       | -         |
+| `TEST_WALLET_KEY_ID`        | ID of the key that will be connected to extension (UUID v4) | -       | -         |
+| `TEST_WALLET_PRIVATE_KEY`   | Private key (hex-encoded Ed25519 private key)               | Yes     | -         |
+| `TEST_WALLET_PUBLIC_KEY`    | Public key (base64-encoded Ed25519 public key)              | -       | -         |
+| `FYNBOS_WALLET_ADDRESS_URL` | Fynbos wallet address (used for Fynbos specific tests only) | -       | Yes       |
+| `FYNBOS_USERNAME`           | -- Login email for Fynbos wallet                            | -       | Yes       |
+| `FYNBOS_PASSWORD`           | -- Login password for Fynbos wallet                         | Yes     | Yes       |
 
 To get the `TEST_WALLET_KEY_ID`, `TEST_WALLET_PRIVATE_KEY` and `TEST_WALLET_PUBLIC_KEY`:
 

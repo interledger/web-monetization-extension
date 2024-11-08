@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { readdirSync } from 'node:fs';
 import type { BuildOptions } from 'esbuild';
 import type { Manifest } from 'webextension-polyfill';
 
@@ -9,6 +10,13 @@ export const ROOT_DIR = path.resolve(__dirname, '..');
 export const SRC_DIR = path.resolve(ROOT_DIR, 'src');
 export const DEV_DIR = path.resolve(ROOT_DIR, 'dev');
 export const DIST_DIR = path.resolve(ROOT_DIR, 'dist');
+
+const KEY_AUTO_ADD_TARGETS = readdirSync(
+  path.join(SRC_DIR, 'content', 'keyAutoAdd'),
+  { withFileTypes: true },
+)
+  .filter((e) => e.isFile())
+  .map(({ name }) => path.basename(name, path.extname(name)));
 
 export type Target = (typeof TARGETS)[number];
 export type Channel = (typeof CHANNELS)[number];
@@ -28,10 +36,10 @@ export const options: BuildOptions = {
       in: path.join(SRC_DIR, 'content', 'index.ts'),
       out: path.join('content', 'content'),
     },
-    {
-      in: path.join(SRC_DIR, 'content', 'keyAutoAdd', 'testWallet.ts'),
-      out: path.join('content', 'keyAutoAdd', 'testWallet'),
-    },
+    ...KEY_AUTO_ADD_TARGETS.map((name) => ({
+      in: path.join(SRC_DIR, 'content', 'keyAutoAdd', `${name}.ts`),
+      out: path.join('content', 'keyAutoAdd', name),
+    })),
     {
       in: path.join(SRC_DIR, 'content', 'polyfill.ts'),
       out: path.join('polyfill', 'polyfill'),

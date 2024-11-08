@@ -18,12 +18,17 @@ export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
 };
 
-export const formatCurrency = (value: any): string => {
-  if (value < 1) {
-    return `${Math.round(value * 100)}c`;
-  } else {
-    return `$${parseFloat(value).toFixed(2)}`;
-  }
+export const formatCurrency = (
+  value: string | number,
+  currency: string,
+  maximumFractionDigits = 2,
+  locale?: string,
+): string => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits,
+  }).format(Number(value));
 };
 
 const isWalletAddress = (o: any): o is WalletAddress => {
@@ -168,22 +173,22 @@ export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
 export function throttle<T extends unknown[], R>(
   func: (...args: T) => R,
   wait: number,
-  options: Partial<{ leading: boolean; trailing: boolean }> = {
-    leading: false,
-    trailing: false,
-  },
+  {
+    leading = false,
+    trailing = false,
+  }: Partial<{ leading: boolean; trailing: boolean }> = {},
 ) {
   let result: R;
   let timeout: ReturnType<typeof setTimeout> | null = null;
   let previous = 0;
   const later = (...args: T) => {
-    previous = options.leading === false ? 0 : Date.now();
+    previous = leading === false ? 0 : Date.now();
     timeout = null;
     result = func(...args);
   };
   return (...args: T) => {
     const now = Date.now();
-    if (!previous && options.leading === false) previous = now;
+    if (!previous && leading === false) previous = now;
     const remaining = wait - (now - previous);
     if (remaining <= 0 || remaining > wait) {
       if (timeout) {
@@ -192,7 +197,7 @@ export function throttle<T extends unknown[], R>(
       }
       previous = now;
       result = func(...args);
-    } else if (!timeout && options.trailing !== false) {
+    } else if (!timeout && trailing !== false) {
       timeout = setTimeout(later, remaining, ...args);
     }
     return result;

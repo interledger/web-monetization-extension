@@ -110,6 +110,12 @@ export interface UpdateRateOfPayPayload {
   rateOfPay: string;
 }
 
+export interface UpdateBudgetPayload {
+  walletAddressUrl: ConnectWalletPayload['walletAddressUrl'];
+  amount: ConnectWalletPayload['amount'];
+  recurring: ConnectWalletPayload['recurring'];
+}
+
 export type PopupToBackgroundMessage = {
   GET_CONTEXT_DATA: {
     input: never;
@@ -117,6 +123,10 @@ export type PopupToBackgroundMessage = {
   };
   CONNECT_WALLET: {
     input: null | ConnectWalletPayload;
+    output: void;
+  };
+  UPDATE_BUDGET: {
+    input: UpdateBudgetPayload;
     output: void;
   };
   RECONNECT_WALLET: {

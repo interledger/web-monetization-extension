@@ -22,6 +22,9 @@ const switchVariants = cva(
           'peer-checked:before:left-4',
         ],
       },
+      disabled: {
+        true: 'opacity-75',
+      },
     },
     defaultVariants: {
       size: 'default',
@@ -33,12 +36,13 @@ export interface SwitchProps
   extends VariantProps<typeof switchVariants>,
     React.HTMLAttributes<HTMLInputElement> {
   checked?: boolean;
+  disabled?: boolean;
   label?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { size, label, className, title, onChange = () => {}, ...props },
+  { size, label, className, title, disabled = false, onChange = () => {}, ...props },
   ref,
 ) {
   return (
@@ -49,10 +53,11 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         type="checkbox"
         checked={props.checked}
         onChange={onChange}
+        disabled={disabled}
         {...props}
         className="peer pointer-events-none absolute -translate-x-[100%] opacity-0"
       />
-      <div className={cn(switchVariants({ size }), className)} />
+      <div className={cn(switchVariants({ size, disabled }), className)} />
       {label ? <span className="font-normal">{label}</span> : null}
     </label>
   );
