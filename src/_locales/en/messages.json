@@ -55,7 +55,8 @@
     "message": "Insufficient funds to complete the payment."
   },
   "pay_error_outgoingPaymentFailed": {
-    "message": "Payment failed."
+    "message": "We were unable to process this transaction. Please try again!",
+    "description": "OutgoingPayment.failed === true"
   },
   "pay_warn_pay_warn_outgoingPaymentPollingIncomplete": {
     "message": "We could not verify if the payment was completed. Please ensure you've enough funds in your wallet.",
