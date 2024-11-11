@@ -1,5 +1,4 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
 import { ArrowBack } from '@/popup/components/Icons';
 import { Input } from '@/popup/components/ui/Input';
 import { Label } from '@/popup/components/ui/Label';
@@ -18,20 +17,19 @@ export const WalletInformation = ({
   walletAddress,
 }: WalletInformationProps) => {
   const message = useMessage();
-  const {
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   return (
     <div className="flex h-full flex-col gap-8">
       {/* TODO: Improve error handling */}
       <form
         className="space-y-4"
-        onSubmit={handleSubmit(async () => {
+        onSubmit={async (ev) => {
+          ev.preventDefault();
+          setIsSubmitting(true);
           await message.send('DISCONNECT_WALLET');
           window.location.reload();
-        })}
+        }}
       >
         <Input
           className="bg-disabled"
