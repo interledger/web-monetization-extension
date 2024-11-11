@@ -336,7 +336,7 @@ export class MonetizationService {
         );
         const sentAmount = transformBalance(totalDebitAmount, assetScale);
         return {
-          type: 'success',
+          type: 'full',
           sentAmount: sentAmount,
           sentAmountFormatted: formatCurrency(sentAmount, assetCode),
           url: tabUrl,
@@ -366,7 +366,7 @@ export class MonetizationService {
     // warning that not entire payment went through (yet?)
     const sentAmount = transformBalance(totalSentAmount, assetScale);
     return {
-      type: 'success',
+      type: 'full',
       sentAmount: sentAmount,
       sentAmountFormatted: formatCurrency(sentAmount, assetCode),
       url: tabUrl,

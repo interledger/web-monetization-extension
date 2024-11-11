@@ -34,8 +34,8 @@ export const PayWebsiteForm = () => {
 
   const form = React.useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [msg, setMsg] = React.useState<null | {
-    type: 'success' | 'warn';
+  const [payStatus, setPayStatus] = React.useState<null | {
+    type: 'full' | 'partial';
     message: string;
   }>(null);
 
@@ -43,7 +43,7 @@ export const PayWebsiteForm = () => {
     ev.preventDefault();
     if (isSubmitting) return;
     setErrors({ amount: null, pay: null });
-    setMsg(null);
+    setPayStatus(null);
 
     setIsSubmitting(true);
 
@@ -58,11 +58,7 @@ export const PayWebsiteForm = () => {
       setAmount('');
       const { type, url, sentAmountFormatted } = response.payload;
       const msg = t('pay_state_success', [sentAmountFormatted, url]);
-      if (type === 'success') {
-        setMsg({ type: 'success', message: msg });
-      } else {
-        setMsg({ type: 'warn', message: msg });
-      }
+      setPayStatus({ type, message: msg });
       form.current?.reset();
     }
     setIsSubmitting(false);
@@ -78,7 +74,7 @@ export const PayWebsiteForm = () => {
       onSubmit={onSubmit}
     >
       <AnimatePresence mode="sync">
-        {errors.pay || !!msg ? (
+        {errors.pay || !!payStatus ? (
           <m.div
             transition={{ duration: 0.3, bounce: 0 }}
             initial={{ height: 0 }}
@@ -89,16 +85,16 @@ export const PayWebsiteForm = () => {
             <div
               className={cn(
                 'break-word flex items-center gap-2 rounded-xl border px-3 py-2',
-                msg?.type === 'success'
+                payStatus?.type === 'full'
                   ? 'border-green-500 bg-green-500/10 text-secondary-dark'
                   : errors.pay?.info?.key.includes('_warn_') ||
-                      msg?.type === 'warn'
+                      payStatus?.type === 'partial'
                     ? 'border-orange-600 bg-orange-100 text-orange-800'
                     : 'border-red-300 bg-red-500/10',
               )}
               role="alert"
             >
-              <div>{msg?.message || errors.pay?.message}</div>
+              <div>{payStatus?.message || errors.pay?.message}</div>
             </div>
           </m.div>
         ) : null}
@@ -122,7 +118,7 @@ export const PayWebsiteForm = () => {
         errorMessage={errors.amount?.message}
         onChange={(amountValue) => {
           setErrors({ pay: null, amount: null });
-          setMsg(null);
+          setPayStatus(null);
           setAmount(amountValue);
         }}
         onError={(error) =>

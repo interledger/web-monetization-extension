@@ -107,7 +107,7 @@ export interface PayWebsitePayload {
 }
 
 export interface PayWebsiteResponse {
-  type: 'success' | 'warn';
+  type: 'full' | 'partial';
   url: string;
   sentAmount: string;
   sentAmountFormatted: string;
