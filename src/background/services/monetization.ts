@@ -281,6 +281,11 @@ export class MonetizationService {
     }
 
     const { walletAddress } = await this.storage.get(['walletAddress']);
+    if (!walletAddress) {
+      throw new Error('Unexpected: wallet address not found.');
+    }
+    const { assetCode, assetScale } = walletAddress;
+
     const { url: tabUrl } = this.tabState.getPopupTabData(tab);
 
     const splitAmount = Number(amount) / payableSessions.length;
@@ -328,7 +333,6 @@ export class MonetizationService {
           (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
           0n,
         );
-        const { assetScale, assetCode } = walletAddress!;
         const sentAmount = transformBalance(totalDebitAmount, assetScale);
         return {
           type: 'success',
@@ -361,7 +365,6 @@ export class MonetizationService {
 
     // TODO: If sentAmount is non-zero but less than to debitAmount, show
     // warning that not entire payment went through (yet?)
-    const { assetCode, assetScale } = walletAddress!;
     const sentAmount = transformBalance(totalSentAmount, assetScale);
     return {
       type: 'success',
