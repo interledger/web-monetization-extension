@@ -58,7 +58,7 @@
     "message": "We were unable to process this transaction. Please try again!",
     "description": "OutgoingPayment.failed === true"
   },
-  "pay_warn_pay_warn_outgoingPaymentPollingIncomplete": {
+  "pay_warn_outgoingPaymentPollingIncomplete": {
     "message": "We could not verify if the payment was completed. Please ensure you've enough funds in your wallet.",
     "description": "We were polling for completion, but it's not finished yet - could mean it'll never succeed or it'll take a long time to settle."
   },

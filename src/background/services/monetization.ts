@@ -348,7 +348,7 @@ export class MonetizationService {
       const isPollingLimitReached = pollingErrors.some(
         (err) =>
           (isErrorWithKey(err) &&
-            err.key === 'pay_warn_pay_warn_outgoingPaymentPollingIncomplete') ||
+            err.key === 'pay_warn_outgoingPaymentPollingIncomplete') ||
           (err instanceof DOMException && err.name === 'TimeoutError'),
       );
 
@@ -356,9 +356,7 @@ export class MonetizationService {
         throw new ErrorWithKey('pay_error_notEnoughFunds');
       }
       if (isPollingLimitReached) {
-        throw new ErrorWithKey(
-          'pay_warn_pay_warn_outgoingPaymentPollingIncomplete',
-        );
+        throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
       }
       throw new ErrorWithKey('pay_error_general');
     }

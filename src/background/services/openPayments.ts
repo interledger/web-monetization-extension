@@ -923,9 +923,7 @@ export class OpenPaymentsService {
       }
     }
 
-    throw new ErrorWithKey(
-      'pay_warn_pay_warn_outgoingPaymentPollingIncomplete',
-    );
+    throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
   }
 
   async probeDebitAmount(
