@@ -307,6 +307,7 @@ export class MonetizationService {
         .filter(([, outgoingPayment]) => outgoingPayment !== null)
         .map(async ([sessionId, outgoingPaymentInitial]) => {
           for await (const outgoingPayment of this.openPaymentsService.pollOutgoingPayment(
+            // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
             outgoingPaymentInitial!.id,
             { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
           )) {
