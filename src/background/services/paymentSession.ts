@@ -368,7 +368,7 @@ export class PaymentSession {
     return incomingPayment;
   }
 
-  async pay(amount: number) {
+  async pay(amount: number): Promise<OutgoingPayment> {
     if (this.isDisabled) {
       throw new Error('Attempted to send a payment to a disabled session.');
     }
@@ -377,51 +377,46 @@ export class PaymentSession {
       (error) => {
         if (isKeyRevokedError(error)) {
           this.events.emit('open_payments.key_revoked');
-          return;
         }
         throw error;
       },
     );
-    if (!incomingPayment) return;
-
-    let outgoingPayment: OutgoingPayment | undefined;
 
     try {
-      outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
-        walletAddress: this.sender,
-        incomingPaymentId: incomingPayment.id,
-        amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
+      const outgoingPayment =
+        await this.openPaymentsService.createOutgoingPayment({
+          walletAddress: this.sender,
+          incomingPaymentId: incomingPayment.id,
+          amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
+        });
+
+      this.sendMonetizationEvent({
+        requestId: this.requestId,
+        details: {
+          amountSent: {
+            currency: outgoingPayment.receiveAmount.assetCode,
+            value: transformBalance(
+              outgoingPayment.receiveAmount.value,
+              outgoingPayment.receiveAmount.assetScale,
+            ),
+          },
+          incomingPayment: outgoingPayment.receiver,
+          paymentPointer: this.receiver.id,
+        },
       });
+
+      return outgoingPayment;
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
+        throw e;
       } else if (isTokenExpiredError(e)) {
         await this.openPaymentsService.rotateToken();
+        return await this.pay(amount); // retry
       } else {
         throw e;
       }
-    } finally {
-      if (outgoingPayment) {
-        const { receiveAmount, receiver: incomingPayment } = outgoingPayment;
-
-        this.sendMonetizationEvent({
-          requestId: this.requestId,
-          details: {
-            amountSent: {
-              currency: receiveAmount.assetCode,
-              value: transformBalance(
-                receiveAmount.value,
-                receiveAmount.assetScale,
-              ),
-            },
-            incomingPayment,
-            paymentPointer: this.receiver.id,
-          },
-        });
-      }
     }
-
-    return outgoingPayment?.debitAmount;
   }
 
   private setAmount(amount: bigint): void {
