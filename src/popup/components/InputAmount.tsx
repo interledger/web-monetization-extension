@@ -6,11 +6,13 @@ import {
   errorWithKey,
   ErrorWithKeyLike,
   formatCurrency,
+  throttle,
 } from '@/shared/helpers';
 
 interface Props {
   id: string;
   label: string | React.ReactNode;
+  description?: string | React.ReactNode;
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>;
   amount: string;
   onChange: (amount: string, inputEl: HTMLInputElement) => void;
@@ -38,11 +40,29 @@ export const InputAmount = ({
   onError,
   labelHidden,
   errorHidden,
+  description,
   min = 0,
   max,
   readOnly,
 }: Props) => {
   const currencySymbol = getCurrencySymbol(walletAddress.assetCode);
+
+  const validateAmountOnChange = useThrottle(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const input = ev.target;
+      const value = input.value;
+      const error = validateAmount(value, walletAddress, min, max);
+      if (error) {
+        onError(error);
+      } else {
+        const amountValue = formatNumber(+value, walletAddress.assetScale);
+        onChange(amountValue, input);
+      }
+    },
+    350,
+    { trailing: true },
+  );
+
   return (
     <Input
       id={id}
@@ -50,6 +70,7 @@ export const InputAmount = ({
       inputMode="numeric"
       label={labelHidden ? null : label}
       aria-label={labelHidden && typeof label === 'string' ? label : undefined}
+      description={description}
       placeholder={placeholder}
       className={className}
       defaultValue={amount}
@@ -59,6 +80,7 @@ export const InputAmount = ({
       aria-invalid={errorHidden ? !!errorMessage : false}
       required={true}
       onKeyDown={allowOnlyNumericInput}
+      onChange={validateAmountOnChange}
       onBlur={(ev) => {
         const input = ev.currentTarget;
         const value = input.value;
@@ -99,13 +121,23 @@ export function validateAmount(
   return null;
 }
 
+const useThrottle: typeof throttle = (
+  callback,
+  delay,
+  options = { leading: false, trailing: false },
+) => {
+  const cbRef = React.useRef(callback);
+  React.useEffect(() => {
+    cbRef.current = callback;
+  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return React.useCallback(throttle(cbRef.current, delay, options), [delay]);
+};
+
 function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
+  if (ev.key.length > 1 || ev.ctrlKey || ev.metaKey) return;
   if (
-    (!charIsNumber(ev.key) &&
-      ev.key !== 'Backspace' &&
-      ev.key !== 'Delete' &&
-      ev.key !== 'Enter' &&
-      ev.key !== 'Tab') ||
+    !charIsNumber(ev.key) ||
     (ev.key === '.' && ev.currentTarget.value.includes('.'))
   ) {
     ev.preventDefault();
