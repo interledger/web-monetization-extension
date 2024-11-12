@@ -12,6 +12,7 @@ import {
 interface Props {
   id: string;
   label: string | React.ReactNode;
+  description?: string | React.ReactNode;
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>;
   amount: string;
   onChange: (amount: string, inputEl: HTMLInputElement) => void;
@@ -39,6 +40,7 @@ export const InputAmount = ({
   onError,
   labelHidden,
   errorHidden,
+  description,
   min = 0,
   max,
   readOnly,
@@ -68,6 +70,7 @@ export const InputAmount = ({
       inputMode="numeric"
       label={labelHidden ? null : label}
       aria-label={labelHidden && typeof label === 'string' ? label : undefined}
+      description={description}
       placeholder={placeholder}
       className={className}
       defaultValue={amount}

@@ -189,6 +189,10 @@ export function walletAddressToProvider(walletAddress: WalletAddress): {
       return {
         url: 'https://wallet.interledger-test.dev/settings/developer-keys',
       };
+    case 'ilp.interledger.cards':
+      return {
+        url: 'https://wallet.interledger.cards/settings/developer-keys',
+      };
     case 'eu1.fynbos.me':
       return { url: 'https://eu1.fynbos.dev/settings/keys' };
     case 'fynbos.me':

@@ -19,7 +19,10 @@
       "all_frames": true
     },
     {
-      "matches": ["https://wallet.interledger-test.dev/*"],
+      "matches": [
+        "https://wallet.interledger-test.dev/*",
+        "https://wallet.interledger.cards/*"
+      ],
       "js": ["content/keyAutoAdd/testWallet.js"],
       "run_at": "document_end"
     },

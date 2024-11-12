@@ -271,7 +271,10 @@ export class MonetizationService {
 
     const totalSentAmount = results
       .filter((e) => e.status === 'fulfilled')
-      .reduce((acc, curr) => acc + BigInt(curr.value?.value ?? 0), 0n);
+      .reduce(
+        (acc, curr) => acc + BigInt(curr.value?.debitAmount.value ?? 0),
+        0n,
+      );
     if (totalSentAmount === 0n) {
       const isNotEnoughFunds = results
         .filter((e) => e.status === 'rejected')
