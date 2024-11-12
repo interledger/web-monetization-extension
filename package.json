@@ -51,7 +51,7 @@
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@types/archiver": "^6.0.3",
-    "@types/chrome": "^0.0.272",
+    "@types/chrome": "^0.0.280",
     "@types/github-script": "github:actions/github-script",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.6",
