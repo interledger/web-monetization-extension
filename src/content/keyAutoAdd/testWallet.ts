@@ -26,6 +26,11 @@ type AccountDetails = {
   };
 };
 
+const API_ORIGIN =
+  location.host === 'wallet.interledger.cards'
+    ? 'https://api.interledger.cards'
+    : `https://api.${location.host}`;
+
 const waitForLogin: Run<void> = async (
   { keyAddUrl },
   { skip, setNotificationSize },
@@ -125,7 +130,7 @@ const findWallet: Run<{ accountId: string; walletId: string }> = async (
 
 const addKey: Run<void> = async ({ publicKey, nickName }, { output }) => {
   const { accountId, walletId } = output(findWallet);
-  const url = `https://api.${location.host}/accounts/${accountId}/wallet-addresses/${walletId}/upload-key`;
+  const url = `${API_ORIGIN}/accounts/${accountId}/wallet-addresses/${walletId}/upload-key`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -147,7 +152,7 @@ const addKey: Run<void> = async ({ publicKey, nickName }, { output }) => {
 
 // region: Helpers
 async function revokeKey(accountId: string, walletId: string, keyId: string) {
-  const url = `https://api.${location.host}/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
+  const url = `${API_ORIGIN}/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
   const res = await fetch(url, {
     method: 'PATCH',
     headers: {
