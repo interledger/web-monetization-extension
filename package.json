@@ -28,9 +28,9 @@
     "@noble/ed25519": "^2.1.0",
     "@noble/hashes": "^1.5.0",
     "@radix-ui/react-tabs": "^1.1.1",
-    "awilix": "^11.0.0",
+    "awilix": "^12.0.3",
     "class-variance-authority": "^0.7.0",
-    "crypto-browserify": "^3.12.0",
+    "crypto-browserify": "^3.12.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.7.0",
     "http-message-signatures": "^1.0.4",
@@ -45,16 +45,16 @@
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
-    "@jgoz/esbuild-plugin-typecheck": "^4.0.1",
+    "@jgoz/esbuild-plugin-typecheck": "^4.0.2",
     "@playwright/test": "^1.47.2",
     "@tailwindcss/forms": "^0.5.9",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
-    "@types/archiver": "^6.0.2",
-    "@types/chrome": "^0.0.272",
+    "@types/archiver": "^6.0.3",
+    "@types/chrome": "^0.0.280",
     "@types/github-script": "github:actions/github-script",
-    "@types/jest": "^29.5.13",
-    "@types/node": "^20.16.9",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.17.6",
     "@types/react": "^18.3.9",
     "@types/react-dom": "^18.3.0",
     "@types/react-router-dom": "^5.3.3",
@@ -92,7 +92,7 @@
     "pnpm": "^9.12.3",
     "npm": "pnpm",
     "yarn": "pnpm",
-    "node": "^20.17.0"
+    "node": "^20.18.0"
   },
   "pnpm": {
     "overrides": {
