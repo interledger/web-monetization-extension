@@ -10,7 +10,7 @@ on:
 jobs:
   comment:
     name: Add comment with extension preview builds
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.repository == 'interledger/web-monetization-extension'
     steps:
       - name: Checkout repository
