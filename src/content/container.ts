@@ -1,4 +1,9 @@
-import { asClass, asValue, createContainer, InjectionMode } from 'awilix';
+import {
+  asClass,
+  asValue,
+  createContainer,
+  InjectionMode,
+} from 'awilix/browser';
 import browser, { type Browser } from 'webextension-polyfill';
 import { createLogger, Logger } from '@/shared/logger';
 import { ContentScript } from './services/contentScript';

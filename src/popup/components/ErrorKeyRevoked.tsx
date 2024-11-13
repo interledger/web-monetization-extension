@@ -1,5 +1,4 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
 import { AnimatePresence, m } from 'framer-motion';
 import { WarningSign } from '@/popup/components/Icons';
 import { Button } from '@/popup/components/ui/Button';
@@ -129,26 +128,29 @@ const ReconnectScreen = ({
   reconnectWallet,
   onReconnect,
 }: ReconnectScreenProps) => {
+  type Errors = Record<'root', null | { message: string }>;
+
   const t = useTranslation();
-  const {
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    clearErrors,
-    setError,
-  } = useForm({ criteriaMode: 'firstError', mode: 'onSubmit' });
+
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errors, setErrors] = React.useState<Errors>({
+    root: null,
+  });
 
   const requestReconnect = async () => {
-    clearErrors();
+    setErrors({ root: null });
     try {
+      setIsSubmitting(true);
       const res = await reconnectWallet();
       if (res.success) {
         onReconnect?.();
       } else {
-        setError('root', { message: res.message });
+        setErrors({ root: { message: res.message } });
       }
     } catch (error) {
-      setError('root', { message: error.message });
+      setErrors({ root: { message: error.message } });
     }
+    setIsSubmitting(false);
   };
 
   return (
@@ -157,7 +159,10 @@ const ReconnectScreen = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="flex flex-col items-stretch gap-4"
-      onSubmit={handleSubmit(requestReconnect)}
+      onSubmit={(ev) => {
+        ev.preventDefault();
+        requestReconnect();
+      }}
     >
       <div className="space-y-1 text-sm">
         <p className="px-2">
