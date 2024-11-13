@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { sep } from 'node:path';
 import fs from 'node:fs/promises';
 import type { Plugin as ESBuildPlugin } from 'esbuild';
 import { nodeBuiltin } from 'esbuild-node-builtin';
@@ -46,24 +47,7 @@ export const getPlugins = ({
     }),
     copy({
       resolveFrom: ROOT_DIR,
-      assets: [
-        {
-          from: path.join(SRC_DIR, 'popup', 'index.html'),
-          to: path.join(outDir, 'popup', 'index.html'),
-        },
-        {
-          from: path.join(SRC_DIR, 'pages', 'progress-connect', 'index.html'),
-          to: path.join(outDir, 'pages', 'progress-connect', 'index.html'),
-        },
-        {
-          from: path.join(SRC_DIR, '_locales/**/*'),
-          to: path.join(outDir, '_locales'),
-        },
-        {
-          from: path.join(SRC_DIR, 'assets/**/*'),
-          to: path.join(outDir, 'assets'),
-        },
-      ],
+      assets: getAssetPaths(SRC_DIR, outDir),
       watch: dev,
     }),
     processManifestPlugin({ outDir, dev, target, channel }),
@@ -90,6 +74,33 @@ function ignorePackagePlugin(ignores: RegExp[]): ESBuildPlugin {
       }));
     },
   };
+}
+
+function getAssetPaths(srcDir: string, outDir: string) {
+  const assetPaths = [
+    {
+      from: path.join(srcDir, 'popup', 'index.html'),
+      to: path.join(outDir, 'popup', 'index.html')
+    },
+    {
+      from: path.join(srcDir, 'pages', 'progress-connect', 'index.html'),
+      to: path.join(outDir, 'pages', 'progress-connect', 'index.html')
+    },
+    {
+      from: path.join(srcDir, '_locales', '**', '*'),
+      to: path.join(outDir, '_locales')
+    },
+    {
+      from: path.join(srcDir, 'assets', '**', '*'),
+      to: path.join(outDir, 'assets')
+    }
+  ];
+
+  // normalize paths to use forward slashes
+  return assetPaths.map(({ from, to }) => ({
+    from: from.split(sep).join('/'),
+    to: to.split(sep).join('/')
+  }));
 }
 
 function processManifestPlugin({
