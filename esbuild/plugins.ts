@@ -80,26 +80,26 @@ function getAssetPaths(srcDir: string, outDir: string) {
   const assetPaths = [
     {
       from: path.join(srcDir, 'popup', 'index.html'),
-      to: path.join(outDir, 'popup', 'index.html')
+      to: path.join(outDir, 'popup', 'index.html'),
     },
     {
       from: path.join(srcDir, 'pages', 'progress-connect', 'index.html'),
-      to: path.join(outDir, 'pages', 'progress-connect', 'index.html')
+      to: path.join(outDir, 'pages', 'progress-connect', 'index.html'),
     },
     {
       from: path.join(srcDir, '_locales', '**', '*'),
-      to: path.join(outDir, '_locales')
+      to: path.join(outDir, '_locales'),
     },
     {
       from: path.join(srcDir, 'assets', '**', '*'),
-      to: path.join(outDir, 'assets')
-    }
+      to: path.join(outDir, 'assets'),
+    },
   ];
 
   // normalize paths to use forward slashes
   return assetPaths.map(({ from, to }) => ({
     from: from.split(sep).join('/'),
-    to: to.split(sep).join('/')
+    to: to.split(sep).join('/'),
   }));
 }
 
