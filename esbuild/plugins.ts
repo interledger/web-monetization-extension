@@ -1,4 +1,4 @@
-import path, { posix, sep } from 'node:path';
+import path from 'node:path';
 import fs from 'node:fs/promises';
 import type { Plugin as ESBuildPlugin } from 'esbuild';
 import { nodeBuiltin } from 'esbuild-node-builtin';
@@ -179,6 +179,6 @@ function cleanPlugin(dirs: string[]): ESBuildPlugin {
   };
 }
 
-function toPosix(path: string): string {
-  return path.replaceAll(sep, posix.sep);
+function toPosix(filePath: string): string {
+  return filePath.replaceAll(path.sep, path.posix.sep);
 }
