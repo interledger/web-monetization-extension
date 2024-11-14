@@ -7,9 +7,15 @@ export const TARGETS = ['chrome', 'firefox'] as const;
 export const CHANNELS = ['nightly', 'preview', 'stable'] as const;
 
 export const ROOT_DIR = path.resolve(__dirname, '..');
-export const SRC_DIR = path.resolve(ROOT_DIR, 'src');
-export const DEV_DIR = path.resolve(ROOT_DIR, 'dev');
-export const DIST_DIR = path.resolve(ROOT_DIR, 'dist');
+export const SRC_DIR = path
+  .resolve(ROOT_DIR, 'src')
+  .replaceAll(path.sep, path.posix.sep);
+export const DEV_DIR = path
+  .resolve(ROOT_DIR, 'dev')
+  .replaceAll(path.sep, path.posix.sep);
+export const DIST_DIR = path
+  .resolve(ROOT_DIR, 'dist')
+  .replaceAll(path.sep, path.posix.sep);
 
 const KEY_AUTO_ADD_TARGETS = readdirSync(
   path.join(SRC_DIR, 'content', 'keyAutoAdd'),
