@@ -1,4 +1,4 @@
-import path from 'node:path';
+import path, { posix, sep } from 'node:path';
 import fs from 'node:fs/promises';
 import type { Plugin as ESBuildPlugin } from 'esbuild';
 import { nodeBuiltin } from 'esbuild-node-builtin';
@@ -48,30 +48,24 @@ export const getPlugins = ({
       resolveFrom: ROOT_DIR,
       assets: [
         {
-          from: path.posix.join(SRC_DIR, 'popup', 'index.html'),
-          to: path.posix.join(outDir, 'popup', 'index.html'),
+          from: toPosix(path.join(SRC_DIR, 'popup', 'index.html')),
+          to: toPosix(path.join(outDir, 'popup', 'index.html')),
         },
         {
-          from: path.posix.join(
-            SRC_DIR,
-            'pages',
-            'progress-connect',
-            'index.html',
+          from: toPosix(
+            path.join(SRC_DIR, 'pages', 'progress-connect', 'index.html'),
           ),
-          to: path.posix.join(
-            outDir,
-            'pages',
-            'progress-connect',
-            'index.html',
+          to: toPosix(
+            path.join(outDir, 'pages', 'progress-connect', 'index.html'),
           ),
         },
         {
-          from: path.posix.join(SRC_DIR, '_locales', '**', '*'),
-          to: path.posix.join(outDir, '_locales'),
+          from: toPosix(path.join(SRC_DIR, '_locales', '**', '*')),
+          to: toPosix(path.join(outDir, '_locales')),
         },
         {
-          from: path.posix.join(SRC_DIR, 'assets', '**', '*'),
-          to: path.posix.join(outDir, 'assets'),
+          from: toPosix(path.join(SRC_DIR, 'assets', '**', '*')),
+          to: toPosix(path.join(outDir, 'assets')),
         },
       ],
       watch: dev,
@@ -183,4 +177,8 @@ function cleanPlugin(dirs: string[]): ESBuildPlugin {
       });
     },
   };
+}
+
+function toPosix(path: string): string {
+  return path.replaceAll(sep, posix.sep);
 }
