@@ -5,6 +5,7 @@ import net from 'node:net';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import {
   chromium,
   firefox,
@@ -142,10 +143,15 @@ export async function loadContext(
   { browserName, channel }: BrowserInfo,
   workerInfo: WorkerInfo,
 ) {
+  const userDataDir = path.join(
+    tmpdir(),
+    'wm-extension-playwright',
+    `${browserName}-${channel}`,
+  );
   const pathToExtension = getPathToExtension(browserName);
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
-    context = await chromium.launchPersistentContext('', {
+    context = await chromium.launchPersistentContext(userDataDir, {
       headless: true,
       channel,
       args: [
