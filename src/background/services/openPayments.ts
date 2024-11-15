@@ -1070,9 +1070,12 @@ export const isOutOfBalanceError = (error: any) => {
 
 export const isMissingGrantPermissionsError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false;
+  // providers using Rafiki <= v1.0.0-alpha.15 show "Insufficient Grant" error,
+  // but Rafiki >= v1.0.0-alpha.16 shows "Inactive Token" (due to
+  // https://github.com/interledger/rafiki/pull/2788)
   return (
     error.status === 403 &&
-    (error.description === 'Insufficient Grant' /* Fynbos */ ||
+    (error.description === 'Insufficient Grant' ||
       error.description === 'Inactive Token')
   );
 };
