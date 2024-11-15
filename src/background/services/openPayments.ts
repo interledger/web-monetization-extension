@@ -893,6 +893,7 @@ export class OpenPaymentsService {
     }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
   ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
     let attempt = 0;
+    let tokenRotated = false;
     await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
     while (++attempt <= maxAttempts) {
       try {
@@ -914,8 +915,15 @@ export class OpenPaymentsService {
         await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
       } catch (error) {
         if (isMissingGrantPermissionsError(error)) {
+          if (isTokenInactiveError(error) && !tokenRotated) {
+            // isMissingGrantPermissionError has same error msg as isTokenInactiveError
+            tokenRotated = true;
+            await this.rotateToken();
+            continue;
+          }
           throw error;
-        } else if (isTokenExpiredError(error)) {
+        } else if (isTokenExpiredError(error) && !tokenRotated) {
+          tokenRotated = true;
           await this.rotateToken();
         } else {
           throw error;
@@ -1075,8 +1083,7 @@ export const isMissingGrantPermissionsError = (error: any) => {
   // https://github.com/interledger/rafiki/pull/2788)
   return (
     error.status === 403 &&
-    (error.description === 'Insufficient Grant' ||
-      error.description === 'Inactive Token')
+    (error.description === 'Insufficient Grant' || isTokenInactiveError(error))
   );
 };
 
