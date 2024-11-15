@@ -56,8 +56,8 @@ export const PayWebsiteForm = () => {
       }));
     } else {
       setAmount('');
-      const { type, url, sentAmountFormatted } = response.payload;
-      const msg = t('pay_state_success', [sentAmountFormatted, url]);
+      const { type, sentAmountFormatted } = response.payload;
+      const msg = t('pay_state_success', [sentAmountFormatted]);
       setPayStatus({ type, message: msg });
       form.current?.reset();
     }

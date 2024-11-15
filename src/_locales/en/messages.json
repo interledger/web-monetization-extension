@@ -73,10 +73,9 @@
     "message": "This website is not monetized."
   },
   "pay_state_success": {
-    "message": "Thanks for your support! $AMOUNT$ was sent to $WEBSITE_URL$.",
+    "message": "Thank you for your $AMOUNT$ support!",
     "placeholders": {
-      "AMOUNT": { "content": "$1", "example": "$2.05" },
-      "WEBSITE_URL": { "content": "$2", "example": "https://example.com" }
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
     }
   },
   "outOfFunds_error_title": {

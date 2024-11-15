@@ -286,8 +286,6 @@ export class MonetizationService {
     }
     const { assetCode, assetScale } = walletAddress;
 
-    const { url: tabUrl } = this.tabState.getPopupTabData(tab);
-
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
@@ -340,7 +338,6 @@ export class MonetizationService {
           type: 'full',
           sentAmount: sentAmount,
           sentAmountFormatted: formatCurrency(sentAmount, assetCode),
-          url: tabUrl,
         };
       }
 
@@ -368,7 +365,6 @@ export class MonetizationService {
       type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
       sentAmount: sentAmount,
       sentAmountFormatted: formatCurrency(sentAmount, assetCode),
-      url: tabUrl,
     };
   }
 
