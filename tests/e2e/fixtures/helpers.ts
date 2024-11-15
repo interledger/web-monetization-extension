@@ -6,6 +6,7 @@ import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { format } from 'date-fns';
 import {
   chromium,
   firefox,
@@ -147,6 +148,7 @@ export async function loadContext(
     tmpdir(),
     'wm-extension-playwright',
     `${browserName}-${channel}`,
+    format(new Date(), 'yyyyMMdd-HHmmss'),
   );
   const pathToExtension = getPathToExtension(browserName);
   let context: BrowserContext | undefined;
