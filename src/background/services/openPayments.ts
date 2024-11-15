@@ -903,7 +903,10 @@ export class OpenPaymentsService {
           accessToken: this.token.value,
         });
         yield outgoingPayment;
-        if (outgoingPayment.failed) {
+        if (
+          outgoingPayment.failed &&
+          outgoingPayment.sentAmount.value === '0'
+        ) {
           throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
         }
         if (

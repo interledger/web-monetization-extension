@@ -321,6 +321,11 @@ export class MonetizationService {
       (acc, op) => acc + BigInt(op?.sentAmount?.value ?? 0),
       0n,
     );
+    const totalDebitAmount = [...outgoingPayments.values()].reduce(
+      (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
+      0n,
+    );
+
     if (totalSentAmount === 0n) {
       const pollingErrors = pollingResults
         .filter((e) => e.status === 'rejected')
@@ -330,10 +335,6 @@ export class MonetizationService {
         // This permission request to read outgoing payments was added at a
         // later time, so existing connected wallets won't have this permission.
         // Assume as success for backward compatibility.
-        const totalDebitAmount = [...outgoingPayments.values()].reduce(
-          (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
-          0n,
-        );
         const sentAmount = transformBalance(totalDebitAmount, assetScale);
         return {
           type: 'full',
@@ -362,11 +363,9 @@ export class MonetizationService {
       throw new ErrorWithKey('pay_error_general');
     }
 
-    // TODO: If sentAmount is non-zero but less than to debitAmount, show
-    // warning that not entire payment went through (yet?)
     const sentAmount = transformBalance(totalSentAmount, assetScale);
     return {
-      type: 'full',
+      type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
       sentAmount: sentAmount,
       sentAmountFormatted: formatCurrency(sentAmount, assetCode),
       url: tabUrl,

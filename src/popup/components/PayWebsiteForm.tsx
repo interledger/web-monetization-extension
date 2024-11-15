@@ -85,12 +85,11 @@ export const PayWebsiteForm = () => {
             <div
               className={cn(
                 'break-word flex items-center gap-2 rounded-xl border px-3 py-2',
-                payStatus?.type === 'full'
-                  ? 'border-green-500 bg-green-500/10 text-secondary-dark'
-                  : errors.pay?.info?.key.includes('_warn_') ||
-                      payStatus?.type === 'partial'
+                errors.pay
+                  ? errors.pay?.info?.key.includes('_warn_')
                     ? 'border-orange-600 bg-orange-100 text-orange-800'
-                    : 'border-red-300 bg-red-500/10',
+                    : 'border-red-300 bg-red-500/10'
+                  : 'border-green-500 bg-green-500/10 text-secondary-dark',
               )}
               role="alert"
             >

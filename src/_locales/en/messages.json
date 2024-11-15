@@ -59,7 +59,7 @@
     "description": "OutgoingPayment.failed === true"
   },
   "pay_warn_outgoingPaymentPollingIncomplete": {
-    "message": "We could not verify if the payment was completed. Please ensure you've enough funds in your wallet.",
+    "message": "It looks like this is taking long. Check your wallet later to ensure the payment went through.",
     "description": "We were polling for completion, but it's not finished yet - could mean it'll never succeed or it'll take a long time to settle."
   },
   "pay_error_general": {
