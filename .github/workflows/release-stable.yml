@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   release-stable:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     name: Release
     steps:
       - name: Checkout repository
