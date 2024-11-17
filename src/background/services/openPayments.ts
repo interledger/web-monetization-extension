@@ -112,13 +112,15 @@ const enum ErrorCode {
   KEY_ADD_FAILED = 'key_add_failed',
 }
 
-const enum GrantResult {
-  SUCCESS = 'grant_success',
-  ERROR = 'grant_error',
+const enum Result {
+  GRANT_SUCCESS = 'grant_success',
+  GRANT_ERROR = 'grant_error',
+  KEY_ADDED = 'key_added',
 }
 
 const enum InteractionIntent {
   CONNECT = 'connect',
+  RECONNECT = 'reconnect',
   FUNDS = 'funds',
   BUDGET_UPDATE = 'budget_update',
 }
@@ -544,7 +546,7 @@ export class OpenPaymentsService {
     }).catch(async (e) => {
       await this.redirectToWelcomeScreen(
         tabId,
-        GrantResult.ERROR,
+        Result.GRANT_ERROR,
         intent,
         ErrorCode.HASH_FAILED,
       );
@@ -562,7 +564,7 @@ export class OpenPaymentsService {
     ).catch(async (e) => {
       await this.redirectToWelcomeScreen(
         tabId,
-        GrantResult.ERROR,
+        Result.GRANT_ERROR,
         intent,
         ErrorCode.CONTINUATION_FAILED,
       );
@@ -603,7 +605,7 @@ export class OpenPaymentsService {
     }
 
     this.grant = grantDetails;
-    await this.redirectToWelcomeScreen(tabId, GrantResult.SUCCESS, intent);
+    await this.redirectToWelcomeScreen(tabId, Result.GRANT_SUCCESS, intent);
     return grantDetails;
   }
 
@@ -631,7 +633,7 @@ export class OpenPaymentsService {
       if (tabId && !isTabClosed) {
         await this.redirectToWelcomeScreen(
           tabId,
-          GrantResult.ERROR,
+          Result.GRANT_ERROR,
           InteractionIntent.CONNECT,
           ErrorCode.KEY_ADD_FAILED,
         );
@@ -663,7 +665,7 @@ export class OpenPaymentsService {
 
   private async redirectToWelcomeScreen(
     tabId: NonNullable<Tabs.Tab['id']>,
-    result: GrantResult,
+    result: Result,
     intent: InteractionIntent,
     errorCode?: ErrorCode,
   ) {
@@ -906,7 +908,16 @@ export class OpenPaymentsService {
 
   async reconnectWallet() {
     try {
+      const { walletAddress } = await this.storage.get(['walletAddress']);
+      const tabId = await this.addPublicKeyToWallet(walletAddress!);
+      this.setConnectState('connecting');
       await this.rotateToken();
+      await this.redirectToWelcomeScreen(
+        tabId!,
+        Result.KEY_ADDED,
+        InteractionIntent.RECONNECT,
+      );
+      this.setConnectState(null);
     } catch (error) {
       if (isInvalidClientError(error)) {
         const msg = this.t('connectWallet_error_invalidClient');

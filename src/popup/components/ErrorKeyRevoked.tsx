@@ -50,6 +50,7 @@ export const ErrorKeyRevoked = ({
           onReconnect={() => {
             clearScreen();
             onReconnect?.();
+            window.close();
           }}
         />
       </AnimatePresence>
