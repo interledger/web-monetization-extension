@@ -2,7 +2,6 @@ import React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import { WarningSign } from '@/popup/components/Icons';
 import { Button } from '@/popup/components/ui/Button';
-import { Code } from '@/popup/components/ui/Code';
 import { useTranslation } from '@/popup/lib/context';
 import { useLocalStorage } from '@/popup/lib/hooks';
 import type { PopupStore } from '@/shared/types';
@@ -171,10 +170,9 @@ const ReconnectScreen = ({
           <span className="underline">{info.walletAddress?.id}</span>
         </p>
         <p className="px-2">
-          <strong>Before</strong> you reconnect, copy the public key below and
-          add it to your wallet.
+          <strong>Reconnect</strong> to automatically add the key to your
+          wallet.
         </p>
-        <Code className="text-xs" value={info.publicKey} />
       </div>
 
       {errors?.root?.message && (
