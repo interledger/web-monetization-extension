@@ -1,17 +1,12 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
 import type { RecurringGrant, OneTimeGrant, AmountValue } from '@/shared/types';
 import type { AddFundsPayload, Response } from '@/shared/messages';
 import type { WalletAddress } from '@interledger/open-payments';
-import {
-  charIsNumber,
-  formatNumber,
-  getCurrencySymbol,
-  transformBalance,
-} from '@/popup/lib/utils';
+import { getCurrencySymbol, transformBalance } from '@/popup/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import { getNextOccurrence } from '@/shared/helpers';
 import { ErrorMessage } from '@/popup/components/ErrorMessage';
+import { InputAmount } from '@/popup/components/InputAmount';
 import { Button } from '@/popup/components/ui/Button';
 import { Input } from '@/popup/components/ui/Input';
 
@@ -77,36 +72,41 @@ export function AddFunds({
   recurring,
   requestAddFunds,
 }: AddFundsProps) {
-  const t = useTranslation();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    setError,
-    setValue,
-  } = useForm({
-    criteriaMode: 'firstError',
-    mode: 'onSubmit',
-    reValidateMode: 'onBlur',
-    defaultValues: {
-      amount: transformBalance(defaultAmount, info.assetScale),
-    },
-  });
+  type Errors = Record<'amount' | 'root', { message: string } | null>;
 
-  const currencySymbol = getCurrencySymbol(info.assetCode);
+  const t = useTranslation();
+
+  const [amount, setAmount] = React.useState(
+    transformBalance(defaultAmount, info.assetScale),
+  );
+
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errors, setErrors] = React.useState<Errors>({
+    amount: null,
+    root: null,
+  });
 
   return (
     <form
       className="flex flex-col gap-4"
-      onSubmit={handleSubmit(async (data) => {
+      onSubmit={async (ev) => {
+        ev.preventDefault();
+        setErrors({ root: null, amount: null });
+
+        setIsSubmitting(true);
         const response = await requestAddFunds({
-          amount: data.amount,
+          amount: amount,
           recurring: !!recurring,
         });
+        setIsSubmitting(false);
+
         if (!response.success) {
-          setError('root', { message: response.message });
+          setErrors((prev) => ({
+            ...prev,
+            root: { message: response.message },
+          }));
         }
-      })}
+      }}
     >
       <Input
         type="url"
@@ -116,10 +116,9 @@ export function AddFunds({
         disabled
       />
 
-      <Input
-        type="text"
-        inputMode="numeric"
-        addOn={currencySymbol}
+      <InputAmount
+        id="amount_outOfFunds"
+        walletAddress={info}
         label={t('outOfFundsAddFunds_label_amount')}
         description={
           recurring
@@ -128,37 +127,30 @@ export function AddFunds({
               ])
             : t('outOfFundsAddFunds_label_amountDescriptionOneTime')
         }
+        amount={amount}
         placeholder="5.00"
-        onKeyDown={(e) => {
-          if (
-            !charIsNumber(e.key) &&
-            e.key !== 'Backspace' &&
-            e.key !== 'ArrowLeft' &&
-            e.key !== 'ArrowRight' &&
-            e.key !== 'Delete' &&
-            e.key !== 'Tab'
-          ) {
-            e.preventDefault();
-          }
+        onChange={(amount) => {
+          setAmount(amount);
+          setErrors({ amount: null, root: null });
+        }}
+        onError={(error) => {
+          setErrors((prev) => ({ ...prev, amount: { message: t(error) } }));
         }}
         errorMessage={errors.amount?.message}
-        {...register('amount', {
-          required: { value: true, message: 'Amount is required.' },
-          valueAsNumber: false,
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            setValue('amount', formatNumber(+e.currentTarget.value, 2));
-          },
-        })}
       />
 
-      {(errors.root || errors.amount) && (
+      {errors.root && (
         <ErrorMessage
-          error={errors.root?.message || errors.amount?.message}
+          error={errors.root.message}
           className="mb-0 py-1 text-xs text-error"
         />
       )}
 
-      <Button type="submit" disabled={isSubmitting} loading={isSubmitting}>
+      <Button
+        type="submit"
+        disabled={isSubmitting || !!errors.amount}
+        loading={isSubmitting}
+      >
         {recurring
           ? t('outOfFundsAddFunds_action_addRecurring')
           : t('outOfFundsAddFunds_action_addOneTime')}

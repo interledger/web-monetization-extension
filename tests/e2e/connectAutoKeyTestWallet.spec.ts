@@ -1,15 +1,16 @@
 import { test, expect } from './fixtures/base';
-import { ensureEnd, withResolvers } from '@/shared/helpers';
+import { withResolvers, getJWKS } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
+import { waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
+  API_URL_ORIGIN,
   KEYS_PAGE_URL,
+  LOGIN_PAGE_URL,
   getContinueWaitTime,
   revokeKey,
   waitForGrantConsentPage,
-  waitForWelcomePage,
 } from './helpers/testWallet';
-import { getJWKS } from './helpers/common';
 
 test('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
   page,
@@ -18,13 +19,9 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   background,
   i18n,
 }) => {
-  const username = process.env.WALLET_USERNAME!;
-  const password = process.env.WALLET_PASSWORD!;
-  const walletAddressUrl = process.env.CONNECT_WALLET_ADDRESS_URL!;
-
-  const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/')).href;
-
-  const loginPageUrl = `https://rafiki.money/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
+  const username = process.env.TEST_WALLET_USERNAME;
+  const password = process.env.TEST_WALLET_PASSWORD;
+  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
@@ -39,7 +36,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     await context.clearCookies();
 
     await page.goto(KEYS_PAGE_URL);
-    expect(page.url()).toBe(loginPageUrl);
+    expect(page.url()).toBe(LOGIN_PAGE_URL);
     await page.close();
   });
 
@@ -59,7 +56,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
 
   page = await test.step('shows login page', async () => {
     const openedPage = await context.waitForEvent('page', {
-      predicate: (page) => page.url().startsWith(loginPageUrl),
+      predicate: (page) => page.url().startsWith(LOGIN_PAGE_URL),
       timeout: 3 * 1000,
     });
     await openedPage.getByLabel('E-mail').fill(username);
@@ -85,7 +82,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
       if (req.serviceWorker()) return;
       if (req.method() !== 'POST') return;
       const url = new URL(req.url());
-      if (url.origin !== 'https://api.rafiki.money') return;
+      if (url.origin !== API_URL_ORIGIN) return;
       if (!url.pathname.startsWith('/accounts/')) return;
       if (!url.pathname.includes('/upload-key')) return;
 
@@ -111,14 +108,14 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
       return chrome.storage.local.get<{ keyId: string }>(['keyId']);
     });
 
-    const jwksBefore = await getJWKS(page, jwksUrl);
+    const jwksBefore = await getJWKS(walletAddressUrl);
     expect(jwksBefore.keys.length).toBeGreaterThanOrEqual(0);
     expect(jwksBefore.keys.find((key) => key.kid === keyId)).toBeUndefined();
 
     pause.resolve();
     const { accountId, walletId } = await promise;
 
-    const jwks = await getJWKS(page, jwksUrl);
+    const jwks = await getJWKS(walletAddressUrl);
     expect(jwks.keys.length).toBeGreaterThan(0);
     const key = jwks.keys.find((key) => key.kid === keyId);
     expect(key).toMatchObject({ kid: keyId });
@@ -146,7 +143,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   await test.step('revoke key', async () => {
     await revokeKey(page, revokeInfo);
 
-    const { keys } = await getJWKS(page, jwksUrl);
+    const { keys } = await getJWKS(walletAddressUrl);
     expect(keys.find((key) => key.kid === revokeInfo.keyId)).toBeUndefined();
   });
 

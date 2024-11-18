@@ -8,7 +8,7 @@ test('should monetize site with single wallet address', async ({
   page,
   popup,
 }) => {
-  const walletAddressUrl = process.env.CONNECT_WALLET_ADDRESS_URL!;
+  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const playgroundUrl = 'https://webmonetization.org/play/';
 
   await page.goto(playgroundUrl);
@@ -38,7 +38,4 @@ test('should monetize site with single wallet address', async ({
 
   await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
   expect(await popup.getByRole('textbox').all()).toHaveLength(1);
-
-  await expect(popup.getByLabel('Continuous payment stream')).toBeVisible();
-  expect(await popup.getByRole('switch').all()).toHaveLength(1);
 });

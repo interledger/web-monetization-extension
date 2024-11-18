@@ -48,20 +48,24 @@ export const getPlugins = ({
       resolveFrom: ROOT_DIR,
       assets: [
         {
-          from: path.join(SRC_DIR, 'popup', 'index.html'),
-          to: path.join(outDir, 'popup', 'index.html'),
+          from: toPosix(path.join(SRC_DIR, 'popup', 'index.html')),
+          to: toPosix(path.join(outDir, 'popup', 'index.html')),
         },
         {
-          from: path.join(SRC_DIR, 'pages', 'progress-connect', 'index.html'),
-          to: path.join(outDir, 'pages', 'progress-connect', 'index.html'),
+          from: toPosix(
+            path.join(SRC_DIR, 'pages', 'progress-connect', 'index.html'),
+          ),
+          to: toPosix(
+            path.join(outDir, 'pages', 'progress-connect', 'index.html'),
+          ),
         },
         {
-          from: path.join(SRC_DIR, '_locales/**/*'),
-          to: path.join(outDir, '_locales'),
+          from: toPosix(path.join(SRC_DIR, '_locales', '**', '*')),
+          to: toPosix(path.join(outDir, '_locales')),
         },
         {
-          from: path.join(SRC_DIR, 'assets/**/*'),
-          to: path.join(outDir, 'assets'),
+          from: toPosix(path.join(SRC_DIR, 'assets', '**', '*')),
+          to: toPosix(path.join(outDir, 'assets')),
         },
       ],
       watch: dev,
@@ -173,4 +177,8 @@ function cleanPlugin(dirs: string[]): ESBuildPlugin {
       });
     },
   };
+}
+
+function toPosix(filePath: string): string {
+  return filePath.replaceAll(path.sep, path.posix.sep);
 }

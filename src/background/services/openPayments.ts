@@ -35,7 +35,11 @@ import {
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
+import type {
+  AddFundsPayload,
+  ConnectWalletPayload,
+  UpdateBudgetPayload,
+} from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
@@ -116,6 +120,7 @@ const enum GrantResult {
 const enum InteractionIntent {
   CONNECT = 'connect',
   FUNDS = 'funds',
+  BUDGET_UPDATE = 'budget_update',
 }
 
 export class OpenPaymentsService {
@@ -459,6 +464,43 @@ export class OpenPaymentsService {
     await this.storage.setState({ out_of_funds: false });
   }
 
+  async updateBudget({ amount, recurring }: UpdateBudgetPayload) {
+    const { walletAddress, ...existingGrants } = await this.storage.get([
+      'walletAddress',
+      'oneTimeGrant',
+      'recurringGrant',
+    ]);
+
+    await this.completeGrant(
+      amount,
+      walletAddress!,
+      recurring,
+      InteractionIntent.BUDGET_UPDATE,
+    );
+
+    // Revoke all existing grants.
+    // Note: Clear storage only if new grant type is not same as previous grant
+    // type (as completeGrant already sets new grant state)
+    if (existingGrants.oneTimeGrant) {
+      await this.cancelGrant(existingGrants.oneTimeGrant.continue);
+      if (recurring) {
+        this.storage.set({
+          oneTimeGrant: null,
+          oneTimeGrantSpentAmount: '0',
+        });
+      }
+    }
+    if (existingGrants.recurringGrant) {
+      await this.cancelGrant(existingGrants.recurringGrant.continue);
+      if (!recurring) {
+        this.storage.set({
+          recurringGrant: null,
+          recurringGrantSpentAmount: '0',
+        });
+      }
+    }
+  }
+
   private async completeGrant(
     amount: string,
     walletAddress: WalletAddress,
@@ -479,7 +521,7 @@ export class OpenPaymentsService {
       amount: transformedAmount,
     }).catch((err) => {
       if (isInvalidClientError(err)) {
-        if (intent === InteractionIntent.CONNECT) {
+        if (intent !== InteractionIntent.FUNDS) {
           throw new ErrorWithKey('connectWallet_error_invalidClient');
         }
         const msg = this.t('connectWallet_error_invalidClient');

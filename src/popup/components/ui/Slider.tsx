@@ -51,7 +51,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
           aria-disabled={disabled ?? false}
           aria-invalid={!!errorMessage}
           aria-describedby={errorMessage}
-          value={disabled ? 0 : value}
+          value={value}
           onChange={onChange}
           {...props}
         />

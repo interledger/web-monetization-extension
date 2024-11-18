@@ -1,7 +1,7 @@
 import {
   ErrorWithKey,
-  ensureEnd,
   errorWithKeyToJSON,
+  getJWKS,
   isErrorWithKey,
   withResolvers,
   type ErrorWithKeyLike,
@@ -151,10 +151,7 @@ export class KeyAutoAddService {
   }
 
   private async validate(walletAddressUrl: string, keyId: string) {
-    type JWKS = { keys: { kid: string }[] };
-    const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
-    const res = await fetch(jwksUrl.toString());
-    const jwks: JWKS = await res.json();
+    const jwks = await getJWKS(walletAddressUrl);
     if (!jwks.keys.find((key) => key.kid === keyId)) {
       throw new Error('Key not found in jwks');
     }
@@ -188,10 +185,18 @@ export function walletAddressToProvider(walletAddress: WalletAddress): {
 } {
   const { host } = new URL(walletAddress.id);
   switch (host) {
-    case 'ilp.rafiki.money':
-      return { url: 'https://rafiki.money/settings/developer-keys' };
-    // case 'eu1.fynbos.me': // fynbos dev
-    // case 'fynbos.me': // fynbos production
+    case 'ilp.interledger-test.dev':
+      return {
+        url: 'https://wallet.interledger-test.dev/settings/developer-keys',
+      };
+    case 'ilp.interledger.cards':
+      return {
+        url: 'https://wallet.interledger.cards/settings/developer-keys',
+      };
+    case 'eu1.fynbos.me':
+      return { url: 'https://eu1.fynbos.dev/settings/keys' };
+    case 'fynbos.me':
+      return { url: 'https://wallet.fynbos.app/settings/keys' };
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
