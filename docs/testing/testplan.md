@@ -13,7 +13,7 @@ Any person interested in testing the beta release of the Web Monetization extens
 
 1. Validating that, once installed, users can configure Web Monetization settings on the extension.
 2. Validating that once the extension is successfully connected to a digital wallet for sending payments, a user is able to configure payments or disconnect from the wallet.
-3. Validating that the behaviour of the extension meets expectations, and that it is correct when the extension facilitates paying a monetized web page.
+3. Validating that the behavior of the extension meets expectations, and that it is correct when the extension facilitates paying a monetized web page.
 
 ## Dependencies
 
