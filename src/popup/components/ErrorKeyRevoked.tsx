@@ -164,7 +164,7 @@ const ReconnectScreen = ({
         requestReconnect();
       }}
     >
-      <div className="space-y-1 text-sm">
+      <div className="space-y-2 text-sm">
         <p className="px-2">
           Reconnecting to wallet:{' '}
           <span className="underline">{info.walletAddress?.id}</span>
