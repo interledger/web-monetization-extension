@@ -12,8 +12,8 @@ Any person interested in testing the beta release of the Web Monetization extens
 ## Objectives
 
 1. Validating that, once installed, users can configure Web Monetization settings on the extension.
-2. Validating that once the extension is successfully connected to a digital wallet, a user is able to configure payments or disconnect from the wallet.
-3. When the extension facilitates paying a monetized web page, check how payments get distributed between the receiving wallets on the page.
+2. Validating that once the extension is successfully connected to a digital wallet for sending payments, a user is able to configure payments or disconnect from the wallet.
+3. Validating that the behaviour of the extension meets expectations, and that it is correct when the extension facilitates paying a monetized web page.
 
 ## Dependencies
 
@@ -31,15 +31,13 @@ We maintain a list of [Web Monetization compatible wallets](https://webmonetizat
 
 #### Test Digital Wallet
 
-You have the option to use “play” money from the [Interledger Test Wallet application](https://rafiki.money/).  
-Here you can set up an account that is enabled for Web Monetization, and other Interledger functionality, without involving real money.
+You have the option to use “play” money from the [Interledger Test Wallet application][testWallet]. Here you can set up a test account that is enabled for sending Web Monetization payments.
 
 ## Testing
 
 ### Environment and Software
 
-The resources and tools that you will need to test Web Monetization depend on your desired role, and what you want to test.
-This test plan only focuses on the perspective of a website visitor who Wants to pay websites that are web monetized.
+This test plan covers scenarios where you, as a website visitor, want to pay web monetized sites.
 
 1. Hardware: Any PC with internet access
 2. Digital wallet: A Web Monetization enabled digital wallet from which payments will be made
@@ -58,9 +56,8 @@ This test plan only focuses on the perspective of a website visitor who Wants to
 Before you start testing, sign-up for a wallet:
 
 1. The sign-up process depends on your digital wallet provider. Learn more from the [Dependencies](#Dependencies) section.
-2. If you want to use a test wallet, the sign-up process is quick (within minutes).
-3. If you want to use a real wallet:  
-   a. Your wallet provider will likely need to verify your identity (info: this is mandated by the laws of each country, or jurisdiction).  
+2. If you want to use a real wallet:  
+   a. Your wallet provider will likely need to verify your identity (info: this process is mandated by the laws of each country, or jurisdiction).  
    b. The identity verification process depends on your wallet provider, and your location (info: this can be within hours or days).  
    c. Once your wallet provider completes all sign-up and verification processes, you should be able to:
    - Setup and manage your wallet accounts, currencies, balances etc.
@@ -80,29 +77,12 @@ On the playground, you can add a wallet that uses real money from a real wallet,
 1. The playground itself is not web monetized. We do not receive any payments from you if you use this site.
 2. The playground becomes monetized when you add one or more receiving wallet addresses to it.
 3. If your Web Monetization extension is connected to a real wallet, then your extension will facilitate payments from your real wallet (i.e. real money).
-4. Similarly, if your extension is connected to a play wallet (e.g. rafiki.money), then the extension facilitates payments using play money.
+4. Similarly, if your extension is connected to a [test wallet][testWallet], then the extension facilitates payments using "play" money.
 5. If you add your own wallet address to the playground, and then use the extension to pay the playground, you are paying yourself.
 
 ### Test Data
 
-This section lists websites and wallets that you can pay using the Web Monetization extension.
-
-#### Use a test wallet & play money
-
-If you have a [test wallet][testWallet] address connected to the extension, then you can use the Web Monetization extension to pay with "play" money. You have two options:
-
-1. Visit any of these monetized websites that use a [rafiki.money](https://rafiki.money) test wallet:
-
-   - https://ahimsakids.com
-   - https://alexlakatos.com
-   - https://radu.sh
-   - https://radu.sh/iframe (if you'd like to test how it works with iframes)
-
-2. Visit the Web Monetization Playground, and add test payment pointers. Here are few examples that you can use:
-   - https://ilp.rafiki.money/interledger-wm
-   - https://ilp.rafiki.money/wm-dev
-   - https://ilp.rafiki.money/laka_web
-   - https://ilp.rafiki.money/wm-receiving
+This section lists examples of websites and Web Monetization compatible wallet addresses that you can pay using the Web Monetization extension.
 
 #### Websites and wallets using Fynbos US
 
@@ -110,11 +90,11 @@ If you want to test the Web Monetization extension using real money, and you hav
 
 1. Visit and pay any of these monetized websites:
 
-   - [jeremiahLee.com](http://jeremiahLee.com)
+   - [jeremiahLee.com](https://jeremiahLee.com)
    - [lifebe.com.au](https://lifebe.com.au/)
    - [storytogo.ca/classroom](https://storytogo.ca/classroom/)
 
-2. Visit the Web Monetization Playground, and add any Fynbos US wallet address. Here are examples that you can use:
+2. Visit the Web Monetization Playground, and add any Fynbos US wallet address. Here are a few wallet addresses that you can use:
    - https://fynbos.me/jeremiah
    - https://fynbos.me/adam
    - https://fynbos.me/lori
@@ -124,8 +104,8 @@ If you want to test the Web Monetization extension using real money, and you hav
 If you want to test the Web Monetization extension using real money, and you have a Fynbos Canada wallet connected to your extension, then you have two options:
 
 1. Visit and pay this monetized website:
-   - [ericahargreave.com](http://ericahargreave.com)
-2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet address. Here is an example that you can use:
+   - [ericahargreave.com](https://ericahargreave.com)
+2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet address. Here is a wallet address that you can pay:
    - https://fynbos.me/erica
 
 #### Websites and wallets using Fynbos South Africa
@@ -134,7 +114,7 @@ If you want to test the Web Monetization extension using real money, and you hav
 
 1. Visit and pay this monetized website:
    - [www.radu.sh/fynbos](https://www.radu.sh/fynbos)
-2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is an example that you can use:
+2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:
    - https://fynbos.me/makedev
 
 #### Websites and wallets using GateHub
@@ -143,18 +123,18 @@ If you want to test the Web Monetization extension using real money, and you hav
 
 1. Visit and pay these monetized websites:
 
-   - [storytogo.ca](http://storytogo.ca)
-   - [roamancing.com](http://roamancing.com)
+   - [storytogo.ca](https://storytogo.ca)
+   - [roamancing.com](https://roamancing.com)
 
-2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet addresses. Here are examples that you can use:
+2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet addresses. Here are a few payment pointers that you can use:
    - https://ilp.gatehub.net/276288680/EUR
    - https://ilp.gatehub.net/870065172/USD
 
 #### Websites using multiple wallets
 
-Whether your extension is connected to the test wallet, [rafiki.money](https://rafiki.money) (which uses "play" money), or Fynbos US (which uses real money), or GateHub (which uses real money), you can use the extension to pay this website:
+Whether your extension is connected to the [test wallet][testWallet] (which uses "play" money), or Fynbos US (which uses real money), or GateHub (which uses real money), you can use the extension to pay this website:
 
-- [roamancing.com/naturallyours](http://roamancing.com/naturallyours)
+- [roamancing.com/naturallyours](https://roamancing.com/naturallyours)
 
 This website has multiple receiving wallet addresses. It can receive play money into a test wallet, real money into a Fynbos US wallet, and real money into a GateHub wallet.
 
@@ -231,7 +211,7 @@ We have 2 risk categories:  `critical` | `high`
 | Extension icon: active (full color), with a green tick                                                                                                                                                                                                                          | Extension icon: active (full color), but with a red X                           |
 | Opening the extension displays a **rate of pay** slider:<ul><li>On the left, the current hourly rate in the currency of the wallet.</li><li>The default is equivalent to 0.60 USD.</li><li>The remaining balance, updated in near real-time (i.e. every few seconds).</li></ul> | Opening the extension displays <ul><li>This website is not monetized.</li></ul> |
 
-##### Pay one-time when extension and wallet have enough funds
+##### Pay one-time when extension and wallet has enough funds
 
 **Test ID**: 3  
  **Description**: Send a one-time payment to a monetized website when the remaining balance for the extension is sufficient for the payment, and the wallet has sufficient funds  
@@ -268,7 +248,7 @@ We have 2 risk categories:  `critical` | `high`
 **Steps**:
 
 1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
-2. Open the extension and make a one-time payment of an amount that falls within your remaining balance shown in the extension.
+2. Open the extension, and make a one-time payment that is higher than the extension's remaining balance.
 3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
 
 **Expected results**:  
@@ -375,33 +355,26 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 ##### Partial one-time payment success
 
 **Test ID**: 9  
-**Description**: Make a one-time payment to a website that has multiple receiving wallets, where some of the receiving wallets use real money, and some are test wallets that use "play" money  
+**Description**: Make a one-time payment to a website that has multiple receiving wallets from different wallet providers, where some of the receiving wallets use real money, and some are test wallets that use "play" money  
 **Risk**: R3 (security of funds) and R4 (control my payments)  
 **Preconditions**:
 
 1. The extension is connected to your wallet.
-2. Your extension has sufficient funds. The extension’s remaining balance is lower than the one-time payment you are going to make.
+2. Your extension has sufficient funds for the payment.
 3. Your wallet has sufficient funds for the payment.
 
 **Steps**:
 
 1. Visit a monetized website that has multiple receiving wallet addresses or payment pointers:  
-   a. You can visit [roamancing.com/naturallyours](http://roamancing.com/naturallyours/).  
-   b. Alternatively, you can use the [Test Playground](#Test-Playground) to add payment pointers or wallet addresses from different wallet providers.  
-   As an example, you can add all of the following wallet addresses to the playground:
-
-   - https://ilp.rafiki.money/wm-dev
-   - https://fynbos.me/erica
-   - https://ilp.gatehub.net/276288680/EUR
-
-2. Open the extension and make a one-time payment.
+   a. You can visit [roamancing.com/naturallyours](https://roamancing.com/naturallyours/) because it has 6 different receiving wallet addresses, from different wallet providers.
+2. Open the extension and make a one-time payment that is lower than the extension's available balance.
 3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
 
 **Expected results**:  
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
-| Opening the extension displays: <ol><li>**Rate of pay slider**: the rate of pay and currency on the left, the remaining balance of the extension’s authorized amount on the right side.</li><li>“**Send now**” **button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero.</li><li>**Remaining balance**: if the monetized website had 2 receiving wallet addresses, then the extension attempts to pay the maximum number of wallets that it can pay, without exceeding its remaining balance **Reason**: When you try to send $6 to a web page that has 2 receiving wallet addresses, the extension divides the total amount by the number of wallet addresses (i.e. $6 divided by 2). The extension attempts the first transaction (i.e. send $3 to the first receiving wallet). After the first transaction succeeds, the remaining balance of the extension should decrease to $2. The second transaction fails (i.e cannot send $3 to the second receiving wallet) because the extension only has a remaining balance of $2.</li></ol> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ol><li>**Rate of pay slider**: the rate of pay and currency on the left, the remaining balance of the extension’s authorized amount on the right side.</li><li>“**Send now**” **button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero.</li><li>**Remaining balance**: the web page has 6 receiving wallet addresses, so the extension attempts to pay the maximum number of wallets it can pay, without exceeding its remaining balance **Reason**: when you try to send $12 to the web page, the extension divides the total $12 amount by the 6 wallet addresses, such that it tries to send $2 to each wallet address. **Observe**: only 1 of 6 payments can succeed, which should reduce the extension's remaining balance $2. </li></ol> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay until the extension runs out of funds
 
@@ -425,3 +398,5 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 | :------------------------------------------------------- |
 | Once the extension runs out of funds: <ul><li>Extension icon: active (full color), with an **orange exclamation mark**.</li> </ul> |
 | Opening the extension displays: <ul><li>**Alert text**: Out of funds. Funds have been depleted. You can no longer make payments. Please add funds.</li><li>The following two buttons: <ul><li>Let me add funds and auto-renew monthly.</li><li>Let me top-up funds one time.</li></ul></li></ul> |
+
+[testWallet]: https://wallet.interledger-test.dev
