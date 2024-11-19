@@ -48,7 +48,7 @@
     "@jgoz/esbuild-plugin-typecheck": "^4.0.2",
     "@playwright/test": "^1.47.2",
     "@tailwindcss/forms": "^0.5.9",
-    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
     "@types/archiver": "^6.0.3",
     "@types/chrome": "^0.0.280",
