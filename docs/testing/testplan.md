@@ -42,7 +42,7 @@ This test plan covers scenarios where you, as a website visitor, want to pay web
 1. Hardware: Any PC with internet access
 2. Digital wallet: A Web Monetization enabled digital wallet from which payments will be made
 3. Environment & software:  
-   a. Any operating system (OS)
+   a. Any operating system (OS)  
    b. A Chromium-based Web browser (e.g. Chrome, Edge, Vivaldi, Brave) or Firefox
 
 ### Reporting Issues
@@ -60,7 +60,8 @@ Before you start testing, sign-up for a wallet:
    a. Your wallet provider will likely need to verify your identity (info: this process is mandated by the laws of each country, or jurisdiction).  
    b. The identity verification process depends on your wallet provider, and your location (info: this can be within hours or days).  
    c. Once your wallet provider completes all sign-up and verification processes, you should be able to:
-   - Setup and manage your wallet accounts, currencies, balances etc.
+   - Log into your digital wallet application.  
+   - Setup and manage your wallet accounts, currencies, balances etc.  
    - Obtain the wallet address or payment pointer for your digital wallet.
 
 ### Test Playground
@@ -112,17 +113,16 @@ If you want to test the Web Monetization extension using real money, and you hav
 
 If you want to test the Web Monetization extension using real money, and you have a Fynbos South Africa wallet connected to your extension, then you have two options:
 
-1. Visit and pay this monetized website:
+1. Visit and pay this monetized website:  
    - [www.radu.sh/fynbos](https://www.radu.sh/fynbos)
-2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:
+2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:  
    - https://fynbos.me/makedev
 
 #### Websites and wallets using GateHub
 
 If you want to test the Web Monetization extension using real money, and you have a GateHub wallet connected to your extension, then you have two options:
 
-1. Visit and pay these monetized websites:
-
+1. Visit and pay these monetized websites:  
    - [storytogo.ca](https://storytogo.ca)
    - [roamancing.com](https://roamancing.com)
 
@@ -171,21 +171,21 @@ We have 2 risk categories:  `critical` | `high`
 **Risk**: R1 (onboarding) and R2 (UX)  
 **Preconditions**:
 
-1. You have already downloaded and installed the Web Monetization extension.
-2. Your digital wallet sign-up and account activation is complete (learn more from the [Prerequisites](#Prerequisites) section)
+1. You have already downloaded and installed the Web Monetization extension.  
+2. Your digital wallet sign-up and account activation is complete (learn more from the [Prerequisites](#Prerequisites) section).
+3. You have obtained and copied your wallet address or payment pointer from your digital wallet.  
 
 **Steps**:
 
-1. Open the WM extension and copy the extension’s key.
-2. Open the digital wallet, and load the extension’s key into the wallet.
-3. From the digital wallet, find and copy the wallet address or payment pointer.
-4. Open the WM extension, and enter the wallet address or payment pointer.
-5. Enter the amount you want to make available to the extension from your wallet.
-6. Keep the option to renew monthly disabled.
+1. Open the Web Monetization extension, and enter your payment pointer or wallet address.
+2. Enter the amount you want to make available to the extension from your wallet.
+3. Keep the option to renew monthly disabled.
+4. Click connect.  
+5. Click agree, when the extension prompts you to consent to automatically connecting the extension with your wallet.
 
 **Expected results**:
 
-1. The wallet owner receives an interaction prompt from their wallet to authorize the connection and access to the amount.
+1. You will receive an interaction prompt from your wallet to authorize the connection and access to the amount.
 2. On accepting, you get shown the message "Your wallet is now successfully connected to the extension."
 
 ##### Make continuous payments
