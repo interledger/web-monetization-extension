@@ -201,7 +201,11 @@ export class Background {
               return success(undefined);
 
             case 'RECONNECT_WALLET': {
-              await this.openPaymentsService.reconnectWallet();
+              if (message.payload.auto) {
+                await this.openPaymentsService.reconnectWallet();
+              } else {
+                await this.openPaymentsService.manualReconnectWallet();
+              }
               await this.monetizationService.resumePaymentSessionActiveTab();
               await this.updateVisualIndicatorsForCurrentTab();
               return success(undefined);

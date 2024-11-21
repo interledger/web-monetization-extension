@@ -31,7 +31,7 @@ export const formatCurrency = (
   }).format(Number(value));
 };
 
-const isWalletAddress = (o: any): o is WalletAddress => {
+export const isWalletAddress = (o: any): o is WalletAddress => {
   return (
     o.id &&
     typeof o.id === 'string' &&

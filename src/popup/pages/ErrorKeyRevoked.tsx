@@ -31,7 +31,7 @@ export const Component = () => {
   return (
     <ErrorKeyRevoked
       info={{ publicKey, walletAddress }}
-      reconnectWallet={() => message.send('RECONNECT_WALLET')}
+      reconnectWallet={(data) => message.send('RECONNECT_WALLET', data)}
       onReconnect={onReconnect}
       disconnectWallet={() => message.send('DISCONNECT_WALLET')}
       onDisconnect={onDisconnect}
