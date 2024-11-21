@@ -19,7 +19,6 @@ public/manifest.json
 coverage
 .env
 .husky
-.vscode
 
 # Editor directories and files
 .vscode/*
