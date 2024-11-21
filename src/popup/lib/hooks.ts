@@ -13,7 +13,10 @@ import React from 'react';
 export function useLocalStorage<T>(
   key: string,
   defaultValue: T,
-  { maxAge = 1000 * 24 * 60 * 60 }: Partial<{ maxAge: number }> = {},
+  {
+    maxAge = 1000 * 24 * 60 * 60,
+    validate = () => true,
+  }: Partial<{ maxAge: number; validate: (value: T) => boolean }> = {},
 ) {
   const hasLocalStorage = typeof localStorage !== 'undefined';
   maxAge *= 1000;
@@ -33,7 +36,11 @@ export function useLocalStorage<T>(
 
     try {
       const data = JSON.parse(storedValue);
-      if (isWellFormed(data) && data.expiresAt > Date.now()) {
+      if (
+        isWellFormed(data) &&
+        data.expiresAt > Date.now() &&
+        validate(data.value)
+      ) {
         return data.value;
       } else {
         localStorage.removeItem(key);

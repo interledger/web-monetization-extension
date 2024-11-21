@@ -49,13 +49,16 @@ jobs:
         env:
           PLAYWRIGHT_PROJECT: ${{ matrix.project }}
           PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: '1'
-          WALLET_URL_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
-          WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
-          WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}
-          CONNECT_WALLET_ADDRESS_URL: ${{ vars.E2E_CONNECT_WALLET_ADDRESS_URL }}
-          CONNECT_KEY_ID: ${{ vars.E2E_CONNECT_KEY_ID }}
-          CONNECT_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
-          CONNECT_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
+          TEST_WALLET_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
+          TEST_WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
+          TEST_WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}
+          TEST_WALLET_ADDRESS_URL: ${{ vars.E2E_CONNECT_WALLET_ADDRESS_URL }}
+          TEST_WALLET_KEY_ID: ${{ vars.E2E_CONNECT_KEY_ID }}
+          TEST_WALLET_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
+          TEST_WALLET_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
+          FYNBOS_WALLET_ADDRESS_URL: ${{ vars.E2E_FYNBOS_WALLET_ADDRESS_URL }}
+          FYNBOS_USERNAME: ${{ vars.E2E_FYNBOS_USERNAME }}
+          FYNBOS_PASSWORD: ${{ secrets.E2E_FYNBOS_PASSWORD }}
 
       - name: Encrypt report
         shell: bash
@@ -73,7 +76,7 @@ jobs:
 
   build-nightly:
     name: Create Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: test-e2e
     steps:
       - name: Checkout repository

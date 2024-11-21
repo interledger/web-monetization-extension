@@ -11,19 +11,20 @@ import { authFile } from './fixtures/helpers';
 setup('authenticate', async ({ page }) => {
   setup.skip(existsSync(authFile), 'Already authenticated');
 
-  const { WALLET_URL_ORIGIN, WALLET_USERNAME, WALLET_PASSWORD } = process.env;
+  const { TEST_WALLET_ORIGIN, TEST_WALLET_USERNAME, TEST_WALLET_PASSWORD } =
+    process.env;
 
-  expect(WALLET_URL_ORIGIN).toBeDefined();
-  expect(WALLET_USERNAME).toBeDefined();
-  expect(WALLET_PASSWORD).toBeDefined();
+  expect(TEST_WALLET_ORIGIN).toBeDefined();
+  expect(TEST_WALLET_USERNAME).toBeDefined();
+  expect(TEST_WALLET_PASSWORD).toBeDefined();
 
-  await page.goto(`${WALLET_URL_ORIGIN!}/auth/login`);
-  await page.getByLabel('E-mail').fill(WALLET_USERNAME!);
-  await page.getByLabel('Password').fill(WALLET_PASSWORD!);
+  await page.goto(`${TEST_WALLET_ORIGIN}/auth/login`);
+  await page.getByLabel('E-mail').fill(TEST_WALLET_USERNAME);
+  await page.getByLabel('Password').fill(TEST_WALLET_PASSWORD);
   await page.getByRole('button', { name: 'login' }).click();
-  await page.waitForURL(WALLET_URL_ORIGIN!);
+  await page.waitForURL(TEST_WALLET_ORIGIN);
 
-  await page.goto(`${WALLET_URL_ORIGIN!}/settings/developer-keys`);
+  await page.goto(`${TEST_WALLET_ORIGIN}/settings/developer-keys`);
   await expect(page.locator('h1')).toHaveText('Developer Keys');
 
   await page.context().storageState({ path: authFile });

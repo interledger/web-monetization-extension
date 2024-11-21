@@ -1,43 +1,85 @@
 import React from 'react';
-import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
-import { WalletInformation } from '@/popup/components/WalletInformation';
-import { useMessage, usePopupState } from '@/popup/lib/context';
-import { getWalletInformation } from '@/shared/helpers';
+import { useLocation } from 'react-router-dom';
+import * as Tabs from '@radix-ui/react-tabs';
+import { WalletInformation } from '@/popup/components/Settings/WalletInformation';
+import { BudgetScreen } from '@/popup/components/Settings/Budget';
+import { RateOfPayScreen } from '@/popup/components/Settings/RateOfPay';
+import { cn } from '@/shared/helpers';
+import { usePopupState } from '@/popup/lib/context';
+import { useLocalStorage } from '@/popup/lib/hooks';
+
+const TABS = [
+  { id: 'wallet', title: 'Wallet' },
+  { id: 'budget', title: 'Budget' },
+  { id: 'wmRate', title: 'Rate' },
+];
+
+const isValidTabId = (id: string) => {
+  return TABS.some((e) => e.id === id);
+};
 
 export const Component = () => {
-  const { state } = usePopupState();
-  const message = useMessage();
+  const {
+    state: { balance, grants, publicKey, walletAddress },
+  } = usePopupState();
+  const location = useLocation();
+  const [storedTabId, setStoredTabId] = useLocalStorage(
+    'settings.tabId',
+    TABS[0].id,
+    { maxAge: 10 * 60 * 1000, validate: isValidTabId },
+  );
+  const tabIdFromState =
+    location.state?.tabId && isValidTabId(location.state?.tabId)
+      ? (location.state.tabId as string)
+      : null;
+  const [currentTabId, setCurrentTabId] = React.useState(
+    tabIdFromState ?? storedTabId ?? TABS[0].id,
+  );
 
-  if (state.connected) {
-    return <WalletInformation info={state} />;
-  } else {
-    const connectState = state.transientState['connect'];
-    return (
-      <ConnectWalletForm
-        publicKey={state.publicKey}
-        state={connectState}
-        defaultValues={{
-          recurring:
-            localStorage?.getItem('connect.recurring') === 'true' || false,
-          amount: localStorage?.getItem('connect.amount') || undefined,
-          walletAddressUrl:
-            localStorage?.getItem('connect.walletAddressUrl') || undefined,
-          autoKeyAddConsent:
-            localStorage?.getItem('connect.autoKeyAddConsent') === 'true',
-        }}
-        saveValue={(key, val) => {
-          localStorage?.setItem(`connect.${key}`, val.toString());
-        }}
-        getWalletInfo={getWalletInformation}
-        connectWallet={(data) => message.send('CONNECT_WALLET', data)}
-        onConnect={() => {
-          // The popup closes due to redirects on connect, so we don't need to
-          // update any state manually.
-          // But we reload it, as it's open all-time when running E2E tests
-          window.location.reload();
-        }}
-        clearConnectState={() => message.send('CONNECT_WALLET', null)}
-      />
-    );
-  }
+  return (
+    <Tabs.Root
+      className="flex flex-1 flex-col"
+      defaultValue={currentTabId}
+      onValueChange={(id) => {
+        setCurrentTabId(id);
+        setStoredTabId(id);
+      }}
+    >
+      <Tabs.List className="mb-8 flex border-b border-gray-200">
+        {TABS.map(({ id, title }) => (
+          <Tabs.TabsTrigger
+            key={id}
+            value={id}
+            className={cn(
+              currentTabId === id
+                ? 'border-current text-secondary'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
+              'cursor-pointer whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium focus:outline-none focus-visible:outline',
+            )}
+          >
+            {title}
+          </Tabs.TabsTrigger>
+        ))}
+      </Tabs.List>
+
+      <Tabs.TabsContent value={TABS[0].id} className="h-full">
+        <WalletInformation
+          publicKey={publicKey}
+          walletAddress={walletAddress}
+        />
+      </Tabs.TabsContent>
+
+      <Tabs.TabsContent value={TABS[1].id} className="h-full">
+        <BudgetScreen
+          walletAddress={walletAddress}
+          balance={balance}
+          grants={grants}
+        />
+      </Tabs.TabsContent>
+
+      <Tabs.TabsContent value={TABS[2].id} className="h-full">
+        <RateOfPayScreen />
+      </Tabs.TabsContent>
+    </Tabs.Root>
+  );
 };

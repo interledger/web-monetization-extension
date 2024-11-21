@@ -32,8 +32,8 @@ test('shows connect form if not connected', async ({ page, popup }) => {
 
 test.describe('should fail to connect if:', () => {
   test('invalid URL provided', async ({ background, popup, i18n }) => {
-    const inputFields = getPopupFields(popup);
-    const connectButton = await fillPopup(popup, {
+    const inputFields = getPopupFields(popup, i18n);
+    const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl: 'abc',
     });
 
@@ -51,9 +51,13 @@ test.describe('should fail to connect if:', () => {
     ).toEqual({ connected: false });
   });
 
-  test('invalid wallet address provided', async ({ background, popup }) => {
-    const inputFields = getPopupFields(popup);
-    const connectButton = await fillPopup(popup, {
+  test('invalid wallet address provided', async ({
+    background,
+    popup,
+    i18n,
+  }) => {
+    const inputFields = getPopupFields(popup, i18n);
+    const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl: 'https://example.com',
     });
 

@@ -1,25 +1,29 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import {
   loadKeysToExtension,
+  type BrowserIntl,
   type Background,
   type KeyInfo,
 } from '../fixtures/helpers';
 import { fillPopup, type Popup, type ConnectDetails } from '../pages/popup';
 import { getWalletInformation } from '@/shared/helpers';
+import { waitForWelcomePage } from './common';
 
-export const KEYS_PAGE_URL = `https://rafiki.money/settings/developer-keys`;
-const CONFIG_OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
+export const KEYS_PAGE_URL = `https://wallet.interledger-test.dev/settings/developer-keys`;
+export const LOGIN_PAGE_URL = `https://wallet.interledger-test.dev/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
+export const API_URL_ORIGIN = `https://api.wallet.interledger-test.dev`;
 
 export async function connectWallet(
   context: BrowserContext,
   background: Background,
+  i18n: BrowserIntl,
   keyInfo: KeyInfo,
   popup: Popup,
   params: ConnectDetails,
 ) {
   await loadKeysToExtension(background, keyInfo);
 
-  const connectButton = await fillPopup(popup, params);
+  const connectButton = await fillPopup(popup, i18n, params);
   await connectButton.click();
 
   const continueWaitMs = await getContinueWaitTime(context, params);
@@ -82,14 +86,6 @@ export async function acceptGrant(page: Page, continueWaitMs: number) {
   await page.getByRole('button', { name: 'Accept' }).click();
 }
 
-export async function waitForWelcomePage(page: Page) {
-  await page.waitForURL(
-    (url) =>
-      url.href.startsWith(CONFIG_OPEN_PAYMENTS_REDIRECT_URL) &&
-      url.searchParams.get('result') === 'grant_success',
-  );
-}
-
 export async function revokeKey(
   page: Page,
   info: {
@@ -99,7 +95,7 @@ export async function revokeKey(
   },
 ) {
   const { accountId, walletId, keyId } = info;
-  const url = `https://api.rafiki.money/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
+  const url = `${API_URL_ORIGIN}/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
 
   await page.goto(KEYS_PAGE_URL);
   await page.evaluate(async (url) => {
