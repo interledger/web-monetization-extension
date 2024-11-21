@@ -42,7 +42,7 @@ This test plan covers scenarios where you, as a website visitor, want to pay web
 1. Hardware: Any PC with internet access
 2. Digital wallet: A Web Monetization enabled digital wallet from which payments will be made
 3. Environment & software:  
-   a. Any operating system (OS)
+   a. Any operating system (OS)  
    b. A Chromium-based Web browser (e.g. Chrome, Edge, Vivaldi, Brave) or Firefox
 
 ### Reporting Issues
@@ -60,7 +60,8 @@ Before you start testing, sign-up for a wallet:
    a. Your wallet provider will likely need to verify your identity (info: this process is mandated by the laws of each country, or jurisdiction).  
    b. The identity verification process depends on your wallet provider, and your location (info: this can be within hours or days).  
    c. Once your wallet provider completes all sign-up and verification processes, you should be able to:
-   - Setup and manage your wallet accounts, currencies, balances etc.
+   - Log into your digital wallet application.  
+   - Setup and manage your wallet accounts, currencies, balances etc.  
    - Obtain the wallet address or payment pointer for your digital wallet.
 
 ### Test Playground
@@ -112,17 +113,16 @@ If you want to test the Web Monetization extension using real money, and you hav
 
 If you want to test the Web Monetization extension using real money, and you have a Fynbos South Africa wallet connected to your extension, then you have two options:
 
-1. Visit and pay this monetized website:
+1. Visit and pay this monetized website:  
    - [www.radu.sh/fynbos](https://www.radu.sh/fynbos)
-2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:
+2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:  
    - https://fynbos.me/makedev
 
 #### Websites and wallets using GateHub
 
 If you want to test the Web Monetization extension using real money, and you have a GateHub wallet connected to your extension, then you have two options:
 
-1. Visit and pay these monetized websites:
-
+1. Visit and pay these monetized websites:  
    - [storytogo.ca](https://storytogo.ca)
    - [roamancing.com](https://roamancing.com)
 
@@ -171,8 +171,9 @@ We have 2 risk categories:  `critical` | `high`
 **Risk**: R1 (onboarding) and R2 (UX)  
 **Preconditions**:
 
-1. You have already downloaded and installed the Web Monetization extension.
-2. Your digital wallet sign-up and account activation is complete (learn more from the [Prerequisites](#Prerequisites) section)
+1. You have already downloaded and installed the Web Monetization extension.  
+2. Your digital wallet sign-up and account activation is complete (learn more from the [Prerequisites](#Prerequisites) section).
+3. You have obtained and copied your wallet address or payment pointer from your digital wallet.  
 
 **Steps**:
 
@@ -183,8 +184,8 @@ We have 2 risk categories:  `critical` | `high`
 
 **Expected results**:
 
-1. The wallet owner receives an interaction prompt from their wallet to authorize the connection and access to the amount.
-2. On accepting, the wallet owner gets shown the message "Your wallet is now successfully connected to the extension."
+1. You will receive an interaction prompt from your wallet to authorize the connection and access to the amount.
+2. On accepting, you get shown the message "Your wallet is now successfully connected to the extension."
 
 ##### Make continuous payments
 
@@ -207,7 +208,7 @@ We have 2 risk categories:  `critical` | `high`
 | Web monetized websites                                                                                                                                                                                                                                                          | Non monetized websites                                                          |
 | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------ |
 | Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png)                                                                                                                                                                                                                         | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png)                           |
-| Opening the extension displays a **rate of pay** slider:<ul><li>On the left, the current hourly rate in the currency of the wallet.</li><li>The default is equivalent to 0.60 USD.</li><li>The remaining balance, updated in near real-time (i.e. every few seconds).</li></ul> | Opening the extension displays <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays:<ul><li>The current hourly rate of pay in the currency of the wallet.</li><li>The remaining balance, updated every few seconds.</li><li>The ability to support the page you are visiting by sending it funds.</li></ul> | Opening the extension displays <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay one-time when extension and wallet has enough funds
 
@@ -230,7 +231,7 @@ We have 2 risk categories:  `critical` | `high`
  | Web monetized websites | Non monetized websites |
 | :---------------------------- | :--------------------------------------------------- |
 | Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active icon (full color) but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
-| Opening the extension displays: <ul><li>**Rate of pay slider**: rate of pay and currency on the left, the remaining balance of the extension is on the right side, and it decreased by the value of the one-time payment</li><li>**Amount**: the one-time payment amount field resets to zero</li><li>**“Send now” button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now” </li></ul> | Opening the extension displays: <ul><li>This website is not monetized</li></ul> |
+| Opening the extension displays: <ul><li>The remaining balance of the extension has decreased by the value of the one-time payment</li><li>A message gets displayed to confirm that the payment was successful</li></ul> | Opening the extension displays: <ul><li>This website is not monetized</li></ul> |
 
 ##### Pay one-time when extension funds are insufficient
 
@@ -253,7 +254,7 @@ We have 2 risk categories:  `critical` | `high`
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
-| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Insufficient funds to complete the payment.`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ul><li>The hourly rate of pay, and the remaining balance available to the extension.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Insufficient funds to complete the payment.`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay one-time when wallet is out of funds
 
@@ -280,7 +281,7 @@ We have 2 risk categories:  `critical` | `high`
  | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
-| Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ul><li>The hourly rate of pay, and the remaining balance available to the extension.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Disable continuous payments
 
@@ -294,15 +295,16 @@ We have 2 risk categories:  `critical` | `high`
 **Steps**:
 
 1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
-2. Open the extension, and view of the **remaining balance** available to the extension.
-3. Disable “**Continuous payment stream**”.
-4. Observe the extension's icon when you visit a web monetized and non-monetized website.
+2. Open the extension, and view the **remaining balance** available to the extension.
+3. Go to Settings, and click on the Rate tab.
+4. Disable “**Continuous payment**”.
+5. Observe the extension's icon when you visit web monetized and non-monetized websites.
 
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: ![inactive (i.e. grey in color), with a green tick](../../src/assets/icons/32x32/disabled-has-links.png) | Extension icon: ![inactive (i.e. grey), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
-| Opening the extension shows that: <ul><li>The rate of pay slider is replaced with text “Web Monetization has been turned off”</li><li>Making a one-time payment remains available.</li><li>Enabling “Continuous payment stream” is available.</li><li>**Action**: Re-enable the “Continuous payment stream” toggle, and confirm that:<ul><li>The hourly rate of pay slider appears.</li><li>Remaining balance is displayed and is unchanged from what it was prior to disabling continuous payments.</li><li>The “Web Monetization has been turned off” text is no longer visible.</li></ul></li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension shows that: <ul><li>Making a one-time payment remains available.</li><li>When you visit monetized web pages, no continuous payments are made.</li> <li>The extension's balance only changes if there is a successful one-time payment.</li></ul></li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Change rate of pay **and** View available balance
 
@@ -313,12 +315,15 @@ We have 2 risk categories:  `critical` | `high`
 
 1. The extension is connected to your wallet.
 2. The extension has a positive remaining balance.
-3. Your wallet balance is greater or equal to your extension's balance.
+3. Your wallet balance is greater than your extension's remaining balance.
 
 **Steps**:
 
-1. Open the extension: <ol><li>Ensure that “Continuous payment stream” is enabled.</li><li>Use the slider to change the hourly rate for continuous WM payments.</li><li>Take note of the remaining balance available to the extension.</li></ol>
-2. Spend some time, perhaps 3 to 5 minutes each, on a web monetized website and on a non-monetized website. On each site or page that you visit, open the extension to view the remaining balance on the extension.
+1. Open the extension, go to Settings, then go to the Rate tab.
+2. Ensure that “**Continuous payment**” is enabled.
+3. Use the slider to change the rate of pay per hour.
+4. Go back to the main page of extension, and take note of the extension's remaining balance.
+5. Spend some time, perhaps 3 to 5 minutes each, on a web monetized website and on a non-monetized website. On each site or page that you visit, open the extension to view the remaining balance on the extension.
 
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
@@ -333,26 +338,26 @@ We have 2 risk categories:  `critical` | `high`
 **Risk**: R2 (user experience)  
 **Preconditions**:
 
-1. The extension is connected to your wallet
+1. The extension is connected to your wallet.
 
 **Steps**:
 
-1. Open the browser where the extension is installed.
-2. Open the extension, and open the settings of the extension.
-3. On the settings page, **Disconnect** the wallet.
+1. Open the extension, go to Settings, and click on the Wallet tab.
+2. On the Wallet tab, **Disconnect** the wallet.
 
 **Expected results**:  
-Once disconnected, the settings page gets replaced by the landing page of the extension, with the following fields displayed:
+Once disconnected, the Settings page gets replaced by the main page of the extension, with the following fields displayed:
 
-1. The wallet address or payment pointer that had been used for the most recent wallet connection.
+1. The wallet address or payment pointer that was most recently used for wallet connection.
 2. The currency and value that had been authorized for the most recent wallet connection.
+3. The **Connect** button is enabled.
 
 #### Edge Test Cases
 
 ##### Partial one-time payment success
 
 **Test ID**: 9  
-**Description**: Make a one-time payment to a website that has multiple receiving wallets from different wallet providers, where some of the receiving wallets use real money, and some are test wallets that use "play" money  
+**Description**: Make a one-time payment to a website that has multiple receiving wallets from different wallet providers, where some of the receiving wallets use real money, and some are test wallets that use "play" money.  
 **Risk**: R3 (security of funds) and R4 (control my payments)  
 **Preconditions**:
 
@@ -371,7 +376,7 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
-| Opening the extension displays: <ol><li>**Rate of pay slider**: the rate of pay and currency on the left, the remaining balance of the extension’s authorized amount on the right side.</li><li>“**Send now**” **button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero.</li><li>**Remaining balance**: the web page has 6 receiving wallet addresses, so the extension attempts to pay the maximum number of wallets it can pay, without exceeding its remaining balance **Reason**: when you try to send $12 to the web page, the extension divides the total $12 amount by the 6 wallet addresses, such that it tries to send $2 to each wallet address. **Observe**: only 1 of 6 payments can succeed, which should reduce the extension's remaining balance $2. </li></ol> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ul><li>The hourly rate of pay, and the extension's remaining balance.</li><li>“**Send now**” button: clicking the button to send a one-time payment disables the button momentarily, until the extension shows a message that the payment succeeded, or that it failed (**please note**: a success or failure message for the payment is acceptable. This lets you know whether your wallet has been able to send funds to this web page).</li><li>The amount field remains unchanged with the value you had entered.</li><li>When you edit the amount, then the extension removes the message showing payment success failure.</li><li>**Balance**: the web page has 6 receiving wallet addresses, so the extension attempts to pay the maximum number of wallets it can pay, without exceeding its remaining balance. **Reason**: when you try to send $12 to the web page, the extension divides the total $12 amount by the 6 wallet addresses, such that it tries to send $2 to each receiving wallet on the page. **Observe**: only 1 of 6 payments can succeed, which should reduce the extension's remaining balance $2. </li></ol> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay until the extension runs out of funds
 
