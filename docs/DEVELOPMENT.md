@@ -272,7 +272,7 @@ Leverage existing browser APIs and extensions APIs. If you think a certain API s
 
 Test the implementation thoroughly. It won't be a good impression to send a PR without running it locally yourself. Try manual end-to-end tests for each new change, preferably in different browsers. Add unit tests for each new utility you add. Add end-to-end tests for large behavioral changes. For frontend components, test behavior instead of DOM snapshots.
 
-## Code Review and Feedback
+### Code Review and Feedback
 
 Understanding the code review process
 Incorporating feedback and suggestions
@@ -287,7 +287,9 @@ For UI changes, add screenshots or recordings with your PR.
 
 Read [RELEASE.md](./RELEASE.md).
 
-## Privacy & Security
+## Best Practices
+
+### Privacy & Security
 
 Protect user data and privacy. Keep sensitive data within the browser, don't ever transmit it.
 
@@ -302,7 +304,7 @@ Ask for the user's consent before taking any sensitive action on their behalf. M
 Box access to sensitive information. Don't let your components know too much. Keep separation of concerns to make things easier to audit.
 For example, our frontend doesn't interact with `browser.storage` APIs at all. We manage all storage operations via message passing with background. In the future, we can strictly prevent access to certain APIs from certain contexts (e.g. with [LavaMoat](https://github.com/LavaMoat/LavaMoat)).
 
-## Performance Optimization
+### Performance Optimization
 
 Identify and fix performance bottlenecks via theoretical knowledge as well as browser dev tools.
 
@@ -312,10 +314,14 @@ Optimize for CPU and memory as our extension keeps running during the entire tim
 
 Focus on optimizing content scripts as they get injected into every page (high multiplication factor). Background runs a single instance, so the risk is reduced there, but remember background often does more work and keeps running continuously.
 
-## Cross-Browser Compatibility
+### Cross-Browser Compatibility
 
 Understand browser differences and quirks. The web platform has plenty of compatibility issues, but extensions are even wilder.
 
 Prefer feature detection over user-agent/build-time info. Add polyfills to overcome differences. When adding polyfills, make an effort such that bundle size for browsers that don't need polyfill stays like before. We use `webextension-polyfill` for a consistent development experience, but make sure you understand its limitations also.
 
 Test the extension on different browsers and platforms. Do manual as well as automated tests.
+
+---
+
+Closing words: Happy hacking!
