@@ -126,7 +126,7 @@ If you want to test the Web Monetization extension using real money, and you hav
    - [storytogo.ca](https://storytogo.ca)
    - [roamancing.com](https://roamancing.com)
 
-2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet addresses. Here are a few payment pointers that you can use:
+2. Visit the Web Monetization Playground, and add any GateHub wallet addresses. Here are a few payment pointers that you can use:
    - https://ilp.gatehub.net/276288680/EUR
    - https://ilp.gatehub.net/870065172/USD
 
@@ -176,17 +176,15 @@ We have 2 risk categories:  `critical` | `high`
 
 **Steps**:
 
-1. Open the WM extension and copy the extension’s key.
-2. Open the digital wallet, and load the extension’s key into the wallet.
-3. From the digital wallet, find and copy the wallet address or payment pointer.
-4. Open the WM extension, and enter the wallet address or payment pointer.
-5. Enter the amount you want to make available to the extension from your wallet.
-6. Keep the option to renew monthly disabled.
+1. Open the WM extension, and enter the wallet address or payment pointer.
+2. Enter the amount you want to make available to the extension from your wallet.
+3. Keep the option to renew monthly disabled. Click Connect.
+4. Give consent for the secure and automatic addition of the extension's key to the wallet.
 
 **Expected results**:
 
 1. The wallet owner receives an interaction prompt from their wallet to authorize the connection and access to the amount.
-2. On accepting, you get shown the message "Your wallet is now successfully connected to the extension."
+2. On accepting, the wallet owner gets shown the message "Your wallet is now successfully connected to the extension."
 
 ##### Make continuous payments
 
@@ -208,7 +206,7 @@ We have 2 risk categories:  `critical` | `high`
 
 | Web monetized websites                                                                                                                                                                                                                                                          | Non monetized websites                                                          |
 | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------ |
-| Extension icon: active (full color), with a green tick                                                                                                                                                                                                                          | Extension icon: active (full color), but with a red X                           |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png)                                                                                                                                                                                                                         | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png)                           |
 | Opening the extension displays a **rate of pay** slider:<ul><li>On the left, the current hourly rate in the currency of the wallet.</li><li>The default is equivalent to 0.60 USD.</li><li>The remaining balance, updated in near real-time (i.e. every few seconds).</li></ul> | Opening the extension displays <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay one-time when extension and wallet has enough funds
@@ -231,7 +229,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
 | :---------------------------- | :--------------------------------------------------- |
-| Extension icon: active (full color), with a green tick | Extension icon: ![active icon (full color) but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active icon (full color) but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
 | Opening the extension displays: <ul><li>**Rate of pay slider**: rate of pay and currency on the left, the remaining balance of the extension is on the right side, and it decreased by the value of the one-time payment</li><li>**Amount**: the one-time payment amount field resets to zero</li><li>**“Send now” button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now” </li></ul> | Opening the extension displays: <ul><li>This website is not monetized</li></ul> |
 
 ##### Pay one-time when extension funds are insufficient
@@ -254,7 +252,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
-| Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
 | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: attempting to make a one-time payment that is greater than the remaining balance fails with an error: `Insufficient funds to complete the payment.`</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay one-time when wallet is out of funds
@@ -281,7 +279,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
-| Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
 | Opening the extension displays: <ul><li>**A slider**: with the hourly rate of pay and currency on the left, and the remaining balance of the extension’s authorized amount on the right side.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Disable continuous payments
@@ -303,7 +301,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
-| The extension icon appears inactive (i.e. grey in color), with a green tick | The extension icon appears inactive (i.e. grey), but with a red X |
+| Extension icon: ![inactive (i.e. grey in color), with a green tick](../../src/assets/icons/32x32/disabled-has-links.png) | Extension icon: ![inactive (i.e. grey), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
 | Opening the extension shows that: <ul><li>The rate of pay slider is replaced with text “Web Monetization has been turned off”</li><li>Making a one-time payment remains available.</li><li>Enabling “Continuous payment stream” is available.</li><li>**Action**: Re-enable the “Continuous payment stream” toggle, and confirm that:<ul><li>The hourly rate of pay slider appears.</li><li>Remaining balance is displayed and is unchanged from what it was prior to disabling continuous payments.</li><li>The “Web Monetization has been turned off” text is no longer visible.</li></ul></li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Change rate of pay **and** View available balance
@@ -325,7 +323,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
  | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
-| Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
 | Opening the extension shows that the remaining balance of the extension has decreased by the correct amount, based on your hourly rate of pay. | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Disconnect extension
@@ -346,9 +344,8 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
 Once disconnected, the settings page gets replaced by the landing page of the extension, with the following fields displayed:
 
-1. The read-only public key of the extension.
-2. The wallet address or payment pointer that had been used for the most recent wallet connection.
-3. The currency and value that had been authorized for the most recent wallet connection.
+1. The wallet address or payment pointer that had been used for the most recent wallet connection.
+2. The currency and value that had been authorized for the most recent wallet connection.
 
 #### Edge Test Cases
 
@@ -373,7 +370,7 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 **Expected results**:  
 | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
-| Extension icon: active (full color), with a green tick | Extension icon: active (full color), but with a red X |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
 | Opening the extension displays: <ol><li>**Rate of pay slider**: the rate of pay and currency on the left, the remaining balance of the extension’s authorized amount on the right side.</li><li>“**Send now**” **button**: clicking the button to send a one-time payment changes the text to “Payment successful” for a few seconds, then the text defaults back to “Send now”</li><li>**Amount**: the one-time payment amount resets to zero.</li><li>**Remaining balance**: the web page has 6 receiving wallet addresses, so the extension attempts to pay the maximum number of wallets it can pay, without exceeding its remaining balance **Reason**: when you try to send $12 to the web page, the extension divides the total $12 amount by the 6 wallet addresses, such that it tries to send $2 to each wallet address. **Observe**: only 1 of 6 payments can succeed, which should reduce the extension's remaining balance $2. </li></ol> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Pay until the extension runs out of funds
@@ -396,7 +393,7 @@ Once disconnected, the settings page gets replaced by the landing page of the ex
 **Expected results**:  
  | Visit monetized or non-monetized websites |
 | :------------------------------------------------------- |
-| Once the extension runs out of funds: <ul><li>Extension icon: active (full color), with an **orange exclamation mark**.</li> </ul> |
+| Extension icon, once the extension runs out of funds: ![active (full color), with an orange exclamation mark](../../src/assets/icons/32x32/enabled-warn.png) |
 | Opening the extension displays: <ul><li>**Alert text**: Out of funds. Funds have been depleted. You can no longer make payments. Please add funds.</li><li>The following two buttons: <ul><li>Let me add funds and auto-renew monthly.</li><li>Let me top-up funds one time.</li></ul></li></ul> |
 
 [testWallet]: https://wallet.interledger-test.dev
