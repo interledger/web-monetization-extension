@@ -19,6 +19,7 @@
     "pnpm-lock.yaml",
     ".eslintrc.json",
     ".gitignore",
+    ".vscode/extensions.json",
     "cspell-dictionary.txt"
   ]
 }
