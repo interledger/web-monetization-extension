@@ -60,8 +60,8 @@ Before you start testing, sign-up for a wallet:
    a. Your wallet provider will likely need to verify your identity (info: this process is mandated by the laws of each country, or jurisdiction).  
    b. The identity verification process depends on your wallet provider, and your location (info: this can be within hours or days).  
    c. Once your wallet provider completes all sign-up and verification processes, you should be able to:
-   - Log into your digital wallet application.  
-   - Setup and manage your wallet accounts, currencies, balances etc.  
+   - Log into your digital wallet application.
+   - Setup and manage your wallet accounts, currencies, balances etc.
    - Obtain the wallet address or payment pointer for your digital wallet.
 
 ### Test Playground
@@ -113,16 +113,17 @@ If you want to test the Web Monetization extension using real money, and you hav
 
 If you want to test the Web Monetization extension using real money, and you have a Fynbos South Africa wallet connected to your extension, then you have two options:
 
-1. Visit and pay this monetized website:  
+1. Visit and pay this monetized website:
    - [www.radu.sh/fynbos](https://www.radu.sh/fynbos)
-2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:  
+2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:
    - https://fynbos.me/makedev
 
 #### Websites and wallets using GateHub
 
 If you want to test the Web Monetization extension using real money, and you have a GateHub wallet connected to your extension, then you have two options:
 
-1. Visit and pay these monetized websites:  
+1. Visit and pay these monetized websites:
+
    - [storytogo.ca](https://storytogo.ca)
    - [roamancing.com](https://roamancing.com)
 
@@ -171,9 +172,9 @@ We have 2 risk categories:  `critical` | `high`
 **Risk**: R1 (onboarding) and R2 (UX)  
 **Preconditions**:
 
-1. You have already downloaded and installed the Web Monetization extension.  
+1. You have already downloaded and installed the Web Monetization extension.
 2. Your digital wallet sign-up and account activation is complete (learn more from the [Prerequisites](#Prerequisites) section).
-3. You have obtained and copied your wallet address or payment pointer from your digital wallet.  
+3. You have obtained and copied your wallet address or payment pointer from your digital wallet.
 
 **Steps**:
 
@@ -205,10 +206,10 @@ We have 2 risk categories:  `critical` | `high`
 
 **Expected results**:
 
-| Web monetized websites                                                                                                                                                                                                                                                          | Non monetized websites                                                          |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------ |
-| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png)                                                                                                                                                                                                                         | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png)                           |
-| Opening the extension displays:<ul><li>The current hourly rate of pay in the currency of the wallet.</li><li>The remaining balance, updated every few seconds.</li><li>The ability to support the page you are visiting by sending it funds.</li></ul> | Opening the extension displays <ul><li>This website is not monetized.</li></ul> |
+| Web monetized websites                                                                                                                                                                                                                                 | Non monetized websites                                                                                      |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png)                                                                                                                                          | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
+| Opening the extension displays:<ul><li>The current hourly rate of pay in the currency of the wallet.</li><li>The remaining balance, updated every few seconds.</li><li>The ability to support the page you are visiting by sending it funds.</li></ul> | Opening the extension displays <ul><li>This website is not monetized.</li></ul>                             |
 
 ##### Pay one-time when extension and wallet has enough funds
 
