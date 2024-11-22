@@ -127,7 +127,10 @@ export const PayWebsiteForm = () => {
 
       <Button
         type="submit"
-        className={cn('w-full', !isSubmitting ? 'disabled:opacity-100' : null)}
+        className={cn(
+          'w-full',
+          isSubmitting || !amount || !!errors.amount ? 'opacity-100' : null,
+        )}
         disabled={isSubmitting || !amount || !!errors.amount}
         loading={isSubmitting}
         aria-label={t('pay_action_pay')}
