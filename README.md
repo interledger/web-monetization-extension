@@ -69,7 +69,7 @@ All commands are run from the root of the project, from a terminal:
 
 Read the [developer's guide](./docs/DEVELOP.md) to understand the codebase.
 
-Please read the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
+Please familiarize yourself with the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
 
 ## Roadmap
 
