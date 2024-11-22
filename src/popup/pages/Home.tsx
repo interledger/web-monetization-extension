@@ -86,7 +86,7 @@ const InfoBanner = () => {
         </div>
       </dl>
 
-      <p className="text-xs italic text-white/90 text-center">
+      <p className="text-center text-xs italic text-white/90">
         To adjust your budget or rate of pay, click on{' '}
         <Settings className="inline-block h-4 w-4 fill-white align-top" />
       </p>
