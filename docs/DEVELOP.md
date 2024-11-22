@@ -55,9 +55,9 @@ You can set up your development environment on your preferred OS: Linux, MacOS, 
 
 ### Installing necessary tools and frameworks
 
-We primarily need Node.js and `pnpm` (package manager). So you should set them up as you see fit, as long as you use the same versions specified in the [README](../README.md).
+We primarily need Node.js and `pnpm` (package manager). So you should set them up as you see fit, as long as you use the same versions specified in the [README](../README.md). Once you've Node.js and pnpm, install dependencies with `pnpm i`.
 
-Once you've Node.js and pnpm, install dependencies with `pnpm i`. Go through the README to learn about the build process and how to load the built extension into browsers.
+Go through the [README](../README.md) to learn about the build process and how to load the built extension into browsers.
 
 ### Configuring IDE/code editor
 
@@ -308,7 +308,7 @@ For example, our frontend doesn't interact with `browser.storage` APIs at all. W
 
 Identify and fix performance bottlenecks via theoretical knowledge as well as browser dev tools.
 
-Optimize images and minify JavaScript output. Use Tinypng.com/Squoosh.app for images, [SVGOMG](https://jakearchibald.github.io/svgomg/) for SVGs, and the existing build process to minify JS. Use [bundle size analyzer](https://esbuild.github.io/analyze/) to keep the bundle sizes and dependencies in control.
+Optimize images and minify JavaScript output. Use [TinyPNG](https://tinypng.com)/[Squoosh](https://squoosh.app) for images, [SVGOMG](https://jakearchibald.github.io/svgomg/) for SVGs, and the existing build process to minify JS. Use [bundle size analyzer](https://esbuild.github.io/analyze/) to keep the bundle sizes and dependencies in control.
 
 Optimize for CPU and memory as our extension keeps running during the entire time the browser is open. Optimize for CPU even at the expense of memory. We don't want to be known for battery drain.
 

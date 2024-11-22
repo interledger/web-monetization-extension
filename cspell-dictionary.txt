@@ -45,12 +45,14 @@ openapi
 apidevtools
 tailwindcss
 msedge
+SVGOMG
 xvfb
 
 # user names
 raducristianpopa
 sidvishnoi
 dianafulga
+darianm
 jgoz
 amannn
 softprops
