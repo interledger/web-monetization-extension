@@ -57,7 +57,7 @@ You can set up your development environment on your preferred OS: Linux, MacOS, 
 
 We primarily need Node.js and `pnpm` (package manager). So you should set them up as you see fit, as long as you use the same versions specified in the [README](../README.md). Once you've Node.js and pnpm, install dependencies with `pnpm i`.
 
-Go through the [README](../README.md) to learn about the build process and how to load the built extension into browsers.
+Go through the [README](../README.md#setup) to learn about the setup & build process and how to load the built extension into browsers.
 
 ### Configuring IDE/code editor
 
