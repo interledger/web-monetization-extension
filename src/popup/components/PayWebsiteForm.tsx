@@ -77,9 +77,9 @@ export const PayWebsiteForm = () => {
         {errors.pay || !!payStatus ? (
           <m.div
             transition={{ duration: 0.3, bounce: 0 }}
-            initial={{ height: 0 }}
-            animate={{ height: 'auto' }}
-            exit={{ height: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="overflow-hidden"
           >
             <div
