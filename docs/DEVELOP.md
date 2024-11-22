@@ -274,12 +274,9 @@ Test the implementation thoroughly. It won't be a good impression to send a PR w
 
 ### Code Review and Feedback
 
-Understanding the code review process
-Incorporating feedback and suggestions
-Committing code to the main branch: never directly!
-Reviewing existing features and bug fixes
-Don't block PR reviews on nit-picks, avoid them if you can, unless you think they'll improve overall code health.
-Suggest, but don't assume your feedback will be accepted as is.
+Understand the [code review process](../.github/CONTRIBUTING.md#review-process).
+
+Suggested reading: [How to write code review comments from Google](https://google.github.io/eng-practices/review/reviewer/comments.html)
 
 For UI changes, add screenshots or recordings with your PR.
 
