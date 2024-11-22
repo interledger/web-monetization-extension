@@ -1,4 +1,4 @@
-## Developer's Guide
+# Developer's Guide
 
 Welcome, dear developer!
 
@@ -6,7 +6,7 @@ This guide is your starting point for developing the Web Monetization browser ex
 
 We're building a browser extension (cross-browser, including mobile browsers) to enable Web Monetization capabilities. This extension will bridge the gap until native browser support for Web Monetization is widespread.
 
-### Project goals
+## Project goals
 
 - Accelerate Web Monetization Adoption: Bridge the gap until native browser support.
 - Enable direct support of content creators with micro-payments, tips, and other OP/WM capabilities
@@ -228,18 +228,18 @@ Note that, we only support [manifest version 3](https://developer.chrome.com/doc
 
 ## Testing and Debugging
 
-### Unit Testing:
+### Unit Testing
 
 **Target:** Focuses on testing individual functions and React components.
 **Tools:** Leverages `jest` as the test runner and `@testing-library/react` for efficient frontend testing.
 **Execution:** Run unit tests with the command `pnpm test`.
 **Best Practices:** Strive for minimal reliance on global state and mocks. Pass required parameters directly to functions and components for cleaner testing.
 
-### Integration Testing:
+### Integration Testing
 
 While not currently implemented, this could involve testing interactions between different parts of the extension using jest.
 
-### End-to-End Testing:
+### End-to-End Testing
 
 **Tool:** We use Playwright for E2E testing.
 **Process:** Refer to the dedicated [TESTING.md](./TESTING.md) document for detailed instructions.
