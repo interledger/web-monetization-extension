@@ -59,6 +59,12 @@ We primarily need Node.js and `pnpm` (package manager). So you should set them u
 
 Go through the [README](../README.md#setup) to learn about the setup & build process and how to load the built extension into browsers.
 
+### Test Wallet
+
+To use the extension, you'll need access to a wallet that supports Open Payments. Use [Interledger Test Wallet](https://wallet.interledger-test.dev/), as it won't cost you real money - its sole purpose is testing. Sign up for the test wallet, and get yourself a wallet address.
+
+During the sign up process, it'll ask you for KYC details. As it's a test wallet, there's no real KYC. The only real information you need to provide is a valid email address and phone number, as you'll get a confirmation email and SMS. For other form fields, you can fill in any random data. For documents, even a blank piece of paper will do. For the liveness check, you can try your luck finding a 3D model of a human face, or give up and turn on the camera towards you. Your KYC will be approved automatically almost immediately.
+
 ### Configuring IDE/code editor
 
 Use whatever IDE/code editor you're comfortable with.
@@ -72,10 +78,6 @@ With VSCode, we include some plugin recommendations in the repo.
 We use `main` as the default development and release branch. All your PRs are to be merged in this branch. Do not push directly to `main` ever - every commit to main has to go in as a PR.
 
 We follow conventional commit messages. You can use any commit message in your PR commits, but when we squash and merge your PR, we'll follow conventional commit message guidelines.
-
-## Test Wallet
-
-<!-- TODO -->
 
 ## Get familiar with Codebase
 
