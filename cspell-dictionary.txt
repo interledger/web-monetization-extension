@@ -7,6 +7,7 @@ SPSP
 webextension
 onmonetization
 GNAP
+WICG
 
 Deduplicator
 crossorigin
@@ -14,6 +15,7 @@ iframes
 unmangles
 data-testid
 nums
+webmonetization
 jwks
 requestfinished
 
@@ -29,6 +31,7 @@ iife
 backported
 autobuild
 buildscript
+Camtasia
 networkidle
 webextensions
 firefoxUserPrefs
@@ -42,13 +45,25 @@ openapi
 apidevtools
 tailwindcss
 msedge
+SVGOMG
 xvfb
 
 # user names
 raducristianpopa
 sidvishnoi
 dianafulga
+darianm
 jgoz
 amannn
 softprops
 Gidarakos
+
+# monetized website domain names
+ahimsakids
+alexlakatos
+radu
+lifebe
+storytogo
+ericahargreave
+roamancing
+naturallyours
