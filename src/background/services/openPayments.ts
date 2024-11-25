@@ -920,6 +920,9 @@ export class OpenPaymentsService {
           isTokenExpiredError(error) ||
           isMissingGrantPermissionsError(error)
         ) {
+          // TODO: We can remove the token `actions` check once we've proper RS
+          // errors in place. Then we can handle insufficient grant error
+          // separately clearly.
           const token = await this.rotateToken();
           const hasReadAccess = token.access_token.access.find(
             (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
