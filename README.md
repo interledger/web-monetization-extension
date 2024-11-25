@@ -47,60 +47,29 @@ All commands are run from the root of the project, from a terminal:
 
 ### Installing the extension from source, in Chromium based browsers (Chrome, Opera, Edge, Brave, Arc, Vivaldi)
 
-1. <b>Build the extension with `pnpm build chrome`</b>
-
-1. <b>Open extensions page</b><br/>
+1. Build the extension with `pnpm build chrome`
+1. Open extensions page
    In Chrome, click the three dots in the top-right corner. Look for the `Extensions` options and select `Manage extensions`.
-
-1. <b>Enable developer mode</b><br/>
+1. Enable developer mode
    To enable `Developer mode`, use the switch at the top-right of the extensions page.
-
-1. <b>Load the extension</b><br/>
-   After enabling `Developer mode`, new buttons should appear in the top-left corner. Click the `Load unpacked` one and choose the <b>folder</b> that contains the extension files (in the `dist` folder, look for the `chrome` one with the `manifest.json` file).
+1. Load the extension
+   After enabling `Developer mode`, new buttons should appear in the top-left corner. Click the `Load unpacked` one and choose the **folder** that contains the extension files (in the `dist` folder, look for the `chrome` one with the `manifest.json` file).
 
 ### Installing the extension from source, in Firefox
 
-1. <b>Build the extension with `pnpm build firefox`</b>
-
-1. <b>Open Firefox's add-ons page</b><br/>
+1. Build the extension with `pnpm build firefox`
+1. Open Firefox's add-ons page
    Open Firefox, click the three horizontal lines in the top-right corner, and choose `Add-ons and themes`.
-
-1. <b>Navigate to the add-ons debugging page</b><br/>
+1. Navigate to the add-ons debugging page
    In the add-ons page, click the gear icon and select "Debug Add-ons".
-
-1. <b>Load the extension</b><br/>
+1. Load the extension
    Look for the `Temporary Extensions` section and expand its content. After expanding its content click on the `Load Temporary Add-on...` button and select the `manifest.json` file (in the `dist` folder, go in the `firefox` folder and select the manifest file).
-
-### Project structure
-
-Inside this project, you'll see the following folders and files:
-
-```sh
-.
-├── .github/ # GitHub Workflows
-├── docs/ # Repository documentation
-├── esbuild/ # Esbuild configuration
-├── scripts/ # Script to build the extension (production, development)
-├── src/ # Extension's source code
-│   ├── _locales/ # Files for multi-lang support
-│   ├── assets/ # Images for the extension (icon, etc.)
-│   ├── background/ # Source code for the background script/service worker
-│   ├── content/ # Source  code for the content scripts
-│   │   └── keyAutoAdd/ # content scripts for automatic key addition to wallets
-│   ├── popup/ # Source code for the popup UI
-│   ├── pages/ # Source code for additional extension pages
-│   ├── shared/ # Shared utilities
-│   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
-├── jest.config.ts
-├── jest.setup.ts
-├── package.json
-├── tailwind.config.ts
-└── tsconfig.json
-```
 
 ## Contributing
 
-Please read the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
+Read the [developer's guide](./docs/DEVELOP.md) to understand the codebase.
+
+Please familiarize yourself with the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
 
 ## Roadmap
 
