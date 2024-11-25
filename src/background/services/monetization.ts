@@ -57,13 +57,13 @@ export class MonetizationService {
     }
     const {
       state,
-      enabled,
+      continuousPaymentsEnabled,
       rateOfPay,
       connected,
       walletAddress: connectedWallet,
     } = await this.storage.get([
       'state',
-      'enabled',
+      'continuousPaymentsEnabled',
       'connected',
       'rateOfPay',
       'walletAddress',
@@ -119,7 +119,7 @@ export class MonetizationService {
     const isAdjusted = await this.adjustSessionsAmount(sessionsArr, rate);
     if (!isAdjusted) return;
 
-    if (enabled && this.canTryPayment(connected, state)) {
+    if (continuousPaymentsEnabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
         if (!sessions.get(session.id)) return;
         const source = replacedSessions.has(session.id)
@@ -199,12 +199,14 @@ export class MonetizationService {
       return;
     }
 
-    const { state, connected, enabled } = await this.storage.get([
-      'state',
-      'connected',
-      'enabled',
-    ]);
-    if (!enabled || !this.canTryPayment(connected, state)) return;
+    const { state, connected, continuousPaymentsEnabled } =
+      await this.storage.get([
+        'state',
+        'connected',
+        'continuousPaymentsEnabled',
+      ]);
+    if (!continuousPaymentsEnabled || !this.canTryPayment(connected, state))
+      return;
 
     payload.forEach((p) => {
       const { requestId } = p;
@@ -220,12 +222,14 @@ export class MonetizationService {
       return;
     }
 
-    const { state, connected, enabled } = await this.storage.get([
-      'state',
-      'connected',
-      'enabled',
-    ]);
-    if (!enabled || !this.canTryPayment(connected, state)) return;
+    const { state, connected, continuousPaymentsEnabled } =
+      await this.storage.get([
+        'state',
+        'connected',
+        'continuousPaymentsEnabled',
+      ]);
+    if (!continuousPaymentsEnabled || !this.canTryPayment(connected, state))
+      return;
 
     for (const session of sessions.values()) {
       session.resume();
@@ -239,9 +243,11 @@ export class MonetizationService {
   }
 
   async toggleWM() {
-    const { enabled } = await this.storage.get(['enabled']);
-    const nowEnabled = !enabled;
-    await this.storage.set({ enabled: nowEnabled });
+    const { continuousPaymentsEnabled } = await this.storage.get([
+      'continuousPaymentsEnabled',
+    ]);
+    const nowEnabled = !continuousPaymentsEnabled;
+    await this.storage.set({ continuousPaymentsEnabled: nowEnabled });
     if (nowEnabled) {
       await this.resumePaymentSessionActiveTab();
     } else {
@@ -373,7 +379,7 @@ export class MonetizationService {
 
   async getPopupData(tab: Pick<Tabs.Tab, 'id' | 'url'>): Promise<PopupStore> {
     const storedData = await this.storage.get([
-      'enabled',
+      'continuousPaymentsEnabled',
       'connected',
       'state',
       'rateOfPay',
