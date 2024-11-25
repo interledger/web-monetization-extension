@@ -224,16 +224,6 @@ export async function getBackground(
   return background;
 }
 
-export function getExtensionId(browserName: string, background: Worker) {
-  let extensionId: string;
-  if (browserName === 'firefox') {
-    extensionId = FIREFOX_ADDON_UUID;
-  } else {
-    extensionId = background.url().split('/')[2];
-  }
-  return extensionId;
-}
-
 export type KeyInfo = {
   /** UUID-v4 */
   keyId: string;
