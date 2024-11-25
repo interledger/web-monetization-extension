@@ -669,7 +669,7 @@ export class OpenPaymentsService {
   }
 
   private async redirectToWelcomeScreen(
-    tabId: NonNullable<Tabs.Tab>['id'],
+    tabId: NonNullable<Tabs.Tab['id']>,
     result: GrantResult,
     intent: InteractionIntent,
     errorCode?: ErrorCode,
@@ -944,6 +944,9 @@ export class OpenPaymentsService {
               url: OPEN_PAYMENTS_REDIRECT_URL,
             });
             tabId = tab.id;
+          }
+          if (!tabId) {
+            throw new Error('Could not create tab');
           }
           await this.redirectToWelcomeScreen(
             tabId,
