@@ -893,7 +893,6 @@ export class OpenPaymentsService {
     }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
   ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
     let attempt = 0;
-    let tokenRotated = false;
     await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
     while (++attempt <= maxAttempts) {
       try {
@@ -917,17 +916,19 @@ export class OpenPaymentsService {
         signal?.throwIfAborted();
         await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
       } catch (error) {
-        if (isMissingGrantPermissionsError(error)) {
-          if (isTokenInactiveError(error) && !tokenRotated) {
-            // isMissingGrantPermissionError has same error msg as isTokenInactiveError
-            tokenRotated = true;
-            await this.rotateToken();
-            continue;
+        if (
+          isTokenExpiredError(error) ||
+          isMissingGrantPermissionsError(error)
+        ) {
+          const token = await this.rotateToken();
+          const hasReadAccess = token.access_token.access.find(
+            (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
+          );
+          if (!hasReadAccess) {
+            throw new OpenPaymentsClientError('InsufficientGrant', {
+              description: error.description,
+            });
           }
-          throw error;
-        } else if (isTokenExpiredError(error) && !tokenRotated) {
-          tokenRotated = true;
-          await this.rotateToken();
         } else {
           throw error;
         }
@@ -1022,6 +1023,7 @@ export class OpenPaymentsService {
       this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } });
     }
     this.grant = { ...this.grant, accessToken };
+    return newToken;
   }
 }
 
@@ -1054,7 +1056,9 @@ export const isSignatureValidationError = (error: any) => {
   );
 };
 
-export const isTokenExpiredError = (error: any) => {
+export const isTokenExpiredError = (
+  error: any,
+): error is OpenPaymentsClientError => {
   if (!isOpenPaymentsClientError(error)) return false;
   return isTokenInvalidError(error) || isTokenInactiveError(error);
 };

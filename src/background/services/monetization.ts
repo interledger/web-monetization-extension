@@ -8,10 +8,7 @@ import type {
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
 import { computeRate, getSender, getTabId } from '../utils';
-import {
-  isMissingGrantPermissionsError,
-  isOutOfBalanceError,
-} from './openPayments';
+import { isOutOfBalanceError } from './openPayments';
 import {
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
   OUTGOING_PAYMENT_POLLING_MAX_DURATION,
@@ -329,7 +326,8 @@ export class MonetizationService {
         .filter((e) => e.status === 'rejected')
         .map((e) => e.reason);
 
-      if (pollingErrors.some((e) => isMissingGrantPermissionsError(e))) {
+      if (pollingErrors.some((e) => e.message === 'InsufficientGrant')) {
+        this.logger.warn('Insufficient grant to read outgoing payments');
         // This permission request to read outgoing payments was added at a
         // later time, so existing connected wallets won't have this permission.
         // Assume as success for backward compatibility.
