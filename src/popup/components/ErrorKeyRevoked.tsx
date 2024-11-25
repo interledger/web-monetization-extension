@@ -57,7 +57,7 @@ export const ErrorKeyRevoked = ({
             }
           }}
           onDecline={() => setScreen('manual-reconnect')}
-          textConsent="We will automatically reconnect with your wallet provider."
+          intent="RECONNECT_WALLET"
         />
       </AnimatePresence>
     );

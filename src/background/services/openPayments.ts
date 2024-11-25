@@ -926,7 +926,10 @@ export class OpenPaymentsService {
 
   async reconnectWallet() {
     const { walletAddress } = await this.storage.get(['walletAddress']);
-    if (!walletAddress || !KeyAutoAddService.supports(walletAddress)) {
+    if (!walletAddress) {
+      throw new Error('reconnectWallet_error_walletAddressMissing');
+    }
+    if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
 
@@ -937,16 +940,9 @@ export class OpenPaymentsService {
       if (isInvalidClientError(error?.cause)) {
         // add key to wallet and try again
         try {
-          let tabId = await this.addPublicKeyToWallet(walletAddress);
-          await this.validateRedirect();
+          let tabId = await this.addPublicKeyToWalletAndValidate(walletAddress);
           if (!tabId) {
-            const tab = await this.browser.tabs.create({
-              url: OPEN_PAYMENTS_REDIRECT_URL,
-            });
-            tabId = tab.id;
-          }
-          if (!tabId) {
-            throw new Error('Could not create tab');
+            tabId = await this.ensureTabExists();
           }
           await this.redirectToWelcomeScreen(
             tabId,
@@ -964,6 +960,35 @@ export class OpenPaymentsService {
     }
 
     this.setConnectState(null);
+  }
+
+  private async addPublicKeyToWalletAndValidate(
+    walletAddress: WalletAddress,
+  ): Promise<Tabs.Tab['id']> {
+    try {
+      const tabId = await this.addPublicKeyToWallet(walletAddress);
+      await this.validateRedirect();
+      return tabId;
+    } catch (error) {
+      if (error.key !== 'connectWallet_error_tabClosed') {
+        const tabId = await this.ensureTabExists();
+        await this.redirectToWelcomeScreen(
+          tabId,
+          GrantResult.KEY_ADD_ERROR,
+          InteractionIntent.RECONNECT,
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  private async ensureTabExists(): Promise<number> {
+    const tab = await this.browser.tabs.create({});
+    if (!tab.id) {
+      throw new Error('Could not create tab');
+    }
+    return tab.id;
   }
 
   /**

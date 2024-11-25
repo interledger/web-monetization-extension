@@ -226,7 +226,7 @@ export const ConnectWalletForm = ({
           setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           setShowConsent(false);
         }}
-        textConsent={t('connectWalletKeyService_text_consentP1')}
+        intent="CONNECT_WALLET"
       />
     );
   }

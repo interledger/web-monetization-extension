@@ -1,12 +1,22 @@
 import React from 'react';
 import { useTranslation } from '@/popup/lib/context';
 import { Button } from '@/popup/components/ui/Button';
+import { TranslationKeys } from '@/shared/helpers';
 
-export const AutoKeyAddConsent: React.FC<{
+type Intent = 'CONNECT_WALLET' | 'RECONNECT_WALLET';
+
+const consentMessage: Record<Intent, TranslationKeys> = {
+  CONNECT_WALLET: 'connectWalletKeyService_text_consentP1',
+  RECONNECT_WALLET: 'reconnectWalletKeyService_text_consentP1',
+};
+
+type Props = {
   onAccept: () => void;
   onDecline: () => void;
-  textConsent: string;
-}> = ({ onAccept, onDecline, textConsent }) => {
+  intent: Intent;
+};
+
+export const AutoKeyAddConsent = ({ onAccept, onDecline, intent }: Props) => {
   const t = useTranslation();
   return (
     <form
@@ -14,7 +24,7 @@ export const AutoKeyAddConsent: React.FC<{
       data-testid="connect-wallet-auto-key-consent"
     >
       <p className="text-lg leading-snug text-weak">
-        {textConsent}{' '}
+        {t(consentMessage[intent])}{' '}
         <a
           hidden
           href="https://webmonetization.org"
