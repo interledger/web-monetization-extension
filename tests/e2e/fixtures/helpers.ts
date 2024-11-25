@@ -5,8 +5,6 @@ import net from 'node:net';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { format } from 'date-fns';
 import {
   chromium,
   firefox,
@@ -144,16 +142,10 @@ export async function loadContext(
   { browserName, channel }: BrowserInfo,
   workerInfo: WorkerInfo,
 ) {
-  const userDataDir = path.join(
-    tmpdir(),
-    'wm-extension-playwright',
-    `${browserName}-${channel}`,
-    format(new Date(), 'yyyyMMdd-HHmmss'),
-  );
   const pathToExtension = getPathToExtension(browserName);
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
-    context = await chromium.launchPersistentContext(userDataDir, {
+    context = await chromium.launchPersistentContext('', {
       headless: true,
       channel,
       args: [
