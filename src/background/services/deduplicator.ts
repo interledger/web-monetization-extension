@@ -8,6 +8,7 @@ interface CacheEntry {
 
 interface DedupeOptions {
   cacheFnArgs: boolean;
+  dedupeRejected: boolean;
   wait: number;
 }
 
@@ -22,7 +23,11 @@ export class Deduplicator {
 
   dedupe<T extends AsyncFn<any>>(
     fn: T,
-    { cacheFnArgs = false, wait = 5000 }: Partial<DedupeOptions> = {},
+    {
+      cacheFnArgs = false,
+      dedupeRejected = true,
+      wait = 5000,
+    }: Partial<DedupeOptions> = {},
   ): T {
     return ((...args: Parameters<T>): ReturnType<T> => {
       const key = this.generateCacheKey(fn, args, cacheFnArgs);
@@ -44,6 +49,10 @@ export class Deduplicator {
           return res;
         })
         .catch((err) => {
+          if (!dedupeRejected) {
+            this.cache.delete(key);
+          }
+
           throw err;
         })
         .finally(() => this.scheduleCacheClear(key, wait));

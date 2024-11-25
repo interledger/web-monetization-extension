@@ -32,7 +32,6 @@ import {
   errorWithKeyToJSON,
   getWalletInformation,
   isErrorWithKey,
-  isWalletAddress,
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
@@ -547,9 +546,9 @@ export class OpenPaymentsService {
       authServer: walletAddress.authServer,
     }).catch(async (e) => {
       await this.redirectToWelcomeScreen(
+        tabId,
         GrantResult.GRANT_ERROR,
         intent,
-        tabId,
         ErrorCode.HASH_FAILED,
       );
       throw e;
@@ -565,9 +564,9 @@ export class OpenPaymentsService {
       },
     ).catch(async (e) => {
       await this.redirectToWelcomeScreen(
+        tabId,
         GrantResult.GRANT_ERROR,
         intent,
-        tabId,
         ErrorCode.CONTINUATION_FAILED,
       );
       throw e;
@@ -608,9 +607,9 @@ export class OpenPaymentsService {
 
     this.grant = grantDetails;
     await this.redirectToWelcomeScreen(
+      tabId,
       GrantResult.GRANT_SUCCESS,
       intent,
-      tabId,
     );
     return grantDetails;
   }
@@ -637,11 +636,10 @@ export class OpenPaymentsService {
       const tabId = keyAutoAdd.tabId;
       const isTabClosed = error.key === 'connectWallet_error_tabClosed';
       if (tabId && !isTabClosed) {
-        // if the tabid exists but is not closed, redirect to welcome screen with error
         await this.redirectToWelcomeScreen(
+          tabId,
           GrantResult.GRANT_ERROR,
           InteractionIntent.CONNECT,
-          tabId,
           ErrorCode.KEY_ADD_FAILED,
         );
       }
@@ -671,24 +669,18 @@ export class OpenPaymentsService {
   }
 
   private async redirectToWelcomeScreen(
+    tabId: NonNullable<Tabs.Tab>['id'],
     result: GrantResult,
     intent: InteractionIntent,
-    tabId?: Tabs.Tab['id'],
     errorCode?: ErrorCode,
   ) {
     const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
     url.searchParams.set('result', result);
     url.searchParams.set('intent', intent);
     if (errorCode) url.searchParams.set('errorCode', errorCode);
-    if (!tabId) {
-      await this.browser.tabs.create({
-        url: url.toString(),
-      });
-    } else {
-      await this.browser.tabs.update(tabId, {
-        url: url.toString(),
-      });
-    }
+    await this.browser.tabs.update(tabId, {
+      url: url.toString(),
+    });
   }
 
   private async createOutgoingPaymentGrant({
@@ -919,9 +911,9 @@ export class OpenPaymentsService {
     );
   }
 
-  async manualReconnectWallet() {
+  async validateRedirect() {
     try {
-      await this.rotateToken();
+      await this.rotateToken({ dedupeRejected: false });
     } catch (error) {
       if (isInvalidClientError(error)) {
         const msg = this.t('connectWallet_error_invalidClient');
@@ -933,38 +925,42 @@ export class OpenPaymentsService {
   }
 
   async reconnectWallet() {
-    try {
-      const { walletAddress } = await this.storage.get(['walletAddress']);
-      if (
-        !isWalletAddress(walletAddress) ||
-        !KeyAutoAddService.supports(walletAddress)
-      ) {
-        // this.updateConnectStateError(error);
-        throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
-      }
-      const tabId = await this.addPublicKeyToWallet(walletAddress);
-      this.setConnectState('connecting');
-      await this.rotateToken();
-      await this.redirectToWelcomeScreen(
-        GrantResult.KEY_ADD_SUCCESS,
-        InteractionIntent.RECONNECT,
-        tabId,
-      );
-    } catch (error) {
-      if (isInvalidClientError(error)) {
-        const msg = this.t('connectWallet_error_invalidClient');
-        throw new Error(msg, { cause: error });
-      }
-      await this.redirectToWelcomeScreen(
-        GrantResult.KEY_ADD_ERROR,
-        InteractionIntent.RECONNECT,
-        undefined,
-        ErrorCode.KEY_ADD_FAILED,
-      );
-      throw error;
+    const { walletAddress } = await this.storage.get(['walletAddress']);
+    if (!walletAddress || !KeyAutoAddService.supports(walletAddress)) {
+      throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
+
+    try {
+      this.setConnectState('connecting');
+      await this.validateRedirect();
+    } catch (error) {
+      if (isInvalidClientError(error?.cause)) {
+        // add key to wallet and try again
+        try {
+          let tabId = await this.addPublicKeyToWallet(walletAddress);
+          await this.validateRedirect();
+          if (!tabId) {
+            const tab = await this.browser.tabs.create({
+              url: OPEN_PAYMENTS_REDIRECT_URL,
+            });
+            tabId = tab.id;
+          }
+          await this.redirectToWelcomeScreen(
+            tabId,
+            GrantResult.KEY_ADD_SUCCESS,
+            InteractionIntent.RECONNECT,
+          );
+        } catch (error) {
+          this.updateConnectStateError(error);
+          throw error;
+        }
+      } else {
+        this.updateConnectStateError(error);
+        throw error;
+      }
+    }
+
     this.setConnectState(null);
-    await this.storage.setState({ key_revoked: false });
   }
 
   /**
@@ -997,11 +993,15 @@ export class OpenPaymentsService {
     return null;
   }
 
-  async rotateToken() {
+  async rotateToken(
+    options: { dedupeRejected: boolean } = { dedupeRejected: true },
+  ) {
     if (!this.grant) {
       throw new Error('No grant to rotate token for');
     }
-    const rotate = this.deduplicator.dedupe(this.client!.token.rotate);
+    const rotate = this.deduplicator.dedupe(this.client!.token.rotate, {
+      dedupeRejected: options.dedupeRejected,
+    });
     const newToken = await rotate({
       url: this.token.manageUrl,
       accessToken: this.token.value,

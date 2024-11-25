@@ -18,6 +18,7 @@ export const Component = () => {
       data: { state: {}, prevState: {} },
     });
     navigate(ROUTES_PATH.HOME);
+    window.location.reload();
   };
 
   const onDisconnect = () => {

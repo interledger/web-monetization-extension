@@ -1,5 +1,6 @@
 import React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
+import { AutoKeyAddConsent } from '@/popup/components/AutoKeyAddConsent';
 import { WarningSign } from '@/popup/components/Icons';
 import { Button } from '@/popup/components/ui/Button';
 import { Code } from '@/popup/components/ui/Code';
@@ -47,13 +48,16 @@ export const ErrorKeyRevoked = ({
         <AutoKeyAddConsent
           onAccept={async () => {
             try {
-              await reconnectWallet({ auto: true });
+              await reconnectWallet({ autoKeyAddConsent: true });
+              onReconnect?.();
+              clearScreen();
             } catch (error) {
               setScreen('manual-reconnect');
               throw error;
             }
           }}
           onDecline={() => setScreen('manual-reconnect')}
+          textConsent="We will automatically reconnect with your wallet provider."
         />
       </AnimatePresence>
     );
@@ -66,7 +70,6 @@ export const ErrorKeyRevoked = ({
           onReconnect={() => {
             clearScreen();
             onReconnect?.();
-            window.location.reload();
           }}
         />
       </AnimatePresence>
@@ -126,11 +129,7 @@ const MainScreen = ({
         <Button onClick={() => requestDisconnect()} loading={loading}>
           {t('keyRevoked_action_disconnect')}
         </Button>
-        <Button
-          onClick={() => {
-            setScreen('consent-reconnect');
-          }}
-        >
+        <Button onClick={() => setScreen('consent-reconnect')}>
           {t('keyRevoked_action_reconnect')}
         </Button>
       </m.form>
@@ -162,7 +161,7 @@ const ManualReconnectScreen = ({
     setErrors({ root: null });
     try {
       setIsSubmitting(true);
-      const res = await reconnectWallet({ auto: false });
+      const res = await reconnectWallet({ autoKeyAddConsent: false });
       if (res.success) {
         onReconnect?.();
       } else {
@@ -212,45 +211,5 @@ const ManualReconnectScreen = ({
         {t('keyRevoked_action_reconnectBtn')}
       </Button>
     </m.form>
-  );
-};
-
-const AutoKeyAddConsent: React.FC<{
-  onAccept: () => void;
-  onDecline: () => void;
-}> = ({ onAccept, onDecline }) => {
-  const t = useTranslation();
-  return (
-    <form
-      className="space-y-4 text-center"
-      data-testid="connect-wallet-auto-key-consent"
-    >
-      <p className="text-lg leading-snug text-weak">
-        {t('connectWalletKeyService_text_consentP1')}{' '}
-        <a
-          hidden
-          href="https://webmonetization.org"
-          className="text-primary hover:underline"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {t('connectWalletKeyService_text_consentLearnMore')}
-        </a>
-      </p>
-
-      <div className="space-y-2 pt-12 text-medium">
-        <p>{t('connectWalletKeyService_text_consentP2')}</p>
-        <p>{t('connectWalletKeyService_text_consentP3')}</p>
-      </div>
-
-      <div className="mx-auto flex w-3/4 justify-around gap-4">
-        <Button onClick={onAccept}>
-          {t('connectWalletKeyService_label_consentAccept')}
-        </Button>
-        <Button onClick={onDecline} variant="destructive">
-          {t('connectWalletKeyService_label_consentDecline')}
-        </Button>
-      </div>
-    </form>
   );
 };

@@ -98,7 +98,7 @@ export interface ConnectWalletPayload {
 }
 
 export interface ReconnectWalletPayload {
-  auto: boolean;
+  autoKeyAddConsent: boolean;
 }
 
 export interface AddFundsPayload {
