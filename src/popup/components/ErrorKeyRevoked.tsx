@@ -49,8 +49,8 @@ export const ErrorKeyRevoked = ({
           onAccept={async () => {
             try {
               await reconnectWallet({ autoKeyAddConsent: true });
-              onReconnect?.();
               clearScreen();
+              onReconnect?.();
             } catch (error) {
               setScreen('manual-reconnect');
               throw error;

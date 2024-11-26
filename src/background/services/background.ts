@@ -201,11 +201,7 @@ export class Background {
               return success(undefined);
 
             case 'RECONNECT_WALLET': {
-              if (message.payload.autoKeyAddConsent) {
-                await this.openPaymentsService.reconnectWallet();
-              } else {
-                await this.openPaymentsService.validateRedirect();
-              }
+              await this.openPaymentsService.reconnectWallet(message.payload);
               await this.monetizationService.resumePaymentSessionActiveTab();
               await this.updateVisualIndicatorsForCurrentTab();
               return success(undefined);

@@ -38,6 +38,7 @@ import {
 import type {
   AddFundsPayload,
   ConnectWalletPayload,
+  ReconnectWalletPayload,
   UpdateBudgetPayload,
 } from '@/shared/messages';
 import {
@@ -911,7 +912,7 @@ export class OpenPaymentsService {
     );
   }
 
-  async validateRedirect() {
+  private async validateReconnect() {
     try {
       await this.rotateToken({ dedupeRejected: false });
     } catch (error) {
@@ -924,7 +925,12 @@ export class OpenPaymentsService {
     await this.storage.setState({ key_revoked: false });
   }
 
-  async reconnectWallet() {
+  async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
+    if (!autoKeyAddConsent) {
+      await this.validateReconnect();
+      return;
+    }
+
     const { walletAddress } = await this.storage.get(['walletAddress']);
     if (!walletAddress) {
       throw new Error('reconnectWallet_error_walletAddressMissing');
@@ -935,17 +941,16 @@ export class OpenPaymentsService {
 
     try {
       this.setConnectState('connecting');
-      await this.validateRedirect();
+      await this.validateReconnect();
     } catch (error) {
       if (isInvalidClientError(error?.cause)) {
         let tabId: number | undefined;
         try {
           // add key to wallet and try again
           tabId = await this.addPublicKeyToWallet(walletAddress);
-          await this.validateRedirect();
-          if (!tabId) {
-            tabId = await this.ensureTabExists();
-          }
+          await this.validateReconnect();
+
+          tabId ??= await this.ensureTabExists();
           await this.redirectToWelcomeScreen(
             tabId,
             GrantResult.KEY_ADD_SUCCESS,
