@@ -66,31 +66,36 @@ export const InputAmount = ({
   const handleArrowKeys = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       const key = ev.key;
-      const assetScale = walletAddress.assetScale;
       if (
-        key === 'ArrowUp' ||
-        key === 'ArrowDown' ||
-        key === 'PageUp' ||
-        key === 'PageDown'
+        key !== 'ArrowUp' &&
+        key !== 'ArrowDown' &&
+        key !== 'PageUp' &&
+        key !== 'PageDown'
       ) {
-        ev.preventDefault();
-        const input = ev.currentTarget;
-        incOrDec(
-          input,
-          key === 'ArrowUp' || key === 'PageUp' ? 1 : -1,
-          ev.shiftKey || /^Page(Up|Down)$/.test(key),
-          1 / 10 ** assetScale,
-          (value) => formatNumber(value, assetScale),
-          (value) => {
-            const error = validateAmount(value, walletAddress, min, max);
-            if (error) {
-              onError(error);
-            } else {
-              onChange(value, input);
-            }
-          },
-        );
+        return;
       }
+
+      const assetScale = walletAddress.assetScale;
+      const step = 1 / 10 ** assetScale;
+
+      ev.preventDefault();
+      const input = ev.currentTarget;
+      const largeStep = ev.shiftKey || /^Page(Up|Down)$/.test(key);
+      const direction = key === 'ArrowUp' || key === 'PageUp' ? 1 : -1;
+      incOrDec(
+        input,
+        direction,
+        largeStep ? step * 100 : step,
+        (value) => formatNumber(value, assetScale),
+        (value) => {
+          const error = validateAmount(value, walletAddress, min, max);
+          if (error) {
+            onError(error);
+          } else {
+            onChange(value, input);
+          }
+        },
+      );
     },
     [onChange, onError, walletAddress, min, max],
   );
@@ -184,14 +189,12 @@ const useThrottle: typeof throttle = (
 function incOrDec(
   input: HTMLInputElement,
   direction: 1 | -1,
-  largeStep: boolean,
   step: number,
   format: (val: number) => string,
   callback: (formattedValue: string, val: number) => void,
 ) {
   const value = Number(input.value);
-  const amount = largeStep ? step * 100 : step;
-  const newValue = value + direction * amount;
+  const newValue = value + direction * step;
   const formattedValue = format(newValue);
   input.value = formattedValue;
   callback(formattedValue, newValue);
