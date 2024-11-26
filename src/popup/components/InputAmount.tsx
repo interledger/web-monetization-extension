@@ -44,8 +44,10 @@ export const InputAmount = ({
   min = 0,
   max,
   readOnly,
+  controls = false,
 }: Props) => {
   const { assetScale } = walletAddress;
+  const step = 1 / 10 ** assetScale;
   const currencySymbol = getCurrencySymbol(walletAddress.assetCode);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -92,8 +94,6 @@ export const InputAmount = ({
         return;
       }
 
-      const step = 1 / 10 ** assetScale;
-
       ev.preventDefault();
       const input = ev.currentTarget;
       const largeStep = ev.shiftKey || /^Page(Up|Down)$/.test(key);
@@ -106,7 +106,7 @@ export const InputAmount = ({
         handleValue,
       );
     },
-    [formatAmount, handleValue, assetScale],
+    [formatAmount, handleValue, step],
   );
 
   const onKeyDown = React.useCallback(
@@ -133,6 +133,18 @@ export const InputAmount = ({
       defaultValue={amount}
       readOnly={readOnly}
       addOn={<span className="text-weak">{currencySymbol}</span>}
+      addOnRight={
+        controls ? (
+          <Controls
+            inc={() =>
+              incOrDec(inputRef.current!, 1, step, formatAmount, handleValue)
+            }
+            dec={() =>
+              incOrDec(inputRef.current!, -1, step, formatAmount, handleValue)
+            }
+          />
+        ) : null
+      }
       errorMessage={errorHidden ? '' : errorMessage}
       aria-invalid={errorHidden ? !!errorMessage : false}
       required={true}
@@ -149,6 +161,46 @@ export const InputAmount = ({
     />
   );
 };
+
+function Controls({ inc, dec }: { inc: () => void; dec: () => void }) {
+  const Button = ({
+    onClick,
+    icon,
+  }: {
+    onClick: () => void;
+    icon: React.ReactNode;
+  }) => {
+    return (
+      <button
+        className="p-1 text-lg text-weak hover:bg-gray-50 hover:text-strong"
+        type="button"
+        tabIndex={-1}
+        aria-hidden={true}
+        onClick={onClick}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+          className="size-3"
+        >
+          {icon}
+        </svg>
+      </button>
+    );
+  };
+
+  return (
+    <div
+      className="flex flex-col items-center justify-center"
+      aria-hidden={true}
+      tabIndex={-1}
+    >
+      <Button onClick={inc} icon={<path d="M12 4.5v15m7.5-7.5h-15" />} />
+      <Button onClick={dec} icon={<path d="M5 12h14" />} />
+    </div>
+  );
+}
 
 export function validateAmount(
   value: string,

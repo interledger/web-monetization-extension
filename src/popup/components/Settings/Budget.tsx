@@ -146,6 +146,7 @@ const BudgetAmount = ({
             setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
           }}
           errorMessage={errors.amount?.message}
+          controls
         />
         <div>
           <span

@@ -36,6 +36,7 @@ export interface InputProps
   readOnly?: boolean;
   addOn?: React.ReactNode;
   addOnPosition?: 'left' | 'right';
+  addOnRight?: React.ReactNode;
   label?: React.ReactNode;
   description?: React.ReactNode;
 }
@@ -45,6 +46,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     type = 'text',
     addOn,
     addOnPosition = 'left',
+    addOnRight,
     label,
     description,
     errorMessage,
@@ -57,6 +59,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 ) {
   const randomId = React.useId();
   id ||= randomId; // cannot call useId conditionally, but use randomId only if default not provided
+
+  if (addOnPosition === 'right' && addOnRight) {
+    throw new Error(
+      'Either addOn or addOnRight should be provided, but not both.',
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -89,6 +97,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-describedby={errorMessage}
           {...props}
         />
+        {addOnRight ? (
+          <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-sm font-medium">
+            {addOnRight}
+          </div>
+        ) : null}
       </div>
       {errorMessage && (
         <p className="px-2 text-sm text-error">{errorMessage}</p>
