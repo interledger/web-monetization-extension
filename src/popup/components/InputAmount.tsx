@@ -45,19 +45,36 @@ export const InputAmount = ({
   max,
   readOnly,
 }: Props) => {
+  const { assetScale } = walletAddress;
   const currencySymbol = getCurrencySymbol(walletAddress.assetCode);
 
-  const validateAmountOnChange = useThrottle(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const input = ev.target;
-      const value = input.value;
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const formatAmount = React.useCallback(
+    (value: number) => formatNumber(value, assetScale),
+    [assetScale],
+  );
+
+  const handleValue = React.useCallback(
+    (value: string, skipSetValue = false) => {
       const error = validateAmount(value, walletAddress, min, max);
       if (error) {
         onError(error);
       } else {
-        const amountValue = formatNumber(+value, walletAddress.assetScale);
-        onChange(amountValue, input);
+        const input = inputRef.current!;
+        const formattedValue = formatAmount(+value);
+        if (!skipSetValue) {
+          input.value = formattedValue;
+        }
+        onChange(formattedValue, input);
       }
+    },
+    [walletAddress, onChange, onError, formatAmount, min, max],
+  );
+
+  const validateAmountOnChange = useThrottle(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      handleValue(ev.target.value, true);
     },
     350,
     { trailing: true },
@@ -75,7 +92,6 @@ export const InputAmount = ({
         return;
       }
 
-      const assetScale = walletAddress.assetScale;
       const step = 1 / 10 ** assetScale;
 
       ev.preventDefault();
@@ -86,18 +102,11 @@ export const InputAmount = ({
         input,
         direction,
         largeStep ? step * 100 : step,
-        (value) => formatNumber(value, assetScale),
-        (value) => {
-          const error = validateAmount(value, walletAddress, min, max);
-          if (error) {
-            onError(error);
-          } else {
-            onChange(value, input);
-          }
-        },
+        formatAmount,
+        handleValue,
       );
     },
-    [onChange, onError, walletAddress, min, max],
+    [formatAmount, handleValue, assetScale],
   );
 
   const onKeyDown = React.useCallback(
@@ -115,6 +124,7 @@ export const InputAmount = ({
       id={id}
       type="text"
       inputMode="numeric"
+      ref={inputRef}
       label={labelHidden ? null : label}
       aria-label={labelHidden && typeof label === 'string' ? label : undefined}
       description={description}
@@ -134,14 +144,7 @@ export const InputAmount = ({
         if (value === amount && !input.required) {
           return;
         }
-        const error = validateAmount(value, walletAddress, min, max);
-        if (error) {
-          onError(error);
-        } else {
-          const amountValue = formatNumber(+value, walletAddress.assetScale);
-          input.value = amountValue;
-          onChange(amountValue, input);
-        }
+        handleValue(value);
       }}
     />
   );
@@ -191,13 +194,13 @@ function incOrDec(
   direction: 1 | -1,
   step: number,
   format: (val: number) => string,
-  callback: (formattedValue: string, val: number) => void,
+  callback: (formattedValue: string) => void,
 ) {
   const value = Number(input.value);
   const newValue = value + direction * step;
   const formattedValue = format(newValue);
   input.value = formattedValue;
-  callback(formattedValue, newValue);
+  callback(formattedValue);
 }
 
 function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
