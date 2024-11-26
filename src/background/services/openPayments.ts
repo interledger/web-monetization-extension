@@ -938,9 +938,11 @@ export class OpenPaymentsService {
       await this.validateRedirect();
     } catch (error) {
       if (isInvalidClientError(error?.cause)) {
-        // add key to wallet and try again
+        let tabId: number | undefined;
         try {
-          let tabId = await this.addPublicKeyToWalletAndValidate(walletAddress);
+          // add key to wallet and try again
+          tabId = await this.addPublicKeyToWallet(walletAddress);
+          await this.validateRedirect();
           if (!tabId) {
             tabId = await this.ensureTabExists();
           }
@@ -950,6 +952,14 @@ export class OpenPaymentsService {
             InteractionIntent.RECONNECT,
           );
         } catch (error) {
+          const isTabClosed = error.key === 'connectWallet_error_tabClosed';
+          if (tabId && !isTabClosed) {
+            await this.redirectToWelcomeScreen(
+              tabId,
+              GrantResult.KEY_ADD_ERROR,
+              InteractionIntent.RECONNECT,
+            );
+          }
           this.updateConnectStateError(error);
           throw error;
         }
@@ -960,27 +970,6 @@ export class OpenPaymentsService {
     }
 
     this.setConnectState(null);
-  }
-
-  private async addPublicKeyToWalletAndValidate(
-    walletAddress: WalletAddress,
-  ): Promise<Tabs.Tab['id']> {
-    try {
-      const tabId = await this.addPublicKeyToWallet(walletAddress);
-      await this.validateRedirect();
-      return tabId;
-    } catch (error) {
-      if (error.key !== 'connectWallet_error_tabClosed') {
-        const tabId = await this.ensureTabExists();
-        await this.redirectToWelcomeScreen(
-          tabId,
-          GrantResult.KEY_ADD_ERROR,
-          InteractionIntent.RECONNECT,
-        );
-      }
-
-      throw error;
-    }
   }
 
   private async ensureTabExists(): Promise<number> {
