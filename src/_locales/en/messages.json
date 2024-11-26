@@ -149,6 +149,12 @@
       "AMOUNT": { "content": "$1", "example": "$2.05" }
     }
   },
+  "connectWallet_error_amountMaximum": {
+    "message": "Amount must be under $AMOUNT$.",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
+    }
+  },
   "connectWallet_error_failedAutoKeyAdd": {
     "message": "Unable to automatically connect to your wallet."
   },

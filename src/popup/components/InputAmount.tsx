@@ -63,6 +63,48 @@ export const InputAmount = ({
     { trailing: true },
   );
 
+  const handleArrowKeys = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      const key = ev.key;
+      const assetScale = walletAddress.assetScale;
+      if (
+        key === 'ArrowUp' ||
+        key === 'ArrowDown' ||
+        key === 'PageUp' ||
+        key === 'PageDown'
+      ) {
+        ev.preventDefault();
+        const input = ev.currentTarget;
+        incOrDec(
+          input,
+          key === 'ArrowUp' || key === 'PageUp' ? 1 : -1,
+          ev.shiftKey || /^Page(Up|Down)$/.test(key),
+          1 / 10 ** assetScale,
+          (value) => formatNumber(value, assetScale),
+          (value) => {
+            const error = validateAmount(value, walletAddress, min, max);
+            if (error) {
+              onError(error);
+            } else {
+              onChange(value, input);
+            }
+          },
+        );
+      }
+    },
+    [onChange, onError, walletAddress, min, max],
+  );
+
+  const onKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      allowOnlyNumericInput(ev);
+      if (!ev.defaultPrevented) {
+        handleArrowKeys(ev);
+      }
+    },
+    [handleArrowKeys],
+  );
+
   return (
     <Input
       id={id}
@@ -79,7 +121,7 @@ export const InputAmount = ({
       errorMessage={errorHidden ? '' : errorMessage}
       aria-invalid={errorHidden ? !!errorMessage : false}
       required={true}
-      onKeyDown={allowOnlyNumericInput}
+      onKeyDown={onKeyDown}
       onChange={validateAmountOnChange}
       onBlur={(ev) => {
         const input = ev.currentTarget;
@@ -104,7 +146,7 @@ export function validateAmount(
   value: string,
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>,
   min: number = 0,
-  _max?: number,
+  max?: number,
 ): null | ErrorWithKeyLike {
   if (!value) {
     return errorWithKey('connectWallet_error_amountRequired');
@@ -116,6 +158,11 @@ export function validateAmount(
   if (val <= min) {
     return errorWithKey('connectWallet_error_amountMinimum', [
       formatCurrency(min, walletAddress.assetCode, walletAddress.assetScale),
+    ]);
+  }
+  if (max && val > max) {
+    return errorWithKey('connectWallet_error_amountMaximum', [
+      formatCurrency(max, walletAddress.assetCode, walletAddress.assetScale),
     ]);
   }
   return null;
@@ -133,6 +180,22 @@ const useThrottle: typeof throttle = (
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return React.useCallback(throttle(cbRef.current, delay, options), [delay]);
 };
+
+function incOrDec(
+  input: HTMLInputElement,
+  direction: 1 | -1,
+  largeStep: boolean,
+  step: number,
+  format: (val: number) => string,
+  callback: (formattedValue: string, val: number) => void,
+) {
+  const value = Number(input.value);
+  const amount = largeStep ? step * 100 : step;
+  const newValue = value + direction * amount;
+  const formattedValue = format(newValue);
+  input.value = formattedValue;
+  callback(formattedValue, newValue);
+}
 
 function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
   if (ev.key.length > 1 || ev.ctrlKey || ev.metaKey) return;
