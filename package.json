@@ -79,7 +79,7 @@
     "jest-chrome": "^0.8.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-transform-stub": "^2.0.0",
-    "postcss": "^8.4.47",
+    "postcss": "^8.4.49",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "sade": "^1.8.1",
