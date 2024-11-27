@@ -51,6 +51,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     description,
     errorMessage,
     disabled,
+    readOnly,
     className,
     id,
     ...props
@@ -86,7 +87,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           ref={ref}
           type={type}
           className={cn(
-            inputVariants({ disabled }),
+            inputVariants({ disabled, readOnly }),
             addOn && (addOnPosition === 'left' ? 'pl-10' : 'pr-10'),
             addOnRight && 'pr-10',
             errorMessage && 'border-error',
