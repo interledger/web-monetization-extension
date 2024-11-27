@@ -1,7 +1,6 @@
 import { test as base, type BrowserContext, type Page } from '@playwright/test';
 import {
   getBackground,
-  getExtensionId,
   loadContext,
   BrowserIntl,
   type Background,
@@ -51,13 +50,8 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   ],
 
   popup: [
-    async ({ background, persistentContext, browserName, channel }, use) => {
-      const extensionId = getExtensionId(browserName, background);
-      const popup = await openPopup(
-        persistentContext,
-        { browserName, channel },
-        extensionId,
-      );
+    async ({ background, persistentContext }, use) => {
+      const popup = await openPopup(persistentContext, background);
 
       await use(popup);
       await popup.close();
