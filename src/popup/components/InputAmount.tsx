@@ -162,6 +162,20 @@ export const InputAmount = ({
   );
 };
 
+/**
+ * If a re-render is triggered, our long-press logic on inc/dec controls (i.e.
+ * when `controls == true`) will break (we stop on unMount). So, we memoize this
+ * component based on some props.
+ */
+export const InputAmountMemoized = React.memo(InputAmount, (prev, next) => {
+  return (
+    prev.min === next.min &&
+    prev.max === next.max &&
+    prev.controls === next.controls &&
+    prev.errorMessage === next.errorMessage
+  );
+});
+
 function Controls({ inc, dec }: { inc: () => void; dec: () => void }) {
   const Button = ({
     onClick,
@@ -170,13 +184,14 @@ function Controls({ inc, dec }: { inc: () => void; dec: () => void }) {
     onClick: () => void;
     icon: React.ReactNode;
   }) => {
+    const longPress = useLongPress(onClick);
     return (
       <button
-        className="p-1 text-lg text-weak hover:bg-gray-50 hover:text-strong"
+        className="p-1 text-lg text-weak outline-none hover:bg-gray-50 hover:text-strong"
         type="button"
         tabIndex={-1}
         aria-hidden={true}
-        onClick={onClick}
+        {...longPress}
       >
         <svg
           viewBox="0 0 24 24"
@@ -226,6 +241,29 @@ export function validateAmount(
     ]);
   }
   return null;
+}
+
+function useLongPress(callback: () => void, ms = 100) {
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const start = () => {
+    intervalRef.current ??= setInterval(callback, ms);
+  };
+
+  const stop = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  React.useEffect(() => stop, [callback, ms]);
+
+  return {
+    onMouseDown: start,
+    onMouseUp: stop,
+    onMouseLeave: stop,
+  };
 }
 
 const useThrottle: typeof throttle = (

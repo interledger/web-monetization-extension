@@ -70,7 +70,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
       {description ? <p className="px-2 text-xs">{description}</p> : null}
-      <div className="relative">
+      <div className="relative w-fit">
         {addOn ? (
           <div
             className={cn(
@@ -88,6 +88,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           className={cn(
             inputVariants({ disabled }),
             addOn && (addOnPosition === 'left' ? 'pl-10' : 'pr-10'),
+            addOnRight && 'pr-10',
             errorMessage && 'border-error',
             className,
           )}

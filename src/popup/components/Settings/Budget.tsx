@@ -2,7 +2,7 @@ import React from 'react';
 import { Input } from '@/popup/components/ui/Input';
 import { Switch } from '@/popup/components/ui/Switch';
 import { Button } from '@/popup/components/ui/Button';
-import { InputAmount } from '@/popup/components/InputAmount';
+import { InputAmountMemoized as InputAmount } from '@/popup/components/InputAmount';
 import { ErrorMessage } from '@/popup/components/ErrorMessage';
 import { ErrorWithKeyLike, getNextOccurrence } from '@/shared/helpers';
 import { getCurrencySymbol, transformBalance } from '@/popup/lib/utils';
