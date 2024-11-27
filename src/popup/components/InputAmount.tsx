@@ -203,6 +203,9 @@ function Controls({
           viewBox="0 0 24 24"
           strokeWidth={1.5}
           stroke="currentColor"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className="size-3"
         >
           {icon}
@@ -217,8 +220,8 @@ function Controls({
       aria-hidden={true}
       tabIndex={-1}
     >
-      <Button onClick={inc} icon={<path d="M12 4.5v15m7.5-7.5h-15" />} />
-      <Button onClick={dec} icon={<path d="M5 12h14" />} />
+      <Button onClick={inc} icon={<path d="m4.5 15.75 7.5-7.5 7.5 7.5" />} />
+      <Button onClick={dec} icon={<path d="m19.5 8.25-7.5 7.5-7.5-7.5" />} />
     </div>
   );
 }
