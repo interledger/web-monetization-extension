@@ -84,6 +84,7 @@ export const InputAmount = ({
 
   const handleArrowKeys = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (readOnly) return;
       const key = ev.key;
       if (
         key !== 'ArrowUp' &&
@@ -96,17 +97,12 @@ export const InputAmount = ({
 
       ev.preventDefault();
       const input = ev.currentTarget;
-      const largeStep = ev.shiftKey || /^Page(Up|Down)$/.test(key);
+      const isLargeStep = ev.shiftKey || /^Page(Up|Down)$/.test(key);
       const direction = key === 'ArrowUp' || key === 'PageUp' ? 1 : -1;
-      incOrDec(
-        input,
-        direction,
-        largeStep ? step * 100 : step,
-        formatAmount,
-        handleValue,
-      );
+      const amount = isLargeStep ? step * 100 : step;
+      incOrDec(input, direction, amount, formatAmount, handleValue, min, max);
     },
-    [formatAmount, handleValue, step],
+    [formatAmount, handleValue, step, readOnly, min, max],
   );
 
   const onKeyDown = React.useCallback(
@@ -118,6 +114,13 @@ export const InputAmount = ({
     },
     [handleArrowKeys],
   );
+
+  const controlInc = React.useCallback(() => {
+    incOrDec(inputRef.current!, 1, step, formatAmount, handleValue, min, max);
+  }, [step, formatAmount, handleValue, min, max]);
+  const controlDec = React.useCallback(() => {
+    incOrDec(inputRef.current!, -1, step, formatAmount, handleValue, min, max);
+  }, [step, formatAmount, handleValue, min, max]);
 
   return (
     <Input
@@ -135,14 +138,7 @@ export const InputAmount = ({
       addOn={<span className="text-weak">{currencySymbol}</span>}
       addOnRight={
         controls ? (
-          <Controls
-            inc={() =>
-              incOrDec(inputRef.current!, 1, step, formatAmount, handleValue)
-            }
-            dec={() =>
-              incOrDec(inputRef.current!, -1, step, formatAmount, handleValue)
-            }
-          />
+          <Controls readOnly={readOnly} inc={controlInc} dec={controlDec} />
         ) : null
       }
       errorMessage={errorHidden ? '' : errorMessage}
@@ -172,11 +168,20 @@ export const InputAmountMemoized = React.memo(InputAmount, (prev, next) => {
     prev.min === next.min &&
     prev.max === next.max &&
     prev.controls === next.controls &&
+    prev.readOnly === next.readOnly &&
     prev.errorMessage === next.errorMessage
   );
 });
 
-function Controls({ inc, dec }: { inc: () => void; dec: () => void }) {
+function Controls({
+  readOnly = false,
+  inc,
+  dec,
+}: {
+  readOnly?: boolean;
+  inc: () => void;
+  dec: () => void;
+}) {
   const Button = ({
     onClick,
     icon,
@@ -187,10 +192,11 @@ function Controls({ inc, dec }: { inc: () => void; dec: () => void }) {
     const longPress = useLongPress(onClick);
     return (
       <button
-        className="p-1 text-lg text-weak outline-none hover:bg-gray-50 hover:text-strong"
+        className="cursor-pointer p-1 text-lg text-weak outline-none hover:bg-gray-50 hover:text-strong disabled:cursor-default disabled:text-weak disabled:hover:bg-transparent"
         type="button"
         tabIndex={-1}
         aria-hidden={true}
+        disabled={readOnly}
         {...longPress}
       >
         <svg
@@ -230,7 +236,7 @@ export function validateAmount(
   if (Number.isNaN(val)) {
     return errorWithKey('connectWallet_error_amountInvalidNumber');
   }
-  if (val <= min) {
+  if (val < min) {
     return errorWithKey('connectWallet_error_amountMinimum', [
       formatCurrency(min, walletAddress.assetCode, walletAddress.assetScale),
     ]);
@@ -285,9 +291,17 @@ function incOrDec(
   step: number,
   format: (val: number) => string,
   callback: (formattedValue: string) => void,
+  min: number = 0,
+  max?: number,
 ) {
   const value = Number(input.value);
-  const newValue = value + direction * step;
+  let newValue = value + direction * step;
+  if (newValue < min) {
+    newValue = min;
+  } else if (max && newValue > max) {
+    newValue = max;
+  }
+  if (newValue === value) return;
   const formattedValue = format(newValue);
   input.value = formattedValue;
   callback(formattedValue);
