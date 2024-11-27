@@ -84,7 +84,6 @@ export const InputAmount = ({
 
   const handleArrowKeys = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
-      if (readOnly) return;
       const key = ev.key;
       if (
         key !== 'ArrowUp' &&
@@ -102,17 +101,18 @@ export const InputAmount = ({
       const amount = isLargeStep ? step * 100 : step;
       incOrDec(input, direction, amount, formatAmount, handleValue, min, max);
     },
-    [formatAmount, handleValue, step, readOnly, min, max],
+    [formatAmount, handleValue, step, min, max],
   );
 
   const onKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
       allowOnlyNumericInput(ev);
       if (!ev.defaultPrevented) {
+        if (readOnly || !controls) return;
         handleArrowKeys(ev);
       }
     },
-    [handleArrowKeys],
+    [handleArrowKeys, readOnly, controls],
   );
 
   const controlInc = React.useCallback(() => {
