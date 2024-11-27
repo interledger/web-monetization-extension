@@ -1,5 +1,7 @@
 import type { Runtime, Tabs } from 'webextension-polyfill';
-import {
+import type {
+  PayWebsitePayload,
+  PayWebsiteResponse,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload,
@@ -7,8 +9,20 @@ import {
 import { PaymentSession } from './paymentSession';
 import { computeRate, getSender, getTabId } from '../utils';
 import { isOutOfBalanceError } from './openPayments';
-import { isOkState, removeQueryParams } from '@/shared/helpers';
+import {
+  OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
+  OUTGOING_PAYMENT_POLLING_MAX_DURATION,
+} from '@/background/config';
+import {
+  ErrorWithKey,
+  formatCurrency,
+  isErrorWithKey,
+  isOkState,
+  removeQueryParams,
+} from '@/shared/helpers';
+import { transformBalance } from '@/popup/lib/utils';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
+import type { OutgoingPayment } from '@interledger/open-payments';
 import type { Cradle } from '../container';
 
 export class MonetizationService {
@@ -249,7 +263,7 @@ export class MonetizationService {
     }
   }
 
-  async pay(amount: string) {
+  async pay({ amount }: PayWebsitePayload): Promise<PayWebsiteResponse> {
     const tab = await this.windowState.getCurrentTab();
     if (!tab || !tab.id) {
       throw new Error('Unexpected error: could not find active tab.');
@@ -263,27 +277,93 @@ export class MonetizationService {
       throw new Error(this.t('pay_error_notMonetized'));
     }
 
+    const { walletAddress } = await this.storage.get(['walletAddress']);
+    if (!walletAddress) {
+      throw new Error('Unexpected: wallet address not found.');
+    }
+    const { assetCode, assetScale } = walletAddress;
+
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
       payableSessions.map((session) => session.pay(splitAmount)),
     );
 
-    const totalSentAmount = results
-      .filter((e) => e.status === 'fulfilled')
-      .reduce(
-        (acc, curr) => acc + BigInt(curr.value?.debitAmount.value ?? 0),
-        0n,
-      );
+    const outgoingPayments = new Map<string, OutgoingPayment | null>(
+      payableSessions.map((s, i) => [
+        s.id,
+        results[i].status === 'fulfilled' ? results[i].value : null,
+      ]),
+    );
+    this.logger.debug('polling outgoing payments for completion');
+    const signal = AbortSignal.timeout(OUTGOING_PAYMENT_POLLING_MAX_DURATION); // can use other signals as well, such as popup closed etc.
+    const pollingResults = await Promise.allSettled(
+      [...outgoingPayments]
+        .filter(([, outgoingPayment]) => outgoingPayment !== null)
+        .map(async ([sessionId, outgoingPaymentInitial]) => {
+          for await (const outgoingPayment of this.openPaymentsService.pollOutgoingPayment(
+            // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
+            outgoingPaymentInitial!.id,
+            { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
+          )) {
+            outgoingPayments.set(sessionId, outgoingPayment);
+          }
+          return outgoingPayments.get(sessionId)!;
+        }),
+    );
+
+    const totalSentAmount = [...outgoingPayments.values()].reduce(
+      (acc, op) => acc + BigInt(op?.sentAmount?.value ?? 0),
+      0n,
+    );
+    const totalDebitAmount = [...outgoingPayments.values()].reduce(
+      (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
+      0n,
+    );
+
     if (totalSentAmount === 0n) {
+      const pollingErrors = pollingResults
+        .filter((e) => e.status === 'rejected')
+        .map((e) => e.reason);
+
+      if (pollingErrors.some((e) => e.message === 'InsufficientGrant')) {
+        this.logger.warn('Insufficient grant to read outgoing payments');
+        // This permission request to read outgoing payments was added at a
+        // later time, so existing connected wallets won't have this permission.
+        // Assume as success for backward compatibility.
+        const sentAmount = transformBalance(totalDebitAmount, assetScale);
+        return {
+          type: 'full',
+          sentAmount: sentAmount,
+          sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+        };
+      }
+
       const isNotEnoughFunds = results
         .filter((e) => e.status === 'rejected')
         .some((e) => isOutOfBalanceError(e.reason));
+      const isPollingLimitReached = pollingErrors.some(
+        (err) =>
+          (isErrorWithKey(err) &&
+            err.key === 'pay_warn_outgoingPaymentPollingIncomplete') ||
+          (err instanceof DOMException && err.name === 'TimeoutError'),
+      );
+
       if (isNotEnoughFunds) {
-        throw new Error(this.t('pay_error_notEnoughFunds'));
+        throw new ErrorWithKey('pay_error_notEnoughFunds');
       }
-      throw new Error('Could not facilitate payment for current website.');
+      if (isPollingLimitReached) {
+        throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
+      }
+      throw new ErrorWithKey('pay_error_general');
     }
+
+    const sentAmount = transformBalance(totalSentAmount, assetScale);
+    return {
+      type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
+      sentAmount: sentAmount,
+      sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+    };
   }
 
   private canTryPayment(
