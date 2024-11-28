@@ -133,6 +133,7 @@ export const InputAmount = ({
       description={description}
       placeholder={placeholder}
       className={className}
+      wrapperClassName="w-fit"
       defaultValue={amount}
       readOnly={readOnly}
       addOn={<span className="text-weak">{currencySymbol}</span>}

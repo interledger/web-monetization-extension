@@ -39,6 +39,7 @@ export interface InputProps
   addOnRight?: React.ReactNode;
   label?: React.ReactNode;
   description?: React.ReactNode;
+  wrapperClassName?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -53,6 +54,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     disabled,
     readOnly,
     className,
+    wrapperClassName,
     id,
     ...props
   },
@@ -71,7 +73,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
       {description ? <p className="px-2 text-xs">{description}</p> : null}
-      <div className="relative w-fit">
+      <div className={cn('relative', wrapperClassName)}>
         {addOn ? (
           <div
             className={cn(
