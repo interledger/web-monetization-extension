@@ -2,6 +2,7 @@
 Interledger
 Fynbos
 Rafiki
+Chimoney
 
 SPSP
 webextension

@@ -30,6 +30,11 @@
       "matches": ["https://eu1.fynbos.dev/*", "https://wallet.fynbos.app/*"],
       "js": ["content/keyAutoAdd/fynbos.js"],
       "run_at": "document_end"
+    },
+    {
+      "matches": ["https://sandbox.chimoney.io/*", "https://chimoney.io/*"],
+      "js": ["content/keyAutoAdd/chimoney.js"],
+      "run_at": "document_end"
     }
   ],
   "background": {
