@@ -914,7 +914,7 @@ export class OpenPaymentsService {
 
   private async validateReconnect() {
     try {
-      await this.rotateToken({ cacheRejections: false });
+      await this.rotateToken();
     } catch (error) {
       if (isInvalidClientError(error)) {
         const msg = this.t('connectWallet_error_invalidClient');
@@ -1016,7 +1016,7 @@ export class OpenPaymentsService {
   }
 
   async rotateToken(
-    options: { cacheRejections: boolean } = { cacheRejections: true },
+    options: { cacheRejections: boolean } = { cacheRejections: false },
   ) {
     if (!this.grant) {
       throw new Error('No grant to rotate token for');
