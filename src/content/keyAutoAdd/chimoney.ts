@@ -137,7 +137,7 @@ const getAuthToken = (): string => {
   }
   const JWT_REGEX =
     /^([A-Za-z0-9-_=]{2,})\.([A-Za-z0-9-_=]{2,})\.([A-Za-z0-9-_=]{2,})$/;
-  if (JWT_REGEX.test(token)) {
+  if (!JWT_REGEX.test(token)) {
     throw new Error('Invalid Firebase auth token');
   }
   return token;
