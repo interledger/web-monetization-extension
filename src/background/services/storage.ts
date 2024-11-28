@@ -22,6 +22,7 @@ const defaultStorage = {
   version: 4,
   state: {},
   connected: false,
+  enabled: true,
   continuousPaymentsEnabled: true,
   exceptionList: {},
   walletAddress: null,
@@ -287,8 +288,8 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
     return [data];
   },
   4: (data) => {
-    data.continuousPaymentsEnabled = data.enabled === true;
-    const deleteKeys = ['enabled'];
-    return [data, deleteKeys];
+    data.continuousPaymentsEnabled = data.enabled;
+    data.enabled = true;
+    return [data];
   },
 };
