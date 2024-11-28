@@ -239,7 +239,7 @@ export class Background {
 
             case 'PAY_WEBSITE':
               return success(
-                await this.monetizationService.pay(message.payload.amount),
+                await this.monetizationService.pay(message.payload),
               );
 
             // endregion

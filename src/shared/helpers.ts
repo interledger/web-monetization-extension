@@ -12,7 +12,10 @@ import type { Storage, RepeatingInterval, AmountValue } from './types';
 export type TranslationKeys =
   keyof typeof import('../_locales/en/messages.json');
 
-export type ErrorKeys = Extract<TranslationKeys, `${string}_error_${string}`>;
+export type ErrorKeys = Extract<
+  TranslationKeys,
+  `${string}_${'error' | 'warn'}_${string}`
+>;
 
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
