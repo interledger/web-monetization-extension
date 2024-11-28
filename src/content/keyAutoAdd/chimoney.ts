@@ -5,7 +5,7 @@ import {
   LOGIN_WAIT_TIMEOUT,
   type StepRun as Run,
 } from './lib/keyAutoAdd';
-import { isTimedOut, waitForURL } from './lib/helpers';
+import { isTimedOut, waitForElement, waitForURL } from './lib/helpers';
 
 // #region: Steps
 
@@ -21,6 +21,7 @@ const waitForLogin: Run<void> = async (
       (url) => (url.origin + url.pathname).startsWith(keyAddUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
     );
+
     setNotificationSize('fullscreen');
   } catch (error) {
     if (isTimedOut(error)) {
@@ -34,28 +35,45 @@ const waitForLogin: Run<void> = async (
   }
 };
 
-// TODO
 const findWallet: Run<{ walletAddressId: string }> = async (
   { walletAddressUrl },
   { setNotificationSize },
 ) => {
+  const walletAddress = new URL(walletAddressUrl);
   setNotificationSize('fullscreen');
-  const url = `/`;
-  const res = await fetch(url, {
-    headers: { accept: 'application/json' },
-    credentials: 'include',
-  }).catch((error) => {
-    return Response.json(null, { status: 599, statusText: error.message });
+
+  await waitForElement('h5', {
+    match: (el) => el.textContent?.trim() === 'Interledger Wallet Address Info',
+  }).catch(() => {
+    throw new Error('Are you on the correct page?');
   });
-  if (!res.ok) {
-    throw new Error(`Failed to get wallet details (${res.statusText})`);
-  }
-  const data = await res.json();
-  if (data?.walletInfo?.url !== walletAddressUrl) {
+
+  const walletAddressElem = await waitForElement('h6', {
+    match(el) {
+      const prefix = walletAddress.hostname;
+      const text = el.textContent?.trim() ?? '';
+      return text.startsWith(`Wallet Address:`) && text.includes(prefix);
+    },
+  }).catch(() => {
+    throw new Error(
+      'Failed to find wallet address. Are you on the correct page?',
+    );
+  });
+
+  // To match both payment pointer and wallet address URL format
+  const walletAddressText = walletAddress.hostname + walletAddress.pathname;
+  if (walletAddressElem.textContent?.includes(walletAddressText)) {
     throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
   }
 
-  return { walletAddressId: '' };
+  // A Firebase request will set this field eventually. We wait max 6s for that.
+  let attemptToFindWalletAddressId = 0;
+  while (++attemptToFindWalletAddressId < 12) {
+    const walletAddressId = sessionStorage.getItem('walletAddressId');
+    if (walletAddressId) return { walletAddressId };
+    await sleep(500);
+  }
+  throw new Error('No walletAddressId found in sessionStorage');
 };
 
 const addKey: Run<void> = async ({ publicKey }, { output }) => {
