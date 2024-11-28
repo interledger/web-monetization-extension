@@ -459,6 +459,7 @@ export class MonetizationService {
 
   async getPopupData(tab: Pick<Tabs.Tab, 'id' | 'url'>): Promise<PopupStore> {
     const storedData = await this.storage.get([
+      'enabled',
       'continuousPaymentsEnabled',
       'connected',
       'state',
