@@ -914,7 +914,7 @@ export class OpenPaymentsService {
 
   private async validateReconnect() {
     try {
-      await this.rotateToken({ dedupeRejected: false });
+      await this.rotateToken({ cacheRejections: false });
     } catch (error) {
       if (isInvalidClientError(error)) {
         const msg = this.t('connectWallet_error_invalidClient');
@@ -1016,13 +1016,13 @@ export class OpenPaymentsService {
   }
 
   async rotateToken(
-    options: { dedupeRejected: boolean } = { dedupeRejected: true },
+    options: { cacheRejections: boolean } = { cacheRejections: true },
   ) {
     if (!this.grant) {
       throw new Error('No grant to rotate token for');
     }
     const rotate = this.deduplicator.dedupe(this.client!.token.rotate, {
-      dedupeRejected: options.dedupeRejected,
+      cacheRejections: options.cacheRejections,
     });
     const newToken = await rotate({
       url: this.token.manageUrl,

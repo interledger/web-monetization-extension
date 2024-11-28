@@ -8,7 +8,7 @@ interface CacheEntry {
 
 interface DedupeOptions {
   cacheFnArgs: boolean;
-  dedupeRejected: boolean;
+  cacheRejections: boolean;
   wait: number;
 }
 
@@ -25,7 +25,7 @@ export class Deduplicator {
     fn: T,
     {
       cacheFnArgs = false,
-      dedupeRejected = true,
+      cacheRejections = true,
       wait = 5000,
     }: Partial<DedupeOptions> = {},
   ): T {
@@ -49,7 +49,7 @@ export class Deduplicator {
           return res;
         })
         .catch((err) => {
-          if (!dedupeRejected) {
+          if (!cacheRejections) {
             this.cache.delete(key);
           }
 
