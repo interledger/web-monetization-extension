@@ -66,7 +66,10 @@ const reducer = (state: PopupState, action: ReducerActions): PopupState => {
     case 'SET_DATA':
       return action.data;
     case 'TOGGLE_WM':
-      return { ...state, enabled: !state.enabled };
+      return {
+        ...state,
+        continuousPaymentsEnabled: !state.continuousPaymentsEnabled,
+      };
     case 'SET_CONNECTED':
       return { ...state, connected: action.data.connected };
     case 'UPDATE_RATE_OF_PAY':
