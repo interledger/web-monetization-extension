@@ -82,7 +82,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             errorMessage && 'border-error',
             className,
           )}
-          disabled={disabled ?? false}
+          disabled={disabled}
+          readOnly={readOnly}
           aria-disabled={disabled ?? false}
           aria-invalid={!!errorMessage}
           aria-describedby={errorMessage}
