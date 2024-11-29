@@ -1,4 +1,5 @@
 import React from 'react';
+import { throttle } from '@/shared/helpers';
 
 /**
  * Store data in browser's local storage. Helpful in retrieving state after
@@ -66,3 +67,43 @@ export function useLocalStorage<T>(
 
   return [value, setValue, clearStorage] as const;
 }
+
+/**
+ * Trigger a callback on long mouse press.
+ * Example use case: increment/decrement counter while mouse is pressed.
+ */
+export function useLongPress(callback: () => void, ms = 100) {
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const start = () => {
+    intervalRef.current ??= setInterval(callback, ms);
+  };
+
+  const stop = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  React.useEffect(() => stop, [callback, ms]);
+
+  return {
+    onMouseDown: start,
+    onMouseUp: stop,
+    onMouseLeave: stop,
+  };
+}
+
+export const useThrottle: typeof throttle = (
+  callback,
+  delay,
+  options = { leading: false, trailing: false },
+) => {
+  const cbRef = React.useRef(callback);
+  React.useEffect(() => {
+    cbRef.current = callback;
+  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return React.useCallback(throttle(cbRef.current, delay, options), [delay]);
+};
