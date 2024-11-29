@@ -75,7 +75,7 @@ export const InputAmount = ({
       className={className}
       defaultValue={amount}
       readOnly={readOnly}
-      addOn={<span className="text-weak">{currencySymbol}</span>}
+      leadingAddOn={<span className="text-weak">{currencySymbol}</span>}
       errorMessage={errorHidden ? '' : errorMessage}
       aria-invalid={errorHidden ? !!errorMessage : false}
       required={true}

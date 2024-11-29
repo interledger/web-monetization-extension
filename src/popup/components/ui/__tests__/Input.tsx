@@ -30,13 +30,22 @@ describe('Input', () => {
     expect(queryByLabelText('test input')).toHaveClass('border-base');
   });
 
-  it('should have the `pl-10` class when the `addOn` variant is passed', () => {
+  it('should have the `pl-10` class when the `leadingAddOn` variant is passed', () => {
     const { queryByLabelText } = render(
-      <Input aria-label="test input" addOn="$" />,
+      <Input aria-label="test input" leadingAddOn="$" />,
     );
 
     expect(queryByLabelText('test input')).toBeInTheDocument();
     expect(queryByLabelText('test input')).toHaveClass('pl-10');
+  });
+
+  it('should have the `pr-10` class when the `trailingAddon` variant is passed', () => {
+    const { queryByLabelText } = render(
+      <Input aria-label="test input" trailingAddOn="$" />,
+    );
+
+    expect(queryByLabelText('test input')).toBeInTheDocument();
+    expect(queryByLabelText('test input')).toHaveClass('pr-10');
   });
 
   it('should have the `bg-disabled` and `border-transparent` classes when the `disabled` variant is passed', () => {
