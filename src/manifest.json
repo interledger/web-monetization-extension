@@ -17,19 +17,6 @@
       "js": ["content/content.js"],
       "run_at": "document_start",
       "all_frames": true
-    },
-    {
-      "matches": [
-        "https://wallet.interledger-test.dev/*",
-        "https://wallet.interledger.cards/*"
-      ],
-      "js": ["content/keyAutoAdd/testWallet.js"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://eu1.fynbos.dev/*", "https://wallet.fynbos.app/*"],
-      "js": ["content/keyAutoAdd/fynbos.js"],
-      "run_at": "document_end"
     }
   ],
   "background": {

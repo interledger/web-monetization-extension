@@ -6,7 +6,7 @@ import {
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
+import type { Browser, Runtime, Scripting, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
@@ -178,9 +178,40 @@ export class KeyAutoAddService {
       return false;
     }
   }
+
+  static async registerContentScripts({ browser }: Pick<Cradle, 'browser'>) {
+    const scripting = browser.scripting;
+    const existingScripts = await scripting.getRegisteredContentScripts();
+    const scripts = getContentScripts().filter((s) => {
+      return !existingScripts.find((es) => es.id === s.id);
+    });
+    for (const script of scripts) {
+      await scripting.registerContentScripts([script]);
+    }
+  }
 }
 
-export function walletAddressToProvider(walletAddress: WalletAddress): {
+function getContentScripts(): Scripting.RegisteredContentScript[] {
+  return [
+    {
+      id: 'keyAutoAdd/testWallet',
+      matches: [
+        'https://wallet.interledger-test.dev/*',
+        'https://wallet.interledger.cards/*',
+      ],
+      js: ['content/keyAutoAdd/testWallet.js'],
+      runAt: 'document_end',
+    },
+    {
+      id: 'keyAutoAdd/fynbos',
+      matches: ['https://eu1.fynbos.dev/*', 'https://wallet.fynbos.app/*'],
+      js: ['content/keyAutoAdd/fynbos.js'],
+      runAt: 'document_end',
+    },
+  ];
+}
+
+function walletAddressToProvider(walletAddress: WalletAddress): {
   url: string;
 } {
   const { host } = new URL(walletAddress.id);
