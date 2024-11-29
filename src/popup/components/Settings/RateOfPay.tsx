@@ -143,15 +143,16 @@ const RateOfPayInput = ({
         className="max-w-56"
         label="Rate of pay per hour"
         walletAddress={walletAddress}
-        onChange={(rate) => {
+        onChange={(value) => {
           setErrorMessage('');
-          onRateChange(rate);
+          const rate = Number(value) * 10 ** walletAddress.assetScale;
+          onRateChange(rate.toString());
         }}
         onError={(error) => setErrorMessage(t(error))}
         errorMessage={errorMessage}
         min={Number(formatAmount(minRateOfPay))}
         max={Number(formatAmount(maxRateOfPay))}
-        amount={rateOfPay}
+        amount={formatAmount(rateOfPay)}
         controls={true}
         readOnly={disabled}
       />
