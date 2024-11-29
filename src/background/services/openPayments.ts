@@ -1015,15 +1015,11 @@ export class OpenPaymentsService {
     return null;
   }
 
-  async rotateToken(
-    options: { cacheRejections: boolean } = { cacheRejections: false },
-  ) {
+  async rotateToken() {
     if (!this.grant) {
       throw new Error('No grant to rotate token for');
     }
-    const rotate = this.deduplicator.dedupe(this.client!.token.rotate, {
-      cacheRejections: options.cacheRejections,
-    });
+    const rotate = this.deduplicator.dedupe(this.client!.token.rotate);
     const newToken = await rotate({
       url: this.token.manageUrl,
       accessToken: this.token.value,

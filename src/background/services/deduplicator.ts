@@ -25,7 +25,7 @@ export class Deduplicator {
     fn: T,
     {
       cacheFnArgs = false,
-      cacheRejections = true,
+      cacheRejections = false,
       wait = 5000,
     }: Partial<DedupeOptions> = {},
   ): T {
@@ -49,11 +49,13 @@ export class Deduplicator {
           return res;
         })
         .catch((err) => {
-          if (!cacheRejections) {
+          if (cacheRejections) {
+            this.cache.set(key, { promise: Promise.reject(err) });
+          } else {
             this.cache.delete(key);
           }
 
-          throw err;
+          return Promise.reject(err);
         })
         .finally(() => this.scheduleCacheClear(key, wait));
 
