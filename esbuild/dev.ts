@@ -8,6 +8,7 @@ export const getDevOptions = ({
   outDir,
   target,
   channel,
+  defines,
 }: Omit<BuildArgs, 'dev'> & {
   outDir: string;
 }): BuildOptions => {
@@ -29,6 +30,7 @@ export const getDevOptions = ({
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
         'https://webmonetization.org/welcome',
       ),
+      ...defines,
     },
   };
 };

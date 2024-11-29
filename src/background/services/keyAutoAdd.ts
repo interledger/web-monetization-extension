@@ -3,6 +3,7 @@ import {
   errorWithKeyToJSON,
   getJWKS,
   isErrorWithKey,
+  isNotNull,
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
@@ -14,6 +15,7 @@ import type {
   BeginPayload,
   KeyAutoAddToBackgroundMessage,
 } from '@/content/keyAutoAdd/lib/types';
+import { SANDBOX_URL_FYNBOS } from '@/shared/defines';
 
 export const CONNECTION_NAME = 'key-auto-add';
 
@@ -204,7 +206,10 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
     },
     {
       id: 'keyAutoAdd/fynbos',
-      matches: ['https://eu1.fynbos.dev/*', 'https://wallet.fynbos.app/*'],
+      matches: [
+        SANDBOX_URL_FYNBOS ? `${SANDBOX_URL_FYNBOS}/*` : null,
+        'https://wallet.fynbos.app/*',
+      ].filter(isNotNull),
       js: ['content/keyAutoAdd/fynbos.js'],
       runAt: 'document_end',
     },
@@ -214,6 +219,9 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
 function walletAddressToProvider(walletAddress: WalletAddress): {
   url: string;
 } {
+  const errorNotImplemented = new ErrorWithKey(
+    'connectWalletKeyService_error_notImplemented',
+  );
   const { host } = new URL(walletAddress.id);
   switch (host) {
     case 'ilp.interledger-test.dev':
@@ -225,10 +233,11 @@ function walletAddressToProvider(walletAddress: WalletAddress): {
         url: 'https://wallet.interledger.cards/settings/developer-keys',
       };
     case 'eu1.fynbos.me':
-      return { url: 'https://eu1.fynbos.dev/settings/keys' };
+      if (!SANDBOX_URL_FYNBOS) throw errorNotImplemented;
+      return { url: `${SANDBOX_URL_FYNBOS}/settings/keys` };
     case 'fynbos.me':
       return { url: 'https://wallet.fynbos.app/settings/keys' };
     default:
-      throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+      throw errorNotImplemented;
   }
 }

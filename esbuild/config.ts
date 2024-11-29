@@ -24,6 +24,7 @@ export type BuildArgs = {
   target: Target;
   channel: Channel;
   dev: boolean;
+  defines: Record<string, string>;
 };
 
 export const options: BuildOptions = {
