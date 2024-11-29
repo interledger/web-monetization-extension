@@ -136,8 +136,8 @@ export const InputAmount = ({
       wrapperClassName="w-fit"
       defaultValue={amount}
       readOnly={readOnly}
-      addOn={<span className="text-weak">{currencySymbol}</span>}
-      addOnRight={
+      leadingAddOn={<span className="text-weak">{currencySymbol}</span>}
+      trailingAddOn={
         controls ? (
           <Controls readOnly={readOnly} inc={controlInc} dec={controlDec} />
         ) : null

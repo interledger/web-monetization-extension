@@ -218,7 +218,7 @@ const RemainingBalance = ({
       <Input
         label="Remaining balance"
         className="max-w-56"
-        addOn={
+        leadingAddOn={
           <span className="text-weak">
             {getCurrencySymbol(walletAddress.assetCode)}
           </span>

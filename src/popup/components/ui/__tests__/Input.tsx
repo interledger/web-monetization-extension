@@ -32,7 +32,7 @@ describe('Input', () => {
 
   it('should have the `pl-10` class when the `addOn` variant is passed', () => {
     const { queryByLabelText } = render(
-      <Input aria-label="test input" addOn="$" />,
+      <Input aria-label="test input" leadingAddOn="$" />,
     );
 
     expect(queryByLabelText('test input')).toBeInTheDocument();

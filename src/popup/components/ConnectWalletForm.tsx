@@ -256,12 +256,11 @@ export const ConnectWalletForm = ({
         placeholder="https://ilp.interledger-test.dev/johndoe"
         errorMessage={errors.walletAddressUrl?.message}
         defaultValue={walletAddressUrl}
-        addOn={
+        trailingAddOn={
           isValidating.walletAddressUrl ? (
             <LoadingSpinner color="gray" size="md" />
           ) : null
         }
-        addOnPosition="right"
         required={true}
         autoComplete="on"
         spellCheck={false}

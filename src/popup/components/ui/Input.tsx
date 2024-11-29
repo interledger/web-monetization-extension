@@ -34,9 +34,8 @@ export interface InputProps
   errorMessage?: string;
   disabled?: boolean;
   readOnly?: boolean;
-  addOn?: React.ReactNode;
-  addOnPosition?: 'left' | 'right';
-  addOnRight?: React.ReactNode;
+  leadingAddOn?: React.ReactNode;
+  trailingAddOn?: React.ReactNode;
   label?: React.ReactNode;
   description?: React.ReactNode;
   wrapperClassName?: string;
@@ -45,9 +44,8 @@ export interface InputProps
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   {
     type = 'text',
-    addOn,
-    addOnPosition = 'left',
-    addOnRight,
+    leadingAddOn,
+    trailingAddOn,
     label,
     description,
     errorMessage,
@@ -63,25 +61,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const randomId = React.useId();
   id ||= randomId; // cannot call useId conditionally, but use randomId only if default not provided
 
-  if (addOnPosition === 'right' && addOnRight) {
-    throw new Error(
-      'Either addOn or addOnRight should be provided, but not both.',
-    );
-  }
-
   return (
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
       {description ? <p className="px-2 text-xs">{description}</p> : null}
       <div className={cn('relative', wrapperClassName)}>
-        {addOn ? (
-          <div
-            className={cn(
-              'pointer-events-none absolute inset-y-0 flex w-10 items-center justify-center text-sm font-medium',
-              addOnPosition === 'left' ? 'left-0' : 'right-0',
-            )}
-          >
-            {addOn}
+        {leadingAddOn ? (
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-sm font-medium">
+            {leadingAddOn}
           </div>
         ) : null}
         <input
@@ -90,8 +77,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           type={type}
           className={cn(
             inputVariants({ disabled, readOnly }),
-            addOn && (addOnPosition === 'left' ? 'pl-10' : 'pr-10'),
-            addOnRight && 'pr-10',
+            leadingAddOn && 'pl-10',
+            trailingAddOn && 'pr-10',
             errorMessage && 'border-error',
             className,
           )}
@@ -101,9 +88,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-describedby={errorMessage}
           {...props}
         />
-        {addOnRight ? (
+        {trailingAddOn ? (
           <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-sm font-medium">
-            {addOnRight}
+            {trailingAddOn}
           </div>
         ) : null}
       </div>
