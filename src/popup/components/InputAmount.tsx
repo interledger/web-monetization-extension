@@ -199,6 +199,7 @@ function Controls({
         tabIndex={-1}
         aria-hidden={true}
         disabled={readOnly}
+        onClick={onClick}
         {...longPress}
       >
         <svg
