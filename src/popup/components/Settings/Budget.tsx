@@ -192,7 +192,11 @@ const BudgetAmount = ({
         <Button
           type="submit"
           className="w-full"
-          disabled={(!changed.amount && !changed.recurring) || isSubmitting}
+          disabled={
+            (!changed.amount && !changed.recurring) ||
+            isSubmitting ||
+            !!errors.amount
+          }
           loading={isSubmitting}
         >
           Submit changes

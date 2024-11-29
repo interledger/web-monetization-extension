@@ -1,16 +1,12 @@
 import React from 'react';
 import { Switch } from '@/popup/components/ui/Switch';
-import { Label } from '@/popup/components/ui/Label';
-import { Slider } from '@/popup/components/ui/Slider';
+import { InputAmountMemoized as InputAmount } from '@/popup/components/InputAmount';
 import { debounceAsync } from '@/shared/helpers';
-import {
-  formatNumber,
-  getCurrencySymbol,
-  roundWithPrecision,
-} from '@/popup/lib/utils';
+import { formatNumber, roundWithPrecision } from '@/popup/lib/utils';
 import {
   useMessage,
   usePopupState,
+  useTranslation,
   type PopupState,
 } from '@/popup/lib/context';
 
@@ -82,7 +78,7 @@ export const RateOfPayComponent = ({
   return (
     <div className="space-y-8">
       <RateOfPayInput
-        onRateChange={(ev) => onRateChange(ev.currentTarget.value)}
+        onRateChange={onRateChange}
         rateOfPay={rateOfPay}
         minRateOfPay={minRateOfPay}
         maxRateOfPay={maxRateOfPay}
@@ -111,7 +107,7 @@ export const RateOfPayComponent = ({
 };
 
 type RateOfPayInputProps = {
-  onRateChange: React.ChangeEventHandler<HTMLInputElement>;
+  onRateChange: Props['onRateChange'];
   walletAddress: PopupState['walletAddress'];
   rateOfPay: PopupState['rateOfPay'];
   minRateOfPay: PopupState['minRateOfPay'];
@@ -127,31 +123,39 @@ const RateOfPayInput = ({
   maxRateOfPay,
   disabled,
 }: RateOfPayInputProps) => {
-  const rate = React.useMemo(() => {
-    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;
-    const roundedR = roundWithPrecision(r, walletAddress.assetScale);
+  const t = useTranslation();
+  const [errorMessage, setErrorMessage] = React.useState('');
 
-    return formatNumber(roundedR, walletAddress.assetScale, true);
-  }, [rateOfPay, walletAddress.assetScale]);
+  const formatAmount = React.useMemo(
+    () => (value: number | string) => {
+      const r = Number(value) / 10 ** walletAddress.assetScale;
+      const roundedR = roundWithPrecision(r, walletAddress.assetScale);
+
+      return formatNumber(roundedR, walletAddress.assetScale, true);
+    },
+    [walletAddress.assetScale],
+  );
 
   return (
-    <div className="space-y-2">
-      <Label className="px-2 text-base font-medium text-medium">
-        Rate of pay per hour
-      </Label>
-      <Slider
-        onChange={onRateChange}
-        min={Number(minRateOfPay)}
-        max={Number(maxRateOfPay)}
-        step={Number(minRateOfPay)}
-        value={Number(rateOfPay)}
-        disabled={disabled}
+    <>
+      <InputAmount
+        id="rateOfPay"
+        className="max-w-56"
+        label="Rate of pay per hour"
+        walletAddress={walletAddress}
+        onChange={(value) => {
+          setErrorMessage('');
+          const rate = Number(value) * 10 ** walletAddress.assetScale;
+          onRateChange(rate.toString());
+        }}
+        onError={(error) => setErrorMessage(t(error))}
+        errorMessage={errorMessage}
+        min={Number(formatAmount(minRateOfPay))}
+        max={Number(formatAmount(maxRateOfPay))}
+        amount={formatAmount(rateOfPay)}
+        controls={true}
+        readOnly={disabled}
       />
-      <div className="flex w-full items-center justify-between px-2 tabular-nums">
-        <span className="text-sm">
-          {rate} {getCurrencySymbol(walletAddress.assetCode)} per hour
-        </span>
-      </div>
-    </div>
+    </>
   );
 };
