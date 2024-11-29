@@ -14,7 +14,13 @@ export const RateOfPayScreen = () => {
   const message = useMessage();
   const {
     dispatch,
-    state: { enabled, rateOfPay, minRateOfPay, maxRateOfPay, walletAddress },
+    state: {
+      continuousPaymentsEnabled,
+      rateOfPay,
+      minRateOfPay,
+      maxRateOfPay,
+      walletAddress,
+    },
   } = usePopupState();
 
   const updateRateOfPay = React.useRef(
@@ -39,7 +45,7 @@ export const RateOfPayScreen = () => {
 
   return (
     <RateOfPayComponent
-      continuousPaymentsEnabled={enabled}
+      continuousPaymentsEnabled={continuousPaymentsEnabled}
       rateOfPay={rateOfPay}
       minRateOfPay={minRateOfPay}
       maxRateOfPay={maxRateOfPay}
@@ -51,7 +57,7 @@ export const RateOfPayScreen = () => {
 };
 
 interface Props {
-  continuousPaymentsEnabled: PopupState['enabled'];
+  continuousPaymentsEnabled: PopupState['continuousPaymentsEnabled'];
   rateOfPay: PopupState['rateOfPay'];
   minRateOfPay: PopupState['minRateOfPay'];
   maxRateOfPay: PopupState['maxRateOfPay'];

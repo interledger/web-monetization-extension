@@ -19,10 +19,11 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 3,
+  version: 4,
   state: {},
   connected: false,
   enabled: true,
+  continuousPaymentsEnabled: true,
   exceptionList: {},
   walletAddress: null,
   recurringGrant: null,
@@ -116,9 +117,11 @@ export class StorageService {
   }
 
   async getWMState(): Promise<boolean> {
-    const { enabled } = await this.get(['enabled']);
+    const { continuousPaymentsEnabled } = await this.get([
+      'continuousPaymentsEnabled',
+    ]);
 
-    return enabled;
+    return continuousPaymentsEnabled;
   }
 
   async keyPairExists(): Promise<boolean> {
@@ -282,6 +285,11 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
         ? { [data.state as ExtensionState]: true }
         : {};
     data.state = newState satisfies Storage['state'];
+    return [data];
+  },
+  4: (data) => {
+    data.continuousPaymentsEnabled = data.enabled;
+    data.enabled = true;
     return [data];
   },
 };
