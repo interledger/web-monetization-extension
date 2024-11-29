@@ -142,6 +142,7 @@ export const InputAmount = ({
           <Controls readOnly={readOnly} inc={controlInc} dec={controlDec} />
         ) : null
       }
+      role={controls ? 'spinbutton' : undefined}
       errorMessage={errorHidden ? '' : errorMessage}
       aria-invalid={errorHidden ? !!errorMessage : false}
       required={true}
