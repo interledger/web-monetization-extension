@@ -34,22 +34,25 @@ export interface InputProps
   errorMessage?: string;
   disabled?: boolean;
   readOnly?: boolean;
-  addOn?: React.ReactNode;
-  addOnPosition?: 'left' | 'right';
+  leadingAddOn?: React.ReactNode;
+  trailingAddOn?: React.ReactNode;
   label?: React.ReactNode;
   description?: React.ReactNode;
+  wrapperClassName?: string;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   {
     type = 'text',
-    addOn,
-    addOnPosition = 'left',
+    leadingAddOn,
+    trailingAddOn,
     label,
     description,
     errorMessage,
     disabled,
+    readOnly,
     className,
+    wrapperClassName,
     id,
     ...props
   },
@@ -62,15 +65,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
       {description ? <p className="px-2 text-xs">{description}</p> : null}
-      <div className="relative">
-        {addOn ? (
-          <div
-            className={cn(
-              'pointer-events-none absolute inset-y-0 flex w-10 items-center justify-center text-sm font-medium',
-              addOnPosition === 'left' ? 'left-0' : 'right-0',
-            )}
-          >
-            {addOn}
+      <div className={cn('relative', wrapperClassName)}>
+        {leadingAddOn ? (
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-sm font-medium">
+            {leadingAddOn}
           </div>
         ) : null}
         <input
@@ -78,8 +76,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           ref={ref}
           type={type}
           className={cn(
-            inputVariants({ disabled }),
-            addOn && (addOnPosition === 'left' ? 'pl-10' : 'pr-10'),
+            inputVariants({ disabled, readOnly }),
+            leadingAddOn && 'pl-10',
+            trailingAddOn && 'pr-10',
             errorMessage && 'border-error',
             className,
           )}
@@ -89,6 +88,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-describedby={errorMessage}
           {...props}
         />
+        {trailingAddOn ? (
+          <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-sm font-medium">
+            {trailingAddOn}
+          </div>
+        ) : null}
       </div>
       {errorMessage && (
         <p className="px-2 text-sm text-error">{errorMessage}</p>
