@@ -19,7 +19,7 @@ export const getPlugins = ({
   target,
   channel,
   dev,
-}: Omit<BuildArgs, 'defines'> & {
+}: BuildArgs & {
   outDir: string;
 }): ESBuildPlugin[] => {
   return [
@@ -101,7 +101,7 @@ function processManifestPlugin({
   target,
   channel,
   dev,
-}: Omit<BuildArgs, 'defines'> & { outDir: string }): ESBuildPlugin {
+}: BuildArgs & { outDir: string }): ESBuildPlugin {
   return {
     name: 'process-manifest',
     setup(build) {

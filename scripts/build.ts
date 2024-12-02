@@ -5,17 +5,15 @@ import sade from 'sade';
 import path from 'node:path';
 import fs from 'node:fs';
 import esbuild from 'esbuild';
-import { parse as dotEnvParse } from 'dotenv';
 import {
-  options,
+  BuildArgs,
   CHANNELS,
   DEV_DIR,
   DIST_DIR,
-  ROOT_DIR,
+  options,
   SERVE_PORTS,
+  Target,
   TARGETS,
-  type Target,
-  type BuildArgs,
 } from '../esbuild/config';
 import { getDevOptions } from '../esbuild/dev';
 import { getProdOptions } from '../esbuild/prod';
@@ -47,17 +45,6 @@ sade('build [target]', true)
       process.exit(1);
     }
 
-    const envFile = path.join(ROOT_DIR, '.env');
-    if (options.dev && fs.existsSync(envFile)) {
-      options.defines = Object.fromEntries(
-        Object.entries(dotEnvParse(fs.readFileSync(envFile)))
-          .filter(([_, val]) => !!val)
-          .map(([key, val]) => [key, JSON.stringify(val)]),
-      );
-    } else {
-      options.defines = {};
-    }
-
     console.log(
       `Building target: "${options.target}" with channel: "${options.channel}"`,
     );
@@ -65,11 +52,11 @@ sade('build [target]', true)
   })
   .parse(process.argv);
 
-async function build({ target, channel, defines }: BuildArgs) {
+async function build({ target, channel }: BuildArgs) {
   const OUTPUT_DIR = path.join(DIST_DIR, target);
   const result = await esbuild.build({
     ...options,
-    ...getProdOptions({ outDir: OUTPUT_DIR, target, channel, defines }),
+    ...getProdOptions({ outDir: OUTPUT_DIR, target, channel }),
     outdir: OUTPUT_DIR,
   });
 
@@ -81,11 +68,11 @@ async function build({ target, channel, defines }: BuildArgs) {
   }
 }
 
-async function buildWatch({ target, channel, defines }: BuildArgs) {
+async function buildWatch({ target, channel }: BuildArgs) {
   const OUTPUT_DIR = path.join(DEV_DIR, target);
   const ctx = await esbuild.context({
     ...options,
-    ...getDevOptions({ outDir: OUTPUT_DIR, target, channel, defines }),
+    ...getDevOptions({ outDir: OUTPUT_DIR, target, channel }),
     outdir: OUTPUT_DIR,
   });
 
