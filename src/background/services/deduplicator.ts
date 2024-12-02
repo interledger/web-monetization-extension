@@ -17,7 +17,7 @@ export class Deduplicator {
 
   private cache: Map<string, CacheEntry> = new Map();
 
-  constructor({ logger }: Cradle) {
+  constructor({ logger }: Pick<Cradle, 'logger'>) {
     Object.assign(this, { logger });
   }
 
@@ -29,7 +29,7 @@ export class Deduplicator {
       wait = 5000,
     }: Partial<DedupeOptions> = {},
   ): T {
-    return ((...args: Parameters<T>): ReturnType<T> => {
+    return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
       const key = this.generateCacheKey(fn, args, cacheFnArgs);
       const entry = this.cache.get(key);
 
@@ -43,23 +43,21 @@ export class Deduplicator {
       const promise = fn(...args);
       this.cache.set(key, { promise });
 
-      promise
-        .then((res) => {
-          this.cache.set(key, { promise: Promise.resolve(res) });
-          return res;
-        })
-        .catch((err) => {
-          if (cacheRejections) {
-            this.cache.set(key, { promise: Promise.reject(err) });
-          } else {
-            this.cache.delete(key);
-          }
+      try {
+        const res = await promise;
+        this.cache.set(key, { promise: Promise.resolve(res) });
+        return res;
+      } catch (err) {
+        if (cacheRejections) {
+          this.cache.set(key, { promise: Promise.reject(err) });
+        } else {
+          this.cache.delete(key);
+        }
 
-          return Promise.reject(err);
-        })
-        .finally(() => this.scheduleCacheClear(key, wait));
-
-      return promise as ReturnType<T>;
+        throw err;
+      } finally {
+        this.scheduleCacheClear(key, wait);
+      }
     }) as unknown as T;
   }
 

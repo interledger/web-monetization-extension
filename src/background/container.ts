@@ -51,9 +51,7 @@ export interface Cradle {
   heartbeat: Heartbeat;
 }
 
-export const configureContainer = async (): Promise<
-  AwilixContainer<Cradle>
-> => {
+export const configureContainer = () => {
   const container = createContainer<Cradle>({
     injectionMode: InjectionMode.PROXY,
   });

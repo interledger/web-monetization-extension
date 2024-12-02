@@ -6,9 +6,6 @@ describe('Deduplicator', () => {
   let bindings: AwilixContainer<Cradle>;
   let deduplicatorService: Deduplicator;
 
-  const mockLogger = {
-    debug: jest.fn(),
-  };
   beforeAll(async (): Promise<void> => {
     jest.useFakeTimers();
     bindings = await configureContainer();
@@ -17,8 +14,6 @@ describe('Deduplicator', () => {
 
   beforeEach(() => {
     jest.runAllTimers();
-
-    Reflect.set(deduplicatorService, 'logger', mockLogger);
   });
 
   // utility function to create async functions for testing
@@ -160,4 +155,38 @@ describe('Deduplicator', () => {
       expect(fn).toHaveBeenCalledTimes(1);
     });
   });
+
+  // describe('Cache Expiration', () => {
+  //   jest.useFakeTimers();
+
+  //   it('should clear cache after specified wait time', async () => {
+  //     const timeout = 1000;
+  //     const fn = createAsyncFn({ returnValue: 2n, timeout });
+  //     const dedupedFn = deduplicatorService.dedupe(fn);
+
+  //     await dedupedFn();
+  //     expect(fn).toHaveBeenCalledTimes(1);
+
+  //     jest.advanceTimersByTime(timeout);
+
+  //     await dedupedFn();
+  //     expect(fn).toHaveBeenCalledTimes(2);
+  //   });
+  // });
+
+  // describe('Default Configurations', () => {
+  //   it('should use default cache promises time of 5000ms', async () => {
+  //     const asyncFn = createAsyncFn({ returnValue: 2n });
+  //     const dedupedFn = deduplicatorService.dedupe(asyncFn);
+
+  //     await dedupedFn();
+
+  //     // verify default configuration
+  //     jest.advanceTimersByTime(5000);
+
+  //     expect(mockLogger.debug).toHaveBeenCalledWith(
+  //       expect.stringContaining('Attempting to remove key'),
+  //     );
+  //   });
+  // });
 });
