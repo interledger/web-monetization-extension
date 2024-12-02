@@ -25,6 +25,8 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     'Missing credentials',
   );
 
+  test.slow(true, 'Some pages load slow');
+
   const walletURL = new URL(walletUrl);
   const { keyId } = await background.evaluate(() => {
     return chrome.storage.local.get<{ keyId: string }>(['keyId']);
@@ -86,11 +88,8 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     return openedPage;
   });
 
-  const revokeInfo = await test.step('adds key to wallet', async () => {
-    const { resolve, reject, promise } = withResolvers<{
-      keyId: string;
-      authorizationHeader: string;
-    }>();
+  await test.step('adds key to wallet', async () => {
+    const { resolve, reject, promise } = withResolvers<{ status: string }>();
     page.on('requestfinished', async function intercept(req) {
       if (req.serviceWorker()) return;
       if (req.method() !== 'POST') return;
@@ -101,11 +100,6 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
       if (p.startsWith('/api/interledger/create-user-wallet-address-key')) {
         page.off('requestfinished', intercept);
 
-        const authorizationHeader = await req.headerValue('authorization');
-        if (!authorizationHeader) {
-          return reject('no authorization header');
-        }
-
         const res = await req.response();
         if (!res) {
           return reject('no response from /upload-key API');
@@ -114,13 +108,14 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
           return reject(`Failed to upload public key (${res.statusText})`);
         }
 
-        resolve({ keyId, authorizationHeader });
+        const json = await res.json();
+        resolve(json);
       }
     });
 
-    await expect(promise).resolves.toMatchObject({
-      keyId,
-      authorizationHeader: expect.any(String),
+    await expect(promise).resolves.toEqual({
+      status: 'success',
+      data: 'success',
     });
 
     const jwks = await getJWKS(walletAddressUrl);
@@ -128,7 +123,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     const key = jwks.keys.find((key) => key.kid === keyId);
     expect(key).toMatchObject({ kid: keyId });
 
-    return promise;
+    await promise;
   });
 
   await test.step('shows connect consent page', async () => {
@@ -152,7 +147,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   // });
 
   await test.step('revoke key', async () => {
-    const res = await revokeKey(page, revokeInfo);
+    const res = await revokeKey(page, keyId);
     expect(res).toEqual({ status: 'success', data: 'success' });
 
     const { keys } = await getJWKS(walletAddressUrl);

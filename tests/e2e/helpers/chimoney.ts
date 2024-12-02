@@ -11,16 +11,93 @@ export const URLS = {
 
 export const DEFAULT_CONTINUE_WAIT_MS = 1000;
 
-export async function revokeKey(
-  page: Page,
-  revokeInfo: { keyId: string; authorizationHeader: string },
-) {
+type GetWalletAddressKeysResponse = {
+  status: string;
+  data: {
+    node: {
+      id: string;
+      jwk: { kid: string };
+      revoked: boolean;
+      createdAt: string;
+    };
+  }[];
+};
+
+export async function revokeKey(page: Page, jwkKeyId: string) {
   await page.goto(URLS.keyPage);
+
+  // The auth token changes on each page load?!
+  const { authToken, walletAddressId } = await page.evaluate(() => {
+    // Same as from src/content/keyAutoAdd/chimoney.ts
+    const getAuthToken = (): string => {
+      const getFirebaseAuthKey = () => {
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key?.startsWith('firebase:authUser:')) {
+            return key;
+          }
+        }
+      };
+
+      const key = getFirebaseAuthKey();
+      if (!key) {
+        throw new Error('No Firebase auth key found');
+      }
+      const firebaseDataStr = sessionStorage.getItem(key);
+      if (!firebaseDataStr) {
+        throw new Error('No Firebase auth data found');
+      }
+      const firebaseData: {
+        stsTokenManager: {
+          accessToken: string;
+          refreshToken: string;
+          expirationTime: number;
+        };
+      } = JSON.parse(firebaseDataStr);
+      const token = firebaseData?.stsTokenManager?.accessToken;
+      if (!token) {
+        throw new Error('No Firebase auth token found');
+      }
+      const JWT_REGEX =
+        /^([A-Za-z0-9-_=]{2,})\.([A-Za-z0-9-_=]{2,})\.([A-Za-z0-9-_=]{2,})$/;
+      if (!JWT_REGEX.test(token)) {
+        throw new Error('Invalid Firebase auth token');
+      }
+      return token;
+    };
+    return {
+      authToken: getAuthToken(),
+      walletAddressId: sessionStorage.getItem('walletAddressId'),
+    };
+  });
+
+  const keyId = await page.evaluate(
+    async ({ walletAddressId, authToken, jwkKeyId }) => {
+      const url = `/api/interledger/get-user-wallet-address-keys?walletAddressId=${walletAddressId}`;
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      const data: GetWalletAddressKeysResponse = await res.json();
+
+      return data.data.find((e) => e.node.jwk.kid === jwkKeyId)?.node.id;
+    },
+    { walletAddressId, authToken, jwkKeyId },
+  );
+  if (!keyId) {
+    throw new Error(`Key corresponding to JWK kid="${jwkKeyId}" not found`);
+  }
+
+  const revokeInfo = { keyId, authToken };
+
   return await page.evaluate(async (revokeInfo) => {
     const res = await fetch('/api/interledger/revoke-user-wallet-address-key', {
       method: 'POST',
       headers: {
-        authorization: revokeInfo.authorizationHeader,
+        authorization: `Bearer ${revokeInfo.authToken}`,
         'content-type': 'application/json',
       },
       credentials: 'include',
