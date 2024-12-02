@@ -6,7 +6,7 @@ import {
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
+import type { Browser, Runtime, Scripting, Tabs } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
@@ -45,19 +45,19 @@ export class KeyAutoAddService {
   }
 
   async addPublicKeyToWallet(walletAddress: WalletAddress) {
-    const info = walletAddressToProvider(walletAddress);
+    const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
       const { publicKey, keyId } = await this.storage.get([
         'publicKey',
         'keyId',
       ]);
       this.updateConnectState();
-      await this.process(info.url, {
+      await this.process(keyAddUrl, {
         publicKey,
         keyId,
         walletAddressUrl: walletAddress.id,
         nickName: this.t('appName') + ' - ' + this.browserName,
-        keyAddUrl: info.url,
+        keyAddUrl,
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
@@ -178,29 +178,56 @@ export class KeyAutoAddService {
       return false;
     }
   }
+
+  static async registerContentScripts({ browser }: Pick<Cradle, 'browser'>) {
+    const { scripting } = browser;
+    const existingScripts = await scripting.getRegisteredContentScripts();
+    const existingScriptIds = new Set(existingScripts.map((s) => s.id));
+    const scripts = getContentScripts().filter(
+      (s) => !existingScriptIds.has(s.id),
+    );
+    await scripting.registerContentScripts(scripts);
+  }
 }
 
-export function walletAddressToProvider(walletAddress: WalletAddress): {
-  url: string;
-} {
+function getContentScripts(): Scripting.RegisteredContentScript[] {
+  return [
+    {
+      id: 'keyAutoAdd/testWallet',
+      matches: [
+        'https://wallet.interledger-test.dev/*',
+        'https://wallet.interledger.cards/*',
+      ],
+      js: ['content/keyAutoAdd/testWallet.js'],
+    },
+    {
+      id: 'keyAutoAdd/fynbos',
+      matches: ['https://eu1.fynbos.dev/*', 'https://wallet.fynbos.app/*'],
+      js: ['content/keyAutoAdd/fynbos.js'],
+    },
+    {
+      id: 'keyAutoAdd/chimoney',
+      matches: ['https://sandbox.chimoney.io/*', 'https://dash.chimoney.io/*'],
+      js: ['content/keyAutoAdd/chimoney.js'],
+    },
+  ];
+}
+
+function walletAddressToProvider(walletAddress: WalletAddress): string {
   const { host } = new URL(walletAddress.id);
   switch (host) {
     case 'ilp.interledger-test.dev':
-      return {
-        url: 'https://wallet.interledger-test.dev/settings/developer-keys',
-      };
+      return 'https://wallet.interledger-test.dev/settings/developer-keys';
     case 'ilp.interledger.cards':
-      return {
-        url: 'https://wallet.interledger.cards/settings/developer-keys',
-      };
+      return 'https://wallet.interledger.cards/settings/developer-keys';
     case 'eu1.fynbos.me':
-      return { url: 'https://eu1.fynbos.dev/settings/keys' };
+      return 'https://eu1.fynbos.dev/settings/keys';
     case 'fynbos.me':
-      return { url: 'https://wallet.fynbos.app/settings/keys' };
+      return 'https://wallet.fynbos.app/settings/keys';
     case 'ilp-sandbox.chimoney.com':
-      return { url: 'https://sandbox.chimoney.io/interledger' };
+      return 'https://sandbox.chimoney.io/interledger';
     case 'ilp.chimoney.com':
-      return { url: 'https://dash.chimoney.io/interledger' };
+      return 'https://dash.chimoney.io/interledger';
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
