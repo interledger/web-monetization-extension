@@ -16,10 +16,10 @@ const inputVariants = cva(
         default: 'border-base',
       },
       disabled: {
-        true: 'border-transparent bg-disabled text-disabled',
+        true: 'cursor-default border-transparent bg-disabled text-disabled',
       },
       readOnly: {
-        true: 'border-transparent bg-disabled text-disabled',
+        true: 'cursor-default border-transparent bg-disabled text-disabled',
       },
     },
     defaultVariants: {

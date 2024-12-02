@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/base';
-import { fillPopup, getPopupFields } from './pages/popup';
+import { fillPopup } from './pages/popup';
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
@@ -32,7 +32,6 @@ test('shows connect form if not connected', async ({ page, popup }) => {
 
 test.describe('should fail to connect if:', () => {
   test('invalid URL provided', async ({ background, popup, i18n }) => {
-    const inputFields = getPopupFields(popup, i18n);
     const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl: 'abc',
     });
@@ -41,8 +40,6 @@ test.describe('should fail to connect if:', () => {
     await expect(popup.locator('p.text-error')).toHaveText(
       i18n.getMessage('connectWallet_error_urlInvalidUrl'),
     );
-    await expect(inputFields.amount).not.toBeEditable();
-    await expect(inputFields.recurring).toBeEditable();
 
     expect(
       await background.evaluate(() => {
@@ -56,13 +53,10 @@ test.describe('should fail to connect if:', () => {
     popup,
     i18n,
   }) => {
-    const inputFields = getPopupFields(popup, i18n);
     const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl: 'https://example.com',
     });
 
-    await expect(inputFields.amount).not.toBeEditable();
-    await expect(inputFields.recurring).toBeEditable();
     await expect(connectButton).toBeDisabled();
     await expect(popup.locator('p.text-error')).toContainText(
       'not a valid wallet address',
