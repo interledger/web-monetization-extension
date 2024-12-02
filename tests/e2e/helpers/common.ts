@@ -15,7 +15,8 @@ export async function waitForWelcomePage(page: Page) {
 export async function getContinueWaitTime(
   context: BrowserContext,
   params: Pick<ConnectDetails, 'walletAddressUrl'>,
-  defaultWaitMs = 2000,
+  // https://github.com/interledger/rafiki/blob/5de6208fad4c73fba81db56bd7174609e5f76ed5/packages/auth/src/config/app.ts#L62
+  defaultWaitMs = 5000,
 ) {
   defaultWaitMs += 10;
   const continueWaitMs = await (async () => {
