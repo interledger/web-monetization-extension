@@ -180,7 +180,7 @@ export class KeyAutoAddService {
   }
 
   static async registerContentScripts({ browser }: Pick<Cradle, 'browser'>) {
-    const scripting = browser.scripting;
+    const { scripting } = browser;
     const existingScripts = await scripting.getRegisteredContentScripts();
     const existingScriptIds = new Set(existingScripts.map((s) => s.id));
     const scripts = getContentScripts().filter(
