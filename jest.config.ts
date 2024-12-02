@@ -14,6 +14,7 @@ export default {
   maxWorkers: '50%',
   moduleFileExtensions: ['js', 'jsx', 'json', 'ts', 'tsx'],
   moduleNameMapper: {
+    '^webextension-polyfill$': '<rootDir>/src/shared/mocks.ts',
     '@/(.*)': '<rootDir>/src/$1',
   },
   setupFilesAfterEnv: ['./jest.setup.ts'],
@@ -25,8 +26,9 @@ export default {
     '<rootDir>/jest.config.ts',
   ],
   transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.(js|jsx|mjs)$': 'babel-jest',
     '^.+\\.(ts|tsx)?$': 'ts-jest',
     '\\.(css|less|scss|sass|svg)$': 'jest-transform-stub',
   },
+  transformIgnorePatterns: ['/node_modules/(?!awilix)/'],
 };

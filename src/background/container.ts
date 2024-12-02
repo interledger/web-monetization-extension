@@ -1,6 +1,7 @@
 import {
   asClass,
   asValue,
+  AwilixContainer,
   createContainer,
   InjectionMode,
 } from 'awilix/browser';
@@ -50,7 +51,9 @@ export interface Cradle {
   heartbeat: Heartbeat;
 }
 
-export const configureContainer = () => {
+export const configureContainer = async (): Promise<
+  AwilixContainer<Cradle>
+> => {
   const container = createContainer<Cradle>({
     injectionMode: InjectionMode.PROXY,
   });
