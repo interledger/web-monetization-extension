@@ -45,19 +45,19 @@ export class KeyAutoAddService {
   }
 
   async addPublicKeyToWallet(walletAddress: WalletAddress) {
-    const info = walletAddressToProvider(walletAddress);
+    const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
       const { publicKey, keyId } = await this.storage.get([
         'publicKey',
         'keyId',
       ]);
       this.updateConnectState();
-      await this.process(info.url, {
+      await this.process(keyAddUrl, {
         publicKey,
         keyId,
         walletAddressUrl: walletAddress.id,
         nickName: this.t('appName') + ' - ' + this.browserName,
-        keyAddUrl: info.url,
+        keyAddUrl,
       });
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
@@ -211,23 +211,17 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
   ];
 }
 
-function walletAddressToProvider(walletAddress: WalletAddress): {
-  url: string;
-} {
+function walletAddressToProvider(walletAddress: WalletAddress): string {
   const { host } = new URL(walletAddress.id);
   switch (host) {
     case 'ilp.interledger-test.dev':
-      return {
-        url: 'https://wallet.interledger-test.dev/settings/developer-keys',
-      };
+      return 'https://wallet.interledger-test.dev/settings/developer-keys';
     case 'ilp.interledger.cards':
-      return {
-        url: 'https://wallet.interledger.cards/settings/developer-keys',
-      };
+      return 'https://wallet.interledger.cards/settings/developer-keys';
     case 'eu1.fynbos.me':
-      return { url: 'https://eu1.fynbos.dev/settings/keys' };
+      return 'https://eu1.fynbos.dev/settings/keys';
     case 'fynbos.me':
-      return { url: 'https://wallet.fynbos.app/settings/keys' };
+      return 'https://wallet.fynbos.app/settings/keys';
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
