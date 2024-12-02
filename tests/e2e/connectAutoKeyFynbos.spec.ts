@@ -1,10 +1,10 @@
 import { test, expect } from './fixtures/base';
 import { getJWKS, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
-import { waitForWelcomePage } from './helpers/common';
+import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
-  getContinueWaitTime,
+  DEFAULT_CONTINUE_WAIT_MS,
   KEYS_PAGE_URL,
   LOGIN_PAGE_URL,
   revokeKey,
@@ -77,9 +77,11 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     return openedPage;
   });
 
-  const continueWaitMsPromise = getContinueWaitTime(context, {
-    walletAddressUrl,
-  });
+  const continueWaitMsPromise = getContinueWaitTime(
+    context,
+    { walletAddressUrl },
+    DEFAULT_CONTINUE_WAIT_MS,
+  );
 
   const keyNickName = await test.step('adds key to wallet', async () => {
     const { resolve, promise } = withResolvers<string>();
