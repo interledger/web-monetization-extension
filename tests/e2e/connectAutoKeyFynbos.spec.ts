@@ -1,10 +1,9 @@
 import { test, expect } from './fixtures/base';
 import { getJWKS, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
-import { waitForWelcomePage } from './helpers/common';
+import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
-  getContinueWaitTime,
   KEYS_PAGE_URL,
   LOGIN_PAGE_URL,
   revokeKey,

@@ -17,7 +17,7 @@ Make sure you run `pnpm build chrome` before running tests.
 
 | Environment Variable        | Description                                                 | Secret? | Optional? |
 | --------------------------- | ----------------------------------------------------------- | ------- | --------- |
-| `TEST_WALLET_ORIGIN`        | URL origin of the test wallet (e.g. https://rafiki.money)   | -       | -         |
+| `TEST_WALLET_ORIGIN`        | URL origin of the test wallet                               | -       | -         |
 | `TEST_WALLET_USERNAME`      | -- Login email for the test wallet                          | -       | -         |
 | `TEST_WALLET_PASSWORD`      | -- Login password for the test wallet                       | Yes     | -         |
 | `TEST_WALLET_ADDRESS_URL`   | Your wallet address URL that will be connected to extension | -       | -         |
