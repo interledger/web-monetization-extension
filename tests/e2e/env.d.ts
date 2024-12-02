@@ -23,8 +23,8 @@ declare global {
 
       /** Chimoney wallet address (used for Chimoney specific tests only) */
       CHIMONEY_WALLET_ADDRESS_URL: string | undefined;
-      /** Chimoney wallet URL */
-      CHIMONEY_WALLET_URL: string | undefined;
+      /** Chimoney wallet URL origin (without trailing /) */
+      CHIMONEY_WALLET_ORIGIN: string | undefined;
       /** Login email for Chimoney wallet */
       CHIMONEY_USERNAME: string | undefined;
       /** Login password for Chimoney wallet*/

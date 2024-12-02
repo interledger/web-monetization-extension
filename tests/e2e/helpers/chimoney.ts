@@ -2,10 +2,10 @@ import type { Page } from '@playwright/test';
 
 export const URLS = {
   get login() {
-    return `${process.env.CHIMONEY_WALLET_URL}/auth/signin`;
+    return `${process.env.CHIMONEY_WALLET_ORIGIN}/auth/signin`;
   },
   get keyPage() {
-    return `${process.env.CHIMONEY_WALLET_URL}/interledger`;
+    return `${process.env.CHIMONEY_WALLET_ORIGIN}/interledger`;
   },
 };
 

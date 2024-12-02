@@ -18,7 +18,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   const username = process.env.CHIMONEY_USERNAME!;
   const password = process.env.CHIMONEY_PASSWORD!;
   const walletAddressUrl = process.env.CHIMONEY_WALLET_ADDRESS_URL!;
-  const walletUrl = process.env.CHIMONEY_WALLET_URL!;
+  const walletUrl = process.env.CHIMONEY_WALLET_ORIGIN!;
 
   test.skip(
     !username || !password || !walletAddressUrl || !walletUrl,

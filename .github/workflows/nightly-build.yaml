@@ -59,6 +59,10 @@ jobs:
           FYNBOS_WALLET_ADDRESS_URL: ${{ vars.E2E_FYNBOS_WALLET_ADDRESS_URL }}
           FYNBOS_USERNAME: ${{ vars.E2E_FYNBOS_USERNAME }}
           FYNBOS_PASSWORD: ${{ secrets.E2E_FYNBOS_PASSWORD }}
+          CHIMONEY_WALLET_ORIGIN: ${{ vars.E2E_CHIMONEY_WALLET_URL_ORIGIN }}
+          CHIMONEY_WALLET_ADDRESS_URL: ${{ vars.E2E_CHIMONEY_WALLET_ADDRESS_URL }}
+          CHIMONEY_USERNAME: ${{ vars.E2E_CHIMONEY_USERNAME }}
+          CHIMONEY_PASSWORD: ${{ secrets.E2E_CHIMONEY_PASSWORD }}
 
       - name: Encrypt report
         shell: bash
