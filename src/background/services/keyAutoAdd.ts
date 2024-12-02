@@ -199,13 +199,11 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
         'https://wallet.interledger.cards/*',
       ],
       js: ['content/keyAutoAdd/testWallet.js'],
-      runAt: 'document_end',
     },
     {
       id: 'keyAutoAdd/fynbos',
       matches: ['https://eu1.fynbos.dev/*', 'https://wallet.fynbos.app/*'],
       js: ['content/keyAutoAdd/fynbos.js'],
-      runAt: 'document_end',
     },
   ];
 }
