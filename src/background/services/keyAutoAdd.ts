@@ -199,9 +199,8 @@ export function walletAddressToProvider(walletAddress: WalletAddress): {
       return { url: 'https://wallet.fynbos.app/settings/keys' };
     case 'ilp-sandbox.chimoney.com':
       return { url: 'https://sandbox.chimoney.io/interledger' };
-    // TODO: verify Chimoney production URLs
     case 'ilp.chimoney.com':
-      return { url: 'https://chimoney.io/interledger' };
+      return { url: 'https://dash.chimoney.io/interledger' };
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
