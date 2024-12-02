@@ -66,14 +66,8 @@ const findWallet: Run<{ walletAddressId: string }> = async (
     throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
   }
 
-  // A Firebase request will set this field eventually. We wait max 6s for that.
-  let attemptToFindWalletAddressId = 0;
-  while (++attemptToFindWalletAddressId < 12) {
-    const walletAddressId = sessionStorage.getItem('walletAddressId');
-    if (walletAddressId) return { walletAddressId };
-    await sleep(500);
-  }
-  throw new Error('No walletAddressId found in sessionStorage');
+  const walletAddressId = await getWalletAddressId();
+  return { walletAddressId };
 };
 
 const addKey: Run<void> = async ({ publicKey }, { output }) => {
@@ -141,6 +135,17 @@ const getAuthToken = (): string => {
     throw new Error('Invalid Firebase auth token');
   }
   return token;
+};
+
+const getWalletAddressId = async (): Promise<string> => {
+  // A Firebase request will set this field eventually. We wait max 6s for that.
+  let attemptToFindWalletAddressId = 0;
+  while (++attemptToFindWalletAddressId < 12) {
+    const walletAddressId = sessionStorage.getItem('walletAddressId');
+    if (walletAddressId) return walletAddressId;
+    await sleep(500);
+  }
+  throw new Error('No walletAddressId found in sessionStorage');
 };
 // #endregion
 

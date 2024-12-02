@@ -27,7 +27,7 @@ export async function revokeKey(page: Page, jwkKeyId: string) {
   await page.goto(URLS.keyPage);
 
   // The auth token changes on each page load?!
-  const { authToken, walletAddressId } = await page.evaluate(() => {
+  const authToken = await page.evaluate(() => {
     // Same as from src/content/keyAutoAdd/chimoney.ts
     const getAuthToken = (): string => {
       const getFirebaseAuthKey = () => {
@@ -65,10 +65,19 @@ export async function revokeKey(page: Page, jwkKeyId: string) {
       }
       return token;
     };
-    return {
-      authToken: getAuthToken(),
-      walletAddressId: sessionStorage.getItem('walletAddressId'),
-    };
+    return getAuthToken();
+  });
+
+  const walletAddressId = await page.evaluate(async () => {
+    // Same as from src/content/keyAutoAdd/chimoney.ts
+    // A Firebase request will set this field eventually. We wait max 6s for that.
+    let attemptToFindWalletAddressId = 0;
+    while (++attemptToFindWalletAddressId < 12) {
+      const walletAddressId = sessionStorage.getItem('walletAddressId');
+      if (walletAddressId) return walletAddressId;
+      await new Promise((res) => setTimeout(res, 500));
+    }
+    throw new Error('No walletAddressId found in sessionStorage');
   });
 
   const keyId = await page.evaluate(
