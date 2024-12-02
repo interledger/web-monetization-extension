@@ -9,8 +9,6 @@ export const URLS = {
   },
 };
 
-export const DEFAULT_CONTINUE_WAIT_MS = 1000;
-
 type GetWalletAddressKeysResponse = {
   status: string;
   data: {
