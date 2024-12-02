@@ -4,7 +4,6 @@ import { disconnectWallet, fillPopup } from './pages/popup';
 import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
-  DEFAULT_CONTINUE_WAIT_MS,
   KEYS_PAGE_URL,
   LOGIN_PAGE_URL,
   revokeKey,
@@ -77,11 +76,9 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     return openedPage;
   });
 
-  const continueWaitMsPromise = getContinueWaitTime(
-    context,
-    { walletAddressUrl },
-    DEFAULT_CONTINUE_WAIT_MS,
-  );
+  const continueWaitMsPromise = getContinueWaitTime(context, {
+    walletAddressUrl,
+  });
 
   const keyNickName = await test.step('adds key to wallet', async () => {
     const { resolve, promise } = withResolvers<string>();

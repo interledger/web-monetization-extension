@@ -298,12 +298,7 @@ export const ConnectWalletForm = ({
         }}
       />
 
-      <fieldset
-        className={cn(
-          'space-y-2',
-          !walletAddressInfo?.assetCode && 'opacity-75',
-        )}
-      >
+      <fieldset className="space-y-2">
         <legend className="flex items-center px-2 font-medium leading-6 text-medium">
           {t('connectWallet_labelGroup_amount')}
         </legend>
@@ -318,7 +313,7 @@ export const ConnectWalletForm = ({
             }
             errorMessage={errors.amount?.message}
             errorHidden={true}
-            readOnly={!walletAddressInfo?.assetCode || isSubmitting}
+            readOnly={isSubmitting}
             onError={(err) => {
               setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
@@ -331,6 +326,7 @@ export const ConnectWalletForm = ({
             size="small"
             label={t('connectWallet_label_recurring')}
             defaultChecked={recurring}
+            disabled={isSubmitting}
             onChange={(ev) => {
               const value = ev.currentTarget.checked;
               setRecurring(value);
