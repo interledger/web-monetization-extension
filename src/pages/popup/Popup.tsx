@@ -1,10 +1,9 @@
 import { MainLayout } from '@/popup/components/layout/MainLayout';
 import {
   BrowserContextProvider,
-  MessageContextProvider,
-  PopupContextProvider,
   TranslationContextProvider,
-} from './lib/context';
+} from '@/pages/shared/lib/context';
+import { MessageContextProvider, PopupContextProvider } from './lib/context';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import React from 'react';
 import browser from 'webextension-polyfill';
