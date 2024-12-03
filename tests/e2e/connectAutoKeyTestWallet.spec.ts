@@ -1,13 +1,13 @@
 import { test, expect } from './fixtures/base';
 import { withResolvers, getJWKS } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
-import { waitForWelcomePage } from './helpers/common';
+import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
   API_URL_ORIGIN,
+  DEFAULT_CONTINUE_WAIT_MS,
   KEYS_PAGE_URL,
   LOGIN_PAGE_URL,
-  getContinueWaitTime,
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/testWallet';
@@ -68,9 +68,11 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     return openedPage;
   });
 
-  const continueWaitMsPromise = getContinueWaitTime(context, {
-    walletAddressUrl,
-  });
+  const continueWaitMsPromise = getContinueWaitTime(
+    context,
+    { walletAddressUrl },
+    DEFAULT_CONTINUE_WAIT_MS,
+  );
 
   const revokeInfo = await test.step('adds key to wallet', async () => {
     const { resolve, reject, promise } = withResolvers<{

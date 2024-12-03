@@ -8,6 +8,7 @@ import {
   isErrorWithKey,
   success,
 } from '@/shared/helpers';
+import { KeyAutoAddService } from './keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
 import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
@@ -65,6 +66,7 @@ export class Background {
     this.bindTabHandlers();
     this.bindWindowHandlers();
     this.sendToPopup.start();
+    await KeyAutoAddService.registerContentScripts({ browser: this.browser });
   }
 
   // TODO: When Firefox 128 is old enough, inject directly via manifest.
