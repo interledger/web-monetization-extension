@@ -52,11 +52,12 @@ export class KeyAutoAddService {
         'keyId',
       ]);
       this.updateConnectState();
+      const { name: appName } = this.browser.runtime.getManifest();
       await this.process(keyAddUrl, {
         publicKey,
         keyId,
         walletAddressUrl: walletAddress.id,
-        nickName: this.t('appName') + ' - ' + this.browserName,
+        nickName: appName + ' - ' + this.browserName,
         keyAddUrl,
       });
       await this.validate(walletAddress.id, keyId);

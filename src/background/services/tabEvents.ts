@@ -179,7 +179,7 @@ export class TabEvents {
     state: Storage['state'];
     tabInfo: PopupTabInfo;
   }) {
-    let title = this.t('appName');
+    let { name: title } = this.browser.runtime.getManifest();
     let iconData = ICONS.default;
     if (!connected) {
       // use defaults
