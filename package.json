@@ -87,7 +87,7 @@
     "tailwindcss": "^3.4.15",
     "ts-jest": "^29.2.5",
     "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
   },
   "engines": {
     "pnpm": "^9.12.3",
