@@ -26,9 +26,8 @@ export default {
     '<rootDir>/jest.config.ts',
   ],
   transform: {
-    '^.+\\.(js|jsx|mjs)$': 'babel-jest',
+    '^.+\\.(js|jsx)$': 'babel-jest',
     '^.+\\.(ts|tsx)?$': 'ts-jest',
     '\\.(css|less|scss|sass|svg)$': 'jest-transform-stub',
   },
-  transformIgnorePatterns: ['/node_modules/(?!awilix)/'],
 };
