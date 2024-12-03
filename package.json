@@ -80,7 +80,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-transform-stub": "^2.0.0",
     "postcss": "^8.4.49",
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.1",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "react-scan": "^0.0.35",
     "sade": "^1.8.1",
