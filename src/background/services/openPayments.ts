@@ -131,6 +131,7 @@ export class OpenPaymentsService {
   private storage: Cradle['storage'];
   private deduplicator: Cradle['deduplicator'];
   private logger: Cradle['logger'];
+  private appName: Cradle['appName'];
   private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
@@ -149,6 +150,7 @@ export class OpenPaymentsService {
     deduplicator,
     logger,
     t,
+    appName,
     browserName,
   }: Cradle) {
     Object.assign(this, {
@@ -157,6 +159,7 @@ export class OpenPaymentsService {
       deduplicator,
       logger,
       t,
+      appName,
       browserName,
     });
 
@@ -622,6 +625,7 @@ export class OpenPaymentsService {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
       storage: this.storage,
+      appName: this.appName,
       browserName: this.browserName,
       t: this.t,
     });
