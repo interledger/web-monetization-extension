@@ -139,6 +139,7 @@ export function PopupContextProvider({ children }: PopupContextProviderProps) {
 }
 // #endregion
 
+// #region Message
 const MessageContext = React.createContext<
   MessageManager<PopupToBackgroundMessage>
 >({} as MessageManager<PopupToBackgroundMessage>);
@@ -155,5 +156,4 @@ export const MessageContextProvider = ({ children }: PropsWithChildren) => {
     </MessageContext.Provider>
   );
 };
-
 // #endregion
