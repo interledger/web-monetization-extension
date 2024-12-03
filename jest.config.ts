@@ -14,7 +14,6 @@ export default {
   maxWorkers: '50%',
   moduleFileExtensions: ['js', 'jsx', 'json', 'ts', 'tsx'],
   moduleNameMapper: {
-    '^webextension-polyfill$': '<rootDir>/src/shared/mocks.ts',
     '@/(.*)': '<rootDir>/src/$1',
   },
   setupFilesAfterEnv: ['./jest.setup.ts'],
