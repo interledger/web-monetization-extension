@@ -1,15 +1,15 @@
-import { AwilixContainer } from 'awilix';
 import { Deduplicator } from './deduplicator';
-import { configureContainer, Cradle } from '@/background/container';
+import { Logger } from '@/shared/logger';
 
 describe('Deduplicator', () => {
-  let bindings: AwilixContainer<Cradle>;
-  let deduplicatorService: Deduplicator;
+  const deduplicatorService: Deduplicator = new Deduplicator({
+    logger: {
+      debug: jest.fn(),
+    } as unknown as Logger,
+  });
 
   beforeAll(async (): Promise<void> => {
     jest.useFakeTimers();
-    bindings = await configureContainer();
-    deduplicatorService = bindings.resolve('deduplicator');
   });
 
   beforeEach(() => {
@@ -36,9 +36,8 @@ describe('Deduplicator', () => {
             setTimeout(() => {
               resolve(returnValue);
             }, timeout);
-          } catch (err) {
-            // eslint-disable-next-line no-console
-            console.log(err);
+          } catch (e) {
+            reject(e);
           }
         }),
     );
@@ -51,12 +50,9 @@ describe('Deduplicator', () => {
       const fn = createAsyncFn({ returnValue });
       const dedupedFn = deduplicatorService.dedupe(fn);
       const resultPromises = [dedupedFn(), dedupedFn(), dedupedFn()];
-
-      // advance timers to trigger the async function
       jest.runAllTimers();
 
       const results = await Promise.all(resultPromises);
-
       expect(results[0]).toBe(returnValue);
       expect(results[1]).toBe(returnValue);
       expect(results[2]).toBe(returnValue);
@@ -130,13 +126,30 @@ describe('Deduplicator', () => {
       });
       const dedupedFn = deduplicatorService.dedupe(fn);
 
-      const resultPromises = [dedupedFn(1, 2), dedupedFn(1, 2)];
+      // fn will reject immediately with error
+      const result1 = dedupedFn(1, 2);
+      // wait for result1 to finish execution and reject
+      await expect(result1).rejects.toThrow('Test error');
+      // deduplicator cache is updated with the rejected result from the first call,
+      // call will not use the cache and will execute the original function fn(1, 2) again
+      const result2 = dedupedFn(1, 2);
+      await expect(result2).rejects.toThrow('Test error');
+      expect(fn).toHaveBeenCalledTimes(2);
+    });
+
+    it('should cache pending promises when cacheRejections is false', async () => {
+      const fn = createAsyncFn({
+        returnValue: 2n,
+        shouldReject: true,
+        timeout: 500,
+      });
+      const dedupedFn = deduplicatorService.dedupe(fn);
+      const [result1, result2] = [dedupedFn(1, 2), dedupedFn(1, 2)];
       jest.runAllTimers();
-      const [result1, result2] = await Promise.all(resultPromises);
+
       await expect(result1).rejects.toThrow('Test error');
       await expect(result2).rejects.toThrow('Test error');
-
-      expect(fn).toHaveBeenCalledTimes(2);
+      expect(fn).toHaveBeenCalledTimes(1);
     });
 
     it('should cache rejections when cacheRejections is true', async () => {

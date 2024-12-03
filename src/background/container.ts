@@ -1,7 +1,6 @@
 import {
   asClass,
   asValue,
-  AwilixContainer,
   createContainer,
   InjectionMode,
 } from 'awilix/browser';
