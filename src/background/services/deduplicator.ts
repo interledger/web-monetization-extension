@@ -66,6 +66,9 @@ export class Deduplicator {
     args: any[],
     cacheFnArgs: boolean,
   ): string {
+    if (!fn.name) {
+      throw new Error('Function name is required for caching');
+    }
     let key = fn.name;
     if (cacheFnArgs) {
       key += `_${JSON.stringify(args)}`;

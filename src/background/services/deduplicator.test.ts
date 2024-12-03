@@ -60,16 +60,20 @@ describe('Deduplicator', () => {
     });
 
     it('should support different function signatures', async () => {
-      const fn1 = createAsyncFn({ returnValue: 'hello', timeout: 100 });
-      const fn2 = createAsyncFn({ returnValue: 'world', timeout: 400 });
-      const dedupedFn1 = deduplicatorService.dedupe(fn1, {
-        cacheFnArgs: true,
+      const fn1 = createAsyncFn({
+        returnValue: 'hello',
+        timeout: 100,
       });
-      const dedupedFn2 = deduplicatorService.dedupe(fn2, {
-        cacheFnArgs: true,
-      });
+      Object.defineProperty(fn1, 'name', { value: 'fn1' });
       // createAsyncFn function returns an anonymous function, which is created using the new Promise constructor.
-      // it does not have a name property, so it does NOT have a key for dedup
+      // it does not have a `name` property, so it does NOT have a key for deduplication service
+      const fn2 = createAsyncFn({
+        returnValue: 'world',
+        timeout: 400,
+      });
+      Object.defineProperty(fn2, 'name', { value: 'fn2' });
+      const dedupedFn1 = deduplicatorService.dedupe(fn1);
+      const dedupedFn2 = deduplicatorService.dedupe(fn2);
       const resultPromises = [dedupedFn1('arg1'), dedupedFn2('arg2')];
 
       jest.runAllTimers();
@@ -115,6 +119,27 @@ describe('Deduplicator', () => {
       expect(result2).toBe(returnValue);
       expect(fn).toHaveBeenCalledTimes(1);
     });
+
+    it('should support different function signatures', async () => {
+      const fn1 = createAsyncFn({ returnValue: 'hello', timeout: 100 });
+      const fn2 = createAsyncFn({ returnValue: 'world', timeout: 400 });
+      const dedupedFn1 = deduplicatorService.dedupe(fn1, {
+        cacheFnArgs: true,
+      });
+      const dedupedFn2 = deduplicatorService.dedupe(fn2, {
+        cacheFnArgs: true,
+      });
+      const resultPromises = [dedupedFn1('arg1'), dedupedFn2('arg2')];
+
+      jest.runAllTimers();
+
+      const [result1, result2] = await Promise.all(resultPromises);
+
+      expect(result1).toBe('hello');
+      expect(result2).toBe('world');
+      expect(fn1).toHaveBeenCalledTimes(1);
+      expect(fn2).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Error Handling, cacheRejections', () => {
@@ -137,14 +162,17 @@ describe('Deduplicator', () => {
       expect(fn).toHaveBeenCalledTimes(2);
     });
 
-    it('should cache pending promises when cacheRejections is false', async () => {
+    it('should cache and reuse pending promises when cacheRejections is false', async () => {
       const fn = createAsyncFn({
         returnValue: 2n,
         shouldReject: true,
         timeout: 500,
       });
       const dedupedFn = deduplicatorService.dedupe(fn);
-      const [result1, result2] = [dedupedFn(1, 2), dedupedFn(1, 2)];
+      const result1 = dedupedFn(1, 2);
+      // at this point, result1 promise is still pending,
+      // cache will return and reuse the same pending promise to result2
+      const result2 = dedupedFn(1, 2);
       jest.runAllTimers();
 
       await expect(result1).rejects.toThrow('Test error');
@@ -167,39 +195,47 @@ describe('Deduplicator', () => {
 
       expect(fn).toHaveBeenCalledTimes(1);
     });
+
+    it('should cache and reuse rejected promises when cacheRejections is true', async () => {
+      const fn = createAsyncFn({
+        returnValue: 2n,
+        shouldReject: true,
+        timeout: 500,
+      });
+      const dedupedFn = deduplicatorService.dedupe(fn, {
+        cacheRejections: true,
+      });
+
+      const result1 = dedupedFn(1, 2);
+      await expect(result1).rejects.toThrow('Test error');
+      const result2 = dedupedFn(1, 2);
+      await expect(result2).rejects.toThrow('Test error');
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
   });
 
-  // describe('Cache Expiration', () => {
-  //   jest.useFakeTimers();
+  describe('Cache Expiration', () => {
+    jest.useFakeTimers();
 
-  //   it('should clear cache after specified wait time', async () => {
-  //     const timeout = 1000;
-  //     const fn = createAsyncFn({ returnValue: 2n, timeout });
-  //     const dedupedFn = deduplicatorService.dedupe(fn);
+    it('should clear cache after specified wait time', async () => {
+      const timeout = 2000;
+      const fn = createAsyncFn({ returnValue: 2n, timeout });
+      const dedupedFn = deduplicatorService.dedupe(fn);
 
-  //     await dedupedFn();
-  //     expect(fn).toHaveBeenCalledTimes(1);
+      const promise1 = dedupedFn();
+      jest.runAllTimers();
+      const results = await promise1;
+      expect(results).toBe(2n);
 
-  //     jest.advanceTimersByTime(timeout);
+      jest.advanceTimersByTime(timeout);
+      jest.runAllTimers();
 
-  //     await dedupedFn();
-  //     expect(fn).toHaveBeenCalledTimes(2);
-  //   });
-  // });
+      const promise2 = dedupedFn();
+      jest.runAllTimers();
+      const results2 = await promise2;
+      expect(results2).toBe(2n);
 
-  // describe('Default Configurations', () => {
-  //   it('should use default cache promises time of 5000ms', async () => {
-  //     const asyncFn = createAsyncFn({ returnValue: 2n });
-  //     const dedupedFn = deduplicatorService.dedupe(asyncFn);
-
-  //     await dedupedFn();
-
-  //     // verify default configuration
-  //     jest.advanceTimersByTime(5000);
-
-  //     expect(mockLogger.debug).toHaveBeenCalledWith(
-  //       expect.stringContaining('Attempting to remove key'),
-  //     );
-  //   });
-  // });
+      expect(fn).toHaveBeenCalledTimes(2);
+    });
+  });
 });
