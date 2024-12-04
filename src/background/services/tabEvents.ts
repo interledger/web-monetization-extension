@@ -57,6 +57,7 @@ export class TabEvents {
   private sendToPopup: Cradle['sendToPopup'];
   private t: Cradle['t'];
   private browser: Cradle['browser'];
+  private appName: Cradle['appName'];
   private browserName: Cradle['browserName'];
 
   constructor({
@@ -66,6 +67,7 @@ export class TabEvents {
     sendToPopup,
     t,
     browser,
+    appName,
     browserName,
   }: Cradle) {
     Object.assign(this, {
@@ -75,6 +77,7 @@ export class TabEvents {
       sendToPopup,
       t,
       browser,
+      appName,
       browserName,
     });
   }
@@ -179,7 +182,7 @@ export class TabEvents {
     state: Storage['state'];
     tabInfo: PopupTabInfo;
   }) {
-    let title = this.t('appName');
+    let title = this.appName;
     let iconData = ICONS.default;
     if (!connected) {
       // use defaults
