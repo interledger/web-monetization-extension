@@ -207,6 +207,14 @@ export async function getBackground(
     if (!background) {
       background = await context.waitForEvent('serviceworker');
     }
+    // wait for Service Worker to be activated
+    await background.evaluate(() => {
+      return new Promise<void>((resolve) => {
+        if (chrome.runtime) return resolve();
+        // @ts-expect-error self is extension's SW, not TS-defined enough.
+        self.addEventListener('activate', resolve, { once: true });
+      });
+    });
   } else if (browserName === 'firefox') {
     // TODO
     // background = context.backgroundPages()[0];
