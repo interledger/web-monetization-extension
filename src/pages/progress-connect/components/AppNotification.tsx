@@ -1,6 +1,6 @@
 import React from 'react';
 import { HeaderEmpty } from '@/popup/components/layout/HeaderEmpty';
-import { LoadingSpinner } from '@/popup/components/LoadingSpinner';
+import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
 import { Countdown } from '@/pages/progress-connect/components/Countdown';
 import { useState } from '@/pages/progress-connect/context';
 import { useBrowser } from '@/popup/lib/context';

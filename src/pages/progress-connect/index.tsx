@@ -7,7 +7,7 @@ import browser from 'webextension-polyfill';
 import {
   BrowserContextProvider,
   TranslationContextProvider,
-} from '@/popup/lib/context';
+} from '@/pages/shared/lib/context';
 import { StateContextProvider, UIModeProvider } from './context';
 import App from './App';
 
