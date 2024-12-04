@@ -7,12 +7,8 @@ describe('Deduplicator', () => {
       debug: jest.fn(),
     } as unknown as Logger,
   });
-  let returnValueFn1: {
-    access_token: { value: string; type: string };
-  };
-  let returnValueFn2: {
-    access_token: { value: string; type: string };
-  };
+  let returnValueFn1: { access_token: { value: string; type: string } };
+  let returnValueFn2: { access_token: { value: string; type: string } };
 
   beforeAll(async (): Promise<void> => {
     jest.useFakeTimers();
@@ -20,18 +16,8 @@ describe('Deduplicator', () => {
 
   beforeEach(() => {
     jest.runAllTimers();
-    returnValueFn1 = {
-      access_token: {
-        value: 'value',
-        type: 'incoming-payment',
-      },
-    };
-    returnValueFn2 = {
-      access_token: {
-        value: 'value',
-        type: 'incoming-payment',
-      },
-    };
+    returnValueFn1 = { access_token: { value: 'value', type: 'quote' } };
+    returnValueFn2 = { access_token: { value: 'value', type: 'incoming' } };
   });
 
   // utility function to create async functions for testing
@@ -48,12 +34,11 @@ describe('Deduplicator', () => {
   }) => {
     const fn = jest.fn(
       async (..._args: unknown[]) =>
-        // returns an anonymous function, which is created using the new Promise constructor.
-        // it needs a `name` property, to have a key for deduplication service
         new Promise((resolve, reject) => {
           try {
             if (shouldReject) {
               reject(new Error('Test error'));
+              return;
             }
             setTimeout(() => {
               resolve(returnValue);
@@ -63,6 +48,8 @@ describe('Deduplicator', () => {
           }
         }),
     );
+    // jest.fn() returns an anonymous function, which is created using the new Promise constructor.
+    // it needs a `name` property, to have a key for deduplication service
     Object.defineProperty(fn, 'name', { value: mockFnName });
 
     return fn;
