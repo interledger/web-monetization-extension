@@ -162,6 +162,17 @@ export type PopupToBackgroundMessage = {
 };
 // #endregion
 
+// #region App ↦ BG
+export type AppToBackgroundMessage = {
+  GET_DATA: {
+    input: never;
+    output: {
+      connected: boolean;
+    };
+  };
+};
+// #endregion
+
 // #region Content ↦ BG
 export interface GetWalletAddressInfoPayload {
   walletAddressUrl: string;
@@ -214,6 +225,7 @@ export type ContentToBackgroundMessage = {
 
 // #region To BG
 type ToBackgroundMessageMap = PopupToBackgroundMessage &
+  AppToBackgroundMessage &
   ContentToBackgroundMessage;
 
 export type ToBackgroundMessage = {

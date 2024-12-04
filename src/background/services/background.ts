@@ -246,6 +246,13 @@ export class Background {
 
             // endregion
 
+            // #region App
+            case 'GET_DATA': {
+              return success(await this.storage.get(['connected']));
+            }
+
+            // #endregion
+
             // region Content
             case 'GET_WALLET_ADDRESS_INFO':
               return success(
