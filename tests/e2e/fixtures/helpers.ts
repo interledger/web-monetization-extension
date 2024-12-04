@@ -212,6 +212,8 @@ export async function getBackground(
       return new Promise<void>((resolve) => {
         if (chrome.runtime) return resolve();
         // @ts-expect-error self is extension's SW, not TS-defined enough.
+        if (self.serviceWorker?.state === 'activated') return resolve();
+        // @ts-expect-error self is extension's SW, not TS-defined enough.
         self.addEventListener('activate', resolve, { once: true });
       });
     });
