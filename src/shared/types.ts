@@ -56,10 +56,12 @@ export interface Storage {
    */
   version: number;
 
-  /** If web monetization is enabled */
-  enabled: boolean;
   /** If a wallet is connected or not */
   connected: boolean;
+  /** Whether the extension (actually any sort of payment) is enabled  */
+  enabled: boolean;
+  /** If web monetization is enabled */
+  continuousPaymentsEnabled: boolean;
   /** Extension state */
   state: Partial<Record<ExtensionState, boolean>>;
 

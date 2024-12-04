@@ -102,13 +102,16 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
         };
       });
 
-      build.onLoad({ filter: /src\/popup\/index\.tsx$/ }, async (args) => {
-        const contents = await readFile(args.path, 'utf8');
-        return {
-          contents: contents + '\n\n\n' + reloadScriptPopup,
-          loader: 'tsx' as const,
-        };
-      });
+      build.onLoad(
+        { filter: /src\/pages\/popup\/index\.tsx$/ },
+        async (args) => {
+          const contents = await readFile(args.path, 'utf8');
+          return {
+            contents: contents + '\n\n\n' + reloadScriptPopup,
+            loader: 'tsx' as const,
+          };
+        },
+      );
       build.onLoad({ filter: /src\/pages\/.+\/index.tsx$/ }, async (args) => {
         const contents = await readFile(args.path, 'utf8');
         return {

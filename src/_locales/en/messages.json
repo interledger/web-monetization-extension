@@ -1,7 +1,4 @@
 {
-  "appName": {
-    "message": "Web Monetization Extension"
-  },
   "appDescription": {
     "message": "Support content you love. Pay as you browse!"
   },
@@ -48,8 +45,21 @@
   "keyRevoked_action_reconnectBtn": {
     "message": "Reconnect"
   },
+  "pay_action_pay": {
+    "message": "Send now"
+  },
   "pay_error_notEnoughFunds": {
     "message": "Insufficient funds to complete the payment."
+  },
+  "pay_error_outgoingPaymentFailed": {
+    "message": "We were unable to process this transaction. Please try again!"
+  },
+  "pay_warn_outgoingPaymentPollingIncomplete": {
+    "message": "It looks like this is taking long. Check your wallet later to ensure the payment went through.",
+    "description": "We were polling for completion, but it's not finished yet - could mean it'll never succeed or it'll take a long time to settle."
+  },
+  "pay_error_general": {
+    "message": "We were unable to process this transaction. Please try again!"
   },
   "pay_error_invalidReceivers": {
     "message": "At the moment, you cannot pay this website.",
@@ -57,6 +67,12 @@
   },
   "pay_error_notMonetized": {
     "message": "This website is not monetized."
+  },
+  "pay_state_success": {
+    "message": "Thank you for your $AMOUNT$ support!",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
+    }
   },
   "outOfFunds_error_title": {
     "message": "Out of funds"
@@ -145,6 +161,12 @@
   },
   "connectWallet_error_amountMinimum": {
     "message": "An amount greater than $AMOUNT$ is required.",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
+    }
+  },
+  "connectWallet_error_amountMaximum": {
+    "message": "Amount must be under $AMOUNT$.",
     "placeholders": {
       "AMOUNT": { "content": "$1", "example": "$2.05" }
     }

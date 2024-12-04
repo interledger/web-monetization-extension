@@ -32,6 +32,7 @@ import {
   errorWithKeyToJSON,
   getWalletInformation,
   isErrorWithKey,
+  sleep,
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
@@ -45,6 +46,8 @@ import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY,
+  OUTGOING_PAYMENT_POLLING_INTERVAL,
+  OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
 } from '../config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import type { Cradle } from '@/background/container';
@@ -132,6 +135,7 @@ export class OpenPaymentsService {
   private storage: Cradle['storage'];
   private deduplicator: Cradle['deduplicator'];
   private logger: Cradle['logger'];
+  private appName: Cradle['appName'];
   private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
@@ -150,6 +154,7 @@ export class OpenPaymentsService {
     deduplicator,
     logger,
     t,
+    appName,
     browserName,
   }: Cradle) {
     Object.assign(this, {
@@ -158,6 +163,7 @@ export class OpenPaymentsService {
       deduplicator,
       logger,
       t,
+      appName,
       browserName,
     });
 
@@ -627,6 +633,7 @@ export class OpenPaymentsService {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
       storage: this.storage,
+      appName: this.appName,
       browserName: this.browserName,
       t: this.t,
     });
@@ -702,7 +709,7 @@ export class OpenPaymentsService {
             },
             {
               type: 'outgoing-payment',
-              actions: ['create'],
+              actions: ['create', 'read'],
               identifier: walletAddress.id,
               limits: {
                 debitAmount: {
@@ -889,6 +896,63 @@ export class OpenPaymentsService {
     return outgoingPayment;
   }
 
+  /** Polls for the completion of an outgoing payment */
+  async *pollOutgoingPayment(
+    outgoingPaymentId: OutgoingPayment['id'],
+    {
+      signal,
+      maxAttempts = 10,
+    }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
+  ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
+    let attempt = 0;
+    await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
+    while (++attempt <= maxAttempts) {
+      try {
+        signal?.throwIfAborted();
+        const outgoingPayment = await this.client!.outgoingPayment.get({
+          url: outgoingPaymentId,
+          accessToken: this.token.value,
+        });
+        yield outgoingPayment;
+        if (
+          outgoingPayment.failed &&
+          outgoingPayment.sentAmount.value === '0'
+        ) {
+          throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
+        }
+        if (
+          outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
+        ) {
+          return outgoingPayment; // completed
+        }
+        signal?.throwIfAborted();
+        await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
+      } catch (error) {
+        if (
+          isTokenExpiredError(error) ||
+          isMissingGrantPermissionsError(error)
+        ) {
+          // TODO: We can remove the token `actions` check once we've proper RS
+          // errors in place. Then we can handle insufficient grant error
+          // separately clearly.
+          const token = await this.rotateToken();
+          const hasReadAccess = token.access_token.access.find(
+            (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
+          );
+          if (!hasReadAccess) {
+            throw new OpenPaymentsClientError('InsufficientGrant', {
+              description: error.description,
+            });
+          }
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
+  }
+
   async probeDebitAmount(
     amount: AmountValue,
     incomingPayment: IncomingPayment['id'],
@@ -1034,6 +1098,7 @@ export class OpenPaymentsService {
       this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } });
     }
     this.grant = { ...this.grant, accessToken };
+    return newToken;
   }
 }
 
@@ -1066,7 +1131,9 @@ export const isSignatureValidationError = (error: any) => {
   );
 };
 
-export const isTokenExpiredError = (error: any) => {
+export const isTokenExpiredError = (
+  error: any,
+): error is OpenPaymentsClientError => {
   if (!isOpenPaymentsClientError(error)) return false;
   return isTokenInvalidError(error) || isTokenInactiveError(error);
 };
@@ -1089,6 +1156,17 @@ export const isNonPositiveAmountError = (error: any) => {
 export const isOutOfBalanceError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 403 && error.description === 'unauthorized';
+};
+
+export const isMissingGrantPermissionsError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false;
+  // providers using Rafiki <= v1.0.0-alpha.15 show "Insufficient Grant" error,
+  // but Rafiki >= v1.0.0-alpha.16 shows "Inactive Token" (due to
+  // https://github.com/interledger/rafiki/pull/2788)
+  return (
+    error.status === 403 &&
+    (error.description === 'Insufficient Grant' || isTokenInactiveError(error))
+  );
 };
 
 export const isInvalidReceiverError = (error: any) => {

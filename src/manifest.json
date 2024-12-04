@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/chrome-manifest",
-  "name": "__MSG_appName__",
+  "name": "Web Monetization Extension",
   "version": "0.2.0.0",
   "manifest_version": 3,
   "minimum_chrome_version": "110.0",
@@ -17,19 +17,6 @@
       "js": ["content/content.js"],
       "run_at": "document_start",
       "all_frames": true
-    },
-    {
-      "matches": [
-        "https://wallet.interledger-test.dev/*",
-        "https://wallet.interledger.cards/*"
-      ],
-      "js": ["content/keyAutoAdd/testWallet.js"],
-      "run_at": "document_end"
-    },
-    {
-      "matches": ["https://eu1.fynbos.dev/*", "https://wallet.fynbos.app/*"],
-      "js": ["content/keyAutoAdd/fynbos.js"],
-      "run_at": "document_end"
     }
   ],
   "background": {

@@ -1,5 +1,5 @@
 import type { BrowserContext } from '@playwright/test';
-import type { BrowserIntl, BrowserInfo } from '../fixtures/helpers';
+import type { BrowserIntl, Background } from '../fixtures/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
 
@@ -7,10 +7,9 @@ export { connectWallet } from '../helpers/testWallet';
 
 export async function openPopup(
   context: BrowserContext,
-  { browserName, channel }: BrowserInfo,
-  extensionId: string,
+  background: Background,
 ) {
-  const url = getPopupUrl({ browserName, channel }, extensionId);
+  const url = await background.evaluate(() => chrome.action.getPopup({}));
   const page = await context.newPage();
   const popupPromise = page.waitForEvent('popup');
   await page.evaluate(() => {
@@ -26,25 +25,6 @@ export async function openPopup(
     await popup.waitForSelector('#main', { timeout: 500 });
   }
   return popup;
-}
-
-function getPopupUrl(
-  { browserName, channel }: BrowserInfo,
-  extensionId: string,
-) {
-  let url: string;
-  if (browserName === 'chromium') {
-    if (channel === 'edge') {
-      url = `extension://${extensionId}/popup/index.html`;
-    } else {
-      url = `chrome-extension://${extensionId}/popup/index.html`;
-    }
-  } else if (browserName === 'firefox') {
-    url = `moz-extension://${extensionId}/popup/index.html`;
-  } else {
-    throw new Error('Unsupported browser: ' + browserName);
-  }
-  return url;
 }
 
 export async function disconnectWallet(popup: Popup) {
