@@ -99,8 +99,10 @@ The high-level project directory structure is as follows:
 │   │   ├── polyfill.ts # WM JS API polyfill, and to integrate events with website
 │   │   ├── services/ # Services to extract & monitor link tags from websites user visits
 │   │   └── keyAutoAdd/ # Content scripts for automatic key addition to wallets
-│   ├── popup/ # Source code for the popup UI
-│   ├── pages/ # Source code for additional extension pages
+│   ├── pages/ # Source code for extension pages, including popup
+│   │   ├── popup/ # Source code for the popup UI
+│   │   ├── progress-connect/ # Source code for the progress-connect (notification/layover) UI
+│   │   └── shared/ # Shared components and libraries for the frontend
 │   ├── shared/ # Shared utilities
 │   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
 ├── jest.config.ts
@@ -203,7 +205,9 @@ This content script serves as a polyfill for the WM JS API. It lets a website:
 
 This script runs in `"MAIN"` context: so its globals are available to the website to access.
 
-#### Popup
+#### Extension pages
+
+##### Popup
 
 Popup (technically, the [browser action -> default popup](https://developer.chrome.com/docs/extensions/reference/api/action#popup)) is what users will interact with. It's a React SPA written in TypeScript and uses Tailwind for styling.
 
@@ -214,7 +218,7 @@ Popup (technically, the [browser action -> default popup](https://developer.chro
   - Most of the integration is to be done in pages only, so the components can include a lot of props.
   - The `useTranslation` hook (see `TranslationContext`) can be considered pure, as its default values don't rely on any external APIs.
 
-#### Extension pages
+##### Other pages
 
 - `progress-connect`: Related to KeyAutoAdd services, this extension page (also a React SPA) gets injected into wallet provider websites as an iframe. It can serve as a notification UI and as a full-page overlay during automatic public-key addition. The content scripts and the popup communicate to it via the background and runtime ports.
 

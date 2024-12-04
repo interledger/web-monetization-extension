@@ -6,7 +6,7 @@ import {
   type StepRun as Run,
 } from './lib/keyAutoAdd';
 import { isTimedOut, waitForURL } from './lib/helpers';
-import { toWalletAddressUrl } from '@/popup/lib/utils';
+import { toWalletAddressUrl } from '@/pages/shared/lib/utils';
 
 // region: Steps
 type Account = {
