@@ -48,7 +48,7 @@ export const getPlugins = ({
       resolveFrom: ROOT_DIR,
       assets: [
         {
-          from: toPosix(path.join(SRC_DIR, 'popup', 'index.html')),
+          from: toPosix(path.join(SRC_DIR, 'pages', 'popup', 'index.html')),
           to: toPosix(path.join(outDir, 'popup', 'index.html')),
         },
         {

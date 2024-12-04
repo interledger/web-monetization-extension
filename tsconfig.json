@@ -18,7 +18,7 @@
     "noEmit": true,
     "paths": {
       "@/shared/*": ["./shared/*"],
-      "@/popup/*": ["./popup/*"],
+      "@/popup/*": ["./pages/popup/*"],
       "@/pages/*": ["./pages/*"],
       "@/background/*": ["./background/*"],
       "@/content/*": ["./content/*"],

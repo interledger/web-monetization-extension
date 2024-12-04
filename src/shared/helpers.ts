@@ -273,6 +273,19 @@ export function convert(value: bigint, source: number, target: number) {
   return value / BigInt(Math.pow(10, -scaleDiff));
 }
 
+export const transformBalance = (
+  amount: string | bigint,
+  scale: number,
+): string => {
+  const value = BigInt(amount);
+  const divisor = BigInt(10 ** scale);
+
+  const integerPart = (value / divisor).toString();
+  const fractionalPart = (value % divisor).toString().padStart(scale, '0');
+
+  return `${integerPart}.${fractionalPart}`;
+};
+
 export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
   return BigInt(a) > BigInt(b) ? a : b;
 }
