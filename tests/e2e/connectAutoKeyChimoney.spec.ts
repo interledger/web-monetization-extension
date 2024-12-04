@@ -132,19 +132,20 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     await login(page, { username, password });
 
     await waitForGrantConsentPage(page);
+    await expect(
+      page.getByRole('button', { name: 'Accept', exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Decline', exact: true }),
+    ).toBeVisible();
+
+    await page.getByRole('button', { name: 'Accept', exact: true }).click();
+    expect(page.getByRole('button', { name: 'Get OTP Code' })).toBeVisible();
   });
 
-  // It'll ask for OTP over email, which we can't access. So, we'll assume if
-  // that OTP page is shown, we can connect.
-
-  // await test.step('connects', async () => {
-  //   const continueWaitMs = await continueWaitMsPromise;
-  //   await acceptGrant(page, continueWaitMs);
-  //   await waitForWelcomePage(page);
-  //   expect(
-  //     await background.evaluate(() => chrome.storage.local.get(['connected'])),
-  //   ).toEqual({ connected: true });
-  // });
+  // The connect process won't be able to progress further here in tests. It'll
+  // ask for OTP over email, which we can't access. So, we'll assume if that OTP
+  // page is shown, we can connect.
 
   await test.step('revoke key', async () => {
     const res = await revokeKey(page, keyId);
