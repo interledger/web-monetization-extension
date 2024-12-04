@@ -4,8 +4,7 @@ import {
   type OutgoingPayment,
   type WalletAddress,
 } from '@interledger/open-payments/dist/types';
-import { bigIntMax, convert } from '@/shared/helpers';
-import { transformBalance } from '@/popup/lib/utils';
+import { bigIntMax, convert, transformBalance } from '@/shared/helpers';
 import {
   isInvalidReceiverError,
   isKeyRevokedError,

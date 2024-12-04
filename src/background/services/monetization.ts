@@ -19,8 +19,8 @@ import {
   isErrorWithKey,
   isOkState,
   removeQueryParams,
+  transformBalance,
 } from '@/shared/helpers';
-import { transformBalance } from '@/popup/lib/utils';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
 import type { OutgoingPayment } from '@interledger/open-payments';
 import type { Cradle } from '../container';

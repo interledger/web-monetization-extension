@@ -45,7 +45,7 @@ export const options: BuildOptions = {
       out: path.join('polyfill', 'polyfill'),
     },
     {
-      in: path.join(SRC_DIR, 'popup', 'index.tsx'),
+      in: path.join(SRC_DIR, 'pages', 'popup', 'index.tsx'),
       out: path.join('popup', 'popup'),
     },
     {

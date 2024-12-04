@@ -16,7 +16,7 @@
 'area: popup':
   - any:
       - changed-files:
-          - any-glob-to-any-file: 'src/popup/**/*'
+          - any-glob-to-any-file: 'src/pages/popup/**/*'
 
 'area: documentation':
   - any:

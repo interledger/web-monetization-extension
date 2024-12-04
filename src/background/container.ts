@@ -35,6 +35,7 @@ export interface Cradle {
   logger: Logger;
   browser: Browser;
   browserName: BrowserName;
+  appName: string;
   events: EventsService;
   deduplicator: Deduplicator;
   storage: StorageService;
@@ -61,6 +62,7 @@ export const configureContainer = () => {
     logger: asValue(logger),
     browser: asValue(browser),
     browserName: asValue(getBrowserName(browser, navigator.userAgent)),
+    appName: asValue(browser.runtime.getManifest().name),
     t: asValue(tFactory(browser)),
     events: asClass(EventsService).singleton(),
     deduplicator: asClass(Deduplicator)
