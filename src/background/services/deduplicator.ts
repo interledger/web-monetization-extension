@@ -8,6 +8,7 @@ interface CacheEntry {
 
 interface DedupeOptions {
   cacheFnArgs: boolean;
+  cacheRejections: boolean;
   wait: number;
 }
 
@@ -16,15 +17,19 @@ export class Deduplicator {
 
   private cache: Map<string, CacheEntry> = new Map();
 
-  constructor({ logger }: Cradle) {
+  constructor({ logger }: Pick<Cradle, 'logger'>) {
     Object.assign(this, { logger });
   }
 
   dedupe<T extends AsyncFn<any>>(
     fn: T,
-    { cacheFnArgs = false, wait = 5000 }: Partial<DedupeOptions> = {},
+    {
+      cacheFnArgs = false,
+      cacheRejections = false,
+      wait = 5000,
+    }: Partial<DedupeOptions> = {},
   ): T {
-    return ((...args: Parameters<T>): ReturnType<T> => {
+    return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
       const key = this.generateCacheKey(fn, args, cacheFnArgs);
       const entry = this.cache.get(key);
 
@@ -38,17 +43,21 @@ export class Deduplicator {
       const promise = fn(...args);
       this.cache.set(key, { promise });
 
-      promise
-        .then((res) => {
-          this.cache.set(key, { promise: Promise.resolve(res) });
-          return res;
-        })
-        .catch((err) => {
-          throw err;
-        })
-        .finally(() => this.scheduleCacheClear(key, wait));
+      try {
+        const res = await promise;
+        this.cache.set(key, { promise: Promise.resolve(res) });
+        return res;
+      } catch (err) {
+        if (cacheRejections) {
+          this.cache.set(key, { promise: Promise.reject(err) });
+        } else {
+          this.cache.delete(key);
+        }
 
-      return promise as ReturnType<T>;
+        return Promise.reject(err);
+      } finally {
+        this.scheduleCacheClear(key, wait);
+      }
     }) as unknown as T;
   }
 
@@ -57,6 +66,9 @@ export class Deduplicator {
     args: any[],
     cacheFnArgs: boolean,
   ): string {
+    if (!fn.name) {
+      throw new Error('Function name is required for caching');
+    }
     let key = fn.name;
     if (cacheFnArgs) {
       key += `_${JSON.stringify(args)}`;
