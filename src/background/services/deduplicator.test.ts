@@ -8,10 +8,10 @@ describe('Deduplicator', () => {
     } as unknown as Logger,
   });
   let returnValueFn1: {
-    access_token: { access: { type: string; actions: string[] }[] };
+    access_token: { value: string; type: string };
   };
   let returnValueFn2: {
-    access_token: { access: { type: string; actions: string[] }[] };
+    access_token: { value: string; type: string };
   };
 
   beforeAll(async (): Promise<void> => {
@@ -22,22 +22,14 @@ describe('Deduplicator', () => {
     jest.runAllTimers();
     returnValueFn1 = {
       access_token: {
-        access: [
-          {
-            type: 'incoming-payment',
-            actions: ['create'],
-          },
-        ],
+        value: 'value',
+        type: 'incoming-payment',
       },
     };
     returnValueFn2 = {
       access_token: {
-        access: [
-          {
-            type: 'quote',
-            actions: ['create'],
-          },
-        ],
+        value: 'value',
+        type: 'incoming-payment',
       },
     };
   });
@@ -56,6 +48,8 @@ describe('Deduplicator', () => {
   }) => {
     const fn = jest.fn(
       async (..._args: unknown[]) =>
+        // returns an anonymous function, which is created using the new Promise constructor.
+        // it needs a `name` property, to have a key for deduplication service
         new Promise((resolve, reject) => {
           try {
             if (shouldReject) {
@@ -97,8 +91,6 @@ describe('Deduplicator', () => {
         timeout: 100,
         mockFnName: 'fn1',
       });
-      // createAsyncFn function returns an anonymous function, which is created using the new Promise constructor.
-      // it does not have a `name` property, so it does NOT have a key for deduplication service
       const fn2 = createAsyncFn({
         returnValue: returnValueFn2,
         timeout: 400,
@@ -133,9 +125,9 @@ describe('Deduplicator', () => {
       const result3 = dedupedFn2({ object: { key: 'arg3' } }, 3);
       jest.runAllTimers();
 
-      expect(await result1).toBe(returnValueFn1);
-      expect(await result2).toBe(returnValueFn1);
-      expect(await result3).toBe(returnValueFn1);
+      await expect(result1).resolves.toBe(returnValueFn1);
+      await expect(result2).resolves.toBe(returnValueFn1);
+      await expect(result3).resolves.toBe(returnValueFn1);
       expect(fn1).toHaveBeenCalledTimes(1);
     });
   });
@@ -261,25 +253,9 @@ describe('Deduplicator', () => {
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
-    it('should cache rejections when cacheRejections is true', async () => {
-      const fn = createAsyncFn({
-        returnValue: { value: 'value', access: { type: 'incoming-payment' } },
-        shouldReject: true,
-        timeout: 500,
-      });
-      const dedupedFn = deduplicatorService.dedupe(fn, {
-        cacheRejections: true,
-      });
-
-      await expect(dedupedFn()).rejects.toThrow('Test error');
-      await expect(dedupedFn()).rejects.toThrow('Test error');
-
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-
     it('should cache and reuse rejected promises when cacheRejections is true', async () => {
       const fn = createAsyncFn({
-        returnValue: { value: 'value', access: { type: 'quote' } },
+        returnValue: { value: 'value', access: { type: 'incoming-payment' } },
         shouldReject: true,
         timeout: 500,
       });
@@ -291,6 +267,7 @@ describe('Deduplicator', () => {
       await expect(result1).rejects.toThrow('Test error');
       const result2 = dedupedFn();
       await expect(result2).rejects.toThrow('Test error');
+      await expect(result1).rejects.toBe(await result2.catch((e) => e));
       expect(fn).toHaveBeenCalledTimes(1);
     });
   });
