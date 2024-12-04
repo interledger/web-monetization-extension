@@ -5,12 +5,8 @@ import {
 } from '@/content/keyAutoAdd/lib/helpers/chimoney';
 
 export const URLS = {
-  get login() {
-    return `${process.env.CHIMONEY_WALLET_ORIGIN}/auth/signin`;
-  },
-  get keyPage() {
-    return `${process.env.CHIMONEY_WALLET_ORIGIN}/interledger`;
-  },
+  login: `${process.env.CHIMONEY_WALLET_ORIGIN}/auth/signin`,
+  keyPage: `${process.env.CHIMONEY_WALLET_ORIGIN}/interledger`,
 };
 
 type GetWalletAddressKeysResponse = {
