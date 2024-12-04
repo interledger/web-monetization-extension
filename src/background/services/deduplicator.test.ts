@@ -16,8 +16,8 @@ describe('Deduplicator', () => {
 
   beforeEach(() => {
     jest.runAllTimers();
-    returnValueFn1 = { access_token: { value: 'value', type: 'quote' } };
-    returnValueFn2 = { access_token: { value: 'value', type: 'incoming' } };
+    returnValueFn1 = { access_token: { value: 'value1', type: 'quote' } };
+    returnValueFn2 = { access_token: { value: 'value2', type: 'incoming' } };
   });
 
   // utility function to create async functions for testing

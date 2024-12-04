@@ -54,7 +54,7 @@ export class Deduplicator {
           this.cache.delete(key);
         }
 
-        throw err;
+        return Promise.reject(err);
       } finally {
         this.scheduleCacheClear(key, wait);
       }
