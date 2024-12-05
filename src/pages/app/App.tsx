@@ -11,7 +11,7 @@ import {
 } from 'react-router-dom';
 import { MessageContextProvider } from './lib/context';
 
-export const ROUTES_PATH = {
+export const ROUTES = {
   HOME: '/',
   POST_INSTALL: '/post-install',
 } as const;
@@ -19,14 +19,8 @@ export const ROUTES_PATH = {
 export const routes = [
   {
     children: [
-      {
-        path: ROUTES_PATH.HOME,
-        lazy: () => import('./pages/Home'),
-      },
-      {
-        path: ROUTES_PATH.POST_INSTALL,
-        lazy: () => import('./pages/PostInstall'),
-      },
+      { path: ROUTES.HOME, lazy: () => import('./pages/Home') },
+      { path: ROUTES.POST_INSTALL, lazy: () => import('./pages/PostInstall') },
     ],
   },
 ] satisfies RouteObject[];

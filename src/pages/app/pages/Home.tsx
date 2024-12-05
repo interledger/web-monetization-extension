@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ROUTES_PATH } from '../App';
+import { ROUTES } from '@/app/App';
 import { useMessage } from '@/app/lib/context';
 
 export const Component = () => {
@@ -15,7 +15,7 @@ export const Component = () => {
             <li>
               <Link
                 className="text-blue-500 underline"
-                to={ROUTES_PATH.POST_INSTALL}
+                to={ROUTES.POST_INSTALL}
               >
                 Post install
               </Link>
