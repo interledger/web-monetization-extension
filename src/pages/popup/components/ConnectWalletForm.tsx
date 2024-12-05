@@ -20,7 +20,7 @@ import {
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
-import type { PopupTransientState } from '@/shared/types';
+import type { DeepReadonly, PopupTransientState } from '@/shared/types';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -29,6 +29,7 @@ interface Inputs {
   autoKeyAddConsent: boolean;
 }
 
+type ConnectTransientState = DeepReadonly<PopupTransientState['connect']>;
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
@@ -36,7 +37,7 @@ type Errors = Record<ErrorsParams, ErrorInfo | null>;
 interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<Inputs>;
-  state?: PopupTransientState['connect'];
+  state?: ConnectTransientState;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
@@ -81,9 +82,12 @@ export const ConnectWalletForm = ({
   }, [clearConnectState]);
 
   const toErrorInfo = React.useCallback(
-    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
+    (
+      err?: string | DeepReadonly<ErrorWithKeyLike> | null,
+    ): ErrorInfo | null => {
       if (!err) return null;
       if (typeof err === 'string') return { message: err };
+      // @ts-expect-error readonly, it's ok
       return { message: t(err), info: err };
     },
     [t],
@@ -477,7 +481,7 @@ const ManualKeyPairNeeded: React.FC<{
   );
 };
 
-function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
+function isAutoKeyAddFailed(state: ConnectTransientState) {
   if (state?.status === 'error') {
     return (
       isErrorWithKey(state.error) &&

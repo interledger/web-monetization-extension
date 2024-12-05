@@ -1,10 +1,10 @@
-import { usePopupState } from '@/popup/lib/context';
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { usePopupState } from '@/popup/lib/store';
 import { ROUTES_PATH } from '../Popup';
 
 export const ProtectedRoute = () => {
-  const { state } = usePopupState();
+  const state = usePopupState();
 
   if (state.state.missing_host_permissions) {
     return <Navigate to={ROUTES_PATH.MISSING_HOST_PERMISSION} />;
