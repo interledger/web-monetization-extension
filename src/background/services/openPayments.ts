@@ -3,6 +3,7 @@ import type {
   AccessToken,
   AmountValue,
   GrantDetails,
+  TabId,
   WalletAmount,
 } from 'shared/types';
 import {
@@ -21,19 +22,34 @@ import * as ed from '@noble/ed25519';
 import { type Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
-import type { Tabs } from 'webextension-polyfill';
+import type { Browser, Tabs } from 'webextension-polyfill';
 import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
+import { KeyAutoAddService } from './keyAutoAdd';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
-import { getWalletInformation } from '@/shared/helpers';
-import { AddFundsPayload, ConnectWalletPayload } from '@/shared/messages';
+import {
+  ErrorWithKey,
+  errorWithKeyToJSON,
+  getWalletInformation,
+  isErrorWithKey,
+  sleep,
+  withResolvers,
+  type ErrorWithKeyLike,
+} from '@/shared/helpers';
+import type {
+  AddFundsPayload,
+  ConnectWalletPayload,
+  UpdateBudgetPayload,
+} from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   MIN_RATE_OF_PAY,
+  OUTGOING_PAYMENT_POLLING_INTERVAL,
+  OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
 } from '../config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
-import type { Cradle } from '../container';
+import type { Cradle } from '@/background/container';
 
 interface KeyInformation {
   privateKey: string;
@@ -43,7 +59,7 @@ interface KeyInformation {
 interface InteractionParams {
   interactRef: string;
   hash: string;
-  tabId: NonNullable<Tabs.Tab['id']>;
+  tabId: TabId;
 }
 
 export interface SignatureHeaders {
@@ -89,10 +105,14 @@ interface CreateOutgoingPaymentParams {
 }
 
 type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0];
+type TabRemovedCallback = Parameters<
+  Browser['tabs']['onRemoved']['addListener']
+>[0];
 
 const enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
   HASH_FAILED = 'hash_failed',
+  KEY_ADD_FAILED = 'key_add_failed',
 }
 
 const enum GrantResult {
@@ -103,6 +123,7 @@ const enum GrantResult {
 const enum InteractionIntent {
   CONNECT = 'connect',
   FUNDS = 'funds',
+  BUDGET_UPDATE = 'budget_update',
 }
 
 export class OpenPaymentsService {
@@ -110,6 +131,8 @@ export class OpenPaymentsService {
   private storage: Cradle['storage'];
   private deduplicator: Cradle['deduplicator'];
   private logger: Cradle['logger'];
+  private appName: Cradle['appName'];
+  private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
   client?: AuthenticatedClient;
@@ -121,8 +144,24 @@ export class OpenPaymentsService {
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false };
 
-  constructor({ browser, storage, deduplicator, logger, t }: Cradle) {
-    Object.assign(this, { browser, storage, deduplicator, logger, t });
+  constructor({
+    browser,
+    storage,
+    deduplicator,
+    logger,
+    t,
+    appName,
+    browserName,
+  }: Cradle) {
+    Object.assign(this, {
+      browser,
+      storage,
+      deduplicator,
+      logger,
+      t,
+      appName,
+      browserName,
+    });
 
     void this.initialize();
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
@@ -307,11 +346,19 @@ export class OpenPaymentsService {
     });
   }
 
-  async connectWallet({
-    walletAddressUrl,
-    amount,
-    recurring,
-  }: ConnectWalletPayload) {
+  async connectWallet(params: ConnectWalletPayload | null) {
+    if (!params) {
+      this.setConnectState(null);
+      return;
+    }
+    const {
+      walletAddressUrl,
+      amount,
+      recurring,
+      autoKeyAdd,
+      autoKeyAddConsent,
+    } = params;
+
     const walletAddress = await getWalletInformation(walletAddressUrl);
     const exchangeRates = await getExchangeRates();
 
@@ -343,12 +390,51 @@ export class OpenPaymentsService {
     });
 
     await this.initClient(walletAddress.id);
-    await this.completeGrant(
-      amount,
-      walletAddress,
-      recurring,
-      InteractionIntent.CONNECT,
-    );
+    this.setConnectState('connecting');
+    try {
+      await this.completeGrant(
+        amount,
+        walletAddress,
+        recurring,
+        InteractionIntent.CONNECT,
+      );
+    } catch (error) {
+      if (
+        isErrorWithKey(error) &&
+        error.key === 'connectWallet_error_invalidClient' &&
+        autoKeyAdd
+      ) {
+        if (!KeyAutoAddService.supports(walletAddress)) {
+          this.updateConnectStateError(error);
+          throw new ErrorWithKey(
+            'connectWalletKeyService_error_notImplemented',
+          );
+        }
+        if (!autoKeyAddConsent) {
+          this.updateConnectStateError(error);
+          throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
+        }
+
+        // add key to wallet and try again
+        try {
+          const tabId = await this.addPublicKeyToWallet(walletAddress);
+          this.setConnectState('connecting');
+          await this.completeGrant(
+            amount,
+            walletAddress,
+            recurring,
+            InteractionIntent.CONNECT,
+            tabId,
+          );
+        } catch (error) {
+          this.updateConnectStateError(error);
+          throw error;
+        }
+      } else {
+        this.updateConnectStateError(error);
+        throw error;
+      }
+    }
 
     await this.storage.set({
       walletAddress,
@@ -357,6 +443,7 @@ export class OpenPaymentsService {
       maxRateOfPay,
       connected: true,
     });
+    this.setConnectState(null);
   }
 
   async addFunds({ amount, recurring }: AddFundsPayload) {
@@ -383,11 +470,49 @@ export class OpenPaymentsService {
     await this.storage.setState({ out_of_funds: false });
   }
 
+  async updateBudget({ amount, recurring }: UpdateBudgetPayload) {
+    const { walletAddress, ...existingGrants } = await this.storage.get([
+      'walletAddress',
+      'oneTimeGrant',
+      'recurringGrant',
+    ]);
+
+    await this.completeGrant(
+      amount,
+      walletAddress!,
+      recurring,
+      InteractionIntent.BUDGET_UPDATE,
+    );
+
+    // Revoke all existing grants.
+    // Note: Clear storage only if new grant type is not same as previous grant
+    // type (as completeGrant already sets new grant state)
+    if (existingGrants.oneTimeGrant) {
+      await this.cancelGrant(existingGrants.oneTimeGrant.continue);
+      if (recurring) {
+        this.storage.set({
+          oneTimeGrant: null,
+          oneTimeGrantSpentAmount: '0',
+        });
+      }
+    }
+    if (existingGrants.recurringGrant) {
+      await this.cancelGrant(existingGrants.recurringGrant.continue);
+      if (!recurring) {
+        this.storage.set({
+          recurringGrant: null,
+          recurringGrantSpentAmount: '0',
+        });
+      }
+    }
+  }
+
   private async completeGrant(
     amount: string,
     walletAddress: WalletAddress,
     recurring: boolean,
     intent: InteractionIntent,
+    existingTabId?: TabId,
   ): Promise<GrantDetails> {
     const transformedAmount = toAmount({
       value: amount,
@@ -402,6 +527,9 @@ export class OpenPaymentsService {
       amount: transformedAmount,
     }).catch((err) => {
       if (isInvalidClientError(err)) {
+        if (intent !== InteractionIntent.FUNDS) {
+          throw new ErrorWithKey('connectWallet_error_invalidClient');
+        }
         const msg = this.t('connectWallet_error_invalidClient');
         throw new Error(msg, { cause: err });
       }
@@ -410,6 +538,7 @@ export class OpenPaymentsService {
 
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
+      existingTabId,
     );
 
     await this.verifyInteractionHash({
@@ -484,6 +613,61 @@ export class OpenPaymentsService {
     return grantDetails;
   }
 
+  /**
+   * Adds public key to wallet by "browser automation" - the content script
+   * takes control of tab when the correct message is sent, and adds the key
+   * through the wallet's dashboard.
+   * @returns tabId that we can reuse for further connecting, or redirects etc.
+   */
+  private async addPublicKeyToWallet(
+    walletAddress: WalletAddress,
+  ): Promise<TabId | undefined> {
+    const keyAutoAdd = new KeyAutoAddService({
+      browser: this.browser,
+      storage: this.storage,
+      appName: this.appName,
+      browserName: this.browserName,
+      t: this.t,
+    });
+    try {
+      await keyAutoAdd.addPublicKeyToWallet(walletAddress);
+      return keyAutoAdd.tabId;
+    } catch (error) {
+      const tabId = keyAutoAdd.tabId;
+      const isTabClosed = error.key === 'connectWallet_error_tabClosed';
+      if (tabId && !isTabClosed) {
+        await this.redirectToWelcomeScreen(
+          tabId,
+          GrantResult.ERROR,
+          InteractionIntent.CONNECT,
+          ErrorCode.KEY_ADD_FAILED,
+        );
+      }
+      if (error instanceof ErrorWithKey) {
+        throw error;
+      } else {
+        // TODO: check if need to handle errors here
+        throw new Error(error.message, { cause: error });
+      }
+    }
+  }
+
+  private setConnectState(status: 'connecting' | null) {
+    const state = status ? { status } : null;
+    this.storage.setPopupTransientState('connect', () => state);
+  }
+  private updateConnectStateError(err: ErrorWithKeyLike | { message: string }) {
+    this.storage.setPopupTransientState('connect', (state) => {
+      if (state?.status === 'error:key') {
+        return state;
+      }
+      return {
+        status: 'error',
+        error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
+      };
+    });
+  }
+
   private async redirectToWelcomeScreen(
     tabId: NonNullable<Tabs.Tab['id']>,
     result: GrantResult,
@@ -517,7 +701,7 @@ export class OpenPaymentsService {
             },
             {
               type: 'outgoing-payment',
-              actions: ['create'],
+              actions: ['create', 'read'],
               identifier: walletAddress.id,
               limits: {
                 debitAmount: {
@@ -569,39 +753,58 @@ export class OpenPaymentsService {
     if (calculatedHash !== hash) throw new Error('Invalid interaction hash');
   }
 
-  private async getInteractionInfo(url: string): Promise<InteractionParams> {
-    return await new Promise((res) => {
-      this.browser.tabs.create({ url }).then((tab) => {
-        if (!tab.id) return;
-        const getInteractionInfo: TabUpdateCallback = async (
-          tabId,
-          changeInfo,
-        ) => {
-          if (tabId !== tab.id) return;
-          try {
-            const tabUrl = new URL(changeInfo.url || '');
-            const interactRef = tabUrl.searchParams.get('interact_ref');
-            const hash = tabUrl.searchParams.get('hash');
-            const result = tabUrl.searchParams.get('result');
+  private async getInteractionInfo(
+    url: string,
+    existingTabId?: TabId,
+  ): Promise<InteractionParams> {
+    const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
-            if (
-              (interactRef && hash) ||
-              result === 'grant_rejected' ||
-              result === 'grant_invalid'
-            ) {
-              this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
-            }
+    const tab = existingTabId
+      ? await this.browser.tabs.update(existingTabId, { url })
+      : await this.browser.tabs.create({ url });
+    if (!tab.id) {
+      reject(new Error('Could not create/update tab'));
+      return promise;
+    }
 
-            if (interactRef && hash) {
-              res({ interactRef, hash, tabId });
-            }
-          } catch {
-            /* do nothing */
-          }
-        };
-        this.browser.tabs.onUpdated.addListener(getInteractionInfo);
-      });
-    });
+    const tabCloseListener: TabRemovedCallback = (tabId) => {
+      if (tabId !== tab.id) return;
+
+      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
+    };
+
+    const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
+      if (tabId !== tab.id) return;
+      try {
+        const tabUrl = new URL(changeInfo.url || '');
+        const interactRef = tabUrl.searchParams.get('interact_ref');
+        const hash = tabUrl.searchParams.get('hash');
+        const result = tabUrl.searchParams.get('result');
+
+        if (
+          (interactRef && hash) ||
+          result === 'grant_rejected' ||
+          result === 'grant_invalid'
+        ) {
+          this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
+          this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+        }
+
+        if (interactRef && hash) {
+          resolve({ interactRef, hash, tabId });
+        } else if (result === 'grant_rejected') {
+          reject(new ErrorWithKey('connectWallet_error_grantRejected'));
+        }
+      } catch {
+        /* do nothing */
+      }
+    };
+
+    this.browser.tabs.onRemoved.addListener(tabCloseListener);
+    this.browser.tabs.onUpdated.addListener(getInteractionInfo);
+
+    return promise;
   }
 
   async disconnectWallet() {
@@ -628,7 +831,7 @@ export class OpenPaymentsService {
     try {
       await this.client!.grant.cancel(grantContinuation);
     } catch (error) {
-      if (isInvalidClientError(error)) {
+      if (isInvalidClientError(error) || isInvalidContinuationError(error)) {
         // key already removed from wallet
         return;
       }
@@ -683,6 +886,63 @@ export class OpenPaymentsService {
     await this.storage.setState({ out_of_funds: false });
 
     return outgoingPayment;
+  }
+
+  /** Polls for the completion of an outgoing payment */
+  async *pollOutgoingPayment(
+    outgoingPaymentId: OutgoingPayment['id'],
+    {
+      signal,
+      maxAttempts = 10,
+    }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
+  ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
+    let attempt = 0;
+    await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
+    while (++attempt <= maxAttempts) {
+      try {
+        signal?.throwIfAborted();
+        const outgoingPayment = await this.client!.outgoingPayment.get({
+          url: outgoingPaymentId,
+          accessToken: this.token.value,
+        });
+        yield outgoingPayment;
+        if (
+          outgoingPayment.failed &&
+          outgoingPayment.sentAmount.value === '0'
+        ) {
+          throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
+        }
+        if (
+          outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
+        ) {
+          return outgoingPayment; // completed
+        }
+        signal?.throwIfAborted();
+        await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
+      } catch (error) {
+        if (
+          isTokenExpiredError(error) ||
+          isMissingGrantPermissionsError(error)
+        ) {
+          // TODO: We can remove the token `actions` check once we've proper RS
+          // errors in place. Then we can handle insufficient grant error
+          // separately clearly.
+          const token = await this.rotateToken();
+          const hasReadAccess = token.access_token.access.find(
+            (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
+          );
+          if (!hasReadAccess) {
+            throw new OpenPaymentsClientError('InsufficientGrant', {
+              description: error.description,
+            });
+          }
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
   }
 
   async probeDebitAmount(
@@ -770,6 +1030,7 @@ export class OpenPaymentsService {
       this.storage.set({ oneTimeGrant: { ...this.grant, accessToken } });
     }
     this.grant = { ...this.grant, accessToken };
+    return newToken;
   }
 }
 
@@ -787,6 +1048,11 @@ export const isInvalidClientError = (error: any) => {
   return error.status === 400 && error.code === 'invalid_client';
 };
 
+export const isInvalidContinuationError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false;
+  return error.status === 401 && error.code === 'invalid_continuation';
+};
+
 // RESOURCE SERVER error. Create outgoing payment and create quote can fail
 // with: `Signature validation error: could not find key in list of client keys`
 export const isSignatureValidationError = (error: any) => {
@@ -797,7 +1063,9 @@ export const isSignatureValidationError = (error: any) => {
   );
 };
 
-export const isTokenExpiredError = (error: any) => {
+export const isTokenExpiredError = (
+  error: any,
+): error is OpenPaymentsClientError => {
   if (!isOpenPaymentsClientError(error)) return false;
   return isTokenInvalidError(error) || isTokenInactiveError(error);
 };
@@ -820,6 +1088,17 @@ export const isNonPositiveAmountError = (error: any) => {
 export const isOutOfBalanceError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 403 && error.description === 'unauthorized';
+};
+
+export const isMissingGrantPermissionsError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false;
+  // providers using Rafiki <= v1.0.0-alpha.15 show "Insufficient Grant" error,
+  // but Rafiki >= v1.0.0-alpha.16 shows "Inactive Token" (due to
+  // https://github.com/interledger/rafiki/pull/2788)
+  return (
+    error.status === 403 &&
+    (error.description === 'Insufficient Grant' || isTokenInactiveError(error))
+  );
 };
 
 export const isInvalidReceiverError = (error: any) => {

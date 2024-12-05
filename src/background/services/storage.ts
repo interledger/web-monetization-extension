@@ -2,6 +2,7 @@ import type {
   AmountValue,
   ExtensionState,
   GrantDetails,
+  PopupTransientState,
   Storage,
   StorageKey,
   WalletAmount,
@@ -18,10 +19,11 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 3,
+  version: 4,
   state: {},
   connected: false,
   enabled: true,
+  continuousPaymentsEnabled: true,
   exceptionList: {},
   walletAddress: null,
   recurringGrant: null,
@@ -41,6 +43,8 @@ export class StorageService {
   private setSpentAmountOneTime: ThrottleBatch<[amount: string]>;
   // used as an optimization/cache
   private currentState: Storage['state'] | null = null;
+
+  private popupTransientState: PopupTransientState = {};
 
   constructor({ browser, events }: Cradle) {
     Object.assign(this, { browser, events });
@@ -113,9 +117,11 @@ export class StorageService {
   }
 
   async getWMState(): Promise<boolean> {
-    const { enabled } = await this.get(['enabled']);
+    const { continuousPaymentsEnabled } = await this.get([
+      'continuousPaymentsEnabled',
+    ]);
 
-    return enabled;
+    return continuousPaymentsEnabled;
   }
 
   async keyPairExists(): Promise<boolean> {
@@ -201,6 +207,21 @@ export class StorageService {
     await this.set({ rateOfPay: rate });
     this.events.emit('storage.rate_of_pay_update', { rate });
   }
+
+  setPopupTransientState<T extends keyof PopupTransientState>(
+    id: T,
+    update: (prev?: PopupTransientState[T]) => PopupTransientState[T],
+  ) {
+    const newState = update(this.popupTransientState[id]);
+    this.popupTransientState[id] = newState;
+
+    const state = this.getPopupTransientState();
+    this.events.emit('storage.popup_transient_state_update', state);
+  }
+
+  getPopupTransientState(): PopupTransientState {
+    return this.popupTransientState;
+  }
 }
 
 /**
@@ -264,6 +285,11 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
         ? { [data.state as ExtensionState]: true }
         : {};
     data.state = newState satisfies Storage['state'];
+    return [data];
+  },
+  4: (data) => {
+    data.continuousPaymentsEnabled = data.enabled;
+    data.enabled = true;
     return [data];
   },
 };

@@ -1,20 +1,28 @@
-import type { Runtime } from 'webextension-polyfill';
-import {
+import type { Runtime, Tabs } from 'webextension-polyfill';
+import type {
+  PayWebsitePayload,
+  PayWebsiteResponse,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
   StopMonetizationPayload,
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
-import {
-  computeRate,
-  getCurrentActiveTab,
-  getSender,
-  getTabId,
-} from '../utils';
+import { computeRate, getSender, getTabId } from '../utils';
 import { isOutOfBalanceError } from './openPayments';
-import { isOkState, removeQueryParams } from '@/shared/helpers';
-import { ALLOWED_PROTOCOLS } from '@/shared/defines';
+import {
+  OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
+  OUTGOING_PAYMENT_POLLING_MAX_DURATION,
+} from '@/background/config';
+import {
+  ErrorWithKey,
+  formatCurrency,
+  isErrorWithKey,
+  isOkState,
+  removeQueryParams,
+  transformBalance,
+} from '@/shared/helpers';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
+import type { OutgoingPayment } from '@interledger/open-payments';
 import type { Cradle } from '../container';
 
 export class MonetizationService {
@@ -25,6 +33,7 @@ export class MonetizationService {
   private browser: Cradle['browser'];
   private events: Cradle['events'];
   private tabState: Cradle['tabState'];
+  private windowState: Cradle['windowState'];
   private message: Cradle['message'];
 
   constructor({
@@ -35,6 +44,7 @@ export class MonetizationService {
     events,
     openPaymentsService,
     tabState,
+    windowState,
     message,
   }: Cradle) {
     Object.assign(this, {
@@ -45,6 +55,7 @@ export class MonetizationService {
       browser,
       events,
       tabState,
+      windowState,
       message,
     });
 
@@ -52,7 +63,7 @@ export class MonetizationService {
   }
 
   async startPaymentSession(
-    payload: StartMonetizationPayload[],
+    payload: StartMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
     if (!payload.length) {
@@ -60,13 +71,13 @@ export class MonetizationService {
     }
     const {
       state,
-      enabled,
+      continuousPaymentsEnabled,
       rateOfPay,
       connected,
       walletAddress: connectedWallet,
     } = await this.storage.get([
       'state',
-      'enabled',
+      'continuousPaymentsEnabled',
       'connected',
       'rateOfPay',
       'walletAddress',
@@ -122,7 +133,7 @@ export class MonetizationService {
     const isAdjusted = await this.adjustSessionsAmount(sessionsArr, rate);
     if (!isAdjusted) return;
 
-    if (enabled && this.canTryPayment(connected, state)) {
+    if (continuousPaymentsEnabled && this.canTryPayment(connected, state)) {
       sessionsArr.forEach((session) => {
         if (!sessions.get(session.id)) return;
         const source = replacedSessions.has(session.id)
@@ -146,7 +157,7 @@ export class MonetizationService {
   }
 
   async stopPaymentSession(
-    payload: StopMonetizationPayload[],
+    payload: StopMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
     let needsAdjustAmount = false;
@@ -191,7 +202,7 @@ export class MonetizationService {
   }
 
   async resumePaymentSession(
-    payload: ResumeMonetizationPayload[],
+    payload: ResumeMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
     const tabId = getTabId(sender);
@@ -202,12 +213,14 @@ export class MonetizationService {
       return;
     }
 
-    const { state, connected, enabled } = await this.storage.get([
-      'state',
-      'connected',
-      'enabled',
-    ]);
-    if (!enabled || !this.canTryPayment(connected, state)) return;
+    const { state, connected, continuousPaymentsEnabled } =
+      await this.storage.get([
+        'state',
+        'connected',
+        'continuousPaymentsEnabled',
+      ]);
+    if (!continuousPaymentsEnabled || !this.canTryPayment(connected, state))
+      return;
 
     payload.forEach((p) => {
       const { requestId } = p;
@@ -223,12 +236,14 @@ export class MonetizationService {
       return;
     }
 
-    const { state, connected, enabled } = await this.storage.get([
-      'state',
-      'connected',
-      'enabled',
-    ]);
-    if (!enabled || !this.canTryPayment(connected, state)) return;
+    const { state, connected, continuousPaymentsEnabled } =
+      await this.storage.get([
+        'state',
+        'connected',
+        'continuousPaymentsEnabled',
+      ]);
+    if (!continuousPaymentsEnabled || !this.canTryPayment(connected, state))
+      return;
 
     for (const session of sessions.values()) {
       session.resume();
@@ -236,19 +251,26 @@ export class MonetizationService {
   }
 
   async resumePaymentSessionActiveTab() {
-    const currentTab = await getCurrentActiveTab(this.browser);
+    const currentTab = await this.windowState.getCurrentTab();
     if (!currentTab?.id) return;
     await this.resumePaymentSessionsByTabId(currentTab.id);
   }
 
   async toggleWM() {
-    const { enabled } = await this.storage.get(['enabled']);
-    await this.storage.set({ enabled: !enabled });
-    await this.message.sendToActiveTab('EMIT_TOGGLE_WM', { enabled: !enabled });
+    const { continuousPaymentsEnabled } = await this.storage.get([
+      'continuousPaymentsEnabled',
+    ]);
+    const nowEnabled = !continuousPaymentsEnabled;
+    await this.storage.set({ continuousPaymentsEnabled: nowEnabled });
+    if (nowEnabled) {
+      await this.resumePaymentSessionActiveTab();
+    } else {
+      this.stopAllSessions();
+    }
   }
 
-  async pay(amount: string) {
-    const tab = await getCurrentActiveTab(this.browser);
+  async pay({ amount }: PayWebsitePayload): Promise<PayWebsiteResponse> {
+    const tab = await this.windowState.getCurrentTab();
     if (!tab || !tab.id) {
       throw new Error('Unexpected error: could not find active tab.');
     }
@@ -261,24 +283,93 @@ export class MonetizationService {
       throw new Error(this.t('pay_error_notMonetized'));
     }
 
+    const { walletAddress } = await this.storage.get(['walletAddress']);
+    if (!walletAddress) {
+      throw new Error('Unexpected: wallet address not found.');
+    }
+    const { assetCode, assetScale } = walletAddress;
+
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
     const results = await Promise.allSettled(
       payableSessions.map((session) => session.pay(splitAmount)),
     );
 
-    const totalSentAmount = results
-      .filter((e) => e.status === 'fulfilled')
-      .reduce((acc, curr) => acc + BigInt(curr.value?.value ?? 0), 0n);
+    const outgoingPayments = new Map<string, OutgoingPayment | null>(
+      payableSessions.map((s, i) => [
+        s.id,
+        results[i].status === 'fulfilled' ? results[i].value : null,
+      ]),
+    );
+    this.logger.debug('polling outgoing payments for completion');
+    const signal = AbortSignal.timeout(OUTGOING_PAYMENT_POLLING_MAX_DURATION); // can use other signals as well, such as popup closed etc.
+    const pollingResults = await Promise.allSettled(
+      [...outgoingPayments]
+        .filter(([, outgoingPayment]) => outgoingPayment !== null)
+        .map(async ([sessionId, outgoingPaymentInitial]) => {
+          for await (const outgoingPayment of this.openPaymentsService.pollOutgoingPayment(
+            // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
+            outgoingPaymentInitial!.id,
+            { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
+          )) {
+            outgoingPayments.set(sessionId, outgoingPayment);
+          }
+          return outgoingPayments.get(sessionId)!;
+        }),
+    );
+
+    const totalSentAmount = [...outgoingPayments.values()].reduce(
+      (acc, op) => acc + BigInt(op?.sentAmount?.value ?? 0),
+      0n,
+    );
+    const totalDebitAmount = [...outgoingPayments.values()].reduce(
+      (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
+      0n,
+    );
+
     if (totalSentAmount === 0n) {
+      const pollingErrors = pollingResults
+        .filter((e) => e.status === 'rejected')
+        .map((e) => e.reason);
+
+      if (pollingErrors.some((e) => e.message === 'InsufficientGrant')) {
+        this.logger.warn('Insufficient grant to read outgoing payments');
+        // This permission request to read outgoing payments was added at a
+        // later time, so existing connected wallets won't have this permission.
+        // Assume as success for backward compatibility.
+        const sentAmount = transformBalance(totalDebitAmount, assetScale);
+        return {
+          type: 'full',
+          sentAmount: sentAmount,
+          sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+        };
+      }
+
       const isNotEnoughFunds = results
         .filter((e) => e.status === 'rejected')
         .some((e) => isOutOfBalanceError(e.reason));
+      const isPollingLimitReached = pollingErrors.some(
+        (err) =>
+          (isErrorWithKey(err) &&
+            err.key === 'pay_warn_outgoingPaymentPollingIncomplete') ||
+          (err instanceof DOMException && err.name === 'TimeoutError'),
+      );
+
       if (isNotEnoughFunds) {
-        throw new Error(this.t('pay_error_notEnoughFunds'));
+        throw new ErrorWithKey('pay_error_notEnoughFunds');
       }
-      throw new Error('Could not facilitate payment for current website.');
+      if (isPollingLimitReached) {
+        throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
+      }
+      throw new ErrorWithKey('pay_error_general');
     }
+
+    const sentAmount = transformBalance(totalSentAmount, assetScale);
+    return {
+      type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
+      sentAmount: sentAmount,
+      sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+    };
   }
 
   private canTryPayment(
@@ -311,7 +402,7 @@ export class MonetizationService {
       const tabIds = this.tabState.getAllTabs();
 
       // Move the current active tab to the front of the array
-      const currentTab = await getCurrentActiveTab(this.browser);
+      const currentTab = await this.windowState.getCurrentTab();
       if (currentTab?.id) {
         const idx = tabIds.indexOf(currentTab.id);
         if (idx !== -1) {
@@ -366,9 +457,10 @@ export class MonetizationService {
     this.logger.debug(`All payment sessions stopped.`);
   }
 
-  async getPopupData(): Promise<PopupStore> {
+  async getPopupData(tab: Pick<Tabs.Tab, 'id' | 'url'>): Promise<PopupStore> {
     const storedData = await this.storage.get([
       'enabled',
+      'continuousPaymentsEnabled',
       'connected',
       'state',
       'rateOfPay',
@@ -380,37 +472,18 @@ export class MonetizationService {
       'publicKey',
     ]);
     const balance = await this.storage.getBalance();
-    const tab = await getCurrentActiveTab(this.browser);
 
     const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData;
-
-    let url;
-    if (tab && tab.url) {
-      try {
-        const tabUrl = new URL(tab.url);
-        if (ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
-          // Do not include search params
-          url = `${tabUrl.origin}${tabUrl.pathname}`;
-        }
-      } catch {
-        // noop
-      }
-    }
-    const isSiteMonetized = this.tabState.isTabMonetized(tab.id!);
-    const hasAllSessionsInvalid = this.tabState.tabHasAllSessionsInvalid(
-      tab.id!,
-    );
 
     return {
       ...dataFromStorage,
       balance: balance.total.toString(),
-      url,
+      tab: this.tabState.getPopupTabData(tab),
+      transientState: this.storage.getPopupTransientState(),
       grants: {
         oneTime: oneTimeGrant?.amount,
         recurring: recurringGrant?.amount,
       },
-      isSiteMonetized,
-      hasAllSessionsInvalid,
     };
   }
 

@@ -1,13 +1,16 @@
 import type { Browser } from 'webextension-polyfill';
 import type { ToBackgroundMessage } from '@/shared/messages';
 import {
+  errorWithKeyToJSON,
   failure,
   getNextOccurrence,
   getWalletInformation,
+  isErrorWithKey,
   success,
 } from '@/shared/helpers';
+import { KeyAutoAddService } from './keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getCurrentActiveTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
+import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
 import type { Cradle } from '@/background/container';
 
@@ -21,6 +24,7 @@ export class Background {
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
   private tabEvents: Cradle['tabEvents'];
+  private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
   private events: Cradle['events'];
   private heartbeat: Cradle['heartbeat'];
@@ -32,6 +36,7 @@ export class Background {
     storage,
     logger,
     tabEvents,
+    windowState,
     sendToPopup,
     events,
     heartbeat,
@@ -43,6 +48,7 @@ export class Background {
       storage,
       sendToPopup,
       tabEvents,
+      windowState,
       logger,
       events,
       heartbeat,
@@ -51,6 +57,7 @@ export class Background {
 
   async start() {
     this.bindOnInstalled();
+    await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
     this.bindMessageHandler();
@@ -59,9 +66,43 @@ export class Background {
     this.bindTabHandlers();
     this.bindWindowHandlers();
     this.sendToPopup.start();
+    await KeyAutoAddService.registerContentScripts({ browser: this.browser });
+  }
+
+  // TODO: When Firefox 128 is old enough, inject directly via manifest.
+  // Also see: injectPolyfill in contentScript
+  // See: https://github.com/interledger/web-monetization-extension/issues/607
+  async injectPolyfill() {
+    try {
+      await this.browser.scripting.registerContentScripts([
+        {
+          world: 'MAIN',
+          id: 'polyfill',
+          allFrames: true,
+          js: ['polyfill/polyfill.js'],
+          matches: PERMISSION_HOSTS.origins,
+          runAt: 'document_start',
+        },
+      ]);
+    } catch (error) {
+      // Firefox <128 will throw saying world: MAIN isn't supported. So, we'll
+      // inject via contentScript later. Injection via contentScript is slow,
+      // but apart from WM detection on page-load, everything else works fine.
+      if (!error.message.includes(`world`)) {
+        this.logger.error(
+          `Content script execution world \`MAIN\` not supported by your browser.\n` +
+            `Check https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/scripting/ExecutionWorld#browser_compatibility for browser compatibility.`,
+          error,
+        );
+      }
+    }
   }
 
   async onStart() {
+    const activeWindow = await this.browser.windows.getLastFocused();
+    if (activeWindow.id) {
+      this.windowState.setCurrentWindowId(activeWindow.id);
+    }
     await this.storage.populate();
     await this.checkPermissions();
     await this.scheduleResetOutOfFundsState();
@@ -87,36 +128,49 @@ export class Background {
   }
 
   bindWindowHandlers() {
+    this.browser.windows.onCreated.addListener(
+      this.windowState.onWindowCreated,
+    );
+
+    this.browser.windows.onRemoved.addListener(
+      this.windowState.onWindowRemoved,
+    );
+
+    let popupOpen = false;
     this.browser.windows.onFocusChanged.addListener(async () => {
       const windows = await this.browser.windows.getAll({
-        windowTypes: ['normal', 'panel', 'popup'],
+        windowTypes: ['normal'],
       });
-      windows.forEach(async (w) => {
-        const activeTab = (
-          await this.browser.tabs.query({ windowId: w.id, active: true })
-        )[0];
-        if (!activeTab?.id) return;
-        if (this.sendToPopup.isPopupOpen) {
-          this.logger.debug('Popup is open, ignoring focus change');
-          return;
-        }
+      const popupWasOpen = popupOpen;
+      popupOpen = this.sendToPopup.isPopupOpen;
+      if (popupWasOpen || popupOpen) {
+        // This is intentionally called after windows.getAll, to add a little
+        // delay for popup port to open
+        this.logger.debug('Popup is open, ignoring focus change');
+        return;
+      }
+      for (const window of windows) {
+        const windowId = window.id!;
 
-        if (w.focused) {
-          this.logger.debug(
-            `Trying to resume monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`,
+        const tabIds = await this.windowState.getTabsForCurrentView(windowId);
+        if (window.focused) {
+          this.windowState.setCurrentWindowId(windowId);
+          this.logger.info(
+            `[focus change] resume monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
-          void this.monetizationService.resumePaymentSessionsByTabId(
-            activeTab.id,
-          );
+          for (const tabId of tabIds) {
+            await this.monetizationService.resumePaymentSessionsByTabId(tabId);
+          }
+          await this.updateVisualIndicatorsForCurrentTab();
         } else {
-          this.logger.debug(
-            `Trying to pause monetization for window=${w.id}, activeTab=${activeTab.id} (URL: ${activeTab.url})`,
+          this.logger.info(
+            `[focus change] stop monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
-          void this.monetizationService.stopPaymentSessionsByTabId(
-            activeTab.id,
-          );
+          for (const tabId of tabIds) {
+            void this.monetizationService.stopPaymentSessionsByTabId(tabId);
+          }
         }
-      });
+      }
     });
   }
 
@@ -135,14 +189,18 @@ export class Background {
           switch (message.action) {
             // region Popup
             case 'GET_CONTEXT_DATA':
-              return success(await this.monetizationService.getPopupData());
+              return success(
+                await this.monetizationService.getPopupData(
+                  await this.windowState.getCurrentTab(),
+                ),
+              );
 
             case 'CONNECT_WALLET':
               await this.openPaymentsService.connectWallet(message.payload);
-              if (message.payload.recurring) {
+              if (message.payload?.recurring) {
                 this.scheduleResetOutOfFundsState();
               }
-              return;
+              return success(undefined);
 
             case 'RECONNECT_WALLET': {
               await this.openPaymentsService.reconnectWallet();
@@ -150,6 +208,10 @@ export class Background {
               await this.updateVisualIndicatorsForCurrentTab();
               return success(undefined);
             }
+
+            case 'UPDATE_BUDGET':
+              await this.openPaymentsService.updateBudget(message.payload);
+              return success(undefined);
 
             case 'ADD_FUNDS':
               await this.openPaymentsService.addFunds(message.payload);
@@ -179,16 +241,20 @@ export class Background {
 
             case 'PAY_WEBSITE':
               return success(
-                await this.monetizationService.pay(message.payload.amount),
+                await this.monetizationService.pay(message.payload),
               );
 
             // endregion
 
             // region Content
-            case 'CHECK_WALLET_ADDRESS_URL':
+            case 'GET_WALLET_ADDRESS_INFO':
               return success(
                 await getWalletInformation(message.payload.walletAddressUrl),
               );
+
+            case 'TAB_FOCUSED':
+              await this.tabEvents.onFocussedTab(getTab(sender));
+              return;
 
             case 'START_MONETIZATION':
               await this.monetizationService.startPaymentSession(
@@ -211,15 +277,16 @@ export class Background {
               );
               return;
 
-            case 'IS_WM_ENABLED':
-              return success(await this.storage.getWMState());
-
             // endregion
 
             default:
               return;
           }
         } catch (e) {
+          if (isErrorWithKey(e)) {
+            this.logger.error(message.action, e);
+            return failure(errorWithKeyToJSON(e));
+          }
           if (e instanceof OpenPaymentsClientError) {
             this.logger.error(message.action, e.message, e.description);
             return failure(
@@ -234,9 +301,9 @@ export class Background {
   }
 
   private async updateVisualIndicatorsForCurrentTab() {
-    const activeTab = await getCurrentActiveTab(this.browser);
+    const activeTab = await this.windowState.getCurrentTab();
     if (activeTab?.id) {
-      void this.tabEvents.updateVisualIndicators(activeTab.id, activeTab.url);
+      void this.tabEvents.updateVisualIndicators(activeTab);
     }
   }
 
@@ -253,7 +320,11 @@ export class Background {
 
     this.events.on('monetization.state_update', async (tabId) => {
       const tab = await this.browser.tabs.get(tabId);
-      void this.tabEvents.updateVisualIndicators(tabId, tab?.url);
+      void this.tabEvents.updateVisualIndicators(tab);
+    });
+
+    this.events.on('storage.popup_transient_state_update', (state) => {
+      this.sendToPopup.send('SET_TRANSIENT_STATE', state);
     });
 
     this.events.on('storage.balance_update', (balance) =>

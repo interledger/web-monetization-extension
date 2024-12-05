@@ -16,7 +16,7 @@
 'area: popup':
   - any:
       - changed-files:
-          - any-glob-to-any-file: 'src/popup/**/*'
+          - any-glob-to-any-file: 'src/pages/popup/**/*'
 
 'area: documentation':
   - any:
@@ -29,6 +29,7 @@
   - any:
       - changed-files:
           - any-glob-to-any-file: '**/*.test.ts'
+          - any-glob-to-any-file: 'tests/**/*'
 
 'area: i18n':
   - any:

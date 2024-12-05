@@ -1,5 +1,5 @@
 import type { SuccessResponse } from '@/shared/messages';
-import type { WalletAddress } from '@interledger/open-payments/dist/types';
+import type { WalletAddress, JWKS } from '@interledger/open-payments';
 import { cx, CxOptions } from 'class-variance-authority';
 import { twMerge } from 'tailwind-merge';
 import { addSeconds } from 'date-fns/addSeconds';
@@ -9,16 +9,29 @@ import { parse, toSeconds } from 'iso8601-duration';
 import type { Browser } from 'webextension-polyfill';
 import type { Storage, RepeatingInterval, AmountValue } from './types';
 
+export type TranslationKeys =
+  keyof typeof import('../_locales/en/messages.json');
+
+export type ErrorKeys = Extract<
+  TranslationKeys,
+  `${string}_${'error' | 'warn'}_${string}`
+>;
+
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
 };
 
-export const formatCurrency = (value: any): string => {
-  if (value < 1) {
-    return `${Math.round(value * 100)}c`;
-  } else {
-    return `$${parseFloat(value).toFixed(2)}`;
-  }
+export const formatCurrency = (
+  value: string | number,
+  currency: string,
+  maximumFractionDigits = 2,
+  locale?: string,
+): string => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits,
+  }).format(Number(value));
 };
 
 const isWalletAddress = (o: any): o is WalletAddress => {
@@ -44,13 +57,76 @@ export const getWalletInformation = async (
       Accept: 'application/json',
     },
   });
-  const json = await response.json();
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('This wallet address does not exist.');
+    }
+    throw new Error('Failed to fetch wallet address.');
+  }
 
+  const msgInvalidWalletAddress = `Provided URL is not a valid wallet address.`;
+  const json = await response.json().catch((error) => {
+    throw new Error(msgInvalidWalletAddress, { cause: error });
+  });
   if (!isWalletAddress(json)) {
-    throw new Error('Invalid wallet address response.');
+    throw new Error(msgInvalidWalletAddress);
   }
 
   return json;
+};
+
+export const getJWKS = async (walletAddressUrl: string) => {
+  const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
+  const res = await fetch(jwksUrl.href);
+  const json = await res.json();
+  return json as JWKS;
+};
+
+/**
+ * Error object with key and substitutions based on `_locales/[lang]/messages.json`
+ */
+export interface ErrorWithKeyLike<T extends ErrorKeys = ErrorKeys> {
+  key: Extract<ErrorKeys, T>;
+  // Could be empty, but required for checking if an object follows this interface
+  substitutions: string[];
+  cause?: ErrorWithKeyLike;
+}
+
+export class ErrorWithKey<T extends ErrorKeys = ErrorKeys>
+  extends Error
+  implements ErrorWithKeyLike<T>
+{
+  constructor(
+    public readonly key: ErrorWithKeyLike<T>['key'],
+    public readonly substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
+    public readonly cause?: ErrorWithKeyLike,
+  ) {
+    super(key, { cause });
+  }
+}
+
+/**
+ * Same as {@linkcode ErrorWithKey} but creates plain object instead of Error
+ * instance.
+ * Easier than creating object ourselves, but more performant than Error.
+ */
+export const errorWithKey = <T extends ErrorKeys = ErrorKeys>(
+  key: ErrorWithKeyLike<T>['key'],
+  substitutions: ErrorWithKeyLike<T>['substitutions'] = [],
+  cause?: ErrorWithKeyLike,
+) => ({ key, substitutions, cause });
+
+export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
+  if (!err || typeof err !== 'object') return false;
+  return (
+    err instanceof ErrorWithKey ||
+    (typeof err.key === 'string' && Array.isArray(err.substitutions))
+  );
+};
+
+export const errorWithKeyToJSON = (err: ErrorWithKeyLike): ErrorWithKeyLike => {
+  const { key, substitutions, cause } = err;
+  return { key, substitutions, cause };
 };
 
 export const success = <TPayload = undefined>(
@@ -60,9 +136,11 @@ export const success = <TPayload = undefined>(
   payload,
 });
 
-export const failure = (message: string) => ({
-  success: false,
-  message,
+export const failure = (message: string | ErrorWithKeyLike) => ({
+  success: false as const,
+  ...(typeof message === 'string'
+    ? { message }
+    : { error: message, message: message.key }),
 });
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -98,22 +176,22 @@ export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
 export function throttle<T extends unknown[], R>(
   func: (...args: T) => R,
   wait: number,
-  options: Partial<{ leading: boolean; trailing: boolean }> = {
-    leading: false,
-    trailing: false,
-  },
+  {
+    leading = false,
+    trailing = false,
+  }: Partial<{ leading: boolean; trailing: boolean }> = {},
 ) {
   let result: R;
   let timeout: ReturnType<typeof setTimeout> | null = null;
   let previous = 0;
   const later = (...args: T) => {
-    previous = options.leading === false ? 0 : Date.now();
+    previous = leading === false ? 0 : Date.now();
     timeout = null;
     result = func(...args);
   };
   return (...args: T) => {
     const now = Date.now();
-    if (!previous && options.leading === false) previous = now;
+    if (!previous && leading === false) previous = now;
     const remaining = wait - (now - previous);
     if (remaining <= 0 || remaining > wait) {
       if (timeout) {
@@ -122,7 +200,7 @@ export function throttle<T extends unknown[], R>(
       }
       previous = now;
       result = func(...args);
-    } else if (!timeout && options.trailing !== false) {
+    } else if (!timeout && trailing !== false) {
       timeout = setTimeout(later, remaining, ...args);
     }
     return result;
@@ -195,11 +273,22 @@ export function convert(value: bigint, source: number, target: number) {
   return value / BigInt(Math.pow(10, -scaleDiff));
 }
 
+export const transformBalance = (
+  amount: string | bigint,
+  scale: number,
+): string => {
+  const value = BigInt(amount);
+  const divisor = BigInt(10 ** scale);
+
+  const integerPart = (value / divisor).toString();
+  const fractionalPart = (value % divisor).toString().padStart(scale, '0');
+
+  return `${integerPart}.${fractionalPart}`;
+};
+
 export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
   return BigInt(a) > BigInt(b) ? a : b;
 }
-
-type TranslationKeys = keyof typeof import('../_locales/en/messages.json');
 
 export type Translation = ReturnType<typeof tFactory>;
 export function tFactory(browser: Pick<Browser, 'i18n'>) {
@@ -207,10 +296,19 @@ export function tFactory(browser: Pick<Browser, 'i18n'>) {
    * Helper over calling cumbersome `this.browser.i18n.getMessage(key)` with
    * added benefit that it type-checks if key exists in message.json
    */
-  return <T extends TranslationKeys>(
+  function t<T extends TranslationKeys>(
     key: T,
-    substitutions?: string | string[],
-  ) => browser.i18n.getMessage(key, substitutions);
+    substitutions?: string[],
+  ): string;
+  function t<T extends ErrorKeys>(err: ErrorWithKeyLike<T>): string;
+  function t(key: string | ErrorWithKeyLike, substitutions?: string[]): string {
+    if (typeof key === 'string') {
+      return browser.i18n.getMessage(key, substitutions);
+    }
+    const err = key;
+    return browser.i18n.getMessage(err.key, err.substitutions);
+  }
+  return t;
 }
 
 type Primitive = string | number | boolean | null | undefined;
@@ -222,10 +320,32 @@ export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
   return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort());
 }
 
+export function isNotNull<T>(value: T | null): value is T {
+  return value !== null;
+}
+
 export const removeQueryParams = (urlString: string) => {
   const url = new URL(urlString);
   return url.origin + url.pathname;
 };
+
+export const ensureEnd = (str: string, suffix: string) => {
+  return str.endsWith(suffix) ? str : str + suffix;
+};
+
+/**
+ * Polyfill for `Promise.withResolvers()`
+ */
+export function withResolvers<T>() {
+  let resolve: (value: T | PromiseLike<T>) => void;
+  let reject: (reason?: any) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  // @ts-expect-error we know TypeScript!
+  return { resolve, reject, promise };
+}
 
 export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false);
@@ -257,4 +377,29 @@ export const getNextOccurrence = (
   }
 
   return date;
+};
+
+export type BrowserName = 'chrome' | 'edge' | 'firefox' | 'unknown';
+
+export const getBrowserName = (
+  browser: Browser,
+  userAgent: string,
+): BrowserName => {
+  const url = browser.runtime.getURL('');
+  if (url.startsWith('moz-extension://')) {
+    return 'firefox';
+  }
+  if (url.startsWith('extension://')) {
+    // works only in Playwright?
+    return 'edge';
+  }
+
+  if (url.startsWith('chrome-extension://')) {
+    if (userAgent.includes('Edg/')) {
+      return 'edge';
+    }
+    return 'chrome';
+  }
+
+  return 'unknown';
 };

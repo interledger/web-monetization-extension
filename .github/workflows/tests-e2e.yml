@@ -1,0 +1,77 @@
+name: End-to-End Tests
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  test-e2e:
+    if: ${{
+      github.event.review.body == 'test-e2e' &&
+      contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
+      }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Chrome
+            project: chrome
+            target: chrome
+            runs-on: ubuntu-22.04
+          # - name: Firefox
+          #   project: firefox
+          #   target: firefox
+          #   runs-on: ubuntu-22.04
+          - name: Edge
+            project: msedge
+            target: chrome
+            runs-on: ubuntu-22.04
+
+    timeout-minutes: 15
+    name: E2E Tests - ${{ matrix.name }}
+    runs-on: ${{ matrix.runs-on }}
+    environment: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build ${{ matrix.target }} --channel=nightly
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: pnpm test:e2e:${{ matrix.project }}
+        env:
+          PLAYWRIGHT_PROJECT: ${{ matrix.project }}
+          PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: '1'
+          TEST_WALLET_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
+          TEST_WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
+          TEST_WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}
+          TEST_WALLET_ADDRESS_URL: ${{ vars.E2E_CONNECT_WALLET_ADDRESS_URL }}
+          TEST_WALLET_KEY_ID: ${{ vars.E2E_CONNECT_KEY_ID }}
+          TEST_WALLET_PUBLIC_KEY: ${{ secrets.E2E_CONNECT_PUBLIC_KEY }}
+          TEST_WALLET_PRIVATE_KEY: ${{ secrets.E2E_CONNECT_PRIVATE_KEY }}
+          FYNBOS_WALLET_ADDRESS_URL: ${{ vars.E2E_FYNBOS_WALLET_ADDRESS_URL }}
+          FYNBOS_USERNAME: ${{ vars.E2E_FYNBOS_USERNAME }}
+          FYNBOS_PASSWORD: ${{ secrets.E2E_FYNBOS_PASSWORD }}
+          CHIMONEY_WALLET_ORIGIN: ${{ vars.E2E_CHIMONEY_WALLET_URL_ORIGIN }}
+          CHIMONEY_WALLET_ADDRESS_URL: ${{ vars.E2E_CHIMONEY_WALLET_ADDRESS_URL }}
+          CHIMONEY_USERNAME: ${{ vars.E2E_CHIMONEY_USERNAME }}
+          CHIMONEY_PASSWORD: ${{ secrets.E2E_CHIMONEY_PASSWORD }}
+
+      - name: Encrypt report
+        shell: bash
+        working-directory: tests/e2e/playwright-report
+        run: |
+          zip -r -P ${{ secrets.E2E_PLAYWRIGHT_REPORT_PASSWORD }} ../playwright-report.zip *
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: tests/e2e/playwright-report.zip
+          retention-days: 3

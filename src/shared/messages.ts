@@ -3,7 +3,8 @@ import type {
   OutgoingPayment,
 } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
-import type { AmountValue, Storage } from '@/shared/types';
+import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
+import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { PopupState } from '@/popup/lib/context';
 
 // #region MessageManager
@@ -15,6 +16,7 @@ export interface SuccessResponse<TPayload = void> {
 export interface ErrorResponse {
   success: false;
   message: string;
+  error?: ErrorWithKeyLike;
 }
 
 export type Response<TPayload = void> =
@@ -91,6 +93,8 @@ export interface ConnectWalletPayload {
   walletAddressUrl: string;
   amount: string;
   recurring: boolean;
+  autoKeyAdd: boolean;
+  autoKeyAddConsent: boolean | null;
 }
 
 export interface AddFundsPayload {
@@ -102,8 +106,20 @@ export interface PayWebsitePayload {
   amount: string;
 }
 
+export interface PayWebsiteResponse {
+  type: 'full' | 'partial';
+  sentAmount: string;
+  sentAmountFormatted: string;
+}
+
 export interface UpdateRateOfPayPayload {
   rateOfPay: string;
+}
+
+export interface UpdateBudgetPayload {
+  walletAddressUrl: ConnectWalletPayload['walletAddressUrl'];
+  amount: ConnectWalletPayload['amount'];
+  recurring: ConnectWalletPayload['recurring'];
 }
 
 export type PopupToBackgroundMessage = {
@@ -112,8 +128,12 @@ export type PopupToBackgroundMessage = {
     output: PopupState;
   };
   CONNECT_WALLET: {
-    input: ConnectWalletPayload;
-    output: never;
+    input: null | ConnectWalletPayload;
+    output: void;
+  };
+  UPDATE_BUDGET: {
+    input: UpdateBudgetPayload;
+    output: void;
   };
   RECONNECT_WALLET: {
     input: never;
@@ -133,7 +153,7 @@ export type PopupToBackgroundMessage = {
   };
   PAY_WEBSITE: {
     input: PayWebsitePayload;
-    output: never;
+    output: PayWebsiteResponse;
   };
   UPDATE_RATE_OF_PAY: {
     input: UpdateRateOfPayPayload;
@@ -143,48 +163,51 @@ export type PopupToBackgroundMessage = {
 // #endregion
 
 // #region Content ↦ BG
-export interface CheckWalletAddressUrlPayload {
+export interface GetWalletAddressInfoPayload {
   walletAddressUrl: string;
 }
 
-export interface StartMonetizationPayload {
+export interface StartMonetizationPayloadEntry {
   walletAddress: WalletAddress;
   requestId: string;
 }
+export type StartMonetizationPayload = StartMonetizationPayloadEntry[];
 
-export interface StopMonetizationPayload {
+export interface StopMonetizationPayloadEntry {
   requestId: string;
   intent?: 'remove' | 'disable';
 }
+export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
-export interface ResumeMonetizationPayload {
+export interface ResumeMonetizationPayloadEntry {
   requestId: string;
 }
+export type ResumeMonetizationPayload = ResumeMonetizationPayloadEntry[];
 
 export interface IsTabMonetizedPayload {
   value: boolean;
 }
 
 export type ContentToBackgroundMessage = {
-  CHECK_WALLET_ADDRESS_URL: {
-    input: CheckWalletAddressUrlPayload;
+  GET_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload;
     output: WalletAddress;
   };
+  TAB_FOCUSED: {
+    input: never;
+    output: never;
+  };
   STOP_MONETIZATION: {
-    input: StopMonetizationPayload[];
+    input: StopMonetizationPayload;
     output: never;
   };
   START_MONETIZATION: {
-    input: StartMonetizationPayload[];
+    input: StartMonetizationPayload;
     output: never;
   };
   RESUME_MONETIZATION: {
-    input: ResumeMonetizationPayload[];
+    input: ResumeMonetizationPayload;
     output: never;
-  };
-  IS_WM_ENABLED: {
-    input: never;
-    output: boolean;
   };
 };
 // #endregion
@@ -213,18 +236,14 @@ export interface MonetizationEventPayload {
   details: MonetizationEventDetails;
 }
 
-export interface EmitToggleWMPayload {
-  enabled: boolean;
-}
-
 export type BackgroundToContentMessage = {
   MONETIZATION_EVENT: {
     input: MonetizationEventPayload;
     output: never;
   };
-  EMIT_TOGGLE_WM: {
-    input: EmitToggleWMPayload;
-    output: never;
+  IS_TAB_IN_VIEW: {
+    input: undefined;
+    output: boolean;
   };
 };
 
@@ -242,9 +261,9 @@ export const BACKGROUND_TO_POPUP_CONNECTION_NAME = 'popup';
 // These methods are fire-and-forget, nothing is returned.
 export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>;
-  SET_IS_MONETIZED: boolean;
+  SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
-  SET_ALL_SESSIONS_INVALID: boolean;
+  SET_TRANSIENT_STATE: PopupTransientState;
 }
 
 export type BackgroundToPopupMessage = {

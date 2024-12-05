@@ -1,12 +1,12 @@
 import type { ToContentMessage } from '@/shared/messages';
-import { failure } from '@/shared/helpers';
 import type { Cradle } from '@/content/container';
+import { failure, success } from '@/shared/helpers';
 
 export class ContentScript {
   private browser: Cradle['browser'];
   private window: Cradle['window'];
   private logger: Cradle['logger'];
-  private monetizationTagManager: Cradle['monetizationTagManager'];
+  private monetizationLinkManager: Cradle['monetizationLinkManager'];
   private frameManager: Cradle['frameManager'];
 
   private isFirstLevelFrame: boolean;
@@ -16,14 +16,14 @@ export class ContentScript {
     browser,
     window,
     logger,
-    monetizationTagManager,
+    monetizationLinkManager,
     frameManager,
   }: Cradle) {
     Object.assign(this, {
       browser,
       window,
       logger,
-      monetizationTagManager,
+      monetizationLinkManager,
       frameManager,
     });
 
@@ -40,7 +40,7 @@ export class ContentScript {
 
       if (this.isTopFrame) this.frameManager.start();
 
-      this.monetizationTagManager.start();
+      this.monetizationLinkManager.start();
     }
   }
 
@@ -50,16 +50,12 @@ export class ContentScript {
         try {
           switch (message.action) {
             case 'MONETIZATION_EVENT':
-              this.monetizationTagManager.dispatchMonetizationEvent(
+              this.monetizationLinkManager.dispatchMonetizationEvent(
                 message.payload,
               );
               return;
-
-            case 'EMIT_TOGGLE_WM':
-              this.monetizationTagManager.toggleWM(message.payload);
-
-              return;
-
+            case 'IS_TAB_IN_VIEW':
+              return success(document.visibilityState === 'visible');
             default:
               return;
           }
@@ -72,7 +68,9 @@ export class ContentScript {
   }
 
   // TODO: When Firefox has good support for `world: MAIN`, inject this directly
-  // via manifest.json https://bugzilla.mozilla.org/show_bug.cgi?id=1736575
+  // via manifest.json https://bugzilla.mozilla.org/show_bug.cgi?id=1736575 and
+  // remove this, along with injectPolyfill from background
+  // See: https://github.com/interledger/web-monetization-extension/issues/607
   async injectPolyfill() {
     const document = this.window.document;
     const script = document.createElement('script');

@@ -2,11 +2,13 @@
 Interledger
 Fynbos
 Rafiki
+Chimoney
 
 SPSP
 webextension
 onmonetization
 GNAP
+WICG
 
 Deduplicator
 crossorigin
@@ -14,6 +16,9 @@ iframes
 unmangles
 data-testid
 nums
+webmonetization
+jwks
+requestfinished
 
 # scripts and 3rd party terms
 nvmrc
@@ -27,6 +32,11 @@ iife
 backported
 autobuild
 buildscript
+Camtasia
+networkidle
+webextensions
+firefoxUserPrefs
+textbox
 
 # packages and 3rd party tools/libraries
 awilix
@@ -35,11 +45,26 @@ loglevel
 openapi
 apidevtools
 tailwindcss
+msedge
+SVGOMG
+xvfb
 
 # user names
 raducristianpopa
 sidvishnoi
 dianafulga
+darianm
 jgoz
 amannn
 softprops
+Gidarakos
+
+# monetized website domain names
+ahimsakids
+alexlakatos
+radu
+lifebe
+storytogo
+ericahargreave
+roamancing
+naturallyours

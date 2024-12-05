@@ -1,5 +1,10 @@
 import type { MonetizationEventPayload } from '@/shared/messages';
 (function () {
+  if (document.createElement('link').relList.supports('monetization')) {
+    // already patched
+    return;
+  }
+
   const handlers = new WeakMap();
   const attributes: PropertyDescriptor & ThisType<EventTarget> = {
     enumerable: true,

@@ -1,6 +1,12 @@
-import type { AmountValue, GrantDetails, WalletAmount } from '@/shared/types';
-import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
+import type {
+  AmountValue,
+  GrantDetails,
+  Tab,
+  WalletAmount,
+} from '@/shared/types';
+import type { Browser, Runtime } from 'webextension-polyfill';
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
+import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
 
 export const getCurrentActiveTab = async (browser: Browser) => {
@@ -81,8 +87,8 @@ export const getTabId = (sender: Runtime.MessageSender): number => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab').id, 'tab.id');
 };
 
-export const getTab = (sender: Runtime.MessageSender): Tabs.Tab => {
-  return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab');
+export const getTab = (sender: Runtime.MessageSender): Tab => {
+  return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab') as Tab;
 };
 
 export const getSender = (sender: Runtime.MessageSender) => {
@@ -90,6 +96,14 @@ export const getSender = (sender: Runtime.MessageSender) => {
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId');
 
   return { tabId, frameId, url: sender.url };
+};
+
+export const isBrowserInternalPage = (url: URL) => {
+  return INTERNAL_PAGE_URL_PROTOCOLS.has(url.protocol);
+};
+
+export const isBrowserNewTabPage = (url: URL) => {
+  return NEW_TAB_PAGES.some((e) => url.href.startsWith(e));
 };
 
 export const computeRate = (rate: string, sessionsCount: number): AmountValue =>

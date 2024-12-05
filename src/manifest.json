@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/chrome-manifest",
-  "name": "__MSG_appName__",
-  "version": "0.1.1.0",
+  "name": "Web Monetization Extension",
+  "version": "0.2.0.0",
   "manifest_version": 3,
   "minimum_chrome_version": "110.0",
   "description": "__MSG_appDescription__",
@@ -22,14 +22,14 @@
   "background": {
     "service_worker": "background/background.js"
   },
-  "permissions": ["tabs", "storage", "alarms"],
+  "permissions": ["tabs", "storage", "alarms", "scripting"],
   "action": {
     "default_title": "Web Monetization",
     "default_popup": "popup/index.html"
   },
   "web_accessible_resources": [
     {
-      "resources": ["assets/*", "polyfill/*"],
+      "resources": ["polyfill/*", "pages/progress-connect/*"],
       "matches": ["<all_urls>"]
     }
   ],
