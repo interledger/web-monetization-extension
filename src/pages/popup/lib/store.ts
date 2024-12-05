@@ -13,7 +13,7 @@ export const usePopupState = () => useSnapshot(store);
 
 // This exists so we don't have to update all dispatch calls everywhere. Also
 // keeps all actions together. Can move to better strategies in future.
-export const dispatch = ({ type, data }: ReducerActions) => {
+export const dispatch = ({ type, data }: Actions) => {
   switch (type) {
     case 'SET_DATA': {
       for (const key of Object.keys(data) as Array<keyof PopupState>) {
@@ -23,86 +23,35 @@ export const dispatch = ({ type, data }: ReducerActions) => {
       break;
     }
     case 'TOGGLE_WM': {
-      return TOGGLE_WM(data);
+      store.continuousPaymentsEnabled = !store.continuousPaymentsEnabled;
+      return;
     }
     case 'SET_CONNECTED':
-      return SET_CONNECTED(data);
+      store.connected = data.connected;
+      break;
     case 'UPDATE_RATE_OF_PAY':
-      return UPDATE_RATE_OF_PAY(data);
+      store.rateOfPay = data.rateOfPay;
+      break;
     case 'SET_STATE':
-      return SET_STATE(data);
+      store.state = data.state;
+      break;
     case 'SET_TAB_DATA':
-      return SET_TAB_DATA(data);
+      store.tab = data;
+      break;
     case 'SET_BALANCE':
-      return SET_BALANCE(data);
+      store.balance = data.total;
+      break;
     case 'SET_TRANSIENT_STATE':
-      return SET_TRANSIENT_STATE(data);
+      store.transientState = data;
+      break;
     default:
       throw new Error('Unknown action');
   }
 };
 
-interface ReducerActionMock {
-  type: string;
-  data?: any;
-}
-
-interface SetDataAction extends ReducerActionMock {
-  type: 'SET_DATA';
-  data: PopupState;
-}
-
-interface ToggleWMAction extends ReducerActionMock {
-  type: 'TOGGLE_WM';
-}
-
-interface SetConnected extends ReducerActionMock {
-  type: 'SET_CONNECTED';
-  data: { connected: boolean };
-}
-
-interface UpdateRateOfPayAction extends ReducerActionMock {
-  type: 'UPDATE_RATE_OF_PAY';
-  data: { rateOfPay: string };
-}
-
-type BackgroundToPopupAction = BackgroundToPopupMessage;
-
-export type ReducerActions =
-  | SetDataAction
-  | ToggleWMAction
-  | SetConnected
-  | UpdateRateOfPayAction
-  | BackgroundToPopupAction;
-
-type ActionMap = {
-  [T in ReducerActions['type']]: Extract<ReducerActions, { type: T }>['data'];
-};
-
-const TOGGLE_WM: ActionMap['TOGGLE_WM'] = () => {
-  store.continuousPaymentsEnabled = !store.continuousPaymentsEnabled;
-};
-
-const SET_CONNECTED = (data: ActionMap['SET_CONNECTED']) => {
-  store.connected = data.connected;
-};
-
-const UPDATE_RATE_OF_PAY = (data: ActionMap['UPDATE_RATE_OF_PAY']) => {
-  store.rateOfPay = data.rateOfPay;
-};
-
-const SET_STATE = (data: ActionMap['SET_STATE']) => {
-  store.state = data.state;
-};
-
-const SET_TAB_DATA = (data: ActionMap['SET_TAB_DATA']) => {
-  store.tab = data;
-};
-
-const SET_BALANCE = (data: ActionMap['SET_BALANCE']) => {
-  store.balance = data.total;
-};
-
-const SET_TRANSIENT_STATE = (data: ActionMap['SET_TRANSIENT_STATE']) => {
-  store.transientState = data;
-};
+type Actions =
+  | { type: 'SET_DATA'; data: PopupState }
+  | { type: 'TOGGLE_WM'; data?: never }
+  | { type: 'SET_CONNECTED'; data: { connected: boolean } }
+  | { type: 'UPDATE_RATE_OF_PAY'; data: { rateOfPay: string } }
+  | BackgroundToPopupMessage;

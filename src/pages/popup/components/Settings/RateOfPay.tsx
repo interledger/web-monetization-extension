@@ -26,7 +26,7 @@ export const RateOfPayScreen = () => {
 
   const toggleWM = () => {
     message.send('TOGGLE_WM');
-    dispatch({ type: 'TOGGLE_WM', data: {} });
+    dispatch({ type: 'TOGGLE_WM' });
   };
 
   return <RateOfPayComponent onRateChange={onRateChange} toggleWM={toggleWM} />;
