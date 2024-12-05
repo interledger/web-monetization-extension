@@ -207,6 +207,11 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
       matches: ['https://eu1.fynbos.dev/*', 'https://wallet.fynbos.app/*'],
       js: ['content/keyAutoAdd/fynbos.js'],
     },
+    {
+      id: 'keyAutoAdd/chimoney',
+      matches: ['https://sandbox.chimoney.io/*', 'https://dash.chimoney.io/*'],
+      js: ['content/keyAutoAdd/chimoney.js'],
+    },
   ];
 }
 
@@ -221,6 +226,10 @@ function walletAddressToProvider(walletAddress: WalletAddress): string {
       return 'https://eu1.fynbos.dev/settings/keys';
     case 'fynbos.me':
       return 'https://wallet.fynbos.app/settings/keys';
+    case 'ilp-sandbox.chimoney.com':
+      return 'https://sandbox.chimoney.io/interledger';
+    case 'ilp.chimoney.com':
+      return 'https://dash.chimoney.io/interledger';
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
