@@ -16,7 +16,7 @@ export const ROUTES = {
   POST_INSTALL: '/post-install',
 } as const;
 
-export const routes = [
+const routes = [
   {
     children: [
       { path: ROUTES.HOME, lazy: () => import('./pages/Home') },
