@@ -45,6 +45,7 @@ loglevel
 openapi
 apidevtools
 tailwindcss
+esbuild
 msedge
 SVGOMG
 xvfb

@@ -1,37 +1,54 @@
 'area: background':
-  - any:
-      - changed-files:
-          - any-glob-to-any-file: 'src/background/**/*'
+  - changed-files:
+      - any-glob-to-any-file: 'src/background/**/*'
 
 'area: ci':
-  - any:
-      - changed-files:
-          - any-glob-to-any-file: '.github/**/*.yml'
+  - changed-files:
+      - any-glob-to-any-file: '.github/**/*.yml'
 
 'area: content':
-  - any:
-      - changed-files:
-          - any-glob-to-any-file: 'src/content/**/*'
+  - changed-files:
+      - any-glob-to-any-file: 'src/content/**/*'
+
+'area: pages':
+  - changed-files:
+      - any-glob-to-any-file: 'src/pages/**/*'
+
+'area: pages/app':
+  - changed-files:
+      - any-glob-to-any-file: 'src/pages/app/**/*'
+
+'area: pages/notification':
+  - changed-files:
+      - any-glob-to-any-file: 'src/pages/progress-connect/**/*'
 
 'area: popup':
-  - any:
-      - changed-files:
-          - any-glob-to-any-file: 'src/pages/popup/**/*'
+  - changed-files:
+      - any-glob-to-any-file: 'src/pages/popup/**/*'
+
+'area: shared':
+  - changed-files:
+      - any-glob-to-any-file: 'src/shared/**/*'
 
 'area: documentation':
-  - any:
-      - changed-files:
-          - all-globs-to-any-file:
-              - '**/*.md'
-              - '!.github/actions/**/*.md'
+  - changed-files:
+      - any-globs-to-any-file:
+          - '**/*.md'
+          - '!.github/actions/**/*.md'
+
+'area: scripts':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'scripts/**/*'
+          - 'esbuild/**/*'
 
 'area: tests':
-  - any:
-      - changed-files:
-          - any-glob-to-any-file: '**/*.test.ts'
-          - any-glob-to-any-file: 'tests/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.test.ts'
+          - '**/*.test.tsx'
+          - 'tests/**/*'
 
 'area: i18n':
-  - any:
-      - changed-files:
-          - any-glob-to-any-file: 'src/_locales/**/*'
+  - changed-files:
+      - any-glob-to-any-file: 'src/_locales/**/*'
