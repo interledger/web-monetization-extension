@@ -46,6 +46,7 @@ openapi
 valtio
 apidevtools
 tailwindcss
+esbuild
 msedge
 SVGOMG
 xvfb
