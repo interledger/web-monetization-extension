@@ -2,9 +2,10 @@ import React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
-import { cn, type ErrorWithKeyLike } from '@/shared/helpers';
-import { useMessage, usePopupState, useTranslation } from '@/popup/lib/context';
 import { roundWithPrecision } from '@/pages/shared/lib/utils';
+import { cn, type ErrorWithKeyLike } from '@/shared/helpers';
+import { useMessage, useTranslation } from '@/popup/lib/context';
+import { usePopupState } from '@/popup/lib/store';
 
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'amount' | 'pay';
@@ -13,9 +14,7 @@ type Errors = Record<ErrorsParams, ErrorInfo | null>;
 export const PayWebsiteForm = () => {
   const t = useTranslation();
   const message = useMessage();
-  const {
-    state: { walletAddress, tab },
-  } = usePopupState();
+  const { walletAddress, tab } = usePopupState();
 
   const toErrorInfo = React.useCallback(
     (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {

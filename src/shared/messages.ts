@@ -5,7 +5,7 @@ import type {
 import type { Browser } from 'webextension-polyfill';
 import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
-import type { PopupState } from '@/popup/lib/context';
+import type { PopupState } from '@/popup/lib/store';
 
 // #region MessageManager
 export interface SuccessResponse<TPayload = void> {

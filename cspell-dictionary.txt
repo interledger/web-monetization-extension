@@ -43,6 +43,7 @@ awilix
 httpbis
 loglevel
 openapi
+valtio
 apidevtools
 tailwindcss
 esbuild
