@@ -20,6 +20,15 @@ declare global {
       FYNBOS_USERNAME: string | undefined;
       /** Login password for Fynbos wallet*/
       FYNBOS_PASSWORD: string | undefined;
+
+      /** Chimoney wallet address (used for Chimoney specific tests only) */
+      CHIMONEY_WALLET_ADDRESS_URL: string | undefined;
+      /** Chimoney wallet URL origin (without trailing /) */
+      CHIMONEY_WALLET_ORIGIN: string | undefined;
+      /** Login email for Chimoney wallet */
+      CHIMONEY_USERNAME: string | undefined;
+      /** Login password for Chimoney wallet*/
+      CHIMONEY_PASSWORD: string | undefined;
     }
   }
 }

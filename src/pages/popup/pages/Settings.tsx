@@ -5,8 +5,8 @@ import { WalletInformation } from '@/popup/components/Settings/WalletInformation
 import { BudgetScreen } from '@/popup/components/Settings/Budget';
 import { RateOfPayScreen } from '@/popup/components/Settings/RateOfPay';
 import { cn } from '@/shared/helpers';
-import { usePopupState } from '@/popup/lib/context';
 import { useLocalStorage } from '@/pages/shared/lib/hooks';
+import { usePopupState } from '@/popup/lib/store';
 
 const TABS = [
   { id: 'wallet', title: 'Wallet' },
@@ -19,9 +19,7 @@ const isValidTabId = (id: string) => {
 };
 
 export const Component = () => {
-  const {
-    state: { balance, grants, publicKey, walletAddress },
-  } = usePopupState();
+  const { balance, grants, publicKey, walletAddress } = usePopupState();
   const location = useLocation();
   const [storedTabId, setStoredTabId] = useLocalStorage(
     'settings.tabId',

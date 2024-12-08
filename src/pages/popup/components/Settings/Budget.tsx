@@ -10,12 +10,9 @@ import {
   transformBalance,
 } from '@/shared/helpers';
 import { getCurrencySymbol } from '@/pages/shared/lib/utils';
-import {
-  useMessage,
-  useTranslation,
-  type PopupState,
-} from '@/popup/lib/context';
+import { useMessage, useTranslation } from '@/popup/lib/context';
 import type { Response, UpdateBudgetPayload } from '@/shared/messages';
+import type { PopupState } from '@/popup/lib/store';
 
 type Props = Pick<PopupState, 'balance' | 'grants' | 'walletAddress'>;
 

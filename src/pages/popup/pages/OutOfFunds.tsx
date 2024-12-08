@@ -1,14 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OutOfFunds } from '@/popup/components/OutOfFunds';
-import { usePopupState } from '@/popup/lib/context';
+import { usePopupState } from '@/popup/lib/store';
 import { ROUTES_PATH } from '@/popup/Popup';
 import type { State } from '@/popup/pages/OutOfFunds_AddFunds';
 
 export const Component = () => {
-  const {
-    state: { grants, walletAddress },
-  } = usePopupState();
+  const { grants, walletAddress } = usePopupState();
   const navigate = useNavigate();
 
   return (

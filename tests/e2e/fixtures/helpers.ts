@@ -146,10 +146,9 @@ export async function loadContext(
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
     context = await chromium.launchPersistentContext('', {
-      headless: true,
       channel,
       args: [
-        `--headless=true`,
+        `--headless=new`,
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],
@@ -207,6 +206,16 @@ export async function getBackground(
     if (!background) {
       background = await context.waitForEvent('serviceworker');
     }
+    // wait for Service Worker to be activated
+    await background.evaluate(() => {
+      return new Promise<void>((resolve) => {
+        if (chrome.runtime) return resolve();
+        // @ts-expect-error self is extension's SW, not TS-defined enough.
+        if (self.serviceWorker?.state === 'activated') return resolve();
+        // @ts-expect-error self is extension's SW, not TS-defined enough.
+        self.addEventListener('activate', resolve, { once: true });
+      });
+    });
   } else if (browserName === 'firefox') {
     // TODO
     // background = context.backgroundPages()[0];

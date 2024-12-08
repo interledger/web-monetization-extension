@@ -2,6 +2,7 @@
 Interledger
 Fynbos
 Rafiki
+Chimoney
 
 SPSP
 webextension
@@ -42,8 +43,10 @@ awilix
 httpbis
 loglevel
 openapi
+valtio
 apidevtools
 tailwindcss
+esbuild
 msedge
 SVGOMG
 xvfb
