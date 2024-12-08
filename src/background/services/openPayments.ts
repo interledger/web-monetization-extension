@@ -127,7 +127,7 @@ const enum InteractionIntent {
   CONNECT = 'connect',
   RECONNECT = 'reconnect',
   FUNDS = 'funds',
-  BUDGET_UPDATE = 'budget_update',
+  UPDATE_BUDGET = 'update_budget',
 }
 
 export class OpenPaymentsService {
@@ -485,7 +485,7 @@ export class OpenPaymentsService {
       amount,
       walletAddress!,
       recurring,
-      InteractionIntent.BUDGET_UPDATE,
+      InteractionIntent.UPDATE_BUDGET,
     );
 
     // Revoke all existing grants.
