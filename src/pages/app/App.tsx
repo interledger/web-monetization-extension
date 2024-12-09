@@ -10,6 +10,7 @@ import {
   type RouteObject,
 } from 'react-router-dom';
 import { MessageContextProvider, WaitForStateLoad } from './lib/context';
+import { MainLayout } from './components/MainLayout';
 
 export const ROUTES = {
   HOME: '/',
@@ -18,6 +19,7 @@ export const ROUTES = {
 
 const routes = [
   {
+    element: <MainLayout />,
     children: [
       { path: ROUTES.HOME, lazy: () => import('./pages/Home') },
       { path: ROUTES.POST_INSTALL, lazy: () => import('./pages/PostInstall') },
