@@ -5,7 +5,7 @@ import type {
 import type { Browser } from 'webextension-polyfill';
 import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
-import type { PopupState } from '@/popup/lib/context';
+import type { PopupState } from '@/popup/lib/store';
 
 // #region MessageManager
 export interface SuccessResponse<TPayload = void> {
@@ -97,6 +97,10 @@ export interface ConnectWalletPayload {
   autoKeyAddConsent: boolean | null;
 }
 
+export interface ReconnectWalletPayload {
+  autoKeyAddConsent: boolean;
+}
+
 export interface AddFundsPayload {
   amount: string;
   recurring: boolean;
@@ -136,7 +140,7 @@ export type PopupToBackgroundMessage = {
     output: void;
   };
   RECONNECT_WALLET: {
-    input: never;
+    input: ReconnectWalletPayload;
     output: never;
   };
   ADD_FUNDS: {

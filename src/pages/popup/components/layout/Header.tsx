@@ -3,13 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { ArrowBack, Settings } from '@/pages/shared/components/Icons';
 import { HeaderEmpty } from './HeaderEmpty';
 import { ROUTES_PATH } from '@/popup/Popup';
-import { useBrowser, usePopupState } from '@/popup/lib/context';
+import { useBrowser } from '@/popup/lib/context';
+import { usePopupState } from '@/popup/lib/store';
 
 const NavigationButton = () => {
   const location = useLocation();
-  const {
-    state: { connected },
-  } = usePopupState();
+  const { connected } = usePopupState();
+
   return React.useMemo(() => {
     if (!connected) return null;
 

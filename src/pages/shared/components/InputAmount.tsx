@@ -18,6 +18,7 @@ interface Props {
   onChange: (amount: string, inputEl: HTMLInputElement) => void;
   onError: (error: ErrorWithKeyLike) => void;
   className?: string;
+  wrapperClassName?: string;
   placeholder?: string;
   errorMessage?: string;
   readOnly?: boolean;
@@ -34,6 +35,7 @@ export const InputAmount = ({
   walletAddress,
   amount,
   className,
+  wrapperClassName,
   placeholder,
   errorMessage,
   onChange,
@@ -133,7 +135,7 @@ export const InputAmount = ({
       description={description}
       placeholder={placeholder}
       className={className}
-      wrapperClassName="w-fit"
+      wrapperClassName={wrapperClassName}
       defaultValue={amount}
       readOnly={readOnly}
       leadingAddOn={<span className="text-weak">{currencySymbol}</span>}

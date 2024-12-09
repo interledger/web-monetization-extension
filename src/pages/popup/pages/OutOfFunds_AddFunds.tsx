@@ -1,15 +1,14 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { AddFunds } from '@/popup/components/OutOfFunds';
-import { usePopupState, useMessage } from '@/popup/lib/context';
+import { useMessage } from '@/popup/lib/context';
+import { usePopupState } from '@/popup/lib/store';
 
 export type State = { recurring: boolean };
 
 export const Component = () => {
   const message = useMessage();
-  const {
-    state: { grants, walletAddress },
-  } = usePopupState();
+  const { grants, walletAddress } = usePopupState();
   const location = useLocation();
 
   const state: State = { recurring: false, ...location.state };
