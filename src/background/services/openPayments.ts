@@ -1007,32 +1007,32 @@ export class OpenPaymentsService {
       this.setConnectState('connecting');
       await this.validateReconnect();
     } catch (error) {
-      if (isInvalidClientError(error?.cause)) {
-        let tabId: number | undefined;
-        try {
-          // add key to wallet and try again
-          tabId = await this.addPublicKeyToWallet(walletAddress);
-          await this.validateReconnect();
+      if (!isInvalidClientError(error?.cause)) {
+        this.updateConnectStateError(error);
+        throw error;
+      }
 
-          tabId ??= await this.ensureTabExists();
+      let tabId: number | undefined;
+      try {
+        // add key to wallet and try again
+        tabId = await this.addPublicKeyToWallet(walletAddress);
+        await this.validateReconnect();
+
+        tabId ??= await this.ensureTabExists();
+        await this.redirectToWelcomeScreen(
+          tabId,
+          GrantResult.KEY_ADD_SUCCESS,
+          InteractionIntent.RECONNECT,
+        );
+      } catch (error) {
+        const isTabClosed = error.key === 'connectWallet_error_tabClosed';
+        if (tabId && !isTabClosed) {
           await this.redirectToWelcomeScreen(
             tabId,
-            GrantResult.KEY_ADD_SUCCESS,
+            GrantResult.KEY_ADD_ERROR,
             InteractionIntent.RECONNECT,
           );
-        } catch (error) {
-          const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-          if (tabId && !isTabClosed) {
-            await this.redirectToWelcomeScreen(
-              tabId,
-              GrantResult.KEY_ADD_ERROR,
-              InteractionIntent.RECONNECT,
-            );
-          }
-          this.updateConnectStateError(error);
-          throw error;
         }
-      } else {
         this.updateConnectStateError(error);
         throw error;
       }
