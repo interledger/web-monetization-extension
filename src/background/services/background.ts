@@ -346,6 +346,9 @@ export class Background {
       if (details.reason === 'install') {
         await this.storage.populate();
         await this.openPaymentsService.generateKeys();
+        await this.browser.tabs.create({
+          url: this.browser.runtime.getURL('pages/app/index.html'),
+        });
       } else if (details.reason === 'update') {
         const migrated = await this.storage.migrate();
         if (migrated) {
