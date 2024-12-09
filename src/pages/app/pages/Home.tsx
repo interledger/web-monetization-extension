@@ -17,7 +17,7 @@ export const Component = () => {
           className="font-semibold text-secondary-dark underline"
           onClick={() => browser.action.openPopup({})}
         >
-          browser menu
+          browser toolbar
         </button>
       </p>
     </div>
