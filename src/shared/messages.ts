@@ -97,6 +97,10 @@ export interface ConnectWalletPayload {
   autoKeyAddConsent: boolean | null;
 }
 
+export interface ReconnectWalletPayload {
+  autoKeyAddConsent: boolean;
+}
+
 export interface AddFundsPayload {
   amount: string;
   recurring: boolean;
@@ -136,7 +140,7 @@ export type PopupToBackgroundMessage = {
     output: void;
   };
   RECONNECT_WALLET: {
-    input: never;
+    input: ReconnectWalletPayload;
     output: never;
   };
   ADD_FUNDS: {

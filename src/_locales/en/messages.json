@@ -190,6 +190,9 @@
   "connectWalletKeyService_text_consentP1": {
     "message": "We will automatically connect with your wallet provider."
   },
+  "reconnectWalletKeyService_text_consentP1": {
+    "message": "We will automatically reconnect with your wallet provider."
+  },
   "connectWalletKeyService_text_consentLearnMore": {
     "message": "Learn more",
     "description": "Learn more about how this works"

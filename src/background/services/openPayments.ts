@@ -39,6 +39,7 @@ import {
 import type {
   AddFundsPayload,
   ConnectWalletPayload,
+  ReconnectWalletPayload,
   UpdateBudgetPayload,
 } from '@/shared/messages';
 import {
@@ -116,14 +117,17 @@ const enum ErrorCode {
 }
 
 const enum GrantResult {
-  SUCCESS = 'grant_success',
-  ERROR = 'grant_error',
+  GRANT_SUCCESS = 'grant_success',
+  GRANT_ERROR = 'grant_error',
+  KEY_ADD_SUCCESS = 'key_add_success',
+  KEY_ADD_ERROR = 'key_add_error',
 }
 
 const enum InteractionIntent {
   CONNECT = 'connect',
+  RECONNECT = 'reconnect',
   FUNDS = 'funds',
-  BUDGET_UPDATE = 'budget_update',
+  UPDATE_BUDGET = 'update_budget',
 }
 
 export class OpenPaymentsService {
@@ -481,7 +485,7 @@ export class OpenPaymentsService {
       amount,
       walletAddress!,
       recurring,
-      InteractionIntent.BUDGET_UPDATE,
+      InteractionIntent.UPDATE_BUDGET,
     );
 
     // Revoke all existing grants.
@@ -550,7 +554,7 @@ export class OpenPaymentsService {
     }).catch(async (e) => {
       await this.redirectToWelcomeScreen(
         tabId,
-        GrantResult.ERROR,
+        GrantResult.GRANT_ERROR,
         intent,
         ErrorCode.HASH_FAILED,
       );
@@ -568,7 +572,7 @@ export class OpenPaymentsService {
     ).catch(async (e) => {
       await this.redirectToWelcomeScreen(
         tabId,
-        GrantResult.ERROR,
+        GrantResult.GRANT_ERROR,
         intent,
         ErrorCode.CONTINUATION_FAILED,
       );
@@ -609,7 +613,11 @@ export class OpenPaymentsService {
     }
 
     this.grant = grantDetails;
-    await this.redirectToWelcomeScreen(tabId, GrantResult.SUCCESS, intent);
+    await this.redirectToWelcomeScreen(
+      tabId,
+      GrantResult.GRANT_SUCCESS,
+      intent,
+    );
     return grantDetails;
   }
 
@@ -638,7 +646,7 @@ export class OpenPaymentsService {
       if (tabId && !isTabClosed) {
         await this.redirectToWelcomeScreen(
           tabId,
-          GrantResult.ERROR,
+          GrantResult.GRANT_ERROR,
           InteractionIntent.CONNECT,
           ErrorCode.KEY_ADD_FAILED,
         );
@@ -968,7 +976,7 @@ export class OpenPaymentsService {
     );
   }
 
-  async reconnectWallet() {
+  private async validateReconnect() {
     try {
       await this.rotateToken();
     } catch (error) {
@@ -979,6 +987,66 @@ export class OpenPaymentsService {
       throw error;
     }
     await this.storage.setState({ key_revoked: false });
+  }
+
+  async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
+    if (!autoKeyAddConsent) {
+      await this.validateReconnect();
+      return;
+    }
+
+    const { walletAddress } = await this.storage.get(['walletAddress']);
+    if (!walletAddress) {
+      throw new Error('reconnectWallet_error_walletAddressMissing');
+    }
+    if (!KeyAutoAddService.supports(walletAddress)) {
+      throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+    }
+
+    try {
+      this.setConnectState('connecting');
+      await this.validateReconnect();
+    } catch (error) {
+      if (!isInvalidClientError(error?.cause)) {
+        this.updateConnectStateError(error);
+        throw error;
+      }
+
+      let tabId: number | undefined;
+      try {
+        // add key to wallet and try again
+        tabId = await this.addPublicKeyToWallet(walletAddress);
+        await this.validateReconnect();
+
+        tabId ??= await this.ensureTabExists();
+        await this.redirectToWelcomeScreen(
+          tabId,
+          GrantResult.KEY_ADD_SUCCESS,
+          InteractionIntent.RECONNECT,
+        );
+      } catch (error) {
+        const isTabClosed = error.key === 'connectWallet_error_tabClosed';
+        if (tabId && !isTabClosed) {
+          await this.redirectToWelcomeScreen(
+            tabId,
+            GrantResult.KEY_ADD_ERROR,
+            InteractionIntent.RECONNECT,
+          );
+        }
+        this.updateConnectStateError(error);
+        throw error;
+      }
+    }
+
+    this.setConnectState(null);
+  }
+
+  private async ensureTabExists(): Promise<number> {
+    const tab = await this.browser.tabs.create({});
+    if (!tab.id) {
+      throw new Error('Could not create tab');
+    }
+    return tab.id;
   }
 
   /**

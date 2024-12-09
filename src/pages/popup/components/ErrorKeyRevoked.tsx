@@ -1,22 +1,23 @@
 import React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
+import { AutoKeyAddConsent } from '@/pages/shared/components/AutoKeyAddConsent';
 import { WarningSign } from '@/pages/shared/components/Icons';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { Code } from '@/pages/shared/components/ui/Code';
 import { useTranslation } from '@/pages/shared/lib/context';
 import { useLocalStorage } from '@/pages/shared/lib/hooks';
 import type { PopupStore } from '@/shared/types';
-import type { Response } from '@/shared/messages';
+import type { ReconnectWalletPayload, Response } from '@/shared/messages';
 
 interface Props {
   info: Pick<PopupStore, 'publicKey' | 'walletAddress'>;
   disconnectWallet: () => Promise<Response>;
-  reconnectWallet: () => Promise<Response>;
+  reconnectWallet: (data: ReconnectWalletPayload) => Promise<Response>;
   onReconnect?: () => void;
   onDisconnect?: () => void;
 }
 
-type Screen = 'main' | 'reconnect';
+type Screen = 'main' | 'manual-reconnect' | 'consent-reconnect';
 
 export const ErrorKeyRevoked = ({
   info,
@@ -35,16 +36,35 @@ export const ErrorKeyRevoked = ({
     return (
       <AnimatePresence mode="sync">
         <MainScreen
-          requestReconnect={() => setScreen('reconnect')}
           disconnectWallet={disconnectWallet}
           onDisconnect={onDisconnect}
+          setScreen={setScreen}
+        />
+      </AnimatePresence>
+    );
+  } else if (screen === 'consent-reconnect') {
+    return (
+      <AnimatePresence mode="sync">
+        <AutoKeyAddConsent
+          onAccept={async () => {
+            try {
+              await reconnectWallet({ autoKeyAddConsent: true });
+              clearScreen();
+              onReconnect?.();
+            } catch (error) {
+              setScreen('manual-reconnect');
+              throw error;
+            }
+          }}
+          onDecline={() => setScreen('manual-reconnect')}
+          intent="RECONNECT_WALLET"
         />
       </AnimatePresence>
     );
   } else {
     return (
       <AnimatePresence mode="sync">
-        <ReconnectScreen
+        <ManualReconnectScreen
           info={info}
           reconnectWallet={reconnectWallet}
           onReconnect={() => {
@@ -60,13 +80,13 @@ export const ErrorKeyRevoked = ({
 interface MainScreenProps {
   disconnectWallet: Props['disconnectWallet'];
   onDisconnect?: Props['onDisconnect'];
-  requestReconnect: () => void;
+  setScreen: (screen: Screen) => void;
 }
 
 const MainScreen = ({
   disconnectWallet,
   onDisconnect,
-  requestReconnect,
+  setScreen,
 }: MainScreenProps) => {
   const t = useTranslation();
   const [errorMsg, setErrorMsg] = React.useState('');
@@ -109,7 +129,7 @@ const MainScreen = ({
         <Button onClick={() => requestDisconnect()} loading={loading}>
           {t('keyRevoked_action_disconnect')}
         </Button>
-        <Button onClick={() => requestReconnect()}>
+        <Button onClick={() => setScreen('consent-reconnect')}>
           {t('keyRevoked_action_reconnect')}
         </Button>
       </m.form>
@@ -123,7 +143,7 @@ interface ReconnectScreenProps {
   onReconnect?: Props['onDisconnect'];
 }
 
-const ReconnectScreen = ({
+const ManualReconnectScreen = ({
   info,
   reconnectWallet,
   onReconnect,
@@ -137,11 +157,11 @@ const ReconnectScreen = ({
     root: null,
   });
 
-  const requestReconnect = async () => {
+  const requestManualReconnect = async () => {
     setErrors({ root: null });
     try {
       setIsSubmitting(true);
-      const res = await reconnectWallet();
+      const res = await reconnectWallet({ autoKeyAddConsent: false });
       if (res.success) {
         onReconnect?.();
       } else {
@@ -161,7 +181,7 @@ const ReconnectScreen = ({
       className="flex flex-col items-stretch gap-4"
       onSubmit={(ev) => {
         ev.preventDefault();
-        requestReconnect();
+        requestManualReconnect();
       }}
     >
       <div className="space-y-1 text-sm">
