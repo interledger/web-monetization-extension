@@ -20,7 +20,7 @@ export const Component = () => {
 
 const LeftCol = () => {
   return (
-    <div className="item flex h-full flex-col items-center justify-center gap-1">
+    <div className="flex h-full flex-col items-center justify-center gap-1">
       <div className="mb-6">
         <img src="/assets/images/logo.svg" className="w-60" alt="" />
       </div>
