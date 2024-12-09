@@ -5,6 +5,7 @@ import type {
 import type { Browser } from 'webextension-polyfill';
 import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
+import type { AppState } from '@/app/lib/store';
 import type { PopupState } from '@/popup/lib/store';
 
 // #region MessageManager
@@ -127,7 +128,7 @@ export interface UpdateBudgetPayload {
 }
 
 export type PopupToBackgroundMessage = {
-  GET_CONTEXT_DATA: {
+  GET_DATA_POPUP: {
     input: never;
     output: PopupState;
   };
@@ -162,6 +163,15 @@ export type PopupToBackgroundMessage = {
   UPDATE_RATE_OF_PAY: {
     input: UpdateRateOfPayPayload;
     output: never;
+  };
+};
+// #endregion
+
+// #region App ↦ BG
+export type AppToBackgroundMessage = {
+  GET_DATA_APP: {
+    input: never;
+    output: AppState;
   };
 };
 // #endregion
@@ -218,6 +228,7 @@ export type ContentToBackgroundMessage = {
 
 // #region To BG
 type ToBackgroundMessageMap = PopupToBackgroundMessage &
+  AppToBackgroundMessage &
   ContentToBackgroundMessage;
 
 export type ToBackgroundMessage = {

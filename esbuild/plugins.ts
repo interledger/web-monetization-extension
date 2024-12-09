@@ -52,6 +52,10 @@ export const getPlugins = ({
           to: toPosix(path.join(outDir, 'popup', 'index.html')),
         },
         {
+          from: toPosix(path.join(SRC_DIR, 'pages', 'app', 'index.html')),
+          to: toPosix(path.join(outDir, 'pages', 'app', 'index.html')),
+        },
+        {
           from: toPosix(
             path.join(SRC_DIR, 'pages', 'progress-connect', 'index.html'),
           ),

@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
-  MessageManager,
-  type PopupToBackgroundMessage,
-  type BackgroundToPopupMessage,
-} from '@/shared/messages';
+
+import { MessageManager, type AppToBackgroundMessage } from '@/shared/messages';
 import { useBrowser } from '@/pages/shared/lib/context';
 import { dispatch } from './store';
 
@@ -16,7 +12,7 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
 
   React.useEffect(() => {
     async function get() {
-      const response = await message.send('GET_DATA_POPUP');
+      const response = await message.send('GET_DATA_APP');
 
       if (response.success) {
         dispatch({ type: 'SET_DATA', data: response.payload });
@@ -34,9 +30,10 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
   return <>{children}</>;
 }
 
+// #region Message
 const MessageContext = React.createContext<
-  MessageManager<PopupToBackgroundMessage>
->({} as MessageManager<PopupToBackgroundMessage>);
+  MessageManager<AppToBackgroundMessage>
+>({} as MessageManager<AppToBackgroundMessage>);
 
 export const useMessage = () => React.useContext(MessageContext);
 
@@ -44,26 +41,7 @@ export const MessageContextProvider = ({
   children,
 }: React.PropsWithChildren) => {
   const browser = useBrowser();
-  const message = new MessageManager<PopupToBackgroundMessage>({ browser });
-
-  React.useEffect(() => {
-    const port = browser.runtime.connect({ name: CONNECTION_NAME });
-    port.onMessage.addListener((message: BackgroundToPopupMessage) => {
-      switch (message.type) {
-        case 'SET_BALANCE':
-        case 'SET_STATE':
-        case 'SET_TAB_DATA':
-        case 'SET_TRANSIENT_STATE':
-          return dispatch(message);
-      }
-    });
-    port.onDisconnect.addListener(() => {
-      // nothing to do
-    });
-    return () => {
-      port.disconnect();
-    };
-  }, [browser]);
+  const message = new MessageManager<AppToBackgroundMessage>({ browser });
 
   return (
     <MessageContext.Provider value={message}>
@@ -71,3 +49,4 @@ export const MessageContextProvider = ({
     </MessageContext.Provider>
   );
 };
+// #endregion

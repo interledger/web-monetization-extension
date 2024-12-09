@@ -101,6 +101,7 @@ The high-level project directory structure is as follows:
 │   │   └── keyAutoAdd/ # Content scripts for automatic key addition to wallets
 │   ├── pages/ # Source code for extension pages, including popup
 │   │   ├── popup/ # Source code for the popup UI
+│   │   ├── app/ # Source code for the full screen extension page (post-install, more settings etc.)
 │   │   ├── progress-connect/ # Source code for the progress-connect (notification/layover) UI
 │   │   └── shared/ # Shared components and libraries for the frontend
 │   ├── shared/ # Shared utilities
@@ -219,6 +220,8 @@ Popup (technically, the [browser action -> default popup](https://developer.chro
   - The `useTranslation` hook (see `TranslationContext`) can be considered pure, as its default values don't rely on any external APIs.
 
 ##### Other pages
+
+- `app`: The full screen extension page, used for post-install screen and showing additional settings in future. Anything user facing we feel popup isn't the right place for, can belong to this app (popup is for quick things user will interact with most often or expect them to be available in the popup).
 
 - `progress-connect`: Related to KeyAutoAdd services, this extension page (also a React SPA) gets injected into wallet provider websites as an iframe. It can serve as a notification UI and as a full-page overlay during automatic public-key addition. The content scripts and the popup communicate to it via the background and runtime ports.
 

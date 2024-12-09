@@ -188,7 +188,7 @@ export class Background {
         try {
           switch (message.action) {
             // region Popup
-            case 'GET_CONTEXT_DATA':
+            case 'GET_DATA_POPUP':
               return success(
                 await this.monetizationService.getPopupData(
                   await this.windowState.getCurrentTab(),
@@ -245,6 +245,13 @@ export class Background {
               );
 
             // endregion
+
+            // #region App
+            case 'GET_DATA_APP': {
+              return success(await this.storage.get(['connected']));
+            }
+
+            // #endregion
 
             // region Content
             case 'GET_WALLET_ADDRESS_INFO':

@@ -49,6 +49,10 @@ export const options: BuildOptions = {
       out: path.join('popup', 'popup'),
     },
     {
+      in: path.join(SRC_DIR, 'pages', 'app', 'index.tsx'),
+      out: path.join('pages', 'app', 'app'),
+    },
+    {
       in: path.join(SRC_DIR, 'pages', 'progress-connect', 'index.tsx'),
       out: path.join('pages', 'progress-connect', 'progress-connect'),
     },
