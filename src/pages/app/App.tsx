@@ -9,7 +9,7 @@ import {
   RouterProvider,
   type RouteObject,
 } from 'react-router-dom';
-import { MessageContextProvider } from './lib/context';
+import { MessageContextProvider, WaitForStateLoad } from './lib/context';
 
 export const ROUTES = {
   HOME: '/',
@@ -31,7 +31,9 @@ export const App = () => {
     <BrowserContextProvider browser={browser}>
       <TranslationContextProvider>
         <MessageContextProvider>
-          <RouterProvider router={router} />
+          <WaitForStateLoad>
+            <RouterProvider router={router} />
+          </WaitForStateLoad>
         </MessageContextProvider>
       </TranslationContextProvider>
     </BrowserContextProvider>

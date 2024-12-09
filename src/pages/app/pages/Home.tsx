@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/app/App';
-import { useMessage } from '@/app/lib/context';
+import { useAppState } from '@/app/lib/store';
 
 export const Component = () => {
-  const [state, setState] = React.useState({});
-  const message = useMessage();
+  const state = useAppState();
   return (
     <div className="mx-auto max-w-2xl space-y-4 p-6">
       <div className="flex items-center justify-between">
@@ -26,15 +25,6 @@ export const Component = () => {
 
       <hr />
 
-      <button
-        className="bg-primary p-2 text-white"
-        onClick={async () => {
-          const res = await message.send('GET_DATA');
-          setState(res);
-        }}
-      >
-        Get data
-      </button>
       <pre>State: {JSON.stringify(state, null, 2)}</pre>
     </div>
   );
