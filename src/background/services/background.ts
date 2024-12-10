@@ -13,6 +13,7 @@ import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/
 import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
 import type { Cradle } from '@/background/container';
+import { APP_URL } from '../constants';
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0];
 const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
@@ -340,7 +341,7 @@ export class Background {
         await this.storage.populate();
         await this.openPaymentsService.generateKeys();
         await this.browser.tabs.create({
-          url: this.browser.runtime.getURL('pages/app/index.html'),
+          url: this.browser.runtime.getURL(`${APP_URL}#/post-install`),
         });
       } else if (details.reason === 'update') {
         const migrated = await this.storage.migrate();

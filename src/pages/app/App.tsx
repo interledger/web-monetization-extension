@@ -5,7 +5,7 @@ import {
 } from '@/pages/shared/lib/context';
 import browser from 'webextension-polyfill';
 import {
-  createMemoryRouter,
+  createHashRouter,
   RouterProvider,
   type RouteObject,
 } from 'react-router-dom';
@@ -16,14 +16,15 @@ export const ROUTES = {
 
 const routes = [
   {
-    children: [
-      { path: ROUTES.DEFAULT, lazy: () => import('./pages/PostInstall') },
-    ],
+    path: ROUTES.DEFAULT,
+    lazy: () => import('./pages/PostInstall'),
   },
 ] satisfies RouteObject[];
 
 export const App = () => {
-  const router = createMemoryRouter(routes);
+  const router = createHashRouter(routes, {
+    basename: '/post-install',
+  });
   return (
     <BrowserContextProvider browser={browser}>
       <TranslationContextProvider>
