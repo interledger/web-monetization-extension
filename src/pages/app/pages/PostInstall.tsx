@@ -1,8 +1,10 @@
 import React from 'react';
 import { useBrowser } from '@/app/lib/context';
+import { getBrowserName, type BrowserName } from '@/shared/helpers';
 
 export const Component = () => {
   const browser = useBrowser();
+  const browserName = getBrowserName(browser, navigator.userAgent);
 
   return (
     <div
@@ -13,7 +15,10 @@ export const Component = () => {
       }}
     >
       <LeftCol />
-      <RightCol openPopup={() => browser.action.openPopup({})} />
+      <RightCol
+        browserName={browserName}
+        openPopup={() => browser.action.openPopup({})}
+      />
     </div>
   );
 };
@@ -34,9 +39,15 @@ const LeftCol = () => {
   );
 };
 
-const RightCol = ({ openPopup }: { openPopup: () => Promise<void> }) => {
+const RightCol = ({
+  browserName,
+  openPopup,
+}: {
+  browserName: BrowserName;
+  openPopup: () => Promise<void>;
+}) => {
   return (
-    <div className="flex h-full flex-col gap-6">
+    <div className="flex h-full flex-col gap-6 bg-gray-50 px-10 py-6">
       <header className="rounded-2xl bg-gray-100 p-6 text-xl">
         Welcome to your Web Monetization extension!
       </header>
@@ -51,7 +62,7 @@ const RightCol = ({ openPopup }: { openPopup: () => Promise<void> }) => {
       </p>
 
       <div className="h-full bg-white p-4 outline outline-gray-100">
-        <Steps />
+        <Steps browserName={browserName} />
       </div>
 
       <div className="ml-auto mt-auto px-6">
@@ -66,6 +77,57 @@ const RightCol = ({ openPopup }: { openPopup: () => Promise<void> }) => {
   );
 };
 
-const Steps = () => {
-  return <p>steps come here</p>;
+const Steps = ({ browserName }: { browserName: BrowserName }) => {
+  return (
+    <div>
+      <ol className="grid grid-cols-2 gap-6">
+        <li>
+          <span className="text-xs text-weak" aria-hidden="true">
+            Step 1
+          </span>
+          <p className="">
+            Get a digital wallet compatible with Web Monetization from{' '}
+            <a href="https://webmonetization.org/docs/resources/op-wallets/">
+              here
+            </a>
+          </p>
+        </li>
+
+        <li>
+          <span className="text-xs text-weak" aria-hidden="true">
+            Step 2
+          </span>
+          <p className="">Find your wallet address or payment pointer</p>
+        </li>
+
+        <li>
+          <span className="text-xs text-weak" aria-hidden="true">
+            Step 3
+          </span>
+
+          <p className="">Pin your extension</p>
+
+          <img
+            src={
+              browserName === 'firefox'
+                ? '/assets/images/pin-extension-firefox.png'
+                : browserName === 'edge'
+                  ? '/assets/images/pin-extension-edge.png'
+                  : '/assets/images/pin-extension-chrome.png'
+            }
+            alt=""
+          />
+        </li>
+
+        <li>
+          <span className="text-xs text-weak" aria-hidden="true">
+            Step 4
+          </span>
+          <p className="">
+            You’re all ready! Go ahead and set up your extension
+          </p>
+        </li>
+      </ol>
+    </div>
+  );
 };
