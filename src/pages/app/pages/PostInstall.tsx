@@ -1,6 +1,7 @@
 import React from 'react';
-import { useBrowser } from '@/app/lib/context';
+import { Button } from '@/pages/shared/components/ui/Button';
 import { getBrowserName, type BrowserName } from '@/shared/helpers';
+import { useBrowser } from '@/app/lib/context';
 
 export const Component = () => {
   const browser = useBrowser();
@@ -66,12 +67,7 @@ const RightCol = ({
       </div>
 
       <div className="ml-auto mt-auto px-6">
-        <button
-          className="rounded-md bg-white px-4 py-2 text-lg font-medium shadow-md shadow-purple-500"
-          onClick={openPopup}
-        >
-          {"Let's Go!"}
-        </button>
+        <Button onClick={openPopup}>{"Let's Go!"}</Button>
       </div>
     </div>
   );
