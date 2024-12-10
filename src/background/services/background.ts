@@ -188,7 +188,7 @@ export class Background {
         try {
           switch (message.action) {
             // region Popup
-            case 'GET_DATA_POPUP':
+            case 'GET_CONTEXT_DATA':
               return success(
                 await this.monetizationService.getPopupData(
                   await this.windowState.getCurrentTab(),

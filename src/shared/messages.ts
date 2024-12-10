@@ -127,7 +127,7 @@ export interface UpdateBudgetPayload {
 }
 
 export type PopupToBackgroundMessage = {
-  GET_DATA_POPUP: {
+  GET_CONTEXT_DATA: {
     input: never;
     output: PopupState;
   };
