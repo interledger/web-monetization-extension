@@ -10,7 +10,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Titillium Web', ...fontFamily.sans],
+        titillium: ['Titillium Web', ...fontFamily.sans],
       },
       width: {
         popup: 'var(--popup-width)',
