@@ -1,3 +1,4 @@
+@import '@fontsource/titillium-web';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,5 +36,6 @@
 
   body {
     @apply bg-white text-base text-medium;
+    font-family: 'Titillium Web', sans-serif;
   }
 }
