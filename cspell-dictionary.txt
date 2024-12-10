@@ -50,6 +50,7 @@ esbuild
 msedge
 SVGOMG
 xvfb
+Titillium
 
 # user names
 raducristianpopa

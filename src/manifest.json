@@ -31,6 +31,10 @@
     {
       "resources": ["polyfill/*", "pages/progress-connect/*"],
       "matches": ["<all_urls>"]
+    },
+    {
+      "resources": ["assets/fonts/**/*"],
+      "matches": ["<all_urls>"]
     }
   ],
   "content_security_policy": {

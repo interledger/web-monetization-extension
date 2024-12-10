@@ -1,6 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@font-face {
+  font-family: 'Titillium Web';
+  src: url('../../assets/fonts/titillium-web/titillium-web-latin-400-normal.woff2')
+    format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Titillium Web';
+  src: url('../../assets/fonts/titillium-web/titillium-web-latin-700-normal.woff2')
+    format('woff2');
+  font-style: normal;
+  font-weight: 700;
+}
 
 @layer base {
   :root {
@@ -34,6 +48,6 @@
   }
 
   body {
-    @apply bg-white text-base text-medium;
+    @apply bg-white font-titillium text-base text-medium;
   }
 }
