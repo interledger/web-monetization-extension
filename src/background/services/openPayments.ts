@@ -395,12 +395,16 @@ export class OpenPaymentsService {
 
     await this.initClient(walletAddress.id);
     this.setConnectState('connecting');
+    const [existingTab] = await this.browser.tabs.query({
+      url: this.browser.runtime.getURL('pages/app/index.html'),
+    });
     try {
       await this.completeGrant(
         amount,
         walletAddress,
         recurring,
         InteractionIntent.CONNECT,
+        existingTab?.id,
       );
     } catch (error) {
       if (
