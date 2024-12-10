@@ -115,6 +115,7 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
                   ? '/assets/images/pin-extension-edge.png'
                   : '/assets/images/pin-extension-chrome.png'
             }
+            className="mx-auto w-full max-w-96"
             alt=""
           />
         </li>
