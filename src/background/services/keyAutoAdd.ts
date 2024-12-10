@@ -46,7 +46,7 @@ export class KeyAutoAddService {
     Object.assign(this, { browser, storage, appName, browserName, t });
   }
 
-  async addPublicKeyToWallet(walletAddress: WalletAddress) {
+  async addPublicKeyToWallet(walletAddress: WalletAddress, tabId?: TabId) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
       const { publicKey, keyId } = await this.storage.get([
@@ -54,13 +54,17 @@ export class KeyAutoAddService {
         'keyId',
       ]);
       this.updateConnectState();
-      await this.process(keyAddUrl, {
-        publicKey,
-        keyId,
-        walletAddressUrl: walletAddress.id,
-        nickName: this.appName + ' - ' + this.browserName,
+      await this.process(
         keyAddUrl,
-      });
+        {
+          publicKey,
+          keyId,
+          walletAddressUrl: walletAddress.id,
+          nickName: this.appName + ' - ' + this.browserName,
+          keyAddUrl,
+        },
+        tabId,
+      );
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
       if (!error.key || !error.key.startsWith('connectWallet_error_')) {
@@ -78,11 +82,17 @@ export class KeyAutoAddService {
     return this.tab?.id;
   }
 
-  private async process(url: string, payload: BeginPayload) {
+  private async process(url: string, payload: BeginPayload, tabId?: TabId) {
     const { resolve, reject, promise } = withResolvers();
 
-    const tab = await this.browser.tabs.create({ url });
+    await this.browser.tabs.remove(tabId!);
+
+    const tab = await this.browser.tabs
+      .get(tabId ?? -1)
+      .then((tab) => this.browser.tabs.update(tab.id!, { url }))
+      .catch(() => this.browser.tabs.create({ url }));
     this.tab = tab;
+
     if (!tab.id) {
       reject(new Error('Could not create tab'));
       return promise;
