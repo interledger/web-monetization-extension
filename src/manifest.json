@@ -33,10 +33,7 @@
       "matches": ["<all_urls>"]
     },
     {
-      "resources": [
-        "assets/fonts/titillium-web/*.woff2",
-        "assets/fonts/titillium-web/*.woff"
-      ],
+      "resources": ["assets/fonts/**/*"],
       "matches": ["<all_urls>"]
     }
   ],

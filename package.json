@@ -24,7 +24,6 @@
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
-    "@fontsource/titillium-web": "^5.1.0",
     "@interledger/open-payments": "^6.13.2",
     "@noble/ed25519": "^2.1.0",
     "@noble/hashes": "^1.6.1",

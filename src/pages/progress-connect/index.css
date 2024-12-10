@@ -1,7 +1,14 @@
-@import '@fontsource/titillium-web';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Titillium Web';
+  src: url('../../assets/fonts/titillium-web/titillium-web-latin-400-normal.woff2')
+    format('woff2');
+  font-style: normal;
+  font-weight: 400;
+}
 
 @layer base {
   :root {

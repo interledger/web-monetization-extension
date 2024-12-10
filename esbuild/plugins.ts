@@ -67,10 +67,6 @@ export const getPlugins = ({
           from: toPosix(path.join(SRC_DIR, 'assets', '**', '*')),
           to: toPosix(path.join(outDir, 'assets')),
         },
-        {
-          from: ['./node_modules/@fontsource/titillium-web/files/*'],
-          to: toPosix(path.join(outDir, 'assets', 'fonts', 'titillium-web')),
-        },
       ],
       watch: dev,
     }),
