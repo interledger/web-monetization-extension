@@ -9,20 +9,15 @@ import {
   RouterProvider,
   type RouteObject,
 } from 'react-router-dom';
-import { MessageContextProvider, WaitForStateLoad } from './lib/context';
-import { MainLayout } from './components/MainLayout';
 
 export const ROUTES = {
-  HOME: '/',
-  POST_INSTALL: '/post-install',
+  DEFAULT: '/',
 } as const;
 
 const routes = [
   {
-    element: <MainLayout />,
     children: [
-      { path: ROUTES.HOME, lazy: () => import('./pages/Home') },
-      { path: ROUTES.POST_INSTALL, lazy: () => import('./pages/PostInstall') },
+      { path: ROUTES.DEFAULT, lazy: () => import('./pages/PostInstall') },
     ],
   },
 ] satisfies RouteObject[];
@@ -32,11 +27,7 @@ export const App = () => {
   return (
     <BrowserContextProvider browser={browser}>
       <TranslationContextProvider>
-        <MessageContextProvider>
-          <WaitForStateLoad>
-            <RouterProvider router={router} />
-          </WaitForStateLoad>
-        </MessageContextProvider>
+        <RouterProvider router={router} />
       </TranslationContextProvider>
     </BrowserContextProvider>
   );
