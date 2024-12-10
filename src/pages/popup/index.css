@@ -50,7 +50,6 @@
   }
 
   body {
-    @apply bg-white text-base text-medium;
-    font-family: 'Titillium Web', sans-serif;
+    @apply font-titillium bg-white text-base text-medium;
   }
 }
