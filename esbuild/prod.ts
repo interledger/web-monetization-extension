@@ -24,6 +24,7 @@ export const getProdOptions = ({
     sourcemap: false,
     metafile: true,
     minify: true,
+    external: ['*.woff2'],
     plugins: getPlugins({ outDir, dev: false, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly' }),
       preservePolyfillClassNamesPlugin({ outDir }),
