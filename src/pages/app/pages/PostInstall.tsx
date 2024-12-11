@@ -121,6 +121,7 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
       </Step>
 
       <Step title={<>Pin extension to the browser toolbar</>}>
+        <p>Pin the Web Monetization Extension for easier access.</p>
         <img
           src={imgSrc(browserName, {
             chrome: '/assets/images/pin-extension-chrome.png',
