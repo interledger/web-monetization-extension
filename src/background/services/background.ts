@@ -12,8 +12,8 @@ import { KeyAutoAddService } from './keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
 import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
+import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
-import { APP_URL } from '../constants';
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0];
 const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';

@@ -50,8 +50,8 @@ import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
 } from '../config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
+import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
-import { APP_URL } from '../constants';
 
 interface KeyInformation {
   privateKey: string;

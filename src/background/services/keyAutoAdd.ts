@@ -85,14 +85,11 @@ export class KeyAutoAddService {
   private async process(url: string, payload: BeginPayload, tabId?: TabId) {
     const { resolve, reject, promise } = withResolvers();
 
-    await this.browser.tabs.remove(tabId!);
-
     const tab = await this.browser.tabs
       .get(tabId ?? -1)
       .then((tab) => this.browser.tabs.update(tab.id!, { url }))
       .catch(() => this.browser.tabs.create({ url }));
     this.tab = tab;
-
     if (!tab.id) {
       reject(new Error('Could not create tab'));
       return promise;
