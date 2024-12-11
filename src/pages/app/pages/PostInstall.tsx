@@ -72,6 +72,7 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
   return (
     <ol className="flex flex-col gap-4">
       <Step
+        open={true}
         title={
           <>
             Get a wallet compatible with Web Monetization{' '}
@@ -119,7 +120,7 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
         />
       </Step>
 
-      <Step open title={<>Pin extension to the browser toolbar</>}>
+      <Step title={<>Pin extension to the browser toolbar</>}>
         <img
           src={imgSrc(browserName, {
             chrome: '/assets/images/pin-extension-chrome.png',
