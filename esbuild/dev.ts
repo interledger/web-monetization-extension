@@ -15,7 +15,7 @@ export const getDevOptions = ({
     sourcemap: 'linked',
     metafile: false,
     minify: false,
-    loader: { '.woff2': 'binary' },
+    external: ['*.woff2'],
     plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly', watch: true }),
       liveReloadPlugin({ target }),
