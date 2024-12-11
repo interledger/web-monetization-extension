@@ -60,6 +60,6 @@
   }
 
   body {
-    @apply font-titillium bg-white text-base text-medium;
+    @apply bg-white font-titillium text-base text-medium;
   }
 }
