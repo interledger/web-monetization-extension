@@ -162,9 +162,7 @@ function Step({
             <path d="m19.5 8.25-7.5 7.5-7.5-7.5" />
           </svg>
 
-          <h3 className="font-medium text-weak group-open:text-strong">
-            {title}
-          </h3>
+          <h3 className="text-lg text-weak group-open:text-strong">{title}</h3>
         </summary>
 
         {children}
