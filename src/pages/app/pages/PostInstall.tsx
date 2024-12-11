@@ -104,13 +104,11 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
           <p className="">Pin your extension</p>
 
           <img
-            src={
-              browserName === 'firefox'
-                ? '/assets/images/pin-extension-firefox.png'
-                : browserName === 'edge'
-                  ? '/assets/images/pin-extension-edge.png'
-                  : '/assets/images/pin-extension-chrome.png'
-            }
+            src={imgSrc(browserName, {
+              chrome: '/assets/images/pin-extension-chrome.png',
+              firefox: '/assets/images/pin-extension-firefox.png',
+              edge: '/assets/images/pin-extension-edge.png',
+            })}
             className="mx-auto w-full max-w-96"
             alt=""
           />
@@ -128,3 +126,10 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
     </div>
   );
 };
+
+function imgSrc(
+  browser: BrowserName,
+  srcMap: Partial<Record<BrowserName, string>>,
+) {
+  return srcMap[browser] || srcMap['chrome'] || Object.values(srcMap)[0];
+}
