@@ -29,11 +29,11 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["polyfill/*", "pages/progress-connect/*"],
-      "matches": ["<all_urls>"]
-    },
-    {
-      "resources": ["assets/fonts/**/*"],
+      "resources": [
+        "polyfill/*",
+        "pages/progress-connect/*",
+        "assets/fonts/**/*"
+      ],
       "matches": ["<all_urls>"]
     }
   ],

@@ -1,34 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@font-face {
-  font-family: 'Titillium Web';
-  /* regular */
-  src: url('../../assets/fonts/titillium-web/titillium-web-latin-400-normal.woff2')
-    format('woff2');
-  font-style: normal;
-  font-weight: 400;
-}
-@font-face {
-  font-family: 'Titillium Web';
-  /* semibold */
-  src: url('../../assets/fonts/titillium-web/titillium-web-latin-600-normal.woff2')
-    format('woff2');
-  font-style: normal;
-  /* font-medium */
-  font-weight: 500;
-}
-@font-face {
-  font-family: 'Titillium Web';
-  /* bold */
-  src: url('../../assets/fonts/titillium-web/titillium-web-latin-700-normal.woff2')
-    format('woff2');
-  font-style: normal;
-  /* font-bold */
-  font-weight: 700;
-}
 
 @layer base {
+  @font-face {
+    font-family: 'Titillium Web';
+    /* light */
+    src: url('../../assets/fonts/titillium-web/titillium-web-latin-300-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    /* font-light */
+    font-weight: 300;
+  }
+  @font-face {
+    font-family: 'Titillium Web';
+    /* regular */
+    src: url('../../assets/fonts/titillium-web/titillium-web-latin-400-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'Titillium Web';
+    /* semibold */
+    src: url('../../assets/fonts/titillium-web/titillium-web-latin-600-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    /* font-medium */
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Titillium Web';
+    /* bold */
+    src: url('../../assets/fonts/titillium-web/titillium-web-latin-700-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    /* font-bold */
+    font-weight: 700;
+  }
+
   :root {
     /* Text colors */
     --text-primary: 59 130 246;
