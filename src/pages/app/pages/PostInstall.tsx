@@ -125,15 +125,6 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
             alt=""
           />
         </li>
-
-        <li>
-          <span className="text-xs text-weak" aria-hidden="true">
-            Step 4
-          </span>
-          <p className="">
-            You’re all ready! Go ahead and set up your extension
-          </p>
-        </li>
       </ol>
     </div>
   );
