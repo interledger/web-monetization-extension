@@ -87,6 +87,16 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
               here
             </a>
           </p>
+
+          <img
+            src={imgSrc(browserName, {
+              chrome: '/assets/images/wallet-signup-1-chrome.png',
+              firefox: '/assets/images/wallet-signup-1-firefox.png',
+              edge: '/assets/images/wallet-signup-1-edge.png',
+            })}
+            className="mx-auto w-full max-w-96"
+            alt=""
+          />
         </li>
 
         <li>
@@ -94,6 +104,8 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
             Step 2
           </span>
           <p className="">Find your wallet address or payment pointer</p>
+
+          <img src="/assets/images/wallet-wallet-address.png" alt="" />
         </li>
 
         <li>
