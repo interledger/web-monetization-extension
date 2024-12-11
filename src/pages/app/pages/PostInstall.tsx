@@ -76,7 +76,7 @@ const RightCol = ({
 const Steps = ({ browserName }: { browserName: BrowserName }) => {
   return (
     <div>
-      <ol className="grid grid-cols-2 gap-6">
+      <ol className="flex flex-col gap-4">
         <li>
           <span className="text-xs text-weak" aria-hidden="true">
             Step 1
