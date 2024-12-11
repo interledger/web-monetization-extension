@@ -3,6 +3,7 @@
 @tailwind utilities;
 @font-face {
   font-family: 'Titillium Web';
+  /* regular */
   src: url('../../assets/fonts/titillium-web/titillium-web-latin-400-normal.woff2')
     format('woff2');
   font-style: normal;
@@ -10,9 +11,20 @@
 }
 @font-face {
   font-family: 'Titillium Web';
+  /* semibold */
+  src: url('../../assets/fonts/titillium-web/titillium-web-latin-600-normal.woff2')
+    format('woff2');
+  font-style: normal;
+  /* font-medium */
+  font-weight: 500;
+}
+@font-face {
+  font-family: 'Titillium Web';
+  /* bold */
   src: url('../../assets/fonts/titillium-web/titillium-web-latin-700-normal.woff2')
     format('woff2');
   font-style: normal;
+  /* font-bold */
   font-weight: 700;
 }
 
@@ -48,6 +60,6 @@
   }
 
   body {
-    @apply bg-white font-titillium text-base text-medium;
+    @apply font-titillium bg-white text-base text-medium;
   }
 }
