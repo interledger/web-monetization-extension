@@ -1,6 +1,10 @@
 import React from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
-import { CaretDownIcon, ExternalIcon } from '@/pages/shared/components/Icons';
+import {
+  CaretDownIcon,
+  CheckIcon,
+  ExternalIcon,
+} from '@/pages/shared/components/Icons';
 import { getBrowserName, type BrowserName } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 
@@ -73,6 +77,7 @@ const Main = ({
 
 const Steps = ({ browserName }: { browserName: BrowserName }) => {
   const t = useTranslation();
+  const isPinnedToToolbar = usePinnedStatus();
 
   return (
     <ol className="flex flex-col gap-4">
@@ -113,7 +118,19 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
         />
       </Step>
 
-      <Step title={t('postInstall_text_stepPin_title')}>
+      <Step
+        title={
+          <React.Fragment>
+            {t('postInstall_text_stepPin_title')}
+            {isPinnedToToolbar && (
+              <CheckIcon
+                strokeWidth={2}
+                className="float-right mt-1 inline-block size-5 text-secondary-dark"
+              />
+            )}
+          </React.Fragment>
+        }
+      >
         <p>{t('postInstall_text_stepPin_desc')}</p>
         <img
           src={imgSrc(browserName, {
@@ -128,6 +145,25 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
     </ol>
   );
 };
+
+function usePinnedStatus() {
+  const browser = useBrowser();
+  const [isPinnedToToolbar, setIsPinnedToToolbar] = React.useState(false);
+
+  React.useEffect(() => {
+    const check = async () => {
+      const settings = await browser.action.getUserSettings();
+      setIsPinnedToToolbar(settings.isOnToolbar ?? false);
+    };
+
+    void check();
+    const timer = setInterval(check, 500);
+
+    return () => clearInterval(timer);
+  }, [browser]);
+
+  return isPinnedToToolbar;
+}
 
 function Step({
   open = false,
@@ -147,7 +183,9 @@ function Step({
       >
         <summary className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none">
           <CaretDownIcon className="size-5 shrink-0 rounded-full bg-slate-100 p-1 text-slate-500 group-open:rotate-180" />
-          <h3 className="text-lg text-weak group-open:text-strong">{title}</h3>
+          <h3 className="w-full text-lg text-weak group-open:text-strong">
+            {title}
+          </h3>
         </summary>
 
         {children}
