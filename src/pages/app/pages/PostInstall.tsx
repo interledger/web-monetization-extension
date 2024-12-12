@@ -78,11 +78,18 @@ const Main = ({
 const Steps = ({ browserName }: { browserName: BrowserName }) => {
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
+  const [isOpen, setIsOpen] = React.useState(0);
+
+  const onClick = React.useCallback((index: number, open: boolean) => {
+    setIsOpen((prev) => (!open ? index : prev + 1));
+  }, []);
 
   return (
     <ol className="flex flex-col gap-4">
       <Step
-        open={true}
+        index={0}
+        open={isOpen === 0}
+        onClick={onClick}
         title={
           <>
             {t('postInstall_text_stepGetWallet_title')}{' '}
@@ -110,7 +117,12 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
         />
       </Step>
 
-      <Step title={t('postInstall_text_stepWalletAddress_title')}>
+      <Step
+        index={1}
+        open={isOpen === 1}
+        onClick={onClick}
+        title={t('postInstall_text_stepWalletAddress_title')}
+      >
         <img
           src="/assets/images/wallet-wallet-address.png"
           alt=""
@@ -119,6 +131,9 @@ const Steps = ({ browserName }: { browserName: BrowserName }) => {
       </Step>
 
       <Step
+        index={2}
+        open={isOpen === 2}
+        onClick={onClick}
         title={
           <React.Fragment>
             {t('postInstall_text_stepPin_title')}
@@ -166,22 +181,33 @@ function usePinnedStatus() {
 }
 
 function Step({
-  open = false,
+  index,
   title,
   children,
+  onClick,
+  open,
 }: {
-  open?: boolean;
+  index: number;
   title: React.ReactNode;
   children: React.ReactNode;
+  onClick: (index: number, open: boolean) => void;
+  open: boolean;
 }) {
   return (
     <li>
       <details
-        name="steps"
         open={open}
         className="group relative space-y-4 overflow-hidden rounded-md border border-slate-200 bg-white p-4 transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md hover:bg-slate-50 open:hover:bg-white"
       >
-        <summary className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none">
+        <summary
+          className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
+          onClick={(ev) => {
+            // onToggle gets fired when `open` is set (even from prop set on
+            // mount). So, we use onClick to catch only user interaction.
+            ev.preventDefault(); // parent will set `open` state.
+            onClick(index, open);
+          }}
+        >
           <CaretDownIcon className="size-5 shrink-0 rounded-full bg-slate-100 p-1 text-slate-500 group-open:rotate-180" />
           <h3 className="w-full text-lg text-weak group-open:text-strong">
             {title}
