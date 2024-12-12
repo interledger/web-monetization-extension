@@ -10,7 +10,6 @@ import { useBrowser, useTranslation } from '@/app/lib/context';
 
 export const Component = () => {
   const browser = useBrowser();
-  const browserName = getBrowserName(browser, navigator.userAgent);
 
   return (
     <div
@@ -22,10 +21,7 @@ export const Component = () => {
     >
       <div className="flex max-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-8 landscape:grid landscape:p-4">
         <Header />
-        <Main
-          browserName={browserName}
-          openPopup={() => browser.action.openPopup({})}
-        />
+        <Main openPopup={() => browser.action.openPopup({})} />
       </div>
     </div>
   );
@@ -50,13 +46,7 @@ const Header = () => {
   );
 };
 
-const Main = ({
-  browserName,
-  openPopup,
-}: {
-  browserName: BrowserName;
-  openPopup: () => Promise<void>;
-}) => {
+const Main = ({ openPopup }: { openPopup: () => Promise<void> }) => {
   const t = useTranslation();
   return (
     <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 overflow-hidden rounded-lg border border-gray-200 bg-gray-50/75 p-8 shadow-md backdrop-blur-0">
@@ -65,7 +55,7 @@ const Main = ({
       </h2>
 
       <div className="h-full overflow-y-auto">
-        <Steps browserName={browserName} />
+        <Steps />
       </div>
 
       <div className="ml-auto mt-auto">
@@ -75,10 +65,12 @@ const Main = ({
   );
 };
 
-const Steps = ({ browserName }: { browserName: BrowserName }) => {
+const Steps = () => {
+  const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
   const [isOpen, setIsOpen] = React.useState(0);
+  const browserName = getBrowserName(browser, navigator.userAgent);
 
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
