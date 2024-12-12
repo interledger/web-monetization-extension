@@ -91,6 +91,7 @@ const Steps = () => {
               target="_blank"
               rel="noreferrer"
               className="group pr-1 text-primary outline-current"
+              onClick={(ev) => ev.stopPropagation()}
             >
               <span className="sr-only">list of supported wallets</span>
               <ExternalIcon className="inline-block size-4 align-baseline transition-transform hover:scale-125 group-focus:scale-125" />
