@@ -11,6 +11,12 @@
   "icon_state_actionRequired": {
     "message": "Action Required!"
   },
+  "tagline_text_1": {
+    "message": "Support content you love"
+  },
+  "tagline_text_2": {
+    "message": "Pay as you browse"
+  },
   "missingHostPermission_state_text": {
     "message": "Permission to access your data on all websites is required to use Web Monetization."
   },
@@ -230,5 +236,23 @@
   },
   "connectWalletKeyService_error_accountNotFound": {
     "message": "Failed to find an account for the provided wallet address. Are you logged into a different account?"
+  },
+  "postInstall_text_title": {
+    "message": "Welcome to the Web Monetization extension!"
+  },
+  "postInstall_text_stepGetWallet_title": {
+    "message": "Get a wallet compatible with Web Monetization"
+  },
+  "postInstall_text_stepWalletAddress_title": {
+    "message": "Find your wallet address or payment pointer"
+  },
+  "postInstall_text_stepPin_title": {
+    "message": "Pin extension to the browser toolbar"
+  },
+  "postInstall_text_stepPin_desc": {
+    "message": "Pin the Web Monetization Extension for easier access."
+  },
+  "postInstall_action_submit": {
+    "message": "Let's Go!"
   }
 }
