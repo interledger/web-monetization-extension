@@ -35,34 +35,36 @@ const NavigationButton = () => {
   }, [location, connected]);
 };
 
-const TogglePaymentsButton = ({ toggle }: { toggle: () => void }) => {
-  const { enabled, connected, state } = usePopupState();
-
-  if (!connected) return null;
-  if (!isOkState(state)) return null;
+export const TogglePaymentsButton = ({
+  large = false,
+  enabled = false,
+}: {
+  large?: boolean;
+  enabled?: boolean;
+}) => {
+  const message = useMessage();
 
   return (
     <PowerSwitch
       enabled={enabled}
-      onChange={toggle}
-      title="Enable/Disable Payments"
+      onChange={() => {
+        message.send('TOGGLE_PAYMENTS');
+        dispatch({ type: 'TOGGLE_PAYMENTS' });
+      }}
+      title="Toggle extension"
+      iconClassName={large ? 'w-32' : 'w-6'}
     />
   );
 };
 
 export const Header = () => {
   const browser = useBrowser();
-  const message = useMessage();
+  const { enabled } = usePopupState();
   const Logo = browser.runtime.getURL('assets/images/logo.svg');
 
   return (
     <HeaderEmpty logo={Logo}>
-      <TogglePaymentsButton
-        toggle={() => {
-          message.send('TOGGLE_PAYMENTS');
-          dispatch({ type: 'TOGGLE_PAYMENTS' });
-        }}
-      />
+      {enabled && <TogglePaymentsButton enabled={enabled} />}
       <NavigationButton />
     </HeaderEmpty>
   );

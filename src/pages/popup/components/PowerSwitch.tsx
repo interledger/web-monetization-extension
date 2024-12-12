@@ -1,22 +1,26 @@
-import { cn } from '@/shared/helpers';
 import React from 'react';
+import { Power } from '@/pages/shared/components/Icons';
+import { cn } from '@/shared/helpers';
 
 export const PowerSwitch = ({
   enabled,
   onChange,
   title,
+  className,
+  iconClassName = 'size-6',
 }: {
   enabled: boolean;
   onChange: () => void;
   title: string;
+  className?: string;
+  iconClassName?: string;
 }) => {
   return (
     <label
       className={cn(
-        'my-0 cursor-pointer rounded-full p-0.5 outline-gray-200 focus-within:outline',
-        enabled
-          ? 'text-green-500 focus-within:text-green-600 hover:text-green-600'
-          : 'text-red-500 focus-within:text-red-600 hover:text-red-600',
+        'my-0 cursor-pointer rounded-full p-0.5 text-slate-300 transition-colors focus-within:text-slate-600 focus-within:outline hover:text-slate-600',
+        className,
+        enabled && 'text-slate-500',
       )}
       title={title}
     >
@@ -27,17 +31,7 @@ export const PowerSwitch = ({
         aria-label={title}
         className="sr-only"
       />
-      <svg
-        className="size-6"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={3}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" />
-      </svg>
+      <Power className={iconClassName} />
     </label>
   );
 };
