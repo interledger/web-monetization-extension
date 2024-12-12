@@ -31,7 +31,7 @@
     "message": "Web Monetization only works with websites using https://."
   },
   "app_text_disabled": {
-    "message": "It looks like payments are disabled. Use the toggle to continue making payments."
+    "message": "The extension is disabled. Click the power icon to enable the extension and continue making payments."
   },
   "keyRevoked_error_title": {
     "message": "Unauthorized access to the wallet."
