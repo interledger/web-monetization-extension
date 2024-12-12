@@ -10,13 +10,13 @@ export const Component = () => {
 
   return (
     <div
-      className="flex h-full min-h-screen flex-col items-center landscape:justify-center"
+      className="flex h-screen flex-col items-center overflow-hidden landscape:justify-center"
       style={{
         backgroundImage: `url("/assets/images/bg-tile.svg")`,
         backgroundSize: '40vmax',
       }}
     >
-      <div className="flex min-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-8 landscape:grid landscape:p-4">
+      <div className="flex max-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-8 landscape:grid landscape:p-4">
         <Header />
         <Main
           browserName={browserName}
@@ -55,12 +55,12 @@ const Main = ({
 }) => {
   const t = useTranslation();
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-8 shadow-md backdrop-blur-0">
+    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 overflow-hidden rounded-lg border border-gray-200 bg-gray-50/75 p-8 shadow-md backdrop-blur-0">
       <h2 className="rounded-2xl bg-gray-100 p-4 text-center text-lg font-medium">
         {t('postInstall_text_title')}
       </h2>
 
-      <div className="h-full">
+      <div className="h-full overflow-y-auto">
         <Steps browserName={browserName} />
       </div>
 
