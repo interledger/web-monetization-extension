@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowBack, Settings } from '@/pages/shared/components/Icons';
-import { Switch } from '@/pages/shared/components/ui/Switch';
 import { HeaderEmpty } from './HeaderEmpty';
+import { PowerSwitch } from '@/popup/components/PowerSwitch';
 import { isOkState } from '@/shared/helpers';
 import { ROUTES_PATH } from '@/popup/Popup';
 import { useBrowser, useMessage } from '@/popup/lib/context';
@@ -42,12 +42,10 @@ const TogglePaymentsButton = ({ toggle }: { toggle: () => void }) => {
   if (!isOkState(state)) return null;
 
   return (
-    <Switch
-      checked={enabled}
+    <PowerSwitch
+      enabled={enabled}
       onChange={toggle}
-      size="small"
       title="Enable/Disable Payments"
-      aria-label="Toggle payments"
     />
   );
 };
