@@ -155,6 +155,10 @@ export type PopupToBackgroundMessage = {
     input: never;
     output: never;
   };
+  TOGGLE_PAYMENTS: {
+    input: never;
+    output: never;
+  };
   PAY_WEBSITE: {
     input: PayWebsitePayload;
     output: PayWebsiteResponse;

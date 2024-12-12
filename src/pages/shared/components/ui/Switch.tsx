@@ -42,11 +42,19 @@ export interface SwitchProps
 }
 
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { size, label, className, disabled = false, onChange = () => {}, ...props },
+  {
+    size,
+    label,
+    className,
+    title,
+    disabled = false,
+    onChange = () => {},
+    ...props
+  },
   ref,
 ) {
   return (
-    <label className="flex items-center gap-x-4">
+    <label className="flex items-center gap-x-4" title={title}>
       <input
         role="switch"
         ref={ref}

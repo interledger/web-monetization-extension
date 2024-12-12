@@ -234,6 +234,12 @@ export class Background {
               return;
             }
 
+            case 'TOGGLE_PAYMENTS': {
+              await this.monetizationService.togglePayments();
+              await this.updateVisualIndicatorsForCurrentTab();
+              return;
+            }
+
             case 'UPDATE_RATE_OF_PAY':
               return success(
                 await this.storage.updateRate(message.payload.rateOfPay),

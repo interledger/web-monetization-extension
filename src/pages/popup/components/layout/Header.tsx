@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowBack, Settings } from '@/pages/shared/components/Icons';
+import { Switch } from '@/pages/shared/components/ui/Switch';
 import { HeaderEmpty } from './HeaderEmpty';
+import { isOkState } from '@/shared/helpers';
 import { ROUTES_PATH } from '@/popup/Popup';
-import { useBrowser } from '@/popup/lib/context';
-import { usePopupState } from '@/popup/lib/store';
+import { useBrowser, useMessage } from '@/popup/lib/context';
+import { usePopupState, dispatch } from '@/popup/lib/store';
 
 const NavigationButton = () => {
   const location = useLocation();
@@ -33,12 +35,36 @@ const NavigationButton = () => {
   }, [location, connected]);
 };
 
+const TogglePaymentsButton = ({ toggle }: { toggle: () => void }) => {
+  const { enabled, connected, state } = usePopupState();
+
+  if (!connected) return null;
+  if (!isOkState(state)) return null;
+
+  return (
+    <Switch
+      checked={enabled}
+      onChange={toggle}
+      size="small"
+      title="Enable/Disable Payments"
+      aria-label="Toggle payments"
+    />
+  );
+};
+
 export const Header = () => {
   const browser = useBrowser();
+  const message = useMessage();
   const Logo = browser.runtime.getURL('assets/images/logo.svg');
 
   return (
     <HeaderEmpty logo={Logo}>
+      <TogglePaymentsButton
+        toggle={() => {
+          message.send('TOGGLE_PAYMENTS');
+          dispatch({ type: 'TOGGLE_PAYMENTS' });
+        }}
+      />
       <NavigationButton />
     </HeaderEmpty>
   );
