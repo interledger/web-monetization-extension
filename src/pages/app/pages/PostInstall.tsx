@@ -83,7 +83,7 @@ const Steps = () => {
         open={isOpen === 0}
         onClick={onClick}
         title={
-          <>
+          <React.Fragment>
             {t('postInstall_text_stepGetWallet_title')}{' '}
             <a
               href="https://webmonetization.org/docs/resources/op-wallets/"
@@ -95,7 +95,7 @@ const Steps = () => {
               <span className="sr-only">list of supported wallets</span>
               <ExternalIcon className="inline-block size-4 align-baseline transition-transform hover:scale-125 group-focus:scale-125" />
             </a>
-          </>
+          </React.Fragment>
         }
       >
         <img
