@@ -18,9 +18,11 @@ export const PowerSwitch = ({
   return (
     <label
       className={cn(
-        'my-0 cursor-pointer rounded-full p-0.5 text-slate-300 transition-colors focus-within:text-slate-600 focus-within:outline hover:text-slate-600',
+        'group my-0 cursor-pointer rounded-full p-0.5 transition-colors focus-within:shadow',
         className,
-        enabled && 'text-slate-500',
+        enabled
+          ? 'text-gray-500 focus-within:text-error hover:text-error'
+          : 'text-gray-300 focus-within:text-secondary-dark hover:text-secondary-dark',
       )}
       title={title}
     >
