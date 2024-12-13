@@ -13,3 +13,5 @@ export const NEW_TAB_PAGES = [
   'edge://newtab',
   'chrome://vivaldi-webui/startpage',
 ];
+
+export const APP_URL = 'pages/app/index.html';
