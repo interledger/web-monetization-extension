@@ -624,7 +624,7 @@ export class OpenPaymentsService {
           // TODO: We can remove the token `actions` check once we've proper RS
           // errors in place. Then we can handle insufficient grant error
           // separately clearly.
-          const token = await this.rotateToken();
+          const token = await this.grantService.rotateToken(this.client!);
           const hasReadAccess = token.access_token.access.find(
             (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
           );
@@ -667,7 +667,7 @@ export class OpenPaymentsService {
 
   private async validateReconnect() {
     try {
-      await this.rotateToken();
+      await this.grantService.rotateToken(this.client!);
     } catch (error) {
       if (isInvalidClientError(error)) {
         const msg = this.t('connectWallet_error_invalidClient');
