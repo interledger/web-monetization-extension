@@ -1,5 +1,5 @@
 // cSpell:ignore keyid
-import type { AmountValue, TabId } from 'shared/types';
+import type { AmountValue } from 'shared/types';
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
@@ -14,11 +14,7 @@ import * as ed from '@noble/ed25519';
 import { type Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
-import {
-  redirectToWelcomeScreen,
-  getExchangeRates,
-  getRateOfPay,
-} from '@/background/utils';
+import { getExchangeRates, getRateOfPay } from '@/background/utils';
 import { KeyAutoAddService } from './keyAutoAdd';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
@@ -44,8 +40,10 @@ import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
 } from '../config';
 import type { Cradle } from '@/background/container';
-import { OutgoingPaymentGrantService } from './outgoingPaymentGrant';
-import { ErrorCode, GrantResult, InteractionIntent } from '@/shared/enums';
+import {
+  InteractionIntent,
+  OutgoingPaymentGrantService,
+} from './outgoingPaymentGrant';
 import { APP_URL } from '@/background/constants';
 
 interface KeyInformation {
@@ -85,8 +83,8 @@ export class OpenPaymentsService {
   private browser: Cradle['browser'];
   private storage: Cradle['storage'];
   private grantService: Cradle['grantService'];
-  private appName: Cradle['appName'];
-  private browserName: Cradle['browserName'];
+  // private appName: Cradle['appName'];
+  // private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
   constructor({
@@ -358,7 +356,7 @@ export class OpenPaymentsService {
 
         // add key to wallet and try again
         try {
-          const tabId = await this.addPublicKeyToWallet(
+          const tabId = await this.grantService.addPublicKeyToWallet(
             walletAddress,
             existingTab?.id,
           );
@@ -462,47 +460,6 @@ export class OpenPaymentsService {
           recurringGrant: null,
           recurringGrantSpentAmount: '0',
         });
-      }
-    }
-  }
-
-  /**
-   * Adds public key to wallet by "browser automation" - the content script
-   * takes control of tab when the correct message is sent, and adds the key
-   * through the wallet's dashboard.
-   * @returns tabId that we can reuse for further connecting, or redirects etc.
-   */
-  private async addPublicKeyToWallet(
-    walletAddress: WalletAddress,
-    tabId?: TabId,
-  ): Promise<TabId | undefined> {
-    const keyAutoAdd = new KeyAutoAddService({
-      browser: this.browser,
-      storage: this.storage,
-      appName: this.appName,
-      browserName: this.browserName,
-      t: this.t,
-    });
-    try {
-      await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
-      return keyAutoAdd.tabId;
-    } catch (error) {
-      const tabId = keyAutoAdd.tabId;
-      const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      if (tabId && !isTabClosed) {
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.GRANT_ERROR,
-          InteractionIntent.CONNECT,
-          ErrorCode.KEY_ADD_FAILED,
-        );
-      }
-      if (error instanceof ErrorWithKey) {
-        throw error;
-      } else {
-        // TODO: check if need to handle errors here
-        throw new Error(error.message, { cause: error });
       }
     }
   }
@@ -710,43 +667,20 @@ export class OpenPaymentsService {
         throw error;
       }
 
-      let tabId: number | undefined;
       try {
         // add key to wallet and try again
-        tabId = await this.addPublicKeyToWallet(walletAddress);
-        await this.validateReconnect();
-
-        tabId ??= await this.ensureTabExists();
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.KEY_ADD_SUCCESS,
-          InteractionIntent.RECONNECT,
+        this.grantService.addPublicKeyToWalletWithRotateToken(
+          this.client!,
+          walletAddress,
         );
+        await this.storage.setState({ key_revoked: false });
       } catch (error) {
-        const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-        if (tabId && !isTabClosed) {
-          await redirectToWelcomeScreen(
-            this.browser,
-            tabId,
-            GrantResult.KEY_ADD_ERROR,
-            InteractionIntent.RECONNECT,
-          );
-        }
         this.updateConnectStateError(error);
         throw error;
       }
     }
 
     this.setConnectState(null);
-  }
-
-  private async ensureTabExists(): Promise<number> {
-    const tab = await this.browser.tabs.create({});
-    if (!tab.id) {
-      throw new Error('Could not create tab');
-    }
-    return tab.id;
   }
 }
 

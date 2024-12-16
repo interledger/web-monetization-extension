@@ -1,9 +1,5 @@
 import { getNextSendableAmount } from './utils';
 
-jest.mock('@/shared/defines', () => ({
-  OPEN_PAYMENTS_REDIRECT_URL: 'https://example.com/redirect',
-}));
-
 // same as BuiltinIterator.take(n)
 function take<T>(iter: IterableIterator<T>, n: number) {
   const result: T[] = [];
