@@ -316,7 +316,13 @@ export class MonetizationService {
       throw new Error(this.t('pay_error_notMonetized'));
     }
 
-    const { walletAddress } = await this.storage.get(['walletAddress']);
+    const { enabled, walletAddress } = await this.storage.get([
+      'enabled',
+      'walletAddress',
+    ]);
+    if (!enabled) {
+      throw new Error('Unexpected: payments are not enabled');
+    }
     if (!walletAddress) {
       throw new Error('Unexpected: wallet address not found.');
     }
