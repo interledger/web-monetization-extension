@@ -46,6 +46,7 @@ import {
 import type { Cradle } from '@/background/container';
 import { OutgoingPaymentGrantService } from './outgoingPaymentGrant';
 import { ErrorCode, GrantResult, InteractionIntent } from '@/shared/enums';
+import { APP_URL } from '@/background/constants';
 
 interface KeyInformation {
   privateKey: string;
@@ -326,6 +327,9 @@ export class OpenPaymentsService {
 
     await this.initClient(walletAddress.id);
     this.setConnectState('connecting');
+    const [existingTab] = await this.browser.tabs.query({
+      url: this.browser.runtime.getURL(APP_URL),
+    });
     try {
       await this.grantService.createGrant(
         this.client!,
@@ -333,6 +337,7 @@ export class OpenPaymentsService {
         walletAddress,
         recurring,
         InteractionIntent.CONNECT,
+        existingTab?.id,
       );
     } catch (error) {
       if (
@@ -353,7 +358,10 @@ export class OpenPaymentsService {
 
         // add key to wallet and try again
         try {
-          const tabId = await this.addPublicKeyToWallet(walletAddress);
+          const tabId = await this.addPublicKeyToWallet(
+            walletAddress,
+            existingTab?.id,
+          );
           this.setConnectState('connecting');
           await this.grantService.createGrant(
             this.client!,
@@ -466,6 +474,7 @@ export class OpenPaymentsService {
    */
   private async addPublicKeyToWallet(
     walletAddress: WalletAddress,
+    tabId?: TabId,
   ): Promise<TabId | undefined> {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
@@ -475,7 +484,7 @@ export class OpenPaymentsService {
       t: this.t,
     });
     try {
-      await keyAutoAdd.addPublicKeyToWallet(walletAddress);
+      await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
       return keyAutoAdd.tabId;
     } catch (error) {
       const tabId = keyAutoAdd.tabId;
@@ -811,4 +820,9 @@ export const isMissingGrantPermissionsError = (error: any) => {
 export const isInvalidReceiverError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 400 && error.description === 'invalid receiver';
+};
+
+export const isNotFoundError = (error: any) => {
+  if (!isOpenPaymentsClientError(error)) return false;
+  return error.status === 404;
 };

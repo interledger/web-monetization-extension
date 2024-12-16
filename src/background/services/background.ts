@@ -12,6 +12,7 @@ import { KeyAutoAddService } from './keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
 import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
+import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0];
@@ -339,6 +340,9 @@ export class Background {
       if (details.reason === 'install') {
         await this.storage.populate();
         await this.openPaymentsService.generateKeys();
+        await this.browser.tabs.create({
+          url: this.browser.runtime.getURL(`${APP_URL}#/post-install`),
+        });
       } else if (details.reason === 'update') {
         const migrated = await this.storage.migrate();
         if (migrated) {

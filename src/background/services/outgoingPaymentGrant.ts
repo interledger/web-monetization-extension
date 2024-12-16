@@ -22,6 +22,7 @@ import { ErrorCode, GrantResult, InteractionIntent } from '@/shared/enums';
 import {
   isInvalidClientError,
   isInvalidContinuationError,
+  isNotFoundError,
 } from './openPayments';
 import { toAmount } from '../utils';
 
@@ -185,7 +186,11 @@ export class OutgoingPaymentGrantService {
     try {
       await client.grant.cancel(grantContinuation);
     } catch (error) {
-      if (isInvalidClientError(error) || isInvalidContinuationError(error)) {
+      if (
+        isInvalidClientError(error) ||
+        isInvalidContinuationError(error) ||
+        isNotFoundError(error)
+      ) {
         // key already removed from wallet
         return;
       }
