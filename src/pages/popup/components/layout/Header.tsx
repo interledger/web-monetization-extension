@@ -9,7 +9,7 @@ import { usePopupState } from '@/popup/lib/store';
 
 const NavigationButton = () => {
   const location = useLocation();
-  const { connected } = usePopupState();
+  const { connected, enabled } = usePopupState();
 
   return React.useMemo(() => {
     if (!connected) return null;
@@ -27,21 +27,22 @@ const NavigationButton = () => {
         <ArrowBack className="h-6" />
       </Link>
     ) : (
-      <Link to={ROUTES_PATH.SETTINGS}>
-        <Settings className="h-6" />
-      </Link>
+      <React.Fragment>
+        {enabled && connected && <TogglePaymentsButton enabled={true} />}
+        <Link to={ROUTES_PATH.SETTINGS}>
+          <Settings className="h-6" />
+        </Link>
+      </React.Fragment>
     );
-  }, [location, connected]);
+  }, [location, connected, enabled]);
 };
 
 export const Header = () => {
   const browser = useBrowser();
-  const { enabled, connected } = usePopupState();
   const Logo = browser.runtime.getURL('assets/images/logo.svg');
 
   return (
     <HeaderEmpty logo={Logo}>
-      {enabled && connected && <TogglePaymentsButton enabled={true} />}
       <NavigationButton />
     </HeaderEmpty>
   );
