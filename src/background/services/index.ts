@@ -1,6 +1,7 @@
 export { OpenPaymentsService } from './openPayments';
 export { StorageService } from './storage';
 export { MonetizationService } from './monetization';
+export { OutgoingPaymentGrantService } from './outgoingPaymentGrant';
 export { Background } from './background';
 export { TabEvents } from './tabEvents';
 export { TabState } from './tabState';

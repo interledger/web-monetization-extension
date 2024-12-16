@@ -17,6 +17,7 @@ import {
   EventsService,
   Heartbeat,
   Deduplicator,
+  OutgoingPaymentGrantService,
 } from './services';
 import { createLogger, Logger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
@@ -39,6 +40,7 @@ export interface Cradle {
   events: EventsService;
   deduplicator: Deduplicator;
   storage: StorageService;
+  grantService: OutgoingPaymentGrantService;
   openPaymentsService: OpenPaymentsService;
   monetizationService: MonetizationService;
   message: MessageManager<BackgroundToContentMessage>;
@@ -74,6 +76,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('storage'),
+      })),
+    grantService: asClass(OutgoingPaymentGrantService)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('outgoingPaymentGrant'),
       })),
     openPaymentsService: asClass(OpenPaymentsService)
       .singleton()

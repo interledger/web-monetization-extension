@@ -4,10 +4,12 @@ import type {
   Tab,
   WalletAmount,
 } from '@/shared/types';
-import type { Browser, Runtime } from 'webextension-polyfill';
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
+import { ErrorCode, GrantResult, InteractionIntent } from '@/shared/enums';
+import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 
 export const getCurrentActiveTab = async (browser: Browser) => {
   const window = await browser.windows.getLastFocused();
@@ -16,6 +18,22 @@ export const getCurrentActiveTab = async (browser: Browser) => {
     windowId: window.id,
   });
   return activeTabs[0];
+};
+
+export const redirectToWelcomeScreen = async (
+  browser: Browser,
+  tabId: NonNullable<Tabs.Tab['id']>,
+  result: GrantResult,
+  intent: InteractionIntent,
+  errorCode?: ErrorCode,
+) => {
+  const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
+  url.searchParams.set('result', result);
+  url.searchParams.set('intent', intent);
+  if (errorCode) url.searchParams.set('errorCode', errorCode);
+  await browser.tabs.update(tabId, {
+    url: url.toString(),
+  });
 };
 
 interface ToAmountParams {
