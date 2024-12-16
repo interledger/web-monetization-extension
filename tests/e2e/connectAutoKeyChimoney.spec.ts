@@ -8,7 +8,7 @@ import {
   waitForGrantConsentPage,
 } from './helpers/chimoney';
 
-test('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
+test('Connect to Chimoney wallet with automatic key addition when not logged-in to wallet', async ({
   page,
   popup,
   persistentContext: context,
