@@ -91,9 +91,13 @@ export class KeyAutoAddService {
     existingTabId?: TabId,
   ) {
     const { resolve, reject, promise } = withResolvers();
-    const tab = existingTabId
-      ? await this.browser.tabs.update(existingTabId, { url })
-      : await this.browser.tabs.create({ url });
+    let tab: Tabs.Tab;
+    try {
+      tab = await this.browser.tabs.get(existingTabId ?? -1);
+      await this.browser.tabs.update(tab.id, { url });
+    } catch {
+      tab = await this.browser.tabs.create({ url });
+    }
 
     this.tab = tab;
     if (!tab.id) {
