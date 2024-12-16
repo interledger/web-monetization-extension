@@ -36,12 +36,12 @@ const NavigationButton = () => {
 
 export const Header = () => {
   const browser = useBrowser();
-  const { enabled } = usePopupState();
+  const { enabled, connected } = usePopupState();
   const Logo = browser.runtime.getURL('assets/images/logo.svg');
 
   return (
     <HeaderEmpty logo={Logo}>
-      {enabled && <TogglePaymentsButton enabled={true} />}
+      {enabled && connected && <TogglePaymentsButton enabled={true} />}
       <NavigationButton />
     </HeaderEmpty>
   );
