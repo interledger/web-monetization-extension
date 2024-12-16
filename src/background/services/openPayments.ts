@@ -637,7 +637,7 @@ export class OpenPaymentsService {
    */
   private async addPublicKeyToWallet(
     walletAddress: WalletAddress,
-    tabId?: TabId,
+    existingTabId?: TabId,
   ): Promise<TabId | undefined> {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
@@ -647,7 +647,7 @@ export class OpenPaymentsService {
       t: this.t,
     });
     try {
-      await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
+      await keyAutoAdd.addPublicKeyToWallet(walletAddress, existingTabId);
       return keyAutoAdd.tabId;
     } catch (error) {
       const tabId = keyAutoAdd.tabId;
