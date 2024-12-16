@@ -38,12 +38,10 @@ export async function graphQlRequest<R>(body: {
   query: string;
   variables?: Record<string, unknown>;
 }): Promise<R> {
-  const endpoint = location.hostname.includes('sandbox')
-    ? 'https://api.sandbox.gatehub.net/graphql'
-    : 'https://api.gatehub.net/graphql';
+  const url = new URL('/graphql', location.origin.replace('wallet.', 'api.'));
   const authToken = await getAuthToken();
 
-  const res = await fetch(endpoint, {
+  const res = await fetch(url.href, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
