@@ -12,6 +12,7 @@ import {
   type WorkerInfo,
   type Worker,
 } from '@playwright/test';
+import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
 
@@ -230,7 +231,28 @@ export async function getBackground(
     throw new Error('Could not find background page/worker');
   }
 
+  // Close the post-install page as we mostly test the scenarios where the
+  // extension is already installed. Besides, it's not really relevant to tests,
+  // unless we're specifically testing the post-install page or checking that
+  // the post-install page tab was reused for the connect process.
+  await closePostInstallPage(context, background);
+
   return background;
+}
+
+export async function closePostInstallPage(
+  context: BrowserContext,
+  background: Background,
+) {
+  const url = await background.evaluate(
+    (path) => chrome.runtime.getURL(path),
+    APP_URL,
+  );
+  let page = context.pages().find((page) => page.url().startsWith(url));
+  page ??= await context.waitForEvent('page', (p) => p.url().startsWith(url));
+  const promise = page.waitForEvent('close');
+  await page.evaluate(() => window.close());
+  await promise;
 }
 
 export type KeyInfo = {
