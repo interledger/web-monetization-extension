@@ -22,7 +22,7 @@ export const dispatch = ({ type, data }: Actions) => {
       }
       break;
     }
-    case 'TOGGLE_WM': {
+    case 'TOGGLE_CONTINUOUS_PAYMENTS': {
       store.continuousPaymentsEnabled = !store.continuousPaymentsEnabled;
       return;
     }
@@ -55,7 +55,7 @@ export const dispatch = ({ type, data }: Actions) => {
 
 type Actions =
   | { type: 'SET_DATA'; data: PopupState }
-  | { type: 'TOGGLE_WM'; data?: never }
+  | { type: 'TOGGLE_CONTINUOUS_PAYMENTS'; data?: never }
   | { type: 'TOGGLE_PAYMENTS'; data?: never }
   | { type: 'SET_CONNECTED'; data: { connected: boolean } }
   | { type: 'UPDATE_RATE_OF_PAY'; data: { rateOfPay: string } }

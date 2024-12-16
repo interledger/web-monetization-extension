@@ -229,8 +229,8 @@ export class Background {
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
               return;
 
-            case 'TOGGLE_WM': {
-              await this.monetizationService.toggleWM();
+            case 'TOGGLE_CONTINUOUS_PAYMENTS': {
+              await this.monetizationService.toggleContinuousPayments();
               await this.updateVisualIndicatorsForCurrentTab();
               return;
             }

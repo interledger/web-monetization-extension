@@ -151,7 +151,7 @@ export type PopupToBackgroundMessage = {
     input: never;
     output: never;
   };
-  TOGGLE_WM: {
+  TOGGLE_CONTINUOUS_PAYMENTS: {
     input: never;
     output: never;
   };

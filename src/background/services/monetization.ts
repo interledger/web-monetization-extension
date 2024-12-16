@@ -274,7 +274,7 @@ export class MonetizationService {
     await this.resumePaymentSessionsByTabId(currentTab.id);
   }
 
-  async toggleWM() {
+  async toggleContinuousPayments() {
     const { continuousPaymentsEnabled, enabled } = await this.storage.get([
       'continuousPaymentsEnabled',
       'enabled',
