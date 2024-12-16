@@ -160,7 +160,10 @@ export const ConnectWalletForm = ({
       const input = event.currentTarget;
       const ev = event.nativeEvent as InputEvent;
       const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
-      if (!value || (ev.data && ev.inputType !== 'insertReplacementText')) {
+      if (
+        !value ||
+        (ev.inputType && ev.inputType !== 'insertReplacementText')
+      ) {
         return; // not autocomplete
       }
       if (validateWalletAddressUrl(value)) {
