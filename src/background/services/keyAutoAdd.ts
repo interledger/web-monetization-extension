@@ -92,76 +92,71 @@ export class KeyAutoAddService {
     existingTabId?: TabId,
   ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
-    try {
-      const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
-      this.tab = tab;
+    const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
+    this.tab = tab;
 
-      const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
-        if (tabId !== tab.id) return;
+    const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
+      if (tabId !== tab.id) return;
+      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
+    };
+    this.browser.tabs.onRemoved.addListener(onTabCloseListener);
+
+    const ports = new Set<Runtime.Port>();
+    const onConnectListener: OnConnectCallback = (port) => {
+      if (port.name !== CONNECTION_NAME) return;
+      if (port.error) {
+        reject(new Error(port.error.message));
+        return;
+      }
+      ports.add(port);
+
+      port.postMessage({ action: 'BEGIN', payload });
+
+      port.onMessage.addListener(onMessageListener);
+
+      port.onDisconnect.addListener(() => {
+        ports.delete(port);
+        // wait for connect again so we can send message again if not connected,
+        // and not errored already (e.g. page refreshed)
+      });
+    };
+
+    const onMessageListener: OnPortMessageListener = (
+      message: KeyAutoAddToBackgroundMessage,
+      port,
+    ) => {
+      if (message.action === 'SUCCESS') {
+        this.browser.runtime.onConnect.removeListener(onConnectListener);
         this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-        reject(new ErrorWithKey('connectWallet_error_tabClosed'));
-      };
-      this.browser.tabs.onRemoved.addListener(onTabCloseListener);
-
-      const ports = new Set<Runtime.Port>();
-      const onConnectListener: OnConnectCallback = (port) => {
-        if (port.name !== CONNECTION_NAME) return;
-        if (port.error) {
-          reject(new Error(port.error.message));
-          return;
+        resolve(message.payload);
+      } else if (message.action === 'ERROR') {
+        this.browser.runtime.onConnect.removeListener(onConnectListener);
+        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+        const { stepName, details: err } = message.payload;
+        reject(
+          new ErrorWithKey(
+            'connectWalletKeyService_error_failed',
+            [
+              stepName,
+              isErrorWithKey(err.error) ? this.t(err.error) : err.message,
+            ],
+            isErrorWithKey(err.error) ? err.error : undefined,
+          ),
+        );
+      } else if (message.action === 'PROGRESS') {
+        // can also save progress to show in popup
+        for (const p of ports) {
+          if (p !== port) p.postMessage(message);
         }
-        ports.add(port);
+      } else {
+        reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
+      }
+    };
 
-        port.postMessage({ action: 'BEGIN', payload });
+    this.browser.runtime.onConnect.addListener(onConnectListener);
 
-        port.onMessage.addListener(onMessageListener);
-
-        port.onDisconnect.addListener(() => {
-          ports.delete(port);
-          // wait for connect again so we can send message again if not connected,
-          // and not errored already (e.g. page refreshed)
-        });
-      };
-
-      const onMessageListener: OnPortMessageListener = (
-        message: KeyAutoAddToBackgroundMessage,
-        port,
-      ) => {
-        if (message.action === 'SUCCESS') {
-          this.browser.runtime.onConnect.removeListener(onConnectListener);
-          this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-          resolve(message.payload);
-        } else if (message.action === 'ERROR') {
-          this.browser.runtime.onConnect.removeListener(onConnectListener);
-          this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-          const { stepName, details: err } = message.payload;
-          reject(
-            new ErrorWithKey(
-              'connectWalletKeyService_error_failed',
-              [
-                stepName,
-                isErrorWithKey(err.error) ? this.t(err.error) : err.message,
-              ],
-              isErrorWithKey(err.error) ? err.error : undefined,
-            ),
-          );
-        } else if (message.action === 'PROGRESS') {
-          // can also save progress to show in popup
-          for (const p of ports) {
-            if (p !== port) p.postMessage(message);
-          }
-        } else {
-          reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
-        }
-      };
-
-      this.browser.runtime.onConnect.addListener(onConnectListener);
-
-      return promise;
-    } catch (error) {
-      reject(error);
-      return promise;
-    }
+    return promise;
   }
 
   private async validate(walletAddressUrl: string, keyId: string) {

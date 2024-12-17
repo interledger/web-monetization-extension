@@ -780,54 +780,46 @@ export class OpenPaymentsService {
     existingTabId?: TabId,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
-    try {
-      const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
+    const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
 
-      const tabCloseListener: TabRemovedCallback = (tabId) => {
-        if (tabId !== tab.id) return;
+    const tabCloseListener: TabRemovedCallback = (tabId) => {
+      if (tabId !== tab.id) return;
 
-        this.browser.tabs.onRemoved.removeListener(tabCloseListener);
-        reject(new ErrorWithKey('connectWallet_error_tabClosed'));
-      };
+      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
+    };
 
-      const getInteractionInfo: TabUpdateCallback = async (
-        tabId,
-        changeInfo,
-      ) => {
-        if (tabId !== tab.id) return;
-        try {
-          const tabUrl = new URL(changeInfo.url || '');
-          const interactRef = tabUrl.searchParams.get('interact_ref');
-          const hash = tabUrl.searchParams.get('hash');
-          const result = tabUrl.searchParams.get('result');
+    const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
+      if (tabId !== tab.id) return;
+      try {
+        const tabUrl = new URL(changeInfo.url || '');
+        const interactRef = tabUrl.searchParams.get('interact_ref');
+        const hash = tabUrl.searchParams.get('hash');
+        const result = tabUrl.searchParams.get('result');
 
-          if (
-            (interactRef && hash) ||
-            result === 'grant_rejected' ||
-            result === 'grant_invalid'
-          ) {
-            this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
-            this.browser.tabs.onRemoved.removeListener(tabCloseListener);
-          }
-
-          if (interactRef && hash) {
-            resolve({ interactRef, hash, tabId });
-          } else if (result === 'grant_rejected') {
-            reject(new ErrorWithKey('connectWallet_error_grantRejected'));
-          }
-        } catch {
-          /* do nothing */
+        if (
+          (interactRef && hash) ||
+          result === 'grant_rejected' ||
+          result === 'grant_invalid'
+        ) {
+          this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
+          this.browser.tabs.onRemoved.removeListener(tabCloseListener);
         }
-      };
 
-      this.browser.tabs.onRemoved.addListener(tabCloseListener);
-      this.browser.tabs.onUpdated.addListener(getInteractionInfo);
+        if (interactRef && hash) {
+          resolve({ interactRef, hash, tabId });
+        } else if (result === 'grant_rejected') {
+          reject(new ErrorWithKey('connectWallet_error_grantRejected'));
+        }
+      } catch {
+        /* do nothing */
+      }
+    };
 
-      return promise;
-    } catch (error) {
-      reject(error);
-      return promise;
-    }
+    this.browser.tabs.onRemoved.addListener(tabCloseListener);
+    this.browser.tabs.onUpdated.addListener(getInteractionInfo);
+
+    return promise;
   }
 
   async disconnectWallet() {

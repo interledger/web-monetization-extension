@@ -99,13 +99,13 @@ export const reuseOrCreateTab = async (
   try {
     const tab = await browser.tabs.get(tabId ?? -1);
     if (!tab.id) {
-      throw new Error('Unexpected: tab does not have id');
+      throw new Error('Could not retrieve tab.');
     }
     return (await browser.tabs.update(tab.id, { url })) as Tab;
   } catch {
     const tab = await browser.tabs.create({ url });
     if (!tab.id) {
-      throw new Error('Unexpected: tab does not have id');
+      throw new Error('Newly created tab does not have the id property set.');
     }
     return tab as Tab;
   }
