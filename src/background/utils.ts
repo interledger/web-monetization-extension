@@ -91,6 +91,26 @@ export const getTab = (sender: Runtime.MessageSender): Tab => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab') as Tab;
 };
 
+export const reuseOrCreateTab = async (
+  browser: Browser,
+  url: string,
+  tabId?: number,
+): Promise<Tab> => {
+  try {
+    const tab = await browser.tabs.get(tabId ?? -1);
+    if (!tab.id) {
+      throw new Error('Unexpected: tab does not have id');
+    }
+    return (await browser.tabs.update(tab.id, { url })) as Tab;
+  } catch {
+    const tab = await browser.tabs.create({ url });
+    if (!tab.id) {
+      throw new Error('Unexpected: tab does not have id');
+    }
+    return tab as Tab;
+  }
+};
+
 export const getSender = (sender: Runtime.MessageSender) => {
   const tabId = getTabId(sender);
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId');

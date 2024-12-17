@@ -6,14 +6,15 @@ import {
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { Browser, Runtime, Scripting, Tabs } from 'webextension-polyfill';
+import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
-import type { TabId } from '@/shared/types';
+import type { Tab, TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
   KeyAutoAddToBackgroundMessage,
 } from '@/content/keyAutoAdd/lib/types';
+import { reuseOrCreateTab } from '../utils';
 
 export const CONNECTION_NAME = 'key-auto-add';
 
@@ -34,7 +35,7 @@ export class KeyAutoAddService {
   private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
-  private tab: Tabs.Tab | null = null;
+  private tab: Tab | null = null;
 
   constructor({
     browser,
@@ -89,84 +90,78 @@ export class KeyAutoAddService {
     url: string,
     payload: BeginPayload,
     existingTabId?: TabId,
-  ) {
+  ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
-    let tab: Tabs.Tab;
     try {
-      tab = await this.browser.tabs.get(existingTabId ?? -1);
-      await this.browser.tabs.update(tab.id, { url });
-    } catch {
-      tab = await this.browser.tabs.create({ url });
-    }
+      const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
+      this.tab = tab;
 
-    this.tab = tab;
-    if (!tab.id) {
-      reject(new Error('Could not create tab'));
+      const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
+        if (tabId !== tab.id) return;
+        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+        reject(new ErrorWithKey('connectWallet_error_tabClosed'));
+      };
+      this.browser.tabs.onRemoved.addListener(onTabCloseListener);
+
+      const ports = new Set<Runtime.Port>();
+      const onConnectListener: OnConnectCallback = (port) => {
+        if (port.name !== CONNECTION_NAME) return;
+        if (port.error) {
+          reject(new Error(port.error.message));
+          return;
+        }
+        ports.add(port);
+
+        port.postMessage({ action: 'BEGIN', payload });
+
+        port.onMessage.addListener(onMessageListener);
+
+        port.onDisconnect.addListener(() => {
+          ports.delete(port);
+          // wait for connect again so we can send message again if not connected,
+          // and not errored already (e.g. page refreshed)
+        });
+      };
+
+      const onMessageListener: OnPortMessageListener = (
+        message: KeyAutoAddToBackgroundMessage,
+        port,
+      ) => {
+        if (message.action === 'SUCCESS') {
+          this.browser.runtime.onConnect.removeListener(onConnectListener);
+          this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+          resolve(message.payload);
+        } else if (message.action === 'ERROR') {
+          this.browser.runtime.onConnect.removeListener(onConnectListener);
+          this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+          const { stepName, details: err } = message.payload;
+          reject(
+            new ErrorWithKey(
+              'connectWalletKeyService_error_failed',
+              [
+                stepName,
+                isErrorWithKey(err.error) ? this.t(err.error) : err.message,
+              ],
+              isErrorWithKey(err.error) ? err.error : undefined,
+            ),
+          );
+        } else if (message.action === 'PROGRESS') {
+          // can also save progress to show in popup
+          for (const p of ports) {
+            if (p !== port) p.postMessage(message);
+          }
+        } else {
+          reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
+        }
+      };
+
+      this.browser.runtime.onConnect.addListener(onConnectListener);
+
+      return promise;
+    } catch (error) {
+      reject(error);
       return promise;
     }
-
-    const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
-      if (tabId !== tab.id) return;
-      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
-    };
-    this.browser.tabs.onRemoved.addListener(onTabCloseListener);
-
-    const ports = new Set<Runtime.Port>();
-    const onConnectListener: OnConnectCallback = (port) => {
-      if (port.name !== CONNECTION_NAME) return;
-      if (port.error) {
-        reject(new Error(port.error.message));
-        return;
-      }
-      ports.add(port);
-
-      port.postMessage({ action: 'BEGIN', payload });
-
-      port.onMessage.addListener(onMessageListener);
-
-      port.onDisconnect.addListener(() => {
-        ports.delete(port);
-        // wait for connect again so we can send message again if not connected,
-        // and not errored already (e.g. page refreshed)
-      });
-    };
-
-    const onMessageListener: OnPortMessageListener = (
-      message: KeyAutoAddToBackgroundMessage,
-      port,
-    ) => {
-      if (message.action === 'SUCCESS') {
-        this.browser.runtime.onConnect.removeListener(onConnectListener);
-        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-        resolve(message.payload);
-      } else if (message.action === 'ERROR') {
-        this.browser.runtime.onConnect.removeListener(onConnectListener);
-        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-        const { stepName, details: err } = message.payload;
-        reject(
-          new ErrorWithKey(
-            'connectWalletKeyService_error_failed',
-            [
-              stepName,
-              isErrorWithKey(err.error) ? this.t(err.error) : err.message,
-            ],
-            isErrorWithKey(err.error) ? err.error : undefined,
-          ),
-        );
-      } else if (message.action === 'PROGRESS') {
-        // can also save progress to show in popup
-        for (const p of ports) {
-          if (p !== port) p.postMessage(message);
-        }
-      } else {
-        reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
-      }
-    };
-
-    this.browser.runtime.onConnect.addListener(onConnectListener);
-
-    return promise;
   }
 
   private async validate(walletAddressUrl: string, keyId: string) {
