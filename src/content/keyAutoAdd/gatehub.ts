@@ -91,13 +91,12 @@ const findWallet: Run<void> = async (
     throw error;
   });
 
-  if (
-    !data.me.wallets.some((wallet) => {
-      return wallet.ilpPaymentPointers.some(
-        ({ paymentPointerUrl }) => paymentPointerUrl === walletAddressUrl,
-      );
-    })
-  ) {
+  const walletBelongsToUser = data.me.wallets.some((wallet) => {
+    return wallet.ilpPaymentPointers.some(
+      ({ paymentPointerUrl }) => paymentPointerUrl === walletAddressUrl,
+    );
+  });
+  if (!walletBelongsToUser) {
     throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
   }
 };
