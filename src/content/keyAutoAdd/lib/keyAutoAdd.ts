@@ -62,8 +62,9 @@ export class KeyAutoAdd {
 
     if (size === 'notification') {
       styles = {
-        width: '22rem',
-        height: '8rem',
+        width: '22em',
+        height: '8em',
+        fontSize: '16px',
         position: 'fixed',
         top: '1rem',
         right: '1rem',
