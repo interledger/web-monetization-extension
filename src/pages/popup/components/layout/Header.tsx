@@ -2,13 +2,14 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowBack, Settings } from '@/pages/shared/components/Icons';
 import { HeaderEmpty } from './HeaderEmpty';
+import { TogglePaymentsButton } from '@/popup/components/TogglePaymentsButton';
 import { ROUTES_PATH } from '@/popup/Popup';
 import { useBrowser } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
 
 const NavigationButton = () => {
   const location = useLocation();
-  const { connected } = usePopupState();
+  const { connected, enabled } = usePopupState();
 
   return React.useMemo(() => {
     if (!connected) return null;
@@ -26,11 +27,14 @@ const NavigationButton = () => {
         <ArrowBack className="h-6" />
       </Link>
     ) : (
-      <Link to={ROUTES_PATH.SETTINGS}>
-        <Settings className="h-6" />
-      </Link>
+      <React.Fragment>
+        {enabled && connected && <TogglePaymentsButton enabled={true} />}
+        <Link to={ROUTES_PATH.SETTINGS}>
+          <Settings className="h-6" />
+        </Link>
+      </React.Fragment>
     );
-  }, [location, connected]);
+  }, [location, connected, enabled]);
 };
 
 export const Header = () => {
