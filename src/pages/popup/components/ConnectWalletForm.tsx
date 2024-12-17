@@ -35,6 +35,10 @@ type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
+type OnInputHandler = NonNullable<
+  React.DOMAttributes<HTMLInputElement>['onInput']
+>;
+
 interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<Inputs>;
@@ -149,6 +153,34 @@ export const ConnectWalletForm = ({
       return false;
     },
     [saveValue, getWalletInformation, toErrorInfo],
+  );
+
+  const onWalletAddressInput: OnInputHandler = React.useCallback(
+    (event) => {
+      const input = event.currentTarget;
+      const ev = event.nativeEvent as InputEvent;
+      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
+      if (
+        !value ||
+        (ev.inputType && ev.inputType !== 'insertReplacementText')
+      ) {
+        return; // not autocomplete
+      }
+      if (validateWalletAddressUrl(value)) {
+        return; // not valid data from autocomplete, fallback to input blur based behavior
+      }
+      if (value === walletAddressUrl) {
+        if (value || !input.required) {
+          return;
+        }
+      }
+      // use as autocompleted value
+      void handleWalletAddressUrlChange(value, input).then((ok) => {
+        resetState();
+        if (ok) document.getElementById('connectAmount')?.focus();
+      });
+    },
+    [handleWalletAddressUrlChange, resetState, walletAddressUrl],
   );
 
   const handleAmountChange = React.useCallback(
@@ -274,6 +306,7 @@ export const ConnectWalletForm = ({
         spellCheck={false}
         enterKeyHint="go"
         readOnly={isSubmitting}
+        onInput={onWalletAddressInput}
         onPaste={async (ev) => {
           const input = ev.currentTarget;
           let value = ev.clipboardData.getData('text');
