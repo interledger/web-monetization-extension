@@ -131,14 +131,16 @@ export class TabEvents {
   updateVisualIndicators = async (tab: Tabs.Tab) => {
     const tabInfo = this.tabState.getPopupTabData(tab);
     this.sendToPopup.send('SET_TAB_DATA', tabInfo);
-    const { continuousPaymentsEnabled, connected, state } =
+    const { continuousPaymentsEnabled, enabled, connected, state } =
       await this.storage.get([
         'continuousPaymentsEnabled',
+        'enabled',
         'connected',
         'state',
       ]);
     const { path, title } = this.getIconAndTooltip({
       continuousPaymentsEnabled,
+      enabled,
       connected,
       state,
       tabInfo,
@@ -173,11 +175,13 @@ export class TabEvents {
 
   private getIconAndTooltip({
     continuousPaymentsEnabled,
+    enabled,
     connected,
     state,
     tabInfo,
   }: {
     continuousPaymentsEnabled: Storage['continuousPaymentsEnabled'];
+    enabled: Storage['enabled'];
     connected: Storage['connected'];
     state: Storage['state'];
     tabInfo: PopupTabInfo;
@@ -186,6 +190,8 @@ export class TabEvents {
     let iconData = ICONS.default;
     if (!connected) {
       // use defaults
+    } else if (!enabled) {
+      iconData = ICONS.default_gray;
     } else if (!isOkState(state) || tabInfo.status === 'all_sessions_invalid') {
       iconData = continuousPaymentsEnabled
         ? ICONS.enabled_warn
