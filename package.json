@@ -64,7 +64,7 @@
     "@typescript-eslint/parser": "^8.12.2",
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.20",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.4.7",
     "esbuild": "^0.24.0",
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",
@@ -81,17 +81,17 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-transform-stub": "^2.0.0",
     "postcss": "^8.4.49",
-    "prettier": "^3.4.1",
-    "prettier-plugin-tailwindcss": "^0.6.8",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
     "react-scan": "^0.0.35",
     "sade": "^1.8.1",
-    "tailwindcss": "^3.4.15",
+    "tailwindcss": "^3.4.16",
     "ts-jest": "^29.2.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },
   "engines": {
-    "pnpm": "^9.12.3",
+    "pnpm": "^9.15.0",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "^20.18.0"
@@ -105,5 +105,5 @@
       "structured-headers": "1.0.1"
     }
   },
-  "packageManager": "pnpm@9.12.3"
+  "packageManager": "pnpm@9.15.0"
 }
