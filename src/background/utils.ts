@@ -92,11 +92,12 @@ export const reuseOrCreateTab = async (
   tabId?: number,
 ): Promise<Tab> => {
   try {
-    const tab = await browser.tabs.get(tabId ?? -1);
+    let tab = await browser.tabs.get(tabId ?? -1);
     if (!tab.id) {
       throw new Error('Could not retrieve tab.');
     }
-    return (await browser.tabs.update(tab.id, { url })) as Tab;
+    tab = await browser.tabs.update(tab.id, { url });
+    return tab as Tab;
   } catch {
     const tab = await browser.tabs.create({ url });
     if (!tab.id) {
