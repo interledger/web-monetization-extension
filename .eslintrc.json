@@ -24,6 +24,7 @@
     "no-extra-semi": "off",
     "maxWarnings": "off",
     "no-constant-condition": "off",
+    "no-duplicate-imports": "error",
     "block-scoped-var": "error",
     "consistent-return": "off",
     "no-console": "warn",
