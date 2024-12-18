@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/chrome-manifest",
-  "name": "Web Monetization Extension",
+  "name": "Web Monetization",
   "version": "0.3.0.0",
   "manifest_version": 3,
   "minimum_chrome_version": "110.0",
