@@ -146,7 +146,10 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
         <div>
           <Button
             className="flex w-full justify-start gap-2 rounded-md p-4"
-            onClick={openPopup}
+            onClick={() => {
+              setIsOpen(-1);
+              return openPopup();
+            }}
           >
             <ArrowBack className="size-5 shrink-0 rotate-180 rounded-full bg-white/5 p-1 text-white" />
             {t('postInstall_action_submit')}
