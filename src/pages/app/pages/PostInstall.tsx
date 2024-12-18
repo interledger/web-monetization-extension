@@ -1,10 +1,6 @@
 import React from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
-import {
-  CaretDownIcon,
-  CheckIcon,
-  ExternalIcon,
-} from '@/pages/shared/components/Icons';
+import { CaretDownIcon, ExternalIcon } from '@/pages/shared/components/Icons';
 import { getBrowserName, type BrowserName } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 
@@ -127,19 +123,14 @@ const Steps = () => {
         index={2}
         open={isOpen === 2}
         onClick={onClick}
-        title={
-          <React.Fragment>
-            {t('postInstall_text_stepPin_title')}
-            {isPinnedToToolbar && (
-              <CheckIcon
-                strokeWidth={2}
-                className="float-right mt-1 inline-block size-5 text-secondary-dark"
-              />
-            )}
-          </React.Fragment>
-        }
+        title={t('postInstall_text_stepPin_title')}
       >
-        <p>{t('postInstall_text_stepPin_desc')}</p>
+        <p>
+          {t('postInstall_text_stepPin_desc')}
+          {isPinnedToToolbar && (
+            <span> {t('postInstall_text_stepPin_descComplete')}</span>
+          )}
+        </p>
         <img
           src={imgSrc(browserName, {
             chrome: '/assets/images/pin-extension-chrome.png',

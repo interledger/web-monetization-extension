@@ -255,6 +255,9 @@
   "postInstall_text_stepPin_desc": {
     "message": "Pin the Web Monetization Extension for easier access."
   },
+  "postInstall_text_stepPin_descComplete": {
+    "message": "You're all set."
+  },
   "postInstall_action_submit": {
     "message": "Let's Go!"
   }
