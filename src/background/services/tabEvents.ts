@@ -191,7 +191,7 @@ export class TabEvents {
     if (!connected) {
       // use defaults
     } else if (!enabled) {
-      iconData = ICONS.default_gray;
+      iconData = ICONS.default;
     } else if (!isOkState(state) || tabInfo.status === 'all_sessions_invalid') {
       iconData = continuousPaymentsEnabled
         ? ICONS.enabled_warn
