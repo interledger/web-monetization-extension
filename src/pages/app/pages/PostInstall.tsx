@@ -115,8 +115,7 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
         <img
           src="/assets/images/wallet-wallet-address.png"
           alt=""
-          className="mx-auto max-w-sm"
-          style={{ maxHeight: 'max(35vh, 18rem)' }}
+          className="mx-auto max-w-[90%] shadow-2xl p-4"
         />
       </Step>
 
