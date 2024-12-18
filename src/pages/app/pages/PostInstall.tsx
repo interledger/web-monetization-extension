@@ -113,7 +113,7 @@ const Steps = () => {
         <img
           src="/assets/images/wallet-wallet-address.png"
           alt=""
-          className="mx-auto max-w-[90%] shadow-2xl p-4"
+          className="mx-auto max-w-[90%] p-4 shadow-2xl"
         />
       </Step>
 
