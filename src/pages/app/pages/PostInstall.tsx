@@ -1,6 +1,10 @@
 import React from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
-import { CaretDownIcon, ExternalIcon } from '@/pages/shared/components/Icons';
+import {
+  ArrowBack,
+  CaretDownIcon,
+  ExternalIcon,
+} from '@/pages/shared/components/Icons';
 import { getBrowserName, type BrowserName } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 
@@ -51,17 +55,13 @@ const Main = ({ openPopup }: { openPopup: () => Promise<void> }) => {
       </h2>
 
       <div className="h-full overflow-y-auto">
-        <Steps />
-      </div>
-
-      <div className="ml-auto mt-auto">
-        <Button onClick={openPopup}>{t('postInstall_action_submit')}</Button>
+        <Steps openPopup={openPopup} />
       </div>
     </div>
   );
 };
 
-const Steps = () => {
+const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
   const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
@@ -141,6 +141,18 @@ const Steps = () => {
           alt=""
         />
       </Step>
+
+      <li>
+        <div>
+          <Button
+            className="flex w-full justify-start gap-2 rounded-md p-4"
+            onClick={openPopup}
+          >
+            <ArrowBack className="size-5 shrink-0 rotate-180 rounded-full bg-white/5 p-1 text-white" />
+            {t('postInstall_action_submit')}
+          </Button>
+        </div>
+      </li>
     </ol>
   );
 };
