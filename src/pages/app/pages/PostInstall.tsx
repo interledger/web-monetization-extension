@@ -99,7 +99,7 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
             firefox: '/assets/images/wallet-signup-1-firefox.png',
             edge: '/assets/images/wallet-signup-1-edge.png',
           })}
-          className="mx-auto"
+          className="mx-auto max-w-sm"
           style={{ maxHeight: 'max(35vh, 18rem)' }}
           alt=""
         />
@@ -114,7 +114,7 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
         <img
           src="/assets/images/wallet-wallet-address.png"
           alt=""
-          className="mx-auto"
+          className="mx-auto max-w-sm"
           style={{ maxHeight: 'max(35vh, 18rem)' }}
         />
       </Step>
@@ -137,7 +137,7 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
             firefox: '/assets/images/pin-extension-firefox.png',
             edge: '/assets/images/pin-extension-edge.png',
           })}
-          className="mx-auto"
+          className="mx-auto max-w-sm"
           style={{ maxHeight: 'max(35vh, 18rem)' }}
           alt=""
         />
