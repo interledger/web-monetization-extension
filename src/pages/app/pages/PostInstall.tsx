@@ -49,14 +49,12 @@ const Header = () => {
 const Main = ({ openPopup }: { openPopup: () => Promise<void> }) => {
   const t = useTranslation();
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 overflow-hidden rounded-lg border border-gray-200 bg-gray-50/75 p-8 shadow-md backdrop-blur-0">
+    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/75 p-8 shadow-md backdrop-blur-0">
       <h2 className="rounded-2xl bg-gray-100 p-4 text-center text-lg font-medium">
         {t('postInstall_text_title')}
       </h2>
 
-      <div className="h-full overflow-y-auto">
-        <Steps openPopup={openPopup} />
-      </div>
+      <Steps openPopup={openPopup} />
     </div>
   );
 };
@@ -101,7 +99,8 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
             firefox: '/assets/images/wallet-signup-1-firefox.png',
             edge: '/assets/images/wallet-signup-1-edge.png',
           })}
-          className="mx-auto w-full max-w-96"
+          className="mx-auto"
+          style={{ maxHeight: 'max(35vh, 18rem)' }}
           alt=""
         />
       </Step>
@@ -115,7 +114,8 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
         <img
           src="/assets/images/wallet-wallet-address.png"
           alt=""
-          className="mx-auto w-full max-w-96"
+          className="mx-auto"
+          style={{ maxHeight: 'max(35vh, 18rem)' }}
         />
       </Step>
 
@@ -137,7 +137,8 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
             firefox: '/assets/images/pin-extension-firefox.png',
             edge: '/assets/images/pin-extension-edge.png',
           })}
-          className="mx-auto w-full max-w-96"
+          className="mx-auto"
+          style={{ maxHeight: 'max(35vh, 18rem)' }}
           alt=""
         />
       </Step>
@@ -145,7 +146,7 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
       <li>
         <div>
           <Button
-            className="flex w-full justify-start gap-2 rounded-md p-4"
+            className="flex w-full justify-start gap-2 rounded-md p-4 text-lg"
             onClick={() => {
               setIsOpen(-1);
               return openPopup();
