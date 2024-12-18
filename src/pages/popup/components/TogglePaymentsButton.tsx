@@ -27,6 +27,7 @@ export const TogglePaymentsButton = () => {
           message.send('TOGGLE_PAYMENTS');
           dispatch({ type: 'TOGGLE_PAYMENTS' });
         }}
+        onClick={(ev) => ev.currentTarget.blur()}
         aria-label={title}
         className="sr-only"
       />
