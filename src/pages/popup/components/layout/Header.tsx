@@ -9,7 +9,7 @@ import { usePopupState } from '@/popup/lib/store';
 
 const NavigationButton = () => {
   const location = useLocation();
-  const { connected, enabled } = usePopupState();
+  const { connected } = usePopupState();
 
   return React.useMemo(() => {
     if (!connected) return null;
@@ -28,13 +28,13 @@ const NavigationButton = () => {
       </Link>
     ) : (
       <React.Fragment>
-        {enabled && connected && <TogglePaymentsButton enabled={true} />}
+        {connected && <TogglePaymentsButton />}
         <Link to={ROUTES_PATH.SETTINGS}>
           <Settings className="h-6" />
         </Link>
       </React.Fragment>
     );
-  }, [location, connected, enabled]);
+  }, [location, connected]);
 };
 
 export const Header = () => {

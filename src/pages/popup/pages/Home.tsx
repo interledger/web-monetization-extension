@@ -4,7 +4,6 @@ import { Settings } from '@/pages/shared/components/Icons';
 import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
 import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
-import { TogglePaymentsButton } from '@/popup/components/TogglePaymentsButton';
 import { useTranslation } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
 
@@ -13,14 +12,7 @@ export const Component = () => {
   const { tab, enabled } = usePopupState();
 
   if (!enabled) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-        <TogglePaymentsButton enabled={false} large={true} />
-        <p className="text-center text-lg leading-tight text-medium">
-          {t('app_text_disabled')}
-        </p>
-      </div>
-    );
+    return <NotMonetized text={t('app_text_disabled')} />;
   }
 
   if (tab.status !== 'monetized') {

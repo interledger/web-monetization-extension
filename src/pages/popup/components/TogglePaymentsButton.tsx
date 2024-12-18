@@ -2,15 +2,10 @@ import React from 'react';
 import { Power } from '@/pages/shared/components/Icons';
 import { cn } from '@/shared/helpers';
 import { useMessage } from '@/popup/lib/context';
-import { dispatch } from '@/popup/lib/store';
+import { dispatch, usePopupState } from '@/popup/lib/store';
 
-export const TogglePaymentsButton = ({
-  large = false,
-  enabled = false,
-}: {
-  large?: boolean;
-  enabled?: boolean;
-}) => {
+export const TogglePaymentsButton = () => {
+  const { enabled } = usePopupState();
   const message = useMessage();
   const title = enabled ? 'Disable extension' : 'Enable extension';
 
@@ -31,10 +26,11 @@ export const TogglePaymentsButton = ({
           message.send('TOGGLE_PAYMENTS');
           dispatch({ type: 'TOGGLE_PAYMENTS' });
         }}
+        onClick={(ev) => ev.currentTarget.blur()}
         aria-label={title}
         className="sr-only"
       />
-      <Power className={large ? 'w-32' : 'w-6'} />
+      <Power className={'w-6'} />
     </label>
   );
 };
