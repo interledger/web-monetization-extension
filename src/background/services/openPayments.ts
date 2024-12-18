@@ -23,7 +23,12 @@ import { type Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
 import type { Browser, Tabs } from 'webextension-polyfill';
-import { getExchangeRates, getRateOfPay, toAmount } from '../utils';
+import {
+  getExchangeRates,
+  getRateOfPay,
+  reuseOrCreateTab,
+  toAmount,
+} from '../utils';
 import { KeyAutoAddService } from './keyAutoAdd';
 import { exportJWK, generateEd25519KeyPair } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
@@ -637,7 +642,7 @@ export class OpenPaymentsService {
    */
   private async addPublicKeyToWallet(
     walletAddress: WalletAddress,
-    tabId?: TabId,
+    existingTabId?: TabId,
   ): Promise<TabId | undefined> {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
@@ -647,7 +652,7 @@ export class OpenPaymentsService {
       t: this.t,
     });
     try {
-      await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
+      await keyAutoAdd.addPublicKeyToWallet(walletAddress, existingTabId);
       return keyAutoAdd.tabId;
     } catch (error) {
       const tabId = keyAutoAdd.tabId;
@@ -775,14 +780,7 @@ export class OpenPaymentsService {
     existingTabId?: TabId,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
-
-    const tab = existingTabId
-      ? await this.browser.tabs.update(existingTabId, { url })
-      : await this.browser.tabs.create({ url });
-    if (!tab.id) {
-      reject(new Error('Could not create/update tab'));
-      return promise;
-    }
+    const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
 
     const tabCloseListener: TabRemovedCallback = (tabId) => {
       if (tabId !== tab.id) return;
