@@ -94,13 +94,8 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
         }
       >
         <img
-          src={imgSrc(browserName, {
-            chrome: '/assets/images/wallet-signup-1-chrome.png',
-            firefox: '/assets/images/wallet-signup-1-firefox.png',
-            edge: '/assets/images/wallet-signup-1-edge.png',
-          })}
-          className="mx-auto max-w-sm"
-          style={{ maxHeight: 'max(35vh, 18rem)' }}
+          src="/assets/images/wallet-signup.png"
+          className="mx-auto"
           alt=""
         />
       </Step>
