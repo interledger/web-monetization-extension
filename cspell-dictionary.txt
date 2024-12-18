@@ -3,6 +3,7 @@ Interledger
 Fynbos
 Rafiki
 Chimoney
+GateHub
 
 SPSP
 webextension

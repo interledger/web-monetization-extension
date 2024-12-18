@@ -219,6 +219,16 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
       matches: ['https://sandbox.chimoney.io/*', 'https://dash.chimoney.io/*'],
       js: ['content/keyAutoAdd/chimoney.js'],
     },
+    {
+      id: 'keyAutoAdd/gatehub',
+      matches: [
+        'https://wallet.sandbox.gatehub.net/*',
+        'https://signin.sandbox.gatehub.net/*',
+        'https://wallet.gatehub.net/*',
+        'https://signin.gatehub.net/*',
+      ],
+      js: ['content/keyAutoAdd/gatehub.js'],
+    },
   ];
 }
 
@@ -237,6 +247,10 @@ function walletAddressToProvider(walletAddress: WalletAddress): string {
       return 'https://sandbox.chimoney.io/interledger';
     case 'ilp.chimoney.com':
       return 'https://dash.chimoney.io/interledger';
+    case 'ilp.sandbox.gatehub.net':
+      return 'https://wallet.sandbox.gatehub.net/#/wallets/';
+    case 'ilp.gatehub.net':
+      return 'https://wallet.gatehub.net/#/wallets/';
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
