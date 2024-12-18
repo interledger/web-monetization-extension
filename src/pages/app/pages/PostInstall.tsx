@@ -13,13 +13,13 @@ export const Component = () => {
 
   return (
     <div
-      className="flex h-screen flex-col items-center overflow-hidden landscape:justify-center"
+      className="flex min-h-screen flex-col items-center sm:overflow-hidden landscape:justify-center"
       style={{
         backgroundImage: `url("/assets/images/bg-tile.svg")`,
         backgroundSize: '40vmax',
       }}
     >
-      <div className="flex max-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-8 landscape:grid landscape:p-4">
+      <div className="flex max-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
         <Header />
         <Main openPopup={() => browser.action.openPopup({})} />
       </div>
@@ -49,8 +49,8 @@ const Header = () => {
 const Main = ({ openPopup }: { openPopup: () => Promise<void> }) => {
   const t = useTranslation();
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50/75 p-8 shadow-md backdrop-blur-0">
-      <h2 className="rounded-2xl bg-gray-100 p-4 text-center text-lg font-medium">
+    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:overflow-y-auto sm:p-8">
+      <h2 className="rounded-sm bg-gray-100 p-2 text-center text-base font-medium sm:rounded-2xl sm:p-4 sm:text-lg">
         {t('postInstall_text_title')}
       </h2>
 
@@ -146,7 +146,7 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
       <li>
         <div>
           <Button
-            className="flex w-full justify-start gap-2 rounded-md p-4 text-lg"
+            className="flex w-full justify-start gap-2 rounded-md p-2 text-base sm:p-4 sm:text-lg"
             onClick={() => {
               setIsOpen(-1);
               return openPopup();
@@ -197,7 +197,7 @@ function Step({
     <li>
       <details
         open={open}
-        className="group relative space-y-4 overflow-hidden rounded-md border border-slate-200 bg-white p-4 transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md hover:bg-slate-50 open:hover:bg-white"
+        className="group relative space-y-4 overflow-hidden rounded-md border border-slate-200 bg-white p-2 transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md hover:bg-slate-50 open:hover:bg-white sm:p-4"
       >
         <summary
           className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
@@ -209,7 +209,7 @@ function Step({
           }}
         >
           <CaretDownIcon className="size-5 shrink-0 rounded-full bg-slate-100 p-1 text-slate-500 group-open:rotate-180" />
-          <h3 className="w-full text-lg text-weak group-open:text-strong">
+          <h3 className="w-full text-base text-weak group-open:text-strong sm:text-lg">
             {title}
           </h3>
         </summary>
