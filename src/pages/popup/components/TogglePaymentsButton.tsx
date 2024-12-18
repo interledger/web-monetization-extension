@@ -2,8 +2,7 @@ import React from 'react';
 import { Power } from '@/pages/shared/components/Icons';
 import { cn } from '@/shared/helpers';
 import { useMessage } from '@/popup/lib/context';
-import { dispatch } from '@/popup/lib/store';
-import { usePopupState } from '@/popup/lib/store';
+import { dispatch, usePopupState } from '@/popup/lib/store';
 
 export const TogglePaymentsButton = () => {
   const { enabled } = usePopupState();
