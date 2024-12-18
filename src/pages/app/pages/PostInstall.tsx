@@ -1,16 +1,13 @@
 import React from 'react';
-import { Button } from '@/pages/shared/components/ui/Button';
 import {
   ArrowBack,
   CaretDownIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import { getBrowserName, type BrowserName } from '@/shared/helpers';
+import { cn, getBrowserName, type BrowserName } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 
 export const Component = () => {
-  const browser = useBrowser();
-
   return (
     <div
       className="flex min-h-screen flex-col items-center sm:overflow-hidden landscape:justify-center"
@@ -21,7 +18,7 @@ export const Component = () => {
     >
       <div className="flex max-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
         <Header />
-        <Main openPopup={() => browser.action.openPopup({})} />
+        <Main />
       </div>
     </div>
   );
@@ -46,7 +43,7 @@ const Header = () => {
   );
 };
 
-const Main = ({ openPopup }: { openPopup: () => Promise<void> }) => {
+const Main = () => {
   const t = useTranslation();
   return (
     <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:overflow-y-auto sm:p-8">
@@ -54,17 +51,18 @@ const Main = ({ openPopup }: { openPopup: () => Promise<void> }) => {
         {t('postInstall_text_title')}
       </h2>
 
-      <Steps openPopup={openPopup} />
+      <Steps />
     </div>
   );
 };
 
-const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
+const Steps = () => {
   const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
-  const [isOpen, setIsOpen] = React.useState(0);
+  const [isOpen, setIsOpen] = React.useState(3);
   const browserName = getBrowserName(browser, navigator.userAgent);
+  const popupUrl = browser.runtime.getURL('popup/index.html');
 
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
@@ -143,21 +141,25 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
         />
       </Step>
 
-      <li>
-        <div>
-          <Button
-            className="flex w-full justify-start gap-2 rounded-md p-2 text-base text-white sm:p-4 sm:text-lg"
-            onClick={() => {
-              setIsOpen(-1);
-              return openPopup();
-            }}
-          >
-            <StepNumber number={4} />
-            {t('postInstall_action_submit')}
-            <ArrowBack className="ml-auto size-5 shrink-0 rotate-180 rounded-full bg-white/5 p-1 text-white" />
-          </Button>
+      <Step
+        isPrimaryButton={true}
+        index={3}
+        open={isOpen === 3}
+        onClick={onClick}
+        title={t('postInstall_action_submit')}
+      >
+        <div
+          className="mx-auto overflow-hidden"
+          style={{ height: '600px', width: '448px' }}
+        >
+          <iframe
+            src={popupUrl}
+            title="Connect your wallet"
+            className="h-full w-full border-none"
+            style={{ height: '600px', width: '448px' }}
+          />
         </div>
-      </li>
+      </Step>
     </ol>
   );
 };
@@ -187,18 +189,27 @@ function Step({
   children,
   onClick,
   open,
+  isPrimaryButton = false,
 }: {
   index: number;
   title: React.ReactNode;
   children: React.ReactNode;
   onClick: (index: number, open: boolean) => void;
   open: boolean;
+  isPrimaryButton?: boolean;
 }) {
+  const iconDefaultClass = 'size-5 shrink-0 rounded-full p-1';
   return (
     <li>
       <details
         open={open}
-        className="group relative space-y-4 overflow-hidden rounded-md border border-slate-200 bg-white p-2 transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md hover:bg-slate-50 open:hover:bg-white sm:p-4"
+        className={cn(
+          'group relative gap-2 space-y-4 overflow-hidden rounded-md border border-slate-200 p-2 text-base transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md open:hover:bg-white sm:p-4 sm:text-lg',
+          isPrimaryButton && 'duration-0',
+          isPrimaryButton && !open
+            ? 'bg-button-base text-white hover:bg-button-base-hover'
+            : 'bg-white text-weak hover:bg-slate-50',
+        )}
       >
         <summary
           className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
@@ -210,10 +221,24 @@ function Step({
           }}
         >
           <StepNumber number={index + 1} />
-          <h3 className="w-full text-base text-weak group-open:text-strong sm:text-lg">
+          <h3 className="w-full text-base group-open:text-strong sm:text-lg">
             {title}
           </h3>
-          <CaretDownIcon className="size-5 shrink-0 rounded-full bg-slate-100 p-1 text-slate-500 group-open:rotate-180" />
+          {!isPrimaryButton ? (
+            <CaretDownIcon
+              className={cn(
+                iconDefaultClass,
+                'bg-slate-100 text-slate-500 group-open:rotate-180',
+              )}
+            />
+          ) : (
+            <ArrowBack
+              className={cn(
+                iconDefaultClass,
+                'rotate-180 bg-white/5 text-white',
+              )}
+            />
+          )}
         </summary>
 
         {children}
