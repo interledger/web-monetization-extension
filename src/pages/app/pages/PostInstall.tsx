@@ -93,11 +93,17 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
           </React.Fragment>
         }
       >
-        <img
-          src="/assets/images/wallet-signup.png"
-          className="mx-auto"
-          alt=""
-        />
+        <a
+          href="https://interledger.app/signup"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img
+            src="/assets/images/wallet-signup.png"
+            className="mx-auto"
+            alt=""
+          />
+        </a>
       </Step>
 
       <Step
