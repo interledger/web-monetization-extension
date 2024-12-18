@@ -146,15 +146,13 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
       <li>
         <div>
           <Button
-            className="flex w-full justify-start gap-2 rounded-md p-2 text-base sm:p-4 sm:text-lg"
+            className="flex w-full justify-start gap-2 rounded-md p-2 text-base text-white sm:p-4 sm:text-lg"
             onClick={() => {
               setIsOpen(-1);
               return openPopup();
             }}
           >
-            <span className="inline-block shrink-0 rounded-lg bg-black/5 p-1 align-middle text-sm text-white outline outline-black/5">
-              <span className="sr-only">Step</span> #{4}
-            </span>
+            <StepNumber number={4} />
             {t('postInstall_action_submit')}
             <ArrowBack className="ml-auto size-5 shrink-0 rotate-180 rounded-full bg-white/5 p-1 text-white" />
           </Button>
@@ -211,9 +209,7 @@ function Step({
             onClick(index, open);
           }}
         >
-          <span className="inline-block shrink-0 rounded-lg bg-gray-50 p-1 align-middle text-sm text-weak outline outline-gray-100">
-            <span className="sr-only">Step</span> #{index + 1}
-          </span>
+          <StepNumber number={index + 1} />
           <h3 className="w-full text-base text-weak group-open:text-strong sm:text-lg">
             {title}
           </h3>
@@ -223,6 +219,15 @@ function Step({
         {children}
       </details>
     </li>
+  );
+}
+
+function StepNumber({ number }: { number: number }) {
+  return (
+    <span className="inline-block shrink-0 rounded-lg bg-black/5 p-1 align-middle text-sm outline outline-1 outline-gray-800/10">
+      <span className="sr-only">Step </span>
+      {number}.
+    </span>
   );
 }
 
