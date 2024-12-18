@@ -152,8 +152,11 @@ const Steps = ({ openPopup }: { openPopup: () => Promise<void> }) => {
               return openPopup();
             }}
           >
-            <ArrowBack className="size-5 shrink-0 rotate-180 rounded-full bg-white/5 p-1 text-white" />
+            <span className="inline-block shrink-0 rounded-lg bg-black/5 p-1 align-middle text-sm text-white outline outline-black/5">
+              <span className="sr-only">Step</span> #{4}
+            </span>
             {t('postInstall_action_submit')}
+            <ArrowBack className="ml-auto size-5 shrink-0 rotate-180 rounded-full bg-white/5 p-1 text-white" />
           </Button>
         </div>
       </li>
@@ -208,10 +211,13 @@ function Step({
             onClick(index, open);
           }}
         >
-          <CaretDownIcon className="size-5 shrink-0 rounded-full bg-slate-100 p-1 text-slate-500 group-open:rotate-180" />
+          <span className="inline-block shrink-0 rounded-lg bg-gray-50 p-1 align-middle text-sm text-weak outline outline-gray-100">
+            <span className="sr-only">Step</span> #{index + 1}
+          </span>
           <h3 className="w-full text-base text-weak group-open:text-strong sm:text-lg">
             {title}
           </h3>
+          <CaretDownIcon className="size-5 shrink-0 rounded-full bg-slate-100 p-1 text-slate-500 group-open:rotate-180" />
         </summary>
 
         {children}
