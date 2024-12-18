@@ -60,7 +60,7 @@ const Steps = () => {
   const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
-  const [isOpen, setIsOpen] = React.useState(3);
+  const [isOpen, setIsOpen] = React.useState(0);
   const browserName = getBrowserName(browser, navigator.userAgent);
   const popupUrl = browser.runtime.getURL('popup/index.html');
 
