@@ -64,7 +64,7 @@ export class KeyAutoAddService {
           publicKey,
           keyId,
           walletAddressUrl: walletAddress.id,
-          nickName: this.appName + ' - ' + this.browserName,
+          nickName: `${this.appName} Extension - ${this.browserName}`,
           keyAddUrl,
         },
         existingTabId,
