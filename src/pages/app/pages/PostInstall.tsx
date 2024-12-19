@@ -10,15 +10,17 @@ import { useBrowser, useTranslation } from '@/app/lib/context';
 export const Component = () => {
   return (
     <div
-      className="flex min-h-screen flex-col items-center sm:overflow-hidden landscape:justify-center"
+      className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center"
       style={{
         backgroundImage: `url("/assets/images/bg-tile.svg")`,
         backgroundSize: '40vmax',
       }}
     >
-      <div className="flex max-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
+      <div className="flex min-h-screen w-full max-w-screen-2xl flex-1 grid-cols-2 flex-col items-stretch gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
         <Header />
-        <Main />
+        <div className="flex items-center">
+          <Main />
+        </div>
       </div>
     </div>
   );
@@ -27,7 +29,7 @@ export const Component = () => {
 const Header = () => {
   const t = useTranslation();
   return (
-    <div className="text-center">
+    <div className="text-center landscape:mt-[33vh]">
       <img
         src="/assets/images/logo.svg"
         className="mx-auto mb-4 w-16 text-center landscape:w-36 landscape:2xl:w-48"
@@ -46,7 +48,7 @@ const Header = () => {
 const Main = () => {
   const t = useTranslation();
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:overflow-y-auto sm:p-8">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:p-8">
       <h2 className="rounded-sm bg-gray-100 p-2 text-center text-base font-medium sm:rounded-2xl sm:p-4 sm:text-lg">
         {t('postInstall_text_title')}
       </h2>
@@ -135,7 +137,7 @@ const Steps = () => {
             firefox: '/assets/images/pin-extension-firefox.png',
             edge: '/assets/images/pin-extension-edge.png',
           })}
-          className="mx-auto max-w-sm"
+          className="mx-auto max-w-[90%]"
           style={{ maxHeight: 'max(35vh, 18rem)' }}
           alt=""
         />
@@ -148,16 +150,12 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
-        <div
-          className="mx-auto overflow-hidden"
-          style={{ height: '600px', width: '448px' }}
-        >
+        <div className="mx-auto h-popup w-popup overflow-hidden">
           <iframe
             loading="lazy"
             src={popupUrl}
             title="Connect your wallet"
-            className="h-full w-full border-none"
-            style={{ height: '600px', width: '448px' }}
+            className="h-popup w-popup border-none"
           />
         </div>
       </Step>

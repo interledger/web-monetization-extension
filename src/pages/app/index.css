@@ -65,6 +65,10 @@
     --border-base: 203 213 225;
     --border-focus: 59 130 246;
     --border-error: 220 38 38;
+
+    /* Popup */
+    --popup-width: 448px;
+    --popup-height: 600px;
   }
 
   body {
