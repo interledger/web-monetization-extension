@@ -241,7 +241,7 @@
     "message": "Failed to find an account for the provided wallet address. Are you logged into a different account?"
   },
   "postInstall_text_title": {
-    "message": "Welcome to the Web Monetization extension!"
+    "message": "Let's get you started with Web Monetization!"
   },
   "postInstall_text_stepGetWallet_title": {
     "message": "Get a wallet compatible with Web Monetization"
@@ -255,7 +255,10 @@
   "postInstall_text_stepPin_desc": {
     "message": "Pin the Web Monetization Extension for easier access."
   },
+  "postInstall_text_stepPin_descComplete": {
+    "message": "You're all set."
+  },
   "postInstall_action_submit": {
-    "message": "Let's Go!"
+    "message": "Connect your wallet"
   }
 }

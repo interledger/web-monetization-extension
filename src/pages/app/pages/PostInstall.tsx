@@ -1,27 +1,26 @@
 import React from 'react';
-import { Button } from '@/pages/shared/components/ui/Button';
 import {
+  ArrowBack,
   CaretDownIcon,
-  CheckIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import { getBrowserName, type BrowserName } from '@/shared/helpers';
+import { cn, getBrowserName, type BrowserName } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 
 export const Component = () => {
-  const browser = useBrowser();
-
   return (
     <div
-      className="flex h-screen flex-col items-center overflow-hidden landscape:justify-center"
+      className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center"
       style={{
         backgroundImage: `url("/assets/images/bg-tile.svg")`,
         backgroundSize: '40vmax',
       }}
     >
-      <div className="flex max-h-full w-full max-w-screen-2xl grid-flow-col-dense flex-col content-between items-center gap-6 p-8 landscape:grid landscape:p-4">
+      <div className="flex min-h-screen w-full max-w-screen-2xl flex-1 grid-cols-2 flex-col items-stretch gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
         <Header />
-        <Main openPopup={() => browser.action.openPopup({})} />
+        <div className="flex items-center">
+          <Main />
+        </div>
       </div>
     </div>
   );
@@ -30,7 +29,7 @@ export const Component = () => {
 const Header = () => {
   const t = useTranslation();
   return (
-    <div className="text-center">
+    <div className="text-center landscape:mt-[33vh]">
       <img
         src="/assets/images/logo.svg"
         className="mx-auto mb-4 w-16 text-center landscape:w-36 landscape:2xl:w-48"
@@ -46,21 +45,15 @@ const Header = () => {
   );
 };
 
-const Main = ({ openPopup }: { openPopup: () => Promise<void> }) => {
+const Main = () => {
   const t = useTranslation();
   return (
-    <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-6 overflow-hidden rounded-lg border border-gray-200 bg-gray-50/75 p-8 shadow-md backdrop-blur-0">
-      <h2 className="rounded-2xl bg-gray-100 p-4 text-center text-lg font-medium">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:p-8">
+      <h2 className="rounded-sm bg-gray-100 p-2 text-center text-base font-medium sm:rounded-2xl sm:p-4 sm:text-lg">
         {t('postInstall_text_title')}
       </h2>
 
-      <div className="h-full overflow-y-auto">
-        <Steps />
-      </div>
-
-      <div className="ml-auto mt-auto">
-        <Button onClick={openPopup}>{t('postInstall_action_submit')}</Button>
-      </div>
+      <Steps />
     </div>
   );
 };
@@ -71,6 +64,7 @@ const Steps = () => {
   const isPinnedToToolbar = usePinnedStatus();
   const [isOpen, setIsOpen] = React.useState(0);
   const browserName = getBrowserName(browser, navigator.userAgent);
+  const popupUrl = browser.runtime.getURL('popup/index.html');
 
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
@@ -99,15 +93,17 @@ const Steps = () => {
           </React.Fragment>
         }
       >
-        <img
-          src={imgSrc(browserName, {
-            chrome: '/assets/images/wallet-signup-1-chrome.png',
-            firefox: '/assets/images/wallet-signup-1-firefox.png',
-            edge: '/assets/images/wallet-signup-1-edge.png',
-          })}
-          className="mx-auto w-full max-w-96"
-          alt=""
-        />
+        <a
+          href="https://interledger.app/signup"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img
+            src="/assets/images/wallet-signup.png"
+            className="mx-auto"
+            alt=""
+          />
+        </a>
       </Step>
 
       <Step
@@ -119,7 +115,7 @@ const Steps = () => {
         <img
           src="/assets/images/wallet-wallet-address.png"
           alt=""
-          className="mx-auto w-full max-w-96"
+          className="mx-auto max-w-[90%] p-4 shadow-2xl"
         />
       </Step>
 
@@ -127,28 +123,41 @@ const Steps = () => {
         index={2}
         open={isOpen === 2}
         onClick={onClick}
-        title={
-          <React.Fragment>
-            {t('postInstall_text_stepPin_title')}
-            {isPinnedToToolbar && (
-              <CheckIcon
-                strokeWidth={2}
-                className="float-right mt-1 inline-block size-5 text-secondary-dark"
-              />
-            )}
-          </React.Fragment>
-        }
+        title={t('postInstall_text_stepPin_title')}
       >
-        <p>{t('postInstall_text_stepPin_desc')}</p>
+        <p>
+          {t('postInstall_text_stepPin_desc')}
+          {isPinnedToToolbar && (
+            <span> {t('postInstall_text_stepPin_descComplete')}</span>
+          )}
+        </p>
         <img
           src={imgSrc(browserName, {
             chrome: '/assets/images/pin-extension-chrome.png',
             firefox: '/assets/images/pin-extension-firefox.png',
             edge: '/assets/images/pin-extension-edge.png',
           })}
-          className="mx-auto w-full max-w-96"
+          className="mx-auto max-w-[90%]"
+          style={{ maxHeight: 'max(35vh, 18rem)' }}
           alt=""
         />
+      </Step>
+
+      <Step
+        isPrimaryButton={true}
+        index={3}
+        open={isOpen === 3}
+        onClick={onClick}
+        title={t('postInstall_action_submit')}
+      >
+        <div className="mx-auto h-popup w-popup overflow-hidden">
+          <iframe
+            loading="lazy"
+            src={popupUrl}
+            title="Connect your wallet"
+            className="h-popup w-popup border-none"
+          />
+        </div>
       </Step>
     </ol>
   );
@@ -179,18 +188,27 @@ function Step({
   children,
   onClick,
   open,
+  isPrimaryButton = false,
 }: {
   index: number;
   title: React.ReactNode;
   children: React.ReactNode;
   onClick: (index: number, open: boolean) => void;
   open: boolean;
+  isPrimaryButton?: boolean;
 }) {
+  const iconDefaultClass = 'size-5 shrink-0 rounded-full p-1';
   return (
     <li>
       <details
         open={open}
-        className="group relative space-y-4 overflow-hidden rounded-md border border-slate-200 bg-white p-4 transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md hover:bg-slate-50 open:hover:bg-white"
+        className={cn(
+          'group relative gap-2 space-y-4 overflow-hidden rounded-md border border-slate-200 p-2 text-base transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md open:hover:bg-white sm:p-4 sm:text-lg',
+          isPrimaryButton && 'duration-0',
+          isPrimaryButton && !open
+            ? 'bg-button-base text-white hover:bg-button-base-hover'
+            : 'bg-white text-weak hover:bg-slate-50',
+        )}
       >
         <summary
           className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
@@ -201,15 +219,39 @@ function Step({
             onClick(index, open);
           }}
         >
-          <CaretDownIcon className="size-5 shrink-0 rounded-full bg-slate-100 p-1 text-slate-500 group-open:rotate-180" />
-          <h3 className="w-full text-lg text-weak group-open:text-strong">
+          <StepNumber number={index + 1} />
+          <h3 className="w-full text-base group-open:text-strong sm:text-lg">
             {title}
           </h3>
+          {!isPrimaryButton ? (
+            <CaretDownIcon
+              className={cn(
+                iconDefaultClass,
+                'bg-slate-100 text-slate-500 group-open:rotate-180',
+              )}
+            />
+          ) : (
+            <ArrowBack
+              className={cn(
+                iconDefaultClass,
+                'rotate-180 bg-white/5 text-white',
+              )}
+            />
+          )}
         </summary>
 
         {children}
       </details>
     </li>
+  );
+}
+
+function StepNumber({ number }: { number: number }) {
+  return (
+    <span className="inline-block shrink-0 rounded-lg bg-black/5 p-1 align-middle text-sm outline outline-1 outline-gray-800/10">
+      <span className="sr-only">Step </span>
+      {number}.
+    </span>
   );
 }
 
