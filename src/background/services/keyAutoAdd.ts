@@ -211,7 +211,7 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
     },
     {
       id: 'keyAutoAdd/fynbos',
-      matches: ['https://eu1.fynbos.dev/*', 'https://wallet.fynbos.app/*'],
+      matches: ['https://eu1.fynbos.dev/*', 'https://interledger.app/*'],
       js: ['content/keyAutoAdd/fynbos.js'],
     },
     {
@@ -242,7 +242,8 @@ function walletAddressToProvider(walletAddress: WalletAddress): string {
     case 'eu1.fynbos.me':
       return 'https://eu1.fynbos.dev/settings/keys';
     case 'fynbos.me':
-      return 'https://wallet.fynbos.app/settings/keys';
+    case 'pay.interledger.app':
+      return 'https://interledger.app/settings/keys';
     case 'ilp-sandbox.chimoney.com':
       return 'https://sandbox.chimoney.io/interledger';
     case 'ilp.chimoney.com':
