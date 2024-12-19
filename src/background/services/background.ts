@@ -58,10 +58,10 @@ export class Background {
 
   async start() {
     this.bindOnInstalled();
+    this.bindMessageHandler();
     await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
-    this.bindMessageHandler();
     this.bindPermissionsHandler();
     this.bindEventsHandler();
     this.bindTabHandlers();

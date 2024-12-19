@@ -153,6 +153,7 @@ const Steps = () => {
           style={{ height: '600px', width: '448px' }}
         >
           <iframe
+            loading="lazy"
             src={popupUrl}
             title="Connect your wallet"
             className="h-full w-full border-none"
