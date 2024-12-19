@@ -17,14 +17,14 @@ const NavigationButton = () => {
     if (location.pathname.includes('/s/')) {
       return (
         <Link to={location.pathname.split('/s/')[0]}>
-          <ArrowBack className="h-6" />
+          <ArrowBack className="h-6 text-gray-500" />
         </Link>
       );
     }
 
     return location.pathname === `${ROUTES_PATH.SETTINGS}` ? (
       <Link to={ROUTES_PATH.HOME}>
-        <ArrowBack className="h-6" />
+        <ArrowBack className="h-6 text-gray-500" />
       </Link>
     ) : (
       <React.Fragment>

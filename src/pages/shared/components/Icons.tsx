@@ -29,22 +29,11 @@ export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <mask
-        id="mask0_169_196"
-        maskUnits="userSpaceOnUse"
-        x="0"
-        y="0"
-        width="25"
-        height="25"
-      >
-        <rect x="0.75" y="0.5" width="24" height="24" fill="#C4C4C4" />
-      </mask>
-      <g mask="url(#mask0_169_196)">
-        <path
-          d="M12.75 20.5L4.75 12.5L12.75 4.5L14.175 5.9L8.575 11.5H20.75V13.5H8.575L14.175 19.1L12.75 20.5Z"
-          fill="#475569"
-        />
-      </g>
+      <rect x="0.75" y="0.5" width="24" height="24" fill="none" />
+      <path
+        d="M12.75 20.5L4.75 12.5L12.75 4.5L14.175 5.9L8.575 11.5H20.75V13.5H8.575L14.175 19.1L12.75 20.5Z"
+        fill="currentColor"
+      />
     </svg>
   );
 };
