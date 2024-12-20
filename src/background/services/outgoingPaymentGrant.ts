@@ -9,7 +9,6 @@ import type {
   PendingGrant,
   WalletAddress,
 } from '@interledger/open-payments/dist/types';
-import { type AuthenticatedClient } from '@interledger/open-payments/dist/client';
 import {
   isFinalizedGrant,
   isPendingGrant,
@@ -61,6 +60,7 @@ export class OutgoingPaymentGrantService {
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
   private deduplicator: Cradle['deduplicator'];
+  private openPaymentsService: Cradle['openPaymentsService'];
   private browser: Cradle['browser'];
   private appName: Cradle['appName'];
   private browserName: Cradle['browserName'];
@@ -77,6 +77,7 @@ export class OutgoingPaymentGrantService {
     storage,
     logger,
     deduplicator,
+    openPaymentsService,
     browser,
     appName,
     browserName,
@@ -86,6 +87,7 @@ export class OutgoingPaymentGrantService {
       storage,
       logger,
       deduplicator,
+      openPaymentsService,
       browser,
       appName,
       browserName,
@@ -146,7 +148,6 @@ export class OutgoingPaymentGrantService {
   }
 
   public async completeOutgoingPaymentGrant(
-    client: AuthenticatedClient,
     amount: string,
     walletAddress: WalletAddress,
     recurring: boolean,
@@ -160,7 +161,6 @@ export class OutgoingPaymentGrantService {
       assetScale: walletAddress.assetScale,
     });
     const grant = await this.createOutgoingPaymentGrant(
-      client,
       clientNonce,
       walletAddress,
       walletAmount,
@@ -183,7 +183,6 @@ export class OutgoingPaymentGrantService {
     );
 
     const continuation = await this.continueGrant(
-      client,
       grant,
       interactRef,
       intent,
@@ -213,12 +212,9 @@ export class OutgoingPaymentGrantService {
     return grantDetails;
   }
 
-  public async cancelGrant(
-    grantContinuation: GrantDetails['continue'],
-    client: AuthenticatedClient,
-  ) {
+  public async cancelGrant(grantContinuation: GrantDetails['continue']) {
     try {
-      await client.grant.cancel(grantContinuation);
+      await this.openPaymentsService.client.grant.cancel(grantContinuation);
     } catch (error) {
       if (
         isInvalidClientError(error) ||
@@ -232,12 +228,14 @@ export class OutgoingPaymentGrantService {
     }
   }
 
-  public async rotateToken(client: AuthenticatedClient) {
+  public async rotateToken() {
     if (!this.grant) {
       throw new Error('No grant to rotate token for');
     }
 
-    const rotate = this.deduplicator.dedupe(client.token.rotate);
+    const rotate = this.deduplicator.dedupe(
+      this.openPaymentsService.client.token.rotate,
+    );
     const newToken = await rotate({
       url: this.token.manageUrl,
       accessToken: this.token.value,
@@ -297,14 +295,13 @@ export class OutgoingPaymentGrantService {
   }
 
   public async addPublicKeyToWalletWithRotateToken(
-    client: AuthenticatedClient,
     walletAddress: WalletAddress,
   ) {
     let tabId: number | undefined;
 
     try {
       tabId = await this.addPublicKeyToWallet(walletAddress);
-      await this.rotateToken(client);
+      await this.rotateToken();
 
       tabId ??= await this.ensureTabExists();
       await this.redirectToWelcomeScreen(
@@ -339,14 +336,13 @@ export class OutgoingPaymentGrantService {
   }
 
   private async createOutgoingPaymentGrant(
-    client: AuthenticatedClient,
     clientNonce: string,
     walletAddress: WalletAddress,
     amount: WalletAmount,
     intent: InteractionIntent,
   ) {
     try {
-      const grant = await client.grant.request(
+      const grant = await this.openPaymentsService.client.grant.request(
         { url: walletAddress.authServer },
         {
           access_token: {
@@ -486,14 +482,13 @@ export class OutgoingPaymentGrantService {
   }
 
   private async continueGrant(
-    client: AuthenticatedClient,
     grant: PendingGrant,
     interactRef: string,
     intent: InteractionIntent,
     tabId: TabId,
   ) {
     try {
-      const continuation = await client.grant.continue(
+      const continuation = await this.openPaymentsService.client.grant.continue(
         {
           url: grant.continue.uri,
           accessToken: grant.continue.access_token.value,

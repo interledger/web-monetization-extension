@@ -56,14 +56,14 @@ export class WalletService {
     storage,
     grantService,
     openPaymentsService,
-    browserName,
+    browser,
     t,
   }: Cradle) {
     Object.assign(this, {
       storage,
       grantService,
       openPaymentsService,
-      browserName,
+      browser,
       t,
     });
   }
@@ -113,12 +113,12 @@ export class WalletService {
 
     await this.openPaymentsService.initClient(walletAddress.id);
     this.setConnectState('connecting');
+
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
     });
     try {
       await this.grantService.completeOutgoingPaymentGrant(
-        this.openPaymentsService.client,
         amount,
         walletAddress,
         recurring,
@@ -150,8 +150,6 @@ export class WalletService {
           );
           this.setConnectState('connecting');
           await this.grantService.completeOutgoingPaymentGrant(
-            this.openPaymentsService.client,
-
             amount,
             walletAddress,
             recurring,
@@ -203,11 +201,7 @@ export class WalletService {
 
       try {
         // add key to wallet and try again
-        this.grantService.addPublicKeyToWalletWithRotateToken(
-          this.openPaymentsService.client,
-
-          walletAddress,
-        );
+        this.grantService.addPublicKeyToWalletWithRotateToken(walletAddress);
         await this.storage.setState({ key_revoked: false });
       } catch (error) {
         this.updateConnectStateError(error);
@@ -227,17 +221,11 @@ export class WalletService {
       return;
     }
     if (recurringGrant) {
-      await this.grantService.cancelGrant(
-        recurringGrant.continue,
-        this.openPaymentsService.client,
-      );
+      await this.grantService.cancelGrant(recurringGrant.continue);
       this.grantService.disableRecurringGrant();
     }
     if (oneTimeGrant) {
-      await this.grantService.cancelGrant(
-        oneTimeGrant.continue,
-        this.openPaymentsService.client,
-      );
+      await this.grantService.cancelGrant(oneTimeGrant.continue);
       this.grantService.disableOneTimeGrant();
     }
     await this.storage.clear();
@@ -251,8 +239,6 @@ export class WalletService {
     ]);
 
     await this.grantService.completeOutgoingPaymentGrant(
-      this.openPaymentsService.client,
-
       amount,
       walletAddress!,
       recurring,
@@ -261,15 +247,9 @@ export class WalletService {
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
-      await this.grantService.cancelGrant(
-        grants.oneTimeGrant.continue,
-        this.openPaymentsService.client,
-      );
+      await this.grantService.cancelGrant(grants.oneTimeGrant.continue);
     } else if (grants.recurringGrant && recurring) {
-      await this.grantService.cancelGrant(
-        grants.recurringGrant.continue,
-        this.openPaymentsService.client,
-      );
+      await this.grantService.cancelGrant(grants.recurringGrant.continue);
     }
 
     await this.storage.setState({ out_of_funds: false });
@@ -283,8 +263,6 @@ export class WalletService {
     ]);
 
     await this.grantService.completeOutgoingPaymentGrant(
-      this.openPaymentsService.client,
-
       amount,
       walletAddress!,
       recurring,
@@ -295,10 +273,7 @@ export class WalletService {
     // Note: Clear storage only if new grant type is not same as previous grant
     // type (as completeGrant already sets new grant state)
     if (existingGrants.oneTimeGrant) {
-      await this.grantService.cancelGrant(
-        existingGrants.oneTimeGrant.continue,
-        this.openPaymentsService.client,
-      );
+      await this.grantService.cancelGrant(existingGrants.oneTimeGrant.continue);
       if (recurring) {
         this.storage.set({
           oneTimeGrant: null,
@@ -309,7 +284,6 @@ export class WalletService {
     if (existingGrants.recurringGrant) {
       await this.grantService.cancelGrant(
         existingGrants.recurringGrant.continue,
-        this.openPaymentsService.client,
       );
       if (!recurring) {
         this.storage.set({
@@ -409,9 +383,7 @@ export class WalletService {
           // TODO: We can remove the token `actions` check once we've proper RS
           // errors in place. Then we can handle insufficient grant error
           // separately clearly.
-          const token = await this.grantService.rotateToken(
-            this.openPaymentsService.client,
-          );
+          const token = await this.grantService.rotateToken();
           const hasReadAccess = token.access_token.access.find(
             (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
           );
@@ -454,7 +426,7 @@ export class WalletService {
 
   private async validateReconnect() {
     try {
-      await this.grantService.rotateToken(this.openPaymentsService.client);
+      await this.grantService.rotateToken();
     } catch (error) {
       if (isInvalidClientError(error)) {
         const msg = this.t('connectWallet_error_invalidClient');

@@ -139,7 +139,7 @@ export class PaymentSession {
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
-          await this.grantService.rotateToken(this.openPaymentsService.client);
+          await this.grantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
           amountToSend = BigInt(amountIter.next().value);
           continue;
@@ -322,7 +322,7 @@ export class PaymentSession {
     ).toISOString();
 
     const incomingPaymentGrant =
-      await this.openPaymentsService.client!.grant.request(
+      await this.openPaymentsService.client.grant.request(
         {
           url: this.receiver.authServer,
         },
@@ -346,7 +346,7 @@ export class PaymentSession {
     }
 
     const incomingPayment =
-      await this.openPaymentsService.client!.incomingPayment.create(
+      await this.openPaymentsService.client.incomingPayment.create(
         {
           url: this.receiver.resourceServer,
           accessToken: incomingPaymentGrant.access_token.value,
@@ -367,7 +367,7 @@ export class PaymentSession {
     }
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
-    await this.openPaymentsService.client!.grant.cancel({
+    await this.openPaymentsService.client.grant.cancel({
       url: incomingPaymentGrant.continue.uri,
       accessToken: incomingPaymentGrant.continue.access_token.value,
     });
@@ -417,7 +417,7 @@ export class PaymentSession {
         this.events.emit('open_payments.key_revoked');
         throw e;
       } else if (isTokenExpiredError(e)) {
-        await this.grantService.rotateToken(this.openPaymentsService.client);
+        await this.grantService.rotateToken();
         return await this.pay(amount); // retry
       } else {
         throw e;
@@ -468,7 +468,7 @@ export class PaymentSession {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
       } else if (isTokenExpiredError(e)) {
-        await this.grantService.rotateToken(this.openPaymentsService.client);
+        await this.grantService.rotateToken();
         this.shouldRetryImmediately = true;
       } else if (isOutOfBalanceError(e)) {
         const switched = await this.grantService.switchGrant();
