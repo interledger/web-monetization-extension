@@ -38,6 +38,7 @@ networkidle
 webextensions
 firefoxUserPrefs
 textbox
+keyid
 
 # packages and 3rd party tools/libraries
 awilix
