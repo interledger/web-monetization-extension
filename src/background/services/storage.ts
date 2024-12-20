@@ -116,14 +116,6 @@ export class StorageService {
     return data as unknown as Storage;
   }
 
-  async getWMState(): Promise<boolean> {
-    const { continuousPaymentsEnabled } = await this.get([
-      'continuousPaymentsEnabled',
-    ]);
-
-    return continuousPaymentsEnabled;
-  }
-
   async keyPairExists(): Promise<boolean> {
     const keys = await this.get(['privateKey', 'publicKey', 'keyId']);
     if (

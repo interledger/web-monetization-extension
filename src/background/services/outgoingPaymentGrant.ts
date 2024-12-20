@@ -4,14 +4,12 @@ import type {
   TabId,
   WalletAmount,
 } from 'shared/types';
-import type {
-  Grant,
-  PendingGrant,
-  WalletAddress,
-} from '@interledger/open-payments/dist/types';
 import {
   isFinalizedGrant,
   isPendingGrant,
+  type Grant,
+  type PendingGrant,
+  type WalletAddress,
 } from '@interledger/open-payments/dist/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';

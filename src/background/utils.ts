@@ -37,11 +37,6 @@ export const toAmount = ({
   };
 };
 
-export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
-  'invalid client':
-    'Please make sure that you uploaded the public key for your desired wallet address.',
-};
-
 export interface GetRateOfPayParams {
   rate: string;
   exchangeRate: number;
@@ -89,6 +84,27 @@ export const getTabId = (sender: Runtime.MessageSender): number => {
 
 export const getTab = (sender: Runtime.MessageSender): Tab => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab') as Tab;
+};
+
+export const reuseOrCreateTab = async (
+  browser: Browser,
+  url: string,
+  tabId?: number,
+): Promise<Tab> => {
+  try {
+    let tab = await browser.tabs.get(tabId ?? -1);
+    if (!tab.id) {
+      throw new Error('Could not retrieve tab.');
+    }
+    tab = await browser.tabs.update(tab.id, { url });
+    return tab as Tab;
+  } catch {
+    const tab = await browser.tabs.create({ url });
+    if (!tab.id) {
+      throw new Error('Newly created tab does not have the id property set.');
+    }
+    return tab as Tab;
+  }
 };
 
 export const getSender = (sender: Runtime.MessageSender) => {

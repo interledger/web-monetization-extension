@@ -6,14 +6,15 @@ import {
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { Browser, Runtime, Scripting, Tabs } from 'webextension-polyfill';
+import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
-import type { TabId } from '@/shared/types';
+import type { Tab, TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
   KeyAutoAddToBackgroundMessage,
 } from '@/content/keyAutoAdd/lib/types';
+import { reuseOrCreateTab } from '../utils';
 
 export const CONNECTION_NAME = 'key-auto-add';
 
@@ -34,7 +35,7 @@ export class KeyAutoAddService {
   private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
-  private tab: Tabs.Tab | null = null;
+  private tab: Tab | null = null;
 
   constructor({
     browser,
@@ -46,7 +47,10 @@ export class KeyAutoAddService {
     Object.assign(this, { browser, storage, appName, browserName, t });
   }
 
-  async addPublicKeyToWallet(walletAddress: WalletAddress, tabId?: TabId) {
+  async addPublicKeyToWallet(
+    walletAddress: WalletAddress,
+    existingTabId?: TabId,
+  ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
       const { publicKey, keyId } = await this.storage.get([
@@ -60,10 +64,10 @@ export class KeyAutoAddService {
           publicKey,
           keyId,
           walletAddressUrl: walletAddress.id,
-          nickName: this.appName + ' - ' + this.browserName,
+          nickName: `${this.appName} Extension - ${this.browserName}`,
           keyAddUrl,
         },
-        tabId,
+        existingTabId,
       );
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
@@ -82,18 +86,14 @@ export class KeyAutoAddService {
     return this.tab?.id;
   }
 
-  private async process(url: string, payload: BeginPayload, tabId?: TabId) {
+  private async process(
+    url: string,
+    payload: BeginPayload,
+    existingTabId?: TabId,
+  ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
-
-    const tab = await this.browser.tabs
-      .get(tabId ?? -1)
-      .then((tab) => this.browser.tabs.update(tab.id!, { url }))
-      .catch(() => this.browser.tabs.create({ url }));
+    const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
     this.tab = tab;
-    if (!tab.id) {
-      reject(new Error('Could not create tab'));
-      return promise;
-    }
 
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
       if (tabId !== tab.id) return;
@@ -211,13 +211,23 @@ function getContentScripts(): Scripting.RegisteredContentScript[] {
     },
     {
       id: 'keyAutoAdd/fynbos',
-      matches: ['https://eu1.fynbos.dev/*', 'https://wallet.fynbos.app/*'],
+      matches: ['https://eu1.fynbos.dev/*', 'https://interledger.app/*'],
       js: ['content/keyAutoAdd/fynbos.js'],
     },
     {
       id: 'keyAutoAdd/chimoney',
       matches: ['https://sandbox.chimoney.io/*', 'https://dash.chimoney.io/*'],
       js: ['content/keyAutoAdd/chimoney.js'],
+    },
+    {
+      id: 'keyAutoAdd/gatehub',
+      matches: [
+        'https://wallet.sandbox.gatehub.net/*',
+        'https://signin.sandbox.gatehub.net/*',
+        'https://wallet.gatehub.net/*',
+        'https://signin.gatehub.net/*',
+      ],
+      js: ['content/keyAutoAdd/gatehub.js'],
     },
   ];
 }
@@ -232,11 +242,16 @@ function walletAddressToProvider(walletAddress: WalletAddress): string {
     case 'eu1.fynbos.me':
       return 'https://eu1.fynbos.dev/settings/keys';
     case 'fynbos.me':
-      return 'https://wallet.fynbos.app/settings/keys';
+    case 'pay.interledger.app':
+      return 'https://interledger.app/settings/keys';
     case 'ilp-sandbox.chimoney.com':
       return 'https://sandbox.chimoney.io/interledger';
     case 'ilp.chimoney.com':
       return 'https://dash.chimoney.io/interledger';
+    case 'ilp.sandbox.gatehub.net':
+      return 'https://wallet.sandbox.gatehub.net/#/wallets/';
+    case 'ilp.gatehub.net':
+      return 'https://wallet.gatehub.net/#/wallets/';
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }

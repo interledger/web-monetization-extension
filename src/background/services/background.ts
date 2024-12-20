@@ -10,7 +10,7 @@ import {
 } from '@/shared/helpers';
 import { KeyAutoAddService } from './keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
+import { getTab } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
@@ -58,10 +58,10 @@ export class Background {
 
   async start() {
     this.bindOnInstalled();
+    this.bindMessageHandler();
     await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
-    this.bindMessageHandler();
     this.bindPermissionsHandler();
     this.bindEventsHandler();
     this.bindTabHandlers();
@@ -229,8 +229,14 @@ export class Background {
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
               return;
 
-            case 'TOGGLE_WM': {
-              await this.monetizationService.toggleWM();
+            case 'TOGGLE_CONTINUOUS_PAYMENTS': {
+              await this.monetizationService.toggleContinuousPayments();
+              await this.updateVisualIndicatorsForCurrentTab();
+              return;
+            }
+
+            case 'TOGGLE_PAYMENTS': {
+              await this.monetizationService.togglePayments();
               await this.updateVisualIndicatorsForCurrentTab();
               return;
             }
@@ -290,9 +296,7 @@ export class Background {
           }
           if (e instanceof OpenPaymentsClientError) {
             this.logger.error(message.action, e.message, e.description);
-            return failure(
-              OPEN_PAYMENTS_ERRORS[e.description] ?? e.description,
-            );
+            return failure(e.description);
           }
           this.logger.error(message.action, e.message);
           return failure(e.message);

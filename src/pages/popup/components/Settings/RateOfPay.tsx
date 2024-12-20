@@ -24,20 +24,25 @@ export const RateOfPayScreen = () => {
     void updateRateOfPay.current(rateOfPay);
   };
 
-  const toggleWM = () => {
-    message.send('TOGGLE_WM');
-    dispatch({ type: 'TOGGLE_WM' });
+  const toggleContinuousPayments = () => {
+    message.send('TOGGLE_CONTINUOUS_PAYMENTS');
+    dispatch({ type: 'TOGGLE_CONTINUOUS_PAYMENTS' });
   };
 
-  return <RateOfPayComponent onRateChange={onRateChange} toggleWM={toggleWM} />;
+  return (
+    <RateOfPayComponent
+      onRateChange={onRateChange}
+      toggle={toggleContinuousPayments}
+    />
+  );
 };
 
 interface Props {
   onRateChange: (rate: string) => Promise<void>;
-  toggleWM: () => void | Promise<void>;
+  toggle: () => void | Promise<void>;
 }
 
-export const RateOfPayComponent = ({ onRateChange, toggleWM }: Props) => {
+export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
   const {
     continuousPaymentsEnabled,
     rateOfPay,
@@ -59,7 +64,7 @@ export const RateOfPayComponent = ({ onRateChange, toggleWM }: Props) => {
       <div className="space-y-2">
         <Switch
           checked={continuousPaymentsEnabled}
-          onChange={toggleWM}
+          onChange={toggle}
           label="Continuous payment"
         />
 

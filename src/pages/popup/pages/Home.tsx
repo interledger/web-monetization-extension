@@ -9,7 +9,11 @@ import { usePopupState } from '@/popup/lib/store';
 
 export const Component = () => {
   const t = useTranslation();
-  const { tab } = usePopupState();
+  const { tab, enabled } = usePopupState();
+
+  if (!enabled) {
+    return <NotMonetized text={t('app_text_disabled')} />;
+  }
 
   if (tab.status !== 'monetized') {
     switch (tab.status) {
