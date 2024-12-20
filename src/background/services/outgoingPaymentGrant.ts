@@ -4,10 +4,10 @@ import type {
   TabId,
   WalletAmount,
 } from 'shared/types';
-import {
+import type {
   Grant,
   PendingGrant,
-  type WalletAddress,
+  WalletAddress,
 } from '@interledger/open-payments/dist/types';
 import { type AuthenticatedClient } from '@interledger/open-payments/dist/client';
 import {
@@ -71,6 +71,8 @@ export class OutgoingPaymentGrantService {
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false };
 
+  public switchGrant: OutgoingPaymentGrantService['_switchGrant'];
+
   constructor({
     storage,
     logger,
@@ -80,13 +82,15 @@ export class OutgoingPaymentGrantService {
     browserName,
     t,
   }: Cradle) {
-    this.storage = storage;
-    this.logger = logger;
-    this.deduplicator = deduplicator;
-    this.browser = browser;
-    this.appName = appName;
-    this.browserName = browserName;
-    this.t = t;
+    Object.assign(this, {
+      storage,
+      logger,
+      deduplicator,
+      browser,
+      appName,
+      browserName,
+      t,
+    });
 
     void this.initialize();
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
@@ -95,8 +99,6 @@ export class OutgoingPaymentGrantService {
   public isAnyGrantUsable() {
     return this.isGrantUsable.recurring || this.isGrantUsable.oneTime;
   }
-
-  public switchGrant: OutgoingPaymentGrantService['_switchGrant'];
 
   public accessToken() {
     return this.token.value;
@@ -143,7 +145,7 @@ export class OutgoingPaymentGrantService {
     }
   }
 
-  public async createGrant(
+  public async completeOutgoingPaymentGrant(
     client: AuthenticatedClient,
     amount: string,
     walletAddress: WalletAddress,

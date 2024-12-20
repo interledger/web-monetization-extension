@@ -13,7 +13,13 @@ import {
   isTokenExpiredError,
 } from './openPayments';
 import { getNextSendableAmount } from '@/background/utils';
-import type { EventsService, OpenPaymentsService, TabState } from '.';
+import type {
+  EventsService,
+  OpenPaymentsService,
+  OutgoingPaymentGrantService,
+  TabState,
+  WalletService,
+} from '.';
 import type {
   BackgroundToContentMessage,
   MessageManager,
@@ -54,6 +60,8 @@ export class PaymentSession {
     private tabId: number,
     private frameId: number,
     private openPaymentsService: OpenPaymentsService,
+    private walletService: WalletService,
+    private grantService: OutgoingPaymentGrantService,
     private events: EventsService,
     private tabState: TabState,
     private url: string,
@@ -122,7 +130,7 @@ export class PaymentSession {
         throw new DOMException('Aborting existing probing', 'AbortError');
       }
       try {
-        await this.openPaymentsService.probeDebitAmount(
+        await this.walletService.probeDebitAmount(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
@@ -131,7 +139,7 @@ export class PaymentSession {
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
-          await this.openPaymentsService.rotateToken();
+          await this.grantService.rotateToken(this.openPaymentsService.client);
         } else if (isNonPositiveAmountError(e)) {
           amountToSend = BigInt(amountIter.next().value);
           continue;
@@ -382,12 +390,11 @@ export class PaymentSession {
     );
 
     try {
-      const outgoingPayment =
-        await this.openPaymentsService.createOutgoingPayment({
-          walletAddress: this.sender,
-          incomingPaymentId: incomingPayment.id,
-          amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
-        });
+      const outgoingPayment = await this.walletService.createOutgoingPayment({
+        walletAddress: this.sender,
+        incomingPaymentId: incomingPayment.id,
+        amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
+      });
 
       this.sendMonetizationEvent({
         requestId: this.requestId,
@@ -410,7 +417,7 @@ export class PaymentSession {
         this.events.emit('open_payments.key_revoked');
         throw e;
       } else if (isTokenExpiredError(e)) {
-        await this.openPaymentsService.rotateToken();
+        await this.grantService.rotateToken(this.openPaymentsService.client);
         return await this.pay(amount); // retry
       } else {
         throw e;
@@ -425,12 +432,11 @@ export class PaymentSession {
 
   private async payContinuous() {
     try {
-      const outgoingPayment =
-        await this.openPaymentsService.createOutgoingPayment({
-          walletAddress: this.sender,
-          incomingPaymentId: this.incomingPaymentUrl,
-          amount: this.amount,
-        });
+      const outgoingPayment = await this.walletService.createOutgoingPayment({
+        walletAddress: this.sender,
+        incomingPaymentId: this.incomingPaymentUrl,
+        amount: this.amount,
+      });
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment;
       const monetizationEventDetails: MonetizationEventDetails = {
         amountSent: {
@@ -462,10 +468,10 @@ export class PaymentSession {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
       } else if (isTokenExpiredError(e)) {
-        await this.openPaymentsService.rotateToken();
+        await this.grantService.rotateToken(this.openPaymentsService.client);
         this.shouldRetryImmediately = true;
       } else if (isOutOfBalanceError(e)) {
-        const switched = await this.openPaymentsService.switchGrant();
+        const switched = await this.grantService.switchGrant();
         if (switched === null) {
           this.events.emit('open_payments.out_of_funds');
         } else {

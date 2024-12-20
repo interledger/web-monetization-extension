@@ -8,6 +8,7 @@ import type { Browser, Runtime } from 'webextension-polyfill';
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
+
 export const getCurrentActiveTab = async (browser: Browser) => {
   const window = await browser.windows.getLastFocused();
   const activeTabs = await browser.tabs.query({

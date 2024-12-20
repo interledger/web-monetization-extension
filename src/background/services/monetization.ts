@@ -29,8 +29,9 @@ export class MonetizationService {
   private logger: Cradle['logger'];
   private t: Cradle['t'];
   private openPaymentsService: Cradle['openPaymentsService'];
+  private walletService: Cradle['walletService'];
+  private grantService: Cradle['grantService'];
   private storage: Cradle['storage'];
-  private browser: Cradle['browser'];
   private events: Cradle['events'];
   private tabState: Cradle['tabState'];
   private windowState: Cradle['windowState'];
@@ -39,10 +40,11 @@ export class MonetizationService {
   constructor({
     logger,
     t,
-    browser,
+    openPaymentsService,
+    walletService,
+    grantService,
     storage,
     events,
-    openPaymentsService,
     tabState,
     windowState,
     message,
@@ -51,8 +53,9 @@ export class MonetizationService {
       logger,
       t,
       openPaymentsService,
+      walletService,
+      grantService,
       storage,
-      browser,
       events,
       tabState,
       windowState,
@@ -113,6 +116,8 @@ export class MonetizationService {
         tabId,
         frameId,
         this.openPaymentsService,
+        this.walletService,
+        this.grantService,
         this.events,
         this.tabState,
         removeQueryParams(url!),
@@ -307,7 +312,7 @@ export class MonetizationService {
       [...outgoingPayments]
         .filter(([, outgoingPayment]) => outgoingPayment !== null)
         .map(async ([sessionId, outgoingPaymentInitial]) => {
-          for await (const outgoingPayment of this.openPaymentsService.pollOutgoingPayment(
+          for await (const outgoingPayment of this.walletService.pollOutgoingPayment(
             // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
             outgoingPaymentInitial!.id,
             { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
@@ -379,7 +384,7 @@ export class MonetizationService {
     if (!connected) return false;
     if (isOkState(state)) return true;
 
-    if (state.out_of_funds && this.openPaymentsService.isAnyGrantUsable()) {
+    if (state.out_of_funds && this.grantService.isAnyGrantUsable()) {
       // if we're in out_of_funds state, we still try to make payments hoping we
       // have funds available now. If a payment succeeds, we move out from
       // of_out_funds state.

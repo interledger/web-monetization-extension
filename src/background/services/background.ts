@@ -20,7 +20,7 @@ const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
 
 export class Background {
   private browser: Cradle['browser'];
-  private openPaymentsService: Cradle['openPaymentsService'];
+  private walletService: Cradle['walletService'];
   private monetizationService: Cradle['monetizationService'];
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
@@ -32,7 +32,7 @@ export class Background {
 
   constructor({
     browser,
-    openPaymentsService,
+    walletService,
     monetizationService,
     storage,
     logger,
@@ -44,7 +44,7 @@ export class Background {
   }: Cradle) {
     Object.assign(this, {
       browser,
-      openPaymentsService,
+      walletService,
       monetizationService,
       storage,
       sendToPopup,
@@ -196,26 +196,26 @@ export class Background {
                 ),
               );
 
-            case 'CONNECT_WALLET':
-              await this.openPaymentsService.connectWallet(message.payload);
+            case 'CONNECT_WALLET': {
+              await this.walletService.connectWallet(message.payload);
               if (message.payload?.recurring) {
                 this.scheduleResetOutOfFundsState();
               }
               return success(undefined);
-
+            }
             case 'RECONNECT_WALLET': {
-              await this.openPaymentsService.reconnectWallet(message.payload);
+              await this.walletService.reconnectWallet(message.payload);
               await this.monetizationService.resumePaymentSessionActiveTab();
               await this.updateVisualIndicatorsForCurrentTab();
               return success(undefined);
             }
 
             case 'UPDATE_BUDGET':
-              await this.openPaymentsService.updateBudget(message.payload);
+              await this.walletService.updateBudget(message.payload);
               return success(undefined);
 
             case 'ADD_FUNDS':
-              await this.openPaymentsService.addFunds(message.payload);
+              await this.walletService.addFunds(message.payload);
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               if (message.payload.recurring) {
                 this.scheduleResetOutOfFundsState();
@@ -223,7 +223,7 @@ export class Background {
               return;
 
             case 'DISCONNECT_WALLET':
-              await this.openPaymentsService.disconnectWallet();
+              await this.walletService.disconnectWallet();
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               await this.updateVisualIndicatorsForCurrentTab();
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
@@ -339,7 +339,7 @@ export class Background {
       this.logger.info(data);
       if (details.reason === 'install') {
         await this.storage.populate();
-        await this.openPaymentsService.generateKeys();
+        await this.walletService.generateKeys();
         await this.browser.tabs.create({
           url: this.browser.runtime.getURL(`${APP_URL}#/post-install`),
         });
