@@ -115,6 +115,7 @@ export class MonetizationService {
         requestId,
         tabId,
         frameId,
+        this.storage,
         this.openPaymentsService,
         this.walletService,
         this.grantService,

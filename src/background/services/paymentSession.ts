@@ -1,7 +1,7 @@
 import {
   isPendingGrant,
   type IncomingPayment,
-  type OutgoingPayment,
+  type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress,
 } from '@interledger/open-payments/dist/types';
 import { bigIntMax, convert, transformBalance } from '@/shared/helpers';
@@ -17,6 +17,7 @@ import type {
   EventsService,
   OpenPaymentsService,
   OutgoingPaymentGrantService,
+  StorageService,
   TabState,
   WalletService,
 } from '.';
@@ -35,6 +36,11 @@ const MAX_INVALID_RECEIVER_ATTEMPTS = 2;
 
 type PaymentSessionSource = 'tab-change' | 'request-id-reused' | 'new-link';
 type IncomingPaymentSource = 'one-time' | 'continuous';
+interface CreateOutgoingPaymentParams {
+  walletAddress: WalletAddress;
+  incomingPaymentId: IncomingPayment['id'];
+  amount: string;
+}
 
 export class PaymentSession {
   private rate: string;
@@ -59,6 +65,7 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
+    private storage: StorageService,
     private openPaymentsService: OpenPaymentsService,
     private walletService: WalletService,
     private grantService: OutgoingPaymentGrantService,
@@ -130,7 +137,7 @@ export class PaymentSession {
         throw new DOMException('Aborting existing probing', 'AbortError');
       }
       try {
-        await this.walletService.probeDebitAmount(
+        await this.probeDebitAmount(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
@@ -375,6 +382,65 @@ export class PaymentSession {
     return incomingPayment;
   }
 
+  private async createOutgoingPayment({
+    walletAddress,
+    amount,
+    incomingPaymentId,
+  }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
+    const outgoingPayment =
+      (await this.openPaymentsService.client.outgoingPayment.create(
+        {
+          accessToken: this.grantService.accessToken(),
+          url: walletAddress.resourceServer,
+        },
+        {
+          incomingPayment: incomingPaymentId,
+          walletAddress: walletAddress.id,
+          debitAmount: {
+            value: amount,
+            assetCode: walletAddress.assetCode,
+            assetScale: walletAddress.assetScale,
+          },
+          metadata: {
+            source: 'Web Monetization',
+          },
+        },
+      )) as OutgoingPayment;
+
+    if (outgoingPayment.grantSpentDebitAmount) {
+      this.storage.updateSpentAmount(
+        this.grantService.grantType(),
+        outgoingPayment.grantSpentDebitAmount.value,
+      );
+    }
+    await this.storage.setState({ out_of_funds: false });
+
+    return outgoingPayment;
+  }
+
+  private async probeDebitAmount(
+    amount: AmountValue,
+    incomingPayment: IncomingPayment['id'],
+    sender: WalletAddress,
+  ): Promise<void> {
+    await this.openPaymentsService.client.quote.create(
+      {
+        url: sender.resourceServer,
+        accessToken: this.grantService.accessToken(),
+      },
+      {
+        method: 'ilp',
+        receiver: incomingPayment,
+        walletAddress: sender.id,
+        debitAmount: {
+          value: amount,
+          assetCode: sender.assetCode,
+          assetScale: sender.assetScale,
+        },
+      },
+    );
+  }
+
   async pay(amount: number): Promise<OutgoingPayment> {
     if (this.isDisabled) {
       throw new Error('Attempted to send a payment to a disabled session.');
@@ -390,7 +456,7 @@ export class PaymentSession {
     );
 
     try {
-      const outgoingPayment = await this.walletService.createOutgoingPayment({
+      const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
         incomingPaymentId: incomingPayment.id,
         amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
@@ -432,7 +498,7 @@ export class PaymentSession {
 
   private async payContinuous() {
     try {
-      const outgoingPayment = await this.walletService.createOutgoingPayment({
+      const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
         incomingPaymentId: this.incomingPaymentUrl,
         amount: this.amount,

@@ -19,11 +19,7 @@ import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
   OUTGOING_PAYMENT_POLLING_INTERVAL,
 } from '../config';
-import {
-  type IncomingPayment,
-  type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
-  type WalletAddress,
-} from '@interledger/open-payments/dist/types';
+import { type OutgoingPaymentWithSpentAmounts as OutgoingPayment } from '@interledger/open-payments/dist/types';
 import { APP_URL } from '../constants';
 import { Cradle } from '../container';
 import { getExchangeRates, getRateOfPay } from '../utils';
@@ -36,14 +32,7 @@ import {
   isMissingGrantPermissionsError,
   isTokenExpiredError,
 } from './openPayments';
-import { AmountValue } from '@/shared/types';
 import { OpenPaymentsClientError } from '@interledger/open-payments';
-
-interface CreateOutgoingPaymentParams {
-  walletAddress: WalletAddress;
-  incomingPaymentId: IncomingPayment['id'];
-  amount: string;
-}
 
 export class WalletService {
   private storage: Cradle['storage'];
@@ -308,42 +297,6 @@ export class WalletService {
     });
   }
 
-  async createOutgoingPayment({
-    walletAddress,
-    amount,
-    incomingPaymentId,
-  }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
-    const outgoingPayment =
-      (await this.openPaymentsService.client.outgoingPayment.create(
-        {
-          accessToken: this.grantService.accessToken(),
-          url: walletAddress.resourceServer,
-        },
-        {
-          incomingPayment: incomingPaymentId,
-          walletAddress: walletAddress.id,
-          debitAmount: {
-            value: amount,
-            assetCode: walletAddress.assetCode,
-            assetScale: walletAddress.assetScale,
-          },
-          metadata: {
-            source: 'Web Monetization',
-          },
-        },
-      )) as OutgoingPayment;
-
-    if (outgoingPayment.grantSpentDebitAmount) {
-      this.storage.updateSpentAmount(
-        this.grantService.grantType(),
-        outgoingPayment.grantSpentDebitAmount.value,
-      );
-    }
-    await this.storage.setState({ out_of_funds: false });
-
-    return outgoingPayment;
-  }
-
   async *pollOutgoingPayment(
     outgoingPaymentId: OutgoingPayment['id'],
     {
@@ -399,29 +352,6 @@ export class WalletService {
     }
 
     throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
-  }
-
-  async probeDebitAmount(
-    amount: AmountValue,
-    incomingPayment: IncomingPayment['id'],
-    sender: WalletAddress,
-  ): Promise<void> {
-    await this.openPaymentsService.client.quote.create(
-      {
-        url: sender.resourceServer,
-        accessToken: this.grantService.accessToken(),
-      },
-      {
-        method: 'ilp',
-        receiver: incomingPayment,
-        walletAddress: sender.id,
-        debitAmount: {
-          value: amount,
-          assetCode: sender.assetCode,
-          assetScale: sender.assetScale,
-        },
-      },
-    );
   }
 
   private async validateReconnect() {
