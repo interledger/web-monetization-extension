@@ -272,6 +272,7 @@ export interface BackgroundToPopupMessagesMap {
   SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
   SET_TRANSIENT_STATE: PopupTransientState;
+  CLOSE_POPUP: void;
 }
 
 export type BackgroundToPopupMessage = {
