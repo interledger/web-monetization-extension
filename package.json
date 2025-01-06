@@ -85,7 +85,7 @@
     "prettier-plugin-tailwindcss": "^0.6.9",
     "react-scan": "^0.0.35",
     "sade": "^1.8.1",
-    "tailwindcss": "^3.4.16",
+    "tailwindcss": "^3.4.17",
     "ts-jest": "^29.2.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
