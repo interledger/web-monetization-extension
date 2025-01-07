@@ -1,11 +1,13 @@
 import { test as base, type BrowserContext, type Page } from '@playwright/test';
 import {
   getBackground,
+  getStorage,
   loadContext,
   BrowserIntl,
   type Background,
 } from './helpers';
 import { openPopup, type Popup } from '../pages/popup';
+import type { DeepPartial, Storage } from '@/shared/types';
 
 type BaseScopeWorker = {
   persistentContext: BrowserContext;
@@ -66,4 +68,51 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   },
 });
 
-export const expect = test.expect;
+export const expect = test.expect.extend({
+  async toHaveStorage(background: Background, expected: DeepPartial<Storage>) {
+    const assertionName = 'toHaveStorage';
+
+    let pass: boolean;
+    let matcherResult: any;
+
+    const storedData = await getStorage(
+      background,
+      Object.keys(expected) as Array<keyof typeof expected>,
+    );
+    try {
+      test.expect(storedData).toMatchObject(expected);
+      pass = true;
+    } catch {
+      matcherResult = { actual: storedData };
+      pass = false;
+    }
+
+    const message = pass
+      ? () =>
+          this.utils.matcherHint(assertionName, undefined, undefined, {
+            isNot: this.isNot,
+          }) +
+          '\n\n' +
+          `Expected: not ${this.utils.printExpected(expected)}\n` +
+          (matcherResult
+            ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
+            : '')
+      : () =>
+          this.utils.matcherHint(assertionName, undefined, undefined, {
+            isNot: this.isNot,
+          }) +
+          '\n\n' +
+          `Expected: ${this.utils.printExpected(expected)}\n` +
+          (matcherResult
+            ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
+            : '');
+
+    return {
+      name: assertionName,
+      pass,
+      expected,
+      actual: matcherResult?.actual,
+      message,
+    };
+  },
+});
