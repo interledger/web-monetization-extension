@@ -31,7 +31,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
         this.addEventListener('monetization', val);
         handlers.set(this, val);
       } else {
-        throw new Error('val must be a function, got ' + typeof val);
+        throw new Error(`val must be a function, got ${typeof val}`);
       }
     },
   };

@@ -36,7 +36,7 @@ describe('useLocalStorage', () => {
         <button
           type="button"
           data-testid="set-cb"
-          onClick={() => setData((data) => data + 'Foo')}
+          onClick={() => setData((data) => `${data}Foo`)}
         >
           Set data callback
         </button>

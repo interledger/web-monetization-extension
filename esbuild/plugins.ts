@@ -135,9 +135,9 @@ function processManifestPlugin({
         }
 
         if (channel === 'preview') {
-          json.name = json.name + ' Preview';
+          json.name = `${json.name} Preview`;
         } else if (channel === 'nightly') {
-          json.name = json.name + ' Nightly';
+          json.name = `${json.name} Nightly`;
         }
 
         if (dev) {

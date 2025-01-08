@@ -763,7 +763,7 @@ export class OpenPaymentsService {
     hash,
     authServer,
   }: VerifyInteractionHashParams): Promise<void> {
-    const grantEndpoint = new URL(authServer).origin + '/';
+    const grantEndpoint = `${new URL(authServer).origin}/`;
     const data = new TextEncoder().encode(
       `${clientNonce}\n${interactNonce}\n${interactRef}\n${grantEndpoint}`,
     );

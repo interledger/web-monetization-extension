@@ -89,23 +89,17 @@ export const expect = test.expect.extend({
 
     const message = pass
       ? () =>
-          this.utils.matcherHint(assertionName, undefined, undefined, {
+          `${this.utils.matcherHint(assertionName, undefined, undefined, {
             isNot: this.isNot,
-          }) +
-          '\n\n' +
-          `Expected: not ${this.utils.printExpected(expected)}\n` +
-          (matcherResult
+          })}\n\nExpected: not ${this.utils.printExpected(expected)}\n${matcherResult
             ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-            : '')
+            : ''}`
       : () =>
-          this.utils.matcherHint(assertionName, undefined, undefined, {
+          `${this.utils.matcherHint(assertionName, undefined, undefined, {
             isNot: this.isNot,
-          }) +
-          '\n\n' +
-          `Expected: ${this.utils.printExpected(expected)}\n` +
-          (matcherResult
+          })}\n\nExpected: ${this.utils.printExpected(expected)}\n${matcherResult
             ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-            : '');
+            : ''}`;
 
     return {
       name: assertionName,

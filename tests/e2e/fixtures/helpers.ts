@@ -175,7 +175,7 @@ export async function loadContext(
   }
 
   if (!context) {
-    throw new Error('Unknown browser: ' + browserName);
+    throw new Error(`Unknown browser: ${browserName}`);
   }
 
   // Note that loading this directly via config -> use({ storageState }) doesn't
@@ -195,7 +195,7 @@ function getPathToExtension(browserName: string) {
   } else if (browserName === 'firefox') {
     pathToExtension = path.join(BUILD_DIR, 'firefox');
   } else {
-    throw new Error('Unknown browser: ' + browserName);
+    throw new Error(`Unknown browser: ${browserName}`);
   }
   return pathToExtension;
 }
@@ -227,7 +227,7 @@ export async function getBackground(
     //
     // }
   } else {
-    throw new Error('Unsupported browser: ' + browserName);
+    throw new Error(`Unsupported browser: ${browserName}`);
   }
 
   if (!background) {

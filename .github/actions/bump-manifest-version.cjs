@@ -44,6 +44,6 @@ function bumpVersion(existingVersion, type) {
     case 'minor':
       return [major, minor + 1, 0, 0];
     default:
-      throw new Error('Unknown bump type: ' + type);
+      throw new Error(`Unknown bump type: ${type}`);
   }
 }

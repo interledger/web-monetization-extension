@@ -228,8 +228,7 @@ export class MonetizationLinkManager extends EventEmitter {
       url = new URL(href);
       if (url.protocol !== 'https:') {
         throw new WalletAddressFormatError(
-          `Wallet address URL must be specified as a fully resolved https:// url, ` +
-            `got ${JSON.stringify(href)} `,
+          `Wallet address URL must be specified as a fully resolved https:// url, got ${JSON.stringify(href)} `,
         );
       }
     } catch (e) {
@@ -517,9 +516,7 @@ export class MonetizationLinkManager extends EventEmitter {
     const details = this.monetizationLinks.get(link);
     if (!details) {
       throw new Error(
-        'Could not find details for monetization node ' +
-          // node is removed, so the reference can not be displayed
-          link.outerHTML.slice(0, 200),
+        `Could not find details for monetization node ${link.outerHTML.slice(0, 200)}`,
       );
     }
 
