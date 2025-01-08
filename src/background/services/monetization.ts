@@ -97,7 +97,7 @@ export class MonetizationService {
     const replacedSessions = new Set<string>();
 
     // Initialize new sessions
-    payload.forEach((p) => {
+    for (const p of payload) {
       const { requestId, walletAddress: receiver } = p;
 
       // Q: How does this impact client side apps/routing?
@@ -123,7 +123,7 @@ export class MonetizationService {
       );
 
       sessions.set(requestId, session);
-    });
+    }
 
     this.events.emit('monetization.state_update', tabId);
 
@@ -140,13 +140,13 @@ export class MonetizationService {
       continuousPaymentsEnabled &&
       this.canTryPayment(connected, state)
     ) {
-      sessionsArr.forEach((session) => {
+      for (const session of sessionsArr) {
         if (!sessions.get(session.id)) return;
         const source = replacedSessions.has(session.id)
           ? 'request-id-reused'
           : 'new-link';
         void session.start(source);
-      });
+      }
     }
   }
 
@@ -175,7 +175,7 @@ export class MonetizationService {
       return;
     }
 
-    payload.forEach((p) => {
+    for (const p of payload) {
       const { requestId } = p;
 
       const session = sessions.get(requestId);
@@ -191,7 +191,7 @@ export class MonetizationService {
       } else {
         session.stop();
       }
-    });
+    }
 
     const { rateOfPay } = await this.storage.get(['rateOfPay']);
     if (!rateOfPay) return;
@@ -234,11 +234,10 @@ export class MonetizationService {
       return;
     }
 
-    payload.forEach((p) => {
+    for (const p of payload) {
       const { requestId } = p;
-
       sessions.get(requestId)?.resume();
-    });
+    }
   }
 
   async resumePaymentSessionsByTabId(tabId: number) {

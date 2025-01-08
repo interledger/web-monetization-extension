@@ -26,16 +26,21 @@ describe('useLocalStorage', () => {
     return (
       <>
         <p data-testid="data">{data}</p>
-        <button data-testid="set" onClick={() => setData('John Wick')}>
+        <button
+          type="button"
+          data-testid="set"
+          onClick={() => setData('John Wick')}
+        >
           Set data
         </button>
         <button
+          type="button"
           data-testid="set-cb"
           onClick={() => setData((data) => data + 'Foo')}
         >
           Set data callback
         </button>
-        <button data-testid="clear" onClick={() => clear()}>
+        <button type="button" data-testid="clear" onClick={() => clear()}>
           Clear data
         </button>
       </>

@@ -4,7 +4,7 @@ import type { WalletAddress } from '@interledger/open-payments';
 import { charIsNumber, formatNumber, getCurrencySymbol } from '../lib/utils';
 import {
   errorWithKey,
-  ErrorWithKeyLike,
+  type ErrorWithKeyLike,
   formatCurrency,
 } from '@/shared/helpers';
 import { useLongPress, useThrottle } from '@/pages/shared/lib/hooks';
@@ -234,7 +234,7 @@ function Controls({
 export function validateAmount(
   value: string,
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>,
-  min: number = 0,
+  min = 0,
   max?: number,
 ): null | ErrorWithKeyLike {
   if (!value) {
@@ -263,7 +263,7 @@ function incOrDec(
   step: number,
   format: (val: number) => string,
   callback: (formattedValue: string) => void,
-  min: number = 0,
+  min = 0,
   max?: number,
 ) {
   const value = Number(input.value);

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import fs from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
 import path from 'node:path';
@@ -67,7 +66,7 @@ function zipPlugin({
         const dest = path.join(outDir, '..', zipName);
         const output = createWriteStream(dest);
         const archive = archiver('zip');
-        archive.on('end', function () {
+        archive.on('end', () => {
           const archiveSize = archive.pointer();
           const fileName = path.relative(process.cwd(), dest);
           console.log(`   Archived ${fileName}: ${formatBytes(archiveSize)}`);
@@ -117,11 +116,11 @@ function preservePolyfillClassNamesPlugin({
   };
 }
 
-function formatBytes(bytes: number, decimals: number = 2) {
+function formatBytes(bytes: number, decimals = 2) {
   if (!Number(bytes)) return '0B';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`;
+  return `${Number.parseFloat((bytes / k ** i).toFixed(dm))}${sizes[i]}`;
 }

@@ -18,7 +18,6 @@ export async function getContinueWaitTime(
   // https://github.com/interledger/rafiki/blob/5de6208fad4c73fba81db56bd7174609e5f76ed5/packages/auth/src/config/app.ts#L62
   defaultWaitMs = 5000,
 ) {
-  defaultWaitMs += 10;
   const continueWaitMs = await (async () => {
     if (process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS !== '1') {
       return Promise.resolve(defaultWaitMs);

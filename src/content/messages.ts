@@ -5,7 +5,7 @@ import type {
 } from '@/shared/messages';
 
 export interface ContentToContentMessageMap {
-  INITIALIZE_IFRAME: void;
+  INITIALIZE_IFRAME: undefined;
   IS_MONETIZATION_ALLOWED_ON_START: StartMonetizationPayload;
   IS_MONETIZATION_ALLOWED_ON_RESUME: ResumeMonetizationPayload;
   IS_MONETIZATION_ALLOWED_ON_STOP: StopMonetizationPayload;

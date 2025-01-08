@@ -9,7 +9,7 @@ import React from 'react';
 import browser from 'webextension-polyfill';
 import { ProtectedRoute } from '@/popup/components/ProtectedRoute';
 import {
-  RouteObject,
+  type RouteObject,
   RouterProvider,
   createMemoryRouter,
 } from 'react-router-dom';

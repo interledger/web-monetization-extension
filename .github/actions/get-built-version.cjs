@@ -1,5 +1,4 @@
 // @ts-check
-/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('node:fs/promises');
 
 /**

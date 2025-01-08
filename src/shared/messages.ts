@@ -133,11 +133,11 @@ export type PopupToBackgroundMessage = {
   };
   CONNECT_WALLET: {
     input: null | ConnectWalletPayload;
-    output: void;
+    output: undefined;
   };
   UPDATE_BUDGET: {
     input: UpdateBudgetPayload;
-    output: void;
+    output: undefined;
   };
   RECONNECT_WALLET: {
     input: ReconnectWalletPayload;

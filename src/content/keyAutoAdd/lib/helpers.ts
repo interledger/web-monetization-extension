@@ -1,6 +1,4 @@
 // cSpell:ignore locationchange
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-
 import { withResolvers } from '@/shared/helpers';
 
 interface WaitForOptions {

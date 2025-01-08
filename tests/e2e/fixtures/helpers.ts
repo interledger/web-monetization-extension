@@ -107,6 +107,7 @@ export const loadFirefoxAddon = (
             throw new Error('Invalid state');
           }
 
+          // biome-ignore lint/style/noParameterAssign: it's ok here
           data = buffer.subarray(bufferIndex + 1);
         }
 
@@ -131,6 +132,7 @@ export const loadFirefoxAddon = (
           if (remainder.length === 0) {
             break;
           } else {
+            // biome-ignore lint/style/noParameterAssign: it's ok here
             data = remainder;
           }
         }
@@ -335,6 +337,7 @@ export class BrowserIntl {
     }
 
     if (typeof substitutions === 'string') {
+      // biome-ignore lint/style/noParameterAssign: it's ok here
       substitutions = [substitutions];
     }
 

@@ -3,7 +3,6 @@ import { defineConfig, devices } from '@playwright/test';
 import { testDir, authFile } from './tests/e2e/fixtures/helpers';
 
 if (!process.env.CI) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('dotenv').config({ path: path.join(testDir, '.env') });
 }
 

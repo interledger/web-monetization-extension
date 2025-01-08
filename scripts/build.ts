@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 // cSpell:ignore metafile,iife,outdir,servedir
 
 import sade from 'sade';
@@ -6,13 +5,13 @@ import path from 'node:path';
 import fs from 'node:fs';
 import esbuild from 'esbuild';
 import {
-  BuildArgs,
+  type BuildArgs,
   CHANNELS,
   DEV_DIR,
   DIST_DIR,
   options,
   SERVE_PORTS,
-  Target,
+  type Target,
   TARGETS,
 } from '../esbuild/config';
 import { getDevOptions } from '../esbuild/dev';

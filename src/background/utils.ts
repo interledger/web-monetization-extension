@@ -32,7 +32,7 @@ export const toAmount = ({
   const interval = `R/${new Date().toISOString()}/P1M`;
 
   return {
-    value: Math.floor(parseFloat(value) * 10 ** assetScale).toString(),
+    value: Math.floor(Number.parseFloat(value) * 10 ** assetScale).toString(),
     ...(recurring ? { interval } : {}),
   };
 };
@@ -140,7 +140,7 @@ export function computeBalance(
 export function* getNextSendableAmount(
   senderAssetScale: number,
   receiverAssetScale: number,
-  amount: bigint = 0n,
+  amount = 0n,
 ): Generator<AmountValue, never, never> {
   const EXPONENTIAL_INCREASE = 0.5;
 
@@ -156,6 +156,7 @@ export function* getNextSendableAmount(
 
   let exp = 0;
   while (true) {
+    // biome-ignore lint/style/noParameterAssign: it's ok
     amount += base * BigInt(Math.floor(Math.exp(exp)));
     yield amount.toString();
     exp += EXPONENTIAL_INCREASE;

@@ -18,7 +18,7 @@ import {
   Heartbeat,
   Deduplicator,
 } from './services';
-import { createLogger, Logger } from '@/shared/logger';
+import { createLogger, type Logger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
 import {
   getBrowserName,

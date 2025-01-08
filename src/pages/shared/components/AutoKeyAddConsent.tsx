@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { useTranslation } from '@/popup/lib/context';
-import { TranslationKeys } from '@/shared/helpers';
+import type { TranslationKeys } from '@/shared/helpers';
 
 type Intent = 'CONNECT_WALLET' | 'RECONNECT_WALLET';
 
