@@ -1,5 +1,5 @@
-import type { Page } from '@playwright/test';
-import { test as base } from './base';
+import { mergeExpects, type Page } from '@playwright/test';
+import { test as base, expect as baseExpect } from './base';
 import { connectWallet, disconnectWallet, type Popup } from '../pages/popup';
 
 // With extension connected to the wallet.
@@ -26,4 +26,4 @@ export const test = base.extend<{ page: Page }, { popup: Popup }>({
   ],
 });
 
-export const expect = test.expect;
+export const expect = mergeExpects(baseExpect, test.expect);

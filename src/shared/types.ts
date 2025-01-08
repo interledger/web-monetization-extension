@@ -144,6 +144,10 @@ export type DeepReadonly<T> = {
   readonly [P in keyof T]: DeepReadonly<T[P]>;
 };
 
+export type DeepPartial<T> = T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
 export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
 export type Tab = RequiredFields<Tabs.Tab, 'id' | 'url'>;

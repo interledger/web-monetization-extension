@@ -11,6 +11,7 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/testWallet';
+import { getStorage } from './fixtures/helpers';
 
 test('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
   page,
@@ -106,9 +107,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
       }
     });
 
-    const { keyId } = await background.evaluate(() => {
-      return chrome.storage.local.get<{ keyId: string }>(['keyId']);
-    });
+    const { keyId } = await getStorage(background, ['keyId']);
 
     const jwksBefore = await getJWKS(walletAddressUrl);
     expect(jwksBefore.keys.length).toBeGreaterThanOrEqual(0);
@@ -137,9 +136,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     await acceptGrant(page, continueWaitMs);
     await waitForWelcomePage(page);
 
-    expect(
-      await background.evaluate(() => chrome.storage.local.get(['connected'])),
-    ).toEqual({ connected: true });
+    await expect(background).toHaveStorage({ connected: true });
   });
 
   await test.step('revoke key', async () => {
