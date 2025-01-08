@@ -20,13 +20,12 @@
     "rules": {
       "recommended": true,
       "style": {
-        "useTemplate": "info",
-        "noUnusedTemplateLiteral": "off",
-        "noUselessElse": "off",
-        "noNonNullAssertion": "off"
+        "noUnusedTemplateLiteral": "off", // TODO: turn on, too many cases
+        "noUselessElse": "off", // TODO: turn on, too many cases
+        "noNonNullAssertion": "off" // TODO: turn on, too many cases
       },
       "suspicious": {
-        "noExplicitAny": "off",
+        "noExplicitAny": "off", // TODO: turn on, too many cases
         "noConsole": "warn"
       },
       "a11y": {
