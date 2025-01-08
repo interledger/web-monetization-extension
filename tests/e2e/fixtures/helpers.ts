@@ -15,6 +15,7 @@ import {
 import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
+import type { Storage, StorageKey } from '../../../src/shared/types';
 
 export type BrowserInfo = { browserName: string; channel: string | undefined };
 export type Background = Worker;
@@ -283,9 +284,11 @@ export async function loadKeysToExtension(
     });
   }, keyInfo);
 
-  const res = await background.evaluate(() => {
-    return chrome.storage.local.get(['privateKey', 'publicKey', 'keyId']);
-  });
+  const res = await getStorage(background, [
+    'privateKey',
+    'publicKey',
+    'keyId',
+  ]);
   if (!res || !res.keyId || !res.privateKey || !res.publicKey) {
     throw new Error('Could not load keys to extension');
   }
@@ -347,4 +350,15 @@ export class BrowserIntl {
     }
     return result;
   }
+}
+
+export async function getStorage<TKey extends StorageKey>(
+  background: Background,
+  keys?: TKey[],
+) {
+  const data = await background.evaluate(
+    (keys) => chrome.storage.local.get(keys),
+    keys,
+  );
+  return data as { [Key in TKey[][number]]: Storage[Key] };
 }
