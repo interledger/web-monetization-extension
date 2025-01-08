@@ -332,6 +332,10 @@ export class Background {
       this.sendToPopup.send('SET_TRANSIENT_STATE', state);
     });
 
+    this.events.on('connect_wallet.close_popup', () => {
+      this.sendToPopup.send('CLOSE_POPUP', undefined);
+    });
+
     this.events.on('storage.balance_update', (balance) =>
       this.sendToPopup.send('SET_BALANCE', balance),
     );
