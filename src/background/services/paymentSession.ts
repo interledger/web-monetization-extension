@@ -1,9 +1,10 @@
 import {
   isPendingGrant,
+  OpenPaymentsClientError,
   type IncomingPayment,
   type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress,
-} from '@interledger/open-payments/dist/types';
+} from '@interledger/open-payments';
 import {
   bigIntMax,
   convert,
@@ -39,7 +40,6 @@ import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
   OUTGOING_PAYMENT_POLLING_INTERVAL,
 } from '../config';
-import { OpenPaymentsClientError } from '@interledger/open-payments';
 
 const HOUR_MS = 3600 * 1000;
 const MIN_SEND_AMOUNT = 1n; // 1 unit
@@ -397,25 +397,25 @@ export class PaymentSession {
     amount,
     incomingPaymentId,
   }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
-    const outgoingPayment =
-      (await this.openPaymentsService.client.outgoingPayment.create(
-        {
-          accessToken: this.grantService.accessToken(),
-          url: walletAddress.resourceServer,
+    const client = this.openPaymentsService.client;
+    const outgoingPayment = await client.outgoingPayment.create(
+      {
+        accessToken: this.grantService.accessToken(),
+        url: walletAddress.resourceServer,
+      },
+      {
+        incomingPayment: incomingPaymentId,
+        walletAddress: walletAddress.id,
+        debitAmount: {
+          value: amount,
+          assetCode: walletAddress.assetCode,
+          assetScale: walletAddress.assetScale,
         },
-        {
-          incomingPayment: incomingPaymentId,
-          walletAddress: walletAddress.id,
-          debitAmount: {
-            value: amount,
-            assetCode: walletAddress.assetCode,
-            assetScale: walletAddress.assetScale,
-          },
-          metadata: {
-            source: 'Web Monetization',
-          },
+        metadata: {
+          source: 'Web Monetization',
         },
-      )) as OutgoingPayment;
+      },
+    );
 
     if (outgoingPayment.grantSpentDebitAmount) {
       this.storage.updateSpentAmount(
