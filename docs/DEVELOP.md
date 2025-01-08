@@ -69,7 +69,7 @@ During the sign up process, it'll ask you for KYC details. As it's a test wallet
 
 Use whatever IDE/code editor you're comfortable with.
 
-We suggest your IDE supports syntax highlighting for TypeScript and React at least (unless you're ok working without syntax highlighting). Intellisense support for TS would be most helpful - to let you jump around functions and files. Additional plugins to support code formatting with prettier and eslint integration would be helpful. For the frontend, having easy access to TailwindCSS class names is also good to have.
+We suggest your IDE supports syntax highlighting for TypeScript and React at least (unless you're ok working without syntax highlighting). Intellisense support for TS would be most helpful - to let you jump around functions and files. Additional plugins to support code formatting with [Biome](https://biomejs.dev/) and prettier integration would be helpful. For the frontend, having easy access to TailwindCSS class names is also good to have.
 
 With VSCode, we include some plugin recommendations in the repo.
 

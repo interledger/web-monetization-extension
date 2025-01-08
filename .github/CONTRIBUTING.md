@@ -47,22 +47,16 @@ This project uses `PNPM`. A list of steps for setting up a [local development en
 
 All the code quality tools used in the project are installed and configured at the root.
 
-#### Linting
+#### Linting & Formatting
 
-[Eslint](https://eslint.org/) is used for linting.
+We use [Biome](https://biomejs.dev/) for linting and formatting.
 
-```shell
-./.eslintrc.json # config
-./.eslintignore # ignore file
-```
+Check `format` and `lint` commands in `package.json`, along with their `:fix` counterparts on how to automatically fix formatting and linting issues.
 
-#### Formatting
-
-[Prettier](https://prettier.io/) is used for formatting.
+We also rely on prettier, for Markdown and YAML files, until Biome supports them.
 
 ```shell
-./.prettierrc.json # config
-./.prettierignore # ignore file
+./biome.json # config
 ```
 
 #### Testing
