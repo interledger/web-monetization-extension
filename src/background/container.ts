@@ -41,7 +41,7 @@ export interface Cradle {
   events: EventsService;
   deduplicator: Deduplicator;
   storage: StorageService;
-  grantService: OutgoingPaymentGrantService;
+  outgoingPaymentGrantService: OutgoingPaymentGrantService;
   openPaymentsService: OpenPaymentsService;
   walletService: WalletService;
   monetizationService: MonetizationService;
@@ -79,7 +79,7 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('storage'),
       })),
-    grantService: asClass(OutgoingPaymentGrantService)
+    outgoingPaymentGrantService: asClass(OutgoingPaymentGrantService)
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('outgoing-payment-grant'),

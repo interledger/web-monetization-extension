@@ -78,7 +78,7 @@ export class PaymentSession {
     private frameId: number,
     private storage: StorageService,
     private openPaymentsService: OpenPaymentsService,
-    private grantService: OutgoingPaymentGrantService,
+    private outgoingPaymentGrantService: OutgoingPaymentGrantService,
     private events: EventsService,
     private tabState: TabState,
     private url: string,
@@ -147,7 +147,7 @@ export class PaymentSession {
         throw new DOMException('Aborting existing probing', 'AbortError');
       }
       try {
-        await this.probeDebitAmount(
+        await this.createPaymentQuote(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
@@ -156,7 +156,7 @@ export class PaymentSession {
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
-          await this.grantService.rotateToken();
+          await this.outgoingPaymentGrantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
           amountToSend = BigInt(amountIter.next().value);
           continue;
@@ -397,10 +397,10 @@ export class PaymentSession {
     amount,
     incomingPaymentId,
   }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
-    const client = this.openPaymentsService.client;
+    const { client } = this.openPaymentsService;
     const outgoingPayment = await client.outgoingPayment.create(
       {
-        accessToken: this.grantService.accessToken(),
+        accessToken: this.outgoingPaymentGrantService.accessToken(),
         url: walletAddress.resourceServer,
       },
       {
@@ -419,7 +419,7 @@ export class PaymentSession {
 
     if (outgoingPayment.grantSpentDebitAmount) {
       this.storage.updateSpentAmount(
-        this.grantService.grantType(),
+        this.outgoingPaymentGrantService.grantType(),
         outgoingPayment.grantSpentDebitAmount.value,
       );
     }
@@ -428,7 +428,7 @@ export class PaymentSession {
     return outgoingPayment;
   }
 
-  private async probeDebitAmount(
+  private async createPaymentQuote(
     amount: AmountValue,
     incomingPayment: IncomingPayment['id'],
     sender: WalletAddress,
@@ -436,7 +436,7 @@ export class PaymentSession {
     await this.openPaymentsService.client.quote.create(
       {
         url: sender.resourceServer,
-        accessToken: this.grantService.accessToken(),
+        accessToken: this.outgoingPaymentGrantService.accessToken(),
       },
       {
         method: 'ilp',
@@ -493,7 +493,7 @@ export class PaymentSession {
         this.events.emit('open_payments.key_revoked');
         throw e;
       } else if (isTokenExpiredError(e)) {
-        await this.grantService.rotateToken();
+        await this.outgoingPaymentGrantService.rotateToken();
         return await this.pay(amount); // retry
       } else {
         throw e;
@@ -513,11 +513,11 @@ export class PaymentSession {
     while (++attempt <= maxAttempts) {
       try {
         signal?.throwIfAborted();
-        const outgoingPayment =
-          await this.openPaymentsService.client.outgoingPayment.get({
-            url: outgoingPaymentId,
-            accessToken: this.grantService.accessToken(),
-          });
+        const { client } = this.openPaymentsService;
+        const outgoingPayment = await client.outgoingPayment.get({
+          url: outgoingPaymentId,
+          accessToken: this.outgoingPaymentGrantService.accessToken(),
+        });
         yield outgoingPayment;
         if (
           outgoingPayment.failed &&
@@ -540,7 +540,7 @@ export class PaymentSession {
           // TODO: We can remove the token `actions` check once we've proper RS
           // errors in place. Then we can handle insufficient grant error
           // separately clearly.
-          const token = await this.grantService.rotateToken();
+          const token = await this.outgoingPaymentGrantService.rotateToken();
           const hasReadAccess = token.access_token.access.find(
             (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
           );
@@ -601,10 +601,10 @@ export class PaymentSession {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
       } else if (isTokenExpiredError(e)) {
-        await this.grantService.rotateToken();
+        await this.outgoingPaymentGrantService.rotateToken();
         this.shouldRetryImmediately = true;
       } else if (isOutOfBalanceError(e)) {
-        const switched = await this.grantService.switchGrant();
+        const switched = await this.outgoingPaymentGrantService.switchGrant();
         if (switched === null) {
           this.events.emit('open_payments.out_of_funds');
         } else {

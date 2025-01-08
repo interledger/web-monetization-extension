@@ -18,7 +18,7 @@ import {
 } from '../config';
 import { APP_URL } from '../constants';
 import { Cradle } from '../container';
-import { getExchangeRates, getRateOfPay } from '../utils';
+import { getExchangeRates, getRateOfPay as _getRateOfPay } from '../utils';
 import { KeyAutoAddService } from './keyAutoAdd';
 import { InteractionIntent } from './outgoingPaymentGrant';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -27,21 +27,21 @@ import { isInvalidClientError } from './openPayments';
 
 export class WalletService {
   private storage: Cradle['storage'];
-  private grantService: Cradle['grantService'];
+  private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private openPaymentsService: Cradle['openPaymentsService'];
   private browser: Cradle['browser'];
   private t: Cradle['t'];
 
   constructor({
     storage,
-    grantService,
+    outgoingPaymentGrantService,
     openPaymentsService,
     browser,
     t,
   }: Cradle) {
     Object.assign(this, {
       storage,
-      grantService,
+      outgoingPaymentGrantService,
       openPaymentsService,
       browser,
       t,
@@ -75,21 +75,15 @@ export class WalletService {
     }
 
     const exchangeRate = exchangeRates.rates[walletAddress.assetCode];
-    rateOfPay = getRateOfPay({
-      rate: DEFAULT_RATE_OF_PAY,
-      exchangeRate,
-      assetScale: walletAddress.assetScale,
-    });
-    minRateOfPay = getRateOfPay({
-      rate: MIN_RATE_OF_PAY,
-      exchangeRate,
-      assetScale: walletAddress.assetScale,
-    });
-    maxRateOfPay = getRateOfPay({
-      rate: MAX_RATE_OF_PAY,
-      exchangeRate,
-      assetScale: walletAddress.assetScale,
-    });
+    const getRateOfPay = (rate: string) =>
+      _getRateOfPay({
+        rate,
+        exchangeRate,
+        assetScale: walletAddress.assetScale,
+      });
+    rateOfPay = getRateOfPay(DEFAULT_RATE_OF_PAY);
+    minRateOfPay = getRateOfPay(MIN_RATE_OF_PAY);
+    maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
     this.setConnectState('connecting');
@@ -98,7 +92,7 @@ export class WalletService {
       url: this.browser.runtime.getURL(APP_URL),
     });
     try {
-      await this.grantService.completeOutgoingPaymentGrant(
+      await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         amount,
         walletAddress,
         recurring,
@@ -112,24 +106,25 @@ export class WalletService {
         autoKeyAdd
       ) {
         if (!KeyAutoAddService.supports(walletAddress)) {
-          this.updateConnectStateError(error);
+          this.setConnectStateError(error);
           throw new ErrorWithKey(
             'connectWalletKeyService_error_notImplemented',
           );
         }
         if (!autoKeyAddConsent) {
-          this.updateConnectStateError(error);
+          this.setConnectStateError(error);
           throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
         }
 
         // add key to wallet and try again
         try {
-          const tabId = await this.grantService.addPublicKeyToWallet(
-            walletAddress,
-            existingTab?.id,
-          );
+          const tabId =
+            await this.outgoingPaymentGrantService.addPublicKeyToWallet(
+              walletAddress,
+              existingTab?.id,
+            );
           this.setConnectState('connecting');
-          await this.grantService.completeOutgoingPaymentGrant(
+          await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             amount,
             walletAddress,
             recurring,
@@ -137,11 +132,11 @@ export class WalletService {
             tabId,
           );
         } catch (error) {
-          this.updateConnectStateError(error);
+          this.setConnectStateError(error);
           throw error;
         }
       } else {
-        this.updateConnectStateError(error);
+        this.setConnectStateError(error);
         throw error;
       }
     }
@@ -175,16 +170,18 @@ export class WalletService {
       await this.validateReconnect();
     } catch (error) {
       if (!isInvalidClientError(error?.cause)) {
-        this.updateConnectStateError(error);
+        this.setConnectStateError(error);
         throw error;
       }
 
       try {
         // add key to wallet and try again
-        this.grantService.addPublicKeyToWalletWithRotateToken(walletAddress);
+        this.outgoingPaymentGrantService.retryAddPublicKeyToWallet(
+          walletAddress,
+        );
         await this.storage.setState({ key_revoked: false });
       } catch (error) {
-        this.updateConnectStateError(error);
+        this.setConnectStateError(error);
         throw error;
       }
     }
@@ -201,12 +198,14 @@ export class WalletService {
       return;
     }
     if (recurringGrant) {
-      await this.grantService.cancelGrant(recurringGrant.continue);
-      this.grantService.disableRecurringGrant();
+      await this.outgoingPaymentGrantService.cancelGrant(
+        recurringGrant.continue,
+      );
+      this.outgoingPaymentGrantService.disableRecurringGrant();
     }
     if (oneTimeGrant) {
-      await this.grantService.cancelGrant(oneTimeGrant.continue);
-      this.grantService.disableOneTimeGrant();
+      await this.outgoingPaymentGrantService.cancelGrant(oneTimeGrant.continue);
+      this.outgoingPaymentGrantService.disableOneTimeGrant();
     }
     await this.storage.clear();
   }
@@ -218,7 +217,7 @@ export class WalletService {
       'recurringGrant',
     ]);
 
-    await this.grantService.completeOutgoingPaymentGrant(
+    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
       walletAddress!,
       recurring,
@@ -227,9 +226,13 @@ export class WalletService {
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
-      await this.grantService.cancelGrant(grants.oneTimeGrant.continue);
+      await this.outgoingPaymentGrantService.cancelGrant(
+        grants.oneTimeGrant.continue,
+      );
     } else if (grants.recurringGrant && recurring) {
-      await this.grantService.cancelGrant(grants.recurringGrant.continue);
+      await this.outgoingPaymentGrantService.cancelGrant(
+        grants.recurringGrant.continue,
+      );
     }
 
     await this.storage.setState({ out_of_funds: false });
@@ -242,7 +245,7 @@ export class WalletService {
       'recurringGrant',
     ]);
 
-    await this.grantService.completeOutgoingPaymentGrant(
+    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
       walletAddress!,
       recurring,
@@ -253,7 +256,9 @@ export class WalletService {
     // Note: Clear storage only if new grant type is not same as previous grant
     // type (as completeGrant already sets new grant state)
     if (existingGrants.oneTimeGrant) {
-      await this.grantService.cancelGrant(existingGrants.oneTimeGrant.continue);
+      await this.outgoingPaymentGrantService.cancelGrant(
+        existingGrants.oneTimeGrant.continue,
+      );
       if (recurring) {
         this.storage.set({
           oneTimeGrant: null,
@@ -262,7 +267,7 @@ export class WalletService {
       }
     }
     if (existingGrants.recurringGrant) {
-      await this.grantService.cancelGrant(
+      await this.outgoingPaymentGrantService.cancelGrant(
         existingGrants.recurringGrant.continue,
       );
       if (!recurring) {
@@ -290,7 +295,7 @@ export class WalletService {
 
   private async validateReconnect() {
     try {
-      await this.grantService.rotateToken();
+      await this.outgoingPaymentGrantService.rotateToken();
     } catch (error) {
       if (isInvalidClientError(error)) {
         const msg = this.t('connectWallet_error_invalidClient');
@@ -306,7 +311,7 @@ export class WalletService {
     this.storage.setPopupTransientState('connect', () => state);
   }
 
-  private updateConnectStateError(err: ErrorWithKeyLike | { message: string }) {
+  private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
     this.storage.setPopupTransientState('connect', (state) => {
       if (state?.status === 'error:key') {
         return state;

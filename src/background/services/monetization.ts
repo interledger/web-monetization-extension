@@ -29,7 +29,7 @@ export class MonetizationService {
   private logger: Cradle['logger'];
   private t: Cradle['t'];
   private openPaymentsService: Cradle['openPaymentsService'];
-  private grantService: Cradle['grantService'];
+  private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private storage: Cradle['storage'];
   private events: Cradle['events'];
   private tabState: Cradle['tabState'];
@@ -40,7 +40,7 @@ export class MonetizationService {
     logger,
     t,
     openPaymentsService,
-    grantService,
+    outgoingPaymentGrantService,
     storage,
     events,
     tabState,
@@ -51,7 +51,7 @@ export class MonetizationService {
       logger,
       t,
       openPaymentsService,
-      grantService,
+      outgoingPaymentGrantService,
       storage,
       events,
       tabState,
@@ -116,7 +116,7 @@ export class MonetizationService {
         frameId,
         this.storage,
         this.openPaymentsService,
-        this.grantService,
+        this.outgoingPaymentGrantService,
         this.events,
         this.tabState,
         removeQueryParams(url!),
@@ -360,7 +360,7 @@ export class MonetizationService {
           )) {
             outgoingPayments.set(sessionId, outgoingPayment);
           }
-          return outgoingPayments.get(sessionId)!;
+          return outgoingPayments.get(sessionId);
         }),
     );
 
@@ -425,7 +425,10 @@ export class MonetizationService {
     if (!connected) return false;
     if (isOkState(state)) return true;
 
-    if (state.out_of_funds && this.grantService.isAnyGrantUsable()) {
+    if (
+      state.out_of_funds &&
+      this.outgoingPaymentGrantService.isAnyGrantUsable()
+    ) {
       // if we're in out_of_funds state, we still try to make payments hoping we
       // have funds available now. If a payment succeeds, we move out from
       // of_out_funds state.

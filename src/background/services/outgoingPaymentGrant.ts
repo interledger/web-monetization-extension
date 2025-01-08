@@ -193,13 +193,8 @@ export class OutgoingPaymentGrantService {
       );
     }
 
-    const grantDetails = this.buildGrantDetails(
-      continuation,
-      recurring,
-      walletAmount,
-    );
-
-    await this.persistGrantDetails(grantDetails);
+    this.grant = this.buildGrantDetails(continuation, recurring, walletAmount);
+    await this.persistGrantDetails(this.grant);
 
     await this.redirectToWelcomeScreen(
       tabId,
@@ -207,7 +202,7 @@ export class OutgoingPaymentGrantService {
       intent,
     );
 
-    return grantDetails;
+    return this.grant;
   }
 
   public async cancelGrant(grantContinuation: GrantDetails['continue']) {
@@ -292,9 +287,7 @@ export class OutgoingPaymentGrantService {
     }
   }
 
-  public async addPublicKeyToWalletWithRotateToken(
-    walletAddress: WalletAddress,
-  ) {
+  public async retryAddPublicKeyToWallet(walletAddress: WalletAddress) {
     let tabId: number | undefined;
 
     try {
@@ -539,8 +532,6 @@ export class OutgoingPaymentGrantService {
       });
       this.isGrantUsable.oneTime = true;
     }
-
-    this.grant = grantDetails;
   }
 
   private async redirectToWelcomeScreen(
