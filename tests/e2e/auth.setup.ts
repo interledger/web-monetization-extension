@@ -1,4 +1,4 @@
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import { test as setup, expect } from './fixtures/base';
 import { authFile } from './fixtures/helpers';
 import { getJWKS } from '@/shared/helpers';

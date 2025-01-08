@@ -68,9 +68,11 @@ export class StorageService {
     return data as { [Key in TKey[][number]]: Storage[Key] };
   }
 
-  async set<TKey extends StorageKey>(data: {
-    [K in TKey]: Storage[TKey];
-  }): Promise<void> {
+  async set<TKey extends StorageKey>(
+    data: {
+      [K in TKey]: Storage[TKey];
+    },
+  ): Promise<void> {
     await this.browser.storage.local.set(data);
   }
 
