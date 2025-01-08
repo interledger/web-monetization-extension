@@ -1,3 +1,4 @@
+import { withResolvers } from '@/shared/helpers';
 import { test, expect } from './fixtures/connected';
 
 test.beforeEach(async ({ popup }) => {
@@ -13,15 +14,19 @@ test('should monetize site with single wallet address', async ({
 
   await page.goto(playgroundUrl);
 
-  const monetizationCallback = (ev: any) => ev;
+  const { resolve, promise } = withResolvers<Event>();
+  const monetizationCallback = (ev: Event) => resolve(ev);
   await page.exposeFunction('monetizationCallback', monetizationCallback);
+  await page.evaluate(() => {
+    window.addEventListener('monetization', monetizationCallback);
+  });
 
   await page
     .getByLabel('Wallet address/Payment pointer')
     .fill(walletAddressUrl);
   await page.getByRole('button', { name: 'Add monetization link' }).click();
 
-  await expect(page.locator(`link[rel=monetization]`)).toHaveAttribute(
+  await expect(page.locator('link[rel=monetization]')).toHaveAttribute(
     'href',
     walletAddressUrl,
   );
@@ -31,6 +36,21 @@ test('should monetize site with single wallet address', async ({
   await expect(page.locator('#link-events ul.events li').last()).toContainText(
     'Load Event',
   );
+
+  const monetizationPromise = Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      AbortSignal.timeout(5000).addEventListener('abort', reject),
+    ),
+  ]);
+  await expect(monetizationPromise).resolves.toMatchObject({
+    paymentPointer: walletAddressUrl,
+    amountSent: {
+      currency: expect.stringMatching(/^[A-Z]{3}$/),
+      value: expect.stringMatching(/^\d+\.\d+$/),
+    },
+    incomingPayment: expect.stringContaining(new URL(walletAddressUrl).origin),
+  });
 
   await popup.reload({ waitUntil: 'networkidle' });
   await page.bringToFront();

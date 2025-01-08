@@ -55,7 +55,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         onChange={onChange}
         disabled={disabled}
         {...props}
-        className="peer pointer-events-none absolute -translate-x-[100%] opacity-0"
+        className="peer absolute -translate-x-[100%] opacity-0"
       />
       <div className={cn(switchVariants({ size, disabled }), className)} />
       {label ? <span className="font-normal">{label}</span> : null}

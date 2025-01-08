@@ -66,6 +66,7 @@ export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
           checked={continuousPaymentsEnabled}
           onChange={toggle}
           label="Continuous payment"
+          data-testid="continuous-payments-toggle"
         />
 
         {!continuousPaymentsEnabled ? (
