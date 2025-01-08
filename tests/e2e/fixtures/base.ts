@@ -91,15 +91,19 @@ export const expect = test.expect.extend({
       ? () =>
           `${this.utils.matcherHint(assertionName, undefined, undefined, {
             isNot: this.isNot,
-          })}\n\nExpected: not ${this.utils.printExpected(expected)}\n${matcherResult
-            ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-            : ''}`
+          })}\n\nExpected: not ${this.utils.printExpected(expected)}\n${
+            matcherResult
+              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
+              : ''
+          }`
       : () =>
           `${this.utils.matcherHint(assertionName, undefined, undefined, {
             isNot: this.isNot,
-          })}\n\nExpected: ${this.utils.printExpected(expected)}\n${matcherResult
-            ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-            : ''}`;
+          })}\n\nExpected: ${this.utils.printExpected(expected)}\n${
+            matcherResult
+              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
+              : ''
+          }`;
 
     return {
       name: assertionName,
