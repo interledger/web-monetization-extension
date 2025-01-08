@@ -56,7 +56,7 @@ Check `format` and `lint` commands in `package.json`, along with their `:fix` co
 We also rely on prettier, for Markdown and YAML files, until Biome supports them.
 
 ```shell
-./biome.json # config
+./biome.jsonc # config
 ```
 
 #### Testing
