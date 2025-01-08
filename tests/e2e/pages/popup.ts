@@ -24,6 +24,10 @@ export async function openPopup(
     await popup.reload({ waitUntil: 'networkidle' });
     await popup.waitForSelector('#main', { timeout: 500 });
   }
+
+  // prevent popup from closing via `window.close()`
+  popup.exposeFunction('close', () => {});
+
   return popup;
 }
 

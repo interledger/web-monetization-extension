@@ -139,6 +139,7 @@ const enum InteractionIntent {
 export class OpenPaymentsService {
   private browser: Cradle['browser'];
   private storage: Cradle['storage'];
+  private events: Cradle['events'];
   private deduplicator: Cradle['deduplicator'];
   private logger: Cradle['logger'];
   private appName: Cradle['appName'];
@@ -157,6 +158,7 @@ export class OpenPaymentsService {
   constructor({
     browser,
     storage,
+    events,
     deduplicator,
     logger,
     t,
@@ -166,6 +168,7 @@ export class OpenPaymentsService {
     Object.assign(this, {
       browser,
       storage,
+      events,
       deduplicator,
       logger,
       t,
@@ -553,6 +556,7 @@ export class OpenPaymentsService {
       throw err;
     });
 
+    this.events.emit('connect_wallet.close_popup');
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
@@ -651,6 +655,7 @@ export class OpenPaymentsService {
       browserName: this.browserName,
       t: this.t,
     });
+    this.events.emit('connect_wallet.close_popup');
     try {
       await keyAutoAdd.addPublicKeyToWallet(walletAddress, existingTabId);
       return keyAutoAdd.tabId;
