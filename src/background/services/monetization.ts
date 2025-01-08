@@ -8,7 +8,7 @@ import type {
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
 import { computeRate, getSender, getTabId } from '../utils';
-import { isOutOfBalanceError } from './openPayments';
+import { isOutOfBalanceError, pollOutgoingPayment } from './openPayments';
 import {
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
   OUTGOING_PAYMENT_POLLING_MAX_DURATION,
@@ -29,7 +29,6 @@ export class MonetizationService {
   private logger: Cradle['logger'];
   private t: Cradle['t'];
   private openPaymentsService: Cradle['openPaymentsService'];
-  private walletService: Cradle['walletService'];
   private grantService: Cradle['grantService'];
   private storage: Cradle['storage'];
   private events: Cradle['events'];
@@ -41,7 +40,6 @@ export class MonetizationService {
     logger,
     t,
     openPaymentsService,
-    walletService,
     grantService,
     storage,
     events,
@@ -53,7 +51,6 @@ export class MonetizationService {
       logger,
       t,
       openPaymentsService,
-      walletService,
       grantService,
       storage,
       events,
@@ -119,7 +116,6 @@ export class MonetizationService {
         frameId,
         this.storage,
         this.openPaymentsService,
-        this.walletService,
         this.grantService,
         this.events,
         this.tabState,
@@ -352,9 +348,13 @@ export class MonetizationService {
       [...outgoingPayments]
         .filter(([, outgoingPayment]) => outgoingPayment !== null)
         .map(async ([sessionId, outgoingPaymentInitial]) => {
-          for await (const outgoingPayment of this.walletService.pollOutgoingPayment(
+          for await (const outgoingPayment of pollOutgoingPayment(
             // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
             outgoingPaymentInitial!.id,
+            {
+              grantService: this.grantService,
+              openPaymentsService: this.openPaymentsService,
+            },
             { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
           )) {
             outgoingPayments.set(sessionId, outgoingPayment);

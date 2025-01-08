@@ -19,7 +19,6 @@ import type {
   OutgoingPaymentGrantService,
   StorageService,
   TabState,
-  WalletService,
 } from '.';
 import type {
   BackgroundToContentMessage,
@@ -67,7 +66,6 @@ export class PaymentSession {
     private frameId: number,
     private storage: StorageService,
     private openPaymentsService: OpenPaymentsService,
-    private walletService: WalletService,
     private grantService: OutgoingPaymentGrantService,
     private events: EventsService,
     private tabState: TabState,

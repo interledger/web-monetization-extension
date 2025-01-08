@@ -4,7 +4,6 @@ import {
   ErrorWithKey,
   ErrorWithKeyLike,
   errorWithKeyToJSON,
-  sleep,
 } from '@/shared/helpers';
 import {
   AddFundsPayload,
@@ -16,10 +15,7 @@ import {
   DEFAULT_RATE_OF_PAY,
   MIN_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
-  OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
-  OUTGOING_PAYMENT_POLLING_INTERVAL,
 } from '../config';
-import { type OutgoingPaymentWithSpentAmounts as OutgoingPayment } from '@interledger/open-payments/dist/types';
 import { APP_URL } from '../constants';
 import { Cradle } from '../container';
 import { getExchangeRates, getRateOfPay } from '../utils';
@@ -27,12 +23,7 @@ import { KeyAutoAddService } from './keyAutoAdd';
 import { InteractionIntent } from './outgoingPaymentGrant';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
 import { bytesToHex } from '@noble/hashes/utils';
-import {
-  isInvalidClientError,
-  isMissingGrantPermissionsError,
-  isTokenExpiredError,
-} from './openPayments';
-import { OpenPaymentsClientError } from '@interledger/open-payments';
+import { isInvalidClientError } from './openPayments';
 
 export class WalletService {
   private storage: Cradle['storage'];
@@ -295,63 +286,6 @@ export class WalletService {
       publicKey: btoa(JSON.stringify(jwk)),
       keyId,
     });
-  }
-
-  async *pollOutgoingPayment(
-    outgoingPaymentId: OutgoingPayment['id'],
-    {
-      signal,
-      maxAttempts = 10,
-    }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
-  ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
-    let attempt = 0;
-    await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
-    while (++attempt <= maxAttempts) {
-      try {
-        signal?.throwIfAborted();
-        const outgoingPayment =
-          await this.openPaymentsService.client.outgoingPayment.get({
-            url: outgoingPaymentId,
-            accessToken: this.grantService.accessToken(),
-          });
-        yield outgoingPayment;
-        if (
-          outgoingPayment.failed &&
-          outgoingPayment.sentAmount.value === '0'
-        ) {
-          throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
-        }
-        if (
-          outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
-        ) {
-          return outgoingPayment; // completed
-        }
-        signal?.throwIfAborted();
-        await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
-      } catch (error) {
-        if (
-          isTokenExpiredError(error) ||
-          isMissingGrantPermissionsError(error)
-        ) {
-          // TODO: We can remove the token `actions` check once we've proper RS
-          // errors in place. Then we can handle insufficient grant error
-          // separately clearly.
-          const token = await this.grantService.rotateToken();
-          const hasReadAccess = token.access_token.access.find(
-            (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
-          );
-          if (!hasReadAccess) {
-            throw new OpenPaymentsClientError('InsufficientGrant', {
-              description: error.description,
-            });
-          }
-        } else {
-          throw error;
-        }
-      }
-    }
-
-    throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
   }
 
   private async validateReconnect() {

@@ -8,6 +8,12 @@ import { type Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
 import type { Cradle } from '@/background/container';
+import { OutgoingPayment } from '@interledger/open-payments';
+import { ErrorWithKey, sleep } from '@/shared/helpers';
+import {
+  OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
+  OUTGOING_PAYMENT_POLLING_INTERVAL,
+} from '../config';
 
 interface KeyInformation {
   privateKey: string;
@@ -35,6 +41,7 @@ interface SignOptions {
   privateKey: Uint8Array;
   keyId: string;
 }
+
 export class OpenPaymentsService {
   private browser: Cradle['browser'];
   private storage: Cradle['storage'];
@@ -286,3 +293,58 @@ export const isNotFoundError = (error: any) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 404;
 };
+
+export async function* pollOutgoingPayment(
+  outgoingPaymentId: OutgoingPayment['id'],
+  {
+    grantService,
+    openPaymentsService,
+  }: Pick<Cradle, 'grantService' | 'openPaymentsService'>,
+  {
+    signal,
+    maxAttempts = 10,
+  }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
+): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
+  let attempt = 0;
+  await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
+  while (++attempt <= maxAttempts) {
+    try {
+      signal?.throwIfAborted();
+      const outgoingPayment =
+        await openPaymentsService.client.outgoingPayment.get({
+          url: outgoingPaymentId,
+          accessToken: grantService.accessToken(),
+        });
+      yield outgoingPayment;
+      if (outgoingPayment.failed && outgoingPayment.sentAmount.value === '0') {
+        throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
+      }
+      if (
+        outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
+      ) {
+        return outgoingPayment; // completed
+      }
+      signal?.throwIfAborted();
+      await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
+    } catch (error) {
+      if (isTokenExpiredError(error) || isMissingGrantPermissionsError(error)) {
+        // TODO: We can remove the token `actions` check once we've proper RS
+        // errors in place. Then we can handle insufficient grant error
+        // separately clearly.
+        const token = await grantService.rotateToken();
+        const hasReadAccess = token.access_token.access.find(
+          (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
+        );
+        if (!hasReadAccess) {
+          throw new OpenPaymentsClientError('InsufficientGrant', {
+            description: error.description,
+          });
+        }
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
+}
