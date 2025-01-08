@@ -8,7 +8,7 @@ import type {
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
 import { computeRate, getSender, getTabId } from '../utils';
-import { isOutOfBalanceError, pollOutgoingPayment } from './openPayments';
+import { isOutOfBalanceError } from './openPayments';
 import {
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
   OUTGOING_PAYMENT_POLLING_MAX_DURATION,
@@ -348,13 +348,14 @@ export class MonetizationService {
       [...outgoingPayments]
         .filter(([, outgoingPayment]) => outgoingPayment !== null)
         .map(async ([sessionId, outgoingPaymentInitial]) => {
-          for await (const outgoingPayment of pollOutgoingPayment(
+          const session = payableSessions.find((s) => s.id === sessionId);
+          if (!session) {
+            this.logger.error('Could not find session for outgoing payment.');
+            return null;
+          }
+          for await (const outgoingPayment of session.pollOutgoingPayment(
             // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
             outgoingPaymentInitial!.id,
-            {
-              grantService: this.grantService,
-              openPaymentsService: this.openPaymentsService,
-            },
             { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
           )) {
             outgoingPayments.set(sessionId, outgoingPayment);
