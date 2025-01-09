@@ -82,14 +82,19 @@ const defaultMessage = (
   expected: unknown,
   matcherResult?: { actual: unknown },
 ) => {
-  return () =>
-    `${thisType.utils.matcherHint(assertionName, undefined, undefined, {
-      isNot: thisType.isNot,
-    })}\n\nExpected:${pass ? '' : ' not '}${thisType.utils.printExpected(expected)}\n${
-      matcherResult
-        ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
-        : ''
-    }`;
+  return () => {
+    const hint = thisType.utils.matcherHint(
+      assertionName,
+      undefined,
+      undefined,
+      { isNot: thisType.isNot },
+    );
+    const expectedPart = `Expected:${pass ? '' : ' not '}${thisType.utils.printExpected(expected)}`;
+    const receivedPart = matcherResult
+      ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
+      : '';
+    return `${hint}\n\n${expectedPart}\n${receivedPart}`;
+  };
 };
 
 export const expect = test.expect.extend({
