@@ -1,3 +1,4 @@
+// cSpell:ignore keyid
 import {
   type AuthenticatedClient,
   createAuthenticatedClient,
