@@ -8,6 +8,7 @@ import browser, { type Browser } from 'webextension-polyfill';
 import {
   OpenPaymentsService,
   StorageService,
+  WalletService,
   MonetizationService,
   Background,
   TabEvents,
@@ -17,7 +18,8 @@ import {
   EventsService,
   Heartbeat,
   Deduplicator,
-} from './services';
+  OutgoingPaymentGrantService,
+} from '@/background/services';
 import { createLogger, Logger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
 import {
@@ -39,7 +41,9 @@ export interface Cradle {
   events: EventsService;
   deduplicator: Deduplicator;
   storage: StorageService;
+  outgoingPaymentGrantService: OutgoingPaymentGrantService;
   openPaymentsService: OpenPaymentsService;
+  walletService: WalletService;
   monetizationService: MonetizationService;
   message: MessageManager<BackgroundToContentMessage>;
   sendToPopup: SendToPopup;
@@ -75,10 +79,20 @@ export const configureContainer = () => {
       .inject(() => ({
         logger: logger.getLogger('storage'),
       })),
+    outgoingPaymentGrantService: asClass(OutgoingPaymentGrantService)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('outgoing-payment-grant'),
+      })),
     openPaymentsService: asClass(OpenPaymentsService)
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('open-payments'),
+      })),
+    walletService: asClass(WalletService)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('wallet'),
       })),
     monetizationService: asClass(MonetizationService)
       .singleton()
