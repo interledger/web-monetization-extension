@@ -55,6 +55,8 @@ export const MessageContextProvider = ({
         case 'SET_TAB_DATA':
         case 'SET_TRANSIENT_STATE':
           return dispatch(message);
+        case 'CLOSE_POPUP':
+          return window.close();
       }
     });
     port.onDisconnect.addListener(() => {
