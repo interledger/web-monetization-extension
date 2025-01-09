@@ -37,7 +37,10 @@ export const getPlugins = ({
         }));
       },
     },
-    ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
+    ignorePackagePlugin([
+      /@apidevtools[/|\\]json-schema-ref-parser/,
+      /@interledger[/|\\]openapi/,
+    ]),
     esbuildStylePlugin({
       extract: true,
       postcss: {

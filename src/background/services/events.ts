@@ -10,6 +10,7 @@ interface BackgroundEvents {
   'open_payments.key_revoked': undefined;
   'open_payments.out_of_funds': undefined;
   'open_payments.invalid_receiver': { tabId: number };
+  'wallet.close_popup': void;
   'storage.rate_of_pay_update': { rate: string };
   'storage.state_update': {
     state: Storage['state'];
