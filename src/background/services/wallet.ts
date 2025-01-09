@@ -26,23 +26,26 @@ import { bytesToHex } from '@noble/hashes/utils';
 import { isInvalidClientError } from './openPayments';
 
 export class WalletService {
-  private storage: Cradle['storage'];
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private openPaymentsService: Cradle['openPaymentsService'];
+  private storage: Cradle['storage'];
+  private events: Cradle['events'];
   private browser: Cradle['browser'];
   private t: Cradle['t'];
 
   constructor({
-    storage,
     outgoingPaymentGrantService,
     openPaymentsService,
+    storage,
+    events,
     browser,
     t,
   }: Cradle) {
     Object.assign(this, {
-      storage,
       outgoingPaymentGrantService,
       openPaymentsService,
+      storage,
+      events,
       browser,
       t,
     });
@@ -87,6 +90,7 @@ export class WalletService {
 
     await this.openPaymentsService.initClient(walletAddress.id);
     this.setConnectState('connecting');
+    this.events.emit('wallet.close_popup');
 
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
@@ -164,9 +168,10 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
+    this.setConnectState('connecting');
+    this.events.emit('wallet.close_popup');
 
     try {
-      this.setConnectState('connecting');
       await this.validateReconnect();
     } catch (error) {
       if (!isInvalidClientError(error?.cause)) {
@@ -217,6 +222,7 @@ export class WalletService {
       'recurringGrant',
     ]);
 
+    this.events.emit('wallet.close_popup');
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
       walletAddress!,
@@ -245,6 +251,7 @@ export class WalletService {
       'recurringGrant',
     ]);
 
+    this.events.emit('wallet.close_popup');
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
       walletAddress!,

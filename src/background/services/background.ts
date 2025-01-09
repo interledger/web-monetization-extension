@@ -332,7 +332,7 @@ export class Background {
       this.sendToPopup.send('SET_TRANSIENT_STATE', state);
     });
 
-    this.events.on('connect_wallet.close_popup', () => {
+    this.events.on('wallet.close_popup', () => {
       this.sendToPopup.send('CLOSE_POPUP', undefined);
     });
 
