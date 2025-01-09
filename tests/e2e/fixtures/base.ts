@@ -99,10 +99,10 @@ const defaultMessage = (
 
 export const expect = test.expect.extend({
   async toHaveStorage(background: Background, expected: DeepPartial<Storage>) {
-    const assertionName = 'toHaveStorage';
+    const name = 'toHaveStorage';
 
     let pass: boolean;
-    let matcherResult: any;
+    let result: any;
 
     const storedData = await getStorage(
       background,
@@ -112,22 +112,16 @@ export const expect = test.expect.extend({
       test.expect(storedData).toMatchObject(expected);
       pass = true;
     } catch {
-      matcherResult = { actual: storedData };
+      result = { actual: storedData };
       pass = false;
     }
 
     return {
-      name: assertionName,
+      name: name,
       pass,
       expected,
-      actual: matcherResult?.actual,
-      message: defaultMessage(
-        this,
-        assertionName,
-        pass,
-        expected,
-        matcherResult,
-      ),
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
     };
   },
 
@@ -136,10 +130,10 @@ export const expect = test.expect.extend({
     expected: number,
     { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
   ) {
-    const assertionName = 'toHaveBeenCalledTimes';
+    const name = 'toHaveBeenCalledTimes';
 
     let pass: boolean;
-    let matcherResult: { actual: number } | undefined;
+    let result: { actual: number } | undefined;
 
     await sleep(wait);
     let remainingTime = timeout;
@@ -149,7 +143,7 @@ export const expect = test.expect.extend({
         pass = true;
         break;
       } catch {
-        matcherResult = { actual: fn.callCount };
+        result = { actual: fn.callCount };
         pass = false;
         remainingTime -= 500;
         await sleep(500);
@@ -157,17 +151,11 @@ export const expect = test.expect.extend({
     } while (remainingTime > 0);
 
     return {
-      name: assertionName,
+      name: name,
       pass,
       expected,
-      actual: matcherResult?.actual,
-      message: defaultMessage(
-        this,
-        assertionName,
-        pass,
-        expected,
-        matcherResult,
-      ),
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
     };
   },
 
@@ -176,10 +164,10 @@ export const expect = test.expect.extend({
     expected: Record<string, unknown>,
     { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
   ) {
-    const assertionName = 'toHaveBeenLastCalledWithMatching';
+    const name = 'toHaveBeenLastCalledWithMatching';
 
     let pass: boolean;
-    let matcherResult: { actual: unknown } | undefined;
+    let result: { actual: unknown } | undefined;
 
     await sleep(wait);
     let remainingTime = timeout;
@@ -191,7 +179,7 @@ export const expect = test.expect.extend({
         pass = true;
         break;
       } catch {
-        matcherResult = { actual: fn.calls[fn.calls.length - 1]?.[0] };
+        result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
         pass = false;
         remainingTime -= 500;
         await sleep(500);
@@ -199,17 +187,11 @@ export const expect = test.expect.extend({
     } while (remainingTime > 0);
 
     return {
-      name: assertionName,
+      name: name,
       pass,
       expected,
-      actual: matcherResult?.actual,
-      message: defaultMessage(
-        this,
-        assertionName,
-        pass,
-        expected,
-        matcherResult,
-      ),
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
     };
   },
 });
