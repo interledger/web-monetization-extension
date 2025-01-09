@@ -1,4 +1,9 @@
-import { test as base, type BrowserContext, type Page } from '@playwright/test';
+import {
+  test as base,
+  type ExpectMatcherState,
+  type BrowserContext,
+  type Page,
+} from '@playwright/test';
 import type { SpyFn } from 'tinyspy';
 import {
   getBackground,
@@ -70,6 +75,23 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   },
 });
 
+const defaultMessage = (
+  thisType: ExpectMatcherState,
+  assertionName: string,
+  pass: boolean,
+  expected: unknown,
+  matcherResult?: { actual: unknown },
+) => {
+  return () =>
+    `${thisType.utils.matcherHint(assertionName, undefined, undefined, {
+      isNot: thisType.isNot,
+    })}\n\nExpected:${pass ? '' : ' not '}${thisType.utils.printExpected(expected)}\n${
+      matcherResult
+        ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
+        : ''
+    }`;
+};
+
 export const expect = test.expect.extend({
   async toHaveStorage(background: Background, expected: DeepPartial<Storage>) {
     const assertionName = 'toHaveStorage';
@@ -89,36 +111,24 @@ export const expect = test.expect.extend({
       pass = false;
     }
 
-    const message = pass
-      ? () =>
-          `${this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          })}\n\nExpected: not ${this.utils.printExpected(expected)}\n${
-            matcherResult
-              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-              : ''
-          }`
-      : () =>
-          `${this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          })}\n\nExpected: ${this.utils.printExpected(expected)}\n${
-            matcherResult
-              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-              : ''
-          }`;
-
     return {
       name: assertionName,
       pass,
       expected,
       actual: matcherResult?.actual,
-      message,
+      message: defaultMessage(
+        this,
+        assertionName,
+        pass,
+        expected,
+        matcherResult,
+      ),
     };
   },
 
   async toHaveBeenCalledTimes(
     fn: SpyFn,
-    expectedTimes: number,
+    expected: number,
     { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
   ) {
     const assertionName = 'toHaveBeenCalledTimes';
@@ -130,7 +140,7 @@ export const expect = test.expect.extend({
     let remainingTime = timeout;
     do {
       try {
-        test.expect(fn.callCount).toBe(expectedTimes);
+        test.expect(fn.callCount).toBe(expected);
         pass = true;
         break;
       } catch {
@@ -141,30 +151,18 @@ export const expect = test.expect.extend({
       }
     } while (remainingTime > 0);
 
-    const message = pass
-      ? () =>
-          `${this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          })}\n\nExpected: not ${this.utils.printExpected(expectedTimes)}\n${
-            matcherResult
-              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-              : ''
-          }`
-      : () =>
-          `${this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          })}\n\nExpected: ${this.utils.printExpected(expectedTimes)}\n${
-            matcherResult
-              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-              : ''
-          }`;
-
     return {
       name: assertionName,
       pass,
-      expected: expectedTimes,
+      expected,
       actual: matcherResult?.actual,
-      message,
+      message: defaultMessage(
+        this,
+        assertionName,
+        pass,
+        expected,
+        matcherResult,
+      ),
     };
   },
 
@@ -195,30 +193,18 @@ export const expect = test.expect.extend({
       }
     } while (remainingTime > 0);
 
-    const message = pass
-      ? () =>
-          `${this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          })}\n\nExpected: not ${this.utils.printExpected(expected)}\n${
-            matcherResult
-              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-              : ''
-          }`
-      : () =>
-          `${this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          })}\n\nExpected: ${this.utils.printExpected(expected)}\n${
-            matcherResult
-              ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-              : ''
-          }`;
-
     return {
       name: assertionName,
       pass,
       expected,
       actual: matcherResult?.actual,
-      message,
+      message: defaultMessage(
+        this,
+        assertionName,
+        pass,
+        expected,
+        matcherResult,
+      ),
     };
   },
 });
