@@ -13,4 +13,5 @@ LICENSE
 *.ts
 *.js
 *.json
+*.jsonc
 *.css
