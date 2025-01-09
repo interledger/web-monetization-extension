@@ -1,4 +1,10 @@
-import { test as base, type BrowserContext, type Page } from '@playwright/test';
+import {
+  test as base,
+  type ExpectMatcherState,
+  type BrowserContext,
+  type Page,
+} from '@playwright/test';
+import type { SpyFn } from 'tinyspy';
 import {
   getBackground,
   getStorage,
@@ -7,6 +13,7 @@ import {
   type Background,
 } from './helpers';
 import { openPopup, type Popup } from '../pages/popup';
+import { sleep } from '@/shared/helpers';
 import type { DeepPartial, Storage } from '@/shared/types';
 
 type BaseScopeWorker = {
@@ -68,12 +75,34 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   },
 });
 
+const defaultMessage = (
+  thisType: ExpectMatcherState,
+  assertionName: string,
+  pass: boolean,
+  expected: unknown,
+  matcherResult?: { actual: unknown },
+) => {
+  return () => {
+    const hint = thisType.utils.matcherHint(
+      assertionName,
+      undefined,
+      undefined,
+      { isNot: thisType.isNot },
+    );
+    const expectedPart = `Expected:${pass ? '' : ' not '}${thisType.utils.printExpected(expected)}`;
+    const receivedPart = matcherResult
+      ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
+      : '';
+    return `${hint}\n\n${expectedPart}\n${receivedPart}`;
+  };
+};
+
 export const expect = test.expect.extend({
   async toHaveStorage(background: Background, expected: DeepPartial<Storage>) {
-    const assertionName = 'toHaveStorage';
+    const name = 'toHaveStorage';
 
     let pass: boolean;
-    let matcherResult: any;
+    let result: any;
 
     const storedData = await getStorage(
       background,
@@ -83,36 +112,86 @@ export const expect = test.expect.extend({
       test.expect(storedData).toMatchObject(expected);
       pass = true;
     } catch {
-      matcherResult = { actual: storedData };
+      result = { actual: storedData };
       pass = false;
     }
 
-    const message = pass
-      ? () =>
-          this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          }) +
-          '\n\n' +
-          `Expected: not ${this.utils.printExpected(expected)}\n` +
-          (matcherResult
-            ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-            : '')
-      : () =>
-          this.utils.matcherHint(assertionName, undefined, undefined, {
-            isNot: this.isNot,
-          }) +
-          '\n\n' +
-          `Expected: ${this.utils.printExpected(expected)}\n` +
-          (matcherResult
-            ? `Received: ${this.utils.printReceived(matcherResult.actual)}`
-            : '');
-
     return {
-      name: assertionName,
+      name,
       pass,
       expected,
-      actual: matcherResult?.actual,
-      message,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  async toHaveBeenCalledTimes(
+    fn: SpyFn,
+    expected: number,
+    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+  ) {
+    const name = 'toHaveBeenCalledTimes';
+
+    let pass: boolean;
+    let result: { actual: number } | undefined;
+
+    await sleep(wait);
+    let remainingTime = timeout;
+    do {
+      try {
+        test.expect(fn.callCount).toBe(expected);
+        pass = true;
+        break;
+      } catch {
+        result = { actual: fn.callCount };
+        pass = false;
+        remainingTime -= 500;
+        await sleep(500);
+      }
+    } while (remainingTime > 0);
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  async toHaveBeenLastCalledWithMatching(
+    fn: SpyFn,
+    expected: Record<string, unknown>,
+    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+  ) {
+    const name = 'toHaveBeenLastCalledWithMatching';
+
+    let pass: boolean;
+    let result: { actual: unknown } | undefined;
+
+    await sleep(wait);
+    let remainingTime = timeout;
+    do {
+      try {
+        // we only support matching first argument of last call
+        const lastCallArg = fn.calls[fn.calls.length - 1][0];
+        test.expect(lastCallArg).toMatchObject(expected);
+        pass = true;
+        break;
+      } catch {
+        result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
+        pass = false;
+        remainingTime -= 500;
+        await sleep(500);
+      }
+    } while (remainingTime > 0);
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
     };
   },
 });
