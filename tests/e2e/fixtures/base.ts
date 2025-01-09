@@ -117,7 +117,7 @@ export const expect = test.expect.extend({
     }
 
     return {
-      name: name,
+      name,
       pass,
       expected,
       actual: result?.actual,
@@ -151,7 +151,7 @@ export const expect = test.expect.extend({
     } while (remainingTime > 0);
 
     return {
-      name: name,
+      name,
       pass,
       expected,
       actual: result?.actual,
@@ -187,7 +187,7 @@ export const expect = test.expect.extend({
     } while (remainingTime > 0);
 
     return {
-      name: name,
+      name,
       pass,
       expected,
       actual: result?.actual,
