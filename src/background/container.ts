@@ -19,7 +19,7 @@ import {
   Heartbeat,
   Deduplicator,
   OutgoingPaymentGrantService,
-} from './services';
+} from '@/background/services';
 import { createLogger, Logger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
 import {

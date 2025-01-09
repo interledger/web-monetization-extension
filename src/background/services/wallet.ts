@@ -15,15 +15,24 @@ import {
   DEFAULT_RATE_OF_PAY,
   MIN_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
-} from '../config';
-import { APP_URL } from '../constants';
-import { Cradle } from '../container';
-import { getExchangeRates, getRateOfPay as _getRateOfPay } from '../utils';
-import { KeyAutoAddService } from './keyAutoAdd';
-import { InteractionIntent } from './outgoingPaymentGrant';
+} from '@/background/config';
+import {
+  getExchangeRates,
+  getRateOfPay as _getRateOfPay,
+  InteractionIntent,
+  ErrorCode,
+  GrantResult,
+  redirectToWelcomeScreen,
+  ensureTabExists,
+} from '@/background/utils';
+import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
+import { isInvalidClientError } from '@/background/services/openPayments';
+import { APP_URL } from '@/background/constants';
+import { Cradle } from '@/background/container';
 import { bytesToHex } from '@noble/hashes/utils';
-import { isInvalidClientError } from './openPayments';
+import { TabId } from '@/shared/types';
+import { WalletAddress } from '@interledger/open-payments';
 
 export class WalletService {
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
@@ -31,6 +40,8 @@ export class WalletService {
   private storage: Cradle['storage'];
   private events: Cradle['events'];
   private browser: Cradle['browser'];
+  private appName: Cradle['appName'];
+  private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
   constructor({
@@ -39,6 +50,8 @@ export class WalletService {
     storage,
     events,
     browser,
+    appName,
+    browserName,
     t,
   }: Cradle) {
     Object.assign(this, {
@@ -47,6 +60,8 @@ export class WalletService {
       storage,
       events,
       browser,
+      appName,
+      browserName,
       t,
     });
   }
@@ -122,11 +137,10 @@ export class WalletService {
 
         // add key to wallet and try again
         try {
-          const tabId =
-            await this.outgoingPaymentGrantService.addPublicKeyToWallet(
-              walletAddress,
-              existingTab?.id,
-            );
+          const tabId = await this.addPublicKeyToWallet(
+            walletAddress,
+            existingTab?.id,
+          );
           this.setConnectState('connecting');
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             amount,
@@ -169,7 +183,6 @@ export class WalletService {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
     this.setConnectState('connecting');
-    this.events.emit('wallet.close_popup');
 
     try {
       await this.validateReconnect();
@@ -179,11 +192,10 @@ export class WalletService {
         throw error;
       }
 
+      this.events.emit('wallet.close_popup');
       try {
         // add key to wallet and try again
-        this.outgoingPaymentGrantService.retryAddPublicKeyToWallet(
-          walletAddress,
-        );
+        this.retryAddPublicKeyToWallet(walletAddress);
         await this.storage.setState({ key_revoked: false });
       } catch (error) {
         this.setConnectStateError(error);
@@ -298,6 +310,80 @@ export class WalletService {
       publicKey: btoa(JSON.stringify(jwk)),
       keyId,
     });
+  }
+
+  /**
+   * Adds public key to wallet by "browser automation" - the content script
+   * takes control of tab when the correct message is sent, and adds the key
+   * through the wallet's dashboard.
+   * @returns tabId that we can reuse for further connecting, or redirects etc.
+   */
+  private async addPublicKeyToWallet(
+    walletAddress: WalletAddress,
+    tabId?: TabId,
+  ): Promise<TabId | undefined> {
+    const keyAutoAdd = new KeyAutoAddService({
+      browser: this.browser,
+      storage: this.storage,
+      appName: this.appName,
+      browserName: this.browserName,
+      t: this.t,
+    });
+    try {
+      await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
+      return keyAutoAdd.tabId;
+    } catch (error) {
+      const tabId = keyAutoAdd.tabId;
+      const isTabClosed = error.key === 'connectWallet_error_tabClosed';
+      if (tabId && !isTabClosed) {
+        await redirectToWelcomeScreen(
+          this.browser,
+          tabId,
+          GrantResult.GRANT_ERROR,
+          InteractionIntent.CONNECT,
+          ErrorCode.KEY_ADD_FAILED,
+        );
+      }
+      if (error instanceof ErrorWithKey) {
+        throw error;
+      } else {
+        // TODO: check if need to handle errors here
+        throw new Error(error.message, { cause: error });
+      }
+    }
+  }
+
+  private async retryAddPublicKeyToWallet(walletAddress: WalletAddress) {
+    let tabId: number | undefined;
+
+    try {
+      tabId = await this.addPublicKeyToWallet(walletAddress);
+      await this.outgoingPaymentGrantService.rotateToken();
+
+      tabId ??= await ensureTabExists(this.browser);
+      await redirectToWelcomeScreen(
+        this.browser,
+        tabId,
+        GrantResult.KEY_ADD_SUCCESS,
+        InteractionIntent.RECONNECT,
+      );
+    } catch (error) {
+      const isTabClosed = error.key === 'connectWallet_error_tabClosed';
+      if (tabId && !isTabClosed) {
+        await redirectToWelcomeScreen(
+          this.browser,
+          tabId,
+          GrantResult.KEY_ADD_ERROR,
+          InteractionIntent.RECONNECT,
+        );
+      }
+
+      if (isInvalidClientError(error)) {
+        const msg = this.t('connectWallet_error_invalidClient');
+        throw new Error(msg, { cause: error });
+      }
+      throw error;
+    }
   }
 
   private async validateReconnect() {

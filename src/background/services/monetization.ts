@@ -7,7 +7,7 @@ import type {
   StopMonetizationPayload,
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
-import { computeRate, getSender, getTabId } from '../utils';
+import { computeRate, getSender, getTabId } from '@/background/utils';
 import { isOutOfBalanceError } from './openPayments';
 import {
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
@@ -23,7 +23,7 @@ import {
 } from '@/shared/helpers';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
 import type { OutgoingPayment } from '@interledger/open-payments';
-import type { Cradle } from '../container';
+import type { Cradle } from '@/background/container';
 
 export class MonetizationService {
   private logger: Cradle['logger'];
@@ -427,7 +427,7 @@ export class MonetizationService {
 
     if (
       state.out_of_funds &&
-      this.outgoingPaymentGrantService.isAnyGrantUsable()
+      this.outgoingPaymentGrantService.isAnyGrantUsable
     ) {
       // if we're in out_of_funds state, we still try to make payments hoping we
       // have funds available now. If a payment succeeds, we move out from

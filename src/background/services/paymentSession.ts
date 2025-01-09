@@ -19,7 +19,7 @@ import {
   isNonPositiveAmountError,
   isOutOfBalanceError,
   isTokenExpiredError,
-} from './openPayments';
+} from '@/background/services/openPayments';
 import { getNextSendableAmount } from '@/background/utils';
 import type {
   EventsService,
@@ -39,7 +39,7 @@ import type { Logger } from '@/shared/logger';
 import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
   OUTGOING_PAYMENT_POLLING_INTERVAL,
-} from '../config';
+} from '@/background/config';
 
 const HOUR_MS = 3600 * 1000;
 const MIN_SEND_AMOUNT = 1n; // 1 unit
@@ -400,7 +400,7 @@ export class PaymentSession {
     const { client } = this.openPaymentsService;
     const outgoingPayment = await client.outgoingPayment.create(
       {
-        accessToken: this.outgoingPaymentGrantService.accessToken(),
+        accessToken: this.outgoingPaymentGrantService.accessToken,
         url: walletAddress.resourceServer,
       },
       {
@@ -419,7 +419,7 @@ export class PaymentSession {
 
     if (outgoingPayment.grantSpentDebitAmount) {
       this.storage.updateSpentAmount(
-        this.outgoingPaymentGrantService.grantType(),
+        this.outgoingPaymentGrantService.grantType,
         outgoingPayment.grantSpentDebitAmount.value,
       );
     }
@@ -436,7 +436,7 @@ export class PaymentSession {
     await this.openPaymentsService.client.quote.create(
       {
         url: sender.resourceServer,
-        accessToken: this.outgoingPaymentGrantService.accessToken(),
+        accessToken: this.outgoingPaymentGrantService.accessToken,
       },
       {
         method: 'ilp',
@@ -516,7 +516,7 @@ export class PaymentSession {
         const { client } = this.openPaymentsService;
         const outgoingPayment = await client.outgoingPayment.get({
           url: outgoingPaymentId,
-          accessToken: this.outgoingPaymentGrantService.accessToken(),
+          accessToken: this.outgoingPaymentGrantService.accessToken,
         });
         yield outgoingPayment;
         if (

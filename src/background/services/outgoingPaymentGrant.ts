@@ -3,7 +3,7 @@ import type {
   GrantDetails,
   TabId,
   WalletAmount,
-} from 'shared/types';
+} from '@/shared/types';
 import {
   isFinalizedGrant,
   isPendingGrant,
@@ -19,29 +19,14 @@ import {
   isInvalidClientError,
   isInvalidContinuationError,
   isNotFoundError,
-} from './openPayments';
-import { toAmount } from '../utils';
-import { KeyAutoAddService } from './keyAutoAdd';
-
-const enum ErrorCode {
-  CONTINUATION_FAILED = 'continuation_failed',
-  HASH_FAILED = 'hash_failed',
-  KEY_ADD_FAILED = 'key_add_failed',
-}
-
-const enum GrantResult {
-  GRANT_SUCCESS = 'grant_success',
-  GRANT_ERROR = 'grant_error',
-  KEY_ADD_SUCCESS = 'key_add_success',
-  KEY_ADD_ERROR = 'key_add_error',
-}
-
-export const enum InteractionIntent {
-  CONNECT = 'connect',
-  RECONNECT = 'reconnect',
-  FUNDS = 'funds',
-  UPDATE_BUDGET = 'update_budget',
-}
+} from '@/background/services/openPayments';
+import {
+  ErrorCode,
+  GrantResult,
+  InteractionIntent,
+  redirectToWelcomeScreen,
+  toAmount,
+} from '@/background/utils';
 
 interface InteractionParams {
   interactRef: string;
@@ -60,8 +45,6 @@ export class OutgoingPaymentGrantService {
   private deduplicator: Cradle['deduplicator'];
   private openPaymentsService: Cradle['openPaymentsService'];
   private browser: Cradle['browser'];
-  private appName: Cradle['appName'];
-  private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
   private token: AccessToken;
@@ -77,8 +60,6 @@ export class OutgoingPaymentGrantService {
     deduplicator,
     openPaymentsService,
     browser,
-    appName,
-    browserName,
     t,
   }: Cradle) {
     Object.assign(this, {
@@ -87,8 +68,6 @@ export class OutgoingPaymentGrantService {
       deduplicator,
       openPaymentsService,
       browser,
-      appName,
-      browserName,
       t,
     });
 
@@ -96,15 +75,15 @@ export class OutgoingPaymentGrantService {
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
   }
 
-  public isAnyGrantUsable() {
+  public get isAnyGrantUsable() {
     return this.isGrantUsable.recurring || this.isGrantUsable.oneTime;
   }
 
-  public accessToken() {
+  public get accessToken() {
     return this.token.value;
   }
 
-  public grantType() {
+  public get grantType() {
     return this.grant!.type;
   }
 
@@ -130,7 +109,7 @@ export class OutgoingPaymentGrantService {
       : { value: '', manageUrl: '' };
   }
 
-  private async initialize() {
+  private async initialize(): Promise<void> {
     const { connected, oneTimeGrant, recurringGrant } = await this.storage.get([
       'connected',
       'oneTimeGrant',
@@ -145,7 +124,7 @@ export class OutgoingPaymentGrantService {
     }
   }
 
-  public async completeOutgoingPaymentGrant(
+  async completeOutgoingPaymentGrant(
     amount: string,
     walletAddress: WalletAddress,
     recurring: boolean,
@@ -196,7 +175,8 @@ export class OutgoingPaymentGrantService {
     this.grant = this.buildGrantDetails(continuation, recurring, walletAmount);
     await this.persistGrantDetails(this.grant);
 
-    await this.redirectToWelcomeScreen(
+    await redirectToWelcomeScreen(
+      this.browser,
       tabId,
       GrantResult.GRANT_SUCCESS,
       intent,
@@ -205,7 +185,7 @@ export class OutgoingPaymentGrantService {
     return this.grant;
   }
 
-  public async cancelGrant(grantContinuation: GrantDetails['continue']) {
+  async cancelGrant(grantContinuation: GrantDetails['continue']) {
     try {
       await this.openPaymentsService.client.grant.cancel(grantContinuation);
     } catch (error) {
@@ -221,7 +201,7 @@ export class OutgoingPaymentGrantService {
     }
   }
 
-  public async rotateToken() {
+  async rotateToken() {
     if (!this.grant) {
       throw new Error('No grant to rotate token for');
     }
@@ -245,85 +225,6 @@ export class OutgoingPaymentGrantService {
     this.grant = { ...this.grant, accessToken };
 
     return newToken;
-  }
-
-  /**
-   * Adds public key to wallet by "browser automation" - the content script
-   * takes control of tab when the correct message is sent, and adds the key
-   * through the wallet's dashboard.
-   * @returns tabId that we can reuse for further connecting, or redirects etc.
-   */
-  public async addPublicKeyToWallet(
-    walletAddress: WalletAddress,
-    tabId?: TabId,
-  ): Promise<TabId | undefined> {
-    const keyAutoAdd = new KeyAutoAddService({
-      browser: this.browser,
-      storage: this.storage,
-      appName: this.appName,
-      browserName: this.browserName,
-      t: this.t,
-    });
-    try {
-      await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
-      return keyAutoAdd.tabId;
-    } catch (error) {
-      const tabId = keyAutoAdd.tabId;
-      const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      if (tabId && !isTabClosed) {
-        await this.redirectToWelcomeScreen(
-          tabId,
-          GrantResult.GRANT_ERROR,
-          InteractionIntent.CONNECT,
-          ErrorCode.KEY_ADD_FAILED,
-        );
-      }
-      if (error instanceof ErrorWithKey) {
-        throw error;
-      } else {
-        // TODO: check if need to handle errors here
-        throw new Error(error.message, { cause: error });
-      }
-    }
-  }
-
-  public async retryAddPublicKeyToWallet(walletAddress: WalletAddress) {
-    let tabId: number | undefined;
-
-    try {
-      tabId = await this.addPublicKeyToWallet(walletAddress);
-      await this.rotateToken();
-
-      tabId ??= await this.ensureTabExists();
-      await this.redirectToWelcomeScreen(
-        tabId,
-        GrantResult.KEY_ADD_SUCCESS,
-        InteractionIntent.RECONNECT,
-      );
-    } catch (error) {
-      const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      if (tabId && !isTabClosed) {
-        await this.redirectToWelcomeScreen(
-          tabId,
-          GrantResult.KEY_ADD_ERROR,
-          InteractionIntent.RECONNECT,
-        );
-      }
-
-      if (isInvalidClientError(error)) {
-        const msg = this.t('connectWallet_error_invalidClient');
-        throw new Error(msg, { cause: error });
-      }
-      throw error;
-    }
-  }
-
-  private async ensureTabExists(): Promise<number> {
-    const tab = await this.browser.tabs.create({});
-    if (!tab.id) {
-      throw new Error('Could not create tab');
-    }
-    return tab.id;
   }
 
   private async createOutgoingPaymentGrant(
@@ -462,7 +363,8 @@ export class OutgoingPaymentGrantService {
       );
       if (calculatedHash !== hash) throw new Error('Invalid interaction hash');
     } catch (error) {
-      await this.redirectToWelcomeScreen(
+      await redirectToWelcomeScreen(
+        this.browser,
         tabId,
         GrantResult.GRANT_ERROR,
         intent,
@@ -489,7 +391,8 @@ export class OutgoingPaymentGrantService {
 
       return continuation;
     } catch (error) {
-      await this.redirectToWelcomeScreen(
+      await redirectToWelcomeScreen(
+        this.browser,
         tabId,
         GrantResult.GRANT_ERROR,
         intent,
@@ -534,29 +437,13 @@ export class OutgoingPaymentGrantService {
     }
   }
 
-  private async redirectToWelcomeScreen(
-    tabId: number,
-    result: GrantResult,
-    intent: InteractionIntent,
-    errorCode?: ErrorCode,
-  ) {
-    const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
-    url.searchParams.set('result', result);
-    url.searchParams.set('intent', intent);
-    if (errorCode) url.searchParams.set('errorCode', errorCode);
-
-    await this.browser.tabs.update(tabId, {
-      url: url.toString(),
-    });
-  }
-
   /**
    * Switches to the next grant that can be used.
    * @returns the type of grant that should be used now, or null if no grant can
    * be used.
    */
   private async _switchGrant(): Promise<GrantDetails['type'] | null> {
-    if (!this.isAnyGrantUsable()) {
+    if (!this.isAnyGrantUsable) {
       return null;
     }
 

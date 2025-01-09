@@ -8,7 +8,7 @@ import {
   isErrorWithKey,
   success,
 } from '@/shared/helpers';
-import { KeyAutoAddService } from './keyAutoAdd';
+import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
 import { getTab } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
