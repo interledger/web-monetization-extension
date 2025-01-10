@@ -1,5 +1,5 @@
 import type { MonetizationEventPayload } from '@/shared/messages';
-(function () {
+(() => {
   if (document.createElement('link').relList.supports('monetization')) {
     // already patched
     return;
@@ -31,7 +31,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
         this.addEventListener('monetization', val);
         handlers.set(this, val);
       } else {
-        throw new Error('val must be a function, got ' + typeof val);
+        throw new Error(`val must be a function, got ${typeof val}`);
       }
     },
   };
@@ -88,7 +88,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     get detail() {
       if (!eventDetailDeprecationEmitted) {
         const msg = `MonetizationEvent.detail is deprecated. Access attributes directly instead.`;
-        // eslint-disable-next-line no-console
+        // biome-ignore lint/suspicious/noConsole: warning meant for website devs
         console.warn(msg);
         eventDetailDeprecationEmitted = true;
       }

@@ -1,4 +1,4 @@
-import { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 import forms from '@tailwindcss/forms';
 import { fontFamily } from 'tailwindcss/defaultTheme';
 

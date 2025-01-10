@@ -1,8 +1,0 @@
-!.github
-node_modules/
-dev/
-temp/
-dist/
-build/
-tests/e2e/playwright-report
-tests/e2e/test-results

@@ -57,7 +57,7 @@ export function useLocalStorage<T>(
     const expiresAt = Date.now() + maxAge;
     const data: Stored = { value, expiresAt };
     localStorage.setItem(key, JSON.stringify(data));
-  }, [value, key, defaultValue, maxAge, hasLocalStorage]);
+  }, [value, key, maxAge, hasLocalStorage]);
 
   const clearStorage = () => {
     if (hasLocalStorage) {
@@ -86,6 +86,7 @@ export function useLongPress(callback: () => void, ms = 100) {
     }
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: it works fine for now
   React.useEffect(() => stop, [callback, ms]);
 
   return {
@@ -104,6 +105,6 @@ export const useThrottle: typeof throttle = (
   React.useEffect(() => {
     cbRef.current = callback;
   });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // biome-ignore lint/correctness/useExhaustiveDependencies: works as intended
   return React.useCallback(throttle(cbRef.current, delay, options), [delay]);
 };

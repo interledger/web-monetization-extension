@@ -1,5 +1,5 @@
 import { Deduplicator } from './deduplicator';
-import { Logger } from '@/shared/logger';
+import type { Logger } from '@/shared/logger';
 
 describe('Deduplicator', () => {
   const deduplicatorService: Deduplicator = new Deduplicator({

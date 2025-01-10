@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import type {
   AmountValue,
   PopupTransientState,
@@ -7,10 +7,10 @@ import type {
 } from '@/shared/types';
 
 interface BackgroundEvents {
-  'open_payments.key_revoked': void;
-  'open_payments.out_of_funds': void;
+  'open_payments.key_revoked': undefined;
+  'open_payments.out_of_funds': undefined;
   'open_payments.invalid_receiver': { tabId: number };
-  'wallet.close_popup': void;
+  'wallet.close_popup': undefined;
   'storage.rate_of_pay_update': { rate: string };
   'storage.state_update': {
     state: Storage['state'];
@@ -25,10 +25,6 @@ interface BackgroundEvents {
 }
 
 export class EventsService extends EventEmitter {
-  constructor() {
-    super();
-  }
-
   on<TEvent extends keyof BackgroundEvents>(
     eventName: TEvent,
     listener: (param: BackgroundEvents[TEvent]) => void,
@@ -65,7 +61,7 @@ export class EventsService extends EventEmitter {
    * @deprecated
    */
   removeListener(): this {
-    // eslint-disable-next-line prefer-rest-params
+    // biome-ignore lint/style/noArguments: it's cleaner and simpler
     return super.removeListener.apply(this, arguments);
   }
 }

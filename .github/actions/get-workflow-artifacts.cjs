@@ -1,5 +1,4 @@
 // @ts-check
-/* eslint-disable @typescript-eslint/no-require-imports, no-console */
 const fs = require('node:fs/promises');
 const { COLORS, TEMPLATE_VARS, BADGE } = require('./constants.cjs');
 
@@ -42,7 +41,7 @@ function formatBytes(bytes, decimals = 2) {
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))}${sizes[i]}`;
+  return `${Number.parseFloat((bytes / k ** i).toFixed(dm))}${sizes[i]}`;
 }
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
@@ -75,14 +74,14 @@ module.exports = async ({ github, context, core }) => {
     run_id: runId,
   });
 
-  artifacts.data.artifacts.forEach((artifact) => {
+  for (const artifact of artifacts.data.artifacts) {
     const key = /** @type {Browser} */ (artifact.name.split('-')[1]);
     ARTIFACTS_DATA[key].url =
       `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`;
     ARTIFACTS_DATA[key].size = formatBytes(artifact.size_in_bytes);
-  });
+  }
 
-  Object.keys(ARTIFACTS_DATA).forEach((k) => {
+  for (const k of Object.keys(ARTIFACTS_DATA)) {
     const { name, url, size } = ARTIFACTS_DATA[/** @type {Browser} */ (k)];
     if (!url && !size) {
       const badgeUrl = getBadge('failure', COLORS.red, name);
@@ -95,7 +94,7 @@ module.exports = async ({ github, context, core }) => {
         `<tr><td align="center">${badgeUrl}</td><td align="center"><a href="${url}">Download</a></td></tr>`,
       );
     }
-  });
+  }
 
   const tableBody = tableRows.join('');
   const commentBody = template

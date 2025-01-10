@@ -7,6 +7,7 @@ import {
 import browser, { type Browser } from 'webextension-polyfill';
 import {
   OpenPaymentsService,
+  OutgoingPaymentGrantService,
   StorageService,
   WalletService,
   MonetizationService,
@@ -18,9 +19,8 @@ import {
   EventsService,
   Heartbeat,
   Deduplicator,
-  OutgoingPaymentGrantService,
-} from '@/background/services';
-import { createLogger, Logger } from '@/shared/logger';
+} from './services';
+import { createLogger, type Logger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
 import {
   getBrowserName,

@@ -5,7 +5,7 @@ import {
   OpenPaymentsClientError,
 } from '@interledger/open-payments/dist/client';
 import * as ed from '@noble/ed25519';
-import { type Request } from 'http-message-signatures';
+import type { Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
 import type { Cradle } from '@/background/container';
@@ -109,7 +109,7 @@ export class OpenPaymentsService {
     keyId,
   }: SignOptions): Promise<SignatureHeaders> {
     const components = ['@method', '@target-uri'];
-    if (request.headers['Authorization'] || request.headers['authorization']) {
+    if (request.headers.Authorization || request.headers.authorization) {
       components.push('authorization');
     }
 
@@ -133,7 +133,7 @@ export class OpenPaymentsService {
     );
 
     return {
-      Signature: headers['Signature'] as string,
+      Signature: headers.Signature as string,
       'Signature-Input': headers['Signature-Input'] as string,
     };
   }
@@ -200,7 +200,7 @@ export class OpenPaymentsService {
           );
         }
 
-        initialRequest.headers.set('Signature', headers['Signature']);
+        initialRequest.headers.set('Signature', headers.Signature);
         initialRequest.headers.set(
           'Signature-Input',
           headers['Signature-Input'],

@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
+import { forwardRef } from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
 
 import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
@@ -41,7 +42,7 @@ export interface ButtonProps
     React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   /** Optional only when children are passed */
-  ['aria-label']?: string;
+  'aria-label'?: string;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

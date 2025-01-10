@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/shared/helpers';
 

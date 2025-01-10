@@ -38,7 +38,7 @@ jobs:
             const script = require('./.github/actions/bump-manifest-version.cjs')
             await script({ github, context, core })
 
-      - name: Format with prettier
+      - name: Format with Biome
         run: pnpm format:fix
 
       - name: Create pull request

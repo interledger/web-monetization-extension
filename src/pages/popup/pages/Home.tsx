@@ -25,7 +25,6 @@ export const Component = () => {
         return <NotMonetized text={t('notMonetized_text_newTab')} />;
       case 'unsupported_scheme':
         return <NotMonetized text={t('notMonetized_text_unsupportedScheme')} />;
-      case 'no_monetization_links':
       default:
         return <NotMonetized text={t('notMonetized_text_noLinks')} />;
     }

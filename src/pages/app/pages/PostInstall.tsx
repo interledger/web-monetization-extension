@@ -210,6 +210,7 @@ function Step({
             : 'bg-white text-weak hover:bg-slate-50',
         )}
       >
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Not needed here */}
         <summary
           className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
           onClick={(ev) => {
@@ -259,5 +260,5 @@ function imgSrc(
   browser: BrowserName,
   srcMap: Partial<Record<BrowserName, string>>,
 ) {
-  return srcMap[browser] || srcMap['chrome'] || Object.values(srcMap)[0];
+  return srcMap[browser] || srcMap.chrome || Object.values(srcMap)[0];
 }
