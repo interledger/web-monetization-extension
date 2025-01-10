@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 // cSpell:ignore metafile,iife,outdir,servedir
 
 import sade from 'sade';
@@ -6,13 +5,13 @@ import path from 'node:path';
 import fs from 'node:fs';
 import esbuild from 'esbuild';
 import {
-  BuildArgs,
+  type BuildArgs,
   CHANNELS,
   DEV_DIR,
   DIST_DIR,
   options,
   SERVE_PORTS,
-  Target,
+  type Target,
   TARGETS,
 } from '../esbuild/config';
 import { getDevOptions } from '../esbuild/dev';
@@ -23,7 +22,7 @@ sade('build [target]', true)
   .option('--dev', 'Dev-mode (watch, live-reload)', false)
   .example('chrome --channel=nightly')
   .example('firefox --channel=stable')
-  .describe(['`target` should be one of ' + TARGETS.join(', ')])
+  .describe([`\`target\` should be one of ${TARGETS.join(', ')}`])
   .action(async (target: Target, opts: BuildArgs) => {
     const options = { ...opts, target };
     if (!options.target && !options.dev) {
@@ -37,11 +36,11 @@ sade('build [target]', true)
     }
 
     if (!TARGETS.includes(options.target)) {
-      console.warn('Invalid --target. Must be one of ' + TARGETS.join(', '));
+      console.warn(`Invalid --target. Must be one of ${TARGETS.join(', ')}`);
       process.exit(1);
     }
     if (!CHANNELS.includes(options.channel)) {
-      console.warn('Invalid --channel. Must be one of ' + CHANNELS.join(', '));
+      console.warn(`Invalid --channel. Must be one of ${CHANNELS.join(', ')}`);
       process.exit(1);
     }
 

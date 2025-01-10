@@ -7,3 +7,11 @@ pnpm-lock.yaml
 .prettierignore
 coverage
 LICENSE
+
+*.tsx
+*.cjs
+*.ts
+*.js
+*.json
+*.jsonc
+*.css

@@ -26,7 +26,6 @@ export class CustomError extends Error {
     if (Object.setPrototypeOf) {
       Object.setPrototypeOf(this, actualProto);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (this as any).__proto__ = actualProto;
     }
   }

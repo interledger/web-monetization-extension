@@ -2,10 +2,10 @@ import {
   getWalletInformation,
   isErrorWithKey,
   ErrorWithKey,
-  ErrorWithKeyLike,
   errorWithKeyToJSON,
+  type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import {
+import type {
   AddFundsPayload,
   ConnectWalletPayload,
   ReconnectWalletPayload,
@@ -29,10 +29,10 @@ import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
 import { isInvalidClientError } from '@/background/services/openPayments';
 import { APP_URL } from '@/background/constants';
-import { Cradle } from '@/background/container';
 import { bytesToHex } from '@noble/hashes/utils';
-import { TabId } from '@/shared/types';
-import { WalletAddress } from '@interledger/open-payments';
+import type { Cradle } from '@/background/container';
+import type { TabId } from '@/shared/types';
+import type { WalletAddress } from '@interledger/open-payments';
 
 export class WalletService {
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];

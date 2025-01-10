@@ -55,17 +55,17 @@ interface CreateOutgoingPaymentParams {
 
 export class PaymentSession {
   private rate: string;
-  private active: boolean = false;
+  private active = false;
   /** Invalid receiver (providers not peered or other reasons) */
-  private isInvalid: boolean = false;
-  private countInvalidReceiver: number = 0;
-  private isDisabled: boolean = false;
+  private isInvalid = false;
+  private countInvalidReceiver = 0;
+  private isDisabled = false;
   private incomingPaymentUrl: string;
   private incomingPaymentExpiresAt: number;
   private amount: string;
   private intervalInMs: number;
   private probingId: number;
-  private shouldRetryImmediately: boolean = false;
+  private shouldRetryImmediately = false;
 
   private interval: ReturnType<typeof setInterval> | null = null;
   private timeout: ReturnType<typeof setTimeout> | null = null;
@@ -159,7 +159,6 @@ export class PaymentSession {
           await this.outgoingPaymentGrantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
           amountToSend = BigInt(amountIter.next().value);
-          continue;
         } else if (isInvalidReceiverError(e)) {
           this.markInvalid();
           this.events.emit('open_payments.invalid_receiver', {

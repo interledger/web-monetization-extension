@@ -35,7 +35,7 @@ export class Deduplicator {
 
       if (entry) {
         this.logger.debug(
-          `Deduplicating function=${fn.name}, ${cacheFnArgs ? 'args=' + JSON.stringify(args) : 'without args'}`,
+          `Deduplicating function=${fn.name}, ${cacheFnArgs ? `args=${JSON.stringify(args)}` : 'without args'}`,
         );
         return entry.promise as ReturnType<T>;
       }

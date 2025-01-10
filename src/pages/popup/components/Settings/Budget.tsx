@@ -5,7 +5,7 @@ import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
 import { ErrorMessage } from '@/pages/shared/components/ErrorMessage';
 import {
-  ErrorWithKeyLike,
+  type ErrorWithKeyLike,
   getNextOccurrence,
   transformBalance,
 } from '@/shared/helpers';
@@ -110,7 +110,7 @@ const BudgetAmount = ({
   };
 
   const renewDate = React.useMemo(() => {
-    let interval;
+    let interval: string | undefined;
     if (!changed.amount && !changed.recurring) {
       interval = grants.recurring?.interval;
     }

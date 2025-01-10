@@ -108,6 +108,7 @@ export const loadFirefoxAddon = (
             throw new Error('Invalid state');
           }
 
+          // biome-ignore lint/style/noParameterAssign: it's ok here
           data = buffer.subarray(bufferIndex + 1);
         }
 
@@ -132,6 +133,7 @@ export const loadFirefoxAddon = (
           if (remainder.length === 0) {
             break;
           } else {
+            // biome-ignore lint/style/noParameterAssign: it's ok here
             data = remainder;
           }
         }
@@ -173,7 +175,7 @@ export async function loadContext(
   }
 
   if (!context) {
-    throw new Error('Unknown browser: ' + browserName);
+    throw new Error(`Unknown browser: ${browserName}`);
   }
 
   // Note that loading this directly via config -> use({ storageState }) doesn't
@@ -193,7 +195,7 @@ function getPathToExtension(browserName: string) {
   } else if (browserName === 'firefox') {
     pathToExtension = path.join(BUILD_DIR, 'firefox');
   } else {
-    throw new Error('Unknown browser: ' + browserName);
+    throw new Error(`Unknown browser: ${browserName}`);
   }
   return pathToExtension;
 }
@@ -225,7 +227,7 @@ export async function getBackground(
     //
     // }
   } else {
-    throw new Error('Unsupported browser: ' + browserName);
+    throw new Error(`Unsupported browser: ${browserName}`);
   }
 
   if (!background) {
@@ -338,6 +340,7 @@ export class BrowserIntl {
     }
 
     if (typeof substitutions === 'string') {
+      // biome-ignore lint/style/noParameterAssign: it's ok here
       substitutions = [substitutions];
     }
 

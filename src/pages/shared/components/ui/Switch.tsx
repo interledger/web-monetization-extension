@@ -1,5 +1,6 @@
 import { type VariantProps, cva } from 'class-variance-authority';
-import React, { forwardRef } from 'react';
+import React from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/shared/helpers';
 
@@ -48,6 +49,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   return (
     <label className="flex items-center gap-x-4">
       <input
+        // biome-ignore lint/a11y/useAriaPropsForRole: todo
         role="switch"
         ref={ref}
         type="checkbox"

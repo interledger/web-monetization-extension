@@ -16,7 +16,7 @@ export const Component = () => {
     }
   }, []);
 
-  const connectState = transientState['connect'];
+  const connectState = transientState.connect;
   return (
     <ConnectWalletForm
       publicKey={publicKey}

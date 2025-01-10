@@ -84,7 +84,7 @@ export async function revokeKey(
       credentials: 'include',
     });
     if (!res.ok) {
-      throw new Error('Failed to revoke key: ' + (await res.text()));
+      throw new Error(`Failed to revoke key: ${await res.text()}`);
     }
   }, url);
 }

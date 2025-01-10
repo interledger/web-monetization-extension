@@ -1,5 +1,4 @@
 // @ts-check
-/* eslint-disable @typescript-eslint/no-require-imports, no-console */
 const fs = require('node:fs/promises');
 
 /** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
@@ -45,6 +44,6 @@ function bumpVersion(existingVersion, type) {
     case 'minor':
       return [major, minor + 1, 0, 0];
     default:
-      throw new Error('Unknown bump type: ' + type);
+      throw new Error(`Unknown bump type: ${type}`);
   }
 }

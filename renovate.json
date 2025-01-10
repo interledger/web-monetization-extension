@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": ["config:recommended", "customManagers:biomeVersions"],
   "prConcurrentLimit": 10,
   "branchConcurrentLimit": 0,
   "prHourlyLimit": 5,

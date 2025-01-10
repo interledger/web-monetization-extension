@@ -352,7 +352,7 @@ export class OutgoingPaymentGrantService {
     tabId: TabId,
   ) {
     try {
-      const grantEndpoint = new URL(authServer).origin + '/';
+      const grantEndpoint = `${new URL(authServer).origin}/`;
       const data = new TextEncoder().encode(
         `${clientNonce}\n${interactionNonce}\n${interactRef}\n${grantEndpoint}`,
       );
