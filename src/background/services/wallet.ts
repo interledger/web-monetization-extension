@@ -195,7 +195,7 @@ export class WalletService {
       this.events.emit('wallet.close_popup');
       try {
         // add key to wallet and try again
-        this.retryAddPublicKeyToWallet(walletAddress);
+        await this.retryAddPublicKeyToWallet(walletAddress);
         await this.storage.setState({ key_revoked: false });
       } catch (error) {
         this.setConnectStateError(error);
