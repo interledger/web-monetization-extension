@@ -120,10 +120,6 @@ test('does not monetize when continuous payments are disabled', async ({
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
     expect(await popup.getByRole('textbox').all()).toHaveLength(1);
 
-    await page.evaluate(() => {
-      addEventListener('monetization', monetizationCallback, { once: true });
-    });
-
     await popup.getByRole('textbox').fill('1.5');
     await popup.getByRole('button', { name: 'Send now' }).click();
 
