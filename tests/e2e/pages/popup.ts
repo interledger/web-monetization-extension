@@ -32,9 +32,16 @@ export async function openPopup(
 }
 
 export async function disconnectWallet(popup: Popup) {
-  await popup.locator(`[href="/settings"]`).click();
-  await popup.locator('button').getByText('Disconnect').click();
-  await popup.getByTestId('connect-wallet-form').waitFor({ state: 'visible' });
+  await popup.reload();
+  await popup.locator(`[href="/settings"]`).click({ timeout: 1000 });
+  await popup.getByRole('tab', { name: 'Wallet' }).click();
+
+  await popup
+    .getByRole('button', { name: 'Disconnect' })
+    .click({ timeout: 2000 });
+  await popup
+    .getByTestId('connect-wallet-form')
+    .waitFor({ state: 'visible', timeout: 2000 });
 }
 
 export type ConnectDetails = {
