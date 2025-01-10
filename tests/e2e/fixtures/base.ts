@@ -102,7 +102,7 @@ export const expect = test.expect.extend({
     const name = 'toHaveStorage';
 
     let pass: boolean;
-    let result: any;
+    let result: { actual: unknown } | undefined;
 
     const storedData = await getStorage(
       background,

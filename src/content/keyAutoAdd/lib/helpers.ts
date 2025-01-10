@@ -94,6 +94,6 @@ class TimeoutError extends Error {
   }
 }
 
-export function isTimedOut(e: any) {
+export function isTimedOut(e: unknown) {
   return e instanceof TimeoutError;
 }
