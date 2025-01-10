@@ -105,7 +105,6 @@ export class WalletService {
 
     await this.openPaymentsService.initClient(walletAddress.id);
     this.setConnectState('connecting');
-    this.events.emit('wallet.close_popup');
 
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
@@ -192,7 +191,6 @@ export class WalletService {
         throw error;
       }
 
-      this.events.emit('wallet.close_popup');
       try {
         // add key to wallet and try again
         await this.retryAddPublicKeyToWallet(walletAddress);
@@ -234,7 +232,6 @@ export class WalletService {
       'recurringGrant',
     ]);
 
-    this.events.emit('wallet.close_popup');
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
       walletAddress!,
@@ -263,7 +260,6 @@ export class WalletService {
       'recurringGrant',
     ]);
 
-    this.events.emit('wallet.close_popup');
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
       walletAddress!,
@@ -329,6 +325,7 @@ export class WalletService {
       browserName: this.browserName,
       t: this.t,
     });
+    this.events.emit('request_popup_close');
     try {
       await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
       return keyAutoAdd.tabId;
