@@ -89,10 +89,10 @@ export class Background {
       // Firefox <128 will throw saying world: MAIN isn't supported. So, we'll
       // inject via contentScript later. Injection via contentScript is slow,
       // but apart from WM detection on page-load, everything else works fine.
-      if (!error.message.includes(`world`)) {
+      if (!error.message.includes('world')) {
         this.logger.error(
-          `Content script execution world \`MAIN\` not supported by your browser.\n` +
-            `Check https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/scripting/ExecutionWorld#browser_compatibility for browser compatibility.`,
+          'Content script execution world `MAIN` not supported by your browser.\n' +
+            'Check https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/scripting/ExecutionWorld#browser_compatibility for browser compatibility.',
           error,
         );
       }
