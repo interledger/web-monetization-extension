@@ -1,5 +1,6 @@
+import React from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { cn } from '@/shared/helpers';
 
@@ -37,6 +38,7 @@ export const Radio = ({
       className="flex items-center"
       tabIndex={noSelected ? 0 : checked ? 0 : -1}
       aria-checked={checked}
+      // biome-ignore lint/a11y/useSemanticElements: <explanation>
       role="radio"
     >
       <input

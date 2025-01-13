@@ -15,6 +15,7 @@ import {
 import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
+import type { Storage, StorageKey } from '../../../src/shared/types';
 
 export type BrowserInfo = { browserName: string; channel: string | undefined };
 export type Background = Worker;
@@ -107,6 +108,7 @@ export const loadFirefoxAddon = (
             throw new Error('Invalid state');
           }
 
+          // biome-ignore lint/style/noParameterAssign: it's ok here
           data = buffer.subarray(bufferIndex + 1);
         }
 
@@ -131,6 +133,7 @@ export const loadFirefoxAddon = (
           if (remainder.length === 0) {
             break;
           } else {
+            // biome-ignore lint/style/noParameterAssign: it's ok here
             data = remainder;
           }
         }
@@ -172,7 +175,7 @@ export async function loadContext(
   }
 
   if (!context) {
-    throw new Error('Unknown browser: ' + browserName);
+    throw new Error(`Unknown browser: ${browserName}`);
   }
 
   // Note that loading this directly via config -> use({ storageState }) doesn't
@@ -192,7 +195,7 @@ function getPathToExtension(browserName: string) {
   } else if (browserName === 'firefox') {
     pathToExtension = path.join(BUILD_DIR, 'firefox');
   } else {
-    throw new Error('Unknown browser: ' + browserName);
+    throw new Error(`Unknown browser: ${browserName}`);
   }
   return pathToExtension;
 }
@@ -224,7 +227,7 @@ export async function getBackground(
     //
     // }
   } else {
-    throw new Error('Unsupported browser: ' + browserName);
+    throw new Error(`Unsupported browser: ${browserName}`);
   }
 
   if (!background) {
@@ -281,9 +284,11 @@ export async function loadKeysToExtension(
     });
   }, keyInfo);
 
-  const res = await background.evaluate(() => {
-    return chrome.storage.local.get(['privateKey', 'publicKey', 'keyId']);
-  });
+  const res = await getStorage(background, [
+    'privateKey',
+    'publicKey',
+    'keyId',
+  ]);
   if (!res || !res.keyId || !res.privateKey || !res.publicKey) {
     throw new Error('Could not load keys to extension');
   }
@@ -335,6 +340,7 @@ export class BrowserIntl {
     }
 
     if (typeof substitutions === 'string') {
+      // biome-ignore lint/style/noParameterAssign: it's ok here
       substitutions = [substitutions];
     }
 
@@ -344,4 +350,15 @@ export class BrowserIntl {
     }
     return result;
   }
+}
+
+export async function getStorage<TKey extends StorageKey>(
+  background: Background,
+  keys?: TKey[],
+) {
+  const data = await background.evaluate(
+    (keys) => chrome.storage.local.get(keys),
+    keys,
+  );
+  return data as { [Key in TKey[][number]]: Storage[Key] };
 }

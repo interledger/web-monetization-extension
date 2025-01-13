@@ -1,5 +1,4 @@
 // @ts-check
-/* eslint-disable @typescript-eslint/no-require-imports, no-console */
 const { BROWSERS } = require('./constants.cjs');
 
 /**

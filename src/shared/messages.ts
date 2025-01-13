@@ -133,11 +133,11 @@ export type PopupToBackgroundMessage = {
   };
   CONNECT_WALLET: {
     input: null | ConnectWalletPayload;
-    output: void;
+    output: undefined;
   };
   UPDATE_BUDGET: {
     input: UpdateBudgetPayload;
-    output: void;
+    output: undefined;
   };
   RECONNECT_WALLET: {
     input: ReconnectWalletPayload;
@@ -272,6 +272,7 @@ export interface BackgroundToPopupMessagesMap {
   SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
   SET_TRANSIENT_STATE: PopupTransientState;
+  CLOSE_POPUP: undefined;
 }
 
 export type BackgroundToPopupMessage = {

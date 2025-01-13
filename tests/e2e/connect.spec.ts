@@ -24,11 +24,7 @@ test('connects with correct details provided', async ({
   expect(TEST_WALLET_PUBLIC_KEY).toBeDefined();
   expect(TEST_WALLET_ADDRESS_URL).toBeDefined();
 
-  expect(
-    await background.evaluate(() => {
-      return chrome.storage.local.get(['connected']);
-    }),
-  ).toEqual({ connected: false });
+  await expect(background).toHaveStorage({ connected: false });
 
   const keyInfo = {
     keyId: TEST_WALLET_KEY_ID,
@@ -45,14 +41,7 @@ test('connects with correct details provided', async ({
   const settingsLink = popup.locator(`[href="/settings"]`).first();
   await expect(settingsLink).toBeVisible();
 
-  const storage = await background.evaluate(() => {
-    return chrome.storage.local.get([
-      'connected',
-      'oneTimeGrant',
-      'recurringGrant',
-    ]);
-  });
-  expect(storage).toMatchObject({
+  await expect(background).toHaveStorage({
     connected: true,
     recurringGrant: null,
     oneTimeGrant: {
@@ -69,9 +58,5 @@ test('connects with correct details provided', async ({
   );
 
   await disconnectWallet(popup);
-  expect(
-    await background.evaluate(() => {
-      return chrome.storage.local.get(['connected']);
-    }),
-  ).toEqual({ connected: false });
+  await expect(background).toHaveStorage({ connected: false });
 });

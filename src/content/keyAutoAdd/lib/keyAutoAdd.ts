@@ -93,7 +93,7 @@ export class KeyAutoAdd {
       browser.runtime.getURL('pages/progress-connect/index.html'),
     );
     const params = new URLSearchParams({ mode: size });
-    iframeUrl.hash = '?' + params.toString();
+    iframeUrl.hash = `?${params.toString()}`;
     if (this.ui.src !== iframeUrl.href && size !== 'hidden') {
       this.ui.src = iframeUrl.href;
     }
