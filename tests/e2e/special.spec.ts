@@ -3,13 +3,12 @@ import { test, expect } from './fixtures/connected';
 
 test('iframe add/remove does not de-monetize main page', async ({
   page,
-  background,
   popup,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const playgroundUrl = 'https://webmonetization.org/play/';
 
-  const monetizationCallback = await test.step('prepare', async () => {
+  await test.step('prepare', async () => {
     await expect(popup.getByTestId('not-monetized-message')).toBeVisible();
 
     await page.goto(playgroundUrl);
@@ -70,13 +69,12 @@ test('iframe add/remove does not de-monetize main page', async ({
 
 test('iframe navigate does not de-monetize main page', async ({
   page,
-  background,
   popup,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const playgroundUrl = 'https://webmonetization.org/play/';
 
-  const monetizationCallback = await test.step('prepare', async () => {
+  await test.step('prepare', async () => {
     await expect(popup.getByTestId('not-monetized-message')).toBeVisible();
 
     await page.goto(playgroundUrl);
