@@ -28,6 +28,9 @@
         "noExplicitAny": "off", // TODO: turn on, too many cases
         "noConsole": "warn"
       },
+      "correctness": {
+        "noUnusedVariables": "warn"
+      },
       "a11y": {
         "noSvgWithoutTitle": "off"
       }
