@@ -71,6 +71,10 @@ test('iframe navigate does not de-monetize main page', async ({
   page,
   popup,
 }) => {
+  test.fail(
+    true,
+    'https://github.com/interledger/web-monetization-extension/issues/819',
+  );
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const playgroundUrl = 'https://webmonetization.org/play/';
 
@@ -118,10 +122,6 @@ test('iframe navigate does not de-monetize main page', async ({
     });
   });
 
-  test.fail(
-    true,
-    'https://github.com/interledger/web-monetization-extension/issues/819',
-  );
   await test.step('navigate iframe', async () => {
     await page.evaluate(() => {
       return new Promise((resolve, reject) => {
@@ -132,10 +132,11 @@ test('iframe navigate does not de-monetize main page', async ({
         }
         iframe.addEventListener('load', resolve, { once: true });
         iframe.addEventListener('error', resolve, { once: true });
-        iframe.setAttribute('src', 'https://example.com/test');
+        iframe.setAttribute('src', 'https://example.net');
       });
     });
 
+    // this fails
     await expect(popup.getByTestId('not-monetized-message')).not.toBeVisible();
     await expect(popup.getByTestId('home-page')).toBeVisible();
   });
