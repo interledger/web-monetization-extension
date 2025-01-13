@@ -71,10 +71,6 @@ test('iframe navigate does not de-monetize main page', async ({
   page,
   popup,
 }) => {
-  test.fail(
-    true,
-    'https://github.com/interledger/web-monetization-extension/issues/819',
-  );
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const playgroundUrl = 'https://webmonetization.org/play/';
 
@@ -136,7 +132,6 @@ test('iframe navigate does not de-monetize main page', async ({
       });
     });
 
-    // this fails
     await expect(popup.getByTestId('not-monetized-message')).not.toBeVisible();
     await expect(popup.getByTestId('home-page')).toBeVisible();
   });
