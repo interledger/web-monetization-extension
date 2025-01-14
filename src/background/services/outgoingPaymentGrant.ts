@@ -44,6 +44,7 @@ export class OutgoingPaymentGrantService {
   private logger: Cradle['logger'];
   private deduplicator: Cradle['deduplicator'];
   private openPaymentsService: Cradle['openPaymentsService'];
+  private events: Cradle['events'];
   private browser: Cradle['browser'];
   private t: Cradle['t'];
 
@@ -59,6 +60,7 @@ export class OutgoingPaymentGrantService {
     logger,
     deduplicator,
     openPaymentsService,
+    events,
     browser,
     t,
   }: Cradle) {
@@ -66,6 +68,7 @@ export class OutgoingPaymentGrantService {
       storage,
       logger,
       deduplicator,
+      events,
       openPaymentsService,
       browser,
       t,
@@ -144,6 +147,7 @@ export class OutgoingPaymentGrantService {
       intent,
     );
 
+    this.events.emit('request_popup_close');
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
