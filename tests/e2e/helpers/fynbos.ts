@@ -1,8 +1,9 @@
 import type { Page } from '@playwright/test';
 import { waitForWelcomePage } from './common';
 
-export const KEYS_PAGE_URL = `https://eu1.fynbos.dev/settings/keys`;
-export const LOGIN_PAGE_URL = `https://eu1.fynbos.dev/login?returnTo=%2Fsettings%2Fkeys`;
+export const KEYS_PAGE_URL = 'https://eu1.fynbos.dev/settings/keys';
+export const LOGIN_PAGE_URL =
+  'https://eu1.fynbos.dev/login?returnTo=%2Fsettings%2Fkeys';
 
 export async function completeGrant(page: Page, continueWaitMs: number) {
   await waitForGrantConsentPage(page);

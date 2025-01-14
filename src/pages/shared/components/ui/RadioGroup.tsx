@@ -54,9 +54,7 @@ export const Radio = ({
       />
 
       <label htmlFor={inputId} className="group flex items-center">
-        <span
-          className={`inline-block h-6 w-6 rounded-full border-2 border-base peer-checked:group-[]:border-blue-500 peer-checked:group-[]:bg-primary peer-checked:group-[]:ring-4 peer-checked:group-[]:ring-inset peer-checked:group-[]:ring-white`}
-        />
+        <span className="inline-block h-6 w-6 rounded-full border-2 border-base peer-checked:group-[]:border-blue-500 peer-checked:group-[]:bg-primary peer-checked:group-[]:ring-4 peer-checked:group-[]:ring-inset peer-checked:group-[]:ring-white" />
         {label ? (
           <p className="ms-2 text-base leading-6 text-medium">{label}</p>
         ) : (

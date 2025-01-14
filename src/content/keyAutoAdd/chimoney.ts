@@ -53,7 +53,7 @@ const findWallet: Run<{ walletAddressId: string }> = async (
     match(el) {
       const prefix = walletAddress.hostname;
       const text = el.textContent?.trim() ?? '';
-      return text.startsWith(`Wallet Address:`) && text.includes(prefix);
+      return text.startsWith('Wallet Address:') && text.includes(prefix);
     },
   }).catch(() => {
     throw new Error(

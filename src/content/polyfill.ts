@@ -87,7 +87,8 @@ import type { MonetizationEventPayload } from '@/shared/messages';
 
     get detail() {
       if (!eventDetailDeprecationEmitted) {
-        const msg = `MonetizationEvent.detail is deprecated. Access attributes directly instead.`;
+        const msg =
+          'MonetizationEvent.detail is deprecated. Access attributes directly instead.';
         // biome-ignore lint/suspicious/noConsole: warning meant for website devs
         console.warn(msg);
         eventDetailDeprecationEmitted = true;
