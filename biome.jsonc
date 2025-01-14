@@ -25,7 +25,6 @@
         "noNonNullAssertion": "off" // TODO: turn on, too many cases
       },
       "suspicious": {
-        "noExplicitAny": "off", // TODO: turn on, too many cases
         "noConsole": "warn"
       },
       "a11y": {
