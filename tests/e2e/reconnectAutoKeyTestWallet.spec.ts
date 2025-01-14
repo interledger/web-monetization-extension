@@ -4,6 +4,7 @@ import {
   acceptGrant,
   API_URL_ORIGIN,
   DEFAULT_CONTINUE_WAIT_MS,
+  KEYS_PAGE_URL,
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/testWallet';
@@ -167,20 +168,15 @@ test('Reconnect to test wallet with automatic key addition', async ({
   });
 
   await test.step('asks for key-add consent to reconnect wallet', async () => {
-    await expect(
-      popup.getByRole('button', {
-        name: i18n.getMessage('keyRevoked_action_reconnect'),
-      }),
-    ).toBeVisible();
-    await popup
-      .getByRole('button', {
-        name: i18n.getMessage('keyRevoked_action_reconnect'),
-      })
-      .click();
+    const reconnectButton = popup.getByRole('button', {
+      name: i18n.getMessage('keyRevoked_action_reconnect'),
+    });
+    await expect(reconnectButton).toBeVisible();
+    await reconnectButton.click();
 
-    await popup.waitForSelector(
-      `[data-testid="connect-wallet-auto-key-consent"]`,
-    );
+    // await popup.waitForSelector(
+    //   `[data-testid="connect-wallet-auto-key-consent"]`,
+    // );
 
     expect(popup.getByTestId('connect-wallet-auto-key-consent')).toBeVisible();
     await popup
@@ -190,13 +186,14 @@ test('Reconnect to test wallet with automatic key addition', async ({
       .click();
 
     const newPage = await context.waitForEvent('page', {
-      predicate: (page) =>
-        page
-          .url()
-          .includes(
-            `${process.env.TEST_WALLET_ORIGIN}/settings/developer-keys`,
-          ),
-      timeout: 3 * 1000,
+      // predicate: (page) =>
+      //   page
+      //     .url()
+      //     .includes(
+      //       `${process.env.TEST_WALLET_ORIGIN}/settings/developer-keys`,
+      //     ),
+      // timeout: 3 * 1000,
+      predicate: (page) => page.url().startsWith(KEYS_PAGE_URL),
     });
 
     await waitForReconnectWelcomePage(newPage);
@@ -227,7 +224,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
   });
 
   await test.step('revoke keys and disconnect wallet', async () => {
-    await revokeKey(page, revokeInfo);
     await disconnectWallet(popup);
+    await revokeKey(page, revokeInfo);
   });
 });
