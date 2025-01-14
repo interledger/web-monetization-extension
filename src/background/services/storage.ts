@@ -221,9 +221,10 @@ export class StorageService {
 /**
  * @param existingData Existing data from previous version.
  */
-type Migration = (
-  existingData: Record<string, any>,
-) => [data: Record<string, any>, deleteKeys?: string[]];
+
+// biome-ignore lint/suspicious/noExplicitAny: our code defines shape of data
+type Data = Record<string, any>;
+type Migration = (existingData: Data) => [data: Data, deleteKeys?: string[]];
 
 // There was never a migration to reach 1.
 //

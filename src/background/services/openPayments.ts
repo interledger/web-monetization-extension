@@ -212,28 +212,28 @@ export class OpenPaymentsService {
   }
 }
 
-const isOpenPaymentsClientError = (error: any) =>
+const isOpenPaymentsClientError = (error: unknown) =>
   error instanceof OpenPaymentsClientError;
 
-export const isKeyRevokedError = (error: any) => {
+export const isKeyRevokedError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return isInvalidClientError(error) || isSignatureValidationError(error);
 };
 
 // AUTH SERVER error
-export const isInvalidClientError = (error: any) => {
+export const isInvalidClientError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 400 && error.code === 'invalid_client';
 };
 
-export const isInvalidContinuationError = (error: any) => {
+export const isInvalidContinuationError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 401 && error.code === 'invalid_continuation';
 };
 
 // RESOURCE SERVER error. Create outgoing payment and create quote can fail
 // with: `Signature validation error: could not find key in list of client keys`
-export const isSignatureValidationError = (error: any) => {
+export const isSignatureValidationError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return (
     error.status === 401 &&
@@ -242,7 +242,7 @@ export const isSignatureValidationError = (error: any) => {
 };
 
 export const isTokenExpiredError = (
-  error: any,
+  error: unknown,
 ): error is OpenPaymentsClientError => {
   if (!isOpenPaymentsClientError(error)) return false;
   return isTokenInvalidError(error) || isTokenInactiveError(error);
@@ -255,7 +255,7 @@ export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
 };
 
 // happens during quoting only
-export const isNonPositiveAmountError = (error: any) => {
+export const isNonPositiveAmountError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return (
     error.status === 400 &&
@@ -263,12 +263,12 @@ export const isNonPositiveAmountError = (error: any) => {
   );
 };
 
-export const isOutOfBalanceError = (error: any) => {
+export const isOutOfBalanceError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 403 && error.description === 'unauthorized';
 };
 
-export const isMissingGrantPermissionsError = (error: any) => {
+export const isMissingGrantPermissionsError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   // providers using Rafiki <= v1.0.0-alpha.15 show "Insufficient Grant" error,
   // but Rafiki >= v1.0.0-alpha.16 shows "Inactive Token" (due to
@@ -279,12 +279,12 @@ export const isMissingGrantPermissionsError = (error: any) => {
   );
 };
 
-export const isInvalidReceiverError = (error: any) => {
+export const isInvalidReceiverError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 400 && error.description === 'invalid receiver';
 };
 
-export const isNotFoundError = (error: any) => {
+export const isNotFoundError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 404;
 };

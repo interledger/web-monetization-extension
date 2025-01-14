@@ -65,8 +65,8 @@ export const loadFirefoxAddon = (
       type: 'getRoot',
     });
 
-    const onMessage = (message: any) => {
-      if (message.addonsActor) {
+    const onMessage = (message: Record<string, unknown>) => {
+      if (message.addonsActor && typeof message.addonsActor === 'string') {
         send({
           to: message.addonsActor,
           type: 'installTemporaryAddon',
