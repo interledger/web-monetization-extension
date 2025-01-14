@@ -60,13 +60,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
 
     const revokeInfo = await test.step('adds key to wallet', async () => {
       page = await context.waitForEvent('page', {
-        predicate: (page) =>
-          page
-            .url()
-            .includes(
-              `${process.env.TEST_WALLET_ORIGIN}/settings/developer-keys`,
-            ),
-        timeout: 3 * 1000,
+        predicate: (page) => page.url().startsWith(KEYS_PAGE_URL),
       });
 
       const { resolve, reject, promise } = withResolvers<{
@@ -127,6 +121,15 @@ test('Reconnect to test wallet with automatic key addition', async ({
     return revokeInfo;
   });
 
+  await test.step('revoke key', async () => {
+    const newPage = await context.newPage();
+    await revokeKey(newPage, revokeInfo);
+    await newPage.close();
+
+    const { keys } = await getJWKS(walletAddressUrl);
+    expect(keys.find((key) => key.kid === revokeInfo.keyId)).toBeUndefined();
+  });
+
   await test.step('start monetization', async () => {
     const playgroundUrl = 'https://webmonetization.org/play/';
     await page.goto(playgroundUrl);
@@ -141,30 +144,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
       .fill(walletAddressUrl);
     await page.getByRole('button', { name: 'Add monetization link' }).click();
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
-  });
-
-  await test.step('revoke key', async () => {
-    const newPage = await context.newPage();
-    await revokeKey(newPage, revokeInfo);
-    newPage.close();
-
-    const { keys } = await getJWKS(walletAddressUrl);
-    expect(keys.find((key) => key.kid === revokeInfo.keyId)).toBeUndefined();
-  });
-
-  await test.step('trigger key-revoked state by making one-time payment', async () => {
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
-
-    await popup.waitForSelector(`[data-testid="home-page"]`);
-
-    await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
-    expect(await popup.getByRole('textbox').all()).toHaveLength(1);
-
-    await popup.getByRole('textbox').fill('1.5');
-    await popup.getByRole('button', { name: 'Send now' }).click();
-
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
   await test.step('asks for key-add consent to reconnect wallet', async () => {
@@ -174,10 +154,6 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await expect(reconnectButton).toBeVisible();
     await reconnectButton.click();
 
-    // await popup.waitForSelector(
-    //   `[data-testid="connect-wallet-auto-key-consent"]`,
-    // );
-
     expect(popup.getByTestId('connect-wallet-auto-key-consent')).toBeVisible();
     await popup
       .getByRole('button', {
@@ -186,18 +162,11 @@ test('Reconnect to test wallet with automatic key addition', async ({
       .click();
 
     const newPage = await context.waitForEvent('page', {
-      // predicate: (page) =>
-      //   page
-      //     .url()
-      //     .includes(
-      //       `${process.env.TEST_WALLET_ORIGIN}/settings/developer-keys`,
-      //     ),
-      // timeout: 3 * 1000,
       predicate: (page) => page.url().startsWith(KEYS_PAGE_URL),
     });
 
     await waitForReconnectWelcomePage(newPage);
-    newPage.close();
+    await newPage.close();
   });
 
   await test.step('make one-time payment after reconnecting the wallet', async () => {
@@ -208,7 +177,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await popup.getByRole('textbox').fill('1.5');
     await popup.getByRole('button', { name: 'Send now' }).click();
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(2, {
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1, {
       timeout: 1000,
     });
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
