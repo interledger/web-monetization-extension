@@ -26,7 +26,7 @@
   "dependencies": {
     "@interledger/open-payments": "^6.13.2",
     "@noble/ed25519": "^2.2.2",
-    "@noble/hashes": "^1.6.1",
+    "@noble/hashes": "^1.7.0",
     "@radix-ui/react-tabs": "^1.1.2",
     "awilix": "^12.0.4",
     "class-variance-authority": "^0.7.1",
