@@ -23,11 +23,14 @@ export function useLocalStorage<T>(
   maxAge *= 1000;
 
   type Stored = { value: T; expiresAt: number };
-  const isWellFormed = React.useCallback((obj: any): obj is Stored => {
-    if (typeof obj !== 'object' || obj == null) return false;
-    if (!obj.expiresAt || !Number.isSafeInteger(obj.expiresAt)) return false;
-    return typeof obj.value !== 'undefined';
-  }, []);
+  const isWellFormed = React.useCallback(
+    (obj?: Record<string, unknown>): obj is Stored => {
+      if (typeof obj !== 'object' || obj == null) return false;
+      if (!obj.expiresAt || !Number.isSafeInteger(obj.expiresAt)) return false;
+      return typeof obj.value !== 'undefined';
+    },
+    [],
+  );
 
   const [value, setValue] = React.useState<T>(() => {
     if (!hasLocalStorage) return defaultValue;

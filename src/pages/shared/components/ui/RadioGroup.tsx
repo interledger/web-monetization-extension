@@ -11,7 +11,7 @@ export interface RadioProps {
   name: string;
   id?: string;
   disabled?: boolean;
-  onChange?: any;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
   noSelected?: boolean;
 }
 
