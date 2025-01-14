@@ -2,8 +2,8 @@ import type { Cradle } from '../container';
 
 type AsyncFn<T> = (...args: unknown[]) => Promise<T>;
 
-interface CacheEntry {
-  promise: Promise<unknown>;
+interface CacheEntry<T> {
+  promise: Promise<T>;
 }
 
 interface DedupeOptions {
@@ -15,21 +15,21 @@ interface DedupeOptions {
 export class Deduplicator {
   private logger: Cradle['logger'];
 
-  private cache: Map<string, CacheEntry> = new Map();
+  private cache: Map<string, CacheEntry<unknown>> = new Map();
 
   constructor({ logger }: Pick<Cradle, 'logger'>) {
     Object.assign(this, { logger });
   }
 
-  dedupe<K, T extends AsyncFn<K>>(
-    fn: T,
+  dedupe<T>(
+    fn: AsyncFn<T>,
     {
       cacheFnArgs = false,
       cacheRejections = false,
       wait = 5000,
     }: Partial<DedupeOptions> = {},
-  ): T {
-    return (async (...args: Parameters<T>) => {
+  ): AsyncFn<T> {
+    return async (...args: Parameters<typeof fn>): Promise<T> => {
       const key = this.generateCacheKey(fn, args, cacheFnArgs);
       const entry = this.cache.get(key);
 
@@ -37,7 +37,7 @@ export class Deduplicator {
         this.logger.debug(
           `Deduplicating function=${fn.name}, ${cacheFnArgs ? `args=${JSON.stringify(args)}` : 'without args'}`,
         );
-        return entry.promise as ReturnType<T>;
+        return entry.promise as Promise<T>;
       }
 
       const promise = fn(...args);
@@ -46,19 +46,18 @@ export class Deduplicator {
       try {
         const res = await promise;
         this.cache.set(key, { promise: Promise.resolve(res) });
-        return res as ReturnType<T>;
+        return res;
       } catch (err) {
         if (cacheRejections) {
           this.cache.set(key, { promise: Promise.reject(err) });
         } else {
           this.cache.delete(key);
         }
-
         return Promise.reject(err);
       } finally {
         this.scheduleCacheClear(key, wait);
       }
-    }) as unknown as T;
+    };
   }
 
   private generateCacheKey<T>(
