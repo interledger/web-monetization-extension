@@ -2,7 +2,7 @@ import type { BrowserContext, Page } from '@playwright/test';
 import type { ConnectDetails } from '../pages/popup';
 import { getWalletInformation } from '@/shared/helpers';
 
-const OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
+const OPEN_PAYMENTS_REDIRECT_URL = 'https://webmonetization.org/welcome';
 
 export async function waitForWelcomePage(page: Page) {
   await page.waitForURL(

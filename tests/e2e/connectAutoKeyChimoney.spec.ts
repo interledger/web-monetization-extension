@@ -48,7 +48,7 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
       timeout: 5000,
     });
     expect(page.url()).toContain(URLS.login);
-    expect(page.url()).toContain(`?next=`);
+    expect(page.url()).toContain('?next=');
     await page.close();
   });
 
