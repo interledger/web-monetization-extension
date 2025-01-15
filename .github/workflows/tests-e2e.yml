@@ -33,9 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # In a pull request trigger, ref is required as GitHub Actions checks out in detached HEAD mode, meaning it doesn’t check out your branch by default.
           ref: ${{ github.event.pull_request.head.sha }}
-      - run: git log --oneline -n10
-      - run: sed -n '186,210p' src/background/services/wallet.ts
 
       - name: Environment setup
         uses: ./.github/actions/setup
