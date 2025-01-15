@@ -12,6 +12,14 @@ export async function waitForWelcomePage(page: Page) {
   );
 }
 
+export async function waitForReconnectWelcomePage(page: Page) {
+  await page.waitForURL(
+    (url) =>
+      url.href.startsWith(OPEN_PAYMENTS_REDIRECT_URL) &&
+      url.searchParams.get('result') === 'key_add_success',
+  );
+}
+
 export async function getContinueWaitTime(
   context: BrowserContext,
   params: Pick<ConnectDetails, 'walletAddressUrl'>,
