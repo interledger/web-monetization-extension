@@ -170,8 +170,8 @@ test('Reconnect to test wallet with automatic key addition', async ({
   });
 
   await test.step('make one-time payment after reconnecting the wallet', async () => {
-    await popup.reload({ waitUntil: 'networkidle' });
-    await popup.waitForSelector(`[data-testid="home-page"]`);
+    await popup.reload();
+    await expect(popup.getByTestId('home-page')).toBeVisible();
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
 
     await popup.getByRole('textbox').fill('1.5');
