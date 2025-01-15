@@ -32,6 +32,8 @@ jobs:
     environment: test
     steps:
       - uses: actions/checkout@v4
+      - run: git log --oneline -n10
+      - run: sed -n '186,210p' src/background/services/wallet.ts
 
       - name: Environment setup
         uses: ./.github/actions/setup
