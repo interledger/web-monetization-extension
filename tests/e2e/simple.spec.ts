@@ -135,7 +135,7 @@ test('does not monetize when toggle payments in extension is checked', async ({
   i18n,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-  const playgroundUrl = 'https://webmonetization.org/play/';
+  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
   await test.step('disables extension', async () => {
     await popup.locator('label:has(> input[type="checkbox"])').click();
@@ -143,14 +143,6 @@ test('does not monetize when toggle payments in extension is checked', async ({
     await expect(popup.locator('h3')).toHaveText(
       i18n.getMessage('app_text_disabled'),
     );
-  });
-
-  await page.goto(playgroundUrl);
-
-  const monetizationCallback = spy<[Event], void>();
-  await page.exposeFunction('monetizationCallback', monetizationCallback);
-  await page.evaluate(() => {
-    window.addEventListener('monetization', monetizationCallback);
   });
 
   await test.step('check extension payments do not go through', async () => {
