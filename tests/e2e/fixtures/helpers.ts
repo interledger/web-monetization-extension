@@ -152,7 +152,7 @@ export async function loadContext(
     context = await chromium.launchPersistentContext('', {
       channel,
       args: [
-        `--headless=new`,
+        '--headless=new',
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],
