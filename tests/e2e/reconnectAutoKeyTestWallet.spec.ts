@@ -38,10 +38,6 @@ test('Reconnect to test wallet with automatic key addition', async ({
 
     await test.step('asks for key-add consent', async () => {
       await connectButton.click();
-      await popup.waitForSelector(
-        `[data-testid="connect-wallet-auto-key-consent"]`,
-      );
-
       expect(
         popup.getByTestId('connect-wallet-auto-key-consent'),
       ).toBeVisible();
