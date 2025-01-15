@@ -26,6 +26,9 @@
       "suspicious": {
         "noConsole": "warn"
       },
+      "correctness": {
+        "noUnusedVariables": "warn"
+      },
       "a11y": {
         "noSvgWithoutTitle": "off"
       }
