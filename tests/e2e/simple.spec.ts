@@ -36,7 +36,7 @@ test('should monetize site with single wallet address', async ({
     'Load Event',
   );
 
-  await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+  await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
   await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
     paymentPointer: walletAddressUrl,
     amountSent: {
@@ -112,7 +112,7 @@ test('does not monetize when continuous payments are disabled', async ({
       page.locator('#link-events ul.events li').last(),
     ).toContainText('Load Event');
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
   });
 
   await test.step('but can send one-time payment', async () => {
@@ -152,7 +152,7 @@ test('does not monetize when continuous payments are disabled', async ({
       continuousPaymentsEnabled: true,
     });
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(2);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(2, { wait: 2000 });
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
       amountSent: {
@@ -163,5 +163,55 @@ test('does not monetize when continuous payments are disabled', async ({
         new URL(walletAddressUrl).origin,
       ),
     });
+  });
+});
+
+test('does not monetize when toggle payments in extension is checked', async ({
+  page,
+  popup,
+  i18n,
+}) => {
+  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
+  const playgroundUrl = 'https://webmonetization.org/play/';
+
+  await test.step('disables extension', async () => {
+    await popup.locator('label:has(> input[type="checkbox"])').click();
+
+    await expect(popup.locator('h3')).toHaveText(
+      i18n.getMessage('app_text_disabled'),
+    );
+  });
+
+  await page.goto(playgroundUrl);
+
+  const monetizationCallback = spy<[Event], void>();
+  await page.exposeFunction('monetizationCallback', monetizationCallback);
+  await page.evaluate(() => {
+    window.addEventListener('monetization', monetizationCallback);
+  });
+
+  await test.step('check extension payments do not go through', async () => {
+    await page
+      .getByLabel('Wallet address/Payment pointer')
+      .fill(walletAddressUrl);
+    await page.getByRole('button', { name: 'Add monetization link' }).click();
+
+    await expect(page.locator('link[rel=monetization]')).toHaveAttribute(
+      'href',
+      walletAddressUrl,
+    );
+
+    await expect(
+      popup.getByRole('button', { name: 'Send now' }),
+    ).not.toBeVisible();
+    await page.waitForTimeout(1000);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
+  });
+
+  await test.step('clicking on toggle payments re-enables payments in extension', async () => {
+    await popup.locator('label:has(> input[type="checkbox"])').click();
+
+    await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
   });
 });
