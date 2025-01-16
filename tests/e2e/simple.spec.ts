@@ -5,7 +5,7 @@ test.beforeEach(async ({ popup }) => {
   await popup.reload();
 });
 
-test.skip('should monetize site with single wallet address', async ({
+test('should monetize site with single wallet address', async ({
   page,
   popup,
 }) => {
