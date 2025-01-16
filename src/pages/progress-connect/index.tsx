@@ -2,7 +2,7 @@ import './index.css';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import browser from 'webextension-polyfill';
+import browser from '@/shared/browser';
 
 import {
   BrowserContextProvider,

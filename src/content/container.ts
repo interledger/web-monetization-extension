@@ -4,7 +4,7 @@ import {
   createContainer,
   InjectionMode,
 } from 'awilix/browser';
-import browser, { type Browser } from 'webextension-polyfill';
+import browser, { type Browser } from '@/shared/browser';
 import { createLogger, type Logger } from '@/shared/logger';
 import { ContentScript } from './services/contentScript';
 import { MonetizationLinkManager } from './services/monetizationLinkManager';

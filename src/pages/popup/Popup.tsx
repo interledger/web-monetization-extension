@@ -6,7 +6,7 @@ import {
 import { MessageContextProvider, WaitForStateLoad } from './lib/context';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import React from 'react';
-import browser from 'webextension-polyfill';
+import browser from '@/shared/browser';
 import { ProtectedRoute } from '@/popup/components/ProtectedRoute';
 import {
   type RouteObject,
