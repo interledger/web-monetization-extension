@@ -9,7 +9,6 @@ import {
   waitForGrantConsentPage,
 } from './helpers/testWallet';
 import { getStorage } from './fixtures/helpers';
-import { spy } from 'tinyspy';
 import {
   getContinueWaitTime,
   waitForWelcomePage,

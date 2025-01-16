@@ -1,4 +1,3 @@
-import { spy } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
 
