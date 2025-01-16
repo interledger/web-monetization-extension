@@ -1,4 +1,3 @@
-import type { SpyFn } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
 
@@ -136,7 +135,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
   i18n,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-  let monetizationCallback: SpyFn<[Event]>;
+  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
   await test.step('disables extension', async () => {
     await popup
@@ -150,7 +149,6 @@ test('does not monetize when global payments toggle in unchecked', async ({
   });
 
   await test.step('check extension payments do not go through', async () => {
-    monetizationCallback = await setupPlayground(page, walletAddressUrl);
     await expect(
       popup.getByRole('button', { name: 'Send now' }),
     ).not.toBeVisible();
