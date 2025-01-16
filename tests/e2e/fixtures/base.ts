@@ -78,7 +78,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
 const defaultMessage = (
   thisType: ExpectMatcherState,
   assertionName: string,
-  pass: boolean,
+  _pass: boolean,
   expected: unknown,
   matcherResult?: { actual: unknown },
 ) => {
@@ -89,7 +89,7 @@ const defaultMessage = (
       undefined,
       { isNot: thisType.isNot },
     );
-    const expectedPart = `Expected:${pass ? '' : ' not '}${thisType.utils.printExpected(expected)}`;
+    const expectedPart = `Expected: ${thisType.isNot ? 'not ' : ''}${thisType.utils.printExpected(expected)}`;
     const receivedPart = matcherResult
       ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
       : '';
@@ -135,19 +135,13 @@ export const expect = test.expect.extend({
     let pass: boolean;
     let result: { actual: number } | undefined;
 
-    let remainingTime = timeout;
-    do {
-      try {
-        test.expect(fn.callCount).toBe(expected);
-        pass = true;
-        break;
-      } catch {
-        result = { actual: fn.callCount };
-        pass = false;
-        remainingTime -= 500;
-        await sleep(500);
-      }
-    } while (remainingTime > 0);
+    try {
+      await test.expect.poll(() => fn.callCount, { timeout }).toBe(expected);
+      pass = true;
+    } catch {
+      result = { actual: fn.callCount };
+      pass = false;
+    }
 
     return {
       name,
@@ -168,21 +162,16 @@ export const expect = test.expect.extend({
     let pass: boolean;
     let result: { actual: unknown } | undefined;
 
-    let remainingTime = timeout;
-    do {
-      try {
-        // we only support matching first argument of last call
-        const lastCallArg = fn.calls[fn.calls.length - 1][0];
-        test.expect(lastCallArg).toMatchObject(expected);
-        pass = true;
-        break;
-      } catch {
-        result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
-        pass = false;
-        remainingTime -= 500;
-        await sleep(500);
-      }
-    } while (remainingTime > 0);
+    try {
+      // we only support matching first argument of last call
+      await test.expect
+        .poll(() => fn.calls[fn.calls.length - 1][0], { timeout })
+        .toMatchObject(expected);
+      pass = true;
+    } catch {
+      result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
+      pass = false;
+    }
 
     return {
       name,
