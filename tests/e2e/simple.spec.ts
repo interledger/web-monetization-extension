@@ -1,3 +1,4 @@
+import type { SpyFn } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
 
@@ -88,7 +89,7 @@ test('does not monetize when continuous payments are disabled', async ({
     await popup.getByRole('textbox').fill('1.5');
     await popup.getByRole('button', { name: 'Send now' }).click();
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
       amountSent: {
@@ -129,50 +130,63 @@ test('does not monetize when continuous payments are disabled', async ({
   });
 });
 
-test('does not monetize when toggle payments in extension is checked', async ({
+test('does not monetize when global payments toggle in unchecked', async ({
   page,
   popup,
   i18n,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+  let monetizationCallback: SpyFn<[Event]>;
 
   await test.step('disables extension', async () => {
-    popup
+    await popup
       .getByRole('checkbox', { name: 'Disable extension' })
       //TO DO: remove force; normally this should not be necessary
       .uncheck({ force: true });
 
-    await expect(popup.locator('h3')).toHaveText(
+    await expect(popup.getByTestId('not-monetized-message')).toHaveText(
       i18n.getMessage('app_text_disabled'),
     );
   });
 
   await test.step('check extension payments do not go through', async () => {
-    await page
-      .getByLabel('Wallet address/Payment pointer')
-      .fill(walletAddressUrl);
-    await page.getByRole('button', { name: 'Add monetization link' }).click();
-
-    await expect(page.locator('link[rel=monetization]')).toHaveAttribute(
-      'href',
-      walletAddressUrl,
-    );
-
+    monetizationCallback = await setupPlayground(page, walletAddressUrl);
     await expect(
       popup.getByRole('button', { name: 'Send now' }),
     ).not.toBeVisible();
-    await page.waitForTimeout(1000);
     await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
   });
 
-  await test.step('clicking on toggle payments re-enables payments in extension', async () => {
-    popup
+  await test.step('and does not monetize even with continuous payments toggle on/off', async () => {
+    const settingsLink = popup.locator(`[href="/settings"]`).first();
+    await settingsLink.click();
+
+    await popup.bringToFront();
+    await popup.getByRole('tab', { name: 'Rate' }).click();
+    const continuousPaymentsToggle = popup.getByTestId(
+      'continuous-payments-toggle',
+    );
+    await continuousPaymentsToggle.uncheck({ force: true });
+
+    await expect(
+      popup.getByRole('tabpanel', { name: 'Rate' }).locator('p'),
+    ).toContainText('Ongoing payments are now disabled');
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
+
+    await continuousPaymentsToggle.check({ force: true });
+  });
+
+  await test.step('checking global payments toggle re-enables payments in extension', async () => {
+    const backHomeLink = popup.locator(`[href="/"]`).first();
+    await backHomeLink.click();
+
+    await popup.bringToFront();
+    await popup
       .getByRole('checkbox', { name: 'Enable extension' })
       //TO DO: remove force; normally this should not be necessary
       .check({ force: true });
 
-    await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
     await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
+    await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
   });
 });
