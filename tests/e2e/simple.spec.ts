@@ -138,7 +138,10 @@ test('does not monetize when toggle payments in extension is checked', async ({
   const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
   await test.step('disables extension', async () => {
-    await popup.locator('label:has(> input[type="checkbox"])').click();
+    popup
+      .getByRole('checkbox', { name: 'Disable extension' })
+      //TO DO: remove force; normally this should not be necessary
+      .uncheck({ force: true });
 
     await expect(popup.locator('h3')).toHaveText(
       i18n.getMessage('app_text_disabled'),
@@ -164,7 +167,10 @@ test('does not monetize when toggle payments in extension is checked', async ({
   });
 
   await test.step('clicking on toggle payments re-enables payments in extension', async () => {
-    await popup.locator('label:has(> input[type="checkbox"])').click();
+    popup
+      .getByRole('checkbox', { name: 'Enable extension' })
+      //TO DO: remove force; normally this should not be necessary
+      .check({ force: true });
 
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
     await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
