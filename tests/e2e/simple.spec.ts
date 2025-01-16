@@ -167,13 +167,14 @@ test('does not monetize when global payments toggle in unchecked', async ({
       'continuous-payments-toggle',
     );
     await continuousPaymentsToggle.uncheck({ force: true });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
 
     await expect(
       popup.getByRole('tabpanel', { name: 'Rate' }).locator('p'),
     ).toContainText('Ongoing payments are now disabled');
-    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
 
     await continuousPaymentsToggle.check({ force: true });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
   });
 
   await test.step('checking global payments toggle re-enables payments in extension', async () => {

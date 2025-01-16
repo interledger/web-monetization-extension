@@ -128,7 +128,7 @@ export const expect = test.expect.extend({
   async toHaveBeenCalledTimes(
     fn: SpyFn,
     expected: number,
-    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+    { timeout = 5000, wait = 0 }: { timeout?: number; wait?: number } = {},
   ) {
     const name = 'toHaveBeenCalledTimes';
 
