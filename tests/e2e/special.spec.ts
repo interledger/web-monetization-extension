@@ -1,34 +1,16 @@
-import { spy } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
+import { setupPlayground } from './helpers/common';
 
 test('iframe add/remove does not de-monetize main page', async ({
   page,
   popup,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-  const playgroundUrl = 'https://webmonetization.org/play/';
 
   await test.step('prepare', async () => {
     await expect(popup.getByTestId('not-monetized-message')).toBeVisible();
 
-    await page.goto(playgroundUrl);
-
-    const monetizationCallback = spy<[Event], void>();
-    await page.exposeFunction('monetizationCallback', monetizationCallback);
-    await page.evaluate(() => {
-      window.addEventListener('monetization', monetizationCallback);
-    });
-
-    await page
-      .getByLabel('Wallet address/Payment pointer')
-      .fill(walletAddressUrl);
-    await page.getByRole('button', { name: 'Add monetization link' }).click();
-
-    await page.$eval(
-      'link[rel="monetization"]',
-      (el) => new Promise((res) => el.addEventListener('load', res)),
-    );
-
+    const monetizationCallback = await setupPlayground(page, walletAddressUrl);
     await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
@@ -71,28 +53,11 @@ test('iframe navigate does not de-monetize main page', async ({
   popup,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-  const playgroundUrl = 'https://webmonetization.org/play/';
 
   await test.step('prepare', async () => {
     await expect(popup.getByTestId('not-monetized-message')).toBeVisible();
 
-    await page.goto(playgroundUrl);
-
-    const monetizationCallback = spy<[Event], void>();
-    await page.exposeFunction('monetizationCallback', monetizationCallback);
-    await page.evaluate(() => {
-      window.addEventListener('monetization', monetizationCallback);
-    });
-
-    await page
-      .getByLabel('Wallet address/Payment pointer')
-      .fill(walletAddressUrl);
-    await page.getByRole('button', { name: 'Add monetization link' }).click();
-
-    await page.$eval(
-      'link[rel="monetization"]',
-      (el) => new Promise((res) => el.addEventListener('load', res)),
-    );
+    const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
     await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({

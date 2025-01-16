@@ -1,8 +1,10 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import type { ConnectDetails } from '../pages/popup';
+import { spy } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
 
 const OPEN_PAYMENTS_REDIRECT_URL = 'https://webmonetization.org/welcome';
+const PLAYGROUND_URL = 'https://webmonetization.org/play';
 
 export async function waitForWelcomePage(page: Page) {
   await page.waitForURL(
@@ -48,4 +50,25 @@ export async function getContinueWaitTime(
     });
   })();
   return continueWaitMs;
+}
+
+export function playgroundUrl(...walletAddressUrls: string[]) {
+  const url = new URL(PLAYGROUND_URL);
+  for (const walletAddress of walletAddressUrls) {
+    url.searchParams.append('wa', walletAddress);
+  }
+  return url.href;
+}
+
+export async function setupPlayground(
+  page: Page,
+  ...walletAddressUrls: string[]
+) {
+  const monetizationCallback = spy<[Event], void>();
+  await page.exposeFunction('monetizationCallback', monetizationCallback);
+  await page.goto(playgroundUrl(...walletAddressUrls));
+  await page.evaluate(() => {
+    window.addEventListener('monetization', monetizationCallback);
+  });
+  return monetizationCallback;
 }
