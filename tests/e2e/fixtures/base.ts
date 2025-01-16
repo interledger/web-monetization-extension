@@ -128,14 +128,13 @@ export const expect = test.expect.extend({
   async toHaveBeenCalledTimes(
     fn: SpyFn,
     expected: number,
-    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+    { timeout = 5000 }: { timeout?: number } = {},
   ) {
     const name = 'toHaveBeenCalledTimes';
 
     let pass: boolean;
     let result: { actual: number } | undefined;
 
-    await sleep(wait);
     let remainingTime = timeout;
     do {
       try {
@@ -162,14 +161,13 @@ export const expect = test.expect.extend({
   async toHaveBeenLastCalledWithMatching(
     fn: SpyFn,
     expected: Record<string, unknown>,
-    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+    { timeout = 5000 }: { timeout?: number } = {},
   ) {
     const name = 'toHaveBeenLastCalledWithMatching';
 
     let pass: boolean;
     let result: { actual: unknown } | undefined;
 
-    await sleep(wait);
     let remainingTime = timeout;
     do {
       try {
