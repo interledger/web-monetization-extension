@@ -14,6 +14,7 @@ import {
   getContinueWaitTime,
   waitForWelcomePage,
   waitForReconnectWelcomePage,
+  setupPlayground,
 } from './helpers/common';
 import { disconnectWallet, fillPopup } from './pages/popup';
 
@@ -25,7 +26,6 @@ test('Reconnect to test wallet with automatic key addition', async ({
   i18n,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-  const monetizationCallback = spy<[Event], void>();
   const revokeInfo = await test.step('connect wallet', async () => {
     const connectButton = await test.step('fill popup', async () => {
       const connectButton = await fillPopup(popup, i18n, {
@@ -126,20 +126,8 @@ test('Reconnect to test wallet with automatic key addition', async ({
     expect(keys.find((key) => key.kid === revokeInfo.keyId)).toBeUndefined();
   });
 
+  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
   await test.step('start monetization', async () => {
-    const playgroundUrl = 'https://webmonetization.org/play/';
-    await page.goto(playgroundUrl);
-
-    await page.exposeFunction('monetizationCallback', monetizationCallback);
-    await page.evaluate(() => {
-      window.addEventListener('monetization', monetizationCallback);
-    });
-
-    await page
-      .getByLabel('Wallet address/Payment pointer')
-      .fill(walletAddressUrl);
-    await page.getByRole('button', { name: 'Add monetization link' }).click();
-
     await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
