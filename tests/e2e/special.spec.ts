@@ -11,7 +11,7 @@ test('iframe add/remove does not de-monetize main page', async ({
     await expect(popup.getByTestId('not-monetized-message')).toBeVisible();
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
     });
@@ -59,7 +59,7 @@ test('iframe navigate does not de-monetize main page', async ({
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
     });

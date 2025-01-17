@@ -18,7 +18,7 @@ test('should monetize site with single wallet address', async ({
     'Load Event',
   );
 
-  await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
+  await expect(monetizationCallback).toHaveBeenCalledTimes(1);
   await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
     paymentPointer: walletAddressUrl,
     amountSent: {
@@ -77,7 +77,7 @@ test('does not monetize when continuous payments are disabled', async ({
       page.locator('#link-events ul.events li').last(),
     ).toContainText('Load Event');
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
   await test.step('but can send one-time payment', async () => {
@@ -88,7 +88,7 @@ test('does not monetize when continuous payments are disabled', async ({
     await popup.getByRole('textbox').fill('1.5');
     await popup.getByRole('button', { name: 'Send now' }).click();
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
       amountSent: {
@@ -115,7 +115,7 @@ test('does not monetize when continuous payments are disabled', async ({
       continuousPaymentsEnabled: true,
     });
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(2, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(2);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
       amountSent: {
@@ -152,7 +152,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
     await expect(
       popup.getByRole('button', { name: 'Send now' }),
     ).not.toBeVisible();
-    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
   await test.step('and does not monetize even with continuous payments toggle on/off', async () => {
@@ -165,14 +165,14 @@ test('does not monetize when global payments toggle in unchecked', async ({
       'continuous-payments-toggle',
     );
     await continuousPaymentsToggle.uncheck({ force: true });
-    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
 
     await expect(
       popup.getByRole('tabpanel', { name: 'Rate' }).locator('p'),
     ).toContainText('Ongoing payments are now disabled');
 
     await continuousPaymentsToggle.check({ force: true });
-    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
   await test.step('checking global payments toggle re-enables payments in extension', async () => {
@@ -185,7 +185,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
       //TO DO: remove force; normally this should not be necessary
       .check({ force: true });
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
   });
 });

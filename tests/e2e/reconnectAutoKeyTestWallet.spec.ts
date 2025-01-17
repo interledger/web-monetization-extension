@@ -127,7 +127,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
 
   const monetizationCallback = await setupPlayground(page, walletAddressUrl);
   await test.step('start monetization', async () => {
-    await expect(monetizationCallback).toHaveBeenCalledTimes(0, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
   await test.step('asks for key-add consent to reconnect wallet', async () => {
@@ -160,7 +160,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await popup.getByRole('textbox').fill('1.5');
     await popup.getByRole('button', { name: 'Send now' }).click();
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1, { wait: 2000 });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
       amountSent: {
