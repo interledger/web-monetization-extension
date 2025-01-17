@@ -64,7 +64,7 @@ export async function setupPlayground(
   page: Page,
   ...walletAddressUrls: string[]
 ) {
-  const monetizationCallback = spy<[Event], void>();
+  const monetizationCallback = spy<[window.MonetizationEvent], void>();
   await page.exposeFunction('monetizationCallback', monetizationCallback);
   await page.goto(playgroundUrl(...walletAddressUrls));
   await page.evaluate(() => {
