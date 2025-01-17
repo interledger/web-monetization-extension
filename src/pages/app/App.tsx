@@ -3,12 +3,12 @@ import {
   BrowserContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
-import browser from 'webextension-polyfill';
 import {
   createHashRouter,
   RouterProvider,
   type RouteObject,
 } from 'react-router-dom';
+import browser from '@/shared/browser';
 
 export const ROUTES = {
   DEFAULT: '/',
