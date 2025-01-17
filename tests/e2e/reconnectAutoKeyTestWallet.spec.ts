@@ -160,9 +160,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await popup.getByRole('textbox').fill('1.5');
     await popup.getByRole('button', { name: 'Send now' }).click();
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1, {
-      timeout: 1000,
-    });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
       amountSent: {

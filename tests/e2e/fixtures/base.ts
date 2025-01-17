@@ -13,7 +13,6 @@ import {
   type Background,
 } from './helpers';
 import { openPopup, type Popup } from '../pages/popup';
-import { sleep } from '@/shared/helpers';
 import type { DeepPartial, Storage } from '@/shared/types';
 
 type BaseScopeWorker = {

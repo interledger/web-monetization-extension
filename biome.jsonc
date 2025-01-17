@@ -27,7 +27,8 @@
         "noConsole": "warn"
       },
       "correctness": {
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": "warn",
+        "noUnusedImports": "error"
       },
       "a11y": {
         "noSvgWithoutTitle": "off"
