@@ -16,6 +16,7 @@ import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
 import type { Storage, StorageKey } from '../../../src/shared/types';
+import type { SpyFn } from 'tinyspy';
 
 export type BrowserInfo = { browserName: string; channel: string | undefined };
 export type Background = Worker;
@@ -361,4 +362,8 @@ export async function getStorage<TKey extends StorageKey>(
     keys,
   );
   return data as { [Key in TKey[][number]]: Storage[Key] };
+}
+
+export function getLastCalledWith<T>(fn: SpyFn<[T]>) {
+  return fn.calls[fn.calls.length - 1][0];
 }

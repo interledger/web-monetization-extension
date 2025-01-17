@@ -4,13 +4,14 @@ import {
   type BrowserContext,
   type Page,
 } from '@playwright/test';
-import type { SpyFn } from 'tinyspy';
+import type { Spy, SpyFn } from 'tinyspy';
 import {
   getBackground,
   getStorage,
   loadContext,
   BrowserIntl,
   type Background,
+  getLastCalledWith,
 } from './helpers';
 import { openPopup, type Popup } from '../pages/popup';
 import { sleep } from '@/shared/helpers';
@@ -185,6 +186,34 @@ export const expect = test.expect.extend({
         await sleep(500);
       }
     } while (remainingTime > 0);
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  toHaveAmountCloseTo(
+    monetizationCallback: SpyFn<[window.MonetizationEvent]>,
+    expected: number,
+    numDigits = 1,
+  ) {
+    const name = 'toHaveAmount';
+    let pass: boolean;
+    let result: { actual: number } | undefined;
+
+    const lastCallArg = getLastCalledWith(monetizationCallback);
+    const value = Number(lastCallArg.amountSent.value);
+    try {
+      expect(value).toBeCloseTo(expected, numDigits);
+      pass = true;
+    } catch {
+      pass = false;
+      result = { actual: value };
+    }
 
     return {
       name,

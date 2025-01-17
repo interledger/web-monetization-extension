@@ -31,6 +31,17 @@ declare global {
       CHIMONEY_PASSWORD: string | undefined;
     }
   }
+
+  namespace window {
+    interface MonetizationEvent extends Event {
+      amountSent: {
+        value: string;
+        currency: string;
+      };
+      incomingPayment: string;
+      paymentPointer: string;
+    }
+  }
 }
 
 export {};

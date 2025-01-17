@@ -88,3 +88,25 @@ export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
       .getByText(i18n.getMessage('connectWallet_action_connect')),
   };
 }
+
+export async function setContinuousPayments(popup: Popup, enabled: boolean) {
+  const settingsLink = popup.locator(`[href="/settings"]`).first();
+  const timeout = 1000;
+  await settingsLink.click({ timeout });
+
+  await popup.getByRole('tab', { name: 'Rate' }).click({ timeout });
+  const toggle = popup.getByTestId('continuous-payments-toggle');
+  if (enabled) {
+    await toggle.check({ force: true, timeout });
+  } else {
+    await toggle.uncheck({ force: true, timeout });
+  }
+  await popup.reload();
+}
+
+export async function makeOneTimePayment(popup: Popup, amount: string) {
+  const timeout = 1000;
+  await popup.reload();
+  await popup.getByRole('textbox').fill(amount, { timeout });
+  await popup.getByRole('button', { name: 'Send now' }).click({ timeout });
+}
