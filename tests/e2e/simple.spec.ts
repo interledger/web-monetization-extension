@@ -185,6 +185,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
       //TO DO: remove force; normally this should not be necessary
       .check({ force: true });
 
+    await page.waitForTimeout(2000);
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
   });
