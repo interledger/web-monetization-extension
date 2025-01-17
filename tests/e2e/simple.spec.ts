@@ -129,29 +129,43 @@ test('does not monetize when continuous payments are disabled', async ({
   });
 });
 
-test('does not monetize when global payments toggle in unchecked', async ({
+test.only('does not monetize when global payments toggle in unchecked', async ({
   page,
   popup,
+  background,
   i18n,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+
+  const sendNowButton = popup.getByRole('button', { name: 'Send now' });
 
   await test.step('disables extension', async () => {
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: true,
+    });
+
     await popup
       .getByRole('checkbox', { name: 'Disable extension' })
-      //TO DO: remove force; normally this should not be necessary
-      .uncheck({ force: true });
+      .uncheck({ force: true }); // TODO: remove force; normally this should not be necessary
 
     await expect(popup.getByTestId('not-monetized-message')).toHaveText(
       i18n.getMessage('app_text_disabled'),
     );
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: false,
+    });
   });
 
+  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+  const eventsLog = page.locator('#link-events ul.events');
+  await expect(eventsLog).toBeVisible();
+  await expect(eventsLog.locator('li')).toHaveCount(1);
+  await expect(eventsLog.locator('li').last()).toContainText('Load Event');
+
   await test.step('check extension payments do not go through', async () => {
-    await expect(
-      popup.getByRole('button', { name: 'Send now' }),
-    ).not.toBeVisible();
+    await expect(sendNowButton).not.toBeVisible();
     await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
@@ -159,12 +173,16 @@ test('does not monetize when global payments toggle in unchecked', async ({
     const settingsLink = popup.locator(`[href="/settings"]`).first();
     await settingsLink.click();
 
-    await popup.bringToFront();
     await popup.getByRole('tab', { name: 'Rate' }).click();
     const continuousPaymentsToggle = popup.getByTestId(
       'continuous-payments-toggle',
     );
     await continuousPaymentsToggle.uncheck({ force: true });
+
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: false,
+      enabled: false,
+    });
     await expect(monetizationCallback).toHaveBeenCalledTimes(0);
 
     await expect(
@@ -172,6 +190,11 @@ test('does not monetize when global payments toggle in unchecked', async ({
     ).toContainText('Ongoing payments are now disabled');
 
     await continuousPaymentsToggle.check({ force: true });
+
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: false,
+    });
     await expect(monetizationCallback).toHaveBeenCalledTimes(0);
   });
 
@@ -179,14 +202,19 @@ test('does not monetize when global payments toggle in unchecked', async ({
     const backHomeLink = popup.locator(`[href="/"]`).first();
     await backHomeLink.click();
 
-    await popup.bringToFront();
     await popup
       .getByRole('checkbox', { name: 'Enable extension' })
-      //TO DO: remove force; normally this should not be necessary
-      .check({ force: true });
+      .check({ force: true }); // TODO: remove force; normally this should not be necessary
+    await expect(sendNowButton).toBeVisible();
 
-    await page.waitForTimeout(2000);
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
-    await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: true,
+    });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1, {
+      timeout: 10_000,
+    });
+    await expect(eventsLog.locator('li')).toHaveCount(2);
+    await expect(eventsLog).toBeVisible();
   });
 });
