@@ -19,7 +19,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [
-    ['list'],
+    [process.env.CI ? 'github' : 'list'],
     [
       'html',
       { open: 'never', outputFolder: path.join(testDir, 'playwright-report') },
