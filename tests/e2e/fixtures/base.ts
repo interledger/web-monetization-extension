@@ -12,6 +12,7 @@ import {
   BrowserIntl,
   type Background,
 } from './helpers';
+import { getLastCallArg } from '../helpers/common';
 import { openPopup, type Popup } from '../pages/popup';
 import type { DeepPartial, Storage } from '@/shared/types';
 
@@ -156,6 +157,9 @@ export const expect = test.expect.extend({
     expected: Record<string, unknown>,
     { timeout = 5000 }: { timeout?: number } = {},
   ) {
+    // Playwright doesn't let us extend to created generic matchers, so we'll
+    // typecast (as) in the way we need it.
+    type SpyFnTyped = SpyFn<[Record<string, string>]>;
     const name = 'toHaveBeenLastCalledWithMatching';
 
     let pass: boolean;
@@ -164,11 +168,11 @@ export const expect = test.expect.extend({
     try {
       // we only support matching first argument of last call
       await test.expect
-        .poll(() => fn.calls[fn.calls.length - 1][0], { timeout })
+        .poll(() => getLastCallArg(fn as SpyFnTyped), { timeout })
         .toMatchObject(expected);
       pass = true;
     } catch {
-      result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
+      result = { actual: getLastCallArg(fn as SpyFnTyped) };
       pass = false;
     }
 
