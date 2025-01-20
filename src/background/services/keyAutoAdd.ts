@@ -105,6 +105,7 @@ export class KeyAutoAddService {
     const ports = new Set<Runtime.Port>();
     const onConnectListener: OnConnectCallback = (port) => {
       if (port.name !== CONNECTION_NAME) return;
+      if (port.sender?.tab && port.sender.tab.id !== tab.id) return;
       if (port.error) {
         reject(new Error(port.error.message));
         return;
