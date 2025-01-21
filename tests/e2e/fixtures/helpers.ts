@@ -65,8 +65,8 @@ export const loadFirefoxAddon = (
       type: 'getRoot',
     });
 
-    const onMessage = (message: any) => {
-      if (message.addonsActor) {
+    const onMessage = (message: Record<string, unknown>) => {
+      if (message.addonsActor && typeof message.addonsActor === 'string') {
         send({
           to: message.addonsActor,
           type: 'installTemporaryAddon',
@@ -152,7 +152,7 @@ export async function loadContext(
     context = await chromium.launchPersistentContext('', {
       channel,
       args: [
-        `--headless=new`,
+        '--headless=new',
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],

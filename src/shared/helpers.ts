@@ -116,11 +116,14 @@ export const errorWithKey = <T extends ErrorKeys = ErrorKeys>(
   cause?: ErrorWithKeyLike,
 ) => ({ key, substitutions, cause });
 
-export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
+export const isErrorWithKey = (err: unknown): err is ErrorWithKeyLike => {
   if (!err || typeof err !== 'object') return false;
+  if (err instanceof ErrorWithKey) return true;
   return (
-    err instanceof ErrorWithKey ||
-    (typeof err.key === 'string' && Array.isArray(err.substitutions))
+    'key' in err &&
+    typeof err.key === 'string' &&
+    'substitutions' in err &&
+    Array.isArray(err.substitutions)
   );
 };
 

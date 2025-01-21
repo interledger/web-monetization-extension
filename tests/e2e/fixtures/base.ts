@@ -13,7 +13,6 @@ import {
   type Background,
 } from './helpers';
 import { openPopup, type Popup } from '../pages/popup';
-import { sleep } from '@/shared/helpers';
 import type { DeepPartial, Storage } from '@/shared/types';
 
 type BaseScopeWorker = {
@@ -78,7 +77,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
 const defaultMessage = (
   thisType: ExpectMatcherState,
   assertionName: string,
-  pass: boolean,
+  _pass: boolean,
   expected: unknown,
   matcherResult?: { actual: unknown },
 ) => {
@@ -89,7 +88,7 @@ const defaultMessage = (
       undefined,
       { isNot: thisType.isNot },
     );
-    const expectedPart = `Expected:${pass ? '' : ' not '}${thisType.utils.printExpected(expected)}`;
+    const expectedPart = `Expected: ${thisType.isNot ? 'not ' : ''}${thisType.utils.printExpected(expected)}`;
     const receivedPart = matcherResult
       ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
       : '';
@@ -102,7 +101,7 @@ export const expect = test.expect.extend({
     const name = 'toHaveStorage';
 
     let pass: boolean;
-    let result: any;
+    let result: { actual: unknown } | undefined;
 
     const storedData = await getStorage(
       background,
@@ -128,27 +127,20 @@ export const expect = test.expect.extend({
   async toHaveBeenCalledTimes(
     fn: SpyFn,
     expected: number,
-    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+    { timeout = 5000 }: { timeout?: number } = {},
   ) {
     const name = 'toHaveBeenCalledTimes';
 
     let pass: boolean;
     let result: { actual: number } | undefined;
 
-    await sleep(wait);
-    let remainingTime = timeout;
-    do {
-      try {
-        test.expect(fn.callCount).toBe(expected);
-        pass = true;
-        break;
-      } catch {
-        result = { actual: fn.callCount };
-        pass = false;
-        remainingTime -= 500;
-        await sleep(500);
-      }
-    } while (remainingTime > 0);
+    try {
+      await test.expect.poll(() => fn.callCount, { timeout }).toBe(expected);
+      pass = true;
+    } catch {
+      result = { actual: fn.callCount };
+      pass = false;
+    }
 
     return {
       name,
@@ -162,29 +154,23 @@ export const expect = test.expect.extend({
   async toHaveBeenLastCalledWithMatching(
     fn: SpyFn,
     expected: Record<string, unknown>,
-    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+    { timeout = 5000 }: { timeout?: number } = {},
   ) {
     const name = 'toHaveBeenLastCalledWithMatching';
 
     let pass: boolean;
     let result: { actual: unknown } | undefined;
 
-    await sleep(wait);
-    let remainingTime = timeout;
-    do {
-      try {
-        // we only support matching first argument of last call
-        const lastCallArg = fn.calls[fn.calls.length - 1][0];
-        test.expect(lastCallArg).toMatchObject(expected);
-        pass = true;
-        break;
-      } catch {
-        result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
-        pass = false;
-        remainingTime -= 500;
-        await sleep(500);
-      }
-    } while (remainingTime > 0);
+    try {
+      // we only support matching first argument of last call
+      await test.expect
+        .poll(() => fn.calls[fn.calls.length - 1][0], { timeout })
+        .toMatchObject(expected);
+      pass = true;
+    } catch {
+      result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
+      pass = false;
+    }
 
     return {
       name,

@@ -103,10 +103,10 @@ function preservePolyfillClassNamesPlugin({
         const minifiedName = match[1];
 
         const result = polyfillContent
-          .replace(definitionRegex, `class MonetizationEvent extends Event`)
+          .replace(definitionRegex, 'class MonetizationEvent extends Event')
           .replace(
             `window.MonetizationEvent=${minifiedName}`,
-            `window.MonetizationEvent=MonetizationEvent`,
+            'window.MonetizationEvent=MonetizationEvent',
           )
           .replaceAll(`new ${minifiedName}`, 'new MonetizationEvent');
 

@@ -52,7 +52,7 @@ jobs:
 
       - run: pnpm format
         if: always()
-      - run: pnpm lint
+      - run: pnpm lint --reporter=github
         if: always()
       - run: pnpm typecheck
         if: always()

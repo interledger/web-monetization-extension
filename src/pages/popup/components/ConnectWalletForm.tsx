@@ -12,6 +12,7 @@ import {
 } from '@/pages/shared/components/InputAmount';
 import { toWalletAddressUrl } from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
+import { deepClone } from 'valtio/utils';
 import {
   cn,
   errorWithKey,
@@ -104,8 +105,12 @@ export const ConnectWalletForm = ({
   const [errors, setErrors] = React.useState<Errors>({
     walletAddressUrl: null,
     amount: null,
-    keyPair: state?.status === 'error:key' ? toErrorInfo(state.error) : null,
-    connect: state?.status === 'error' ? toErrorInfo(state.error) : null,
+    keyPair:
+      state?.status === 'error:key'
+        ? toErrorInfo(deepClone(state.error))
+        : null,
+    connect:
+      state?.status === 'error' ? toErrorInfo(deepClone(state.error)) : null,
   });
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,

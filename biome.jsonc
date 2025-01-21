@@ -20,13 +20,15 @@
     "rules": {
       "recommended": true,
       "style": {
-        "noUnusedTemplateLiteral": "off", // TODO: turn on, too many cases
         "noUselessElse": "off", // TODO: turn on, too many cases
         "noNonNullAssertion": "off" // TODO: turn on, too many cases
       },
       "suspicious": {
-        "noExplicitAny": "off", // TODO: turn on, too many cases
         "noConsole": "warn"
+      },
+      "correctness": {
+        "noUnusedVariables": "warn",
+        "noUnusedImports": "error"
       },
       "a11y": {
         "noSvgWithoutTitle": "off"
