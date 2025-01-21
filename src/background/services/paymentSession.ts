@@ -536,6 +536,7 @@ export class PaymentSession {
   }
 
   private async payContinuous() {
+    this.shouldRetryImmediately = false;
     try {
       const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
@@ -568,7 +569,6 @@ export class PaymentSession {
           intervalInMs: this.intervalInMs,
         });
       }
-      this.shouldRetryImmediately = false;
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
