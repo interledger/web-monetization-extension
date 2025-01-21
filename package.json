@@ -25,8 +25,8 @@
   },
   "dependencies": {
     "@interledger/open-payments": "^6.13.2",
-    "@noble/ed25519": "^2.2.2",
-    "@noble/hashes": "^1.7.0",
+    "@noble/ed25519": "^2.2.3",
+    "@noble/hashes": "^1.7.1",
     "@radix-ui/react-tabs": "^1.1.2",
     "awilix": "^12.0.4",
     "class-variance-authority": "^0.7.1",
@@ -56,7 +56,7 @@
     "@types/chrome": "^0.0.293",
     "@types/github-script": "github:actions/github-script",
     "@types/jest": "^29.5.14",
-    "@types/node": "^20.17.12",
+    "@types/node": "^20.17.14",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/react-router-dom": "^5.3.3",
@@ -84,7 +84,7 @@
     "typescript": "^5.7.3"
   },
   "engines": {
-    "pnpm": "^9.15.3",
+    "pnpm": "^9.15.4",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "^20.18.1"
@@ -98,5 +98,5 @@
       "structured-headers": "1.0.1"
     }
   },
-  "packageManager": "pnpm@9.15.3"
+  "packageManager": "pnpm@9.15.4"
 }
