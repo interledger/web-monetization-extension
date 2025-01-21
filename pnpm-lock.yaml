@@ -19,8 +19,8 @@ importers:
         specifier: ^6.13.2
         version: 6.13.2
       '@noble/ed25519':
-        specifier: ^2.2.2
-        version: 2.2.2
+        specifier: ^2.2.3
+        version: 2.2.3
       '@noble/hashes':
         specifier: ^1.7.0
         version: 1.7.0
@@ -854,8 +854,8 @@ packages:
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
 
-  '@noble/ed25519@2.2.2':
-    resolution: {integrity: sha512-8dbNnAGY8497RMEes5MWzjZkKRLWToKwenlrqzHTWVKyOaEzLqU2iPaVJGRvkyEcJL6CmuqSt0paPFB2aR6WwA==}
+  '@noble/ed25519@2.2.3':
+    resolution: {integrity: sha512-iHV8eI2mRcUmOx159QNrU8vTpQ/Xm70yJ2cTk3Trc86++02usfqFoNl6x0p3JN81ZDS/1gx6xiK0OwrgqCT43g==}
 
   '@noble/hashes@1.7.0':
     resolution: {integrity: sha512-HXydb0DgzTpDPwbVeDGCG1gIu7X6+AuU6Zl6av/E/KG8LMsvPntvq+w17CHRpKBmN6Ybdrt1eP3k4cj8DJa78w==}
@@ -4279,7 +4279,7 @@ snapshots:
 
   '@jsdevtools/ono@7.1.3': {}
 
-  '@noble/ed25519@2.2.2': {}
+  '@noble/ed25519@2.2.3': {}
 
   '@noble/hashes@1.7.0': {}
 
