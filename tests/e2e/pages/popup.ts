@@ -88,3 +88,8 @@ export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
       .getByText(i18n.getMessage('connectWallet_action_connect')),
   };
 }
+
+export async function sendOneTimePayment(popup: Popup, amount: string) {
+  await popup.getByRole('textbox').fill(amount);
+  await popup.getByRole('button', { name: 'Send now' }).click();
+}
