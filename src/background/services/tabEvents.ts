@@ -87,7 +87,7 @@ export class TabEvents {
      * if loading and no url -> clear all sessions but not the overpaying state
      * if loading and url -> we need to check if state keys include this url.
      */
-    if (changeInfo.status === 'loading' && changeInfo.url) {
+    if (changeInfo.status === 'loading') {
       const url = tab.url ? removeQueryParams(tab.url) : '';
       const clearOverpaying = this.tabState.shouldClearOverpaying(tabId, url);
 
