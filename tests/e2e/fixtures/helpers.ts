@@ -4,7 +4,8 @@ import { Buffer } from 'node:buffer';
 import net from 'node:net';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import {
   chromium,
   firefox,
@@ -149,7 +150,13 @@ export async function loadContext(
   const pathToExtension = getPathToExtension(browserName);
   let context: BrowserContext | undefined;
   if (browserName === 'chromium') {
-    context = await chromium.launchPersistentContext('', {
+    const tmpUserDataDir = await mkdtemp(
+      path.join(
+        tmpdir(),
+        `playwright-user-data-dir-${workerInfo.workerIndex}-`,
+      ),
+    );
+    context = await chromium.launchPersistentContext(tmpUserDataDir, {
       channel,
       args: [
         '--headless=new',
