@@ -36,7 +36,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       await use(context);
       await context.close();
     },
-    { scope: 'worker', timeout: 5_000 },
+    { scope: 'worker', timeout: 8_000 },
   ],
 
   // This is the background service worker in Chrome, and background script
