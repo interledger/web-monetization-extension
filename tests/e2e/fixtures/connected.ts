@@ -22,7 +22,7 @@ export const test = base.extend<{ page: Page }, { popup: Popup }>({
 
       await disconnectWallet(popup);
     },
-    { scope: 'worker' },
+    { scope: 'worker', timeout: 10_000 },
   ],
 });
 
