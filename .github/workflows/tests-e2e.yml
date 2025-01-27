@@ -43,9 +43,7 @@ jobs:
         run: pnpm build ${{ matrix.target }} --channel=nightly
 
       - name: Install Playwright Browsers
-        run: |
-          pnpm exec playwright install --with-deps
-          pnpm exec playwright install ${{ matrix.project }}
+        run: pnpm exec playwright install ${{ matrix.project }} --with-deps
 
       - name: Run Playwright tests
         run: pnpm test:e2e:${{ matrix.project }}
