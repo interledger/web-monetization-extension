@@ -36,7 +36,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       await use(context);
       await context.close();
     },
-    { scope: 'worker' },
+    { scope: 'worker', timeout: 5_000 },
   ],
 
   // This is the background service worker in Chrome, and background script
@@ -47,7 +47,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       const background = await getBackground(browserName, context);
       await use(background);
     },
-    { scope: 'worker' },
+    { scope: 'worker', timeout: 5_000 },
   ],
 
   i18n: [
@@ -65,7 +65,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       await use(popup);
       await popup.close();
     },
-    { scope: 'worker' },
+    { scope: 'worker', timeout: 5_000 },
   ],
 
   page: async ({ persistentContext: context }, use) => {

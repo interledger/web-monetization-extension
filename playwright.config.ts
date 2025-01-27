@@ -25,7 +25,11 @@ export default defineConfig({
       { open: 'never', outputFolder: path.join(testDir, 'playwright-report') },
     ],
   ],
-  use: { trace: 'retain-on-failure' },
+  use: {
+    trace: 'retain-on-failure',
+    actionTimeout: 8_000,
+    navigationTimeout: 10_000,
+  },
 
   projects: [
     {
