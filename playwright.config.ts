@@ -26,7 +26,7 @@ export default defineConfig({
     ],
   ],
   use: {
-    trace: 'on',
+    trace: 'retain-on-failure',
     actionTimeout: 8_000,
     navigationTimeout: 10_000,
   },
