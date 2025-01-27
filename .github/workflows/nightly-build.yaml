@@ -65,6 +65,7 @@ jobs:
           CHIMONEY_PASSWORD: ${{ secrets.E2E_CHIMONEY_PASSWORD }}
 
       - name: Encrypt report
+        if: always()
         shell: bash
         working-directory: tests/e2e/playwright-report
         run: |
