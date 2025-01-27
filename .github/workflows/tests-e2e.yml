@@ -13,10 +13,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - name: Chrome
-          #   project: chrome
-          #   target: chrome
-          #   runs-on: ubuntu-22.04
+          - name: Chrome
+            project: chrome
+            target: chrome
+            runs-on: ubuntu-22.04
           # - name: Firefox
           #   project: firefox
           #   target: firefox
@@ -51,7 +51,6 @@ jobs:
         run: pnpm test:e2e:${{ matrix.project }}
         env:
           PLAYWRIGHT_PROJECT: ${{ matrix.project }}
-          DEBUG: 'pw:browser'
           PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: '1'
           TEST_WALLET_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
           TEST_WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
