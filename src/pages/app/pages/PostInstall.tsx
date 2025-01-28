@@ -178,12 +178,6 @@ const Steps = () => {
             }}
             getWalletInfo={getWalletInformation}
             connectWallet={(data) => message.send('CONNECT_WALLET', data)}
-            onConnect={() => {
-              // The popup closes due to redirects on connect, so we don't need to
-              // update any state manually.
-              // But we reload it, as it's open all-time when running E2E tests
-              window.location.reload();
-            }}
             clearConnectState={() => message.send('CONNECT_WALLET', null)}
           />
         </div>
