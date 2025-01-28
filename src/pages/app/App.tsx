@@ -3,6 +3,7 @@ import {
   BrowserContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
+import { MessageContextProvider, WaitForStateLoad } from '@/app/lib/context';
 import browser from 'webextension-polyfill';
 import {
   createHashRouter,
@@ -27,9 +28,13 @@ export const App = () => {
   });
   return (
     <BrowserContextProvider browser={browser}>
-      <TranslationContextProvider>
-        <RouterProvider router={router} />
-      </TranslationContextProvider>
+      <MessageContextProvider>
+        <TranslationContextProvider>
+          <WaitForStateLoad>
+            <RouterProvider router={router} />
+          </WaitForStateLoad>
+        </TranslationContextProvider>
+      </MessageContextProvider>
     </BrowserContextProvider>
   );
 };

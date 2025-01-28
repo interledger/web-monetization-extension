@@ -220,6 +220,19 @@ export type ContentToBackgroundMessage = {
 };
 // #endregion
 
+// #region App ↦ BG
+export type AppToBackgroundMessage = {
+  GET_CONTEXT_DATA: {
+    input: never;
+    output: PopupState;
+  };
+  CONNECT_WALLET: {
+    input: null | ConnectWalletPayload;
+    output: undefined;
+  };
+};
+// #endregion
+
 // #region To BG
 type ToBackgroundMessageMap = PopupToBackgroundMessage &
   ContentToBackgroundMessage;
@@ -281,4 +294,19 @@ export type BackgroundToPopupMessage = {
     data: BackgroundToPopupMessagesMap[K];
   };
 }[keyof BackgroundToPopupMessagesMap];
+// #endregion
+
+// #region BG ↦ App
+export const BACKGROUND_TO_APP_CONNECTION_NAME = 'app';
+
+export interface BackgroundToAppMessagesMap {
+  SET_TRANSIENT_STATE: PopupTransientState;
+}
+
+export type BackgroundToAppMessage = {
+  [K in keyof BackgroundToAppMessagesMap]: {
+    type: K;
+    data: BackgroundToAppMessagesMap[K];
+  };
+}[keyof BackgroundToAppMessagesMap];
 // #endregion

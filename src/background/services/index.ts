@@ -8,6 +8,7 @@ export { TabEvents } from './tabEvents';
 export { TabState } from './tabState';
 export { WindowState } from './windowState';
 export { SendToPopup } from './sendToPopup';
+export { SendToApp } from './sendToApp';
 export { EventsService } from './events';
 export { Deduplicator } from './deduplicator';
 export { Heartbeat } from './heartbeat';

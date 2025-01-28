@@ -4,8 +4,16 @@ import {
   CaretDownIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import { cn, getBrowserName, type BrowserName } from '@/shared/helpers';
+import {
+  cn,
+  getBrowserName,
+  getWalletInformation,
+  type BrowserName,
+} from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
+import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
+import { useMessage } from '@/app/lib/context';
+import { useAppState } from '@/app/lib/store';
 
 export const Component = () => {
   return (
@@ -64,7 +72,9 @@ const Steps = () => {
   const isPinnedToToolbar = usePinnedStatus();
   const [isOpen, setIsOpen] = React.useState(0);
   const browserName = getBrowserName(browser, navigator.userAgent);
-  const popupUrl = browser.runtime.getURL('popup/index.html');
+  const { transientState, publicKey } = useAppState();
+  const connectState = transientState.connect;
+  const message = useMessage();
 
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
@@ -151,11 +161,30 @@ const Steps = () => {
         title={t('postInstall_action_submit')}
       >
         <div className="mx-auto h-popup w-popup overflow-hidden">
-          <iframe
-            loading="lazy"
-            src={popupUrl}
-            title="Connect your wallet"
-            className="h-popup w-popup border-none"
+          <ConnectWalletForm
+            publicKey={publicKey}
+            state={connectState}
+            defaultValues={{
+              recurring:
+                localStorage?.getItem('connect.recurring') === 'true' || false,
+              amount: localStorage?.getItem('connect.amount') || undefined,
+              walletAddressUrl:
+                localStorage?.getItem('connect.walletAddressUrl') || undefined,
+              autoKeyAddConsent:
+                localStorage?.getItem('connect.autoKeyAddConsent') === 'true',
+            }}
+            saveValue={(key, val) => {
+              localStorage?.setItem(`connect.${key}`, val.toString());
+            }}
+            getWalletInfo={getWalletInformation}
+            connectWallet={(data) => message.send('CONNECT_WALLET', data)}
+            onConnect={() => {
+              // The popup closes due to redirects on connect, so we don't need to
+              // update any state manually.
+              // But we reload it, as it's open all-time when running E2E tests
+              window.location.reload();
+            }}
+            clearConnectState={() => message.send('CONNECT_WALLET', null)}
           />
         </div>
       </Step>

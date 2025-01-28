@@ -16,6 +16,7 @@ import {
   TabState,
   WindowState,
   SendToPopup,
+  SendToApp,
   EventsService,
   Heartbeat,
   Deduplicator,
@@ -47,6 +48,7 @@ export interface Cradle {
   monetizationService: MonetizationService;
   message: MessageManager<BackgroundToContentMessage>;
   sendToPopup: SendToPopup;
+  sendToApp: SendToApp;
   tabEvents: TabEvents;
   background: Background;
   t: Translation;
@@ -102,6 +104,7 @@ export const configureContainer = () => {
     message: asClass(MessageManager<BackgroundToContentMessage>).singleton(),
     tabEvents: asClass(TabEvents).singleton(),
     sendToPopup: asClass(SendToPopup).singleton(),
+    sendToApp: asClass(SendToApp).singleton(),
     background: asClass(Background)
       .singleton()
       .inject(() => ({

@@ -27,6 +27,7 @@ export class Background {
   private tabEvents: Cradle['tabEvents'];
   private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
+  private sendToApp: Cradle['sendToApp'];
   private events: Cradle['events'];
   private heartbeat: Cradle['heartbeat'];
 
@@ -39,6 +40,7 @@ export class Background {
     tabEvents,
     windowState,
     sendToPopup,
+    sendToApp,
     events,
     heartbeat,
   }: Cradle) {
@@ -48,6 +50,7 @@ export class Background {
       monetizationService,
       storage,
       sendToPopup,
+      sendToApp,
       tabEvents,
       windowState,
       logger,
@@ -67,6 +70,7 @@ export class Background {
     this.bindTabHandlers();
     this.bindWindowHandlers();
     this.sendToPopup.start();
+    this.sendToApp.start();
     await KeyAutoAddService.registerContentScripts({ browser: this.browser });
   }
 
@@ -330,6 +334,7 @@ export class Background {
 
     this.events.on('storage.popup_transient_state_update', (state) => {
       this.sendToPopup.send('SET_TRANSIENT_STATE', state);
+      this.sendToApp.send('SET_TRANSIENT_STATE', state);
     });
 
     this.events.on('request_popup_close', () => {
