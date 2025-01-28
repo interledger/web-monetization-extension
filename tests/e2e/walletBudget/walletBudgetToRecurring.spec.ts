@@ -66,10 +66,13 @@ test('edit wallet budget from one-time to recurring', async ({
     await expect(submitButton).toBeEnabled();
 
     await expect(popup.getByTestId('renew-date-msg')).toBeVisible();
-    await expect(popup.getByTestId('renew-date-msg')).toContainText(
-      `renew on ${addMonths(new Date(), 1).toLocaleString(undefined, {
-        dateStyle: 'medium',
-      })}`,
+    await expect(
+      popup.getByTestId('renew-date-msg').locator('time'),
+    ).toHaveAttribute(
+      'datetime',
+      expect.stringContaining(
+        addMonths(new Date(), 1).toISOString().slice(0, 16),
+      ),
     );
 
     return submitButton;
