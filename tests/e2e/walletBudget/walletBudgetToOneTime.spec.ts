@@ -18,11 +18,10 @@ test('edit wallet budget from one-time to one-time', async ({
     'oneTimeGrant',
     'walletAddress',
   ]);
-  const budgetAmountFormatted = transformBalance(
+  const budgetAmount = transformBalance(
     oneTimeGrant!.amount.value,
     walletAddress!.assetScale,
   );
-  const budgetAmount = Number(budgetAmountFormatted);
 
   const settingsLink = popup.locator(`[href="/settings"]`);
   const budgetTab = popup.getByRole('tab', { name: 'Budget' });
@@ -33,8 +32,8 @@ test('edit wallet budget from one-time to one-time', async ({
 
   await settingsLink.click();
   await budgetTab.click();
-  await expect(remainingBalanceInput).toHaveValue(budgetAmountFormatted);
-  await expect(budgetAmountInput).toHaveValue(budgetAmountFormatted);
+  await expect(remainingBalanceInput).toHaveValue(budgetAmount);
+  await expect(budgetAmountInput).toHaveValue(budgetAmount);
   await expect(recurringInput).not.toBeChecked();
 
   await test.step('make payment to reduce remaining balance', async () => {
@@ -49,7 +48,7 @@ test('edit wallet budget from one-time to one-time', async ({
     const remainingBalance = await popup
       .getByTestId('remaining-balance')
       .getAttribute('data-value');
-    expect(Number(remainingBalance)).toBeLessThan(budgetAmount);
+    expect(Number(remainingBalance)).toBeLessThan(Number(budgetAmount));
   });
 
   const submitButton = await test.step('edit budget amount', async () => {
