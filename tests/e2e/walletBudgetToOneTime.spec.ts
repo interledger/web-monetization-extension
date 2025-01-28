@@ -1,9 +1,9 @@
+import { test, expect } from './fixtures/connected';
+import { getStorage } from './fixtures/helpers';
+import { getContinueWaitTime, setupPlayground } from './helpers/common';
+import { completeGrant, DEFAULT_CONTINUE_WAIT_MS } from './helpers/testWallet';
+import { sendOneTimePayment } from './pages/popup';
 import { transformBalance } from '@/shared/helpers';
-import { test, expect } from '../fixtures/connected';
-import { getStorage } from '../fixtures/helpers';
-import { getContinueWaitTime, setupPlayground } from '../helpers/common';
-import { completeGrant, DEFAULT_CONTINUE_WAIT_MS } from '../helpers/testWallet';
-import { sendOneTimePayment } from '../pages/popup';
 
 test('edit wallet budget from one-time to one-time', async ({
   popup,
