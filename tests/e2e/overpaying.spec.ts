@@ -1,12 +1,28 @@
 import { spy } from 'tinyspy';
-import { test, expect } from './fixtures/connected';
+import { test, expect } from './fixtures/base';
 import {
   getLastCallArg,
   playgroundUrl,
   setupPlayground,
 } from './helpers/common';
-import { sendOneTimePayment } from './pages/popup';
+import {
+  connectWallet,
+  disconnectWallet,
+  sendOneTimePayment,
+} from './pages/popup';
 import type { OutgoingPayment } from '@interledger/open-payments';
+
+test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
+  await connectWallet(persistentContext, background, i18n, null, popup, {
+    walletAddressUrl,
+    amount: '10',
+    recurring: false,
+  });
+});
+
+test.afterAll(async ({ popup }) => {
+  await disconnectWallet(popup);
+});
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();

@@ -1,9 +1,22 @@
-import { pathToFileURL } from 'node:url';
-import { test, expect } from './fixtures/connected';
 import type { Locator } from '@playwright/test';
+import { pathToFileURL } from 'node:url';
+import { test, expect } from './fixtures/base';
+import { connectWallet, disconnectWallet } from './pages/popup';
 import { setupPlayground } from './helpers/common';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
+
+test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
+  await connectWallet(persistentContext, background, i18n, null, popup, {
+    walletAddressUrl,
+    amount: '10',
+    recurring: false,
+  });
+});
+
+test.afterAll(async ({ popup }) => {
+  await disconnectWallet(popup);
+});
 
 test.beforeEach(async ({ popup, page }) => {
   await popup.reload();

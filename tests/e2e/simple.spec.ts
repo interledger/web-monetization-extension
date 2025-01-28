@@ -1,5 +1,20 @@
-import { test, expect } from './fixtures/connected';
+import { test, expect } from './fixtures/base';
 import { setupPlayground } from './helpers/common';
+import { connectWallet, disconnectWallet } from './pages/popup';
+
+const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
+
+test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
+  await connectWallet(persistentContext, background, i18n, null, popup, {
+    walletAddressUrl,
+    amount: '10',
+    recurring: false,
+  });
+});
+
+test.afterAll(async ({ popup }) => {
+  await disconnectWallet(popup);
+});
 
 test.beforeEach(async ({ popup }) => {
   await popup.reload();
@@ -9,7 +24,6 @@ test('should monetize site with single wallet address', async ({
   page,
   popup,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
   await page.waitForSelector('#link-events .log-header');
@@ -41,8 +55,6 @@ test('does not monetize when continuous payments are disabled', async ({
   popup,
   background,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-
   await test.step('disable continuous payments', async () => {
     await expect(background).toHaveStorage({ continuousPaymentsEnabled: true });
 
@@ -135,8 +147,6 @@ test('does not monetize when global payments toggle in unchecked', async ({
   background,
   i18n,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-
   const sendNowButton = popup.getByRole('button', { name: 'Send now' });
 
   await test.step('disables extension', async () => {

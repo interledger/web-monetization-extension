@@ -11,7 +11,7 @@ import { transformBalance } from '@/shared/helpers';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-test.beforeEach(async ({ background, popup, persistentContext, i18n }) => {
+test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
   await connectWallet(persistentContext, background, i18n, null, popup, {
     walletAddressUrl,
     amount: '10',
@@ -19,7 +19,7 @@ test.beforeEach(async ({ background, popup, persistentContext, i18n }) => {
   });
 });
 
-test.afterEach(async ({ popup }) => {
+test.afterAll(async ({ popup }) => {
   await disconnectWallet(popup);
 });
 

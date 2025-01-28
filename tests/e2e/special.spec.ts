@@ -1,12 +1,25 @@
-import { test, expect } from './fixtures/connected';
+import { test, expect } from './fixtures/base';
 import { setupPlayground } from './helpers/common';
+import { connectWallet, disconnectWallet } from './pages/popup';
+
+const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
+
+test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
+  await connectWallet(persistentContext, background, i18n, null, popup, {
+    walletAddressUrl,
+    amount: '10',
+    recurring: false,
+  });
+});
+
+test.afterAll(async ({ popup }) => {
+  await disconnectWallet(popup);
+});
 
 test('iframe add/remove does not de-monetize main page', async ({
   page,
   popup,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-
   await test.step('prepare', async () => {
     await expect(popup.getByTestId('not-monetized-message')).toBeVisible();
 
@@ -52,8 +65,6 @@ test('iframe navigate does not de-monetize main page', async ({
   page,
   popup,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-
   await test.step('prepare', async () => {
     await expect(popup.getByTestId('not-monetized-message')).toBeVisible();
 
