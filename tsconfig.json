@@ -15,10 +15,12 @@
     "allowSyntheticDefaultImports": true,
     "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
+    "noUnusedLocals": true,
     "noEmit": true,
     "paths": {
       "@/shared/*": ["./shared/*"],
       "@/popup/*": ["./pages/popup/*"],
+      "@/app/*": ["./pages/app/*"],
       "@/pages/*": ["./pages/*"],
       "@/background/*": ["./background/*"],
       "@/content/*": ["./content/*"],

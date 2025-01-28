@@ -1,5 +1,6 @@
 import { type VariantProps, cva } from 'class-variance-authority';
-import React, { forwardRef } from 'react';
+import React from 'react';
+import { forwardRef } from 'react';
 
 import { cn } from '@/shared/helpers';
 
@@ -48,6 +49,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   return (
     <label className="flex items-center gap-x-4">
       <input
+        // biome-ignore lint/a11y/useAriaPropsForRole: todo
         role="switch"
         ref={ref}
         type="checkbox"
@@ -55,7 +57,7 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
         onChange={onChange}
         disabled={disabled}
         {...props}
-        className="peer pointer-events-none absolute -translate-x-[100%] opacity-0"
+        className="peer absolute -translate-x-[100%] opacity-0"
       />
       <div className={cn(switchVariants({ size, disabled }), className)} />
       {label ? <span className="font-normal">{label}</span> : null}

@@ -37,7 +37,10 @@ export const getPlugins = ({
         }));
       },
     },
-    ignorePackagePlugin([/@apidevtools[/|\\]json-schema-ref-parser/]),
+    ignorePackagePlugin([
+      /@apidevtools[/|\\]json-schema-ref-parser/,
+      /@interledger[/|\\]openapi/,
+    ]),
     esbuildStylePlugin({
       extract: true,
       postcss: {
@@ -50,6 +53,10 @@ export const getPlugins = ({
         {
           from: toPosix(path.join(SRC_DIR, 'pages', 'popup', 'index.html')),
           to: toPosix(path.join(outDir, 'popup', 'index.html')),
+        },
+        {
+          from: toPosix(path.join(SRC_DIR, 'pages', 'app', 'index.html')),
+          to: toPosix(path.join(outDir, 'pages', 'app', 'index.html')),
         },
         {
           from: toPosix(
@@ -114,7 +121,7 @@ function processManifestPlugin({
         ) as WebExtensionManifest;
         // Transform manifest as targets have different expectations
         // @ts-expect-error Only for IDE. No target accepts it
-        delete json['$schema'];
+        json.$schema = undefined;
 
         if (channel === 'nightly') {
           // Set version to YYYY.M.D
@@ -131,9 +138,9 @@ function processManifestPlugin({
         }
 
         if (channel === 'preview') {
-          json.name = json.name + ' Preview';
+          json.name = `${json.name} Preview`;
         } else if (channel === 'nightly') {
-          json.name = json.name + ' Nightly';
+          json.name = `${json.name} Nightly`;
         }
 
         if (dev) {
@@ -143,11 +150,11 @@ function processManifestPlugin({
           ) {
             json.host_permissions.push('http://*/*');
           }
-          json.content_scripts?.forEach((contentScript) => {
+          for (const contentScript of json.content_scripts ?? []) {
             if (!contentScript.matches.includes('http://*/*')) {
               contentScript.matches.push('http://*/*');
             }
-          });
+          }
         }
 
         if (target === 'firefox') {
@@ -155,9 +162,9 @@ function processManifestPlugin({
           json.background = {
             scripts: [json.background.service_worker],
           };
-          delete json.minimum_chrome_version;
+          json.minimum_chrome_version = undefined;
         } else {
-          delete json['browser_specific_settings'];
+          json.browser_specific_settings = undefined;
         }
 
         await fs.writeFile(dest, JSON.stringify(json, null, 2));

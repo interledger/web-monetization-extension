@@ -41,11 +41,7 @@ test.describe('should fail to connect if:', () => {
       i18n.getMessage('connectWallet_error_urlInvalidUrl'),
     );
 
-    expect(
-      await background.evaluate(() => {
-        return chrome.storage.local.get(['connected']);
-      }),
-    ).toEqual({ connected: false });
+    await expect(background).toHaveStorage({ connected: false });
   });
 
   test('invalid wallet address provided', async ({
@@ -62,10 +58,6 @@ test.describe('should fail to connect if:', () => {
       'not a valid wallet address',
     );
 
-    expect(
-      await background.evaluate(() => {
-        return chrome.storage.local.get(['connected']);
-      }),
-    ).toEqual({ connected: false });
+    await expect(background).toHaveStorage({ connected: false });
   });
 });

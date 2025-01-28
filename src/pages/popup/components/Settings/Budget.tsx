@@ -5,17 +5,14 @@ import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
 import { ErrorMessage } from '@/pages/shared/components/ErrorMessage';
 import {
-  ErrorWithKeyLike,
+  type ErrorWithKeyLike,
   getNextOccurrence,
   transformBalance,
 } from '@/shared/helpers';
 import { getCurrencySymbol } from '@/pages/shared/lib/utils';
-import {
-  useMessage,
-  useTranslation,
-  type PopupState,
-} from '@/popup/lib/context';
+import { useMessage, useTranslation } from '@/popup/lib/context';
 import type { Response, UpdateBudgetPayload } from '@/shared/messages';
+import type { PopupState } from '@/popup/lib/store';
 
 type Props = Pick<PopupState, 'balance' | 'grants' | 'walletAddress'>;
 
@@ -113,7 +110,7 @@ const BudgetAmount = ({
   };
 
   const renewDate = React.useMemo(() => {
-    let interval;
+    let interval: string | undefined;
     if (!changed.amount && !changed.recurring) {
       interval = grants.recurring?.interval;
     }

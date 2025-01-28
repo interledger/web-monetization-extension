@@ -18,7 +18,7 @@ export function Countdown({
 }
 
 export function useCountdown(expiresAt: number) {
-  const getMinuteAndSecond = (deadline: number) => {
+  const getMinuteAndSecond = React.useCallback((deadline: number) => {
     const distance = deadline - Date.now();
     if (distance < 0) {
       return ['00', '00'] as const;
@@ -29,7 +29,7 @@ export function useCountdown(expiresAt: number) {
       minutes.toString().padStart(2, '0'),
       seconds.toString().padStart(2, '0'),
     ] as const;
-  };
+  }, []);
 
   const [value, setValue] = React.useState(getMinuteAndSecond(expiresAt));
 
@@ -49,7 +49,7 @@ export function useCountdown(expiresAt: number) {
     return () => {
       cancelAnimationFrame(requestId);
     };
-  }, [expiresAt]);
+  }, [expiresAt, getMinuteAndSecond]);
 
   return value;
 }

@@ -29,22 +29,11 @@ export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <mask
-        id="mask0_169_196"
-        maskUnits="userSpaceOnUse"
-        x="0"
-        y="0"
-        width="25"
-        height="25"
-      >
-        <rect x="0.75" y="0.5" width="24" height="24" fill="#C4C4C4" />
-      </mask>
-      <g mask="url(#mask0_169_196)">
-        <path
-          d="M12.75 20.5L4.75 12.5L12.75 4.5L14.175 5.9L8.575 11.5H20.75V13.5H8.575L14.175 19.1L12.75 20.5Z"
-          fill="#475569"
-        />
-      </g>
+      <rect x="0.75" y="0.5" width="24" height="24" fill="none" />
+      <path
+        d="M12.75 20.5L4.75 12.5L12.75 4.5L14.175 5.9L8.575 11.5H20.75V13.5H8.575L14.175 19.1L12.75 20.5Z"
+        fill="currentColor"
+      />
     </svg>
   );
 };
@@ -75,6 +64,22 @@ export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
           fill="currentColor"
         />
       </g>
+    </svg>
+  );
+};
+
+export const Power = (props: React.SVGProps<SVGSVGElement>) => {
+  return (
+    <svg
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" />
     </svg>
   );
 };
@@ -198,6 +203,37 @@ export const XIcon = (props: React.SVGProps<SVGSVGElement>) => {
         strokeLinejoin="round"
         d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
       />
+    </svg>
+  );
+};
+
+export const CaretDownIcon = (props: React.SVGProps<SVGSVGElement>) => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      fill="none"
+      strokeLinecap="round"
+      {...props}
+    >
+      <path d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+    </svg>
+  );
+};
+
+export const ExternalIcon = (props: React.SVGProps<SVGSVGElement>) => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
     </svg>
   );
 };

@@ -68,9 +68,11 @@ export class StorageService {
     return data as { [Key in TKey[][number]]: Storage[Key] };
   }
 
-  async set<TKey extends StorageKey>(data: {
-    [K in TKey]: Storage[TKey];
-  }): Promise<void> {
+  async set<TKey extends StorageKey>(
+    data: {
+      [K in TKey]: Storage[TKey];
+    },
+  ): Promise<void> {
     await this.browser.storage.local.set(data);
   }
 
@@ -114,14 +116,6 @@ export class StorageService {
       await storage.remove(deleteKeys);
     }
     return data as unknown as Storage;
-  }
-
-  async getWMState(): Promise<boolean> {
-    const { continuousPaymentsEnabled } = await this.get([
-      'continuousPaymentsEnabled',
-    ]);
-
-    return continuousPaymentsEnabled;
   }
 
   async keyPairExists(): Promise<boolean> {
@@ -227,9 +221,10 @@ export class StorageService {
 /**
  * @param existingData Existing data from previous version.
  */
-type Migration = (
-  existingData: Record<string, any>,
-) => [data: Record<string, any>, deleteKeys?: string[]];
+
+// biome-ignore lint/suspicious/noExplicitAny: our code defines shape of data
+type Data = Record<string, any>;
+type Migration = (existingData: Data) => [data: Data, deleteKeys?: string[]];
 
 // There was never a migration to reach 1.
 //

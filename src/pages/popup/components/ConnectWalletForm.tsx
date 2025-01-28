@@ -5,12 +5,14 @@ import { Switch } from '@/pages/shared/components/ui/Switch';
 import { Code } from '@/pages/shared/components/ui/Code';
 import { ErrorMessage } from '@/pages/shared/components/ErrorMessage';
 import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
+import { AutoKeyAddConsent } from '@/pages/shared/components/AutoKeyAddConsent';
 import {
   InputAmount,
   validateAmount,
 } from '@/pages/shared/components/InputAmount';
 import { toWalletAddressUrl } from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
+import { deepClone } from 'valtio/utils';
 import {
   cn,
   errorWithKey,
@@ -20,7 +22,7 @@ import {
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
-import type { PopupTransientState } from '@/shared/types';
+import type { DeepReadonly, PopupTransientState } from '@/shared/types';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -29,14 +31,19 @@ interface Inputs {
   autoKeyAddConsent: boolean;
 }
 
+type ConnectTransientState = DeepReadonly<PopupTransientState['connect']>;
 type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
+type OnInputHandler = NonNullable<
+  React.DOMAttributes<HTMLInputElement>['onInput']
+>;
+
 interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<Inputs>;
-  state?: PopupTransientState['connect'];
+  state?: ConnectTransientState;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
@@ -81,9 +88,12 @@ export const ConnectWalletForm = ({
   }, [clearConnectState]);
 
   const toErrorInfo = React.useCallback(
-    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
+    (
+      err?: string | DeepReadonly<ErrorWithKeyLike> | null,
+    ): ErrorInfo | null => {
       if (!err) return null;
       if (typeof err === 'string') return { message: err };
+      // @ts-expect-error readonly, it's ok
       return { message: t(err), info: err };
     },
     [t],
@@ -95,8 +105,12 @@ export const ConnectWalletForm = ({
   const [errors, setErrors] = React.useState<Errors>({
     walletAddressUrl: null,
     amount: null,
-    keyPair: state?.status === 'error:key' ? toErrorInfo(state.error) : null,
-    connect: state?.status === 'error' ? toErrorInfo(state.error) : null,
+    keyPair:
+      state?.status === 'error:key'
+        ? toErrorInfo(deepClone(state.error))
+        : null,
+    connect:
+      state?.status === 'error' ? toErrorInfo(deepClone(state.error)) : null,
   });
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
@@ -144,6 +158,34 @@ export const ConnectWalletForm = ({
       return false;
     },
     [saveValue, getWalletInformation, toErrorInfo],
+  );
+
+  const onWalletAddressInput: OnInputHandler = React.useCallback(
+    (event) => {
+      const input = event.currentTarget;
+      const ev = event.nativeEvent as InputEvent;
+      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
+      if (
+        !value ||
+        (ev.inputType && ev.inputType !== 'insertReplacementText')
+      ) {
+        return; // not autocomplete
+      }
+      if (validateWalletAddressUrl(value)) {
+        return; // not valid data from autocomplete, fallback to input blur based behavior
+      }
+      if (value === walletAddressUrl) {
+        if (value || !input.required) {
+          return;
+        }
+      }
+      // use as autocompleted value
+      void handleWalletAddressUrlChange(value, input).then((ok) => {
+        resetState();
+        if (ok) document.getElementById('connectAmount')?.focus();
+      });
+    },
+    [handleWalletAddressUrlChange, resetState, walletAddressUrl],
   );
 
   const handleAmountChange = React.useCallback(
@@ -220,7 +262,6 @@ export const ConnectWalletForm = ({
       <AutoKeyAddConsent
         onAccept={() => {
           autoKeyAddConsent.current = true;
-          // saveValue('autoKeyAddConsent', true);
           setShowConsent(false);
           handleSubmit();
         }}
@@ -229,6 +270,7 @@ export const ConnectWalletForm = ({
           setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           setShowConsent(false);
         }}
+        intent="CONNECT_WALLET"
       />
     );
   }
@@ -269,6 +311,7 @@ export const ConnectWalletForm = ({
         spellCheck={false}
         enterKeyHint="go"
         readOnly={isSubmitting}
+        onInput={onWalletAddressInput}
         onPaste={async (ev) => {
           const input = ev.currentTarget;
           let value = ev.clipboardData.getData('text');
@@ -385,46 +428,6 @@ export const ConnectWalletForm = ({
   );
 };
 
-const AutoKeyAddConsent: React.FC<{
-  onAccept: () => void;
-  onDecline: () => void;
-}> = ({ onAccept, onDecline }) => {
-  const t = useTranslation();
-  return (
-    <form
-      className="space-y-4 text-center"
-      data-testid="connect-wallet-auto-key-consent"
-    >
-      <p className="text-lg leading-snug text-weak">
-        {t('connectWalletKeyService_text_consentP1')}{' '}
-        <a
-          hidden
-          href="https://webmonetization.org"
-          className="text-primary hover:underline"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {t('connectWalletKeyService_text_consentLearnMore')}
-        </a>
-      </p>
-
-      <div className="space-y-2 pt-12 text-medium">
-        <p>{t('connectWalletKeyService_text_consentP2')}</p>
-        <p>{t('connectWalletKeyService_text_consentP3')}</p>
-      </div>
-
-      <div className="mx-auto flex w-3/4 justify-around gap-4">
-        <Button onClick={onAccept}>
-          {t('connectWalletKeyService_label_consentAccept')}
-        </Button>
-        <Button onClick={onDecline} variant="destructive">
-          {t('connectWalletKeyService_label_consentDecline')}
-        </Button>
-      </div>
-    </form>
-  );
-};
-
 const ManualKeyPairNeeded: React.FC<{
   error: { message: string; details: null | ErrorInfo; whyText: string };
   hideError?: boolean;
@@ -477,7 +480,7 @@ const ManualKeyPairNeeded: React.FC<{
   );
 };
 
-function isAutoKeyAddFailed(state: PopupTransientState['connect']) {
+function isAutoKeyAddFailed(state: ConnectTransientState) {
   if (state?.status === 'error') {
     return (
       isErrorWithKey(state.error) &&

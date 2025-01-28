@@ -15,6 +15,7 @@ export const getDevOptions = ({
     sourcemap: 'linked',
     metafile: false,
     minify: false,
+    external: ['*.woff2'],
     plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
       typecheckPlugin({ buildMode: 'readonly', watch: true }),
       liveReloadPlugin({ target }),
@@ -97,7 +98,7 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
       build.onLoad({ filter: /src\/background\/index\.ts$/ }, async (args) => {
         const contents = await readFile(args.path, 'utf8');
         return {
-          contents: reloadScriptBackground + '\n' + contents,
+          contents: `${reloadScriptBackground}\n${contents}`,
           loader: 'ts' as const,
         };
       });
@@ -107,7 +108,7 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
         async (args) => {
           const contents = await readFile(args.path, 'utf8');
           return {
-            contents: contents + '\n\n\n' + reloadScriptPopup,
+            contents: `${contents}\n\n\n${reloadScriptPopup}`,
             loader: 'tsx' as const,
           };
         },
@@ -115,14 +116,14 @@ function liveReloadPlugin({ target }: { target: Target }): ESBuildPlugin {
       build.onLoad({ filter: /src\/pages\/.+\/index.tsx$/ }, async (args) => {
         const contents = await readFile(args.path, 'utf8');
         return {
-          contents: contents + '\n\n\n' + reloadScriptPages,
+          contents: `${contents}\n\n\n${reloadScriptPages}`,
           loader: 'tsx' as const,
         };
       });
       build.onLoad({ filter: /src\/content\// }, async (args) => {
         const contents = await readFile(args.path, 'utf8');
         return {
-          contents: contents + '\n\n\n' + reloadScriptContent,
+          contents: `${contents}\n\n\n${reloadScriptContent}`,
           loader: 'ts' as const,
         };
       });

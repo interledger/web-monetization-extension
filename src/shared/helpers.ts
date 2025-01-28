@@ -1,6 +1,6 @@
 import type { SuccessResponse } from '@/shared/messages';
 import type { WalletAddress, JWKS } from '@interledger/open-payments';
-import { cx, CxOptions } from 'class-variance-authority';
+import { cx, type CxOptions } from 'class-variance-authority';
 import { twMerge } from 'tailwind-merge';
 import { addSeconds } from 'date-fns/addSeconds';
 import { isAfter } from 'date-fns/isAfter';
@@ -8,9 +8,9 @@ import { isBefore } from 'date-fns/isBefore';
 import { parse, toSeconds } from 'iso8601-duration';
 import type { Browser } from 'webextension-polyfill';
 import type { Storage, RepeatingInterval, AmountValue } from './types';
+import type Translations from '../_locales/en/messages.json';
 
-export type TranslationKeys =
-  keyof typeof import('../_locales/en/messages.json');
+export type TranslationKeys = keyof typeof Translations;
 
 export type ErrorKeys = Extract<
   TranslationKeys,
@@ -34,8 +34,8 @@ export const formatCurrency = (
   }).format(Number(value));
 };
 
-const isWalletAddress = (o: any): o is WalletAddress => {
-  return (
+const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {
+  return !!(
     o.id &&
     typeof o.id === 'string' &&
     o.assetScale &&
@@ -64,7 +64,7 @@ export const getWalletInformation = async (
     throw new Error('Failed to fetch wallet address.');
   }
 
-  const msgInvalidWalletAddress = `Provided URL is not a valid wallet address.`;
+  const msgInvalidWalletAddress = 'Provided URL is not a valid wallet address.';
   const json = await response.json().catch((error) => {
     throw new Error(msgInvalidWalletAddress, { cause: error });
   });
@@ -116,11 +116,14 @@ export const errorWithKey = <T extends ErrorKeys = ErrorKeys>(
   cause?: ErrorWithKeyLike,
 ) => ({ key, substitutions, cause });
 
-export const isErrorWithKey = (err: any): err is ErrorWithKeyLike => {
+export const isErrorWithKey = (err: unknown): err is ErrorWithKeyLike => {
   if (!err || typeof err !== 'object') return false;
+  if (err instanceof ErrorWithKey) return true;
   return (
-    err instanceof ErrorWithKey ||
-    (typeof err.key === 'string' && Array.isArray(err.substitutions))
+    'key' in err &&
+    typeof err.key === 'string' &&
+    'substitutions' in err &&
+    Array.isArray(err.substitutions)
   );
 };
 
@@ -151,9 +154,8 @@ export const notNullOrUndef = <T>(
 ): T | never => {
   if (t == null) {
     throw new Error(`Expecting not null for ${name}`);
-  } else {
-    return t;
   }
+  return t;
 };
 
 export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
@@ -161,15 +163,14 @@ export function debounceAsync<T extends unknown[], R extends Promise<unknown>>(
   wait: number,
 ) {
   let timeout: ReturnType<typeof setTimeout> | null = null;
-  return function (...args: T) {
-    return new Promise<Awaited<R>>((resolve) => {
+  return (...args: T) =>
+    new Promise<Awaited<R>>((resolve) => {
       if (timeout != null) clearTimeout(timeout);
       timeout = setTimeout(() => {
         timeout = null;
         void Promise.resolve(func(...args)).then(resolve);
       }, wait);
     });
-  };
 }
 
 // Based on https://stackoverflow.com/a/27078401
@@ -254,23 +255,22 @@ export function debounceSync<T extends unknown[], R>(
   wait: number,
 ) {
   let timeout: ReturnType<typeof setTimeout> | null = null;
-  return function (...args: T) {
-    return new Promise<R>((resolve) => {
+  return (...args: T) =>
+    new Promise<R>((resolve) => {
       if (timeout != null) clearTimeout(timeout);
       timeout = setTimeout(() => {
         timeout = null;
         resolve(func(...args));
       }, wait);
     });
-  };
 }
 
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source;
   if (scaleDiff > 0) {
-    return value * BigInt(Math.pow(10, scaleDiff));
+    return value * BigInt(10 ** scaleDiff);
   }
-  return value / BigInt(Math.pow(10, -scaleDiff));
+  return value / BigInt(10 ** -scaleDiff);
 }
 
 export const transformBalance = (
@@ -338,7 +338,7 @@ export const ensureEnd = (str: string, suffix: string) => {
  */
 export function withResolvers<T>() {
   let resolve: (value: T | PromiseLike<T>) => void;
-  let reject: (reason?: any) => void;
+  let reject: (reason?: unknown) => void;
   const promise = new Promise<T>((res, rej) => {
     resolve = res;
     reject = rej;
@@ -362,7 +362,7 @@ export const getNextOccurrence = (
   if (!match) {
     throw new Error(`Invalid interval: ${interval}`);
   }
-  const count = match[1] ? parseInt(match[1], 10) : null;
+  const count = match[1] ? Number.parseInt(match[1], 10) : null;
   const startDate = new Date(match[2]);
   const pattern = parse(match[3]);
   const seconds = toSeconds(pattern, base);

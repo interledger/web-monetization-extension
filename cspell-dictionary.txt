@@ -3,6 +3,7 @@ Interledger
 Fynbos
 Rafiki
 Chimoney
+GateHub
 
 SPSP
 webextension
@@ -43,11 +44,14 @@ awilix
 httpbis
 loglevel
 openapi
+valtio
 apidevtools
 tailwindcss
+esbuild
 msedge
 SVGOMG
 xvfb
+Titillium
 
 # user names
 raducristianpopa

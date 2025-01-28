@@ -62,8 +62,9 @@ export class KeyAutoAdd {
 
     if (size === 'notification') {
       styles = {
-        width: '22rem',
-        height: '8rem',
+        width: '22em',
+        height: '8em',
+        fontSize: '16px',
         position: 'fixed',
         top: '1rem',
         right: '1rem',
@@ -92,7 +93,7 @@ export class KeyAutoAdd {
       browser.runtime.getURL('pages/progress-connect/index.html'),
     );
     const params = new URLSearchParams({ mode: size });
-    iframeUrl.hash = '?' + params.toString();
+    iframeUrl.hash = `?${params.toString()}`;
     if (this.ui.src !== iframeUrl.href && size !== 'hidden') {
       this.ui.src = iframeUrl.href;
     }

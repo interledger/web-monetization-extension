@@ -1,8 +1,10 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import type { ConnectDetails } from '../pages/popup';
+import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
 
-const OPEN_PAYMENTS_REDIRECT_URL = `https://webmonetization.org/welcome`;
+const OPEN_PAYMENTS_REDIRECT_URL = 'https://webmonetization.org/welcome';
+const PLAYGROUND_URL = 'https://webmonetization.org/play';
 
 export async function waitForWelcomePage(page: Page) {
   await page.waitForURL(
@@ -12,13 +14,20 @@ export async function waitForWelcomePage(page: Page) {
   );
 }
 
+export async function waitForReconnectWelcomePage(page: Page) {
+  await page.waitForURL(
+    (url) =>
+      url.href.startsWith(OPEN_PAYMENTS_REDIRECT_URL) &&
+      url.searchParams.get('result') === 'key_add_success',
+  );
+}
+
 export async function getContinueWaitTime(
   context: BrowserContext,
   params: Pick<ConnectDetails, 'walletAddressUrl'>,
   // https://github.com/interledger/rafiki/blob/5de6208fad4c73fba81db56bd7174609e5f76ed5/packages/auth/src/config/app.ts#L62
   defaultWaitMs = 5000,
 ) {
-  defaultWaitMs += 10;
   const continueWaitMs = await (async () => {
     if (process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS !== '1') {
       return Promise.resolve(defaultWaitMs);
@@ -41,4 +50,30 @@ export async function getContinueWaitTime(
     });
   })();
   return continueWaitMs;
+}
+
+export function playgroundUrl(...walletAddressUrls: string[]) {
+  const url = new URL(PLAYGROUND_URL);
+  for (const walletAddress of walletAddressUrls) {
+    url.searchParams.append('wa', walletAddress);
+  }
+  return url.href;
+}
+
+export async function setupPlayground(
+  page: Page,
+  ...walletAddressUrls: string[]
+) {
+  const monetizationCallback = spy<[window.MonetizationEvent], void>();
+  await page.exposeFunction('monetizationCallback', monetizationCallback);
+  await page.addInitScript({
+    content: `window.addEventListener('monetization', monetizationCallback)`,
+  });
+  await page.goto(playgroundUrl(...walletAddressUrls));
+  return monetizationCallback;
+}
+
+export function getLastCallArg<T>(fn: SpyFn<[T]>) {
+  // we only deal with single arg functions
+  return fn.calls[fn.calls.length - 1][0];
 }

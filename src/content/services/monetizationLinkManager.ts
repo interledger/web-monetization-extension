@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import { isNotNull } from '@/shared/helpers';
 import { mozClone, WalletAddressFormatError } from '../utils';
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
@@ -114,11 +114,11 @@ export class MonetizationLinkManager extends EventEmitter {
       this.postMessage('INITIALIZE_IFRAME', undefined);
     }
 
-    this.document
-      .querySelectorAll<HTMLElement>('[onmonetization]')
-      .forEach((node) => {
-        this.dispatchOnMonetizationAttrChangedEvent(node);
-      });
+    const nodesWithOnMonetization =
+      this.document.querySelectorAll<HTMLElement>('[onmonetization]');
+    for (const node of nodesWithOnMonetization) {
+      this.dispatchOnMonetizationAttrChangedEvent(node);
+    }
 
     this.documentObserver.observe(this.document, {
       subtree: true,
@@ -228,8 +228,7 @@ export class MonetizationLinkManager extends EventEmitter {
       url = new URL(href);
       if (url.protocol !== 'https:') {
         throw new WalletAddressFormatError(
-          `Wallet address URL must be specified as a fully resolved https:// url, ` +
-            `got ${JSON.stringify(href)} `,
+          `Wallet address URL must be specified as a fully resolved https:// url, got ${JSON.stringify(href)} `,
         );
       }
     } catch (e) {
@@ -363,12 +362,12 @@ export class MonetizationLinkManager extends EventEmitter {
 
     for (const record of records) {
       if (record.type === 'childList') {
-        record.removedNodes.forEach((node) => {
+        for (const node of record.removedNodes) {
           if (!(node instanceof HTMLLinkElement)) return;
           if (!this.monetizationLinks.has(node)) return;
           const payloadEntry = this.onRemovedLink(node);
           stopMonetizationPayload.push(payloadEntry);
-        });
+        }
       }
     }
 
@@ -449,7 +448,7 @@ export class MonetizationLinkManager extends EventEmitter {
         ) {
           const wasDisabled = record.oldValue !== null;
           const isDisabled = target.hasAttribute('disabled');
-          if (wasDisabled != isDisabled) {
+          if (wasDisabled !== isDisabled) {
             try {
               const details = this.monetizationLinks.get(target);
               if (!details) {
@@ -517,9 +516,7 @@ export class MonetizationLinkManager extends EventEmitter {
     const details = this.monetizationLinks.get(link);
     if (!details) {
       throw new Error(
-        'Could not find details for monetization node ' +
-          // node is removed, so the reference can not be displayed
-          link.outerHTML.slice(0, 200),
+        `Could not find details for monetization node ${link.outerHTML.slice(0, 200)}`,
       );
     }
 

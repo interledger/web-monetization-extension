@@ -1,11 +1,20 @@
-import { test as base, type BrowserContext, type Page } from '@playwright/test';
+import {
+  test as base,
+  type ExpectMatcherState,
+  type BrowserContext,
+  type Page,
+} from '@playwright/test';
+import type { SpyFn } from 'tinyspy';
 import {
   getBackground,
+  getStorage,
   loadContext,
   BrowserIntl,
   type Background,
 } from './helpers';
+import { getLastCallArg } from '../helpers/common';
 import { openPopup, type Popup } from '../pages/popup';
+import type { DeepPartial, Storage } from '@/shared/types';
 
 type BaseScopeWorker = {
   persistentContext: BrowserContext;
@@ -27,7 +36,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       await use(context);
       await context.close();
     },
-    { scope: 'worker' },
+    { scope: 'worker', timeout: 5_000 },
   ],
 
   // This is the background service worker in Chrome, and background script
@@ -38,7 +47,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       const background = await getBackground(browserName, context);
       await use(background);
     },
-    { scope: 'worker' },
+    { scope: 'worker', timeout: 5_000 },
   ],
 
   i18n: [
@@ -56,7 +65,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       await use(popup);
       await popup.close();
     },
-    { scope: 'worker' },
+    { scope: 'worker', timeout: 5_000 },
   ],
 
   page: async ({ persistentContext: context }, use) => {
@@ -66,4 +75,113 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   },
 });
 
-export const expect = test.expect;
+const defaultMessage = (
+  thisType: ExpectMatcherState,
+  assertionName: string,
+  _pass: boolean,
+  expected: unknown,
+  matcherResult?: { actual: unknown },
+) => {
+  return () => {
+    const hint = thisType.utils.matcherHint(
+      assertionName,
+      undefined,
+      undefined,
+      { isNot: thisType.isNot },
+    );
+    const expectedPart = `Expected: ${thisType.isNot ? 'not ' : ''}${thisType.utils.printExpected(expected)}`;
+    const receivedPart = matcherResult
+      ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
+      : '';
+    return `${hint}\n\n${expectedPart}\n${receivedPart}`;
+  };
+};
+
+export const expect = test.expect.extend({
+  async toHaveStorage(background: Background, expected: DeepPartial<Storage>) {
+    const name = 'toHaveStorage';
+
+    let pass: boolean;
+    let result: { actual: unknown } | undefined;
+
+    const storedData = await getStorage(
+      background,
+      Object.keys(expected) as Array<keyof typeof expected>,
+    );
+    try {
+      test.expect(storedData).toMatchObject(expected);
+      pass = true;
+    } catch {
+      result = { actual: storedData };
+      pass = false;
+    }
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  async toHaveBeenCalledTimes(
+    fn: SpyFn,
+    expected: number,
+    { timeout = 5000 }: { timeout?: number } = {},
+  ) {
+    const name = 'toHaveBeenCalledTimes';
+
+    let pass: boolean;
+    let result: { actual: number } | undefined;
+
+    try {
+      await test.expect.poll(() => fn.callCount, { timeout }).toBe(expected);
+      pass = true;
+    } catch {
+      result = { actual: fn.callCount };
+      pass = false;
+    }
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  async toHaveBeenLastCalledWithMatching(
+    fn: SpyFn,
+    expected: Record<string, unknown>,
+    { timeout = 5000 }: { timeout?: number } = {},
+  ) {
+    // Playwright doesn't let us extend to created generic matchers, so we'll
+    // typecast (as) in the way we need it.
+    type SpyFnTyped = SpyFn<[Record<string, string>]>;
+    const name = 'toHaveBeenLastCalledWithMatching';
+
+    let pass: boolean;
+    let result: { actual: unknown } | undefined;
+
+    try {
+      // we only support matching first argument of last call
+      await test.expect
+        .poll(() => getLastCallArg(fn as SpyFnTyped), { timeout })
+        .toMatchObject(expected);
+      pass = true;
+    } catch {
+      result = { actual: getLastCallArg(fn as SpyFnTyped) };
+      pass = false;
+    }
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+});

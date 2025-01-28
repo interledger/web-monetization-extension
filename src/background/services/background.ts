@@ -8,10 +8,11 @@ import {
   isErrorWithKey,
   success,
 } from '@/shared/helpers';
-import { KeyAutoAddService } from './keyAutoAdd';
+import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getTab, OPEN_PAYMENTS_ERRORS } from '@/background/utils';
+import { getTab } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
+import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0];
@@ -19,7 +20,7 @@ const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
 
 export class Background {
   private browser: Cradle['browser'];
-  private openPaymentsService: Cradle['openPaymentsService'];
+  private walletService: Cradle['walletService'];
   private monetizationService: Cradle['monetizationService'];
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
@@ -31,7 +32,7 @@ export class Background {
 
   constructor({
     browser,
-    openPaymentsService,
+    walletService,
     monetizationService,
     storage,
     logger,
@@ -43,7 +44,7 @@ export class Background {
   }: Cradle) {
     Object.assign(this, {
       browser,
-      openPaymentsService,
+      walletService,
       monetizationService,
       storage,
       sendToPopup,
@@ -57,10 +58,10 @@ export class Background {
 
   async start() {
     this.bindOnInstalled();
+    this.bindMessageHandler();
     await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
-    this.bindMessageHandler();
     this.bindPermissionsHandler();
     this.bindEventsHandler();
     this.bindTabHandlers();
@@ -88,10 +89,10 @@ export class Background {
       // Firefox <128 will throw saying world: MAIN isn't supported. So, we'll
       // inject via contentScript later. Injection via contentScript is slow,
       // but apart from WM detection on page-load, everything else works fine.
-      if (!error.message.includes(`world`)) {
+      if (!error.message.includes('world')) {
         this.logger.error(
-          `Content script execution world \`MAIN\` not supported by your browser.\n` +
-            `Check https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/scripting/ExecutionWorld#browser_compatibility for browser compatibility.`,
+          'Content script execution world `MAIN` not supported by your browser.\n' +
+            'Check https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/scripting/ExecutionWorld#browser_compatibility for browser compatibility.',
           error,
         );
       }
@@ -195,26 +196,26 @@ export class Background {
                 ),
               );
 
-            case 'CONNECT_WALLET':
-              await this.openPaymentsService.connectWallet(message.payload);
+            case 'CONNECT_WALLET': {
+              await this.walletService.connectWallet(message.payload);
               if (message.payload?.recurring) {
                 this.scheduleResetOutOfFundsState();
               }
               return success(undefined);
-
+            }
             case 'RECONNECT_WALLET': {
-              await this.openPaymentsService.reconnectWallet();
+              await this.walletService.reconnectWallet(message.payload);
               await this.monetizationService.resumePaymentSessionActiveTab();
               await this.updateVisualIndicatorsForCurrentTab();
               return success(undefined);
             }
 
             case 'UPDATE_BUDGET':
-              await this.openPaymentsService.updateBudget(message.payload);
+              await this.walletService.updateBudget(message.payload);
               return success(undefined);
 
             case 'ADD_FUNDS':
-              await this.openPaymentsService.addFunds(message.payload);
+              await this.walletService.addFunds(message.payload);
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               if (message.payload.recurring) {
                 this.scheduleResetOutOfFundsState();
@@ -222,14 +223,20 @@ export class Background {
               return;
 
             case 'DISCONNECT_WALLET':
-              await this.openPaymentsService.disconnectWallet();
+              await this.walletService.disconnectWallet();
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               await this.updateVisualIndicatorsForCurrentTab();
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
               return;
 
-            case 'TOGGLE_WM': {
-              await this.monetizationService.toggleWM();
+            case 'TOGGLE_CONTINUOUS_PAYMENTS': {
+              await this.monetizationService.toggleContinuousPayments();
+              await this.updateVisualIndicatorsForCurrentTab();
+              return;
+            }
+
+            case 'TOGGLE_PAYMENTS': {
+              await this.monetizationService.togglePayments();
               await this.updateVisualIndicatorsForCurrentTab();
               return;
             }
@@ -289,9 +296,7 @@ export class Background {
           }
           if (e instanceof OpenPaymentsClientError) {
             this.logger.error(message.action, e.message, e.description);
-            return failure(
-              OPEN_PAYMENTS_ERRORS[e.description] ?? e.description,
-            );
+            return failure(e.description);
           }
           this.logger.error(message.action, e.message);
           return failure(e.message);
@@ -327,6 +332,10 @@ export class Background {
       this.sendToPopup.send('SET_TRANSIENT_STATE', state);
     });
 
+    this.events.on('request_popup_close', () => {
+      this.sendToPopup.send('CLOSE_POPUP', undefined);
+    });
+
     this.events.on('storage.balance_update', (balance) =>
       this.sendToPopup.send('SET_BALANCE', balance),
     );
@@ -338,7 +347,10 @@ export class Background {
       this.logger.info(data);
       if (details.reason === 'install') {
         await this.storage.populate();
-        await this.openPaymentsService.generateKeys();
+        await this.walletService.generateKeys();
+        await this.browser.tabs.create({
+          url: this.browser.runtime.getURL(`${APP_URL}#/post-install`),
+        });
       } else if (details.reason === 'update') {
         const migrated = await this.storage.migrate();
         if (migrated) {

@@ -1,16 +1,19 @@
 import React from 'react';
-import { usePopupState, useTranslation } from '@/popup/lib/context';
+import { formatCurrency } from '@/shared/helpers';
 import { Settings } from '@/pages/shared/components/Icons';
 import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
 import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
-import { formatCurrency } from '@/shared/helpers';
+import { useTranslation } from '@/popup/lib/context';
+import { usePopupState } from '@/popup/lib/store';
 
 export const Component = () => {
   const t = useTranslation();
-  const {
-    state: { tab },
-  } = usePopupState();
+  const { tab, enabled } = usePopupState();
+
+  if (!enabled) {
+    return <NotMonetized text={t('app_text_disabled')} />;
+  }
 
   if (tab.status !== 'monetized') {
     switch (tab.status) {
@@ -22,7 +25,6 @@ export const Component = () => {
         return <NotMonetized text={t('notMonetized_text_newTab')} />;
       case 'unsupported_scheme':
         return <NotMonetized text={t('notMonetized_text_unsupportedScheme')} />;
-      case 'no_monetization_links':
       default:
         return <NotMonetized text={t('notMonetized_text_noLinks')} />;
     }
@@ -48,9 +50,7 @@ export const Component = () => {
 };
 
 const InfoBanner = () => {
-  const {
-    state: { rateOfPay, balance, walletAddress },
-  } = usePopupState();
+  const { rateOfPay, balance, walletAddress } = usePopupState();
 
   const rate = React.useMemo(() => {
     const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;

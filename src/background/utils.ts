@@ -8,6 +8,27 @@ import type { Browser, Runtime } from 'webextension-polyfill';
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
+import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
+
+export enum GrantResult {
+  GRANT_SUCCESS = 'grant_success',
+  GRANT_ERROR = 'grant_error',
+  KEY_ADD_SUCCESS = 'key_add_success',
+  KEY_ADD_ERROR = 'key_add_error',
+}
+
+export enum InteractionIntent {
+  CONNECT = 'connect',
+  RECONNECT = 'reconnect',
+  FUNDS = 'funds',
+  UPDATE_BUDGET = 'update_budget',
+}
+
+export enum ErrorCode {
+  CONTINUATION_FAILED = 'continuation_failed',
+  HASH_FAILED = 'hash_failed',
+  KEY_ADD_FAILED = 'key_add_failed',
+}
 
 export const getCurrentActiveTab = async (browser: Browser) => {
   const window = await browser.windows.getLastFocused();
@@ -32,14 +53,9 @@ export const toAmount = ({
   const interval = `R/${new Date().toISOString()}/P1M`;
 
   return {
-    value: Math.floor(parseFloat(value) * 10 ** assetScale).toString(),
+    value: Math.floor(Number.parseFloat(value) * 10 ** assetScale).toString(),
     ...(recurring ? { interval } : {}),
   };
-};
-
-export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
-  'invalid client':
-    'Please make sure that you uploaded the public key for your desired wallet address.',
 };
 
 export interface GetRateOfPayParams {
@@ -91,6 +107,52 @@ export const getTab = (sender: Runtime.MessageSender): Tab => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab') as Tab;
 };
 
+export const redirectToWelcomeScreen = async (
+  browser: Browser,
+  tabId: number,
+  result: GrantResult,
+  intent: InteractionIntent,
+  errorCode?: ErrorCode,
+): Promise<void> => {
+  const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
+  url.searchParams.set('result', result);
+  url.searchParams.set('intent', intent);
+  if (errorCode) url.searchParams.set('errorCode', errorCode);
+
+  await browser.tabs.update(tabId, {
+    url: url.toString(),
+  });
+};
+
+export const ensureTabExists = async (browser: Browser): Promise<number> => {
+  const tab = await browser.tabs.create({});
+  if (!tab.id) {
+    throw new Error('Could not create tab');
+  }
+  return tab.id;
+};
+
+export const reuseOrCreateTab = async (
+  browser: Browser,
+  url: string,
+  tabId?: number,
+): Promise<Tab> => {
+  try {
+    let tab = await browser.tabs.get(tabId ?? -1);
+    if (!tab.id) {
+      throw new Error('Could not retrieve tab.');
+    }
+    tab = await browser.tabs.update(tab.id, { url });
+    return tab as Tab;
+  } catch {
+    const tab = await browser.tabs.create({ url });
+    if (!tab.id) {
+      throw new Error('Newly created tab does not have the id property set.');
+    }
+    return tab as Tab;
+  }
+};
+
 export const getSender = (sender: Runtime.MessageSender) => {
   const tabId = getTabId(sender);
   const frameId = notNullOrUndef(sender.frameId, 'sender.frameId');
@@ -124,7 +186,7 @@ export function computeBalance(
 export function* getNextSendableAmount(
   senderAssetScale: number,
   receiverAssetScale: number,
-  amount: bigint = 0n,
+  amount = 0n,
 ): Generator<AmountValue, never, never> {
   const EXPONENTIAL_INCREASE = 0.5;
 
@@ -140,6 +202,7 @@ export function* getNextSendableAmount(
 
   let exp = 0;
   while (true) {
+    // biome-ignore lint/style/noParameterAssign: it's ok
     amount += base * BigInt(Math.floor(Math.exp(exp)));
     yield amount.toString();
     exp += EXPONENTIAL_INCREASE;

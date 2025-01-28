@@ -11,6 +11,12 @@
   "icon_state_actionRequired": {
     "message": "Action Required!"
   },
+  "tagline_text_1": {
+    "message": "Support content you love"
+  },
+  "tagline_text_2": {
+    "message": "Pay as you browse"
+  },
   "missingHostPermission_state_text": {
     "message": "Permission to access your data on all websites is required to use Web Monetization."
   },
@@ -29,6 +35,9 @@
   },
   "notMonetized_text_unsupportedScheme": {
     "message": "Web Monetization only works with websites using https://."
+  },
+  "app_text_disabled": {
+    "message": "The extension is disabled. Click the power icon above to enable the extension and continue making payments."
   },
   "keyRevoked_error_title": {
     "message": "Unauthorized access to the wallet."
@@ -190,6 +199,9 @@
   "connectWalletKeyService_text_consentP1": {
     "message": "We will automatically connect with your wallet provider."
   },
+  "reconnectWalletKeyService_text_consentP1": {
+    "message": "We will automatically reconnect with your wallet provider."
+  },
   "connectWalletKeyService_text_consentLearnMore": {
     "message": "Learn more",
     "description": "Learn more about how this works"
@@ -227,5 +239,26 @@
   },
   "connectWalletKeyService_error_accountNotFound": {
     "message": "Failed to find an account for the provided wallet address. Are you logged into a different account?"
+  },
+  "postInstall_text_title": {
+    "message": "Let's get you started with Web Monetization!"
+  },
+  "postInstall_text_stepGetWallet_title": {
+    "message": "Get a wallet compatible with Web Monetization"
+  },
+  "postInstall_text_stepWalletAddress_title": {
+    "message": "Find your wallet address or payment pointer"
+  },
+  "postInstall_text_stepPin_title": {
+    "message": "Pin extension to the browser toolbar"
+  },
+  "postInstall_text_stepPin_desc": {
+    "message": "Pin the Web Monetization Extension for easier access."
+  },
+  "postInstall_text_stepPin_descComplete": {
+    "message": "You're all set."
+  },
+  "postInstall_action_submit": {
+    "message": "Connect your wallet"
   }
 }

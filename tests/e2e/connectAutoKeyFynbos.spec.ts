@@ -9,6 +9,7 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/fynbos';
+import { getStorage } from './fixtures/helpers';
 
 test('Connect to Fynbos with automatic key addition when not logged-in to wallet', async ({
   page,
@@ -23,9 +24,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
 
   test.skip(!username || !password || !walletAddressUrl, 'Missing credentials');
 
-  const { keyId: kid } = await background.evaluate(() => {
-    return chrome.storage.local.get<{ keyId: string }>(['keyId']);
-  });
+  const { keyId: kid } = await getStorage(background, ['keyId']);
 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
@@ -119,9 +118,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     await acceptGrant(page, continueWaitMs);
     await waitForWelcomePage(page);
 
-    expect(
-      await background.evaluate(() => chrome.storage.local.get(['connected'])),
-    ).toEqual({ connected: true });
+    expect(background).toHaveStorage({ connected: true });
   });
 
   await test.step('cleanup: revoke keys', async () => {

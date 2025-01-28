@@ -1,5 +1,6 @@
-import { Config } from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 import forms from '@tailwindcss/forms';
+import { fontFamily } from 'tailwindcss/defaultTheme';
 
 module.exports = {
   content: [
@@ -8,6 +9,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        titillium: ['Titillium Web', ...fontFamily.sans],
+      },
       width: {
         popup: 'var(--popup-width)',
       },

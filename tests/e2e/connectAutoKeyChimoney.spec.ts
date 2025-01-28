@@ -7,8 +7,9 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/chimoney';
+import { getStorage } from './fixtures/helpers';
 
-test('Connect to test wallet with automatic key addition when not logged-in to wallet', async ({
+test('Connect to Chimoney wallet with automatic key addition when not logged-in to wallet', async ({
   page,
   popup,
   persistentContext: context,
@@ -28,9 +29,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   test.slow(true, 'Some pages load slow');
 
   const walletURL = new URL(walletUrl);
-  const { keyId } = await background.evaluate(() => {
-    return chrome.storage.local.get<{ keyId: string }>(['keyId']);
-  });
+  const { keyId } = await getStorage(background, ['keyId']);
 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
@@ -49,7 +48,7 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
       timeout: 5000,
     });
     expect(page.url()).toContain(URLS.login);
-    expect(page.url()).toContain(`?next=`);
+    expect(page.url()).toContain('?next=');
     await page.close();
   });
 

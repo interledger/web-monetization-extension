@@ -24,13 +24,24 @@ export async function openPopup(
     await popup.reload({ waitUntil: 'networkidle' });
     await popup.waitForSelector('#main', { timeout: 500 });
   }
+
+  // prevent popup from closing via `window.close()`
+  popup.exposeFunction('close', () => {});
+
   return popup;
 }
 
 export async function disconnectWallet(popup: Popup) {
-  await popup.locator(`[href="/settings"]`).click();
-  await popup.locator('button').getByText('Disconnect').click();
-  await popup.getByTestId('connect-wallet-form').waitFor({ state: 'visible' });
+  await popup.reload();
+  await popup.locator(`[href="/settings"]`).click({ timeout: 1000 });
+  await popup.getByRole('tab', { name: 'Wallet' }).click();
+
+  await popup
+    .getByRole('button', { name: 'Disconnect' })
+    .click({ timeout: 2000 });
+  await popup
+    .getByTestId('connect-wallet-form')
+    .waitFor({ state: 'visible', timeout: 2000 });
 }
 
 export type ConnectDetails = {
@@ -44,18 +55,22 @@ export async function fillPopup(
   i18n: BrowserIntl,
   params: Partial<ConnectDetails>,
 ) {
+  const timeout = 1000;
   const fields = getPopupFields(popup, i18n);
   if (typeof params.walletAddressUrl !== 'undefined') {
-    await fields.walletAddressUrl.fill(params.walletAddressUrl);
-    await fields.walletAddressUrl.blur();
+    await fields.walletAddressUrl.fill(params.walletAddressUrl, { timeout });
+    await fields.walletAddressUrl.blur({ timeout });
   }
   if (typeof params.amount !== 'undefined') {
-    await fields.amount.fill(params.amount);
-    await fields.amount.blur();
+    await fields.amount.fill(params.amount, { timeout });
+    await fields.amount.blur({ timeout });
   }
   if (typeof params.recurring !== 'undefined') {
-    await fields.recurring.setChecked(params.recurring, { force: true });
-    await fields.recurring.blur();
+    await fields.recurring.setChecked(params.recurring, {
+      force: true,
+      timeout,
+    });
+    await fields.recurring.blur({ timeout });
   }
 
   return fields.connectButton;
@@ -76,4 +91,9 @@ export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
       .locator('button')
       .getByText(i18n.getMessage('connectWallet_action_connect')),
   };
+}
+
+export async function sendOneTimePayment(popup: Popup, amount: string) {
+  await popup.getByRole('textbox').fill(amount);
+  await popup.getByRole('button', { name: 'Send now' }).click();
 }

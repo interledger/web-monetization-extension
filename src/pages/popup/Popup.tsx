@@ -3,13 +3,13 @@ import {
   BrowserContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
-import { MessageContextProvider, PopupContextProvider } from './lib/context';
+import { MessageContextProvider, WaitForStateLoad } from './lib/context';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import React from 'react';
 import browser from 'webextension-polyfill';
 import { ProtectedRoute } from '@/popup/components/ProtectedRoute';
 import {
-  RouteObject,
+  type RouteObject,
   RouterProvider,
   createMemoryRouter,
 } from 'react-router-dom';
@@ -77,9 +77,9 @@ export const Popup = () => {
       <BrowserContextProvider browser={browser}>
         <MessageContextProvider>
           <TranslationContextProvider>
-            <PopupContextProvider>
+            <WaitForStateLoad>
               <RouterProvider router={router} />
-            </PopupContextProvider>
+            </WaitForStateLoad>
           </TranslationContextProvider>
         </MessageContextProvider>
       </BrowserContextProvider>

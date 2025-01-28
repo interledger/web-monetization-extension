@@ -7,8 +7,8 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-# Indentiation Rules
-[*.{css,js,jsx,json,html,scss}]
+# Indentation Rules
+[*.{css,js,ts,tsx,jsx,json,html,scss}]
 charset = utf-8
 indent_style = space
 indent_size = 2

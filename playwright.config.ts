@@ -3,7 +3,6 @@ import { defineConfig, devices } from '@playwright/test';
 import { testDir, authFile } from './tests/e2e/fixtures/helpers';
 
 if (!process.env.CI) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('dotenv').config({ path: path.join(testDir, '.env') });
 }
 
@@ -26,7 +25,11 @@ export default defineConfig({
       { open: 'never', outputFolder: path.join(testDir, 'playwright-report') },
     ],
   ],
-  use: { trace: 'retain-on-failure' },
+  use: {
+    trace: 'retain-on-failure',
+    actionTimeout: 8_000,
+    navigationTimeout: 10_000,
+  },
 
   projects: [
     {

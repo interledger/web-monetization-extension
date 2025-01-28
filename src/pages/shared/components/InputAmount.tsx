@@ -4,7 +4,7 @@ import type { WalletAddress } from '@interledger/open-payments';
 import { charIsNumber, formatNumber, getCurrencySymbol } from '../lib/utils';
 import {
   errorWithKey,
-  ErrorWithKeyLike,
+  type ErrorWithKeyLike,
   formatCurrency,
 } from '@/shared/helpers';
 import { useLongPress, useThrottle } from '@/pages/shared/lib/hooks';
@@ -18,6 +18,7 @@ interface Props {
   onChange: (amount: string, inputEl: HTMLInputElement) => void;
   onError: (error: ErrorWithKeyLike) => void;
   className?: string;
+  wrapperClassName?: string;
   placeholder?: string;
   errorMessage?: string;
   readOnly?: boolean;
@@ -34,6 +35,7 @@ export const InputAmount = ({
   walletAddress,
   amount,
   className,
+  wrapperClassName,
   placeholder,
   errorMessage,
   onChange,
@@ -133,7 +135,7 @@ export const InputAmount = ({
       description={description}
       placeholder={placeholder}
       className={className}
-      wrapperClassName="w-fit"
+      wrapperClassName={wrapperClassName}
       defaultValue={amount}
       readOnly={readOnly}
       leadingAddOn={<span className="text-weak">{currencySymbol}</span>}
@@ -232,7 +234,7 @@ function Controls({
 export function validateAmount(
   value: string,
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>,
-  min: number = 0,
+  min = 0,
   max?: number,
 ): null | ErrorWithKeyLike {
   if (!value) {
@@ -261,7 +263,7 @@ function incOrDec(
   step: number,
   format: (val: number) => string,
   callback: (formattedValue: string) => void,
-  min: number = 0,
+  min = 0,
   max?: number,
 ) {
   const value = Number(input.value);

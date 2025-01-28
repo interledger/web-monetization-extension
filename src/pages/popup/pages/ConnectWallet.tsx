@@ -1,16 +1,25 @@
 import React from 'react';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
-import { useMessage, usePopupState } from '@/popup/lib/context';
+import { useMessage } from '@/popup/lib/context';
 import { getWalletInformation } from '@/shared/helpers';
+import { usePopupState } from '@/popup/lib/store';
 
 export const Component = () => {
-  const { state } = usePopupState();
+  const { transientState, publicKey } = usePopupState();
   const message = useMessage();
 
-  const connectState = state.transientState['connect'];
+  React.useEffect(() => {
+    if (window.self !== window.top) {
+      // if used in iframe (in post install screen), remove header
+      document.querySelector('header')?.remove();
+      document.querySelector('.bg-divider-gradient')?.remove();
+    }
+  }, []);
+
+  const connectState = transientState.connect;
   return (
     <ConnectWalletForm
-      publicKey={state.publicKey}
+      publicKey={publicKey}
       state={connectState}
       defaultValues={{
         recurring:

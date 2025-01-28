@@ -5,7 +5,7 @@ import type {
 import type { Browser } from 'webextension-polyfill';
 import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
-import type { PopupState } from '@/popup/lib/context';
+import type { PopupState } from '@/popup/lib/store';
 
 // #region MessageManager
 export interface SuccessResponse<TPayload = void> {
@@ -97,6 +97,10 @@ export interface ConnectWalletPayload {
   autoKeyAddConsent: boolean | null;
 }
 
+export interface ReconnectWalletPayload {
+  autoKeyAddConsent: boolean;
+}
+
 export interface AddFundsPayload {
   amount: string;
   recurring: boolean;
@@ -129,14 +133,14 @@ export type PopupToBackgroundMessage = {
   };
   CONNECT_WALLET: {
     input: null | ConnectWalletPayload;
-    output: void;
+    output: undefined;
   };
   UPDATE_BUDGET: {
     input: UpdateBudgetPayload;
-    output: void;
+    output: undefined;
   };
   RECONNECT_WALLET: {
-    input: never;
+    input: ReconnectWalletPayload;
     output: never;
   };
   ADD_FUNDS: {
@@ -147,7 +151,11 @@ export type PopupToBackgroundMessage = {
     input: never;
     output: never;
   };
-  TOGGLE_WM: {
+  TOGGLE_CONTINUOUS_PAYMENTS: {
+    input: never;
+    output: never;
+  };
+  TOGGLE_PAYMENTS: {
     input: never;
     output: never;
   };
@@ -264,6 +272,7 @@ export interface BackgroundToPopupMessagesMap {
   SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
   SET_TRANSIENT_STATE: PopupTransientState;
+  CLOSE_POPUP: undefined;
 }
 
 export type BackgroundToPopupMessage = {

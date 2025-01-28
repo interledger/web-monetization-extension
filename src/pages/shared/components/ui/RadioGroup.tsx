@@ -1,5 +1,6 @@
+import React from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { cn } from '@/shared/helpers';
 
@@ -10,7 +11,7 @@ export interface RadioProps {
   name: string;
   id?: string;
   disabled?: boolean;
-  onChange?: any;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
   noSelected?: boolean;
 }
 
@@ -37,6 +38,7 @@ export const Radio = ({
       className="flex items-center"
       tabIndex={noSelected ? 0 : checked ? 0 : -1}
       aria-checked={checked}
+      // biome-ignore lint/a11y/useSemanticElements: <explanation>
       role="radio"
     >
       <input
@@ -52,9 +54,7 @@ export const Radio = ({
       />
 
       <label htmlFor={inputId} className="group flex items-center">
-        <span
-          className={`inline-block h-6 w-6 rounded-full border-2 border-base peer-checked:group-[]:border-blue-500 peer-checked:group-[]:bg-primary peer-checked:group-[]:ring-4 peer-checked:group-[]:ring-inset peer-checked:group-[]:ring-white`}
-        />
+        <span className="inline-block h-6 w-6 rounded-full border-2 border-base peer-checked:group-[]:border-blue-500 peer-checked:group-[]:bg-primary peer-checked:group-[]:ring-4 peer-checked:group-[]:ring-inset peer-checked:group-[]:ring-white" />
         {label ? (
           <p className="ms-2 text-base leading-6 text-medium">{label}</p>
         ) : (

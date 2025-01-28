@@ -44,7 +44,7 @@ export class FrameManager {
 
   private findIframe(sourceWindow: Window): HTMLIFrameElement | null {
     const iframes = this.frames.keys();
-    let frame;
+    let frame: IteratorResult<HTMLIFrameElement>;
 
     do {
       frame = iframes.next();
@@ -124,13 +124,17 @@ export class FrameManager {
   private onWholeDocumentObserved(records: MutationRecord[]) {
     for (const record of records) {
       if (record.type === 'childList') {
-        record.removedNodes.forEach((node) => this.check('removed', node));
+        for (const node of record.addedNodes) {
+          this.check('removed', node);
+        }
       }
     }
 
     for (const record of records) {
       if (record.type === 'childList') {
-        record.addedNodes.forEach((node) => this.check('added', node));
+        for (const node of record.addedNodes) {
+          this.check('added', node);
+        }
       }
     }
   }
@@ -170,14 +174,10 @@ export class FrameManager {
     const frames: NodeListOf<HTMLIFrameElement> =
       this.document.querySelectorAll('iframe');
 
-    frames.forEach(async (frame) => {
-      try {
-        this.observeFrameAllowAttrs(frame);
-        await this.onAddedFrame(frame);
-      } catch (e) {
-        this.logger.error(e);
-      }
-    });
+    for (const frame of frames) {
+      this.observeFrameAllowAttrs(frame);
+      void this.onAddedFrame(frame).catch((e) => this.logger.error(e));
+    }
 
     this.observeDocumentForFrames();
   }

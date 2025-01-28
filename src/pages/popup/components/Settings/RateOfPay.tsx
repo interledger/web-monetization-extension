@@ -3,25 +3,11 @@ import { Switch } from '@/pages/shared/components/ui/Switch';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
 import { debounceAsync } from '@/shared/helpers';
 import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
-import {
-  useMessage,
-  usePopupState,
-  useTranslation,
-  type PopupState,
-} from '@/popup/lib/context';
+import { useMessage, useTranslation } from '@/popup/lib/context';
+import { dispatch, usePopupState, type PopupState } from '@/popup/lib/store';
 
 export const RateOfPayScreen = () => {
   const message = useMessage();
-  const {
-    dispatch,
-    state: {
-      continuousPaymentsEnabled,
-      rateOfPay,
-      minRateOfPay,
-      maxRateOfPay,
-      walletAddress,
-    },
-  } = usePopupState();
 
   const updateRateOfPay = React.useRef(
     debounceAsync(async (rateOfPay: string) => {
@@ -38,43 +24,32 @@ export const RateOfPayScreen = () => {
     void updateRateOfPay.current(rateOfPay);
   };
 
-  const toggleWM = () => {
-    message.send('TOGGLE_WM');
-    dispatch({ type: 'TOGGLE_WM', data: {} });
+  const toggleContinuousPayments = () => {
+    message.send('TOGGLE_CONTINUOUS_PAYMENTS');
+    dispatch({ type: 'TOGGLE_CONTINUOUS_PAYMENTS' });
   };
 
   return (
     <RateOfPayComponent
-      continuousPaymentsEnabled={continuousPaymentsEnabled}
-      rateOfPay={rateOfPay}
-      minRateOfPay={minRateOfPay}
-      maxRateOfPay={maxRateOfPay}
-      walletAddress={walletAddress}
       onRateChange={onRateChange}
-      toggleWM={toggleWM}
+      toggle={toggleContinuousPayments}
     />
   );
 };
 
 interface Props {
-  continuousPaymentsEnabled: PopupState['continuousPaymentsEnabled'];
-  rateOfPay: PopupState['rateOfPay'];
-  minRateOfPay: PopupState['minRateOfPay'];
-  maxRateOfPay: PopupState['maxRateOfPay'];
-  walletAddress: PopupState['walletAddress'];
   onRateChange: (rate: string) => Promise<void>;
-  toggleWM: () => void | Promise<void>;
+  toggle: () => void | Promise<void>;
 }
 
-export const RateOfPayComponent = ({
-  continuousPaymentsEnabled,
-  rateOfPay,
-  minRateOfPay,
-  maxRateOfPay,
-  walletAddress,
-  onRateChange,
-  toggleWM,
-}: Props) => {
+export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
+  const {
+    continuousPaymentsEnabled,
+    rateOfPay,
+    minRateOfPay,
+    maxRateOfPay,
+    walletAddress,
+  } = usePopupState();
   return (
     <div className="space-y-8">
       <RateOfPayInput
@@ -89,8 +64,9 @@ export const RateOfPayComponent = ({
       <div className="space-y-2">
         <Switch
           checked={continuousPaymentsEnabled}
-          onChange={toggleWM}
+          onChange={toggle}
           label="Continuous payment"
+          data-testid="continuous-payments-toggle"
         />
 
         {!continuousPaymentsEnabled ? (
@@ -141,6 +117,7 @@ const RateOfPayInput = ({
       <InputAmount
         id="rateOfPay"
         className="max-w-56"
+        wrapperClassName="w-fit"
         label="Rate of pay per hour"
         walletAddress={walletAddress}
         onChange={(value) => {

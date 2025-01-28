@@ -1,19 +1,33 @@
 import {
   isPendingGrant,
+  OpenPaymentsClientError,
   type IncomingPayment,
-  type OutgoingPayment,
+  type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress,
-} from '@interledger/open-payments/dist/types';
-import { bigIntMax, convert, transformBalance } from '@/shared/helpers';
+} from '@interledger/open-payments';
+import {
+  bigIntMax,
+  convert,
+  ErrorWithKey,
+  sleep,
+  transformBalance,
+} from '@/shared/helpers';
 import {
   isInvalidReceiverError,
   isKeyRevokedError,
+  isMissingGrantPermissionsError,
   isNonPositiveAmountError,
   isOutOfBalanceError,
   isTokenExpiredError,
-} from './openPayments';
+} from '@/background/services/openPayments';
 import { getNextSendableAmount } from '@/background/utils';
-import type { EventsService, OpenPaymentsService, TabState } from '.';
+import type {
+  EventsService,
+  OpenPaymentsService,
+  OutgoingPaymentGrantService,
+  StorageService,
+  TabState,
+} from '.';
 import type {
   BackgroundToContentMessage,
   MessageManager,
@@ -22,6 +36,10 @@ import type {
 } from '@/shared/messages';
 import type { AmountValue } from '@/shared/types';
 import type { Logger } from '@/shared/logger';
+import {
+  OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
+  OUTGOING_PAYMENT_POLLING_INTERVAL,
+} from '@/background/config';
 
 const HOUR_MS = 3600 * 1000;
 const MIN_SEND_AMOUNT = 1n; // 1 unit
@@ -29,22 +47,26 @@ const MAX_INVALID_RECEIVER_ATTEMPTS = 2;
 
 type PaymentSessionSource = 'tab-change' | 'request-id-reused' | 'new-link';
 type IncomingPaymentSource = 'one-time' | 'continuous';
+interface CreateOutgoingPaymentParams {
+  walletAddress: WalletAddress;
+  incomingPaymentId: IncomingPayment['id'];
+  amount: string;
+}
 
 export class PaymentSession {
   private rate: string;
-  private active: boolean = false;
+  private active = false;
   /** Invalid receiver (providers not peered or other reasons) */
-  private isInvalid: boolean = false;
-  private countInvalidReceiver: number = 0;
-  private isDisabled: boolean = false;
+  private isInvalid = false;
+  private countInvalidReceiver = 0;
+  private isDisabled = false;
   private incomingPaymentUrl: string;
   private incomingPaymentExpiresAt: number;
   private amount: string;
   private intervalInMs: number;
   private probingId: number;
-  private shouldRetryImmediately: boolean = false;
+  private shouldRetryImmediately = false;
 
-  private interval: ReturnType<typeof setInterval> | null = null;
   private timeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -53,7 +75,9 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
+    private storage: StorageService,
     private openPaymentsService: OpenPaymentsService,
+    private outgoingPaymentGrantService: OutgoingPaymentGrantService,
     private events: EventsService,
     private tabState: TabState,
     private url: string,
@@ -122,7 +146,7 @@ export class PaymentSession {
         throw new DOMException('Aborting existing probing', 'AbortError');
       }
       try {
-        await this.openPaymentsService.probeDebitAmount(
+        await this.createPaymentQuote(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
@@ -131,10 +155,9 @@ export class PaymentSession {
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
-          await this.openPaymentsService.rotateToken();
+          await this.outgoingPaymentGrantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
           amountToSend = BigInt(amountIter.next().value);
-          continue;
         } else if (isInvalidReceiverError(e)) {
           this.markInvalid();
           this.events.emit('open_payments.invalid_receiver', {
@@ -189,11 +212,6 @@ export class PaymentSession {
   }
 
   private clearTimers() {
-    if (this.interval) {
-      this.debug(`Clearing interval=${this.timeout}`);
-      clearInterval(this.interval);
-      this.interval = null;
-    }
     if (this.timeout) {
       this.debug(`Clearing timeout=${this.timeout}`);
       clearTimeout(this.timeout);
@@ -233,45 +251,24 @@ export class PaymentSession {
       });
     }
 
-    // Uncomment this after we perform the Rafiki test and remove the leftover
-    // code below.
-    //
-    // if (this.canContinuePayment) {
-    //   this.timeout = setTimeout(() => {
-    //     void this.payContinuous()
-    //
-    //     this.interval = setInterval(() => {
-    //       if (!this.canContinuePayment) {
-    //           this.clearTimers()
-    //           return
-    //       }
-    //       void this.payContinuous()
-    //     }, this.intervalInMs)
-    //   }, waitTime)
-    // }
-
-    // Leftover
     const continuePayment = () => {
       if (!this.canContinuePayment) return;
-      // alternatively (leftover) after we perform the Rafiki test, we can just
-      // skip the `.then()` here and call setTimeout recursively immediately
-      void this.payContinuous().then(() => {
-        this.timeout = setTimeout(
-          () => {
-            continuePayment();
-          },
-          this.shouldRetryImmediately ? 0 : this.intervalInMs,
-        );
+      void this.payContinuous().catch((err) => {
+        this.logger.error('Error while making continuous payment', err);
       });
+      // This recursive call in setTimeout is essentially setInterval here,
+      // except we can have a dynamic interval (immediate vs intervalInMs).
+      this.timeout = setTimeout(
+        continuePayment,
+        this.shouldRetryImmediately ? 0 : this.intervalInMs,
+      );
     };
 
     if (this.canContinuePayment) {
       this.timeout = setTimeout(async () => {
         await this.payContinuous();
         this.timeout = setTimeout(
-          () => {
-            continuePayment();
-          },
+          continuePayment,
           this.shouldRetryImmediately ? 0 : this.intervalInMs,
         );
       }, waitTime);
@@ -314,7 +311,7 @@ export class PaymentSession {
     ).toISOString();
 
     const incomingPaymentGrant =
-      await this.openPaymentsService.client!.grant.request(
+      await this.openPaymentsService.client.grant.request(
         {
           url: this.receiver.authServer,
         },
@@ -338,7 +335,7 @@ export class PaymentSession {
     }
 
     const incomingPayment =
-      await this.openPaymentsService.client!.incomingPayment.create(
+      await this.openPaymentsService.client.incomingPayment.create(
         {
           url: this.receiver.resourceServer,
           accessToken: incomingPaymentGrant.access_token.value,
@@ -359,12 +356,71 @@ export class PaymentSession {
     }
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
-    await this.openPaymentsService.client!.grant.cancel({
+    await this.openPaymentsService.client.grant.cancel({
       url: incomingPaymentGrant.continue.uri,
       accessToken: incomingPaymentGrant.continue.access_token.value,
     });
 
     return incomingPayment;
+  }
+
+  private async createOutgoingPayment({
+    walletAddress,
+    amount,
+    incomingPaymentId,
+  }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
+    const { client } = this.openPaymentsService;
+    const outgoingPayment = await client.outgoingPayment.create(
+      {
+        accessToken: this.outgoingPaymentGrantService.accessToken,
+        url: walletAddress.resourceServer,
+      },
+      {
+        incomingPayment: incomingPaymentId,
+        walletAddress: walletAddress.id,
+        debitAmount: {
+          value: amount,
+          assetCode: walletAddress.assetCode,
+          assetScale: walletAddress.assetScale,
+        },
+        metadata: {
+          source: 'Web Monetization',
+        },
+      },
+    );
+
+    if (outgoingPayment.grantSpentDebitAmount) {
+      this.storage.updateSpentAmount(
+        this.outgoingPaymentGrantService.grantType,
+        outgoingPayment.grantSpentDebitAmount.value,
+      );
+    }
+    await this.storage.setState({ out_of_funds: false });
+
+    return outgoingPayment;
+  }
+
+  private async createPaymentQuote(
+    amount: AmountValue,
+    incomingPayment: IncomingPayment['id'],
+    sender: WalletAddress,
+  ): Promise<void> {
+    await this.openPaymentsService.client.quote.create(
+      {
+        url: sender.resourceServer,
+        accessToken: this.outgoingPaymentGrantService.accessToken,
+      },
+      {
+        method: 'ilp',
+        receiver: incomingPayment,
+        walletAddress: sender.id,
+        debitAmount: {
+          value: amount,
+          assetCode: sender.assetCode,
+          assetScale: sender.assetScale,
+        },
+      },
+    );
   }
 
   async pay(amount: number): Promise<OutgoingPayment> {
@@ -382,12 +438,11 @@ export class PaymentSession {
     );
 
     try {
-      const outgoingPayment =
-        await this.openPaymentsService.createOutgoingPayment({
-          walletAddress: this.sender,
-          incomingPaymentId: incomingPayment.id,
-          amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
-        });
+      const outgoingPayment = await this.createOutgoingPayment({
+        walletAddress: this.sender,
+        incomingPaymentId: incomingPayment.id,
+        amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
+      });
 
       this.sendMonetizationEvent({
         requestId: this.requestId,
@@ -410,12 +465,69 @@ export class PaymentSession {
         this.events.emit('open_payments.key_revoked');
         throw e;
       } else if (isTokenExpiredError(e)) {
-        await this.openPaymentsService.rotateToken();
+        await this.outgoingPaymentGrantService.rotateToken();
         return await this.pay(amount); // retry
       } else {
         throw e;
       }
     }
+  }
+
+  async *pollOutgoingPayment(
+    outgoingPaymentId: OutgoingPayment['id'],
+    {
+      signal,
+      maxAttempts = 10,
+    }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
+  ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
+    let attempt = 0;
+    await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
+    while (++attempt <= maxAttempts) {
+      try {
+        signal?.throwIfAborted();
+        const { client } = this.openPaymentsService;
+        const outgoingPayment = await client.outgoingPayment.get({
+          url: outgoingPaymentId,
+          accessToken: this.outgoingPaymentGrantService.accessToken,
+        });
+        yield outgoingPayment;
+        if (
+          outgoingPayment.failed &&
+          outgoingPayment.sentAmount.value === '0'
+        ) {
+          throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
+        }
+        if (
+          outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
+        ) {
+          return outgoingPayment; // completed
+        }
+        signal?.throwIfAborted();
+        await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
+      } catch (error) {
+        if (
+          isTokenExpiredError(error) ||
+          isMissingGrantPermissionsError(error)
+        ) {
+          // TODO: We can remove the token `actions` check once we've proper RS
+          // errors in place. Then we can handle insufficient grant error
+          // separately clearly.
+          const token = await this.outgoingPaymentGrantService.rotateToken();
+          const hasReadAccess = token.access_token.access.find(
+            (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
+          );
+          if (!hasReadAccess) {
+            throw new OpenPaymentsClientError('InsufficientGrant', {
+              description: error.description,
+            });
+          }
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
   }
 
   private setAmount(amount: bigint): void {
@@ -424,13 +536,13 @@ export class PaymentSession {
   }
 
   private async payContinuous() {
+    this.shouldRetryImmediately = false;
     try {
-      const outgoingPayment =
-        await this.openPaymentsService.createOutgoingPayment({
-          walletAddress: this.sender,
-          incomingPaymentId: this.incomingPaymentUrl,
-          amount: this.amount,
-        });
+      const outgoingPayment = await this.createOutgoingPayment({
+        walletAddress: this.sender,
+        incomingPaymentId: this.incomingPaymentUrl,
+        amount: this.amount,
+      });
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment;
       const monetizationEventDetails: MonetizationEventDetails = {
         amountSent: {
@@ -457,15 +569,14 @@ export class PaymentSession {
           intervalInMs: this.intervalInMs,
         });
       }
-      this.shouldRetryImmediately = false;
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
       } else if (isTokenExpiredError(e)) {
-        await this.openPaymentsService.rotateToken();
+        await this.outgoingPaymentGrantService.rotateToken();
         this.shouldRetryImmediately = true;
       } else if (isOutOfBalanceError(e)) {
-        const switched = await this.openPaymentsService.switchGrant();
+        const switched = await this.outgoingPaymentGrantService.switchGrant();
         if (switched === null) {
           this.events.emit('open_payments.out_of_funds');
         } else {
