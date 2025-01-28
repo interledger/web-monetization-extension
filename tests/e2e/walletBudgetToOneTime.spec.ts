@@ -56,6 +56,8 @@ test('edit wallet budget from one-time to one-time', async ({
       .getByTestId('remaining-balance')
       .getAttribute('data-value');
     expect(Number(remainingBalance)).toBeLessThan(Number(budgetAmount));
+
+    await page.close(); // so no new payments get made
   });
 
   const submitButton = await test.step('edit budget amount', async () => {
