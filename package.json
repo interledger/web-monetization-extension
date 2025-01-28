@@ -42,7 +42,7 @@
     "react-router-dom": "^7.1.3",
     "safe-buffer": "5.2.1",
     "tailwind-merge": "^2.6.0",
-    "valtio": "^2.1.2",
+    "valtio": "^2.1.3",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
