@@ -30,11 +30,18 @@ test('edit wallet budget from one-time to one-time', async ({
   const budgetAmountInput = popup.getByLabel('Budget amount');
   const recurringInput = popup.getByRole('switch', { name: 'Monthly' });
 
-  await settingsLink.click();
-  await budgetTab.click();
-  await expect(remainingBalanceInput).toHaveValue(budgetAmount);
-  await expect(budgetAmountInput).toHaveValue(budgetAmount);
-  await expect(recurringInput).not.toBeChecked();
+  await test.step('validate initial state', async () => {
+    await expect(background).toHaveStorage({
+      oneTimeGrantSpentAmount: '0',
+      recurringGrantSpentAmount: '0',
+    });
+
+    await settingsLink.click();
+    await budgetTab.click();
+    await expect(remainingBalanceInput).toHaveValue(budgetAmount);
+    await expect(budgetAmountInput).toHaveValue(budgetAmount);
+    await expect(recurringInput).not.toBeChecked();
+  });
 
   await test.step('make payment to reduce remaining balance', async () => {
     await setupPlayground(page, walletAddressUrl);
