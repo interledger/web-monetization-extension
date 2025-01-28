@@ -41,6 +41,14 @@ test('edit wallet budget from one-time to one-time', async ({
     await expect(remainingBalanceInput).toHaveValue(budgetAmount);
     await expect(budgetAmountInput).toHaveValue(budgetAmount);
     await expect(recurringInput).not.toBeChecked();
+
+    const { oneTimeGrant, recurringGrant } = await getStorage(background, [
+      'oneTimeGrant',
+      'recurringGrant',
+    ]);
+    // we only test "type" to avoid logging sensitive info about tokens
+    expect(oneTimeGrant?.type, 'one-time grant exists').toBeDefined();
+    expect(recurringGrant?.type, 'recurring grant not exists').toBeUndefined();
   });
 
   await test.step('make payment to reduce remaining balance', async () => {
