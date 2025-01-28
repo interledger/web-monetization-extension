@@ -74,7 +74,7 @@
     "jest-transform-stub": "^2.0.0",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
-    "prettier-plugin-tailwindcss": "^0.6.9",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "react-scan": "^0.0.54",
     "sade": "^1.8.1",
     "tailwindcss": "^3.4.17",
