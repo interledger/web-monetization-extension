@@ -15,15 +15,21 @@ export const LOGIN_PAGE_URL =
 export const API_URL_ORIGIN = 'https://api.wallet.interledger-test.dev';
 export const DEFAULT_CONTINUE_WAIT_MS = 1000;
 
+export const DEFAULT_KEY_INFO: KeyInfo = {
+  keyId: process.env.TEST_WALLET_KEY_ID,
+  privateKey: process.env.TEST_WALLET_PRIVATE_KEY,
+  publicKey: process.env.TEST_WALLET_PUBLIC_KEY,
+};
+
 export async function connectWallet(
   context: BrowserContext,
   background: Background,
   i18n: BrowserIntl,
-  keyInfo: KeyInfo,
+  keyInfo: KeyInfo | null,
   popup: Popup,
   params: ConnectDetails,
 ) {
-  await loadKeysToExtension(background, keyInfo);
+  await loadKeysToExtension(background, keyInfo ?? DEFAULT_KEY_INFO);
 
   const connectButton = await fillPopup(popup, i18n, params);
   await connectButton.click();
