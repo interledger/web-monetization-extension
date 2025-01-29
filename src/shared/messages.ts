@@ -127,7 +127,7 @@ export interface UpdateBudgetPayload {
 }
 
 export type PopupToBackgroundMessage = {
-  GET_POPUP_CONTEXT_DATA: {
+  GET_DATA_POPUP: {
     input: never;
     output: PopupState;
   };
@@ -222,7 +222,7 @@ export type ContentToBackgroundMessage = {
 
 // #region App ↦ BG
 export type AppToBackgroundMessage = {
-  GET_APP_CONTEXT_DATA: {
+  GET_DATA_APP: {
     input: never;
     output: PopupState;
   };
@@ -287,6 +287,7 @@ export interface BackgroundToPopupMessagesMap {
 }
 
 export type BackgroundToPopupMessage = {
+  // learn more on "mapped types" here: https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
   [K in keyof BackgroundToPopupMessagesMap]: {
     type: K;
     data: BackgroundToPopupMessagesMap[K];
@@ -307,4 +308,10 @@ export type BackgroundToAppMessage = {
     data: BackgroundToAppMessagesMap[K];
   };
 }[keyof BackgroundToAppMessagesMap];
+// #endregion
+
+// #region From BG
+export type BackgroundToPortMessagesMap =
+  | BackgroundToPopupMessagesMap
+  | BackgroundToAppMessagesMap;
 // #endregion

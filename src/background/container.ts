@@ -31,8 +31,6 @@ import {
 import {
   type BackgroundToAppMessagesMap,
   type BackgroundToPopupMessagesMap,
-  type BackgroundToPopupMessage,
-  type BackgroundToAppMessage,
   type BackgroundToContentMessage,
   MessageManager,
   BACKGROUND_TO_POPUP_CONNECTION_NAME,
@@ -108,20 +106,12 @@ export const configureContainer = () => {
       })),
     message: asClass(MessageManager<BackgroundToContentMessage>).singleton(),
     tabEvents: asClass(TabEvents).singleton(),
-    sendToPopup: asClass(
-      class extends SendToPort<BackgroundToPopupMessage> {
-        constructor(cradle: Cradle) {
-          super(cradle, BACKGROUND_TO_POPUP_CONNECTION_NAME);
-        }
-      },
-    ).singleton(),
-    sendToApp: asClass(
-      class extends SendToPort<BackgroundToAppMessage> {
-        constructor(cradle: Cradle) {
-          super(cradle, BACKGROUND_TO_APP_CONNECTION_NAME);
-        }
-      },
-    ).singleton(),
+    sendToPopup: asClass(SendToPort, {
+      injector: () => ({ connectionName: BACKGROUND_TO_POPUP_CONNECTION_NAME }),
+    }).singleton(),
+    sendToApp: asClass(SendToPort, {
+      injector: () => ({ connectionName: BACKGROUND_TO_APP_CONNECTION_NAME }),
+    }),
     background: asClass(Background)
       .singleton()
       .inject(() => ({

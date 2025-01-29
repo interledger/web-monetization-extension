@@ -193,7 +193,7 @@ export class Background {
         try {
           switch (message.action) {
             // region Popup
-            case 'GET_POPUP_CONTEXT_DATA':
+            case 'GET_DATA_POPUP':
               return success(
                 await this.monetizationService.getPopupData(
                   await this.windowState.getCurrentTab(),
@@ -291,12 +291,8 @@ export class Background {
             // endregion
 
             // region App
-            case 'GET_APP_CONTEXT_DATA':
-              return success(
-                await this.monetizationService.getPopupData(
-                  await this.windowState.getCurrentTab(),
-                ),
-              );
+            case 'GET_DATA_APP':
+              return success(await this.getAppData());
             // endregion
 
             default:
@@ -386,5 +382,14 @@ export class Background {
     } catch (error) {
       this.logger.error(error);
     }
+  };
+
+  getAppData = async () => {
+    const { publicKey } = await this.storage.get(['publicKey']);
+
+    return {
+      publicKey,
+      transientState: this.storage.getPopupTransientState(),
+    };
   };
 }

@@ -1,7 +1,8 @@
 import type { Runtime } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
+import type { BackgroundToPortMessagesMap } from '@/shared/messages';
 
-export class SendToPort<Message> {
+export class SendToPort<Message extends BackgroundToPortMessagesMap> {
   private browser: Cradle['browser'];
   private port: Runtime.Port;
   private isConnected = false;
@@ -35,6 +36,7 @@ export class SendToPort<Message> {
     if (!this.isConnected) {
       return;
     }
+
     const message = { type, data };
     this.port.postMessage(message);
   }

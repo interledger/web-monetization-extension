@@ -10,7 +10,7 @@ export const useAppState = () => useSnapshot(store);
 
 export const dispatch = async ({ type, data }: Actions) => {
   switch (type) {
-    case 'SET_APP_DATA':
+    case 'SET_DATA_APP':
       store.publicKey = data.publicKey;
       break;
     case 'SET_TRANSIENT_STATE':
@@ -23,4 +23,4 @@ export const dispatch = async ({ type, data }: Actions) => {
 
 type Actions =
   | { type: 'SET_TRANSIENT_STATE'; data: PopupTransientState }
-  | { type: 'SET_APP_DATA'; data: Pick<Storage, 'publicKey'> };
+  | { type: 'SET_DATA_APP'; data: Pick<Storage, 'publicKey'> };
