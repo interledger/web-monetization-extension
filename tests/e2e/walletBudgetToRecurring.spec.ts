@@ -1,28 +1,18 @@
 import { test, expect } from './fixtures/base';
+import {
+  beforeAllConnectWallet,
+  afterAllDisconnectWallet,
+} from './fixtures/connected';
 import { getStorage } from './fixtures/helpers';
 import { getContinueWaitTime, setupPlayground } from './helpers/common';
 import { completeGrant, DEFAULT_CONTINUE_WAIT_MS } from './helpers/testWallet';
-import {
-  connectWallet,
-  disconnectWallet,
-  sendOneTimePayment,
-} from './pages/popup';
+import { sendOneTimePayment } from './pages/popup';
 import { addMonths } from 'date-fns';
 import { transformBalance } from '@/shared/helpers';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-test.beforeEach(async ({ background, popup, persistentContext, i18n }) => {
-  await connectWallet(persistentContext, background, i18n, null, popup, {
-    walletAddressUrl,
-    amount: '10',
-    recurring: false,
-  });
-});
-
-test.afterEach(async ({ popup }) => {
-  await disconnectWallet(popup);
-});
+test(...beforeAllConnectWallet({ walletAddressUrl }));
 
 test('edit wallet budget from one-time to recurring', async ({
   popup,
@@ -156,3 +146,5 @@ test('edit wallet budget from one-time to recurring', async ({
     await expect(submitButton).toBeDisabled();
   });
 });
+
+test(...afterAllDisconnectWallet());

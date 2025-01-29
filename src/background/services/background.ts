@@ -58,6 +58,7 @@ export class Background {
 
   async start() {
     this.bindOnInstalled();
+    this.bindStorageChange();
     this.bindMessageHandler();
     await this.injectPolyfill();
     await this.onStart();
@@ -359,6 +360,16 @@ export class Background {
             `Migrated from ${prevVersion} to ${migrated.version}`,
           );
         }
+      }
+    });
+  }
+
+  bindStorageChange() {
+    this.browser.storage.local.onChanged.addListener(async (changes) => {
+      // if keyId is cleared, regenerate keys
+      if (changes.keyId?.oldValue && !changes.keyId?.newValue) {
+        await this.storage.populate(); // in case this was called due to storage.local.clear()
+        await this.walletService.generateKeys();
       }
     });
   }

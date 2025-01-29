@@ -1,20 +1,13 @@
 import { test, expect } from './fixtures/base';
+import {
+  beforeAllConnectWallet,
+  afterAllDisconnectWallet,
+} from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
-import { connectWallet, disconnectWallet } from './pages/popup';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
-  await connectWallet(persistentContext, background, i18n, null, popup, {
-    walletAddressUrl,
-    amount: '10',
-    recurring: false,
-  });
-});
-
-test.afterAll(async ({ popup }) => {
-  await disconnectWallet(popup);
-});
+test(...beforeAllConnectWallet({ walletAddressUrl }));
 
 test('iframe add/remove does not de-monetize main page', async ({
   page,
@@ -114,3 +107,5 @@ test('iframe navigate does not de-monetize main page', async ({
     await expect(popup.getByTestId('home-page')).toBeVisible();
   });
 });
+
+test(...afterAllDisconnectWallet());

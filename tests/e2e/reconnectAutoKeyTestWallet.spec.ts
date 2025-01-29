@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/base';
+import { afterAllResetExtensionStorage } from './fixtures/connected';
 import { getJWKS, withResolvers } from '@/shared/helpers';
 import {
   acceptGrant,
@@ -25,6 +26,8 @@ test('Reconnect to test wallet with automatic key addition', async ({
   i18n,
 }) => {
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
+  await expect(background).not.toHaveStorage({ connected: true });
+
   const revokeInfo = await test.step('connect wallet', async () => {
     const connectButton = await test.step('fill popup', async () => {
       const connectButton = await fillPopup(popup, i18n, {
@@ -178,3 +181,5 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await revokeKey(page, revokeInfo);
   });
 });
+
+test(...afterAllResetExtensionStorage());

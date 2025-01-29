@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/base';
+import { afterAllResetExtensionStorage } from './fixtures/connected';
 import { getJWKS, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
 import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
@@ -25,6 +26,8 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   test.skip(!username || !password || !walletAddressUrl, 'Missing credentials');
 
   const { keyId: kid } = await getStorage(background, ['keyId']);
+
+  await expect(background).not.toHaveStorage({ connected: true });
 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
@@ -162,3 +165,5 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     await disconnectWallet(popup);
   });
 });
+
+test(...afterAllResetExtensionStorage());

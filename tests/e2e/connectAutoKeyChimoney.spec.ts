@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/base';
+import { afterAllResetExtensionStorage } from './fixtures/connected';
 import { withResolvers, getJWKS } from '@/shared/helpers';
 import { fillPopup } from './pages/popup';
 import {
@@ -30,6 +31,8 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
 
   const walletURL = new URL(walletUrl);
   const { keyId } = await getStorage(background, ['keyId']);
+
+  await expect(background).not.toHaveStorage({ connected: true });
 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
@@ -158,3 +161,5 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
   //   await disconnectWallet(popup);
   // });
 });
+
+test(...afterAllResetExtensionStorage());

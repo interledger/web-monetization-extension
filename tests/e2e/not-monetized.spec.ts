@@ -1,22 +1,17 @@
 import type { Locator } from '@playwright/test';
 import { pathToFileURL } from 'node:url';
 import { test, expect } from './fixtures/base';
-import { connectWallet, disconnectWallet } from './pages/popup';
+import {
+  beforeAllConnectWallet,
+  afterAllDisconnectWallet,
+} from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
-  await connectWallet(persistentContext, background, i18n, null, popup, {
-    walletAddressUrl,
-    amount: '10',
-    recurring: false,
-  });
-});
+test.describe.configure({ mode: 'serial' });
 
-test.afterAll(async ({ popup }) => {
-  await disconnectWallet(popup);
-});
+test(...beforeAllConnectWallet({ walletAddressUrl }));
 
 test.beforeEach(async ({ popup, page }) => {
   await popup.reload();
@@ -144,3 +139,5 @@ test.describe('shows not monetized on non-monetized pages', () => {
     await expect(warning).toHaveText(msg);
   });
 });
+
+test(...afterAllDisconnectWallet());

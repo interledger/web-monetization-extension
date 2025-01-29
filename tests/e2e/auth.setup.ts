@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { test as setup, expect } from './fixtures/base';
+import { test as setup, expect } from '@playwright/test';
 import { authFile } from './fixtures/helpers';
 import { getJWKS } from '@/shared/helpers';
 import type { JWK } from '@interledger/open-payments';

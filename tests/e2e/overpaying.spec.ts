@@ -1,38 +1,24 @@
 import { spy } from 'tinyspy';
 import { test, expect } from './fixtures/base';
 import {
+  beforeAllConnectWallet,
+  afterAllDisconnectWallet,
+} from './fixtures/connected';
+import {
   getLastCallArg,
   playgroundUrl,
   setupPlayground,
 } from './helpers/common';
-import {
-  connectWallet,
-  disconnectWallet,
-  sendOneTimePayment,
-} from './pages/popup';
+import { sendOneTimePayment } from './pages/popup';
 import type { OutgoingPayment } from '@interledger/open-payments';
 
-test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
-  await connectWallet(persistentContext, background, i18n, null, popup, {
-    walletAddressUrl,
-    amount: '10',
-    recurring: false,
-  });
-});
+const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-test.afterAll(async ({ popup }) => {
-  await disconnectWallet(popup);
-});
-
-test.beforeEach(async ({ popup }) => {
-  await popup.reload();
-});
+test(...beforeAllConnectWallet({ walletAddressUrl }));
 
 test.afterEach(({ persistentContext: context }) => {
   context.removeAllListeners('requestfinished');
 });
-
-const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
 test.describe('should not pay immediately when overpaying', () => {
   test('on page reload', async ({
@@ -251,3 +237,5 @@ test('should pay immediately on page navigation (clears overpaying)', async ({
     },
   });
 });
+
+test(...afterAllDisconnectWallet());

@@ -295,6 +295,29 @@ export async function loadKeysToExtension(
   }
 }
 
+/**
+ * clear storage, including keys in extension, extension will generate new keys
+ * and reset storage to default also as it's listening to storage change events.
+ */
+export const resetExtensionStorage = async (background: Background) => {
+  await background.evaluate(() => {
+    return new Promise<void>((resolve) => {
+      const storage = chrome.storage.local;
+      storage.onChanged.addListener(function listener(changes) {
+        // wait for new key to be generated
+        if (!changes.keyId?.oldValue && changes.keyId?.newValue) {
+          storage.onChanged.removeListener(listener);
+          resolve();
+        }
+      });
+      storage.clear();
+    });
+  });
+  // await background.evaluate(() => {
+  //   chrome.runtime.reload();
+  // });
+};
+
 type TranslationData = Record<
   TranslationKeys,
   { message: string; placeholders?: Record<string, { content: string }> }

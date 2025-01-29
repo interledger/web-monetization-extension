@@ -1,5 +1,6 @@
 /// <reference types="chrome"/>
 import { test, expect } from './fixtures/base';
+import { afterAllResetExtensionStorage } from './fixtures/connected';
 import { connectWallet, disconnectWallet } from './pages/popup';
 
 test.beforeEach(async ({ popup }) => {
@@ -60,3 +61,5 @@ test('connects with correct details provided', async ({
   await disconnectWallet(popup);
   await expect(background).toHaveStorage({ connected: false });
 });
+
+test(...afterAllResetExtensionStorage());

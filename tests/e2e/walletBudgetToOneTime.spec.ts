@@ -1,27 +1,17 @@
 import { test, expect } from './fixtures/base';
+import {
+  beforeAllConnectWallet,
+  afterAllDisconnectWallet,
+} from './fixtures/connected';
 import { getStorage } from './fixtures/helpers';
 import { getContinueWaitTime, setupPlayground } from './helpers/common';
 import { completeGrant, DEFAULT_CONTINUE_WAIT_MS } from './helpers/testWallet';
-import {
-  connectWallet,
-  disconnectWallet,
-  sendOneTimePayment,
-} from './pages/popup';
+import { sendOneTimePayment } from './pages/popup';
 import { transformBalance } from '@/shared/helpers';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-test.beforeAll(async ({ background, popup, persistentContext, i18n }) => {
-  await connectWallet(persistentContext, background, i18n, null, popup, {
-    walletAddressUrl,
-    amount: '10',
-    recurring: false,
-  });
-});
-
-test.afterAll(async ({ popup }) => {
-  await disconnectWallet(popup);
-});
+test(...beforeAllConnectWallet({ walletAddressUrl }));
 
 test('edit wallet budget from one-time to one-time', async ({
   popup,
@@ -29,7 +19,6 @@ test('edit wallet budget from one-time to one-time', async ({
   persistentContext: context,
   page,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const newAmount = '15.00';
 
   const { oneTimeGrant, walletAddress } = await getStorage(background, [
@@ -147,3 +136,5 @@ test('edit wallet budget from one-time to one-time', async ({
     await expect(submitButton).toBeDisabled();
   });
 });
+
+test(...afterAllDisconnectWallet());

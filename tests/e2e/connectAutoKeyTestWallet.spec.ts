@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/base';
+import { afterAllResetExtensionStorage } from './fixtures/connected';
 import { withResolvers, getJWKS } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
 import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
@@ -23,6 +24,8 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
   const username = process.env.TEST_WALLET_USERNAME;
   const password = process.env.TEST_WALLET_PASSWORD;
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
+
+  await expect(background).toHaveStorage({ connected: false });
 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
@@ -150,3 +153,5 @@ test('Connect to test wallet with automatic key addition when not logged-in to w
     await disconnectWallet(popup);
   });
 });
+
+test(...afterAllResetExtensionStorage());
