@@ -16,18 +16,18 @@ import { getLastCallArg } from '../helpers/common';
 import { openPopup, type Popup } from '../pages/popup';
 import type { DeepPartial, Storage } from '@/shared/types';
 
-type BaseScopeWorker = {
+type WorkerScopeFixtures = {
   persistentContext: BrowserContext;
   background: Background;
   i18n: BrowserIntl;
-  /**
-   * IMPORTANT: This is created once per test file. Mutating/closing could
-   * impact other tests in same file.
-   */
-  popup: Popup;
 };
 
-export const test = base.extend<{ page: Page }, BaseScopeWorker>({
+type TestScopeFixtures = {
+  popup: Popup;
+  page: Page;
+};
+
+export const test = base.extend<TestScopeFixtures, WorkerScopeFixtures>({
   // Extensions only work with a persistent context.
   // Ideally we wanted this fixture to be named "context", but it's already defined in default base context under the scope "test".
   persistentContext: [
@@ -61,11 +61,10 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
   popup: [
     async ({ background, persistentContext }, use) => {
       const popup = await openPopup(persistentContext, background);
-
       await use(popup);
       await popup.close();
     },
-    { scope: 'worker', timeout: 5_000 },
+    { scope: 'test', timeout: 5_000 },
   ],
 
   page: async ({ persistentContext: context }, use) => {

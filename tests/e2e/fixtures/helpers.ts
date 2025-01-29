@@ -11,6 +11,7 @@ import {
   type BrowserContext,
   type WorkerInfo,
   type Worker,
+  type Page,
 } from '@playwright/test';
 import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
@@ -207,9 +208,11 @@ export async function getBackground(
 ): Promise<Background> {
   let background: Background | undefined;
   if (browserName === 'chromium') {
-    background = context.serviceWorkers()[0];
+    const isBackground = (worker: Worker) =>
+      worker.url().endsWith('background.js');
+    background = context.serviceWorkers().find(isBackground);
     if (!background) {
-      background = await context.waitForEvent('serviceworker');
+      background = await context.waitForEvent('serviceworker', isBackground);
     }
     // wait for Service Worker to be activated
     await background.evaluate(() => {
@@ -252,8 +255,16 @@ export async function closePostInstallPage(
     (path) => chrome.runtime.getURL(path),
     APP_URL,
   );
-  let page = context.pages().find((page) => page.url().startsWith(url));
-  page ??= await context.waitForEvent('page', (p) => p.url().startsWith(url));
+  const isPostInstallPage = (page: Page) => page.url().includes(url);
+  let page = context.pages().find(isPostInstallPage);
+  try {
+    page ??= await context.waitForEvent('page', {
+      predicate: isPostInstallPage,
+      timeout: 2_000,
+    });
+  } catch {
+    return; // assume already closed
+  }
   const promise = page.waitForEvent('close');
   await page.evaluate(() => window.close());
   await promise;
@@ -313,9 +324,6 @@ export const resetExtensionStorage = async (background: Background) => {
       storage.clear();
     });
   });
-  // await background.evaluate(() => {
-  //   chrome.runtime.reload();
-  // });
 };
 
 type TranslationData = Record<
