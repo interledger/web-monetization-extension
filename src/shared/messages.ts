@@ -287,7 +287,6 @@ export interface BackgroundToPopupMessagesMap {
 }
 
 export type BackgroundToPopupMessage = {
-  // learn more on "mapped types" here: https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
   [K in keyof BackgroundToPopupMessagesMap]: {
     type: K;
     data: BackgroundToPopupMessagesMap[K];
