@@ -127,7 +127,7 @@ export interface UpdateBudgetPayload {
 }
 
 export type PopupToBackgroundMessage = {
-  GET_CONTEXT_DATA: {
+  GET_POPUP_CONTEXT_DATA: {
     input: never;
     output: PopupState;
   };
@@ -222,20 +222,18 @@ export type ContentToBackgroundMessage = {
 
 // #region App ↦ BG
 export type AppToBackgroundMessage = {
-  GET_CONTEXT_DATA: {
+  GET_APP_CONTEXT_DATA: {
     input: never;
     output: PopupState;
   };
-  CONNECT_WALLET: {
-    input: null | ConnectWalletPayload;
-    output: undefined;
-  };
+  CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
 };
 // #endregion
 
 // #region To BG
 type ToBackgroundMessageMap = PopupToBackgroundMessage &
-  ContentToBackgroundMessage;
+  ContentToBackgroundMessage &
+  AppToBackgroundMessage;
 
 export type ToBackgroundMessage = {
   [K in keyof ToBackgroundMessageMap]: {

@@ -15,7 +15,7 @@ export const usePopupState = () => useSnapshot(store);
 // keeps all actions together. Can move to better strategies in future.
 export const dispatch = ({ type, data }: Actions) => {
   switch (type) {
-    case 'SET_DATA': {
+    case 'SET_POPUP_DATA': {
       for (const key of Object.keys(data) as Array<keyof PopupState>) {
         // @ts-expect-error we know TypeScript
         store[key] = data[key];
@@ -54,7 +54,7 @@ export const dispatch = ({ type, data }: Actions) => {
 };
 
 type Actions =
-  | { type: 'SET_DATA'; data: PopupState }
+  | { type: 'SET_POPUP_DATA'; data: PopupState }
   | { type: 'TOGGLE_CONTINUOUS_PAYMENTS'; data?: never }
   | { type: 'TOGGLE_PAYMENTS'; data?: never }
   | { type: 'SET_CONNECTED'; data: { connected: boolean } }

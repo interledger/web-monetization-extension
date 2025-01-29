@@ -147,7 +147,7 @@ export class Background {
         windowTypes: ['normal'],
       });
       const popupWasOpen = popupOpen;
-      popupOpen = this.sendToPopup.isPopupOpen;
+      popupOpen = this.sendToPopup.isPortOpen;
       if (popupWasOpen || popupOpen) {
         // This is intentionally called after windows.getAll, to add a little
         // delay for popup port to open
@@ -193,7 +193,7 @@ export class Background {
         try {
           switch (message.action) {
             // region Popup
-            case 'GET_CONTEXT_DATA':
+            case 'GET_POPUP_CONTEXT_DATA':
               return success(
                 await this.monetizationService.getPopupData(
                   await this.windowState.getCurrentTab(),
@@ -288,6 +288,15 @@ export class Background {
               );
               return;
 
+            // endregion
+
+            // region App
+            case 'GET_APP_CONTEXT_DATA':
+              return success(
+                await this.monetizationService.getPopupData(
+                  await this.windowState.getCurrentTab(),
+                ),
+              );
             // endregion
 
             default:

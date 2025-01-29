@@ -16,10 +16,10 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
 
   React.useEffect(() => {
     async function get() {
-      const response = await message.send('GET_CONTEXT_DATA');
+      const response = await message.send('GET_POPUP_CONTEXT_DATA');
 
       if (response.success) {
-        dispatch({ type: 'SET_DATA', data: response.payload });
+        dispatch({ type: 'SET_POPUP_DATA', data: response.payload });
         setIsLoading(false);
       }
     }
