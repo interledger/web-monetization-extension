@@ -120,7 +120,20 @@ const findWallet: Run<{ accountId: string; walletId: string }> = async (
   const accounts = output(getAccounts);
   for (const account of accounts) {
     for (const wallet of account.walletAddresses) {
-      if (toWalletAddressUrl(wallet.url) === walletAddressUrl) {
+      // For Interledger Cards we can have two types of wallet addresses:
+      //  - ilp.interledger.cards
+      //  - ilp.dev (just a proxy behind ilp.interledger.cards for certain wallet addresses)
+      //
+      // `ilp.dev` wallet addresses are only used for wallet addresses that are
+      // linked to a card.
+      //
+      // `ilp.interledger.cards` used for the other wallet addresses (user created)
+      //
+      // Not all `ilp.interledger.cards` wallet addresses can be used with `ilp.dev`.
+      // Manually created wallet addresses cannot be used with `ilp.dev`.
+      const walletAddress = toWalletAddressUrl(wallet.url)
+      const cardWalletAddressUrl = walletAddressUrl.replace('ilp.interledger.cards', 'ilp.dev')
+      if (walletAddress === walletAddressUrl || walletAddress === cardWalletAddressUrl) {
         return { accountId: account.id, walletId: wallet.id };
       }
     }
