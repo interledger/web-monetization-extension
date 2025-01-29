@@ -131,9 +131,15 @@ const findWallet: Run<{ accountId: string; walletId: string }> = async (
       //
       // Not all `ilp.interledger.cards` wallet addresses can be used with `ilp.dev`.
       // Manually created wallet addresses cannot be used with `ilp.dev`.
-      const walletAddress = toWalletAddressUrl(wallet.url)
-      const cardWalletAddressUrl = walletAddressUrl.replace('ilp.interledger.cards', 'ilp.dev')
-      if (walletAddress === walletAddressUrl || walletAddress === cardWalletAddressUrl) {
+      const walletAddress = toWalletAddressUrl(wallet.url);
+      const cardWalletAddressUrl = walletAddressUrl.replace(
+        'ilp.interledger.cards',
+        'ilp.dev',
+      );
+      if (
+        walletAddress === walletAddressUrl ||
+        walletAddress === cardWalletAddressUrl
+      ) {
         return { accountId: account.id, walletId: wallet.id };
       }
     }
