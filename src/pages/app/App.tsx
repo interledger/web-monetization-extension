@@ -28,13 +28,13 @@ export const App = () => {
   });
   return (
     <BrowserContextProvider browser={browser}>
-      <MessageContextProvider>
-        <TranslationContextProvider>
+      <TranslationContextProvider>
+        <MessageContextProvider>
           <WaitForStateLoad>
             <RouterProvider router={router} />
           </WaitForStateLoad>
-        </TranslationContextProvider>
-      </MessageContextProvider>
+        </MessageContextProvider>
+      </TranslationContextProvider>
     </BrowserContextProvider>
   );
 };

@@ -6,6 +6,7 @@ import type { Browser } from 'webextension-polyfill';
 import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { PopupState } from '@/popup/lib/store';
+import type { AppState } from '@/app/lib/store';
 
 // #region MessageManager
 export interface SuccessResponse<TPayload = void> {
@@ -224,9 +225,7 @@ export type ContentToBackgroundMessage = {
 export type AppToBackgroundMessage = {
   GET_DATA_APP: {
     input: never;
-    output: Pick<Storage, 'connected' | 'publicKey'> & {
-      transientState: PopupTransientState;
-    };
+    output: AppState;
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
 };

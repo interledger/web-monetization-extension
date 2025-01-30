@@ -1,9 +1,15 @@
-import type { AppStore, PopupTransientState } from '@/shared/types';
+import type {
+  AppStore,
+  DeepNonNullable,
+  PopupTransientState,
+} from '@/shared/types';
 import { proxy, useSnapshot } from 'valtio';
 
-export const store = proxy<AppStore>({
+export type AppState = Required<DeepNonNullable<AppStore>>;
+
+export const store = proxy<AppState>({
   transientState: {} as PopupTransientState,
-} as AppStore);
+} as AppState);
 
 // easier access to the store via this hook
 export const useAppState = () => useSnapshot(store);
@@ -11,8 +17,10 @@ export const useAppState = () => useSnapshot(store);
 export const dispatch = async ({ type, data }: Actions) => {
   switch (type) {
     case 'SET_DATA_APP':
-      store.publicKey = data.publicKey;
-      store.connected = data.connected;
+      for (const key of Object.keys(data) as Array<keyof AppState>) {
+        // @ts-expect-error we know TypeScript
+        store[key] = data[key];
+      }
       break;
     case 'SET_TRANSIENT_STATE':
       store.transientState = data;

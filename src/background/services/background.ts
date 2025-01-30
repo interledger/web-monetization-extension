@@ -14,6 +14,7 @@ import { getTab } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
+import type { AppStore } from '@/shared/types';
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0];
 const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
@@ -132,7 +133,7 @@ export class Background {
     this.browser.alarms.onAlarm.addListener(resetOutOfFundsState);
   }
 
-  async getAppData() {
+  async getAppData(): Promise<AppStore> {
     const { connected, publicKey } = await this.storage.get([
       'connected',
       'publicKey',

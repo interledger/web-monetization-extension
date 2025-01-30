@@ -5,10 +5,12 @@ import { getWalletInformation } from '@/shared/helpers';
 import { usePopupState } from '@/popup/lib/store';
 
 export const Component = () => {
-  const { transientState, publicKey } = usePopupState();
   const message = useMessage();
+  const {
+    transientState: { connect: connectState },
+    publicKey,
+  } = usePopupState();
 
-  const connectState = transientState.connect;
   return (
     <ConnectWalletForm
       publicKey={publicKey}
