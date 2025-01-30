@@ -26,10 +26,11 @@ type AccountDetails = {
   };
 };
 
-const API_ORIGIN =
-  location.host === 'wallet.interledger.cards'
-    ? 'https://api.interledger.cards'
-    : `https://api.${location.host}`;
+const IS_INTERLEDGER_CARDS = location.host === 'wallet.interledger.cards';
+
+const API_ORIGIN = IS_INTERLEDGER_CARDS
+  ? 'https://api.interledger.cards'
+  : `https://api.${location.host}`;
 
 const waitForLogin: Run<void> = async (
   { keyAddUrl },
@@ -120,26 +121,7 @@ const findWallet: Run<{ accountId: string; walletId: string }> = async (
   const accounts = output(getAccounts);
   for (const account of accounts) {
     for (const wallet of account.walletAddresses) {
-      // For Interledger Cards we can have two types of wallet addresses:
-      //  - ilp.interledger.cards
-      //  - ilp.dev (just a proxy behind ilp.interledger.cards for certain wallet addresses)
-      //
-      // `ilp.dev` wallet addresses are only used for wallet addresses that are
-      // linked to a card.
-      //
-      // `ilp.interledger.cards` used for the other wallet addresses (user created)
-      //
-      // Not all `ilp.interledger.cards` wallet addresses can be used with `ilp.dev`.
-      // Manually created wallet addresses cannot be used with `ilp.dev`.
-      const walletAddress = toWalletAddressUrl(wallet.url);
-      const cardWalletAddressUrl = walletAddressUrl.replace(
-        'ilp.interledger.cards',
-        'ilp.dev',
-      );
-      if (
-        walletAddress === walletAddressUrl ||
-        walletAddress === cardWalletAddressUrl
-      ) {
+      if (walletAddressUrl === normalizeWalletAddress(wallet.url)) {
         return { accountId: account.id, walletId: wallet.id };
       }
     }
@@ -184,6 +166,25 @@ async function revokeKey(accountId: string, walletId: string, keyId: string) {
   if (!res.ok) {
     throw new Error(`Failed to revoke key: ${await res.text()}`);
   }
+}
+
+function normalizeWalletAddress(urlOrPaymentPointer: string) {
+  const url = toWalletAddressUrl(urlOrPaymentPointer);
+  if (IS_INTERLEDGER_CARDS && url.startsWith('https://ilp.dev')) {
+    // For Interledger Cards we can have two types of wallet addresses:
+    //  - ilp.interledger.cards
+    //  - ilp.dev (just a proxy behind ilp.interledger.cards for certain wallet addresses)
+    //
+    // `ilp.dev` wallet addresses are only used for wallet addresses that are
+    // linked to a card.
+    //
+    // `ilp.interledger.cards` used for the other wallet addresses (user created)
+    //
+    // Not all `ilp.interledger.cards` wallet addresses can be used with `ilp.dev`.
+    // Manually created wallet addresses cannot be used with `ilp.dev`.
+    return url.replace('ilp.dev', 'ilp.interledger.cards');
+  }
+  return url;
 }
 // endregion
 
