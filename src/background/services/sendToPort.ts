@@ -6,12 +6,13 @@ export class SendToPort<Message extends BackgroundToPortMessagesMap> {
   private browser: Cradle['browser'];
   private port: Runtime.Port;
   private isConnected = false;
+  private connectionName: string;
 
-  constructor(
-    { browser }: Cradle,
-    private readonly connectionName: string,
-  ) {
-    Object.assign(this, { browser });
+  constructor({
+    browser,
+    connectionName,
+  }: Cradle & { connectionName: string }) {
+    Object.assign(this, { browser, connectionName });
   }
 
   start() {

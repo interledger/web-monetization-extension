@@ -136,7 +136,7 @@ export type PopupStore = Omit<
   }>;
 };
 
-export type AppStore = Pick<Storage, 'publicKey'> & {
+export type AppStore = Pick<Storage, 'publicKey' | 'connected'> & {
   transientState: PopupTransientState;
 };
 

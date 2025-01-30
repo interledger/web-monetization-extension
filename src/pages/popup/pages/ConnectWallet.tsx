@@ -8,14 +8,6 @@ export const Component = () => {
   const { transientState, publicKey } = usePopupState();
   const message = useMessage();
 
-  React.useEffect(() => {
-    if (window.self !== window.top) {
-      // if used in iframe (in post install screen), remove header
-      document.querySelector('header')?.remove();
-      document.querySelector('.bg-divider-gradient')?.remove();
-    }
-  }, []);
-
   const connectState = transientState.connect;
   return (
     <ConnectWalletForm

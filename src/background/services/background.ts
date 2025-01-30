@@ -132,6 +132,19 @@ export class Background {
     this.browser.alarms.onAlarm.addListener(resetOutOfFundsState);
   }
 
+  async getAppData() {
+    const { connected, publicKey } = await this.storage.get([
+      'connected',
+      'publicKey',
+    ]);
+
+    return {
+      connected,
+      publicKey,
+      transientState: this.storage.getPopupTransientState(),
+    };
+  }
+
   bindWindowHandlers() {
     this.browser.windows.onCreated.addListener(
       this.windowState.onWindowCreated,
@@ -382,14 +395,5 @@ export class Background {
     } catch (error) {
       this.logger.error(error);
     }
-  };
-
-  getAppData = async () => {
-    const { publicKey } = await this.storage.get(['publicKey']);
-
-    return {
-      publicKey,
-      transientState: this.storage.getPopupTransientState(),
-    };
   };
 }

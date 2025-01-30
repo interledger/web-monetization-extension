@@ -12,6 +12,7 @@ export const dispatch = async ({ type, data }: Actions) => {
   switch (type) {
     case 'SET_DATA_APP':
       store.publicKey = data.publicKey;
+      store.connected = data.connected;
       break;
     case 'SET_TRANSIENT_STATE':
       store.transientState = data;
@@ -23,4 +24,4 @@ export const dispatch = async ({ type, data }: Actions) => {
 
 type Actions =
   | { type: 'SET_TRANSIENT_STATE'; data: PopupTransientState }
-  | { type: 'SET_DATA_APP'; data: Pick<Storage, 'publicKey'> };
+  | { type: 'SET_DATA_APP'; data: Pick<Storage, 'connected' | 'publicKey'> };

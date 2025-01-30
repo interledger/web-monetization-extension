@@ -224,7 +224,9 @@ export type ContentToBackgroundMessage = {
 export type AppToBackgroundMessage = {
   GET_DATA_APP: {
     input: never;
-    output: PopupState;
+    output: Pick<Storage, 'connected' | 'publicKey'> & {
+      transientState: PopupTransientState;
+    };
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
 };

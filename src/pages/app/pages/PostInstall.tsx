@@ -72,7 +72,7 @@ const Steps = () => {
   const isPinnedToToolbar = usePinnedStatus();
   const [isOpen, setIsOpen] = React.useState(0);
   const browserName = getBrowserName(browser, navigator.userAgent);
-  const { transientState, publicKey } = useAppState();
+  const { transientState, connected, publicKey } = useAppState();
   const connectState = transientState.connect;
   const message = useMessage();
 
@@ -160,26 +160,39 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
-        <div className="mx-auto h-popup w-popup overflow-hidden">
-          <ConnectWalletForm
-            publicKey={publicKey}
-            state={connectState}
-            defaultValues={{
-              recurring:
-                localStorage?.getItem('connect.recurring') === 'true' || false,
-              amount: localStorage?.getItem('connect.amount') || undefined,
-              walletAddressUrl:
-                localStorage?.getItem('connect.walletAddressUrl') || undefined,
-              autoKeyAddConsent:
-                localStorage?.getItem('connect.autoKeyAddConsent') === 'true',
-            }}
-            saveValue={(key, val) => {
-              localStorage?.setItem(`connect.${key}`, val.toString());
-            }}
-            getWalletInfo={getWalletInformation}
-            connectWallet={(data) => message.send('CONNECT_WALLET', data)}
-            clearConnectState={() => message.send('CONNECT_WALLET', null)}
-          />
+        <div className="text-center mx-auto h-auto w-popup pt-4 pb-8 overflow-hidden">
+          {connected ? (
+            <React.Fragment>
+              <p className="font-medium text-secondary-dark landscape:mb-2 landscape:text-xl landscape:2xl:mb-3 landscape:2xl:text-xl">
+                {t('postInstall_text_wallet_connected_1')}
+              </p>
+              <p className="text-secondary-dark landscape:text-xl landscape:2xl:text-xl">
+                {t('postInstall_text_wallet_connected_2')}
+              </p>
+            </React.Fragment>
+          ) : (
+            <ConnectWalletForm
+              publicKey={publicKey}
+              state={connectState}
+              defaultValues={{
+                recurring:
+                  localStorage?.getItem('connect.recurring') === 'true' ||
+                  false,
+                amount: localStorage?.getItem('connect.amount') || undefined,
+                walletAddressUrl:
+                  localStorage?.getItem('connect.walletAddressUrl') ||
+                  undefined,
+                autoKeyAddConsent:
+                  localStorage?.getItem('connect.autoKeyAddConsent') === 'true',
+              }}
+              saveValue={(key, val) => {
+                localStorage?.setItem(`connect.${key}`, val.toString());
+              }}
+              getWalletInfo={getWalletInformation}
+              connectWallet={(data) => message.send('CONNECT_WALLET', data)}
+              clearConnectState={() => message.send('CONNECT_WALLET', null)}
+            />
+          )}
         </div>
       </Step>
     </ol>
