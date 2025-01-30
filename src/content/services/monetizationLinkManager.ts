@@ -6,6 +6,7 @@ import type {
   MonetizationEventPayload,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
+  StartMonetizationPayloadEntry,
   StopMonetizationPayload,
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
@@ -158,14 +159,17 @@ export class MonetizationLinkManager extends EventEmitter {
     }
   };
 
-  private getMonetizationLinkTags(): HTMLLinkElement[] {
+  private getMonetizationLinkTags(root?: HTMLElement): HTMLLinkElement[] {
     if (this.isTopFrame) {
       return Array.from(
-        this.document.querySelectorAll<HTMLLinkElement>(
+        (root ?? this.document).querySelectorAll<HTMLLinkElement>(
           'link[rel="monetization"]',
         ),
       );
     } else {
+      if (root && !root.closest('head')) {
+        return [];
+      }
       const monetizationTag = this.document.querySelector<HTMLLinkElement>(
         'head link[rel="monetization"]',
       );
@@ -358,19 +362,15 @@ export class MonetizationLinkManager extends EventEmitter {
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
-    const stopMonetizationPayload: StopMonetizationPayload = [];
-
-    for (const record of records) {
-      if (record.type === 'childList') {
-        for (const node of record.removedNodes) {
-          if (!(node instanceof HTMLLinkElement)) return;
-          if (!this.monetizationLinks.has(node)) return;
-          const payloadEntry = this.onRemovedLink(node);
-          stopMonetizationPayload.push(payloadEntry);
-        }
-      }
-    }
-
+    const removedNodes = records
+      .filter((e) => e.type === 'childList')
+      .flatMap((e) => [...e.removedNodes]);
+    const allRemovedLinkTags = removedNodes.map((node) =>
+      this.onRemovedNode(node),
+    );
+    const stopMonetizationPayload: StopMonetizationPayload = allRemovedLinkTags
+      .filter(isNotNull)
+      .flat();
     await this.sendStopMonetization(stopMonetizationPayload);
 
     if (this.isTopFrame) {
@@ -382,7 +382,7 @@ export class MonetizationLinkManager extends EventEmitter {
       );
       const startMonetizationPayload = allAddedLinkTags
         .filter(isNotNull)
-        .map(({ details }) => details);
+        .flat();
 
       void this.sendStartMonetization(startMonetizationPayload);
     }
@@ -492,24 +492,46 @@ export class MonetizationLinkManager extends EventEmitter {
     void this.sendStartMonetization(startMonetizationPayload);
   }
 
-  private async onAddedNode(node: Node) {
+  private async onAddedNode(
+    node: Node,
+  ): Promise<StartMonetizationPayload | null> {
     if (node instanceof HTMLElement) {
       this.dispatchOnMonetizationAttrChangedEvent(node);
     }
 
     if (node instanceof HTMLLinkElement) {
-      return await this.onAddedLink(node);
+      const payloadEntry = await this.onAddedLink(node);
+      return payloadEntry ? [payloadEntry] : null;
+    } else if (node instanceof HTMLElement) {
+      const linkElements = this.getMonetizationLinkTags(node);
+      return await Promise.all(
+        linkElements.map((linkElem) => this.onAddedLink(linkElem)),
+      ).then((res) => res.filter(isNotNull));
     }
     return null;
   }
 
-  private async onAddedLink(link: HTMLLinkElement) {
+  private onRemovedNode(node: Node): StopMonetizationPayload | null {
+    if (node instanceof HTMLLinkElement) {
+      return [this.onRemovedLink(node)];
+    } else if (node instanceof HTMLElement) {
+      const linkElements = this.getMonetizationLinkTags(node).filter((el) =>
+        this.monetizationLinks.has(el),
+      );
+      return linkElements.map((linkElem) => this.onRemovedLink(linkElem));
+    }
+
+    return null;
+  }
+
+  private async onAddedLink(
+    link: HTMLLinkElement,
+  ): Promise<StartMonetizationPayloadEntry | null> {
     this.observeLinkAttrs(link);
     const res = await this.checkLink(link);
-    if (res) {
-      this.monetizationLinks.set(link, res.details);
-    }
-    return res;
+    if (!res) return null;
+    this.monetizationLinks.set(link, res.details);
+    return res.details;
   }
 
   private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayloadEntry {
