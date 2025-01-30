@@ -169,8 +169,8 @@ async function revokeKey(accountId: string, walletId: string, keyId: string) {
 }
 
 function normalizeWalletAddress(urlOrPaymentPointer: string) {
-  const url = toWalletAddressUrl(urlOrPaymentPointer);
-  if (IS_INTERLEDGER_CARDS && url.startsWith('https://ilp.dev')) {
+  const url = new URL(toWalletAddressUrl(urlOrPaymentPointer));
+  if (IS_INTERLEDGER_CARDS && url.host === 'ilp.dev') {
     // For Interledger Cards we can have two types of wallet addresses:
     //  - ilp.interledger.cards
     //  - ilp.dev (just a proxy behind ilp.interledger.cards for certain wallet addresses)
@@ -182,9 +182,9 @@ function normalizeWalletAddress(urlOrPaymentPointer: string) {
     //
     // Not all `ilp.interledger.cards` wallet addresses can be used with `ilp.dev`.
     // Manually created wallet addresses cannot be used with `ilp.dev`.
-    return url.replace('ilp.dev', 'ilp.interledger.cards');
+    return url.href.replace('ilp.dev', 'ilp.interledger.cards');
   }
-  return url;
+  return url.href;
 }
 // endregion
 
