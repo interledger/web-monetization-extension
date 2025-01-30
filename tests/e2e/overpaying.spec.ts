@@ -8,10 +8,6 @@ import {
 import { sendOneTimePayment } from './pages/popup';
 import type { OutgoingPayment } from '@interledger/open-payments';
 
-test.beforeEach(async ({ popup }) => {
-  await popup.reload();
-});
-
 test.afterEach(({ persistentContext: context }) => {
   context.removeAllListeners('requestfinished');
 });

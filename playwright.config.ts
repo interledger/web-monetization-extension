@@ -9,11 +9,6 @@ if (!process.env.CI) {
 export default defineConfig({
   testDir,
   outputDir: path.join(testDir, 'test-results'),
-  // We don't want this set to true as that would make tests in each file to run
-  // in parallel, which will cause conflicts with the "global state". With this
-  // set to false and workers > 1, multiple test files can run in parallel, but
-  // tests within a file are run at one at a time. We make extensive use of
-  // worker-scope fixtures and beforeAll hooks to achieve best performance.
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
