@@ -37,7 +37,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
 
     await test.step('asks for key-add consent', async () => {
       await connectButton.click();
-      expect(
+      await expect(
         popup.getByTestId('connect-wallet-auto-key-consent'),
       ).toBeVisible();
       await popup
@@ -160,9 +160,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await popup.getByRole('textbox').fill('1.5');
     await popup.getByRole('button', { name: 'Send now' }).click();
 
-    await expect(monetizationCallback).toHaveBeenCalledTimes(1, {
-      timeout: 1000,
-    });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
       amountSent: {

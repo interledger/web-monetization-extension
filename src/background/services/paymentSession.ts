@@ -67,7 +67,6 @@ export class PaymentSession {
   private probingId: number;
   private shouldRetryImmediately = false;
 
-  private interval: ReturnType<typeof setInterval> | null = null;
   private timeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -213,11 +212,6 @@ export class PaymentSession {
   }
 
   private clearTimers() {
-    if (this.interval) {
-      this.debug(`Clearing interval=${this.timeout}`);
-      clearInterval(this.interval);
-      this.interval = null;
-    }
     if (this.timeout) {
       this.debug(`Clearing timeout=${this.timeout}`);
       clearTimeout(this.timeout);
@@ -257,45 +251,24 @@ export class PaymentSession {
       });
     }
 
-    // Uncomment this after we perform the Rafiki test and remove the leftover
-    // code below.
-    //
-    // if (this.canContinuePayment) {
-    //   this.timeout = setTimeout(() => {
-    //     void this.payContinuous()
-    //
-    //     this.interval = setInterval(() => {
-    //       if (!this.canContinuePayment) {
-    //           this.clearTimers()
-    //           return
-    //       }
-    //       void this.payContinuous()
-    //     }, this.intervalInMs)
-    //   }, waitTime)
-    // }
-
-    // Leftover
     const continuePayment = () => {
       if (!this.canContinuePayment) return;
-      // alternatively (leftover) after we perform the Rafiki test, we can just
-      // skip the `.then()` here and call setTimeout recursively immediately
-      void this.payContinuous().then(() => {
-        this.timeout = setTimeout(
-          () => {
-            continuePayment();
-          },
-          this.shouldRetryImmediately ? 0 : this.intervalInMs,
-        );
+      void this.payContinuous().catch((err) => {
+        this.logger.error('Error while making continuous payment', err);
       });
+      // This recursive call in setTimeout is essentially setInterval here,
+      // except we can have a dynamic interval (immediate vs intervalInMs).
+      this.timeout = setTimeout(
+        continuePayment,
+        this.shouldRetryImmediately ? 0 : this.intervalInMs,
+      );
     };
 
     if (this.canContinuePayment) {
       this.timeout = setTimeout(async () => {
         await this.payContinuous();
         this.timeout = setTimeout(
-          () => {
-            continuePayment();
-          },
+          continuePayment,
           this.shouldRetryImmediately ? 0 : this.intervalInMs,
         );
       }, waitTime);
@@ -563,6 +536,7 @@ export class PaymentSession {
   }
 
   private async payContinuous() {
+    this.shouldRetryImmediately = false;
     try {
       const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
@@ -595,7 +569,6 @@ export class PaymentSession {
           intervalInMs: this.intervalInMs,
         });
       }
-      this.shouldRetryImmediately = false;
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');

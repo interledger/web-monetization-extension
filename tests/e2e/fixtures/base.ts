@@ -12,31 +12,26 @@ import {
   BrowserIntl,
   type Background,
 } from './helpers';
+import { getLastCallArg } from '../helpers/common';
 import { openPopup, type Popup } from '../pages/popup';
-import { sleep } from '@/shared/helpers';
 import type { DeepPartial, Storage } from '@/shared/types';
 
-type BaseScopeWorker = {
+type Fixtures = {
   persistentContext: BrowserContext;
   background: Background;
-  i18n: BrowserIntl;
-  /**
-   * IMPORTANT: This is created once per test file. Mutating/closing could
-   * impact other tests in same file.
-   */
   popup: Popup;
+  i18n: BrowserIntl;
+  page: Page;
 };
 
-export const test = base.extend<{ page: Page }, BaseScopeWorker>({
-  // Extensions only work with a persistent context.
-  // Ideally we wanted this fixture to be named "context", but it's already defined in default base context under the scope "test".
+export const test = base.extend<Fixtures>({
   persistentContext: [
-    async ({ browserName, channel }, use, workerInfo) => {
-      const context = await loadContext({ browserName, channel }, workerInfo);
+    async ({ browserName, channel }, use, testInfo) => {
+      const context = await loadContext({ browserName, channel }, testInfo);
       await use(context);
       await context.close();
     },
-    { scope: 'worker' },
+    { scope: 'test', timeout: 5_000 },
   ],
 
   // This is the background service worker in Chrome, and background script
@@ -47,7 +42,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       const background = await getBackground(browserName, context);
       await use(background);
     },
-    { scope: 'worker' },
+    { scope: 'test', timeout: 5_000 },
   ],
 
   i18n: [
@@ -55,7 +50,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       const i18n = new BrowserIntl(browserName);
       await use(i18n);
     },
-    { scope: 'worker' },
+    { scope: 'test' },
   ],
 
   popup: [
@@ -65,7 +60,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       await use(popup);
       await popup.close();
     },
-    { scope: 'worker' },
+    { scope: 'test', timeout: 5_000 },
   ],
 
   page: async ({ persistentContext: context }, use) => {
@@ -78,7 +73,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
 const defaultMessage = (
   thisType: ExpectMatcherState,
   assertionName: string,
-  pass: boolean,
+  _pass: boolean,
   expected: unknown,
   matcherResult?: { actual: unknown },
 ) => {
@@ -89,7 +84,7 @@ const defaultMessage = (
       undefined,
       { isNot: thisType.isNot },
     );
-    const expectedPart = `Expected:${pass ? '' : ' not '}${thisType.utils.printExpected(expected)}`;
+    const expectedPart = `Expected: ${thisType.isNot ? 'not ' : ''}${thisType.utils.printExpected(expected)}`;
     const receivedPart = matcherResult
       ? `Received: ${thisType.utils.printReceived(matcherResult.actual)}`
       : '';
@@ -128,27 +123,20 @@ export const expect = test.expect.extend({
   async toHaveBeenCalledTimes(
     fn: SpyFn,
     expected: number,
-    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+    { timeout = 5000 }: { timeout?: number } = {},
   ) {
     const name = 'toHaveBeenCalledTimes';
 
     let pass: boolean;
     let result: { actual: number } | undefined;
 
-    await sleep(wait);
-    let remainingTime = timeout;
-    do {
-      try {
-        test.expect(fn.callCount).toBe(expected);
-        pass = true;
-        break;
-      } catch {
-        result = { actual: fn.callCount };
-        pass = false;
-        remainingTime -= 500;
-        await sleep(500);
-      }
-    } while (remainingTime > 0);
+    try {
+      await test.expect.poll(() => fn.callCount, { timeout }).toBe(expected);
+      pass = true;
+    } catch {
+      result = { actual: fn.callCount };
+      pass = false;
+    }
 
     return {
       name,
@@ -162,29 +150,26 @@ export const expect = test.expect.extend({
   async toHaveBeenLastCalledWithMatching(
     fn: SpyFn,
     expected: Record<string, unknown>,
-    { timeout = 5000, wait = 1000 }: { timeout?: number; wait?: number } = {},
+    { timeout = 5000 }: { timeout?: number } = {},
   ) {
+    // Playwright doesn't let us extend to created generic matchers, so we'll
+    // typecast (as) in the way we need it.
+    type SpyFnTyped = SpyFn<[Record<string, string>]>;
     const name = 'toHaveBeenLastCalledWithMatching';
 
     let pass: boolean;
     let result: { actual: unknown } | undefined;
 
-    await sleep(wait);
-    let remainingTime = timeout;
-    do {
-      try {
-        // we only support matching first argument of last call
-        const lastCallArg = fn.calls[fn.calls.length - 1][0];
-        test.expect(lastCallArg).toMatchObject(expected);
-        pass = true;
-        break;
-      } catch {
-        result = { actual: fn.calls[fn.calls.length - 1]?.[0] };
-        pass = false;
-        remainingTime -= 500;
-        await sleep(500);
-      }
-    } while (remainingTime > 0);
+    try {
+      // we only support matching first argument of last call
+      await test.expect
+        .poll(() => getLastCallArg(fn as SpyFnTyped), { timeout })
+        .toMatchObject(expected);
+      pass = true;
+    } catch {
+      result = { actual: getLastCallArg(fn as SpyFnTyped) };
+      pass = false;
+    }
 
     return {
       name,

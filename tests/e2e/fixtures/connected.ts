@@ -16,13 +16,13 @@ export const test = base.extend<{ page: Page }, { popup: Popup }>({
         amount: '10',
         recurring: false,
       });
-      await popup.reload({ waitUntil: 'networkidle' });
+      await popup.reload();
 
       await use(popup);
 
       await disconnectWallet(popup);
     },
-    { scope: 'worker' },
+    { scope: 'test', timeout: 20_000 },
   ],
 });
 

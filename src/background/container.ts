@@ -15,7 +15,7 @@ import {
   TabEvents,
   TabState,
   WindowState,
-  SendToPopup,
+  SendToPort,
   EventsService,
   Heartbeat,
   Deduplicator,
@@ -29,8 +29,12 @@ import {
   type Translation,
 } from '@/shared/helpers';
 import {
-  MessageManager,
+  type BackgroundToAppMessagesMap,
+  type BackgroundToPopupMessagesMap,
   type BackgroundToContentMessage,
+  MessageManager,
+  BACKGROUND_TO_POPUP_CONNECTION_NAME,
+  BACKGROUND_TO_APP_CONNECTION_NAME,
 } from '@/shared/messages';
 
 export interface Cradle {
@@ -46,7 +50,8 @@ export interface Cradle {
   walletService: WalletService;
   monetizationService: MonetizationService;
   message: MessageManager<BackgroundToContentMessage>;
-  sendToPopup: SendToPopup;
+  sendToPopup: SendToPort<BackgroundToPopupMessagesMap>;
+  sendToApp: SendToPort<BackgroundToAppMessagesMap>;
   tabEvents: TabEvents;
   background: Background;
   t: Translation;
@@ -101,7 +106,16 @@ export const configureContainer = () => {
       })),
     message: asClass(MessageManager<BackgroundToContentMessage>).singleton(),
     tabEvents: asClass(TabEvents).singleton(),
-    sendToPopup: asClass(SendToPopup).singleton(),
+    sendToPopup: asClass(SendToPort)
+      .singleton()
+      .inject(() => ({
+        connectionName: BACKGROUND_TO_POPUP_CONNECTION_NAME,
+      })),
+    sendToApp: asClass(SendToPort)
+      .singleton()
+      .inject(() => ({
+        connectionName: BACKGROUND_TO_APP_CONNECTION_NAME,
+      })),
     background: asClass(Background)
       .singleton()
       .inject(() => ({

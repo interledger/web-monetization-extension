@@ -3,7 +3,7 @@ import {
   BrowserContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
-import { MessageContextProvider, WaitForStateLoad } from './lib/context';
+import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import React from 'react';
 import browser from '@/shared/browser';

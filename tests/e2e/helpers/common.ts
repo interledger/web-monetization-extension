@@ -1,6 +1,6 @@
 import type { BrowserContext, Page } from '@playwright/test';
 import type { ConnectDetails } from '../pages/popup';
-import { spy } from 'tinyspy';
+import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
 
 const OPEN_PAYMENTS_REDIRECT_URL = 'https://webmonetization.org/welcome';
@@ -64,11 +64,16 @@ export async function setupPlayground(
   page: Page,
   ...walletAddressUrls: string[]
 ) {
-  const monetizationCallback = spy<[Event], void>();
+  const monetizationCallback = spy<[window.MonetizationEvent], void>();
   await page.exposeFunction('monetizationCallback', monetizationCallback);
-  await page.goto(playgroundUrl(...walletAddressUrls));
-  await page.evaluate(() => {
-    window.addEventListener('monetization', monetizationCallback);
+  await page.addInitScript({
+    content: `window.addEventListener('monetization', monetizationCallback)`,
   });
+  await page.goto(playgroundUrl(...walletAddressUrls));
   return monetizationCallback;
+}
+
+export function getLastCallArg<T>(fn: SpyFn<[T]>) {
+  // we only deal with single arg functions
+  return fn.calls[fn.calls.length - 1][0];
 }

@@ -124,7 +124,7 @@ export class FrameManager {
   private onWholeDocumentObserved(records: MutationRecord[]) {
     for (const record of records) {
       if (record.type === 'childList') {
-        for (const node of record.addedNodes) {
+        for (const node of record.removedNodes) {
           this.check('removed', node);
         }
       }
