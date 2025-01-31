@@ -143,7 +143,7 @@ export class MonetizationService {
       this.canTryPayment(connected, state)
     ) {
       for (const session of sessionsArr) {
-        if (!sessions.get(session.id)) return;
+        if (!sessions.get(session.id)) continue;
         const source = replacedSessions.has(session.id)
           ? 'request-id-reused'
           : 'new-link';
@@ -181,7 +181,7 @@ export class MonetizationService {
       const { requestId } = p;
 
       const session = sessions.get(requestId);
-      if (!session) return;
+      if (!session) continue;
 
       if (p.intent === 'remove') {
         needsAdjustAmount = true;
