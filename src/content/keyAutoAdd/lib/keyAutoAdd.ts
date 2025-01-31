@@ -1,5 +1,5 @@
 // cSpell:ignore allowtransparency
-import browser, { type Runtime } from 'webextension-polyfill';
+import browser, { type Runtime } from '@/shared/browser';
 import { CONNECTION_NAME } from '@/background/services/keyAutoAdd';
 import {
   errorWithKeyToJSON,

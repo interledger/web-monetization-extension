@@ -3,13 +3,13 @@ import {
   BrowserContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
-import { MessageContextProvider, WaitForStateLoad } from '@/app/lib/context';
-import browser from 'webextension-polyfill';
 import {
   createHashRouter,
   RouterProvider,
   type RouteObject,
 } from 'react-router-dom';
+import { MessageContextProvider, WaitForStateLoad } from '@/app/lib/context';
+import browser from '@/shared/browser';
 
 export const ROUTES = {
   DEFAULT: '/',
