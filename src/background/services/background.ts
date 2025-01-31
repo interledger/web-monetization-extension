@@ -14,6 +14,7 @@ import { getTab } from '@/background/utils';
 import { PERMISSION_HOSTS } from '@/shared/defines';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
+import type { AppStore } from '@/shared/types';
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0];
 const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
@@ -27,6 +28,7 @@ export class Background {
   private tabEvents: Cradle['tabEvents'];
   private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
+  private sendToApp: Cradle['sendToApp'];
   private events: Cradle['events'];
   private heartbeat: Cradle['heartbeat'];
 
@@ -39,6 +41,7 @@ export class Background {
     tabEvents,
     windowState,
     sendToPopup,
+    sendToApp,
     events,
     heartbeat,
   }: Cradle) {
@@ -48,6 +51,7 @@ export class Background {
       monetizationService,
       storage,
       sendToPopup,
+      sendToApp,
       tabEvents,
       windowState,
       logger,
@@ -67,6 +71,7 @@ export class Background {
     this.bindTabHandlers();
     this.bindWindowHandlers();
     this.sendToPopup.start();
+    this.sendToApp.start();
     await KeyAutoAddService.registerContentScripts({ browser: this.browser });
   }
 
@@ -128,6 +133,19 @@ export class Background {
     this.browser.alarms.onAlarm.addListener(resetOutOfFundsState);
   }
 
+  async getAppData(): Promise<AppStore> {
+    const { connected, publicKey } = await this.storage.get([
+      'connected',
+      'publicKey',
+    ]);
+
+    return {
+      connected,
+      publicKey,
+      transientState: this.storage.getPopupTransientState(),
+    };
+  }
+
   bindWindowHandlers() {
     this.browser.windows.onCreated.addListener(
       this.windowState.onWindowCreated,
@@ -143,7 +161,7 @@ export class Background {
         windowTypes: ['normal'],
       });
       const popupWasOpen = popupOpen;
-      popupOpen = this.sendToPopup.isPopupOpen;
+      popupOpen = this.sendToPopup.isPortOpen;
       if (popupWasOpen || popupOpen) {
         // This is intentionally called after windows.getAll, to add a little
         // delay for popup port to open
@@ -189,7 +207,7 @@ export class Background {
         try {
           switch (message.action) {
             // region Popup
-            case 'GET_CONTEXT_DATA':
+            case 'GET_DATA_POPUP':
               return success(
                 await this.monetizationService.getPopupData(
                   await this.windowState.getCurrentTab(),
@@ -286,6 +304,11 @@ export class Background {
 
             // endregion
 
+            // region App
+            case 'GET_DATA_APP':
+              return success(await this.getAppData());
+            // endregion
+
             default:
               return;
           }
@@ -330,6 +353,7 @@ export class Background {
 
     this.events.on('storage.popup_transient_state_update', (state) => {
       this.sendToPopup.send('SET_TRANSIENT_STATE', state);
+      this.sendToApp.send('SET_TRANSIENT_STATE', state);
     });
 
     this.events.on('request_popup_close', () => {

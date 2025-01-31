@@ -136,6 +136,10 @@ export type PopupStore = Omit<
   }>;
 };
 
+export type AppStore = Pick<Storage, 'publicKey' | 'connected'> & {
+  transientState: PopupTransientState;
+};
+
 export type DeepNonNullable<T> = {
   [P in keyof T]?: NonNullable<T[P]>;
 };

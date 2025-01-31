@@ -1,24 +1,23 @@
 import type { Runtime } from 'webextension-polyfill';
-import {
-  BACKGROUND_TO_POPUP_CONNECTION_NAME as CONNECTION_NAME,
-  type BackgroundToPopupMessage,
-  type BackgroundToPopupMessagesMap,
-} from '@/shared/messages';
 import type { Cradle } from '@/background/container';
+import type { BackgroundToPortMessagesMap } from '@/shared/messages';
 
-export class SendToPopup {
+export class SendToPort<Message extends BackgroundToPortMessagesMap> {
   private browser: Cradle['browser'];
-
-  private isConnected = false;
   private port: Runtime.Port;
+  private isConnected = false;
+  private connectionName: string;
 
-  constructor({ browser }: Cradle) {
-    Object.assign(this, { browser });
+  constructor({
+    browser,
+    connectionName,
+  }: Cradle & { connectionName: string }) {
+    Object.assign(this, { browser, connectionName });
   }
 
   start() {
     this.browser.runtime.onConnect.addListener((port) => {
-      if (port.name !== CONNECTION_NAME) return;
+      if (port.name !== this.connectionName) return;
       if (port.error) {
         return;
       }
@@ -30,18 +29,16 @@ export class SendToPopup {
     });
   }
 
-  get isPopupOpen() {
+  get isPortOpen() {
     return this.isConnected;
   }
 
-  async send<T extends keyof BackgroundToPopupMessagesMap>(
-    type: T,
-    data: BackgroundToPopupMessagesMap[T],
-  ) {
+  async send<K extends keyof Message>(type: K, data: Message[K]) {
     if (!this.isConnected) {
       return;
     }
-    const message = { type, data } as BackgroundToPopupMessage;
+
+    const message = { type, data };
     this.port.postMessage(message);
   }
 }
