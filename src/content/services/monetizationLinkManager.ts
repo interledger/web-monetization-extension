@@ -6,6 +6,7 @@ import type {
   MonetizationEventPayload,
   ResumeMonetizationPayload,
   StartMonetizationPayload,
+  StartMonetizationPayloadEntry,
   StopMonetizationPayload,
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
@@ -358,31 +359,24 @@ export class MonetizationLinkManager extends EventEmitter {
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
-    const stopMonetizationPayload: StopMonetizationPayload = [];
-
-    for (const record of records) {
-      if (record.type === 'childList') {
-        for (const node of record.removedNodes) {
-          if (!(node instanceof HTMLLinkElement)) return;
-          if (!this.monetizationLinks.has(node)) return;
-          const payloadEntry = this.onRemovedLink(node);
-          stopMonetizationPayload.push(payloadEntry);
-        }
-      }
-    }
-
+    const childListRecords = records.filter((e) => e.type === 'childList');
+    const removedNodes = childListRecords.flatMap((e) => [...e.removedNodes]);
+    const allRemovedLinkTags = removedNodes.map((node) =>
+      this.onRemovedNode(node),
+    );
+    const stopMonetizationPayload: StopMonetizationPayload = allRemovedLinkTags
+      .filter(isNotNull)
+      .flat();
     await this.sendStopMonetization(stopMonetizationPayload);
 
     if (this.isTopFrame) {
-      const addedNodes = records
-        .filter((e) => e.type === 'childList')
-        .flatMap((e) => [...e.addedNodes]);
+      const addedNodes = childListRecords.flatMap((e) => [...e.addedNodes]);
       const allAddedLinkTags = await Promise.all(
         addedNodes.map((node) => this.onAddedNode(node)),
       );
       const startMonetizationPayload = allAddedLinkTags
         .filter(isNotNull)
-        .map(({ details }) => details);
+        .flat();
 
       void this.sendStartMonetization(startMonetizationPayload);
     }
@@ -492,24 +486,35 @@ export class MonetizationLinkManager extends EventEmitter {
     void this.sendStartMonetization(startMonetizationPayload);
   }
 
-  private async onAddedNode(node: Node) {
+  private async onAddedNode(
+    node: Node,
+  ): Promise<StartMonetizationPayload | null> {
     if (node instanceof HTMLElement) {
       this.dispatchOnMonetizationAttrChangedEvent(node);
     }
 
     if (node instanceof HTMLLinkElement) {
-      return await this.onAddedLink(node);
+      const payloadEntry = await this.onAddedLink(node);
+      return payloadEntry ? [payloadEntry] : null;
     }
     return null;
   }
 
-  private async onAddedLink(link: HTMLLinkElement) {
+  private onRemovedNode(node: Node): StopMonetizationPayload | null {
+    if (node instanceof HTMLLinkElement) {
+      return [this.onRemovedLink(node)];
+    }
+    return null;
+  }
+
+  private async onAddedLink(
+    link: HTMLLinkElement,
+  ): Promise<StartMonetizationPayloadEntry | null> {
     this.observeLinkAttrs(link);
     const res = await this.checkLink(link);
-    if (res) {
-      this.monetizationLinks.set(link, res.details);
-    }
-    return res;
+    if (!res) return null;
+    this.monetizationLinks.set(link, res.details);
+    return res.details;
   }
 
   private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayloadEntry {
