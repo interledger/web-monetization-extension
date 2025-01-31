@@ -1,10 +1,6 @@
 import { test, expect } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
 
-test.beforeEach(async ({ popup }) => {
-  await popup.reload();
-});
-
 test('should monetize site with single wallet address', async ({
   page,
   popup,
