@@ -16,27 +16,22 @@ import { getLastCallArg } from '../helpers/common';
 import { openPopup, type Popup } from '../pages/popup';
 import type { DeepPartial, Storage } from '@/shared/types';
 
-type BaseScopeWorker = {
+type Fixtures = {
   persistentContext: BrowserContext;
   background: Background;
-  i18n: BrowserIntl;
-  /**
-   * IMPORTANT: This is created once per test file. Mutating/closing could
-   * impact other tests in same file.
-   */
   popup: Popup;
+  i18n: BrowserIntl;
+  page: Page;
 };
 
-export const test = base.extend<{ page: Page }, BaseScopeWorker>({
-  // Extensions only work with a persistent context.
-  // Ideally we wanted this fixture to be named "context", but it's already defined in default base context under the scope "test".
+export const test = base.extend<Fixtures>({
   persistentContext: [
-    async ({ browserName, channel }, use, workerInfo) => {
-      const context = await loadContext({ browserName, channel }, workerInfo);
+    async ({ browserName, channel }, use, testInfo) => {
+      const context = await loadContext({ browserName, channel }, testInfo);
       await use(context);
       await context.close();
     },
-    { scope: 'worker', timeout: 5_000 },
+    { scope: 'test', timeout: 5_000 },
   ],
 
   // This is the background service worker in Chrome, and background script
@@ -47,7 +42,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       const background = await getBackground(browserName, context);
       await use(background);
     },
-    { scope: 'worker', timeout: 5_000 },
+    { scope: 'test', timeout: 5_000 },
   ],
 
   i18n: [
@@ -55,7 +50,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       const i18n = new BrowserIntl(browserName);
       await use(i18n);
     },
-    { scope: 'worker' },
+    { scope: 'test' },
   ],
 
   popup: [
@@ -65,7 +60,7 @@ export const test = base.extend<{ page: Page }, BaseScopeWorker>({
       await use(popup);
       await popup.close();
     },
-    { scope: 'worker', timeout: 5_000 },
+    { scope: 'test', timeout: 5_000 },
   ],
 
   page: async ({ persistentContext: context }, use) => {
