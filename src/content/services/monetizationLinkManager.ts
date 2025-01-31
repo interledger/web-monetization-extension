@@ -161,8 +161,9 @@ export class MonetizationLinkManager extends EventEmitter {
 
   private getMonetizationLinkTags(root?: HTMLElement): HTMLLinkElement[] {
     if (this.isTopFrame) {
+      const parentNode = root ?? this.document;
       return Array.from(
-        (root ?? this.document).querySelectorAll<HTMLLinkElement>(
+        parentNode.querySelectorAll<HTMLLinkElement>(
           'link[rel="monetization"]',
         ),
       );
