@@ -363,9 +363,8 @@ export class MonetizationLinkManager extends EventEmitter {
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
-    const removedNodes = records
-      .filter((e) => e.type === 'childList')
-      .flatMap((e) => [...e.removedNodes]);
+    const childListRecords = records.filter((e) => e.type === 'childList');
+    const removedNodes = childListRecords.flatMap((e) => [...e.removedNodes]);
     const allRemovedLinkTags = removedNodes.map((node) =>
       this.onRemovedNode(node),
     );
@@ -375,9 +374,7 @@ export class MonetizationLinkManager extends EventEmitter {
     await this.sendStopMonetization(stopMonetizationPayload);
 
     if (this.isTopFrame) {
-      const addedNodes = records
-        .filter((e) => e.type === 'childList')
-        .flatMap((e) => [...e.addedNodes]);
+      const addedNodes = childListRecords.flatMap((e) => [...e.addedNodes]);
       const allAddedLinkTags = await Promise.all(
         addedNodes.map((node) => this.onAddedNode(node)),
       );

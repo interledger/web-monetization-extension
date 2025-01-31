@@ -1,10 +1,5 @@
-/// <reference types="chrome"/>
 import { test, expect } from './fixtures/base';
 import { connectWallet, disconnectWallet } from './pages/popup';
-
-test.beforeEach(async ({ popup }) => {
-  await popup.reload();
-});
 
 test('connects with correct details provided', async ({
   persistentContext,
