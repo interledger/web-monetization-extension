@@ -7,7 +7,7 @@ export { Background } from './background';
 export { TabEvents } from './tabEvents';
 export { TabState } from './tabState';
 export { WindowState } from './windowState';
-export { SendToPopup } from './sendToPopup';
+export { SendToPort } from './sendToPort';
 export { EventsService } from './events';
 export { Deduplicator } from './deduplicator';
 export { Heartbeat } from './heartbeat';

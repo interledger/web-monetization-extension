@@ -4,8 +4,16 @@ import {
   CaretDownIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import { cn, getBrowserName, type BrowserName } from '@/shared/helpers';
+import {
+  cn,
+  getBrowserName,
+  getWalletInformation,
+  type BrowserName,
+} from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
+import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
+import { useMessage } from '@/app/lib/context';
+import { useAppState } from '@/app/lib/store';
 
 export const Component = () => {
   return (
@@ -62,10 +70,9 @@ const Steps = () => {
   const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
-  const [isOpen, setIsOpen] = React.useState(0);
   const browserName = getBrowserName(browser, navigator.userAgent);
-  const popupUrl = browser.runtime.getURL('popup/index.html');
 
+  const [isOpen, setIsOpen] = React.useState(0);
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
   }, []);
@@ -150,14 +157,7 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
-        <div className="mx-auto h-popup w-popup overflow-hidden">
-          <iframe
-            loading="lazy"
-            src={popupUrl}
-            title="Connect your wallet"
-            className="h-popup w-popup border-none"
-          />
-        </div>
+        <StepConnectWallet />
       </Step>
     </ol>
   );
@@ -253,6 +253,53 @@ function StepNumber({ number }: { number: number }) {
       <span className="sr-only">Step </span>
       {number}.
     </span>
+  );
+}
+
+function StepConnectWallet() {
+  const message = useMessage();
+  const t = useTranslation();
+  const {
+    transientState: { connect: connectState },
+    connected,
+    publicKey,
+  } = useAppState();
+
+  if (connected) {
+    return (
+      <div className="text-center pt-4 pb-8">
+        <p className="font-medium text-secondary-dark landscape:mb-2 landscape:text-xl landscape:2xl:mb-3 landscape:2xl:text-xl">
+          {t('postInstall_text_wallet_connected_1')}
+        </p>
+        <p className="text-secondary-dark landscape:text-xl landscape:2xl:text-xl">
+          {t('postInstall_text_wallet_connected_2')}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-popup mx-auto w-popup pt-4 overflow-hidden">
+      <ConnectWalletForm
+        publicKey={publicKey}
+        state={connectState}
+        defaultValues={{
+          recurring:
+            localStorage?.getItem('connect.recurring') === 'true' || false,
+          amount: localStorage?.getItem('connect.amount') || undefined,
+          walletAddressUrl:
+            localStorage?.getItem('connect.walletAddressUrl') || undefined,
+          autoKeyAddConsent:
+            localStorage?.getItem('connect.autoKeyAddConsent') === 'true',
+        }}
+        saveValue={(key, val) => {
+          localStorage?.setItem(`connect.${key}`, val.toString());
+        }}
+        getWalletInfo={getWalletInformation}
+        connectWallet={(data) => message.send('CONNECT_WALLET', data)}
+        clearConnectState={() => message.send('CONNECT_WALLET', null)}
+      />
+    </div>
   );
 }
 
