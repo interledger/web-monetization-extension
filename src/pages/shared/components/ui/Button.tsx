@@ -51,7 +51,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant,
       size,
       fullWidth,
-      loading,
+      loading = false,
       className,
       type = 'button',
       children,
@@ -67,6 +67,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           buttonVariants({ variant, size, fullWidth, loading }),
           className,
         )}
+        data-progress={loading.toString()}
         disabled={props.disabled ?? loading ?? false}
         aria-disabled={props.disabled ?? loading ?? false}
         {...props}

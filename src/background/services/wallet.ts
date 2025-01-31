@@ -275,7 +275,7 @@ export class WalletService {
         existingGrants.oneTimeGrant.continue,
       );
       if (recurring) {
-        this.storage.set({
+        await this.storage.set({
           oneTimeGrant: null,
           oneTimeGrantSpentAmount: '0',
         });
@@ -286,7 +286,7 @@ export class WalletService {
         existingGrants.recurringGrant.continue,
       );
       if (!recurring) {
-        this.storage.set({
+        await this.storage.set({
           recurringGrant: null,
           recurringGrantSpentAmount: '0',
         });

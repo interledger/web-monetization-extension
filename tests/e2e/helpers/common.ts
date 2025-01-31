@@ -1,4 +1,5 @@
 import type { BrowserContext, Page } from '@playwright/test';
+import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectDetails } from '../pages/popup';
 import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
@@ -32,7 +33,7 @@ export async function getContinueWaitTime(
     if (process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS !== '1') {
       return Promise.resolve(defaultWaitMs);
     }
-    const walletInfo = await getWalletInformation(params.walletAddressUrl);
+    const walletInfo = await getWalletInfoCached(params.walletAddressUrl);
     return await new Promise<number>((resolve) => {
       const authServer = new URL(walletInfo.authServer).href;
       context.on('requestfinished', async function intercept(req) {
@@ -58,6 +59,16 @@ export function playgroundUrl(...walletAddressUrls: string[]) {
     url.searchParams.append('wa', walletAddress);
   }
   return url.href;
+}
+
+const walletInfoCache = new Map<string, Promise<WalletAddress>>();
+export function getWalletInfoCached(walletAddressUrl: string) {
+  if (walletInfoCache.has(walletAddressUrl)) {
+    return walletInfoCache.get(walletAddressUrl)!;
+  }
+  const walletInfoPromise = getWalletInformation(walletAddressUrl);
+  walletInfoCache.set(walletAddressUrl, walletInfoPromise);
+  return walletInfoPromise;
 }
 
 export async function setupPlayground(
