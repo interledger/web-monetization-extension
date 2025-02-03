@@ -18,6 +18,7 @@ import {
   isErrorWithKey,
   isOkState,
   removeQueryParams,
+  transformBalance,
 } from '@/shared/helpers';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
 import type { OutgoingPayment } from '@interledger/open-payments';
@@ -325,6 +326,7 @@ export class MonetizationService {
     if (!walletAddress) {
       throw new Error('Unexpected: wallet address not found.');
     }
+    const { assetScale } = walletAddress;
 
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
@@ -379,7 +381,10 @@ export class MonetizationService {
         // This permission request to read outgoing payments was added at a
         // later time, so existing connected wallets won't have this permission.
         // Assume as success for backward compatibility.
-        return { type: 'full' };
+        return {
+          type: 'full',
+          sentAmount: transformBalance(totalDebitAmount, assetScale),
+        };
       }
 
       const isNotEnoughFunds = results
@@ -403,6 +408,7 @@ export class MonetizationService {
 
     return {
       type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
+      sentAmount: transformBalance(totalSentAmount, assetScale),
     };
   }
 
