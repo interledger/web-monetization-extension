@@ -114,7 +114,6 @@ export interface PayWebsitePayload {
 export interface PayWebsiteResponse {
   type: 'full' | 'partial';
   sentAmount: string;
-  sentAmountFormatted: string;
 }
 
 export interface UpdateRateOfPayPayload {

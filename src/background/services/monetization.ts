@@ -15,7 +15,6 @@ import {
 } from '@/background/config';
 import {
   ErrorWithKey,
-  formatCurrency,
   isErrorWithKey,
   isOkState,
   removeQueryParams,
@@ -327,7 +326,7 @@ export class MonetizationService {
     if (!walletAddress) {
       throw new Error('Unexpected: wallet address not found.');
     }
-    const { assetCode, assetScale } = walletAddress;
+    const { assetScale } = walletAddress;
 
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
@@ -382,11 +381,9 @@ export class MonetizationService {
         // This permission request to read outgoing payments was added at a
         // later time, so existing connected wallets won't have this permission.
         // Assume as success for backward compatibility.
-        const sentAmount = transformBalance(totalDebitAmount, assetScale);
         return {
           type: 'full',
-          sentAmount: sentAmount,
-          sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+          sentAmount: transformBalance(totalDebitAmount, assetScale),
         };
       }
 
@@ -409,11 +406,9 @@ export class MonetizationService {
       throw new ErrorWithKey('pay_error_general');
     }
 
-    const sentAmount = transformBalance(totalSentAmount, assetScale);
     return {
       type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
-      sentAmount: sentAmount,
-      sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+      sentAmount: transformBalance(totalSentAmount, assetScale),
     };
   }
 
