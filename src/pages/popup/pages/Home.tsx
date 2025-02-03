@@ -55,53 +55,34 @@ const InfoBanner = () => {
   const rate = React.useMemo(() => {
     const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;
     const roundedR = roundWithPrecision(r, walletAddress.assetScale);
-    return formatNumber(roundedR, walletAddress.assetScale, true);
-  }, [rateOfPay, walletAddress.assetScale]);
 
-  const rateFormatted = React.useMemo(() => {
     return formatCurrency(
-      rate,
+      formatNumber(roundedR, walletAddress.assetScale, true),
       walletAddress.assetCode,
       walletAddress.assetScale,
     );
-  }, [rate, walletAddress.assetCode, walletAddress.assetScale]);
+  }, [rateOfPay, walletAddress.assetCode, walletAddress.assetScale]);
 
   const remainingBalance = React.useMemo(() => {
     const val = Number(balance) / 10 ** walletAddress.assetScale;
     const rounded = roundWithPrecision(val, walletAddress.assetScale);
-    return formatNumber(rounded, walletAddress.assetScale, true);
-  }, [balance, walletAddress.assetScale]);
-
-  const remainingBalanceFormatted = React.useMemo(() => {
     return formatCurrency(
-      remainingBalance,
+      formatNumber(rounded, walletAddress.assetScale, true),
       walletAddress.assetCode,
       walletAddress.assetScale,
     );
-  }, [remainingBalance, walletAddress.assetCode, walletAddress.assetScale]);
+  }, [balance, walletAddress.assetCode, walletAddress.assetScale]);
 
   return (
     <div className="space-y-2 rounded-md bg-button-base p-4 text-white">
       <dl className="flex items-center justify-between px-10">
         <div className="flex flex-col-reverse items-center">
           <dt className="text-sm">Hourly rate</dt>
-          <dd
-            className="font-medium tabular-nums"
-            data-testid="hourly-rate"
-            data-value={rate}
-          >
-            {rateFormatted}
-          </dd>
+          <dd className="font-medium tabular-nums">{rate}</dd>
         </div>
         <div className="flex flex-col-reverse items-center">
           <dt className="text-sm">Balance</dt>
-          <dd
-            className="font-medium tabular-nums"
-            data-testid="remaining-balance"
-            data-value={remainingBalance}
-          >
-            {remainingBalanceFormatted}
-          </dd>
+          <dd className="font-medium tabular-nums">{remainingBalance}</dd>
         </div>
       </dl>
 

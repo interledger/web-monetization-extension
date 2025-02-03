@@ -135,18 +135,18 @@ for (const testCase of TEST_CASES) {
         // https://github.com/interledger/web-monetization-extension/issues/737
         await sendOneTimePayment(popup, '0.50', true);
 
-        const remainingBalance = await popup
-          .getByTestId('remaining-balance')
-          .getAttribute('data-value');
-        expect(Number(remainingBalance)).toBeLessThan(INITIAL_AMOUNT);
+        await settingsLink.click();
+        await budgetTab.click();
+
+        const remainingBalance = Number(
+          await remainingBalanceInput.getAttribute('value'),
+        );
+        expect(remainingBalance).toBeLessThan(INITIAL_AMOUNT);
 
         await page.close(); // so no new payments get made
       });
 
       const submitButton = await test.step('edit budget amount', async () => {
-        await settingsLink.click();
-        await budgetTab.click();
-
         const submitButton = popup.getByRole('button', {
           name: 'Submit changes',
         });
