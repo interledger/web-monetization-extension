@@ -170,7 +170,7 @@ const BudgetAmount = ({
         </div>
       </div>
       {renewDate && (
-        <p className="px-2 text-xs">
+        <p className="px-2 text-xs" data-testid="renew-date-msg">
           Your budget will renew on{' '}
           <time
             dateTime={renewDate.toISOString()}

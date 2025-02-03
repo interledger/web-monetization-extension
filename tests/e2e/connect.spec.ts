@@ -21,12 +21,7 @@ test('connects with correct details provided', async ({
 
   await expect(background).toHaveStorage({ connected: false });
 
-  const keyInfo = {
-    keyId: TEST_WALLET_KEY_ID,
-    privateKey: TEST_WALLET_PRIVATE_KEY,
-    publicKey: TEST_WALLET_PUBLIC_KEY,
-  };
-  await connectWallet(persistentContext, background, i18n, keyInfo, popup, {
+  await connectWallet(persistentContext, background, popup, i18n, {
     walletAddressUrl: TEST_WALLET_ADDRESS_URL,
     amount: '10',
     recurring: false,

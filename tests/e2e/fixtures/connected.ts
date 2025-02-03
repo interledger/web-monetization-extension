@@ -6,12 +6,7 @@ import { connectWallet, disconnectWallet, type Popup } from '../pages/popup';
 export const test = base.extend<{ page: Page }, { popup: Popup }>({
   popup: [
     async ({ persistentContext: context, background, popup, i18n }, use) => {
-      const keyInfo = {
-        keyId: process.env.TEST_WALLET_KEY_ID,
-        privateKey: process.env.TEST_WALLET_PRIVATE_KEY,
-        publicKey: process.env.TEST_WALLET_PUBLIC_KEY,
-      };
-      await connectWallet(context, background, i18n, keyInfo, popup, {
+      await connectWallet(context, background, popup, i18n, {
         walletAddressUrl: process.env.TEST_WALLET_ADDRESS_URL,
         amount: '10',
         recurring: false,

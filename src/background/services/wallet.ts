@@ -271,26 +271,26 @@ export class WalletService {
     // Note: Clear storage only if new grant type is not same as previous grant
     // type (as completeGrant already sets new grant state)
     if (existingGrants.oneTimeGrant) {
-      await this.outgoingPaymentGrantService.cancelGrant(
-        existingGrants.oneTimeGrant.continue,
-      );
       if (recurring) {
-        this.storage.set({
+        await this.storage.set({
           oneTimeGrant: null,
           oneTimeGrantSpentAmount: '0',
         });
       }
+      await this.outgoingPaymentGrantService.cancelGrant(
+        existingGrants.oneTimeGrant.continue,
+      );
     }
     if (existingGrants.recurringGrant) {
-      await this.outgoingPaymentGrantService.cancelGrant(
-        existingGrants.recurringGrant.continue,
-      );
       if (!recurring) {
-        this.storage.set({
+        await this.storage.set({
           recurringGrant: null,
           recurringGrantSpentAmount: '0',
         });
       }
+      await this.outgoingPaymentGrantService.cancelGrant(
+        existingGrants.recurringGrant.continue,
+      );
     }
   }
 
