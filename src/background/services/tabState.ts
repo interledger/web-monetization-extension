@@ -26,6 +26,7 @@ export class TabState {
 
   private state = new Map<TabId, Map<string, State>>();
   private sessions = new Map<TabId, Map<SessionId, PaymentSession>>();
+  private urlMap = new Map<TabId, string>();
   private currentIcon = new Map<TabId, Record<number, string>>();
 
   constructor({ logger }: Cradle) {
@@ -191,5 +192,15 @@ export class TabState {
     }
     this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`);
     this.sessions.delete(tabId);
+  }
+
+  setUrl(tabId: TabId, url: string) {
+    this.urlMap.set(tabId, url);
+  }
+  getUrl(tabId: TabId) {
+    return this.urlMap.get(tabId) ?? '';
+  }
+  clearUrl(tabId: TabId) {
+    this.urlMap.delete(tabId);
   }
 }

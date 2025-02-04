@@ -83,19 +83,22 @@ export class TabEvents {
   }
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
-    /**
-     * if loading and no url -> clear all sessions but not the overpaying state
-     * if loading and url -> we need to check if state keys include this url.
-     */
-    if (changeInfo.status === 'loading') {
-      const url = tab.url ? removeQueryParams(tab.url) : '';
-      const clearOverpaying = this.tabState.shouldClearOverpaying(tabId, url);
+    if (changeInfo.status === 'loading' && changeInfo.url) {
+      const existingTabUrl = this.tabState.getUrl(tabId);
+      this.tabState.setUrl(tabId, changeInfo.url);
 
-      this.tabState.clearSessionsByTabId(tabId);
-      if (clearOverpaying) {
-        this.tabState.clearOverpayingByTabId(tabId);
+      const url = removeQueryParams(changeInfo.url);
+      if (
+        !existingTabUrl ||
+        removeQueryParams(existingTabUrl) !== removeQueryParams(url)
+      ) {
+        // Navigating to new URL. Clear overpaying state if any.
+        this.tabState.clearSessionsByTabId(tabId); // for sanity
+        if (this.tabState.shouldClearOverpaying(tabId, url)) {
+          this.tabState.clearOverpayingByTabId(tabId);
+        }
       }
-      if (!tab.id) return;
+
       void this.updateVisualIndicators(tab);
     }
   };
@@ -104,6 +107,7 @@ export class TabEvents {
     this.windowState.removeTab(tabId, info.windowId);
     this.tabState.clearSessionsByTabId(tabId);
     this.tabState.clearOverpayingByTabId(tabId);
+    this.tabState.clearUrl(tabId);
   };
 
   onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
