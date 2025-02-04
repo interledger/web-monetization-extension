@@ -88,10 +88,7 @@ export class TabEvents {
       this.tabState.setUrl(tabId, changeInfo.url);
 
       const url = removeQueryParams(changeInfo.url);
-      if (
-        !existingTabUrl ||
-        removeQueryParams(existingTabUrl) !== removeQueryParams(url)
-      ) {
+      if (!existingTabUrl || removeQueryParams(existingTabUrl) !== url) {
         // Navigating to new URL. Clear overpaying state if any.
         this.tabState.clearSessionsByTabId(tabId); // for sanity
         if (this.tabState.shouldClearOverpaying(tabId, url)) {
