@@ -84,8 +84,8 @@ export class TabEvents {
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {
     if (changeInfo.status === 'loading' && changeInfo.url) {
-      const existingTabUrl = this.tabState.getUrl(tabId);
-      this.tabState.setUrl(tabId, changeInfo.url);
+      const existingTabUrl = this.tabState.url.get(tabId);
+      this.tabState.url.set(tabId, changeInfo.url);
 
       const url = removeQueryParams(changeInfo.url);
       if (!existingTabUrl || removeQueryParams(existingTabUrl) !== url) {
@@ -104,7 +104,7 @@ export class TabEvents {
     this.windowState.removeTab(tabId, info.windowId);
     this.tabState.clearSessionsByTabId(tabId);
     this.tabState.clearOverpayingByTabId(tabId);
-    this.tabState.clearUrl(tabId);
+    this.tabState.url.delete(tabId);
   };
 
   onActivatedTab: CallbackTab<'onActivated'> = async (info) => {
