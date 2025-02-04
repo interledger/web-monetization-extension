@@ -197,9 +197,11 @@ export class TabState {
   setUrl(tabId: TabId, url: string) {
     this.urlMap.set(tabId, url);
   }
+
   getUrl(tabId: TabId) {
-    return this.urlMap.get(tabId) ?? '';
+    return this.urlMap.get(tabId);
   }
+
   clearUrl(tabId: TabId) {
     this.urlMap.delete(tabId);
   }
