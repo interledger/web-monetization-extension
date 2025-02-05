@@ -1,15 +1,11 @@
-import { spy } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
 import {
   getLastCallArg,
   playgroundUrl,
   setupPlayground,
+  interceptPaymentCreateRequests,
 } from './helpers/common';
 import { sendOneTimePayment } from './pages/popup';
-import type {
-  IncomingPayment,
-  OutgoingPayment,
-} from '@interledger/open-payments';
 
 test.afterEach(({ persistentContext: context }) => {
   context.removeAllListeners('requestfinished');
@@ -23,26 +19,8 @@ test.describe('should not pay immediately when overpaying', () => {
     popup,
     persistentContext: context,
   }) => {
-    const outgoingPaymentCreatedCallback = spy<
-      [{ id: string; receiver: string }],
-      void
-    >();
-    context.on('requestfinished', async function intercept(req) {
-      if (!req.serviceWorker()) return;
-      if (req.method() !== 'POST') return;
-      if (!req.url().endsWith('/outgoing-payments')) return;
-
-      const res = await req.response();
-      if (!res) {
-        throw new Error('no response from POST /outgoing-payments');
-      }
-      const outgoingPayment: OutgoingPayment = await res.json();
-
-      outgoingPaymentCreatedCallback({
-        id: outgoingPayment.id,
-        receiver: outgoingPayment.receiver,
-      });
-    });
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
@@ -97,39 +75,8 @@ test.describe('should not pay immediately when overpaying', () => {
     persistentContext: context,
   }) => {
     const homePage = popup.getByTestId('home-page');
-    const outgoingPaymentCreatedCallback = spy<
-      [{ id: string; receiver: string }],
-      void
-    >();
-    const incomingPaymentCreatedCallback = spy<[{ id: string }], void>();
-    context.on('requestfinished', async function intercept(req) {
-      if (!req.serviceWorker()) return;
-      if (req.method() !== 'POST') return;
-
-      const isIncomingPayment = req.url().endsWith('/incoming-payments');
-      const isOutgoingPayment = req.url().endsWith('/outgoing-payments');
-
-      if (!isIncomingPayment && !isOutgoingPayment) {
-        return;
-      }
-
-      const res = await req.response();
-      if (!res) {
-        throw new Error(`no response from POST ${req.url()}`);
-      }
-
-      if (isIncomingPayment) {
-        const incomingPayment: IncomingPayment = await res.json();
-        incomingPaymentCreatedCallback({ id: incomingPayment.id });
-        return;
-      }
-
-      const outgoingPayment: OutgoingPayment = await res.json();
-      outgoingPaymentCreatedCallback({
-        id: outgoingPayment.id,
-        receiver: outgoingPayment.receiver,
-      });
-    });
+    const { outgoingPaymentCreatedCallback, incomingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
@@ -185,39 +132,8 @@ test.describe('should not pay immediately when overpaying', () => {
     persistentContext: context,
   }) => {
     const homePage = popup.getByTestId('home-page');
-    const outgoingPaymentCreatedCallback = spy<
-      [{ id: string; receiver: string }],
-      void
-    >();
-    const incomingPaymentCreatedCallback = spy<[{ id: string }], void>();
-    context.on('requestfinished', async function intercept(req) {
-      if (!req.serviceWorker()) return;
-      if (req.method() !== 'POST') return;
-
-      const isIncomingPayment = req.url().endsWith('/incoming-payments');
-      const isOutgoingPayment = req.url().endsWith('/outgoing-payments');
-
-      if (!isIncomingPayment && !isOutgoingPayment) {
-        return;
-      }
-
-      const res = await req.response();
-      if (!res) {
-        throw new Error(`no response from POST ${req.url()}`);
-      }
-
-      if (isIncomingPayment) {
-        const incomingPayment: IncomingPayment = await res.json();
-        incomingPaymentCreatedCallback({ id: incomingPayment.id });
-        return;
-      }
-
-      const outgoingPayment: OutgoingPayment = await res.json();
-      outgoingPaymentCreatedCallback({
-        id: outgoingPayment.id,
-        receiver: outgoingPayment.receiver,
-      });
-    });
+    const { outgoingPaymentCreatedCallback, incomingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
     await page.evaluate(() => {
@@ -277,26 +193,8 @@ test('should pay immediately on page navigation (clears overpaying)', async ({
   popup,
   persistentContext: context,
 }) => {
-  const outgoingPaymentCreatedCallback = spy<
-    [{ id: string; receiver: string }],
-    void
-  >();
-  context.on('requestfinished', async function intercept(req) {
-    if (!req.serviceWorker()) return;
-    if (req.method() !== 'POST') return;
-    if (!req.url().endsWith('/outgoing-payments')) return;
-
-    const res = await req.response();
-    if (!res) {
-      throw new Error('no response from POST /outgoing-payments');
-    }
-    const outgoingPayment: OutgoingPayment = await res.json();
-
-    outgoingPaymentCreatedCallback({
-      id: outgoingPayment.id,
-      receiver: outgoingPayment.receiver,
-    });
-  });
+  const { outgoingPaymentCreatedCallback } =
+    interceptPaymentCreateRequests(context);
 
   const monetizationCallback = await setupPlayground(page, walletAddressUrl);
   await expect(monetizationCallback).toHaveBeenCalledTimes(1);
