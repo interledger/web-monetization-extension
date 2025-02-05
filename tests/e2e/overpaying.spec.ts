@@ -220,7 +220,6 @@ test.describe('should not pay immediately when overpaying', () => {
     });
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
-
     await page.evaluate(() => {
       const a = document.createElement('a');
       a.href = '#foo';
