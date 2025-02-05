@@ -2,7 +2,7 @@ import { test, expect } from './fixtures/base';
 import { connectWallet, disconnectWallet } from './pages/popup';
 
 test('connects with correct details provided', async ({
-  persistentContext,
+  context,
   background,
   popup,
   i18n,
@@ -21,7 +21,7 @@ test('connects with correct details provided', async ({
 
   await expect(background).toHaveStorage({ connected: false });
 
-  await connectWallet(persistentContext, background, popup, i18n, {
+  await connectWallet(context, background, popup, i18n, {
     walletAddressUrl: TEST_WALLET_ADDRESS_URL,
     amount: '10',
     recurring: false,

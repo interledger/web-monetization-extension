@@ -8,18 +8,14 @@ import {
 import { sendOneTimePayment } from './pages/popup';
 import type { OutgoingPayment } from '@interledger/open-payments';
 
-test.afterEach(({ persistentContext: context }) => {
+test.afterEach(({ context }) => {
   context.removeAllListeners('requestfinished');
 });
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
 test.describe('should not pay immediately when overpaying', () => {
-  test('on page reload', async ({
-    page,
-    popup,
-    persistentContext: context,
-  }) => {
+  test('on page reload', async ({ page, popup, context }) => {
     const outgoingPaymentCreatedCallback = spy<
       [{ id: string; receiver: string }],
       void
@@ -91,7 +87,7 @@ test.describe('should not pay immediately when overpaying', () => {
   test('on page navigation - URL param change', async ({
     page,
     popup,
-    persistentContext: context,
+    context,
   }) => {
     const outgoingPaymentCreatedCallback = spy<
       [{ id: string; receiver: string }],
@@ -163,7 +159,7 @@ test.describe('should not pay immediately when overpaying', () => {
 test('should pay immediately on page navigation (clears overpaying)', async ({
   page,
   popup,
-  persistentContext: context,
+  context,
 }) => {
   const outgoingPaymentCreatedCallback = spy<
     [{ id: string; receiver: string }],
