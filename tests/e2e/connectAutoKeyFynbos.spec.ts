@@ -14,7 +14,7 @@ import { getStorage } from './fixtures/helpers';
 test('Connect to Fynbos with automatic key addition when not logged-in to wallet', async ({
   page,
   popup,
-  persistentContext: context,
+  context,
   background,
   i18n,
 }) => {
