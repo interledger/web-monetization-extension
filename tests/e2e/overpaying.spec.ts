@@ -6,7 +6,10 @@ import {
   setupPlayground,
 } from './helpers/common';
 import { sendOneTimePayment } from './pages/popup';
-import type { OutgoingPayment } from '@interledger/open-payments';
+import type {
+  IncomingPayment,
+  OutgoingPayment,
+} from '@interledger/open-payments';
 
 test.afterEach(({ persistentContext: context }) => {
   context.removeAllListeners('requestfinished');
@@ -93,21 +96,35 @@ test.describe('should not pay immediately when overpaying', () => {
     popup,
     persistentContext: context,
   }) => {
+    const homePage = popup.getByTestId('home-page');
     const outgoingPaymentCreatedCallback = spy<
       [{ id: string; receiver: string }],
       void
     >();
+    const incomingPaymentCreatedCallback = spy<[{ id: string }], void>();
     context.on('requestfinished', async function intercept(req) {
       if (!req.serviceWorker()) return;
       if (req.method() !== 'POST') return;
-      if (!req.url().endsWith('/outgoing-payments')) return;
+
+      const isIncomingPayment = req.url().endsWith('/incoming-payments');
+      const isOutgoingPayment = req.url().endsWith('/outgoing-payments');
+
+      if (!isIncomingPayment && !isOutgoingPayment) {
+        return;
+      }
 
       const res = await req.response();
       if (!res) {
-        throw new Error('no response from POST /outgoing-payments');
+        throw new Error(`no response from POST ${req.url()}`);
       }
-      const outgoingPayment: OutgoingPayment = await res.json();
 
+      if (isIncomingPayment) {
+        const incomingPayment: IncomingPayment = await res.json();
+        incomingPaymentCreatedCallback({ id: incomingPayment.id });
+        return;
+      }
+
+      const outgoingPayment: OutgoingPayment = await res.json();
       outgoingPaymentCreatedCallback({
         id: outgoingPayment.id,
         receiver: outgoingPayment.receiver,
@@ -118,10 +135,8 @@ test.describe('should not pay immediately when overpaying', () => {
 
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(1);
-    await expect(
-      popup.getByTestId('home-page'),
-      'site is shown as monetized',
-    ).toBeVisible();
+    await expect(incomingPaymentCreatedCallback).toHaveBeenCalledTimes(1);
+    await expect(homePage, 'site is shown as monetized').toBeVisible();
 
     const url = new URL(page.url());
     url.searchParams.append('foo', 'bar');
@@ -133,9 +148,10 @@ test.describe('should not pay immediately when overpaying', () => {
       'no new outgoing payment should be created',
     ).toHaveBeenCalledTimes(1);
     await expect(
-      popup.getByTestId('home-page'),
-      'site is shown as monetized',
-    ).toBeVisible();
+      incomingPaymentCreatedCallback,
+      'new incoming payment is created',
+    ).toHaveBeenCalledTimes(2);
+    await expect(homePage, 'site is shown as monetized').toBeVisible();
 
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       incomingPayment: getLastCallArg(outgoingPaymentCreatedCallback).receiver,
@@ -150,6 +166,103 @@ test.describe('should not pay immediately when overpaying', () => {
     await expect(
       outgoingPaymentCreatedCallback,
       'a single new outgoing payment should be created',
+    ).toHaveBeenCalledTimes(2);
+    await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
+      incomingPayment: getLastCallArg(outgoingPaymentCreatedCallback).receiver,
+      amountSent: {
+        value: expect.stringMatching(/^0.4\d$/),
+      },
+    });
+    await expect(
+      incomingPaymentCreatedCallback,
+      'new incoming payment should be created',
+    ).toHaveBeenCalledTimes(3);
+  });
+
+  test('on URL hash change', async ({
+    page,
+    popup,
+    persistentContext: context,
+  }) => {
+    const homePage = popup.getByTestId('home-page');
+    const outgoingPaymentCreatedCallback = spy<
+      [{ id: string; receiver: string }],
+      void
+    >();
+    const incomingPaymentCreatedCallback = spy<[{ id: string }], void>();
+    context.on('requestfinished', async function intercept(req) {
+      if (!req.serviceWorker()) return;
+      if (req.method() !== 'POST') return;
+
+      const isIncomingPayment = req.url().endsWith('/incoming-payments');
+      const isOutgoingPayment = req.url().endsWith('/outgoing-payments');
+
+      if (!isIncomingPayment && !isOutgoingPayment) {
+        return;
+      }
+
+      const res = await req.response();
+      if (!res) {
+        throw new Error(`no response from POST ${req.url()}`);
+      }
+
+      if (isIncomingPayment) {
+        const incomingPayment: IncomingPayment = await res.json();
+        incomingPaymentCreatedCallback({ id: incomingPayment.id });
+        return;
+      }
+
+      const outgoingPayment: OutgoingPayment = await res.json();
+      outgoingPaymentCreatedCallback({
+        id: outgoingPayment.id,
+        receiver: outgoingPayment.receiver,
+      });
+    });
+
+    const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+
+    await page.evaluate(() => {
+      const a = document.createElement('a');
+      a.href = '#foo';
+      a.textContent = 'Hash link';
+      document.body.append(a);
+    });
+
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+    await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(1);
+    await expect(incomingPaymentCreatedCallback).toHaveBeenCalledTimes(1);
+    await expect(homePage, 'site is shown as monetized').toBeVisible();
+
+    await page.getByRole('link', { name: 'Hash link' }).click();
+    expect(page.url()).toMatch(/#foo$/);
+    await expect(homePage, 'site is shown as monetized').toBeVisible();
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+
+    await page.waitForTimeout(3000);
+    await expect(
+      outgoingPaymentCreatedCallback,
+      'no new outgoing payment should be created',
+    ).toHaveBeenCalledTimes(1);
+    await expect(
+      incomingPaymentCreatedCallback,
+      'same incoming payment is reused',
+    ).toHaveBeenCalledTimes(1);
+    await expect(homePage, 'site is shown as monetized').toBeVisible();
+
+    await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
+      incomingPayment: getLastCallArg(outgoingPaymentCreatedCallback).receiver,
+    });
+
+    await sendOneTimePayment(popup, '0.49');
+    await page.waitForTimeout(2000);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(2);
+    await expect(
+      outgoingPaymentCreatedCallback,
+      'a single new outgoing payment should be created',
+    ).toHaveBeenCalledTimes(2);
+    await expect(
+      incomingPaymentCreatedCallback,
+      'new incoming payment should be created',
     ).toHaveBeenCalledTimes(2);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       incomingPayment: getLastCallArg(outgoingPaymentCreatedCallback).receiver,
