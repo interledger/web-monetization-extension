@@ -11,7 +11,7 @@ test('shows not-monetized status', async ({
   i18n,
   channel,
   background,
-  persistentContext: context,
+  context,
 }) => {
   const warning = popup.getByTestId('not-monetized-message');
   const msg = {

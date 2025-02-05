@@ -7,18 +7,14 @@ import {
 } from './helpers/common';
 import { sendOneTimePayment } from './pages/popup';
 
-test.afterEach(({ persistentContext: context }) => {
+test.afterEach(({ context }) => {
   context.removeAllListeners('requestfinished');
 });
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
 test.describe('should not pay immediately when overpaying', () => {
-  test('on page reload', async ({
-    page,
-    popup,
-    persistentContext: context,
-  }) => {
+  test('on page reload', async ({ page, popup, context }) => {
     const { outgoingPaymentCreatedCallback } =
       interceptPaymentCreateRequests(context);
 
@@ -72,7 +68,7 @@ test.describe('should not pay immediately when overpaying', () => {
   test('on page navigation - URL param change', async ({
     page,
     popup,
-    persistentContext: context,
+    context,
   }) => {
     const homePage = popup.getByTestId('home-page');
     const { outgoingPaymentCreatedCallback, incomingPaymentCreatedCallback } =
@@ -126,11 +122,7 @@ test.describe('should not pay immediately when overpaying', () => {
     ).toHaveBeenCalledTimes(3);
   });
 
-  test('on URL hash change', async ({
-    page,
-    popup,
-    persistentContext: context,
-  }) => {
+  test('on URL hash change', async ({ page, popup, context }) => {
     const homePage = popup.getByTestId('home-page');
     const { outgoingPaymentCreatedCallback, incomingPaymentCreatedCallback } =
       interceptPaymentCreateRequests(context);
@@ -191,7 +183,7 @@ test.describe('should not pay immediately when overpaying', () => {
 test('should pay immediately on page navigation (clears overpaying)', async ({
   page,
   popup,
-  persistentContext: context,
+  context,
 }) => {
   const { outgoingPaymentCreatedCallback } =
     interceptPaymentCreateRequests(context);

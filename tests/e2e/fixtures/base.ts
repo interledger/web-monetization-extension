@@ -17,7 +17,7 @@ import { openPopup, type Popup } from '../pages/popup';
 import type { DeepPartial, Storage } from '@/shared/types';
 
 type Fixtures = {
-  persistentContext: BrowserContext;
+  context: BrowserContext;
   background: Background;
   popup: Popup;
   i18n: BrowserIntl;
@@ -25,7 +25,7 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  persistentContext: [
+  context: [
     async ({ browserName, channel }, use, testInfo) => {
       const context = await loadContext({ browserName, channel }, testInfo);
       await use(context);
@@ -38,7 +38,7 @@ export const test = base.extend<Fixtures>({
   // context in Firefox. We can run extension APIs, such as
   // `chrome.storage.local.get` in this context with `background.evaluate()`.
   background: [
-    async ({ persistentContext: context, browserName }, use) => {
+    async ({ context, browserName }, use) => {
       const background = await getBackground(browserName, context);
       await use(background);
     },
@@ -54,8 +54,8 @@ export const test = base.extend<Fixtures>({
   ],
 
   popup: [
-    async ({ background, persistentContext }, use) => {
-      const popup = await openPopup(persistentContext, background);
+    async ({ background, context }, use) => {
+      const popup = await openPopup(context, background);
 
       await use(popup);
       await popup.close();
@@ -63,7 +63,7 @@ export const test = base.extend<Fixtures>({
     { scope: 'test', timeout: 5_000 },
   ],
 
-  page: async ({ persistentContext: context }, use) => {
+  page: async ({ context }, use) => {
     const page = await context.newPage();
     await use(page);
     await page.close();
