@@ -196,7 +196,7 @@ function Controls({
     const longPress = useLongPress(onClick);
     return (
       <button
-        className="cursor-pointer p-1 text-lg text-weak outline-none hover:bg-gray-50 hover:text-strong disabled:cursor-default disabled:text-weak disabled:hover:bg-transparent"
+        className="cursor-pointer p-1 text-lg text-weak outline-hidden hover:bg-gray-50 hover:text-strong disabled:cursor-default disabled:text-weak disabled:hover:bg-transparent"
         type="button"
         tabIndex={-1}
         aria-hidden={true}

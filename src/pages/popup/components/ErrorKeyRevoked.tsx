@@ -119,7 +119,7 @@ const MainScreen = ({
           animate={{ opacity: 1 }}
           initial={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-sm px-2 text-sm text-error"
+          className="rounded-xs px-2 text-sm text-error"
         >
           {errorMsg}
         </m.div>
@@ -201,7 +201,7 @@ const ManualReconnectScreen = ({
           animate={{ opacity: 1 }}
           initial={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-sm px-2 text-sm text-error"
+          className="rounded-xs px-2 text-sm text-error"
         >
           {errors.root.message}
         </m.div>

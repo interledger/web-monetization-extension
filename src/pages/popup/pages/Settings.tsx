@@ -52,7 +52,7 @@ export const Component = () => {
               currentTabId === id
                 ? 'border-current text-secondary'
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
-              'cursor-pointer whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium focus:outline-none focus-visible:outline',
+              'cursor-pointer whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium focus:outline-hidden focus-visible:outline',
             )}
           >
             {title}

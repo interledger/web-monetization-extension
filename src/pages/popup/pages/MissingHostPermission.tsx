@@ -9,7 +9,7 @@ export const Component = () => {
   return (
     <div className="rounded-md bg-orange-50 p-4 text-sm">
       <div className="flex">
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <WarningSign className="size-8 text-orange-500" />
         </div>
         <div className="ml-3 flex flex-col gap-2">
@@ -21,7 +21,7 @@ export const Component = () => {
       </div>
       <button
         type="button"
-        className="mx-auto mt-3 block w-fit rounded-md bg-orange-100 px-2 py-1.5 font-medium text-orange-800 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 focus:ring-offset-orange-50"
+        className="mx-auto mt-3 block w-fit rounded-md bg-orange-100 px-2 py-1.5 font-medium text-orange-800 hover:bg-orange-100 focus:outline-hidden focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 focus:ring-offset-orange-50"
         onClick={() =>
           browser.permissions.request(PERMISSION_HOSTS).finally(() => {
             // So we open popup with refreshed state, avoiding additional message passing.

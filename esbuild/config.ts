@@ -59,6 +59,7 @@ export const options: BuildOptions = {
   ],
   bundle: true,
   legalComments: 'none',
+  conditions: ['style'],
   target: 'es2020',
   platform: 'browser',
   format: 'iife',

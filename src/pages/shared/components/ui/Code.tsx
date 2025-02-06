@@ -45,7 +45,7 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
       aria-label="copy"
       variant="ghost"
       size="icon"
-      className="rounded-sm text-primary"
+      className="rounded-xs text-primary"
       onClick={() => {
         navigator.clipboard.writeText(value);
         setHasCopied(true);

@@ -6,7 +6,7 @@ import { Label } from '@/pages/shared/components/ui/Label';
 const inputVariants = cva(
   [
     'h-14 w-full rounded-xl border border-2 px-4 text-base text-medium',
-    'focus:border-focus focus:outline-none',
+    'focus:border-focus focus:outline-hidden',
     'placeholder:text-disabled',
   ],
 

@@ -24,7 +24,7 @@ export const Component = () => {
         backgroundSize: '40vmax',
       }}
     >
-      <div className="flex min-h-screen w-full max-w-screen-2xl flex-1 grid-cols-2 flex-col items-stretch gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
+      <div className="flex min-h-screen w-full max-w-(--breakpoint-2xl) flex-1 grid-cols-2 flex-col items-stretch gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
         <Header />
         <div className="flex items-center">
           <Main />
@@ -57,7 +57,7 @@ const Main = () => {
   const t = useTranslation();
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:p-8">
-      <h2 className="rounded-sm bg-gray-100 p-2 text-center text-base font-medium sm:rounded-2xl sm:p-4 sm:text-lg">
+      <h2 className="rounded-xs bg-gray-100 p-2 text-center text-base font-medium sm:rounded-2xl sm:p-4 sm:text-lg">
         {t('postInstall_text_title')}
       </h2>
 
@@ -203,7 +203,7 @@ function Step({
       <details
         open={open}
         className={cn(
-          'group relative gap-2 space-y-4 overflow-hidden rounded-md border border-slate-200 p-2 text-base transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md open:hover:bg-white sm:p-4 sm:text-lg',
+          'group relative gap-2 space-y-4 overflow-hidden rounded-md border border-slate-200 p-2 text-base transition-colors open:shadow-xs focus-within:border-slate-300 focus-within:shadow-md hover:open:bg-white sm:p-4 sm:text-lg',
           isPrimaryButton && 'duration-0',
           isPrimaryButton && !open
             ? 'bg-button-base text-white hover:bg-button-base-hover'
@@ -212,7 +212,7 @@ function Step({
       >
         {/* biome-ignore lint/a11y/useKeyWithClickEvents: Not needed here */}
         <summary
-          className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
+          className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-hidden"
           onClick={(ev) => {
             // onToggle gets fired when `open` is set (even from prop set on
             // mount). So, we use onClick to catch only user interaction.

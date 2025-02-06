@@ -1,0 +1,154 @@
+@import 'tailwindcss';
+
+/* @plugin '@tailwindcss/forms'; */
+
+@theme {
+  --font-titillium: Titillium Web, ui-sans-serif, system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --width-popup: var(--popup-width);
+
+  --height-popup: var(--popup-height);
+
+  --text-color-primary: rgb(var(--text-primary));
+  --text-color-secondary: rgb(var(--text-secondary));
+  --text-color-secondary-dark: rgb(var(--text-secondary-dark));
+  --text-color-weak: rgb(var(--text-weak));
+  --text-color-medium: rgb(var(--text-medium));
+  --text-color-strong: rgb(var(--text-strong));
+  --text-color-error: rgb(var(--text-error));
+  --text-color-disabled: rgb(var(--text-disabled));
+
+  --background-color-primary: rgb(var(--bg-primary));
+  --background-color-error: rgb(var(--bg-error));
+  --background-color-nav-active: rgb(var(--bg-nav-active));
+  --background-color-error-hover: rgb(var(--bg-error-hover));
+  --background-color-button-base: rgb(var(--bg-button-base));
+  --background-color-button-base-hover: rgb(var(--bg-button-base-hover));
+  --background-color-switch-base: rgb(var(--bg-switch-base));
+  --background-color-disabled: rgb(var(--bg-disabled));
+  --background-color-disabled-hover: rgb(var(--bg-disabled-base-hover));
+  --background-color-disabled-strong: rgb(var(--bg-disabled-strong));
+
+  --border-color-base: rgb(var(--border-base));
+  --border-color-popup: rgb(var(--border-popup));
+  --border-color-focus: rgb(var(--border-focus));
+  --border-color-error: rgb(var(--border-error));
+
+  --background-image-divider-gradient: linear-gradient(
+    90deg,
+    #ff7a7f 0%,
+    #ff7a7f 0%,
+    #ff7a7f 14.3%,
+    #56b7b5 14.3%,
+    #56b7b5 28.6%,
+    #56b7b5 28.6%,
+    #a3bedc 28.6%,
+    #a3bedc 42.9%,
+    #a3bedc 42.9%,
+    #ffc8dc 42.9%,
+    #ffc8dc 57.2%,
+    #ffc8dc 57.2%,
+    #ff9852 57.2%,
+    #ff9852 71.5%,
+    #ff9852 71.5%,
+    #98e1d0 71.5%,
+    #98e1d0 85.8%,
+    #98e1d0 85.8%,
+    #8075b3 85.8%,
+    #8075b3 100%,
+    #8075b3 100%
+  );
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+@layer base {
+  @font-face {
+    font-family: 'Titillium Web';
+    /* light */
+    src: url('/assets/fonts/titillium-web/titillium-web-latin-300-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    /* font-light */
+    font-weight: 300;
+  }
+  @font-face {
+    font-family: 'Titillium Web';
+    /* regular */
+    src: url('/assets/fonts/titillium-web/titillium-web-latin-400-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'Titillium Web';
+    /* semibold */
+    src: url('/assets/fonts/titillium-web/titillium-web-latin-600-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    /* font-medium */
+    font-weight: 500;
+  }
+  @font-face {
+    font-family: 'Titillium Web';
+    /* bold */
+    src: url('/assets/fonts/titillium-web/titillium-web-latin-700-normal.woff2')
+      format('woff2');
+    font-style: normal;
+    /* font-bold */
+    font-weight: 700;
+  }
+
+  :root {
+    /* Text colors */
+    --text-primary: 59 130 246;
+    --text-secondary: 86 183 181;
+    --text-secondary-dark: 52 152 152;
+    --text-weak: 100 116 139;
+    --text-medium: 51 65 85;
+    --text-strong: 15 23 42;
+    --text-error: 239 68 68;
+    --text-disabled: 168 174 184;
+
+    /* Background colors */
+    --bg-primary: 59 130 246;
+    --bg-nav-active: 226 232 240;
+    --bg-error: 254 226 226;
+    --bg-error-hover: 254 202 202;
+    --bg-button-base: 86 183 181;
+    --bg-button-base-hover: 52 152 152;
+    --bg-switch-base: 152 225 208;
+    --bg-disabled: 248 250 252;
+    --bg-disabled-strong: 203 213 225;
+
+    /* Border colors */
+    --border-base: 203 213 225;
+    --border-focus: 59 130 246;
+    --border-error: 220 38 38;
+
+    /* Popup */
+    --popup-width: 448px;
+    --popup-height: 600px;
+  }
+
+  body {
+    @apply bg-white font-titillium text-base text-medium;
+  }
+}
