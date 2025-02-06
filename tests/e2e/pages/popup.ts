@@ -93,6 +93,16 @@ export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
   };
 }
 
+export async function setContinuousPayments(popup: Popup, enabled: boolean) {
+  await popup.reload();
+  await popup.locator(`[href="/settings"]`).click({ timeout: 1000 });
+  await popup.getByRole('tab', { name: 'Rate' }).click();
+
+  await popup
+    .getByTestId('continuous-payments-toggle')
+    .setChecked(enabled, { force: true });
+}
+
 export async function sendOneTimePayment(
   popup: Popup,
   amount: string,

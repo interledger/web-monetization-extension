@@ -38,7 +38,7 @@ export const OutOfFunds = ({
         <p>{t('outOfFunds_error_text')}</p>
         <p>{t('outOfFunds_error_textHint')}</p>
         {grantRecurring?.value && (
-          <p className="mt-1">
+          <p className="mt-1" data-testid="out-of-funds-recurring-info">
             <RecurringAutoRenewInfo
               info={info}
               grantRecurring={grantRecurring}
