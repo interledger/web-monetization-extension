@@ -373,17 +373,19 @@ export class MonetizationLinkManager extends EventEmitter {
 
     await this.sendStopMonetization(stopMonetizationPayload);
 
-    const addedNodes = records
-      .filter((e) => e.type === 'childList')
-      .flatMap((e) => [...e.addedNodes]);
-    const allAddedLinkTags = await Promise.all(
-      addedNodes.map((node) => this.onAddedNode(node)),
-    );
-    const startMonetizationPayload = allAddedLinkTags
-      .filter(isNotNull)
-      .map(({ details }) => details);
+    if (this.isTopFrame || this.isFirstLevelFrame) {
+      const addedNodes = records
+        .filter((e) => e.type === 'childList')
+        .flatMap((e) => [...e.addedNodes]);
+      const allAddedLinkTags = await Promise.all(
+        addedNodes.map((node) => this.onAddedNode(node)),
+      );
+      const startMonetizationPayload = allAddedLinkTags
+        .filter(isNotNull)
+        .map(({ details }) => details);
 
-    void this.sendStartMonetization(startMonetizationPayload);
+      void this.sendStartMonetization(startMonetizationPayload);
+    }
 
     for (const record of records) {
       if (
