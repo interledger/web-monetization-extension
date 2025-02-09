@@ -62,7 +62,7 @@ for (const testCase of TEST_CASES) {
 
     test.beforeEach(
       'connectWallet',
-      async ({ persistentContext: context, background, popup, i18n }) => {
+      async ({ context, background, popup, i18n }) => {
         await connectWallet(context, background, popup, i18n, {
           walletAddressUrl,
           amount: String(INITIAL_AMOUNT),
@@ -75,12 +75,7 @@ for (const testCase of TEST_CASES) {
       await disconnectWallet(popup);
     });
 
-    test(testCase.name, async ({
-      persistentContext: context,
-      background,
-      popup,
-      page,
-    }) => {
+    test(testCase.name, async ({ context, background, popup, page }) => {
       const settingsLink = popup.locator(`[href="/settings"]`);
       const budgetTab = popup.getByRole('tab', { name: 'Budget' });
 

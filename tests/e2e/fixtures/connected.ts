@@ -11,7 +11,7 @@ export const DEFAULT_BUDGET = {
 // With extension connected to the wallet.
 export const test = base.extend<{ page: Page }, { popup: Popup }>({
   popup: [
-    async ({ persistentContext: context, background, popup, i18n }, use) => {
+    async ({ context, background, popup, i18n }, use) => {
       await connectWallet(context, background, popup, i18n, {
         walletAddressUrl: process.env.TEST_WALLET_ADDRESS_URL,
         amount: DEFAULT_BUDGET.amount.toString(),
