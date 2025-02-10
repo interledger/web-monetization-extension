@@ -1,133 +1,124 @@
 import { pathToFileURL } from 'node:url';
 import { test, expect } from './fixtures/connected';
-import type { Locator } from '@playwright/test';
 import { setupPlayground } from './helpers/common';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-test.beforeEach(async ({ popup, page }) => {
-  await popup.reload();
-  await page.bringToFront();
-});
-
-test('shows not monetized on empty tabs', async ({
-  popup,
-  i18n,
-  persistentContext: context,
-}) => {
-  const warning = popup.getByTestId('not-monetized-message');
-  const msg = i18n.getMessage('notMonetized_text_newTab');
-  await expect(warning).toBeVisible();
-  await expect(warning).toHaveText(msg);
-
-  await context.newPage().then((page) => page.bringToFront());
-  await expect(warning).toBeVisible();
-  await expect(warning).toHaveText(msg);
-});
-
-test('shows not monetized on internal pages', async ({
-  page,
+// We make extensive use of test.step in this test to reuse the same browser
+// instance, as connecting wallet each time for small tests is expensive.
+test('shows not-monetized status', async ({
   popup,
   i18n,
   channel,
+  background,
+  context,
 }) => {
-  const url = channel === 'msedge' ? 'edge://settings' : 'chrome://settings';
-  await page.goto(url);
-
   const warning = popup.getByTestId('not-monetized-message');
-  await expect(warning).toBeVisible();
-  await expect(warning).toHaveText(
-    i18n.getMessage('notMonetized_text_internalPage'),
-  );
-});
+  const msg = {
+    newTab: i18n.getMessage('notMonetized_text_newTab'),
+    internalPage: i18n.getMessage('notMonetized_text_internalPage'),
+    unsupportedScheme: i18n.getMessage('notMonetized_text_unsupportedScheme'),
+    noLinks: i18n.getMessage('notMonetized_text_noLinks'),
+  };
 
-test.describe('shows not monetized on non-https pages', () => {
-  let warning: Locator;
-  let msg: string;
-
-  test.beforeAll(async ({ popup, i18n }) => {
-    warning = popup.getByTestId('not-monetized-message');
-    msg = i18n.getMessage('notMonetized_text_unsupportedScheme');
-  });
-
-  test.beforeEach(async ({ popup, page }) => {
+  const newPage = async () => {
+    const page = await context.newPage();
     await popup.reload();
     await page.bringToFront();
-  });
+    return {
+      goto: page.goto.bind(page), // so we don't have to call `page.page.goto()` every time
+      page: page,
+      [Symbol.asyncDispose]: async () => {
+        await page.close();
+      },
+    };
+  };
 
-  test('http:// URLs', async ({ page }) => {
-    await page.goto('http://example.com');
+  await test.step('shows not monetized on empty tabs', async () => {
     await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg);
-  });
+    await expect(warning).toHaveText(msg.newTab);
 
-  test('navigating from https:// to http://', async ({ page, i18n }) => {
-    await page.goto('https://example.com');
+    await using _page = await newPage();
     await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(
-      i18n.getMessage('notMonetized_text_noLinks'),
-    );
+    await expect(warning).toHaveText(msg.newTab);
+  });
 
-    await page.goto('http://example.com');
+  await test.step('shows not monetized on internal pages', async () => {
+    await using page = await newPage();
+    const url = channel === 'msedge' ? 'edge://settings' : 'chrome://settings';
+    await page.goto(url);
+
     await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg);
+    await expect(warning).toHaveText(msg.internalPage);
   });
 
-  test('file:// URLs', async ({ page }) => {
-    await page.goto(pathToFileURL('.').href);
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg);
+  await test.step('shows not monetized on non-https pages', async () => {
+    await test.step('http:// URLs', async () => {
+      await using page = await newPage();
+      await page.goto('http://httpforever.com/');
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.unsupportedScheme);
+    });
+
+    await test.step('navigating from https:// to http://', async () => {
+      await using page = await newPage();
+      await page.goto('https://example.com');
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.noLinks);
+
+      await page.goto('http://httpforever.com/');
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.unsupportedScheme);
+    });
+
+    await test.step('file:// URLs', async () => {
+      await using page = await newPage();
+      await page.goto(pathToFileURL('.').href);
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.unsupportedScheme);
+    });
+
+    await test.step('extension pages', async () => {
+      await using page = await newPage();
+      const popupUrl = await background.evaluate(() =>
+        chrome.action.getPopup({}),
+      );
+      await page.goto(popupUrl);
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.unsupportedScheme);
+    });
   });
 
-  test('extension pages', async ({ page, background }) => {
-    const popupUrl = await background.evaluate(() =>
-      chrome.action.getPopup({}),
-    );
-    await page.goto(popupUrl);
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg);
-  });
-});
+  await test.step('shows not monetized on non-monetized pages', async () => {
+    await test.step('no link tags', async () => {
+      await using page = await newPage();
+      await page.goto('https://example.com');
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.noLinks);
+    });
 
-test.describe('shows not monetized on non-monetized pages', () => {
-  let warning: Locator;
-  let msg: string;
+    await test.step('no enabled link tags', async () => {
+      await using page = await newPage();
+      await page.goto('https://example.com');
+      await page.page.evaluate((walletAddressUrl) => {
+        const link = document.createElement('link');
+        link.rel = 'monetization';
+        link.disabled = true;
+        link.href = walletAddressUrl;
+        document.head.appendChild(link);
+      }, walletAddressUrl);
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.noLinks);
+    });
 
-  test.beforeAll(async ({ popup, i18n }) => {
-    warning = popup.getByTestId('not-monetized-message');
-    msg = i18n.getMessage('notMonetized_text_noLinks');
-  });
+    await test.step('navigating from monetized to non-monetized', async () => {
+      await using page = await newPage();
+      await setupPlayground(page.page, walletAddressUrl);
+      await expect(warning).not.toBeVisible();
 
-  test.beforeEach(async ({ page, popup }) => {
-    await popup.reload();
-    await page.bringToFront();
-  });
-
-  test('no link tags', async ({ page }) => {
-    await page.goto('https://example.com');
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg);
-  });
-
-  test('no enabled link tags', async ({ page }) => {
-    await page.goto('https://example.com');
-    await page.evaluate((walletAddressUrl) => {
-      const link = document.createElement('link');
-      link.rel = 'monetization';
-      link.disabled = true;
-      link.href = walletAddressUrl;
-      document.head.appendChild(link);
-    }, walletAddressUrl);
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg);
-  });
-
-  test('navigating from monetized to non-monetized', async ({ page }) => {
-    await setupPlayground(page, walletAddressUrl);
-    await expect(warning).not.toBeVisible();
-
-    await page.goto('https://example.com');
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg);
+      await page.goto('https://example.com');
+      await expect(warning).toBeVisible();
+      await expect(warning).toHaveText(msg.noLinks);
+    });
   });
 });

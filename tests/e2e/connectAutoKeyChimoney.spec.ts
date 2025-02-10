@@ -1,18 +1,19 @@
 import { test, expect } from './fixtures/base';
 import { withResolvers, getJWKS } from '@/shared/helpers';
-import { fillPopup } from './pages/popup';
+import { disconnectWallet, fillPopup } from './pages/popup';
 import {
   URLS,
   login,
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/chimoney';
+import { waitForWelcomePage } from './helpers/common';
 import { getStorage } from './fixtures/helpers';
 
 test('Connect to Chimoney wallet with automatic key addition when not logged-in to wallet', async ({
   page,
   popup,
-  persistentContext: context,
+  context,
   background,
   i18n,
 }) => {
@@ -137,16 +138,15 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
     await expect(
       page.getByRole('button', { name: 'Decline', exact: true }),
     ).toBeVisible();
-
-    await page.getByRole('button', { name: 'Accept', exact: true }).click();
-    expect(page.getByRole('button', { name: 'Get OTP Code' })).toBeVisible();
   });
 
-  // The connect process won't be able to progress further here in tests. It'll
-  // ask for OTP over email, which we can't access. So, we'll assume if that OTP
-  // page is shown, we can connect.
+  await test.step('connects', async () => {
+    await page.getByRole('button', { name: 'Accept', exact: true }).click();
+    await waitForWelcomePage(page);
+    await expect(background).toHaveStorage({ connected: true });
+  });
 
-  await test.step('revoke key', async () => {
+  await test.step('cleanup: revoke key', async () => {
     const res = await revokeKey(page, keyId);
     expect(res).toEqual({ status: 'success', data: 'success' });
 
@@ -154,7 +154,7 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
     expect(keys.find((key) => key.kid === keyId)).toBeUndefined();
   });
 
-  // await test.step('disconnect wallet', async () => {
-  //   await disconnectWallet(popup);
-  // });
+  await test.step('cleanup: disconnect wallet', async () => {
+    await disconnectWallet(popup);
+  });
 });

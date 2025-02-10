@@ -20,7 +20,7 @@ import { disconnectWallet, fillPopup } from './pages/popup';
 test('Reconnect to test wallet with automatic key addition', async ({
   page,
   popup,
-  persistentContext: context,
+  context,
   background,
   i18n,
 }) => {

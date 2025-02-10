@@ -93,7 +93,18 @@ export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
   };
 }
 
-export async function sendOneTimePayment(popup: Popup, amount: string) {
+export async function sendOneTimePayment(
+  popup: Popup,
+  amount: string,
+  waitForComplete = false,
+) {
   await popup.getByRole('textbox').fill(amount);
-  await popup.getByRole('button', { name: 'Send now' }).click();
+  const sendButton = popup.getByRole('button', { name: 'Send now' });
+  await sendButton.click();
+  if (waitForComplete) {
+    await popup.waitForSelector('button[data-progress="false"]', {
+      timeout: 10_000,
+    });
+  }
+  return sendButton;
 }
