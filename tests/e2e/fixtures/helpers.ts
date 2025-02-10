@@ -154,6 +154,7 @@ export async function loadContext(
       channel,
       args: [
         '--headless=new',
+        '--disable-gpu',
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],

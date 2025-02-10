@@ -1,15 +1,13 @@
-import { test, expect } from './fixtures/connected';
+import { test, expect, DEFAULT_BUDGET } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
+import { sendOneTimePayment } from './pages/popup';
 
-test.beforeEach(async ({ popup }) => {
-  await popup.reload();
-});
+const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
 test('should monetize site with single wallet address', async ({
   page,
   popup,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
   await page.waitForSelector('#link-events .log-header');
@@ -41,8 +39,6 @@ test('does not monetize when continuous payments are disabled', async ({
   popup,
   background,
 }) => {
-  const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-
   await test.step('disable continuous payments', async () => {
     await expect(background).toHaveStorage({ continuousPaymentsEnabled: true });
 
@@ -125,6 +121,199 @@ test('does not monetize when continuous payments are disabled', async ({
       incomingPayment: expect.stringContaining(
         new URL(walletAddressUrl).origin,
       ),
+    });
+  });
+});
+
+test('does not monetize when global payments toggle in unchecked', async ({
+  page,
+  popup,
+  background,
+  i18n,
+}) => {
+  const sendNowButton = popup.getByRole('button', { name: 'Send now' });
+
+  await test.step('disables extension', async () => {
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: true,
+    });
+
+    await popup
+      .getByRole('checkbox', { name: 'Disable extension' })
+      .uncheck({ force: true }); // TODO: remove force; normally this should not be necessary
+
+    await expect(popup.getByTestId('not-monetized-message')).toHaveText(
+      i18n.getMessage('app_text_disabled'),
+    );
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: false,
+    });
+  });
+
+  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+  const eventsLog = page.locator('#link-events ul.events');
+  await expect(eventsLog).toBeVisible();
+  await expect(eventsLog.locator('li')).toHaveCount(1);
+  await expect(eventsLog.locator('li').last()).toContainText('Load Event');
+  await page.waitForTimeout(3000); // XXX: wait for probing to finish https://github.com/interledger/web-monetization-extension/issues/847
+
+  await test.step('check extension payments do not go through', async () => {
+    await expect(sendNowButton).not.toBeVisible();
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+  });
+
+  await test.step('and does not monetize even with continuous payments toggle on/off', async () => {
+    const settingsLink = popup.locator(`[href="/settings"]`).first();
+    await settingsLink.click();
+
+    await popup.getByRole('tab', { name: 'Rate' }).click();
+    const continuousPaymentsToggle = popup.getByTestId(
+      'continuous-payments-toggle',
+    );
+    await continuousPaymentsToggle.uncheck({ force: true });
+
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: false,
+      enabled: false,
+    });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+
+    await expect(
+      popup.getByRole('tabpanel', { name: 'Rate' }).locator('p'),
+    ).toContainText('Ongoing payments are now disabled');
+
+    await continuousPaymentsToggle.check({ force: true });
+
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: false,
+    });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+  });
+
+  await test.step('checking global payments toggle re-enables payments in extension', async () => {
+    const backHomeLink = popup.locator(`[href="/"]`).first();
+    await backHomeLink.click();
+
+    await popup
+      .getByRole('checkbox', { name: 'Enable extension' })
+      .check({ force: true }); // TODO: remove force; normally this should not be necessary
+    await expect(sendNowButton).toBeVisible();
+
+    await expect(background).toHaveStorage({
+      continuousPaymentsEnabled: true,
+      enabled: true,
+    });
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+    await expect(eventsLog.locator('li')).toHaveCount(2);
+    await expect(eventsLog).toBeVisible();
+  });
+});
+
+test.describe('one-time payment', () => {
+  test.beforeEach(
+    'disable continuous payments',
+    async ({ popup, background }) => {
+      const settingsLink = popup.locator(`[href="/settings"]`).first();
+      await settingsLink.click();
+
+      await popup.getByRole('tab', { name: 'Rate' }).click();
+      const continuousPaymentsToggle = popup.getByTestId(
+        'continuous-payments-toggle',
+      );
+      await continuousPaymentsToggle.uncheck({ force: true });
+
+      await expect(background).toHaveStorage({
+        continuousPaymentsEnabled: false,
+      });
+      await popup.reload();
+    },
+  );
+
+  test('should send when within budget', async ({ popup, page, i18n }) => {
+    const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+
+    const form = popup.getByTestId('pay-form');
+    await expect(form).toBeVisible();
+    const alertMsg = form.getByRole('alert');
+
+    const amountToFill = DEFAULT_BUDGET.amount / 2;
+    const sendButton = await sendOneTimePayment(popup, amountToFill.toString());
+    await expect(sendButton).toHaveAttribute('data-progress', 'true');
+    await expect(alertMsg).not.toBeVisible();
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+    expect(monetizationCallback).toHaveLastAmountSentCloseTo(amountToFill);
+
+    await expect(sendButton).toHaveAttribute('data-progress', 'false', {
+      timeout: 10_000,
+    });
+    await expect(alertMsg).toBeVisible();
+    await expect(alertMsg).toHaveText(i18n.getMessage('pay_state_success'));
+  });
+
+  test.describe('should not send when outside budget', () => {
+    test('more than total budget', async ({ page, popup, i18n }) => {
+      const monetizationCallback = await setupPlayground(
+        page,
+        walletAddressUrl,
+      );
+      await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+
+      const form = popup.getByTestId('pay-form');
+      await expect(form).toBeVisible();
+      const alertMsg = form.getByRole('alert');
+
+      const amountToFill = DEFAULT_BUDGET.amount * 1.2;
+      const sendButton = await sendOneTimePayment(
+        popup,
+        amountToFill.toString(),
+      );
+      await expect(sendButton).toHaveAttribute('data-progress', 'false');
+      await expect(sendButton).toBeEnabled();
+
+      await expect(alertMsg).toBeVisible();
+      await expect(alertMsg).toHaveText(
+        i18n.getMessage('pay_error_notEnoughFunds'),
+      );
+
+      await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+    });
+
+    test('more than remaining balance', async ({ page, popup, i18n }) => {
+      const monetizationCallback = await setupPlayground(
+        page,
+        walletAddressUrl,
+      );
+      await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+
+      const form = popup.getByTestId('pay-form');
+      await expect(form).toBeVisible();
+      const alertMsg = form.getByRole('alert');
+
+      const amountToFill1 = 0.75 * DEFAULT_BUDGET.amount;
+      await sendOneTimePayment(popup, amountToFill1.toString(), true);
+      await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+      await expect(alertMsg).toBeVisible();
+      await expect(alertMsg).toHaveText(i18n.getMessage('pay_state_success'));
+
+      const amountToFill2 = 0.5 * DEFAULT_BUDGET.amount;
+      const sendButton = await sendOneTimePayment(
+        popup,
+        amountToFill2.toString(),
+      );
+
+      await expect(sendButton).toHaveAttribute('data-progress', 'false');
+      await expect(sendButton).toBeEnabled();
+
+      await expect(alertMsg).toBeVisible();
+      await expect(alertMsg).toHaveText(
+        i18n.getMessage('pay_error_notEnoughFunds'),
+      );
+
+      await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     });
   });
 });

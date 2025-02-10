@@ -47,7 +47,7 @@ jobs:
             await script({ github, context, core })
 
       - name: Build
-        run: pnpm build --channel=release
+        run: pnpm build --channel=stable
 
       - name: Get built version
         uses: actions/github-script@v7

@@ -78,10 +78,7 @@
     "message": "This website is not monetized."
   },
   "pay_state_success": {
-    "message": "Thank you for your $AMOUNT$ support!",
-    "placeholders": {
-      "AMOUNT": { "content": "$1", "example": "$2.05" }
-    }
+    "message": "Thank you for your support!"
   },
   "outOfFunds_error_title": {
     "message": "Out of funds"
@@ -260,5 +257,11 @@
   },
   "postInstall_action_submit": {
     "message": "Connect your wallet"
+  },
+  "postInstall_text_wallet_connected_1": {
+    "message": "You've already connected your wallet."
+  },
+  "postInstall_text_wallet_connected_2": {
+    "message": "Access the extension from the browser toolbar."
   }
 }

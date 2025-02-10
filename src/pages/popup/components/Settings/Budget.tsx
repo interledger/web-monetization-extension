@@ -117,7 +117,7 @@ const BudgetAmount = ({
     if (!interval) {
       if (changed.recurring && !recurring) {
         interval = undefined;
-      } else if ((changed.recurring && recurring) || changed.amount) {
+      } else if ((changed.recurring || changed.amount) && recurring) {
         interval = `R/${new Date().toISOString()}/P1M`;
       } else if (grants.recurring?.interval) {
         interval = grants.recurring.interval;
@@ -170,7 +170,7 @@ const BudgetAmount = ({
         </div>
       </div>
       {renewDate && (
-        <p className="px-2 text-xs">
+        <p className="px-2 text-xs" data-testid="renew-date-msg">
           Your budget will renew on{' '}
           <time
             dateTime={renewDate.toISOString()}
