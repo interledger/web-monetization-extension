@@ -70,6 +70,7 @@ export const PayWebsiteForm = () => {
         !errors.pay && 'pb-12',
       )}
       onSubmit={onSubmit}
+      data-testid="pay-form"
     >
       <AnimatePresence mode="sync">
         {errors.pay || !!payStatus ? (
