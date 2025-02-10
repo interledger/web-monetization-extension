@@ -179,4 +179,36 @@ export const expect = test.expect.extend({
       message: defaultMessage(this, name, pass, expected, result),
     };
   },
+
+  toHaveLastAmountSentCloseTo(fn: SpyFn, expected: number) {
+    const name = 'toHaveLastAmountSentCloseTo';
+
+    // Playwright doesn't let us extend to created generic matchers, so we'll
+    // typecast (as) in the way we need it.
+    type SpyFnTyped = SpyFn<[window.MonetizationEvent]>;
+
+    let pass: boolean;
+    let result: { actual: unknown } | undefined;
+
+    const getAmount = () => {
+      const lastCallArg = getLastCallArg(fn as SpyFnTyped);
+      return lastCallArg?.amountSent?.value;
+    };
+
+    try {
+      expect(Number(getAmount())).toBeCloseTo(expected, 1);
+      pass = true;
+    } catch {
+      result = { actual: getAmount() };
+      pass = false;
+    }
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
 });
