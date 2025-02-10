@@ -157,7 +157,6 @@ test('does not monetize when global payments toggle in unchecked', async ({
   await expect(eventsLog).toBeVisible();
   await expect(eventsLog.locator('li')).toHaveCount(1);
   await expect(eventsLog.locator('li').last()).toContainText('Load Event');
-  await page.waitForTimeout(3000); // XXX: wait for probing to finish https://github.com/interledger/web-monetization-extension/issues/847
 
   await test.step('check extension payments do not go through', async () => {
     await expect(sendNowButton).not.toBeVisible();

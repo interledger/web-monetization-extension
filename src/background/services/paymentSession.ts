@@ -64,7 +64,6 @@ export class PaymentSession {
   private incomingPaymentExpiresAt: number;
   private amount: string;
   private intervalInMs: number;
-  private probingId: number;
   private shouldRetryImmediately = false;
 
   private timeout: ReturnType<typeof setTimeout> | null = null;
@@ -85,9 +84,33 @@ export class PaymentSession {
     private message: MessageManager<BackgroundToContentMessage>,
   ) {}
 
+  #adjustAmountLastRate: AmountValue;
+  #adjustAmountController = new AbortController();
+  #adjustAmountPromise: null | Promise<void> = null;
   async adjustAmount(rate: AmountValue): Promise<void> {
-    this.probingId = Date.now();
-    const localProbingId = this.probingId;
+    if (this.#adjustAmountLastRate && rate !== this.#adjustAmountLastRate) {
+      this.#adjustAmountController.abort(
+        new DOMException(
+          `Aborting existing probing for rate=${this.#adjustAmountLastRate}`,
+          'AbortError',
+        ),
+      );
+      this.#adjustAmountController = new AbortController();
+      this.#adjustAmountPromise = null;
+    }
+
+    this.#adjustAmountLastRate = rate;
+    this.#adjustAmountPromise ??= this._adjustAmount(
+      rate,
+      this.#adjustAmountController.signal,
+    );
+    await this.#adjustAmountPromise;
+  }
+
+  private async _adjustAmount(
+    rate: AmountValue,
+    signal: AbortSignal,
+  ): Promise<void> {
     this.rate = rate;
 
     // The amount that needs to be sent every second.
@@ -141,10 +164,7 @@ export class PaymentSession {
 
     amountToSend = BigInt(amountIter.next().value);
     while (true) {
-      if (this.probingId !== localProbingId) {
-        // In future we can throw `new AbortError()`
-        throw new DOMException('Aborting existing probing', 'AbortError');
-      }
+      signal.throwIfAborted();
       try {
         await this.createPaymentQuote(
           amountToSend.toString(),
@@ -264,8 +284,20 @@ export class PaymentSession {
       );
     };
 
+    if (!this.rate) {
+      // this.rate is set when adjustAmount begins. this.amount is set only after first successful adjustAmount
+      throw new Error('Unexpected: adjustAmount not yet ready');
+    }
     if (this.canContinuePayment) {
       this.timeout = setTimeout(async () => {
+        if (!this.amount) {
+          await this.adjustAmount(this.rate);
+        }
+        if (!this.amount) {
+          // if still not set, fail
+          throw new Error('amount not set for continuous payments');
+        }
+
         await this.payContinuous();
         this.timeout = setTimeout(
           continuePayment,
