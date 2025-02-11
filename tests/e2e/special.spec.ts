@@ -81,10 +81,6 @@ test('iframe navigate does not de-monetize main page', async ({
     });
   });
 
-  test.fail(
-    true,
-    'https://github.com/interledger/web-monetization-extension/issues/819#issuecomment-2602266550',
-  );
   await test.step('navigate iframe', async () => {
     await page.evaluate(() => {
       return new Promise((resolve, reject) => {

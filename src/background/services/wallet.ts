@@ -239,6 +239,8 @@ export class WalletService {
       InteractionIntent.FUNDS,
     );
 
+    await this.storage.setState({ out_of_funds: false });
+
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
       await this.outgoingPaymentGrantService.cancelGrant(
@@ -249,8 +251,6 @@ export class WalletService {
         grants.recurringGrant.continue,
       );
     }
-
-    await this.storage.setState({ out_of_funds: false });
   }
 
   async updateBudget({ amount, recurring }: UpdateBudgetPayload) {

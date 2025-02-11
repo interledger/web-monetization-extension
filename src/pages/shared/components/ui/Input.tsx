@@ -64,7 +64,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="space-y-2">
       {label ? <Label htmlFor={id}>{label}</Label> : null}
-      {description ? <p className="px-2 text-xs">{description}</p> : null}
+      {description ? (
+        <p className="px-2 text-xs" data-testid={`input-${id}-description`}>
+          {description}
+        </p>
+      ) : null}
       <div className={cn('relative', wrapperClassName)}>
         {leadingAddOn ? (
           <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-sm font-medium">

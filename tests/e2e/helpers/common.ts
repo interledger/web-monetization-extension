@@ -1,5 +1,9 @@
 import type { BrowserContext, Page } from '@playwright/test';
-import type { WalletAddress } from '@interledger/open-payments';
+import type {
+  WalletAddress,
+  IncomingPayment,
+  OutgoingPayment,
+} from '@interledger/open-payments';
 import type { ConnectDetails } from '../pages/popup';
 import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
@@ -87,4 +91,54 @@ export async function setupPlayground(
 export function getLastCallArg<T>(fn: SpyFn<[T]>) {
   // we only deal with single arg functions
   return fn.calls[fn.calls.length - 1][0];
+}
+
+/**
+ * Intercept following requests:
+ * - https://openpayments.dev/apis/resource-server/operations/create-incoming-payment/
+ * - https://openpayments.dev/apis/resource-server/operations/create-outgoing-payment/
+ */
+export function interceptPaymentCreateRequests(context: BrowserContext) {
+  const outgoingPaymentCreatedCallback = spy<
+    [Pick<OutgoingPayment, 'id' | 'receiver'>],
+    void
+  >();
+  const incomingPaymentCreatedCallback = spy<
+    [Pick<IncomingPayment, 'id'>],
+    void
+  >();
+
+  context.on('requestfinished', async (req) => {
+    if (!req.serviceWorker()) return;
+    if (req.method() !== 'POST') return;
+
+    const isIncomingPayment = req.url().endsWith('/incoming-payments');
+    const isOutgoingPayment = req.url().endsWith('/outgoing-payments');
+
+    if (!isIncomingPayment && !isOutgoingPayment) {
+      return;
+    }
+
+    const res = await req.response();
+    if (!res) {
+      throw new Error(`no response from POST ${req.url()}`);
+    }
+
+    if (isIncomingPayment) {
+      const incomingPayment: IncomingPayment = await res.json();
+      incomingPaymentCreatedCallback({ id: incomingPayment.id });
+      return;
+    }
+
+    const outgoingPayment: OutgoingPayment = await res.json();
+    outgoingPaymentCreatedCallback({
+      id: outgoingPayment.id,
+      receiver: outgoingPayment.receiver,
+    });
+  });
+
+  return {
+    outgoingPaymentCreatedCallback,
+    incomingPaymentCreatedCallback,
+  };
 }

@@ -97,6 +97,7 @@ export class MonetizationLinkManager extends EventEmitter {
     );
     this.window.removeEventListener('message', this.onWindowMessage);
     this.window.removeEventListener('focus', this.onFocus);
+    this.window.removeEventListener('pagehide', this.onPageHide);
   }
 
   /**
@@ -109,6 +110,7 @@ export class MonetizationLinkManager extends EventEmitter {
     );
     this.onFocus();
     this.window.addEventListener('focus', this.onFocus);
+    this.window.addEventListener('pagehide', this.onPageHide);
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.addEventListener('message', this.onWindowMessage);
@@ -301,10 +303,12 @@ export class MonetizationLinkManager extends EventEmitter {
     node.dispatchEvent(customEvent);
   }
 
-  private async stopMonetization() {
+  private async stopMonetization(
+    intent?: StopMonetizationPayloadEntry['intent'],
+  ) {
     const payload: StopMonetizationPayload = [
       ...this.monetizationLinks.values(),
-    ].map(({ requestId }) => ({ requestId }));
+    ].map(({ requestId }) => ({ requestId, intent }));
 
     await this.sendStopMonetization(payload);
   }
@@ -360,6 +364,10 @@ export class MonetizationLinkManager extends EventEmitter {
     if (this.document.hasFocus()) {
       await this.message.send('TAB_FOCUSED');
     }
+  };
+
+  private onPageHide = async () => {
+    await this.stopMonetization('remove');
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
