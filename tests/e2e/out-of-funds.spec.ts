@@ -130,7 +130,6 @@ for (const testCase of TEST_CASES) {
           continuousPaymentsEnabled: true,
         });
         await popup.reload();
-        await page.bringToFront();
 
         await expect(popup.getByRole('alert')).toBeVisible({ timeout: 10_000 });
         await expect(popup.getByRole('alert')).toHaveText(
