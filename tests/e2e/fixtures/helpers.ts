@@ -346,7 +346,7 @@ export class BrowserIntl {
     }
 
     for (const [key, { content }] of Object.entries(msg.placeholders)) {
-      const idx = Number(content.replace('$', ''));
+      const idx = Number(content.replace('$', '')) - 1;
       result = result.replaceAll(`$${key.toUpperCase()}$`, substitutions[idx]);
     }
     return result;
