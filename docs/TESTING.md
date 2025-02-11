@@ -32,6 +32,23 @@ Make sure you run `pnpm build chrome` before running tests.
 | `CHIMONEY_USERNAME`           | -- Login email for Chimoney wallet                          | -       | Yes       |
 | `CHIMONEY_PASSWORD`           | -- Login password for Chimoney wallet                       | Yes     | Yes       |
 
+<details><summary><h3>Optional tests</h3></summary>
+
+<details><summary><h4>interledger.cards specific tests</h4></summary>
+
+If these variables are not provided, tests will not be run for `interledger.cards` wallet. You may provide wallet addresses in either/both formats - interledger.cards as well as in ilp.dev when available.
+
+| Environment Variable                           | Description                                 | Secret? |
+| ---------------------------------------------- | ------------------------------------------- | ------- |
+| `INTERLEDGER_CARDS_USERNAME`                   | Login email for interledger.cards wallet    | Yes     |
+| `INTERLEDGER_CARDS_PASSWORD`                   | Login password for interledger.cards wallet | Yes     |
+| `INTERLEDGER_CARDS_WALLET_ADDRESS_URL`         | interledger.cards wallet address            | -       |
+| `INTERLEDGER_CARDS_ILP_DEV_WALLET_ADDRESS_URL` | interledger.cards $ilp.dev wallet address   | -       |
+
+</details>
+
+</details>
+
 To get the `TEST_WALLET_KEY_ID`, `TEST_WALLET_PRIVATE_KEY` and `TEST_WALLET_PUBLIC_KEY`:
 
 1. Load the extension in browser (via `chrome://extensions/`)
