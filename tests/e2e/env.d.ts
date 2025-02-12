@@ -13,6 +13,25 @@ declare global {
       TEST_WALLET_PUBLIC_KEY: string;
       /** Hex-encoded private key */
       TEST_WALLET_PRIVATE_KEY: string;
+      /**
+       * Another test wallet address URL for test wallet. Must have the same currency
+       * as {@linkcode TEST_WALLET_ADDRESS_URL} (`_E` for "equal" currency
+       * exchange rate).
+       *
+       * Both wallet addresses should preferably be in same account so the tests
+       * continue to run without the account getting out of funds early.
+       */
+      TEST_WALLET_ADDRESS_URL_E: string;
+      /**
+       * A test wallet address URL in a currency "weaker" than {@linkcode TEST_WALLET_ADDRESS_URL}
+       * @example Use a `MXN` one if `TEST_WALLET_ADDRESS_URL` is `USD`
+       */
+      TEST_WALLET_ADDRESS_URL_W: string;
+      /**
+       * A test wallet address URL in a currency "stronger" than{@linkcode TEST_WALLET_ADDRESS_URL}
+       * @example Use a `GBP` one if `TEST_WALLET_ADDRESS_URL` is `USD`
+       */
+      TEST_WALLET_ADDRESS_URL_S: string;
 
       /** Fynbos wallet address (used for Fynbos specific tests only) */
       FYNBOS_WALLET_ADDRESS_URL: string | undefined;

@@ -8,7 +8,6 @@ import type { Browser, Runtime } from 'webextension-polyfill';
 import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
-import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 
 export enum GrantResult {
   GRANT_SUCCESS = 'grant_success',
@@ -114,6 +113,7 @@ export const redirectToWelcomeScreen = async (
   intent: InteractionIntent,
   errorCode?: ErrorCode,
 ): Promise<void> => {
+  const { OPEN_PAYMENTS_REDIRECT_URL } = await import('@/shared/defines');
   const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
   url.searchParams.set('result', result);
   url.searchParams.set('intent', intent);
