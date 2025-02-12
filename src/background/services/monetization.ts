@@ -151,7 +151,7 @@ export class MonetizationService {
     }
   }
 
-  async stopPaymentSessionsByTabId(tabId: number) {
+  stopPaymentSessionsByTabId(tabId: number) {
     const sessions = this.tabState.getSessions(tabId);
     if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`);
@@ -485,7 +485,7 @@ export class MonetizationService {
   }
 
   private onInvalidReceiver() {
-    this.events.on('open_payments.invalid_receiver', async ({ tabId }) => {
+    this.events.on('open_payments.invalid_receiver', ({ tabId }) => {
       if (this.tabState.tabHasAllSessionsInvalid(tabId)) {
         this.logger.debug(`Tab ${tabId} has all sessions invalid`);
         this.events.emit('monetization.state_update', tabId);

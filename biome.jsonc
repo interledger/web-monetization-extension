@@ -24,7 +24,8 @@
         "noNonNullAssertion": "off" // TODO: turn on, too many cases
       },
       "suspicious": {
-        "noConsole": "warn"
+        "noConsole": "warn",
+        "useAwait": "error"
       },
       "correctness": {
         "noUnusedVariables": "warn",

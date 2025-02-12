@@ -87,7 +87,7 @@ export class PaymentSession {
   #adjustAmountLastRate: AmountValue;
   #adjustAmountController = new AbortController();
   #adjustAmountPromise: null | Promise<void> = null;
-  async adjustAmount(rate: AmountValue): Promise<void> {
+  adjustAmount(rate: AmountValue): Promise<void> {
     if (this.#adjustAmountLastRate && rate !== this.#adjustAmountLastRate) {
       this.#adjustAmountController.abort(
         new DOMException(
