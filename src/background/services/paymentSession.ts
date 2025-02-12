@@ -104,7 +104,8 @@ export class PaymentSession {
       rate,
       this.#adjustAmountController.signal,
     );
-    await this.#adjustAmountPromise;
+
+    return this.#adjustAmountPromise;
   }
 
   private async _adjustAmount(
