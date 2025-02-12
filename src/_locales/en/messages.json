@@ -21,7 +21,7 @@
     "message": "Permission to access your data on all websites is required to use Web Monetization."
   },
   "notMonetized_text_allInvalid": {
-    "message": "You cannot make payments to this website at the moment.",
+    "message": "This page cannot receive payments from your wallet at this time. Please check back later.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "notMonetized_text_noLinks": {
@@ -71,7 +71,7 @@
     "message": "We were unable to process this transaction. Please try again!"
   },
   "pay_error_invalidReceivers": {
-    "message": "At the moment, you cannot pay this website.",
+    "message": "This page cannot receive payments from your wallet at this time. Please check back later.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "pay_error_notMonetized": {
