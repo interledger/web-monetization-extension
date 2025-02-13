@@ -71,7 +71,8 @@ export function playgroundUrl(...walletAddressUrls: string[]) {
 const walletInfoCache = new Map<string, Promise<WalletAddress>>();
 export function getWalletInfoCached(walletAddressUrl: string) {
   if (walletInfoCache.has(walletAddressUrl)) {
-    return walletInfoCache.get(walletAddressUrl);
+    // biome-ignore lint/style/noNonNullAssertion: okay here since check above
+    return walletInfoCache.get(walletAddressUrl)!;
   }
   const walletInfoPromise = getWalletInformation(walletAddressUrl);
   walletInfoCache.set(walletAddressUrl, walletInfoPromise);
