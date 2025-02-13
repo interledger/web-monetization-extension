@@ -32,7 +32,7 @@ import { isInvalidClientError } from '@/background/services/openPayments';
 import { APP_URL } from '@/background/constants';
 import { bytesToHex } from '@noble/hashes/utils';
 import type { Cradle } from '@/background/container';
-import type { TabId } from '@/shared/types';
+import type { AmountValue, TabId } from '@/shared/types';
 import type { WalletAddress } from '@interledger/open-payments';
 
 export class WalletService {
@@ -87,7 +87,7 @@ export class WalletService {
     let minRateOfPay = MIN_RATE_OF_PAY;
     let maxRateOfPay = MAX_RATE_OF_PAY;
 
-    const getRateOfPay = (rate: string) => {
+    const getRateOfPay = (rate: AmountValue) => {
       const from = { assetCode: 'USD', assetScale: DEFAULT_SCALE };
       return convertWithExchangeRate(rate, from, walletAddress, exchangeRates);
     };
