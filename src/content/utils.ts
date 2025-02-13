@@ -14,3 +14,7 @@ try {
 export function mozClone<T = unknown>(obj: T, document: Document) {
   return cloneIntoRef ? cloneIntoRef(obj, document.defaultView) : obj;
 }
+
+export function setDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
+  return new Set([...a].filter((x) => !b.has(x)));
+}
