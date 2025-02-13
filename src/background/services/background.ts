@@ -169,10 +169,10 @@ export class Background {
         return;
       }
       for (const window of windows) {
-        const windowId = window.id!;
+        const windowId = window.id;
 
         const tabIds = await this.windowState.getTabsForCurrentView(windowId);
-        if (window.focused) {
+        if (windowId && window.focused) {
           this.windowState.setCurrentWindowId(windowId);
           this.logger.info(
             `[focus change] resume monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,

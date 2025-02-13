@@ -6,7 +6,7 @@
     "useIgnoreFile": true,
     "defaultBranch": "main"
   },
-  "files": { "ignoreUnknown": true, "ignore": [] },
+  "files": { "ignoreUnknown": true, "ignore": ["*.test.tsx"] },
   "formatter": {
     "enabled": true,
     "useEditorconfig": true,
@@ -20,11 +20,12 @@
     "rules": {
       "recommended": true,
       "style": {
-        "noUselessElse": "off", // TODO: turn on, too many cases
-        "noNonNullAssertion": "off" // TODO: turn on, too many cases
+        "noUselessElse": "error",
+        "noNonNullAssertion": "error"
       },
       "suspicious": {
-        "noConsole": "warn"
+        "noConsole": "warn",
+        "useAwait": "error"
       },
       "correctness": {
         "noUnusedVariables": "warn",

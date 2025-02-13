@@ -231,10 +231,13 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Wallet address is not set');
+    }
 
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
-      walletAddress!,
+      walletAddress,
       recurring,
       InteractionIntent.FUNDS,
     );
@@ -259,10 +262,13 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Wallet address is not set');
+    }
 
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       amount,
-      walletAddress!,
+      walletAddress,
       recurring,
       InteractionIntent.UPDATE_BUDGET,
     );
@@ -343,10 +349,9 @@ export class WalletService {
       }
       if (error instanceof ErrorWithKey) {
         throw error;
-      } else {
-        // TODO: check if need to handle errors here
-        throw new Error(error.message, { cause: error });
       }
+      // TODO: check if need to handle errors here
+      throw new Error(error.message, { cause: error });
     }
   }
 

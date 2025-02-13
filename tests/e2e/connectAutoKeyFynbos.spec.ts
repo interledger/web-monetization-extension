@@ -18,8 +18,11 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   background,
   i18n,
 }) => {
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const username = process.env.FYNBOS_USERNAME!;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const password = process.env.FYNBOS_PASSWORD!;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const walletAddressUrl = process.env.FYNBOS_WALLET_ADDRESS_URL!;
 
   test.skip(!username || !password || !walletAddressUrl, 'Missing credentials');
@@ -81,7 +84,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
 
   const keyNickName = await test.step('adds key to wallet', async () => {
     const { resolve, promise } = withResolvers<string>();
-    page.on('request', async function interceptApplicationName(req) {
+    page.on('request', function interceptApplicationName(req) {
       if (req.serviceWorker()) return;
       if (req.method() !== 'POST') return;
 

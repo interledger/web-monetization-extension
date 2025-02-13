@@ -114,7 +114,7 @@ const revokeExistingKey: Run<void> = async ({ keyId }, { skip, output }) => {
   skip('No existing keys that need to be revoked');
 };
 
-const findWallet: Run<{ accountId: string; walletId: string }> = async (
+const findWallet: Run<{ accountId: string; walletId: string }> = (
   { walletAddressUrl },
   { output },
 ) => {

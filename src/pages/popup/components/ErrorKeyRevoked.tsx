@@ -42,7 +42,8 @@ export const ErrorKeyRevoked = ({
         />
       </AnimatePresence>
     );
-  } else if (screen === 'consent-reconnect') {
+  }
+  if (screen === 'consent-reconnect') {
     return (
       <AnimatePresence mode="sync">
         <AutoKeyAddConsent
@@ -61,20 +62,20 @@ export const ErrorKeyRevoked = ({
         />
       </AnimatePresence>
     );
-  } else {
-    return (
-      <AnimatePresence mode="sync">
-        <ManualReconnectScreen
-          info={info}
-          reconnectWallet={reconnectWallet}
-          onReconnect={() => {
-            clearScreen();
-            onReconnect?.();
-          }}
-        />
-      </AnimatePresence>
-    );
   }
+
+  return (
+    <AnimatePresence mode="sync">
+      <ManualReconnectScreen
+        info={info}
+        reconnectWallet={reconnectWallet}
+        onReconnect={() => {
+          clearScreen();
+          onReconnect?.();
+        }}
+      />
+    </AnimatePresence>
+  );
 };
 
 interface MainScreenProps {

@@ -17,9 +17,13 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
   background,
   i18n,
 }) => {
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const username = process.env.CHIMONEY_USERNAME!;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const password = process.env.CHIMONEY_PASSWORD!;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const walletAddressUrl = process.env.CHIMONEY_WALLET_ADDRESS_URL!;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const walletUrl = process.env.CHIMONEY_WALLET_ORIGIN!;
 
   test.skip(

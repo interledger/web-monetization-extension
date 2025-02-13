@@ -7,6 +7,7 @@ export default function App() {
   const mode = useUIMode();
 
   React.useEffect(() => {
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     const container = document.getElementById('container')!;
     container.style.height = mode === 'fullscreen' ? '100vh' : 'auto';
     document.body.style.backgroundColor =
@@ -15,7 +16,7 @@ export default function App() {
 
   if (mode === 'fullscreen') {
     return <AppFullscreen />;
-  } else {
-    return <AppNotification />;
   }
+
+  return <AppNotification />;
 }

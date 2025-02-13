@@ -464,12 +464,13 @@ export class PaymentSession {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
         throw e;
-      } else if (isTokenExpiredError(e)) {
+      }
+      if (isTokenExpiredError(e)) {
         await this.outgoingPaymentGrantService.rotateToken();
         return await this.pay(amount); // retry
-      } else {
-        throw e;
       }
+
+      throw e;
     }
   }
 

@@ -46,9 +46,9 @@ export function useLocalStorage<T>(
         validate(data.value)
       ) {
         return data.value;
-      } else {
-        localStorage.removeItem(key);
       }
+
+      localStorage.removeItem(key);
     } catch {
       localStorage.removeItem(key);
     }

@@ -169,15 +169,16 @@ export class MonetizationLinkManager extends EventEmitter {
           'link[rel="monetization"]',
         ),
       );
-    } else {
-      if (root && !root.closest('head')) {
-        return [];
-      }
-      const monetizationTag = this.document.querySelector<HTMLLinkElement>(
-        'head link[rel="monetization"]',
-      );
-      return monetizationTag ? [monetizationTag] : [];
     }
+
+    if (root && !root.closest('head')) {
+      return [];
+    }
+
+    const monetizationTag = this.document.querySelector<HTMLLinkElement>(
+      'head link[rel="monetization"]',
+    );
+    return monetizationTag ? [monetizationTag] : [];
   }
 
   /** @throws never throws */
@@ -508,7 +509,8 @@ export class MonetizationLinkManager extends EventEmitter {
     if (node instanceof HTMLLinkElement) {
       const payloadEntry = await this.onAddedLink(node);
       return payloadEntry ? [payloadEntry] : null;
-    } else if (node instanceof HTMLElement) {
+    }
+    if (node instanceof HTMLElement) {
       const linkElements = this.getMonetizationLinkTags(node);
       return await Promise.all(
         linkElements.map((linkElem) => this.onAddedLink(linkElem)),
@@ -520,7 +522,8 @@ export class MonetizationLinkManager extends EventEmitter {
   private onRemovedNode(node: Node): StopMonetizationPayload | null {
     if (node instanceof HTMLLinkElement) {
       return [this.onRemovedLink(node)];
-    } else if (node instanceof HTMLElement) {
+    }
+    if (node instanceof HTMLElement) {
       const linkElements = this.getMonetizationLinkTags(node).filter((el) =>
         this.monetizationLinks.has(el),
       );

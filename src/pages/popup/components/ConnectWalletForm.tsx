@@ -51,6 +51,8 @@ interface ConnectWalletFormProps {
   onConnect?: () => void;
 }
 
+const DEFAULT_WALLET_ADDRESS_INFO = { assetCode: 'USD', assetScale: 2 };
+
 export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
@@ -99,8 +101,9 @@ export const ConnectWalletForm = ({
     [t],
   );
 
-  const [walletAddressInfo, setWalletAddressInfo] =
-    React.useState<WalletAddress | null>(null);
+  const [walletAddressInfo, setWalletAddressInfo] = React.useState<
+    WalletAddress | { assetCode: string; assetScale: number }
+  >(DEFAULT_WALLET_ADDRESS_INFO);
 
   const [errors, setErrors] = React.useState<Errors>({
     walletAddressUrl: null,
@@ -145,7 +148,7 @@ export const ConnectWalletForm = ({
 
   const handleWalletAddressUrlChange = React.useCallback(
     async (value: string, _input?: HTMLInputElement) => {
-      setWalletAddressInfo(null);
+      setWalletAddressInfo(DEFAULT_WALLET_ADDRESS_INFO);
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
@@ -201,7 +204,7 @@ export const ConnectWalletForm = ({
     ev?.preventDefault();
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
-    const errAmount = validateAmount(amount, walletAddressInfo!);
+    const errAmount = validateAmount(amount, walletAddressInfo);
     if (errAmount || errWalletAddressUrl) {
       setErrors((prev) => ({
         ...prev,
@@ -354,9 +357,7 @@ export const ConnectWalletForm = ({
             label={t('connectWallet_label_amount')}
             labelHidden={true}
             amount={amount}
-            walletAddress={
-              walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
-            }
+            walletAddress={walletAddressInfo}
             errorMessage={errors.amount?.message}
             errorHidden={true}
             readOnly={isSubmitting}
@@ -486,7 +487,8 @@ function isAutoKeyAddFailed(state: ConnectTransientState) {
       isErrorWithKey(state.error) &&
       state.error.key !== 'connectWallet_error_tabClosed'
     );
-  } else if (state?.status === 'error:key') {
+  }
+  if (state?.status === 'error:key') {
     return (
       isErrorWithKey(state.error) &&
       state.error.key.startsWith('connectWalletKeyService_error_')

@@ -65,7 +65,10 @@ export const InputAmount = ({
       if (error) {
         onError(error);
       } else {
-        const input = inputRef.current!;
+        const input = inputRef.current;
+        if (!input) {
+          throw new Error('Input element not available');
+        }
         const formattedValue = formatAmount(+value);
         if (!skipSetValue) {
           input.value = formattedValue;
@@ -118,10 +121,10 @@ export const InputAmount = ({
   );
 
   const controlInc = React.useCallback(() => {
-    incOrDec(inputRef.current!, 1, step, formatAmount, handleValue, min, max);
+    incOrDec(inputRef.current, 1, step, formatAmount, handleValue, min, max);
   }, [step, formatAmount, handleValue, min, max]);
   const controlDec = React.useCallback(() => {
-    incOrDec(inputRef.current!, -1, step, formatAmount, handleValue, min, max);
+    incOrDec(inputRef.current, -1, step, formatAmount, handleValue, min, max);
   }, [step, formatAmount, handleValue, min, max]);
 
   return (
@@ -258,7 +261,7 @@ export function validateAmount(
 }
 
 function incOrDec(
-  input: HTMLInputElement,
+  input: HTMLInputElement | null,
   direction: 1 | -1,
   step: number,
   format: (val: number) => string,
@@ -266,6 +269,8 @@ function incOrDec(
   min = 0,
   max?: number,
 ) {
+  if (!input) return;
+
   const value = Number(input.value);
   let newValue = value + direction * step;
   if (newValue < min) {

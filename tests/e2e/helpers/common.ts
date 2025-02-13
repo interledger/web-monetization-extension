@@ -38,6 +38,9 @@ export async function getContinueWaitTime(
       return Promise.resolve(defaultWaitMs);
     }
     const walletInfo = await getWalletInfoCached(params.walletAddressUrl);
+    if (!walletInfo) {
+      return Promise.reject('Could not get wallet info');
+    }
     return await new Promise<number>((resolve) => {
       const authServer = new URL(walletInfo.authServer).href;
       context.on('requestfinished', async function intercept(req) {
@@ -68,7 +71,7 @@ export function playgroundUrl(...walletAddressUrls: string[]) {
 const walletInfoCache = new Map<string, Promise<WalletAddress>>();
 export function getWalletInfoCached(walletAddressUrl: string) {
   if (walletInfoCache.has(walletAddressUrl)) {
-    return walletInfoCache.get(walletAddressUrl)!;
+    return walletInfoCache.get(walletAddressUrl);
   }
   const walletInfoPromise = getWalletInformation(walletAddressUrl);
   walletInfoCache.set(walletAddressUrl, walletInfoPromise);

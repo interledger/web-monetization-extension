@@ -34,20 +34,22 @@ export function formatNumber(
 
   if (scale <= 2 || (pow2 >= 1 && pow2 - Math.floor(pow2) === 0)) {
     return value.toFixed(2);
-  } else if (scale >= 3 && scale <= 4) {
-    return value.toString();
-  } else {
-    if (pow4 >= 1 || !allowExponential) {
-      let fixedScale = 5;
-      let powN = +(value * 10 ** fixedScale).toFixed(9);
-      while (powN - Math.floor(powN) > 0 && fixedScale < scale) {
-        ++fixedScale;
-        powN = +(value * 10 ** fixedScale).toFixed(9);
-      }
-
-      return value.toFixed(fixedScale);
-    } else return value.toExponential();
   }
+  if (scale >= 3 && scale <= 4) {
+    return value.toString();
+  }
+  if (pow4 >= 1 || !allowExponential) {
+    let fixedScale = 5;
+    let powN = +(value * 10 ** fixedScale).toFixed(9);
+    while (powN - Math.floor(powN) > 0 && fixedScale < scale) {
+      ++fixedScale;
+      powN = +(value * 10 ** fixedScale).toFixed(9);
+    }
+
+    return value.toFixed(fixedScale);
+  }
+
+  return value.toExponential();
 }
 
 export function toWalletAddressUrl(s: string): string {
