@@ -38,7 +38,7 @@ To get the `TEST_WALLET_KEY_ID`, `TEST_WALLET_PRIVATE_KEY` and `TEST_WALLET_PUBL
        .join('\n'),
    );
    ```
-1. Then copy `TEST_WALLET_PUBLIC_KEY` key to https://rafiki.money/settings/developer-keys under your wallet address.
+1. Then copy `TEST_WALLET_PUBLIC_KEY` key to https://wallet.interledger-test.dev/settings/developer-keys under your wallet address.
 1. Now you're ready to run the tests.
 
 ### How to run in end-to-end tests in GitHub
