@@ -99,14 +99,8 @@ export function getLastCallArg<T>(fn: SpyFn<[T]>) {
  * - https://openpayments.dev/apis/resource-server/operations/create-outgoing-payment/
  */
 export function interceptPaymentCreateRequests(context: BrowserContext) {
-  const outgoingPaymentCreatedCallback = spy<
-    [Pick<OutgoingPayment, 'id' | 'receiver'>],
-    void
-  >();
-  const incomingPaymentCreatedCallback = spy<
-    [Pick<IncomingPayment, 'id'>],
-    void
-  >();
+  const outgoingPaymentCreatedCallback = spy<[OutgoingPayment], void>();
+  const incomingPaymentCreatedCallback = spy<[IncomingPayment], void>();
 
   context.on('requestfinished', async (req) => {
     if (!req.serviceWorker()) return;
@@ -126,15 +120,12 @@ export function interceptPaymentCreateRequests(context: BrowserContext) {
 
     if (isIncomingPayment) {
       const incomingPayment: IncomingPayment = await res.json();
-      incomingPaymentCreatedCallback({ id: incomingPayment.id });
+      incomingPaymentCreatedCallback(incomingPayment);
       return;
     }
 
     const outgoingPayment: OutgoingPayment = await res.json();
-    outgoingPaymentCreatedCallback({
-      id: outgoingPayment.id,
-      receiver: outgoingPayment.receiver,
-    });
+    outgoingPaymentCreatedCallback(outgoingPayment);
   });
 
   return {

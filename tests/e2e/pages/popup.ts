@@ -103,6 +103,15 @@ export async function setContinuousPayments(popup: Popup, enabled: boolean) {
     .setChecked(enabled, { force: true });
 }
 
+/** Whatever screen we're on in popup right now, take us to Home screen */
+export async function goToHome(popup: Popup) {
+  await popup.reload(); // reload is enough to reset state
+  await popup.waitForSelector(
+    '[data-testid="home-page"], [data-testid="not-monetized-message"]',
+    { timeout: 1000 },
+  );
+}
+
 export async function sendOneTimePayment(
   popup: Popup,
   amount: string,
