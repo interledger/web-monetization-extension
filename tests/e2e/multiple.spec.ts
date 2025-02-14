@@ -1,13 +1,16 @@
-import type { WalletAddress } from '@interledger/open-payments';
 import { test, expect, DEFAULT_BUDGET } from './fixtures/connected';
-import { getWalletInfoCached, setupPlayground } from './helpers/common';
+import {
+  getWalletInfoCached,
+  interceptPaymentCreateRequests,
+  setupPlayground,
+} from './helpers/common';
 import {
   goToHome,
   sendOneTimePayment,
   setContinuousPayments,
 } from './pages/popup';
 import { transformBalance } from '@/shared/helpers';
-import { getExchangeRates, convertWithExchangeRate } from '@/background/utils';
+import type { WalletAddress } from '@interledger/open-payments';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 const walletAddressUrlSameCurrency = process.env.TEST_WALLET_ADDRESS_URL_E;
@@ -18,7 +21,6 @@ let walletInfoConnected: WalletAddress;
 let walletInfoSameCurrency: WalletAddress;
 let walletInfoWeakerCurrency: WalletAddress;
 let walletInfoStrongerCurrency: WalletAddress;
-let exchangeRates: Awaited<ReturnType<typeof getExchangeRates>>;
 test.beforeAll('get wallet addresses info', async () => {
   [
     walletInfoConnected,
@@ -31,13 +33,21 @@ test.beforeAll('get wallet addresses info', async () => {
     getWalletInfoCached(walletAddressUrlWeakerCurrency),
     getWalletInfoCached(walletAddressUrlStrongerCurrency),
   ]);
-  exchangeRates = await getExchangeRates();
 });
 
-// param amount is in bigint format (e.g. 1.2 at assetScale 2 would be 120)
-// 1 unit less by interledger/pay and 1% transaction fee on test wallet.
-const getAmountAfterFee = (amount: number) =>
-  Math.round(Number((amount - 1) * 0.99));
+// param amountToSend in human-format (e.g. 1.2 for $1.20).
+// There's 1% transaction fee on test wallet when using same currencies. For
+// cross-currency, different assets have different rates?
+const getRecvAmount = (
+  amountToSend: number,
+  { assetScale }: Pick<WalletAddress, 'assetScale'>,
+  count = 1,
+) => {
+  const splitAmount = (amountToSend * 10 ** assetScale) / count;
+  return Number(
+    transformBalance(Math.round(splitAmount * 0.99).toString(), assetScale),
+  );
+};
 
 const orderById = <T extends { id: string }>(a: T, b: T) =>
   a.id.localeCompare(b.id);
@@ -76,14 +86,10 @@ test.describe('should monetized site with multiple wallet address', () => {
         'monetization callback is called once for each wallet address',
       ).toEqual(walletAddresses);
 
-      const { assetScale } = walletInfoSameCurrency;
-      const splitRecvAmount = Number(
-        transformBalance(
-          getAmountAfterFee(
-            (amountToSend * 10 ** assetScale) / count,
-          ).toString(),
-          assetScale,
-        ),
+      const splitRecvAmount = getRecvAmount(
+        amountToSend,
+        walletInfoConnected,
+        count,
       );
 
       expect(
@@ -95,7 +101,7 @@ test.describe('should monetized site with multiple wallet address', () => {
     });
   });
 
-  test('different currencies', async ({ page, popup }) => {
+  test('different currencies', async ({ page, popup, context }) => {
     const walletAddressesInfo = [
       walletInfoSameCurrency,
       walletInfoWeakerCurrency,
@@ -120,20 +126,44 @@ test.describe('should monetized site with multiple wallet address', () => {
     await setContinuousPayments(popup, false);
     await goToHome(popup);
     monetizationCallback.reset();
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
 
     await test.step('one-time payments', async () => {
-      const amountToSend = DEFAULT_BUDGET.amount / 2;
+      const amountToSend = DEFAULT_BUDGET.amount - 1;
+      const splitAmount = Math.round(
+        (amountToSend * 10 ** walletInfoConnected.assetScale) / count,
+      );
 
       await sendOneTimePayment(popup, amountToSend.toFixed(2));
       await expect(monetizationCallback).toHaveBeenCalledTimes(count);
+      await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(count);
       expect(
         monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
         'monetization callback is called once for each wallet address',
       ).toEqual(walletAddresses);
 
-      const splitAmount =
-        (amountToSend * 10 ** walletInfoConnected.assetScale) / count;
-      const splitAmountAfterFee = getAmountAfterFee(splitAmount).toString();
+      const outgoingPayments = outgoingPaymentCreatedCallback.calls.map(
+        ([{ receiveAmount, debitAmount }]) => ({
+          receiveAmount,
+          debitAmount,
+        }),
+      );
+
+      expect(
+        outgoingPayments,
+        'outgoing payments created with same split debit amount',
+      ).toEqual(
+        Array.from({ length: count }, () =>
+          expect.objectContaining({
+            debitAmount: {
+              assetCode: walletInfoConnected.assetCode,
+              assetScale: walletInfoConnected.assetScale,
+              value: splitAmount.toString(),
+            },
+          }),
+        ),
+      );
 
       const monetizationCallbackCalls = monetizationCallback.calls.map(
         ([ev]) => ({
@@ -145,17 +175,19 @@ test.describe('should monetized site with multiple wallet address', () => {
 
       const expected = walletAddressesInfo.map((wa) => {
         const { id, assetCode, assetScale } = wa;
-        const amount = convertWithExchangeRate(
-          splitAmountAfterFee,
-          walletInfoConnected,
-          wa,
-          exchangeRates,
+        // Can't use getRecvAmount with currency conversion here. Fee differs
+        // across currencies on test wallet - not exactly 1%. So let's map
+        // outgoingPayment to test amounts in monetization callbacks.
+        const outgoingPayment = outgoingPayments.find(
+          (e) => e.receiveAmount.assetCode === assetCode,
+        )!;
+        const amount = Number(
+          transformBalance(outgoingPayment.receiveAmount.value, assetScale),
         );
-        const amountHuman = Number(transformBalance(amount, assetScale));
         return {
           id: id,
           currency: assetCode,
-          amount: expect.closeTo(amountHuman, 1),
+          amount: expect.closeTo(amount, 0),
         };
       });
 
