@@ -91,6 +91,9 @@ export class MonetizationService {
       return;
     }
     const { tabId, frameId, url } = getSender(sender);
+    if (!url) {
+      throw new Error('Unexpected: sender.url is undefined');
+    }
     const sessions = this.tabState.getSessions(tabId);
 
     const replacedSessions = new Set<string>();
@@ -118,7 +121,7 @@ export class MonetizationService {
         this.outgoingPaymentGrantService,
         this.events,
         this.tabState,
-        removeQueryParams(url!),
+        removeQueryParams(url),
         this.logger,
         this.message,
       );
@@ -151,7 +154,7 @@ export class MonetizationService {
     }
   }
 
-  async stopPaymentSessionsByTabId(tabId: number) {
+  stopPaymentSessionsByTabId(tabId: number) {
     const sessions = this.tabState.getSessions(tabId);
     if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`);
@@ -351,9 +354,14 @@ export class MonetizationService {
             this.logger.error('Could not find session for outgoing payment.');
             return null;
           }
+          if (!outgoingPaymentInitial) {
+            this.logger.error('Could not find outgoing payment.');
+            return null;
+          }
+
           for await (const outgoingPayment of session.pollOutgoingPayment(
             // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
-            outgoingPaymentInitial!.id,
+            outgoingPaymentInitial.id,
             { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
           )) {
             outgoingPayments.set(sessionId, outgoingPayment);
@@ -485,7 +493,7 @@ export class MonetizationService {
   }
 
   private onInvalidReceiver() {
-    this.events.on('open_payments.invalid_receiver', async ({ tabId }) => {
+    this.events.on('open_payments.invalid_receiver', ({ tabId }) => {
       if (this.tabState.tabHasAllSessionsInvalid(tabId)) {
         this.logger.debug(`Tab ${tabId} has all sessions invalid`);
         this.events.emit('monetization.state_update', tabId);
@@ -541,9 +549,9 @@ export class MonetizationService {
       if (err.name === 'AbortError') {
         this.logger.debug('adjustAmount aborted due to new call');
         return false;
-      } else {
-        throw err;
       }
+
+      throw err;
     }
   }
 }

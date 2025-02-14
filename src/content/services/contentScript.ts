@@ -46,6 +46,7 @@ export class ContentScript {
 
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
+      // biome-ignore lint/suspicious/useAwait: can't be async??
       async (message: ToContentMessage) => {
         try {
           switch (message.action) {

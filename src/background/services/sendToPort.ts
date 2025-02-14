@@ -33,7 +33,7 @@ export class SendToPort<Message extends BackgroundToPortMessagesMap> {
     return this.isConnected;
   }
 
-  async send<K extends keyof Message>(type: K, data: Message[K]) {
+  send<K extends keyof Message>(type: K, data: Message[K]) {
     if (!this.isConnected) {
       return;
     }

@@ -146,14 +146,17 @@ export class KeyAutoAdd {
 
     for (let stepIdx = 0; stepIdx < this.steps.length; stepIdx++) {
       const step = this.steps[stepIdx];
-      const stepInfo = this.stepsInput.get(step.name)!;
+      const stepInfo = this.stepsInput.get(step.name);
+      if (!stepInfo) {
+        throw new Error("Given step doesn't exist");
+      }
       this.setStatus(stepIdx, 'active', {
         expiresAt: stepInfo.maxDuration
           ? new Date(Date.now() + stepInfo.maxDuration).valueOf()
           : undefined,
       });
       try {
-        const run = this.stepsInput.get(step.name)!.run;
+        const run = stepInfo.run;
         const res = await run(payload, helpers);
         this.outputs.set(run, res);
         this.setStatus(stepIdx, 'success', {});

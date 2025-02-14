@@ -27,7 +27,7 @@ export const getAuthToken = async (): Promise<string> => {
  */
 export const walletAddressUrlToId = (url: string) => {
   const { pathname } = new URL(url);
-  return pathname.match(/\/(\d+)/)![1];
+  return pathname.match(/\/(\d+)/)?.[1];
 };
 
 // For syntax highlighting

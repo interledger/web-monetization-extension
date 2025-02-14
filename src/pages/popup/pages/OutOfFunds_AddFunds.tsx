@@ -12,7 +12,15 @@ export const Component = () => {
   const location = useLocation();
 
   const state: State = { recurring: false, ...location.state };
-  const defaultAmount = grants.recurring?.value ?? grants.oneTime!.value;
+  let defaultAmount: string;
+
+  if (grants.recurring?.value) {
+    defaultAmount = grants.recurring.value;
+  } else if (grants.oneTime?.value) {
+    defaultAmount = grants.oneTime.value;
+  } else {
+    throw new Error('Neither grants.recurring nor grants.oneTime is defined');
+  }
 
   return (
     <AddFunds

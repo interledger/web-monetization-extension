@@ -42,19 +42,22 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     // @ts-expect-error: polyfilled
     if (this[supportsMonetization] && token === 'monetization') {
       return true;
-    } else {
-      return supportsOriginal.call(this, token);
     }
+
+    return supportsOriginal.call(this, token);
   };
 
   const relList = Object.getOwnPropertyDescriptor(
     HTMLLinkElement.prototype,
     'relList',
-  )!;
-  const relListGetOriginal = relList.get!;
+  );
+  if (!relList) {
+    throw new Error('HTMLLinkElement.prototype.relList not found');
+  }
+  const relListGetOriginal = relList.get;
 
   relList.get = function () {
-    const val = relListGetOriginal.call(this);
+    const val = relListGetOriginal?.call(this);
     val[supportsMonetization] = true;
     return val;
   };
