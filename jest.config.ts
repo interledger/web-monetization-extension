@@ -16,7 +16,7 @@ export default {
   moduleNameMapper: {
     '@/(.*)': '<rootDir>/src/$1',
   },
-  setupFilesAfterEnv: ['./jest.setup.ts'],
+  setupFilesAfterEnv: ['jest-expect-message', './jest.setup.ts'],
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: [
