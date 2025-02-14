@@ -11,7 +11,7 @@ import { getContinueWaitTime, waitForWelcomePage } from './common';
 export const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
 export const API_URL_ORIGIN = 'https://api.wallet.interledger-test.dev';
 export const KEYS_PAGE_URL = `${TEST_WALLET_ORIGIN}/settings/developer-keys`;
-export const LOGIN_PAGE_URL = `${TEST_WALLET_ORIGIN}/auth/login?callbackUrl=%2Fsettings%2Fdeveloper-keys`;
+export const LOGIN_PAGE_URL = `${TEST_WALLET_ORIGIN}/auth/login?callbackUrl=${encodeURIComponent('/settings/developer-keys')}`;
 
 export const DEFAULT_CONTINUE_WAIT_MS = 1000;
 
