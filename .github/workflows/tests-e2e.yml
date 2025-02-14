@@ -50,7 +50,6 @@ jobs:
         env:
           PLAYWRIGHT_PROJECT: ${{ matrix.project }}
           PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS: '1'
-          TEST_WALLET_ORIGIN: ${{ vars.E2E_WALLET_URL_ORIGIN }}
           TEST_WALLET_USERNAME: ${{ vars.E2E_WALLET_USERNAME }}
           TEST_WALLET_PASSWORD: ${{ secrets.E2E_WALLET_PASSWORD }}
           TEST_WALLET_ADDRESS_URL: ${{ vars.E2E_CONNECT_WALLET_ADDRESS_URL }}

@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { test as setup, expect } from './fixtures/base';
 import { authFile } from './fixtures/helpers';
+import { TEST_WALLET_ORIGIN } from './helpers/testWallet';
 import { getJWKS } from '@/shared/helpers';
 import type { JWK } from '@interledger/open-payments';
 
@@ -13,8 +14,7 @@ import type { JWK } from '@interledger/open-payments';
 setup('authenticate', async ({ page }) => {
   setup.skip(existsSync(authFile), 'Already authenticated');
 
-  const { TEST_WALLET_ORIGIN, TEST_WALLET_USERNAME, TEST_WALLET_PASSWORD } =
-    process.env;
+  const { TEST_WALLET_USERNAME, TEST_WALLET_PASSWORD } = process.env;
 
   expect(TEST_WALLET_ORIGIN).toBeDefined();
   expect(TEST_WALLET_USERNAME).toBeDefined();
