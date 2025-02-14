@@ -7,7 +7,7 @@ import {
   setContinuousPayments,
 } from './pages/popup';
 import { transformBalance } from '@/shared/helpers';
-import { getExchangeRates, getRateOfPay } from '@/background/utils';
+import { getExchangeRates, convertWithExchangeRate } from '@/background/utils';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 const walletAddressUrlSameCurrency = process.env.TEST_WALLET_ADDRESS_URL_E;
@@ -35,7 +35,7 @@ test.beforeAll('get wallet addresses info', async () => {
 });
 
 // param amount is in bigint format (e.g. 1.2 at assetScale 2 would be 120)
-// 1 unit less by @interledger/pay and 1% transaction fee on test wallet.
+// 1 unit less by interledger/pay and 1% transaction fee on test wallet.
 const getAmountAfterFee = (amount: number) =>
   Math.round(Number((amount - 1) * 0.99));
 
@@ -43,7 +43,7 @@ const orderById = <T extends { id: string }>(a: T, b: T) =>
   a.id.localeCompare(b.id);
 
 test.describe('should monetized site with multiple wallet address', () => {
-  test.skip('same currency', async ({ page, popup }) => {
+  test('same currency', async ({ page, popup }) => {
     const walletAddresses = [
       walletAddressUrl,
       walletAddressUrlSameCurrency,
@@ -145,11 +145,12 @@ test.describe('should monetized site with multiple wallet address', () => {
 
       const expected = walletAddressesInfo.map((wa) => {
         const { id, assetCode, assetScale } = wa;
-        const amount = getRateOfPay({
-          rate: splitAmountAfterFee,
-          exchangeRate: exchangeRates.rates[assetCode],
-          assetScale: assetScale,
-        });
+        const amount = convertWithExchangeRate(
+          splitAmountAfterFee,
+          walletInfoConnected,
+          wa,
+          exchangeRates,
+        );
         const amountHuman = Number(transformBalance(amount, assetScale));
         return {
           id: id,
