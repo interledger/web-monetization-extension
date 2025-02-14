@@ -7,6 +7,7 @@ import {
 } from '../fixtures/helpers';
 import { fillPopup, type Popup, type ConnectDetails } from '../pages/popup';
 import { getContinueWaitTime, waitForWelcomePage } from './common';
+import { revokeKey as revokeKeyApi } from '@/content/keyAutoAdd/lib/helpers/testWallet';
 
 export const KEYS_PAGE_URL =
   'https://wallet.interledger-test.dev/settings/developer-keys';
@@ -79,23 +80,9 @@ export async function revokeKey(
     walletId: string;
     keyId: string;
   },
+  apiOrigin = API_URL_ORIGIN,
+  keysPageUrl = KEYS_PAGE_URL,
 ) {
-  const { accountId, walletId, keyId } = info;
-  const url = `${API_URL_ORIGIN}/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
-
-  await page.goto(KEYS_PAGE_URL);
-  await page.evaluate(async (url) => {
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-      },
-      mode: 'cors',
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      throw new Error(`Failed to revoke key: ${await res.text()}`);
-    }
-  }, url);
+  await page.goto(keysPageUrl);
+  await page.evaluate(revokeKeyApi, { apiOrigin, ...info });
 }
