@@ -14,6 +14,7 @@ import {
   type ContentToBackgroundMessage,
   MessageManager,
 } from '@/shared/messages';
+import { IdleDetection } from './services/idleDetection';
 
 export interface Cradle {
   logger: Logger;
@@ -23,6 +24,7 @@ export interface Cradle {
   message: MessageManager<ContentToBackgroundMessage>;
   monetizationLinkManager: MonetizationLinkManager;
   frameManager: FrameManager;
+  idleDetection: IdleDetection;
   contentScript: ContentScript;
 }
 
@@ -48,6 +50,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('content-script:tagManager'),
+      })),
+    idleDetection: asClass(IdleDetection)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('content-script:idleDetection'),
       })),
     contentScript: asClass(ContentScript)
       .singleton()
