@@ -15,41 +15,9 @@ Make sure you run `pnpm build chrome` before running tests.
 1. Copy `tests/e2e/.env.example` to `tests/e2e/.env`
 2. Update `tests/e2e/.env` with your secrets.
 
-| Environment Variable          | Description                                                 | Secret? | Optional? |
-| ----------------------------- | ----------------------------------------------------------- | ------- | --------- |
-| `TEST_WALLET_ORIGIN`          | URL origin of the test wallet                               | -       | -         |
-| `TEST_WALLET_USERNAME`        | -- Login email for the test wallet                          | -       | -         |
-| `TEST_WALLET_PASSWORD`        | -- Login password for the test wallet                       | Yes     | -         |
-| `TEST_WALLET_ADDRESS_URL`     | Your wallet address URL that will be connected to extension | -       | -         |
-| `TEST_WALLET_KEY_ID`          | ID of the key that will be connected to extension (UUID v4) | -       | -         |
-| `TEST_WALLET_PRIVATE_KEY`     | Private key (hex-encoded Ed25519 private key)               | Yes     | -         |
-| `TEST_WALLET_PUBLIC_KEY`      | Public key (base64-encoded Ed25519 public key)              | -       | -         |
-| `FYNBOS_WALLET_ADDRESS_URL`   | Fynbos wallet address (used for Fynbos specific tests only) | -       | Yes       |
-| `FYNBOS_USERNAME`             | -- Login email for Fynbos wallet                            | -       | Yes       |
-| `FYNBOS_PASSWORD`             | -- Login password for Fynbos wallet                         | Yes     | Yes       |
-| `CHIMONEY_WALLET_ORIGIN`      | Chimoney wallet dashboard URL (for Chimoney specific tests) | -       | Yes       |
-| `CHIMONEY_WALLET_ADDRESS_URL` | -- Chimoney wallet address                                  | -       | Yes       |
-| `CHIMONEY_USERNAME`           | -- Login email for Chimoney wallet                          | -       | Yes       |
-| `CHIMONEY_PASSWORD`           | -- Login password for Chimoney wallet                       | Yes     | Yes       |
+Environment variables for test are defined in [`env.d.ts` as `TestEnvVars`](../tests/e2e/env.d.ts).
 
-<details><summary><h3>Optional tests</h3></summary>
-
-<details><summary><h4>interledger.cards specific tests</h4></summary>
-
-If these variables are not provided, tests will not be run for `interledger.cards` wallet. You may provide wallet addresses in either/both formats - interledger.cards as well as in ilp.dev when available.
-
-| Environment Variable                           | Description                                 | Secret? |
-| ---------------------------------------------- | ------------------------------------------- | ------- |
-| `INTERLEDGER_CARDS_USERNAME`                   | Login email for interledger.cards wallet    | Yes     |
-| `INTERLEDGER_CARDS_PASSWORD`                   | Login password for interledger.cards wallet | Yes     |
-| `INTERLEDGER_CARDS_WALLET_ADDRESS_URL`         | interledger.cards wallet address            | -       |
-| `INTERLEDGER_CARDS_ILP_DEV_WALLET_ADDRESS_URL` | interledger.cards $ilp.dev wallet address   | -       |
-
-</details>
-
-</details>
-
-To get the `TEST_WALLET_KEY_ID`, `TEST_WALLET_PRIVATE_KEY` and `TEST_WALLET_PUBLIC_KEY`:
+To get the `TEST_WALLET_KEY_ID`, `TEST_WALLET_PRIVATE_KEY` and `TEST_WALLET_PUBLIC_KEY` vars, follow these steps:
 
 1. Load the extension in browser (via `chrome://extensions/`)
    - Once the extension is loaded, it'll generate a key-pair that we will need to connect with our wallet.
@@ -70,7 +38,7 @@ To get the `TEST_WALLET_KEY_ID`, `TEST_WALLET_PRIVATE_KEY` and `TEST_WALLET_PUBL
        .join('\n'),
    );
    ```
-1. Then copy `TEST_WALLET_PUBLIC_KEY` key to https://rafiki.money/settings/developer-keys under your wallet address.
+1. Then copy `TEST_WALLET_PUBLIC_KEY` key to https://wallet.interledger-test.dev/settings/developer-keys under your wallet address.
 1. Now you're ready to run the tests.
 
 ### How to run in end-to-end tests in GitHub
