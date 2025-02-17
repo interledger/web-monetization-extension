@@ -1,7 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { isNotNull } from '@/shared/helpers';
 import { mozClone, setDifference, WalletAddressFormatError } from '../utils';
-import type { WalletAddress } from '@interledger/open-payments/dist/types';
 import type {
   MonetizationEventPayload,
   ResumeMonetizationPayload,
@@ -185,21 +184,26 @@ export class MonetizationLinkManager extends EventEmitter {
       return null;
     }
 
-    const walletAddress = await this.validateLink(link);
-    if (!walletAddress) {
-      return null;
-    }
+    if (this.monetizationLinks.has(link)) {
+      const cachedPromise = this.monetizationLinks.get(link);
+      if (!cachedPromise) {
+        throw new Error(
+          `Could not find details promise for monetization node ${link.outerHTML.slice(0, 200)}`,
+        );
+      }
 
-    return {
-      requestId: crypto.randomUUID(),
-      walletAddress: walletAddress,
-    };
+      return cachedPromise;
+    }
+    const promise = this.validateLink(link);
+    this.monetizationLinks.set(link, promise);
+
+    return promise;
   }
 
   /** @throws never throws */
   private async validateLink(
     link: HTMLLinkElement,
-  ): Promise<WalletAddress | null> {
+  ): Promise<StartMonetizationPayloadEntry | null> {
     const walletAddressUrl = link.href.trim();
     try {
       this.checkHrefFormat(walletAddressUrl);
@@ -212,9 +216,16 @@ export class MonetizationLinkManager extends EventEmitter {
           `Could not retrieve wallet address information for ${JSON.stringify(walletAddressUrl)}.`,
         );
       }
+      const walletAddress = response.payload;
+      if (!walletAddress) {
+        return null;
+      }
 
       this.dispatchLoadEvent(link);
-      return response.payload;
+      return {
+        walletAddress,
+        requestId: crypto.randomUUID(),
+      };
     } catch (e) {
       this.logger.error(e);
       this.dispatchErrorEvent(link);
@@ -300,7 +311,9 @@ export class MonetizationLinkManager extends EventEmitter {
   private async stopMonetization(
     intent?: StopMonetizationPayloadEntry['intent'],
   ) {
-    const payload = (await Promise.all([...this.monetizationLinks.values()]))
+    const payload: StopMonetizationPayload = (
+      await Promise.all([...this.monetizationLinks.values()])
+    )
       .filter(isNotNull)
       .map(({ requestId }) => ({ requestId, intent }));
 
@@ -308,7 +321,9 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private async resumeMonetization() {
-    const payload = (await Promise.all([...this.monetizationLinks.values()]))
+    const payload: ResumeMonetizationPayload = (
+      await Promise.all([...this.monetizationLinks.values()])
+    )
       .filter(isNotNull)
       .map(({ requestId }) => ({ requestId }));
 
@@ -449,17 +464,19 @@ export class MonetizationLinkManager extends EventEmitter {
           const isDisabled = target.hasAttribute('disabled');
           if (wasDisabled !== isDisabled) {
             try {
-              const details = await this.monetizationLinks.get(target);
-              if (!details) {
-                throw new Error('Could not find details for monetization node');
+              const payloadEntry = await this.monetizationLinks.get(target);
+              if (!payloadEntry) {
+                throw new Error(
+                  'Could not find wallet address for monetization node',
+                );
               }
               if (isDisabled) {
                 stopMonetizationPayload.push({
-                  requestId: details.requestId,
+                  requestId: payloadEntry.requestId,
                   intent: 'disable',
                 });
               } else {
-                startMonetizationPayload.push(details);
+                startMonetizationPayload.push(payloadEntry);
               }
             } catch {
               const payloadEntry = await this.checkLink(target);
@@ -480,7 +497,7 @@ export class MonetizationLinkManager extends EventEmitter {
           target instanceof HTMLLinkElement &&
           target.href !== record.oldValue
         ) {
-          const payloadEntry = await this.checkLink(target);
+          const payloadEntry = await this.validateLink(target);
           if (payloadEntry) {
             startMonetizationPayload.push(payloadEntry);
           } else {
@@ -501,26 +518,12 @@ export class MonetizationLinkManager extends EventEmitter {
   private async onAddedLink(
     link: HTMLLinkElement,
   ): Promise<StartMonetizationPayloadEntry | null> {
-    if (this.monetizationLinks.has(link)) {
-      const details = this.monetizationLinks.get(link);
-      if (!details) {
-        throw new Error(
-          `Could not find details promise for monetization node ${link.outerHTML.slice(0, 200)}`,
-        );
-      }
-
-      return details;
-    }
-
-    const promise = this.checkLink(link);
-    this.monetizationLinks.set(link, promise);
-
-    const response = await promise;
+    const response = await this.checkLink(link);
     if (response) {
       this.observeLinkAttrs(link);
     }
 
-    return promise;
+    return response;
   }
 
   private async onRemovedLink(
@@ -529,7 +532,7 @@ export class MonetizationLinkManager extends EventEmitter {
     const details = await this.monetizationLinks.get(link);
     if (!details) {
       throw new Error(
-        `Could not find details for monetization node ${link.outerHTML.slice(0, 200)}`,
+        `Could not find wallet address for monetization node ${link.outerHTML.slice(0, 200)}`,
       );
     }
     this.monetizationLinks.delete(link);
