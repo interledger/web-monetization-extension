@@ -30,6 +30,18 @@ interface TestEnvVars {
   CHIMONEY_USERNAME: string | undefined;
   /** Login password for Chimoney wallet @secret */
   CHIMONEY_PASSWORD: string | undefined;
+
+  // If variables in following group are not provided, tests will not be run
+  // for `interledger.cards` wallet. You must provide wallet addresses in at
+  // least one format - interledger.cards & ilp.dev.
+  /** Login email for interledger.cards wallet (used for interledger.cards specific tests only) @secret */
+  INTERLEDGER_CARDS_USERNAME: string | undefined;
+  /** Login password for interledger.cards wallet @secret */
+  INTERLEDGER_CARDS_PASSWORD: string | undefined;
+  /** interledger.cards wallet address URL */
+  INTERLEDGER_CARDS_WALLET_ADDRESS_URL: string | undefined;
+  /** interledger.cards $ilp.dev wallet address */
+  INTERLEDGER_CARDS_ILP_DEV_WALLET_ADDRESS_URL: string | undefined;
 }
 
 declare global {

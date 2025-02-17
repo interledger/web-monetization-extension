@@ -6,6 +6,7 @@ import {
   type StepRun as Run,
 } from './lib/keyAutoAdd';
 import { isTimedOut, waitForURL } from './lib/helpers';
+import { revokeKey } from './lib/helpers/testWallet';
 import { toWalletAddressUrl } from '@/pages/shared/lib/utils';
 
 // region: Steps
@@ -105,7 +106,12 @@ const revokeExistingKey: Run<void> = async ({ keyId }, { skip, output }) => {
     for (const wallet of account.walletAddresses) {
       for (const key of wallet.keys) {
         if (key.id === keyId) {
-          await revokeKey(account.id, wallet.id, key.id);
+          await revokeKey({
+            apiOrigin: API_ORIGIN,
+            accountId: account.id,
+            walletId: wallet.id,
+            keyId: key.id,
+          });
         }
       }
     }
@@ -152,22 +158,6 @@ const addKey: Run<void> = async ({ publicKey, nickName }, { output }) => {
 // endregion
 
 // region: Helpers
-async function revokeKey(accountId: string, walletId: string, keyId: string) {
-  const url = `${API_ORIGIN}/accounts/${accountId}/wallet-addresses/${walletId}/${keyId}/revoke-key/`;
-  const res = await fetch(url, {
-    method: 'PATCH',
-    headers: {
-      accept: 'application/json',
-      'content-type': 'application/json',
-    },
-    mode: 'cors',
-    credentials: 'include',
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to revoke key: ${await res.text()}`);
-  }
-}
-
 function normalizeWalletAddress(urlOrPaymentPointer: string) {
   const url = new URL(toWalletAddressUrl(urlOrPaymentPointer));
   if (IS_INTERLEDGER_CARDS && url.host === 'ilp.dev') {
