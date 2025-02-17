@@ -122,9 +122,9 @@ export class TabEvents {
   };
 
   onFocussedTab = async (tab: Tabs.Tab) => {
-    if (!tab.id) return;
+    if (!tab.windowId || !tab.id) return;
     this.windowState.addTab(tab.id, tab.windowId);
-    const updated = this.windowState.setCurrentTabId(tab.windowId!, tab.id);
+    const updated = this.windowState.setCurrentTabId(tab.windowId, tab.id);
     if (!updated) return;
     await this.updateVisualIndicators(tab);
   };

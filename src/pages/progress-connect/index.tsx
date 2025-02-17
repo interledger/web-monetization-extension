@@ -11,6 +11,7 @@ import {
 import { StateContextProvider, UIModeProvider } from './context';
 import App from './App';
 
+// biome-ignore lint/style/noNonNullAssertion: it's ok
 const root = ReactDOM.createRoot(document.getElementById('container')!);
 root.render(
   <BrowserContextProvider browser={browser}>

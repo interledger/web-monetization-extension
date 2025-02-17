@@ -62,12 +62,18 @@ const BudgetAmount = ({
     [t],
   );
 
+  let defaultAmount: string;
+  if (grants.recurring?.value) {
+    defaultAmount = grants.recurring.value;
+  } else if (grants.oneTime?.value) {
+    defaultAmount = grants.oneTime.value;
+  } else {
+    throw new Error('Neither grants.recurring nor grants.oneTime is defined');
+  }
+
   const originalValues = {
     walletAddressUrl: walletAddress.id,
-    amount: transformBalance(
-      grants.recurring?.value ?? grants.oneTime!.value,
-      walletAddress.assetScale,
-    ),
+    amount: transformBalance(defaultAmount, walletAddress.assetScale),
     recurring: !!grants.recurring?.interval,
   };
 

@@ -10,7 +10,7 @@ describe('Deduplicator', () => {
   let returnValueFn1: { access_token: { value: string; type: string } };
   let returnValueFn2: { access_token: { value: string; type: string } };
 
-  beforeAll(async (): Promise<void> => {
+  beforeAll(() => {
     jest.useFakeTimers();
   });
 
@@ -120,7 +120,7 @@ describe('Deduplicator', () => {
   });
 
   describe('Cache Arguments Configuration', () => {
-    it('should differentiate same fn calls with different arguments when cacheFnArgs is true', async () => {
+    it('should differentiate same fn calls with different arguments when cacheFnArgs is true', () => {
       const returnValue = {
         access_token: { value: 'value', access: { type: 'outgoing-incoming' } },
       };
