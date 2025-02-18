@@ -65,7 +65,7 @@ export class Background {
     this.bindMessageHandler();
     await this.injectPolyfill();
     await this.onStart();
-    this.heartbeat.start();
+    // this.heartbeat.start();
     this.bindPermissionsHandler();
     this.bindEventsHandler();
     this.bindTabHandlers();
@@ -157,6 +157,7 @@ export class Background {
 
     let popupOpen = false;
     this.browser.windows.onFocusChanged.addListener(async () => {
+      return;
       const windows = await this.browser.windows.getAll({
         windowTypes: ['normal'],
       });
