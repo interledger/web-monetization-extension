@@ -1,6 +1,5 @@
 import type { ContentToContentMessage } from '../messages';
 import type {
-  ResumeMonetizationPayloadEntry,
   StartMonetizationPayloadEntry,
   StopMonetizationPayload,
 } from '@/shared/messages';
@@ -231,7 +230,7 @@ export class FrameManager {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map(
-                  (p: ResumeMonetizationPayloadEntry) => p.requestId,
+                  (p: StartMonetizationPayloadEntry) => p.requestId,
                 ),
               });
               eventSource.postMessage(

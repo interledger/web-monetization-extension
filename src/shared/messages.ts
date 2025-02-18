@@ -187,10 +187,7 @@ export interface StopMonetizationPayloadEntry {
 }
 export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
-export interface ResumeMonetizationPayloadEntry {
-  requestId: string;
-}
-export type ResumeMonetizationPayload = ResumeMonetizationPayloadEntry[];
+export type ResumeMonetizationPayload = StartMonetizationPayload;
 
 export interface IsTabMonetizedPayload {
   value: boolean;
