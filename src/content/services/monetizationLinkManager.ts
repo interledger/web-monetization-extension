@@ -53,7 +53,6 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   start(): void {
-    console.log('start called');
     const isDocumentReady = () => {
       const doc = this.document;
       return (
@@ -99,14 +98,12 @@ export class MonetizationLinkManager extends EventEmitter {
     this.window.removeEventListener('message', this.onWindowMessage);
     this.window.removeEventListener('focus', this.onFocus);
     this.window.removeEventListener('pagehide', this.onPageHide);
-    this.window.removeEventListener('pageshow', this.onPageShow);
   }
 
   /**
    * Check if iframe or not
    */
   private async run() {
-    console.log('run called');
     this.document.addEventListener(
       'visibilitychange',
       this.onDocumentVisibilityChange,
@@ -114,7 +111,6 @@ export class MonetizationLinkManager extends EventEmitter {
     this.onFocus();
     this.window.addEventListener('focus', this.onFocus);
     this.window.addEventListener('pagehide', this.onPageHide);
-    this.window.addEventListener('pageshow', this.onPageShow);
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
       this.window.addEventListener('message', this.onWindowMessage);
@@ -358,7 +354,6 @@ export class MonetizationLinkManager extends EventEmitter {
 
   private onDocumentVisibilityChange = async () => {
     if (this.document.visibilityState === 'visible') {
-      console.log('resume from visibility change');
       await this.resumeMonetization();
     } else {
       await this.stopMonetization();
@@ -373,9 +368,6 @@ export class MonetizationLinkManager extends EventEmitter {
 
   private onPageHide = async () => {
     await this.stopMonetization('remove');
-  };
-  private onPageShow = async () => {
-    console.log('on pageShow called');
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
