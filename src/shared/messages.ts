@@ -57,7 +57,7 @@ export class MessageManager<TMessages extends MessageMap> {
 
   async sendToTab<T extends keyof TMessages>(
     tabId: number,
-    frameId: number,
+    frameId: number | undefined,
     action: T,
     payload: TMessages[T]['input'],
   ): Promise<
@@ -260,6 +260,10 @@ export type BackgroundToContentMessage = {
   IS_TAB_IN_VIEW: {
     input: undefined;
     output: boolean;
+  };
+  REQUEST_RESUME_MONETIZATION: {
+    input: null;
+    output: undefined;
   };
 };
 

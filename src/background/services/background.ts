@@ -73,6 +73,7 @@ export class Background {
     this.sendToPopup.start();
     this.sendToApp.start();
     await KeyAutoAddService.registerContentScripts({ browser: this.browser });
+    void this.monetizationService.resumePaymentSessionActiveTab();
   }
 
   // TODO: When Firefox 128 is old enough, inject directly via manifest.

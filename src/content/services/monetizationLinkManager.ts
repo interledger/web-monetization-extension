@@ -317,7 +317,7 @@ export class MonetizationLinkManager extends EventEmitter {
     await this.sendStopMonetization(payload);
   }
 
-  private async resumeMonetization() {
+  public async resumeMonetization() {
     const payload: ResumeMonetizationPayload = [
       ...this.monetizationLinks.values(),
     ].map(({ requestId, walletAddress }) => ({ requestId, walletAddress }));

@@ -257,6 +257,12 @@ export class MonetizationService {
       );
       // TODO: check if this gets called after sleep wake-up, and if so, how can
       // we get a "payload" to start sessions afresh here.
+      await this.message.sendToTab(
+        tabId,
+        undefined,
+        'REQUEST_RESUME_MONETIZATION',
+        null,
+      );
       return;
     }
 
