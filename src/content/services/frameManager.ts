@@ -1,8 +1,5 @@
 import type { ContentToContentMessage } from '../messages';
-import type {
-  StartMonetizationPayloadEntry,
-  StopMonetizationPayload,
-} from '@/shared/messages';
+import type { StopMonetizationPayload } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
 
 const HANDLED_MESSAGES: ContentToContentMessage['message'][] = [
