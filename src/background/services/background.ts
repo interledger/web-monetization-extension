@@ -30,7 +30,7 @@ export class Background {
   private sendToPopup: Cradle['sendToPopup'];
   private sendToApp: Cradle['sendToApp'];
   private events: Cradle['events'];
-  private heartbeat: Cradle['heartbeat'];
+  // private heartbeat: Cradle['heartbeat'];
 
   constructor({
     browser,
@@ -43,7 +43,7 @@ export class Background {
     sendToPopup,
     sendToApp,
     events,
-    heartbeat,
+    // heartbeat,
   }: Cradle) {
     Object.assign(this, {
       browser,
@@ -56,7 +56,7 @@ export class Background {
       windowState,
       logger,
       events,
-      heartbeat,
+      // heartbeat,
     });
   }
 
@@ -155,42 +155,8 @@ export class Background {
       this.windowState.onWindowRemoved,
     );
 
-    let popupOpen = false;
     this.browser.windows.onFocusChanged.addListener(async () => {
-      return;
-      const windows = await this.browser.windows.getAll({
-        windowTypes: ['normal'],
-      });
-      const popupWasOpen = popupOpen;
-      popupOpen = this.sendToPopup.isPortOpen;
-      if (popupWasOpen || popupOpen) {
-        // This is intentionally called after windows.getAll, to add a little
-        // delay for popup port to open
-        this.logger.debug('Popup is open, ignoring focus change');
-        return;
-      }
-      for (const window of windows) {
-        const windowId = window.id!;
-
-        const tabIds = await this.windowState.getTabsForCurrentView(windowId);
-        if (window.focused) {
-          this.windowState.setCurrentWindowId(windowId);
-          this.logger.info(
-            `[focus change] resume monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
-          );
-          for (const tabId of tabIds) {
-            await this.monetizationService.resumePaymentSessionsByTabId(tabId);
-          }
-          await this.updateVisualIndicatorsForCurrentTab();
-        } else {
-          this.logger.info(
-            `[focus change] stop monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
-          );
-          for (const tabId of tabIds) {
-            void this.monetizationService.stopPaymentSessionsByTabId(tabId);
-          }
-        }
-      }
+      //  todo: bring things back
     });
   }
 
