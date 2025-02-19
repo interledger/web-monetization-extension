@@ -252,11 +252,12 @@ export class MonetizationService {
   async resumePaymentSessionsByTabId(tabId: number) {
     const sessions = this.tabState.getSessions(tabId);
     if (!sessions.size) {
-      this.logger.debug(
-        `resumePaymentSessionsByTabId: No active sessions found for tab ${tabId}.`,
-      );
-      // TODO: check if this gets called after sleep wake-up, and if so, how can
-      // we get a "payload" to start sessions afresh here.
+      this.logger.debug(`No active sessions found for tab ${tabId}.`);
+      // If there are no sessions and we got a resume call, request content
+      // script to get us the latest resume payload. The sessions could be
+      // cleared as the background script/worker had terminated (for example,
+      // computer went to sleep), so all sessions (stored in-memory) were
+      // cleared.
       await this.message.sendToTab(
         tabId,
         undefined,

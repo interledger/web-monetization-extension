@@ -73,6 +73,9 @@ export class Background {
     this.sendToPopup.start();
     this.sendToApp.start();
     await KeyAutoAddService.registerContentScripts({ browser: this.browser });
+    // When the background restarts (e.g. after computer wake up), ask the
+    // content script to resume monetization for active tab as the background no
+    // longer has those sessions.
     void this.monetizationService.resumePaymentSessionActiveTab();
   }
 
