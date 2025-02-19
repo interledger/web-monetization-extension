@@ -1,4 +1,5 @@
 import log from 'loglevel';
+import remote from 'loglevel-plugin-remote';
 
 // TODO: Disable debug logging in production
 export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
@@ -15,6 +16,8 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
     );
   };
   log.rebuild();
+
+  remote.apply(log, { url: 'http://127.0.0.1:8000',format: remote.json, });
 
   return log;
 };
