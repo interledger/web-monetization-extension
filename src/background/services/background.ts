@@ -207,7 +207,7 @@ export class Background {
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
       async (message: ToBackgroundMessage, sender) => {
-        this.logger.debug('Received message', message.action, message.payload);
+        this.logger.debug('Received message', message);
         try {
           switch (message.action) {
             // region Popup

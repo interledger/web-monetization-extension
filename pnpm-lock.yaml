@@ -54,9 +54,6 @@ importers:
       loglevel:
         specifier: ^1.9.2
         version: 1.9.2
-      loglevel-plugin-remote:
-        specifier: ^0.6.8
-        version: 0.6.8
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2539,9 +2536,6 @@ packages:
 
   lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
-
-  loglevel-plugin-remote@0.6.8:
-    resolution: {integrity: sha512-EMhWUOAx4/Wtge1bNzYDvvXzv6PLt07emqTjA+Sc8WfViNSYXxe6kWYFyjcqGS6mqNeOqQ3+AG0xuasynHK0XA==}
 
   loglevel@1.9.2:
     resolution: {integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==}
@@ -6256,8 +6250,6 @@ snapshots:
   lodash.memoize@4.1.2: {}
 
   lodash@4.17.21: {}
-
-  loglevel-plugin-remote@0.6.8: {}
 
   loglevel@1.9.2: {}
 
