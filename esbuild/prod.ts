@@ -20,7 +20,7 @@ export const getProdOptions = ({
   outDir: string;
 }): BuildOptions => {
   return {
-    sourcemap: false,
+    sourcemap: true,
     metafile: true,
     minify: true,
     external: ['*.woff2'],

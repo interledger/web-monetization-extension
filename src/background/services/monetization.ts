@@ -252,7 +252,9 @@ export class MonetizationService {
   async resumePaymentSessionsByTabId(tabId: number) {
     const sessions = this.tabState.getSessions(tabId);
     if (!sessions.size) {
-      this.logger.debug(`No active sessions found for tab ${tabId}.`);
+      this.logger.debug(
+        `resumePaymentSessionsByTabId: No active sessions found for tab ${tabId}.`,
+      );
       // TODO: check if this gets called after sleep wake-up, and if so, how can
       // we get a "payload" to start sessions afresh here.
       return;
