@@ -212,9 +212,7 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: payload.map(
-                  (p: StartMonetizationPayloadEntry) => p.requestId,
-                ),
+                requestIds: payload.map((p) => p.requestId),
               });
               eventSource.postMessage(
                 { message: 'START_MONETIZATION', id, payload },
@@ -229,9 +227,7 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: payload.map(
-                  (p: StartMonetizationPayloadEntry) => p.requestId,
-                ),
+                requestIds: payload.map((p) => p.requestId),
               });
               eventSource.postMessage(
                 { message: 'RESUME_MONETIZATION', id, payload },
