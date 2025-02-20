@@ -61,6 +61,7 @@ export class Background {
   }
 
   async start() {
+    this.logger.info('Background started');
     this.bindOnInstalled();
     this.bindMessageHandler();
     await this.injectPolyfill();
@@ -76,7 +77,7 @@ export class Background {
     // When the background restarts (e.g. after computer wake up), ask the
     // content script to resume monetization for active tab as the background no
     // longer has those sessions.
-    void this.monetizationService.resumePaymentSessionActiveTab();
+    await this.monetizationService.resumePaymentSessionActiveTab();
   }
 
   // TODO: When Firefox 128 is old enough, inject directly via manifest.
