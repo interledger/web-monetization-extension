@@ -8,6 +8,10 @@ export class Heartbeat {
   }
 
   start() {
+    if (Math.random() > -1) {
+      return;
+    }
+
     const alarms = this.browser.alarms;
     // The minimum supported cross-browser period is 1 minute. So, we create 4
     // alarms at a 0,15,30,45 seconds delay. So, we'll get an alarm every 15s -

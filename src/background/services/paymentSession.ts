@@ -241,6 +241,7 @@ export class PaymentSession {
   }
 
   private debug(message: string) {
+    return;
     this.logger.debug(
       `[PAYMENT SESSION] requestId=${this.requestId}; receiver=${this.receiver.id}\n\n`,
       `   ${message}`,

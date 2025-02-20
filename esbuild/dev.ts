@@ -17,8 +17,8 @@ export const getDevOptions = ({
     minify: false,
     external: ['*.woff2'],
     plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
-      typecheckPlugin({ buildMode: 'readonly', watch: true }),
-      liveReloadPlugin({ target }),
+      // typecheckPlugin({ buildMode: 'readonly', watch: true }),
+      // liveReloadPlugin({ target }),
     ]),
     define: {
       NODE_ENV: JSON.stringify('development'),

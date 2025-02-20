@@ -76,7 +76,8 @@ export class Background {
     // When the background restarts (e.g. after computer wake up), ask the
     // content script to resume monetization for active tab as the background no
     // longer has those sessions.
-    void this.monetizationService.resumePaymentSessionActiveTab();
+    this.logger.debug('start: resuming payment sessions for active tab.');
+    await this.monetizationService.resumePaymentSessionActiveTab();
   }
 
   // TODO: When Firefox 128 is old enough, inject directly via manifest.
@@ -207,7 +208,7 @@ export class Background {
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
       async (message: ToBackgroundMessage, sender) => {
-        this.logger.debug('Received message', message);
+        this.logger.debug('Received message %o', message);
         try {
           switch (message.action) {
             // region Popup
@@ -290,6 +291,7 @@ export class Background {
                 message.payload,
                 sender,
               );
+              await this.tabEvents.updateVisualIndicators(getTab(sender));
               return;
 
             case 'STOP_MONETIZATION':
