@@ -24,7 +24,12 @@ export function waitForElement<T extends HTMLElement = HTMLElement>(
 ): Promise<T> {
   const { resolve, reject, promise } = withResolvers<T>();
   if (document.querySelector(selector)) {
-    resolve(document.querySelector<T>(selector)!);
+    const element = document.querySelector<T>(selector);
+    if (element) {
+      resolve(element);
+    } else {
+      reject(new Error(`Element not found: ${selector}`));
+    }
     return promise;
   }
 

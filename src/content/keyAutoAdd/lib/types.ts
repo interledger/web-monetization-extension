@@ -10,7 +10,7 @@ export interface StepRunHelpers {
 export type StepRun<TOutput = unknown> = (
   payload: BeginPayload,
   helpers: StepRunHelpers,
-) => Promise<TOutput>;
+) => Promise<TOutput> | TOutput;
 
 export interface Step<TOutput = unknown> {
   name: string;

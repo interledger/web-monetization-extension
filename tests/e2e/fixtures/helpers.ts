@@ -116,27 +116,26 @@ export const loadFirefoxAddon = (
           remainingBytes -= data.length;
           buffers.push(data);
           break;
-        } else {
-          buffers.push(data.subarray(0, remainingBytes));
-
-          const buffer = Buffer.concat(buffers);
-          buffers.length = 0;
-
-          const json = JSON.parse(buffer.toString());
-          queueMicrotask(() => {
-            onMessage(json);
-          });
-
-          const remainder = data.subarray(remainingBytes);
-          remainingBytes = 0;
-
-          if (remainder.length === 0) {
-            break;
-          } else {
-            // biome-ignore lint/style/noParameterAssign: it's ok here
-            data = remainder;
-          }
         }
+
+        buffers.push(data.subarray(0, remainingBytes));
+
+        const buffer = Buffer.concat(buffers);
+        buffers.length = 0;
+
+        const json = JSON.parse(buffer.toString());
+        queueMicrotask(() => {
+          onMessage(json);
+        });
+
+        const remainder = data.subarray(remainingBytes);
+        remainingBytes = 0;
+
+        if (remainder.length === 0) {
+          break;
+        }
+        // biome-ignore lint/style/noParameterAssign: it's ok here
+        data = remainder;
       }
     });
   });

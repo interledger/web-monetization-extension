@@ -41,10 +41,10 @@ export class WindowState {
       const prevSize = tabs.size;
       tabs.add(tabId);
       return prevSize !== tabs.size;
-    } else {
-      this.tabs.set(windowId, new Set([tabId]));
-      return true;
     }
+
+    this.tabs.set(windowId, new Set([tabId]));
+    return true;
   }
 
   removeTab(tabId: TabId, windowId: WindowId = this.getCurrentWindowId()) {

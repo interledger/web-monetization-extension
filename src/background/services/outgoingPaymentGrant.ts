@@ -1,6 +1,8 @@
 import type {
   AccessToken,
   GrantDetails,
+  OneTimeGrant,
+  RecurringGrant,
   TabId,
   WalletAmount,
 } from '@/shared/types';
@@ -87,7 +89,11 @@ export class OutgoingPaymentGrantService {
   }
 
   public get grantType() {
-    return this.grant!.type;
+    if (!this.grant) {
+      throw new Error('No grant to get type for');
+    }
+
+    return this.grant.type;
   }
 
   public disableRecurringGrant() {
@@ -118,13 +124,18 @@ export class OutgoingPaymentGrantService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!connected) {
+      return;
+    }
 
     this.isGrantUsable.recurring = !!recurringGrant;
     this.isGrantUsable.oneTime = !!oneTimeGrant;
-
-    if (connected === true && (recurringGrant || oneTimeGrant)) {
-      this.grant = recurringGrant || oneTimeGrant!; // prefer recurring
+    const grant = recurringGrant || oneTimeGrant; // prefer recurring
+    if (!grant || !this.isGrantDetails(grant)) {
+      return;
     }
+
+    this.grant = grant;
   }
 
   async completeOutgoingPaymentGrant(
@@ -313,7 +324,7 @@ export class OutgoingPaymentGrantService {
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
 
-    const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
+    const getInteractionInfo: TabUpdateCallback = (tabId, changeInfo) => {
       if (tabId !== tab.id) return;
       try {
         const tabUrl = new URL(changeInfo.url || '');
@@ -472,5 +483,11 @@ export class OutgoingPaymentGrantService {
     }
 
     return null;
+  }
+
+  private isGrantDetails(
+    grant: OneTimeGrant | RecurringGrant,
+  ): grant is GrantDetails {
+    return 'type' in grant && 'amount' in grant && 'accessToken' in grant;
   }
 }

@@ -70,7 +70,7 @@ export class FrameManager {
     });
   }
 
-  async onFrameAllowAttrChange(records: MutationRecord[]) {
+  onFrameAllowAttrChange(records: MutationRecord[]) {
     const handledTags = new Set<Node>();
 
     // Check for a non specified link with the type now specified and
@@ -85,7 +85,7 @@ export class FrameManager {
         target instanceof HTMLIFrameElement && target.allow === 'monetization';
 
       if (!hasTarget && typeSpecified) {
-        await this.onAddedFrame(target);
+        this.onAddedFrame(target);
         handledTags.add(target);
       } else if (hasTarget && !typeSpecified) {
         this.onRemovedFrame(target);
@@ -97,7 +97,7 @@ export class FrameManager {
     }
   }
 
-  private async onAddedFrame(frame: HTMLIFrameElement) {
+  private onAddedFrame(frame: HTMLIFrameElement) {
     this.frames.set(frame, {
       frameId: null,
       requestIds: [],
@@ -139,11 +139,11 @@ export class FrameManager {
     }
   }
 
-  async check(op: string, node: Node) {
+  check(op: string, node: Node) {
     if (node instanceof HTMLIFrameElement) {
       if (op === 'added') {
         this.observeFrameAllowAttrs(node);
-        await this.onAddedFrame(node);
+        this.onAddedFrame(node);
       } else if (op === 'removed' && this.frames.has(node)) {
         this.onRemovedFrame(node);
       }
@@ -176,7 +176,7 @@ export class FrameManager {
 
     for (const frame of frames) {
       this.observeFrameAllowAttrs(frame);
-      void this.onAddedFrame(frame).catch((e) => this.logger.error(e));
+      this.onAddedFrame(frame);
     }
 
     this.observeDocumentForFrames();

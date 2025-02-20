@@ -19,7 +19,7 @@ export const RateOfPayScreen = () => {
     }, 1000),
   );
 
-  const onRateChange = async (rateOfPay: string) => {
+  const onRateChange = (rateOfPay: string) => {
     dispatch({ type: 'UPDATE_RATE_OF_PAY', data: { rateOfPay } });
     void updateRateOfPay.current(rateOfPay);
   };
@@ -38,7 +38,7 @@ export const RateOfPayScreen = () => {
 };
 
 interface Props {
-  onRateChange: (rate: string) => Promise<void>;
+  onRateChange: (rate: string) => void;
   toggle: () => void | Promise<void>;
 }
 
