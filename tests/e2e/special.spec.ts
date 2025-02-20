@@ -1,7 +1,7 @@
 import { spy } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
 import { getLastCallArg, setupPlayground } from './helpers/common';
-import { setContinuousPayments } from './pages/popup';
+import { goToHome, setContinuousPayments } from './pages/popup';
 
 test('iframe add/remove does not de-monetize main page', async ({
   page,
@@ -109,7 +109,7 @@ test('keep site monetized on back-forward buttons', async ({ page, popup }) => {
   );
 
   await setContinuousPayments(popup, false); // don't need payments to see monetized status
-  await popup.reload();
+  await goToHome(popup);
 
   const expect = (await import('./fixtures/connected')).expect.configure({
     soft: true,
