@@ -26,7 +26,7 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
   //
   // DO NOT ENABLE THIS FOR PRODUCTION.
   if (LOG_SERVER_ENDPOINT) {
-    remoteLogger(log, 'http://127.0.0.1:8000');
+    remoteLogger(log, LOG_SERVER_ENDPOINT);
   }
 
   return log;
