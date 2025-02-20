@@ -6,29 +6,37 @@ import type {
 } from '@/shared/messages';
 import type { Logger } from '@/shared/logger';
 import type { Browser } from 'webextension-polyfill';
+import { TextEncoder, TextDecoder } from 'node:util';
+Object.assign(global, { TextDecoder, TextEncoder });
+import { JSDOM, type DOMWindow } from 'jsdom';
 
 describe('MonetizationLinkManager', () => {
-  let dom: Document;
-  let windowMock: Window;
   let loggerMock: Logger;
   let messageMock: MessageManager<ContentToBackgroundMessage>;
   let monetizationManager: MonetizationLinkManager;
   let dispatchEventSpy: jest.SpyInstance;
 
-  const createIframeLink = () => {
-    // TO DO: need to find a way to create an iframe link
-  };
+  function createTestEnv(html: string) {
+    const dom = new JSDOM(html, {
+      runScripts: 'dangerously',
+      pretendToBeVisual: true,
+    });
+    return {
+      window: dom.window,
+      document: dom.window.document,
+    };
+  }
 
-  const createLink = () => {
-    const link = dom.createElement('link');
+  function appendCreateLink(dom: DOMWindow) {
+    const link = dom.document.createElement('link');
     link.rel = 'monetization';
-    link.href = 'https://ilp.interledger-test.dev/59ce7018';
+    link.href = 'https://ilp.interledger-test.dev/tech';
     // create a spy for dispatchEvent
     dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
-    dom.head.appendChild(link);
+    dom.document.head.appendChild(link);
     return link;
-  };
+  }
 
   beforeEach(() => {
     // mock crypto.randomUUID for requestId
@@ -48,9 +56,6 @@ describe('MonetizationLinkManager', () => {
       sendToActiveTab: jest.fn(),
       browser: {} as unknown as Browser,
     } as unknown as jest.Mocked<MessageManager<ContentToBackgroundMessage>>;
-    // create a mock document using JSDOM
-    dom = document.implementation.createHTMLDocument();
-    windowMock = global.window;
     loggerMock = {
       error: jest.fn(),
     } as unknown as Logger;
@@ -63,23 +68,35 @@ describe('MonetizationLinkManager', () => {
   });
 
   test('should detect monetization link tags', async () => {
-    // insert a mock monetization link into the document
-    const link = createLink();
-    Object.defineProperty(dom, 'readyState', {
+    const { window, document } = createTestEnv(`<!DOCTYPE html>
+      <html>
+        <head></head>
+        <body></body>
+      </html>
+    `);
+    const link = appendCreateLink(window);
+
+    // mock the MutationObserver constructor and Event
+    // https://stackoverflow.com/questions/76242504/mutationobserver-in-jsdom-fails-because-parameter-1-is-not-of-type-node
+    // https://github.com/jsdom/jsdom/issues/3331
+    jest.spyOn(globalThis, 'MutationObserver').mockImplementation((...args) => {
+      return new window.MutationObserver(...args);
+    });
+    jest
+      .spyOn(globalThis, 'Event')
+      .mockImplementation((...args) => new window.Event(args[0], args[1]));
+    // set global HTMLLinkElement
+    global.HTMLLinkElement = window.HTMLLinkElement;
+
+    Object.defineProperty(document, 'readyState', {
       get() {
         return 'interactive';
       },
     });
 
-    Object.defineProperty(dom, 'visibilityState', {
-      get() {
-        return 'visible';
-      },
-    });
-
     monetizationManager = new MonetizationLinkManager({
-      window: windowMock,
-      document: dom,
+      window: window as unknown as Window,
+      document: document,
       logger: loggerMock,
       message: messageMock,
     });
@@ -93,18 +110,18 @@ describe('MonetizationLinkManager', () => {
 
     expect(messageMock.send).toHaveBeenCalledTimes(1);
     expect(messageMock.send).toHaveBeenCalledWith('GET_WALLET_ADDRESS_INFO', {
-      walletAddressUrl: 'https://ilp.interledger-test.dev/59ce7018',
+      walletAddressUrl: 'https://ilp.interledger-test.dev/tech',
     });
 
     // wait for check link validation to complete
     await new Promise(process.nextTick);
 
     // check if dispatchEvent was called with a 'load' event
-    expect(dispatchEventSpy).toHaveBeenCalledWith(expect.any(Event));
+    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('load'));
     const dispatchedLoadEvent = dispatchEventSpy.mock.calls[0][0] as Event;
     expect(dispatchedLoadEvent.type).toBe('load');
 
-    // event was dispatched on our link element
+    // event was dispatched on correct link element
     expect(dispatchEventSpy.mock.instances[0]).toBe(link);
 
     expect(messageMock.send).toHaveBeenCalledTimes(2);
@@ -121,73 +138,96 @@ describe('MonetizationLinkManager', () => {
   });
 
   test('should detect link when running in first-level iframe', async () => {
-    const link = createIframeLink();
+    const { document: dom } = createTestEnv(`<!DOCTYPE html>
+  <html>
+    <head></head>
+    <body>
+      <iframe id="testFrame">
+        <html>
+          <head></head>
+          <body></body>
+        </html>
+      </iframe>
+    </body>
+  </html>`);
 
-    // create mock top window that's different from current window
-    const mockTopWindow = { ...windowMock };
+    const iframe = dom.getElementById('testFrame') as HTMLIFrameElement;
+    const iframeWindow = iframe.contentWindow!.window;
+    const iframeDocument = iframe.contentDocument!;
+    const link = appendCreateLink(iframeWindow as unknown as DOMWindow);
 
-    // setup window to simulate first level iframe (parent is top, but current window is not top)
-    Object.defineProperty(windowMock, 'top', {
-      get: () => mockTopWindow,
+    global.HTMLLinkElement = iframeWindow.HTMLLinkElement;
+
+    dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+
+    const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
+
+    // mock the MutationObserver constructor
+    jest.spyOn(globalThis, 'MutationObserver').mockImplementation((...args) => {
+      return new iframeWindow.MutationObserver(...args);
     });
-    Object.defineProperty(windowMock, 'parent', {
-      get: () => mockTopWindow,
-    });
+    jest
+      .spyOn(globalThis, 'Event')
+      .mockImplementation(
+        (...args) => new iframeWindow.Event(args[0], args[1]),
+      );
 
     Object.defineProperty(dom, 'readyState', {
       get() {
         return 'interactive';
       },
     });
-    dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
-    Object.defineProperty(dom, 'visibilityState', {
-      get() {
-        return 'visible';
-      },
-    });
 
     monetizationManager = new MonetizationLinkManager({
-      window: windowMock,
-      document: dom,
+      window: iframeWindow as unknown as Window,
+      document: iframeDocument,
       logger: loggerMock,
       message: messageMock,
     });
 
     monetizationManager.start();
 
+    expect(postMessageSpy).toHaveBeenCalledWith(
+      {
+        message: 'INITIALIZE_IFRAME',
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        payload: undefined,
+      },
+      '*',
+    );
+
     // @ts-ignore - accessing private property for testing
     expect(monetizationManager.isTopFrame).toBe(false);
     // @ts-ignore
     expect(monetizationManager.isFirstLevelFrame).toBe(true);
 
+    expect(messageMock.send).toHaveBeenCalledTimes(1);
     expect(messageMock.send).toHaveBeenCalledWith('GET_WALLET_ADDRESS_INFO', {
-      walletAddressUrl: 'https://ilp.interledger-test.dev/darianusd',
+      walletAddressUrl: 'https://ilp.interledger-test.dev/tech',
     });
-
-    expect(messageMock.send).toHaveBeenNthCalledWith(2, 'START_MONETIZATION', [
-      {
-        requestId: '123e4567-e89b-12d3-a456-426614174000',
-        walletAddress: 'https://ilp.interledger-test.dev/darianusd',
-      },
-    ]);
 
     await new Promise(process.nextTick);
 
-    expect(messageMock.send).toHaveBeenCalledTimes(2);
-    expect(dispatchEventSpy).toHaveBeenCalledWith(expect.any(Event));
+    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('load'));
     const dispatchedLoadEvent = dispatchEventSpy.mock.calls[0][0] as Event;
     expect(dispatchedLoadEvent.type).toBe('load');
 
-    expect(windowMock.addEventListener).toHaveBeenCalledWith(
-      'message',
-      expect.any(Function),
-    );
+    expect(dispatchEventSpy.mock.instances[0]).toBe(link);
 
-    expect(windowMock.parent.postMessage).toHaveBeenCalledWith(
+    expect(postMessageSpy).toHaveBeenNthCalledWith(
+      2,
       {
-        message: 'INITIALIZE_IFRAME',
         id: '123e4567-e89b-12d3-a456-426614174000',
-        payload: undefined,
+        message: 'IS_MONETIZATION_ALLOWED_ON_START',
+        payload: [
+          {
+            requestId: '123e4567-e89b-12d3-a456-426614174000',
+            walletAddress: {
+              authServer: 'https://auth.example.com',
+              publicName: 'Test Wallet',
+            },
+          },
+        ],
       },
       '*',
     );
