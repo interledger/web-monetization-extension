@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events';
 import { isNotNull } from '@/shared/helpers';
 import { mozClone, WalletAddressFormatError } from '../utils';
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
@@ -13,7 +12,7 @@ import type {
 import type { Cradle } from '@/content/container';
 import type { ContentToContentMessage } from '../messages';
 
-export class MonetizationLinkManager extends EventEmitter {
+export class MonetizationLinkManager {
   private window: Cradle['window'];
   private document: Cradle['document'];
   private logger: Cradle['logger'];
@@ -30,8 +29,12 @@ export class MonetizationLinkManager extends EventEmitter {
     { walletAddress: WalletAddress; requestId: string }
   >();
 
-  constructor({ window, document, logger, message }: Cradle) {
-    super();
+  constructor({
+    window,
+    document,
+    logger,
+    message,
+  }: Pick<Cradle, 'window' | 'document' | 'logger' | 'message'>) {
     Object.assign(this, {
       window,
       document,
