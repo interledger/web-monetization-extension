@@ -103,17 +103,8 @@ test('iframe navigate does not de-monetize main page', async ({
 });
 
 test('keep site monetized on back-forward buttons', async ({ page, popup }) => {
-  test.fail(
-    true,
-    'https://github.com/interledger/web-monetization-extension/issues/841',
-  );
-
   await setContinuousPayments(popup, false); // don't need payments to see monetized status
   await goToHome(popup);
-
-  const expect = (await import('./fixtures/connected')).expect.configure({
-    soft: true,
-  });
 
   // to check if page was loaded with bf-cache or not (persisted = true means from bf-cache)
   const pageShowCallback = spy<[[persisted: boolean, url: string]], void>();

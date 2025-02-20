@@ -56,6 +56,9 @@ export class ContentScript {
               return;
             case 'IS_TAB_IN_VIEW':
               return success(document.visibilityState === 'visible');
+            case 'REQUEST_RESUME_MONETIZATION':
+              await this.monetizationLinkManager.resumeMonetization();
+              return;
             default:
               return;
           }

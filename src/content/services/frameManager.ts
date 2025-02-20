@@ -1,9 +1,5 @@
 import type { ContentToContentMessage } from '../messages';
-import type {
-  ResumeMonetizationPayloadEntry,
-  StartMonetizationPayloadEntry,
-  StopMonetizationPayload,
-} from '@/shared/messages';
+import type { StopMonetizationPayload } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
 
 const HANDLED_MESSAGES: ContentToContentMessage['message'][] = [
@@ -213,9 +209,7 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: payload.map(
-                  (p: StartMonetizationPayloadEntry) => p.requestId,
-                ),
+                requestIds: payload.map((p) => p.requestId),
               });
               eventSource.postMessage(
                 { message: 'START_MONETIZATION', id, payload },
@@ -230,9 +224,7 @@ export class FrameManager {
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: payload.map(
-                  (p: ResumeMonetizationPayloadEntry) => p.requestId,
-                ),
+                requestIds: payload.map((p) => p.requestId),
               });
               eventSource.postMessage(
                 { message: 'RESUME_MONETIZATION', id, payload },

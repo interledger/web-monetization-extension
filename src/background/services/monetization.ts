@@ -217,6 +217,14 @@ export class MonetizationService {
 
     if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`);
+      // If there are no sessions and we got a resume call, treat it as a fresh
+      // start call. The sessions could be cleared as:
+      // - the background script/worker had terminated, so all sessions (stored
+      //   in-memory) were cleared
+      // - user hit back/forward button, so sessions for this tabId+URL were
+      //   cleared (we clear sessions on URL change in `onUpdatedTab`).
+      this.logger.info('setting up sessions & starting');
+      await this.startPaymentSession(payload, sender);
       return;
     }
 
@@ -245,6 +253,17 @@ export class MonetizationService {
     const sessions = this.tabState.getSessions(tabId);
     if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`);
+      // If there are no sessions and we got a resume call, request content
+      // script to get us the latest resume payload. The sessions could be
+      // cleared as the background script/worker had terminated (for example,
+      // computer went to sleep), so all sessions (stored in-memory) were
+      // cleared.
+      await this.message.sendToTab(
+        tabId,
+        undefined,
+        'REQUEST_RESUME_MONETIZATION',
+        null,
+      );
       return;
     }
 
