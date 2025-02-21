@@ -103,6 +103,7 @@ describe('MonetizationLinkManager', () => {
     expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('load'));
     const dispatchedLoadEvent = dispatchEventSpy.mock.calls[0][0] as Event;
     expect(dispatchedLoadEvent.type).toBe('load');
+    expect(dispatchEventSpy).toHaveBeenCalledTimes(1);
 
     // event was dispatched on correct link element
     expect(dispatchEventSpy.mock.instances[0]).toBe(link);
@@ -168,6 +169,7 @@ describe('MonetizationLinkManager', () => {
     expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('load'));
     const dispatchedLoadEvent = dispatchEventSpy.mock.calls[0][0] as Event;
     expect(dispatchedLoadEvent.type).toBe('load');
+    expect(dispatchEventSpy).toHaveBeenCalledTimes(1);
 
     expect(dispatchEventSpy.mock.instances[0]).toBe(link);
 
@@ -188,5 +190,33 @@ describe('MonetizationLinkManager', () => {
       },
       '*',
     );
+
+    const messageEvent = new iframeWindow.MessageEvent('message', {
+      data: {
+        message: 'START_MONETIZATION',
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        payload: [
+          {
+            requestId: '123e4567-e89b-12d3-a456-426614174000',
+            walletAddress: {
+              authServer: 'https://auth.example.com',
+              publicName: 'Test Wallet',
+            },
+          },
+        ],
+      },
+    });
+
+    iframeWindow.dispatchEvent(messageEvent);
+
+    expect(messageMock.send).toHaveBeenNthCalledWith(2, 'START_MONETIZATION', [
+      {
+        requestId: '123e4567-e89b-12d3-a456-426614174000',
+        walletAddress: {
+          authServer: 'https://auth.example.com',
+          publicName: 'Test Wallet',
+        },
+      },
+    ]);
   });
 });
