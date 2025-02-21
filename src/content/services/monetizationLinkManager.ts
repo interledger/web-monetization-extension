@@ -16,6 +16,7 @@ type Cradle = Pick<_Cradle, 'document' | 'logger' | 'message' | 'global'>;
 
 export class MonetizationLinkManager {
   private global: Cradle['global'];
+  private window: Window;
   private document: Cradle['document'];
   private logger: Cradle['logger'];
   private message: Cradle['message'];
@@ -37,6 +38,7 @@ export class MonetizationLinkManager {
       document,
       logger,
       message,
+      window: global.window,
     });
 
     this.documentObserver = new this.global.MutationObserver((records) =>
@@ -47,9 +49,8 @@ export class MonetizationLinkManager {
       (records) => this.onLinkAttrChange(records),
     );
 
-    this.isTopFrame = this.global.window === this.global.window.top;
-    this.isFirstLevelFrame =
-      this.global.window.parent === this.global.window.top;
+    this.isTopFrame = this.window === this.window.top;
+    this.isFirstLevelFrame = this.window.parent === this.window.top;
     this.id = crypto.randomUUID();
   }
 
@@ -96,9 +97,9 @@ export class MonetizationLinkManager {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
-    this.global.window.removeEventListener('message', this.onWindowMessage);
-    this.global.window.removeEventListener('focus', this.onFocus);
-    this.global.window.removeEventListener('pagehide', this.onPageHide);
+    this.window.removeEventListener('message', this.onWindowMessage);
+    this.window.removeEventListener('focus', this.onFocus);
+    this.window.removeEventListener('pagehide', this.onPageHide);
   }
 
   /**
@@ -110,11 +111,11 @@ export class MonetizationLinkManager {
       this.onDocumentVisibilityChange,
     );
     this.onFocus();
-    this.global.window.addEventListener('focus', this.onFocus);
-    this.global.window.addEventListener('pagehide', this.onPageHide);
+    this.window.addEventListener('focus', this.onFocus);
+    this.window.addEventListener('pagehide', this.onPageHide);
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
-      this.global.window.addEventListener('message', this.onWindowMessage);
+      this.window.addEventListener('message', this.onWindowMessage);
       this.postMessage('INITIALIZE_IFRAME', undefined);
     }
 
@@ -415,10 +416,7 @@ export class MonetizationLinkManager {
     message: K,
     payload: Extract<ContentToContentMessage, { message: K }>['payload'],
   ) {
-    this.global.window.parent.postMessage(
-      { message, id: this.id, payload },
-      '*',
-    );
+    this.window.parent.postMessage({ message, id: this.id, payload }, '*');
   }
 
   private async onLinkAttrChange(records: MutationRecord[]) {
