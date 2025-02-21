@@ -1,4 +1,4 @@
-import { JSDOM } from 'jsdom';
+import { JSDOM, type DOMWindow } from 'jsdom';
 import { MonetizationLinkManager } from '@/content/services/monetizationLinkManager';
 import type {
   ContentToBackgroundMessage,
@@ -13,26 +13,41 @@ const html = String.raw;
 describe('MonetizationLinkManager', () => {
   let loggerMock: Logger;
   let messageMock: MessageManager<ContentToBackgroundMessage>;
-  let monetizationManager: MonetizationLinkManager;
-  let dispatchEventSpy: jest.SpyInstance;
+
+  function createMonetizationLinkManager(
+    document: Document,
+    window: Window | DOMWindow,
+  ) {
+    const linkManager = new MonetizationLinkManager({
+      window: window as unknown as Window,
+      global: document.defaultView!.globalThis,
+      document: document,
+      message: messageMock,
+      logger: loggerMock,
+    });
+
+    return linkManager;
+  }
 
   function createTestEnv({
     head = '',
     body = '',
   }: { head?: string; body?: string }) {
-    const dom = new JSDOM(
-      html`<!DOCTYPE html><html><head>${head}</head><body>${body}</body></html>`,
-      {
-        runScripts: 'dangerously',
-        pretendToBeVisual: true,
-        resources: 'usable',
-      },
-    );
+    const htm = html`<!DOCTYPE html><html><head>${head}</head><body>${body}</body></html>`;
+    const dom = new JSDOM(htm, {
+      runScripts: 'dangerously',
+      pretendToBeVisual: true,
+      resources: 'usable',
+    });
+
+    const window = dom.window;
+    const document = window.document;
 
     return {
       dom,
-      window: dom.window,
-      document: dom.window.document,
+      window,
+      document,
+      documentReadyState: jest.spyOn(document, 'readyState', 'get'),
     };
   }
 
@@ -61,32 +76,24 @@ describe('MonetizationLinkManager', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-    dispatchEventSpy.mockRestore();
-    monetizationManager.end();
   });
 
   test('should detect monetization link tags', async () => {
-    const { window, document } = createTestEnv({
+    const { window, document, documentReadyState } = createTestEnv({
       head: html`<link rel="monetization" href="https://ilp.interledger-test.dev/tech">`,
     });
     const link = document.querySelector('link[rel="monetization"]')!;
-    dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
-    monetizationManager = new MonetizationLinkManager({
-      window: window as unknown as Window,
-      global: document.defaultView!.globalThis,
-      document: document,
-      logger: loggerMock,
-      message: messageMock,
-    });
-    jest.spyOn(document, 'readyState', 'get').mockReturnValue('interactive');
+    const linkManager = createMonetizationLinkManager(document, window);
+    documentReadyState.mockReturnValue('interactive');
 
-    monetizationManager.start();
+    linkManager.start();
 
     // @ts-ignore - accessing private property for testing
-    expect(monetizationManager.isTopFrame).toBe(true);
+    expect(linkManager.isTopFrame).toBe(true);
     // @ts-ignore
-    expect(monetizationManager.isFirstLevelFrame).toBe(true);
+    expect(linkManager.isFirstLevelFrame).toBe(true);
 
     expect(messageMock.send).toHaveBeenCalledTimes(1);
     expect(messageMock.send).toHaveBeenCalledWith('GET_WALLET_ADDRESS_INFO', {
@@ -130,20 +137,17 @@ describe('MonetizationLinkManager', () => {
     const iframeWindow = iframe.contentWindow!.window;
 
     const link = iframeDocument.querySelector('link[rel="monetization"]')!;
-    dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
+    const linkManager = createMonetizationLinkManager(
+      iframeDocument,
+      iframeWindow,
+    );
 
-    monetizationManager = new MonetizationLinkManager({
-      window: iframeWindow as unknown as Window,
-      document: iframeDocument,
-      global: iframeWindow.globalThis,
-      logger: loggerMock,
-      message: messageMock,
-    });
     jest.spyOn(document, 'readyState', 'get').mockReturnValue('interactive');
 
-    monetizationManager.start();
+    linkManager.start();
 
     expect(postMessageSpy).toHaveBeenCalledWith(
       {
@@ -155,9 +159,9 @@ describe('MonetizationLinkManager', () => {
     );
 
     // @ts-ignore - accessing private property for testing
-    expect(monetizationManager.isTopFrame).toBe(false);
+    expect(linkManager.isTopFrame).toBe(false);
     // @ts-ignore
-    expect(monetizationManager.isFirstLevelFrame).toBe(true);
+    expect(linkManager.isFirstLevelFrame).toBe(true);
 
     expect(messageMock.send).toHaveBeenCalledTimes(1);
     expect(messageMock.send).toHaveBeenCalledWith('GET_WALLET_ADDRESS_INFO', {
