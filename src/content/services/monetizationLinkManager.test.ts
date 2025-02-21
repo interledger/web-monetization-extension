@@ -1,4 +1,4 @@
-/**  @jest-environment jsdom */
+import { JSDOM } from 'jsdom';
 import { MonetizationLinkManager } from './monetizationLinkManager';
 import type {
   ContentToBackgroundMessage,
@@ -6,9 +6,6 @@ import type {
 } from '@/shared/messages';
 import type { Logger } from '@/shared/logger';
 import type { Browser } from 'webextension-polyfill';
-import { TextEncoder, TextDecoder } from 'node:util';
-Object.assign(global, { TextDecoder, TextEncoder });
-import { JSDOM, type DOMWindow } from 'jsdom';
 
 describe('MonetizationLinkManager', () => {
   let loggerMock: Logger;
@@ -27,14 +24,14 @@ describe('MonetizationLinkManager', () => {
     };
   }
 
-  function appendCreateLink(dom: DOMWindow) {
-    const link = dom.document.createElement('link');
+  function appendCreateLink(dom: Document) {
+    const link = dom.createElement('link');
     link.rel = 'monetization';
     link.href = 'https://ilp.interledger-test.dev/tech';
     // create a spy for dispatchEvent
     dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
-    dom.document.head.appendChild(link);
+    dom.head.appendChild(link);
     return link;
   }
 
@@ -74,32 +71,16 @@ describe('MonetizationLinkManager', () => {
         <body></body>
       </html>
     `);
-    const link = appendCreateLink(window);
-
-    // mock the MutationObserver constructor and Event
-    // https://stackoverflow.com/questions/76242504/mutationobserver-in-jsdom-fails-because-parameter-1-is-not-of-type-node
-    // https://github.com/jsdom/jsdom/issues/3331
-    jest.spyOn(globalThis, 'MutationObserver').mockImplementation((...args) => {
-      return new window.MutationObserver(...args);
-    });
-    jest
-      .spyOn(globalThis, 'Event')
-      .mockImplementation((...args) => new window.Event(args[0], args[1]));
-    // set global HTMLLinkElement
-    global.HTMLLinkElement = window.HTMLLinkElement;
-
-    Object.defineProperty(document, 'readyState', {
-      get() {
-        return 'interactive';
-      },
-    });
+    const link = appendCreateLink(document);
 
     monetizationManager = new MonetizationLinkManager({
       window: window as unknown as Window,
+      global: document.defaultView!.globalThis,
       document: document,
       logger: loggerMock,
       message: messageMock,
     });
+    jest.spyOn(document, 'readyState', 'get').mockReturnValue('interactive');
 
     monetizationManager.start();
 
@@ -154,36 +135,20 @@ describe('MonetizationLinkManager', () => {
     const iframe = dom.getElementById('testFrame') as HTMLIFrameElement;
     const iframeWindow = iframe.contentWindow!.window;
     const iframeDocument = iframe.contentDocument!;
-    const link = appendCreateLink(iframeWindow as unknown as DOMWindow);
-
-    global.HTMLLinkElement = iframeWindow.HTMLLinkElement;
+    const link = appendCreateLink(iframeDocument);
 
     dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
 
-    // mock the MutationObserver constructor
-    jest.spyOn(globalThis, 'MutationObserver').mockImplementation((...args) => {
-      return new iframeWindow.MutationObserver(...args);
-    });
-    jest
-      .spyOn(globalThis, 'Event')
-      .mockImplementation(
-        (...args) => new iframeWindow.Event(args[0], args[1]),
-      );
-
-    Object.defineProperty(dom, 'readyState', {
-      get() {
-        return 'interactive';
-      },
-    });
-
     monetizationManager = new MonetizationLinkManager({
       window: iframeWindow as unknown as Window,
       document: iframeDocument,
+      global: iframeWindow.globalThis,
       logger: loggerMock,
       message: messageMock,
     });
+    jest.spyOn(document, 'readyState', 'get').mockReturnValue('interactive');
 
     monetizationManager.start();
 
