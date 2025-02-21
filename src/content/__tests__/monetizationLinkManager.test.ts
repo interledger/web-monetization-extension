@@ -214,10 +214,7 @@ describe('MonetizationLinkManager', () => {
         payload: [
           {
             requestId: '123e4567-e89b-12d3-a456-426614174000',
-            walletAddress: {
-              authServer: 'https://auth.example.com',
-              publicName: 'Test Wallet',
-            },
+            walletAddress: WALLET_ADDRESS[0],
           },
         ],
       },
@@ -225,13 +222,10 @@ describe('MonetizationLinkManager', () => {
 
     iframeWindow.dispatchEvent(messageEvent);
 
-    expect(messageMock.send).toHaveBeenNthCalledWith(2, 'START_MONETIZATION', [
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
       {
         requestId: '123e4567-e89b-12d3-a456-426614174000',
-        walletAddress: {
-          authServer: 'https://auth.example.com',
-          publicName: 'Test Wallet',
-        },
+        walletAddress: WALLET_ADDRESS[0],
       },
     ]);
   });
