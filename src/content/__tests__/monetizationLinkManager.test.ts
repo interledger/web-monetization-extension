@@ -7,32 +7,33 @@ import type {
 import type { Logger } from '@/shared/logger';
 import type { Browser } from 'webextension-polyfill';
 
+// for syntax highlighting
+const html = String.raw;
+
 describe('MonetizationLinkManager', () => {
   let loggerMock: Logger;
   let messageMock: MessageManager<ContentToBackgroundMessage>;
   let monetizationManager: MonetizationLinkManager;
   let dispatchEventSpy: jest.SpyInstance;
 
-  function createTestEnv(html: string) {
-    const dom = new JSDOM(html, {
-      runScripts: 'dangerously',
-      pretendToBeVisual: true,
-    });
+  function createTestEnv({
+    head = '',
+    body = '',
+  }: { head?: string; body?: string }) {
+    const dom = new JSDOM(
+      html`<!DOCTYPE html><html><head>${head}</head><body>${body}</body></html>`,
+      {
+        runScripts: 'dangerously',
+        pretendToBeVisual: true,
+        resources: 'usable',
+      },
+    );
+
     return {
+      dom,
       window: dom.window,
       document: dom.window.document,
     };
-  }
-
-  function appendCreateLink(dom: Document) {
-    const link = dom.createElement('link');
-    link.rel = 'monetization';
-    link.href = 'https://ilp.interledger-test.dev/tech';
-    // create a spy for dispatchEvent
-    dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
-
-    dom.head.appendChild(link);
-    return link;
   }
 
   beforeEach(() => {
@@ -65,13 +66,11 @@ describe('MonetizationLinkManager', () => {
   });
 
   test('should detect monetization link tags', async () => {
-    const { window, document } = createTestEnv(`<!DOCTYPE html>
-      <html>
-        <head></head>
-        <body></body>
-      </html>
-    `);
-    const link = appendCreateLink(document);
+    const { window, document } = createTestEnv({
+      head: html`<link rel="monetization" href="https://ilp.interledger-test.dev/tech">`,
+    });
+    const link = document.querySelector('link[rel="monetization"]')!;
+    dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     monetizationManager = new MonetizationLinkManager({
       window: window as unknown as Window,
@@ -119,24 +118,18 @@ describe('MonetizationLinkManager', () => {
   });
 
   test('should detect link when running in first-level iframe', async () => {
-    const { document: dom } = createTestEnv(`<!DOCTYPE html>
-  <html>
-    <head></head>
-    <body>
-      <iframe id="testFrame">
-        <html>
-          <head></head>
-          <body></body>
-        </html>
-      </iframe>
-    </body>
-  </html>`);
-
-    const iframe = dom.getElementById('testFrame') as HTMLIFrameElement;
-    const iframeWindow = iframe.contentWindow!.window;
+    const { document: doc } = createTestEnv({
+      body: html`<iframe id="testFrame"></iframe>`,
+    });
+    const iframe = doc.getElementsByTagName('iframe')[0];
     const iframeDocument = iframe.contentDocument!;
-    const link = appendCreateLink(iframeDocument);
+    iframeDocument.head.insertAdjacentHTML(
+      'afterbegin',
+      html`<link rel="monetization" href="https://ilp.interledger-test.dev/tech">`,
+    );
+    const iframeWindow = iframe.contentWindow!.window;
 
+    const link = iframeDocument.querySelector('link[rel="monetization"]')!;
     dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
