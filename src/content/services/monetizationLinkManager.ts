@@ -12,14 +12,10 @@ import type {
 import type { Cradle as _Cradle } from '@/content/container';
 import type { ContentToContentMessage } from '../messages';
 
-type Cradle = Pick<
-  _Cradle,
-  'window' | 'document' | 'logger' | 'message' | 'global'
->;
+type Cradle = Pick<_Cradle, 'document' | 'logger' | 'message' | 'global'>;
 
 export class MonetizationLinkManager {
   private global: Cradle['global'];
-  private window: Cradle['window'];
   private document: Cradle['document'];
   private logger: Cradle['logger'];
   private message: Cradle['message'];
@@ -35,10 +31,9 @@ export class MonetizationLinkManager {
     { walletAddress: WalletAddress; requestId: string }
   >();
 
-  constructor({ window, document, logger, message, global }: Cradle) {
+  constructor({ document, logger, message, global }: Cradle) {
     Object.assign(this, {
       global,
-      window,
       document,
       logger,
       message,
@@ -52,8 +47,9 @@ export class MonetizationLinkManager {
       (records) => this.onLinkAttrChange(records),
     );
 
-    this.isTopFrame = this.window === this.window.top;
-    this.isFirstLevelFrame = this.window.parent === this.window.top;
+    this.isTopFrame = this.global.window === this.global.window.top;
+    this.isFirstLevelFrame =
+      this.global.window.parent === this.global.window.top;
     this.id = crypto.randomUUID();
   }
 
@@ -100,9 +96,9 @@ export class MonetizationLinkManager {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
-    this.window.removeEventListener('message', this.onWindowMessage);
-    this.window.removeEventListener('focus', this.onFocus);
-    this.window.removeEventListener('pagehide', this.onPageHide);
+    this.global.window.removeEventListener('message', this.onWindowMessage);
+    this.global.window.removeEventListener('focus', this.onFocus);
+    this.global.window.removeEventListener('pagehide', this.onPageHide);
   }
 
   /**
@@ -114,11 +110,11 @@ export class MonetizationLinkManager {
       this.onDocumentVisibilityChange,
     );
     this.onFocus();
-    this.window.addEventListener('focus', this.onFocus);
-    this.window.addEventListener('pagehide', this.onPageHide);
+    this.global.window.addEventListener('focus', this.onFocus);
+    this.global.window.addEventListener('pagehide', this.onPageHide);
 
     if (!this.isTopFrame && this.isFirstLevelFrame) {
-      this.window.addEventListener('message', this.onWindowMessage);
+      this.global.window.addEventListener('message', this.onWindowMessage);
       this.postMessage('INITIALIZE_IFRAME', undefined);
     }
 
@@ -419,7 +415,10 @@ export class MonetizationLinkManager {
     message: K,
     payload: Extract<ContentToContentMessage, { message: K }>['payload'],
   ) {
-    this.window.parent.postMessage({ message, id: this.id, payload }, '*');
+    this.global.window.parent.postMessage(
+      { message, id: this.id, payload },
+      '*',
+    );
   }
 
   private async onLinkAttrChange(records: MutationRecord[]) {

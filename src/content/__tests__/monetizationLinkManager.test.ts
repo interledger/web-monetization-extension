@@ -1,4 +1,4 @@
-import { JSDOM, type DOMWindow } from 'jsdom';
+import { JSDOM } from 'jsdom';
 import { MonetizationLinkManager } from '@/content/services/monetizationLinkManager';
 import type {
   ContentToBackgroundMessage,
@@ -14,12 +14,8 @@ describe('MonetizationLinkManager', () => {
   let loggerMock: Logger;
   let messageMock: MessageManager<ContentToBackgroundMessage>;
 
-  function createMonetizationLinkManager(
-    document: Document,
-    window: Window | DOMWindow,
-  ) {
+  function createMonetizationLinkManager(document: Document) {
     const linkManager = new MonetizationLinkManager({
-      window: window as unknown as Window,
       global: document.defaultView!.globalThis,
       document: document,
       message: messageMock,
@@ -79,13 +75,13 @@ describe('MonetizationLinkManager', () => {
   });
 
   test('should detect monetization link tags', async () => {
-    const { window, document, documentReadyState } = createTestEnv({
+    const { document, documentReadyState } = createTestEnv({
       head: html`<link rel="monetization" href="https://ilp.interledger-test.dev/tech">`,
     });
     const link = document.querySelector('link[rel="monetization"]')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
-    const linkManager = createMonetizationLinkManager(document, window);
+    const linkManager = createMonetizationLinkManager(document);
     documentReadyState.mockReturnValue('interactive');
 
     linkManager.start();
@@ -140,12 +136,11 @@ describe('MonetizationLinkManager', () => {
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
-    const linkManager = createMonetizationLinkManager(
-      iframeDocument,
-      iframeWindow,
-    );
-
-    jest.spyOn(document, 'readyState', 'get').mockReturnValue('interactive');
+    const linkManager = createMonetizationLinkManager(iframeDocument);
+    jest.spyOn(doc, 'readyState', 'get').mockReturnValue('interactive');
+    jest
+      .spyOn(iframeDocument, 'readyState', 'get')
+      .mockReturnValue('interactive');
 
     linkManager.start();
 
