@@ -66,14 +66,13 @@ describe('MonetizationLinkManager', () => {
   });
 
   test('should detect monetization link tags', async () => {
-    const { window, document } = createTestEnv({
+    const { document } = createTestEnv({
       head: html`<link rel="monetization" href="https://ilp.interledger-test.dev/tech">`,
     });
     const link = document.querySelector('link[rel="monetization"]')!;
     dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     monetizationManager = new MonetizationLinkManager({
-      window: window as unknown as Window,
       global: document.defaultView!.globalThis,
       document: document,
       logger: loggerMock,
@@ -135,7 +134,6 @@ describe('MonetizationLinkManager', () => {
     const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
 
     monetizationManager = new MonetizationLinkManager({
-      window: iframeWindow as unknown as Window,
       document: iframeDocument,
       global: iframeWindow.globalThis,
       logger: loggerMock,
