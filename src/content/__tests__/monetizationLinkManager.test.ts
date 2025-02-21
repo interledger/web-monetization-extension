@@ -3,22 +3,55 @@ import { MonetizationLinkManager } from '@/content/services/monetizationLinkMana
 import type {
   ContentToBackgroundMessage,
   MessageManager,
+  Response,
 } from '@/shared/messages';
+import { success } from '@/shared/helpers';
 import type { Logger } from '@/shared/logger';
-import type { Browser } from 'webextension-polyfill';
+import type { WalletAddress } from '@interledger/open-payments';
 
 // for syntax highlighting
 const html = String.raw;
 
+const WALLET_ADDRESS: WalletAddress[] = [
+  {
+    authServer: 'https://auth.example.com',
+    publicName: 'Test Wallet',
+    assetCode: 'USD',
+    assetScale: 2,
+    id: '',
+    resourceServer: '',
+  },
+];
+
 describe('MonetizationLinkManager', () => {
-  let loggerMock: Logger;
-  let messageMock: MessageManager<ContentToBackgroundMessage>;
+  const messageManager = {
+    send: () => {},
+  } as unknown as MessageManager<ContentToBackgroundMessage>;
+  const loggerMock = {
+    error: jest.fn(),
+  } as unknown as Logger;
+
+  const msg: {
+    [k in keyof ContentToBackgroundMessage]: jest.Mock<
+      Promise<Response<ContentToBackgroundMessage[k]['output']>>,
+      [ContentToBackgroundMessage[k]['input']]
+    >;
+  } = {
+    GET_WALLET_ADDRESS_INFO: jest.fn(),
+    RESUME_MONETIZATION: jest.fn(),
+    START_MONETIZATION: jest.fn(),
+    STOP_MONETIZATION: jest.fn(),
+    TAB_FOCUSED: jest.fn(),
+  };
+  const messageMock = jest.spyOn(messageManager, 'send');
+  // @ts-expect-error let it go
+  messageMock.mockImplementation((action, payload) => msg[action](payload));
 
   function createMonetizationLinkManager(document: Document) {
     const linkManager = new MonetizationLinkManager({
       global: document.defaultView!.globalThis,
       document: document,
-      message: messageMock,
+      message: messageManager,
       logger: loggerMock,
     });
 
@@ -48,30 +81,12 @@ describe('MonetizationLinkManager', () => {
   }
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     // mock crypto.randomUUID for requestId
     global.crypto.randomUUID = jest.fn(
       () => '123e4567-e89b-12d3-a456-426614174000',
     );
-
-    messageMock = {
-      send: jest.fn().mockResolvedValueOnce({
-        success: true,
-        payload: {
-          authServer: 'https://auth.example.com',
-          publicName: 'Test Wallet',
-        },
-      }),
-      sendToTab: jest.fn(),
-      sendToActiveTab: jest.fn(),
-      browser: {} as unknown as Browser,
-    } as unknown as jest.Mocked<MessageManager<ContentToBackgroundMessage>>;
-    loggerMock = {
-      error: jest.fn(),
-    } as unknown as Logger;
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   test('should detect monetization link tags', async () => {
@@ -84,6 +99,10 @@ describe('MonetizationLinkManager', () => {
     const linkManager = createMonetizationLinkManager(document);
     documentReadyState.mockReturnValue('interactive');
 
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
+      success(WALLET_ADDRESS[0]),
+    );
+
     linkManager.start();
 
     // @ts-ignore - accessing private property for testing
@@ -91,8 +110,8 @@ describe('MonetizationLinkManager', () => {
     // @ts-ignore
     expect(linkManager.isFirstLevelFrame).toBe(true);
 
-    expect(messageMock.send).toHaveBeenCalledTimes(1);
-    expect(messageMock.send).toHaveBeenCalledWith('GET_WALLET_ADDRESS_INFO', {
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
       walletAddressUrl: 'https://ilp.interledger-test.dev/tech',
     });
 
@@ -107,15 +126,11 @@ describe('MonetizationLinkManager', () => {
     // event was dispatched on correct link element
     expect(dispatchEventSpy.mock.instances[0]).toBe(link);
 
-    expect(messageMock.send).toHaveBeenCalledTimes(2);
-    // second call should be START_MONETIZATION with the right payload
-    expect(messageMock.send).toHaveBeenNthCalledWith(2, 'START_MONETIZATION', [
+    expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
       {
         requestId: '123e4567-e89b-12d3-a456-426614174000',
-        walletAddress: {
-          authServer: 'https://auth.example.com',
-          publicName: 'Test Wallet',
-        },
+        walletAddress: WALLET_ADDRESS[0],
       },
     ]);
   });
@@ -131,6 +146,10 @@ describe('MonetizationLinkManager', () => {
       html`<link rel="monetization" href="https://ilp.interledger-test.dev/tech">`,
     );
     const iframeWindow = iframe.contentWindow!.window;
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
+      success(WALLET_ADDRESS[0]),
+    );
 
     const link = iframeDocument.querySelector('link[rel="monetization"]')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
@@ -158,8 +177,8 @@ describe('MonetizationLinkManager', () => {
     // @ts-ignore
     expect(linkManager.isFirstLevelFrame).toBe(true);
 
-    expect(messageMock.send).toHaveBeenCalledTimes(1);
-    expect(messageMock.send).toHaveBeenCalledWith('GET_WALLET_ADDRESS_INFO', {
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
       walletAddressUrl: 'https://ilp.interledger-test.dev/tech',
     });
 
@@ -179,10 +198,7 @@ describe('MonetizationLinkManager', () => {
         payload: [
           {
             requestId: '123e4567-e89b-12d3-a456-426614174000',
-            walletAddress: {
-              authServer: 'https://auth.example.com',
-              publicName: 'Test Wallet',
-            },
+            walletAddress: WALLET_ADDRESS[0],
           },
         ],
       },
