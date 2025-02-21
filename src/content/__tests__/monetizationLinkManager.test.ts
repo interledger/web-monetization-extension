@@ -1,5 +1,5 @@
 import { JSDOM } from 'jsdom';
-import { MonetizationLinkManager } from './monetizationLinkManager';
+import { MonetizationLinkManager } from '@/content/services/monetizationLinkManager';
 import type {
   ContentToBackgroundMessage,
   MessageManager,
