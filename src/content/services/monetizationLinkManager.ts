@@ -9,8 +9,10 @@ import type {
   StopMonetizationPayload,
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
-import type { Cradle } from '@/content/container';
+import type { Cradle as _Cradle } from '@/content/container';
 import type { ContentToContentMessage } from '../messages';
+
+type Cradle = Pick<_Cradle, 'window' | 'document' | 'logger' | 'message'>;
 
 export class MonetizationLinkManager {
   private window: Cradle['window'];
@@ -29,12 +31,7 @@ export class MonetizationLinkManager {
     { walletAddress: WalletAddress; requestId: string }
   >();
 
-  constructor({
-    window,
-    document,
-    logger,
-    message,
-  }: Pick<Cradle, 'window' | 'document' | 'logger' | 'message'>) {
+  constructor({ window, document, logger, message }: Cradle) {
     Object.assign(this, {
       window,
       document,
