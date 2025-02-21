@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-
+import { TextEncoder, TextDecoder } from 'node:util';
 import { chrome } from 'jest-chrome';
 
 jest.mock('./src/shared/defines', () => ({
@@ -10,6 +10,8 @@ jest.mock('./src/shared/defines', () => ({
 }));
 
 Object.assign(global, {
+  TextDecoder,
+  TextEncoder,
   chrome: chrome,
   browser: chrome,
 });
