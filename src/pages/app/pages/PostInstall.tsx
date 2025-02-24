@@ -66,12 +66,55 @@ const Main = () => {
   );
 };
 
+const WALLETS: Array<{
+  id: string;
+  name: string;
+  url: string;
+  logo: {
+    path: string;
+    width: number;
+    height: number;
+  };
+}> = [
+  {
+    id: 'interledger.app',
+    name: 'Interledger Wallet',
+    url: 'https://interledger.app/signup',
+    logo: {
+      path: '/assets/images/logos/interledger-app-logo.svg',
+      width: 300,
+      height: 74,
+    },
+  },
+  {
+    id: 'gatehub',
+    name: 'GateHub Wallet',
+    url: '', // empty URL to ignore it from listing
+    logo: {
+      path: '/assets/images/logos/gatehub-logo.svg',
+      width: 300,
+      height: 85,
+    },
+  },
+  {
+    id: 'chimoney',
+    name: 'Chimoney Wallet',
+    url: '', // empty URL to ignore it from listing
+    logo: {
+      path: '/assets/images/logos/chimoney-logo.svg',
+      width: 300,
+      height: 75,
+    },
+  },
+];
+
 const Steps = () => {
   const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
   const browserName = getBrowserName(browser, navigator.userAgent);
 
+  const [selectedWallet, setSelectedWallet] = React.useState('');
   const [isOpen, setIsOpen] = React.useState(0);
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
@@ -85,32 +128,55 @@ const Steps = () => {
         onClick={onClick}
         title={
           <React.Fragment>
-            {t('postInstall_text_stepGetWallet_title')}{' '}
             <a
               href="https://webmonetization.org/docs/resources/op-wallets/"
               title="Web Monetization-enabled wallets"
               target="_blank"
               rel="noreferrer"
-              className="group pr-1 text-primary outline-current"
+              className="group pr-1 text-primary outline-current hover:underline"
               onClick={(ev) => ev.stopPropagation()}
             >
+              {t('postInstall_text_stepGetWallet_title')}{' '}
               <span className="sr-only">list of supported wallets</span>
               <ExternalIcon className="inline-block size-4 align-baseline transition-transform hover:scale-125 group-focus:scale-125" />
             </a>
           </React.Fragment>
         }
       >
-        <a
-          href="https://interledger.app/signup"
-          target="_blank"
-          rel="noreferrer"
+        <p>{t('postInstall_text_stepGetWallet_desc')}</p>
+        <div
+          className="grid gap-4 justify-center mt-4 mx-auto group/wallet"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, max-content))',
+          }}
         >
-          <img
-            src="/assets/images/wallet-signup.png"
-            className="mx-auto"
-            alt=""
-          />
-        </a>
+          {WALLETS.map((wallet) => (
+            <a
+              key={wallet.id}
+              href={wallet.url}
+              target="_blank"
+              title={wallet.name}
+              rel="noreferrer"
+              className={cn(
+                { hidden: !wallet.url },
+                'p-4 shadow max-w-72',
+                'hover:shadow-lg transition-[transform,box-shadow] duration-300 ease-in-out',
+                'group-hover/wallet:opacity-25 group-focus-within/wallet:hover:opacity-25 group-focus-within/wallet:opacity-25',
+                'group-hover/wallet:hover:opacity-100',
+                'group-focus-within/wallet:focus:opacity-100 focus:hover:opacity-100',
+              )}
+              onClick={() => setSelectedWallet(wallet.id)}
+            >
+              <img
+                src={wallet.logo.path}
+                width={wallet.logo.width}
+                height={wallet.logo.height}
+                alt={wallet.name}
+                className="mx-auto"
+              />
+            </a>
+          ))}
+        </div>
       </Step>
 
       <Step
@@ -119,6 +185,8 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_text_stepWalletAddress_title')}
       >
+        <p>Selected wallet: {selectedWallet}</p>
+        {/* TODO: show different screenshot as per selectedWallet */}
         <img
           src="/assets/images/wallet-wallet-address.png"
           alt=""
@@ -157,6 +225,7 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
+        {/* TODO: show different placeholder as per selectedWallet */}
         <StepConnectWallet />
       </Step>
     </ol>
