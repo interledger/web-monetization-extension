@@ -91,6 +91,8 @@ describe('MonetizationLinkManager', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // biome-ignore lint/complexity/noForEach: <explanation>
+    Object.values(msg).forEach((m) => m.mockReset());
 
     // mock crypto.randomUUID for requestId
     // @ts-expect-error let it go
@@ -411,7 +413,34 @@ describe('MonetizationLinkManager', () => {
     ]);
   });
 
-  test.todo('should handle pagehide event');
+  test('should handle pagehide event', async () => {
+    const { document, documentReadyState, window } = createTestEnv({
+      head: html`<link rel="monetization" href="https://ilp.interledger-test.dev/tech">`,
+    });
+
+    const linkManager = createMonetizationLinkManager(document);
+    documentReadyState.mockReturnValue('interactive');
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
+      success(WALLET_ADDRESS[0]),
+    );
+
+    linkManager.start();
+
+    await new Promise(process.nextTick);
+
+    window.dispatchEvent(new window.Event('pagehide'));
+
+    const walletAddressInfoRequestId = requestIdMock.mock.results[1].value;
+    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
+      {
+        requestId: walletAddressInfoRequestId,
+        intent: 'remove',
+      },
+    ]);
+  });
+
+  test.todo('should handle focus event');
 
   test('should handle multiple monetization links', async () => {
     const { document, documentReadyState } = createTestEnv({
@@ -483,5 +512,38 @@ describe('MonetizationLinkManager', () => {
     );
   });
 
-  test.todo('should handle dynamically added monetization link');
+  test('should handle dynamically added monetization link in top frame', async () => {
+    const { document, documentReadyState } = createTestEnv({
+      head: '',
+    });
+
+    const linkManager = createMonetizationLinkManager(document);
+    documentReadyState.mockReturnValue('interactive');
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
+      success(WALLET_ADDRESS[0]),
+    );
+
+    linkManager.start();
+
+    // add monetization link after initialization
+    const link = document.createElement('link');
+    link.rel = 'monetization';
+    link.href = 'https://ilp.interledger-test.dev/tech';
+    document.head.appendChild(link);
+
+    await new Promise(process.nextTick);
+
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
+      walletAddressUrl: 'https://ilp.interledger-test.dev/tech',
+    });
+
+    const walletAddressInfoRequestId = requestIdMock.mock.results[1].value;
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      {
+        requestId: walletAddressInfoRequestId,
+        walletAddress: WALLET_ADDRESS[0],
+      },
+    ]);
+  });
 });
