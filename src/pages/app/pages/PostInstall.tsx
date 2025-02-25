@@ -72,7 +72,7 @@ type WalletOption = {
   url: string;
   logo: { path: string; width: number; height: number };
   keyScreenshot: { path: string; width: number; height: number };
-  walletAddressPlaceholder?: string;
+  walletAddressPlaceholder: string;
 };
 
 const WALLETS: Array<WalletOption> = [
@@ -251,7 +251,7 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
-        <StepConnectWallet wallet={selectedWallet} />
+        <StepConnectWallet selectedWallet={selectedWallet} />
       </Step>
     </ol>
   );
@@ -350,7 +350,9 @@ function StepNumber({ number }: { number: number }) {
   );
 }
 
-function StepConnectWallet({ wallet }: { wallet: WalletOption | null }) {
+function StepConnectWallet({
+  selectedWallet,
+}: { selectedWallet: WalletOption | null }) {
   const message = useMessage();
   const t = useTranslation();
   const {
@@ -390,7 +392,7 @@ function StepConnectWallet({ wallet }: { wallet: WalletOption | null }) {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
         getWalletInfo={getWalletInformation}
-        walletAddressPlaceholder={wallet?.walletAddressPlaceholder}
+        walletAddressPlaceholder={selectedWallet?.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         clearConnectState={() => message.send('CONNECT_WALLET', null)}
       />
