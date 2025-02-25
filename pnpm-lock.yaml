@@ -61,8 +61,8 @@ importers:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
       react-router-dom:
-        specifier: ^7.1.5
-        version: 7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^7.2.0
+        version: 7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       safe-buffer:
         specifier: 5.2.1
         version: 5.2.1
@@ -168,7 +168,7 @@ importers:
         version: 0.6.9(prettier@3.5.0)
       react-scan:
         specifier: ^0.0.54
-        version: 0.0.54(react-dom@18.3.1(react@18.3.1))(react-router-dom@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-router@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(rollup@4.20.0)
+        version: 0.0.54(react-dom@18.3.1(react@18.3.1))(react-router-dom@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-router@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(rollup@4.20.0)
       sade:
         specifier: ^1.8.1
         version: 1.8.1
@@ -3190,15 +3190,15 @@ packages:
   react-is@18.2.0:
     resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
 
-  react-router-dom@7.1.5:
-    resolution: {integrity: sha512-/4f9+up0Qv92D3bB8iN5P1s3oHAepSGa9h5k6tpTFlixTTskJZwKGhJ6vRJ277tLD1zuaZTt95hyGWV1Z37csQ==}
+  react-router-dom@7.2.0:
+    resolution: {integrity: sha512-cU7lTxETGtQRQbafJubvZKHEn5izNABxZhBY0Jlzdv0gqQhCPQt2J8aN5ZPjS6mQOXn5NnirWNh+FpE8TTYN0Q==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
 
-  react-router@7.1.5:
-    resolution: {integrity: sha512-8BUF+hZEU4/z/JD201yK6S+UYhsf58bzYIDq2NS1iGpwxSXDu7F+DeGSkIXMFBuHZB21FSiCzEcUb18cQNdRkA==}
+  react-router@7.2.0:
+    resolution: {integrity: sha512-fXyqzPgCPZbqhrk7k3hPcCpYIlQ2ugIXDboHUzhJISFVy2DEPsmHgN588MyGmkIOv3jDgNfUE3kJi83L28s/LQ==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: '>=18'
@@ -6936,13 +6936,13 @@ snapshots:
 
   react-is@18.2.0: {}
 
-  react-router-dom@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-router-dom@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      react-router: 7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-router: 7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
-  react-router@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-router@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@types/cookie': 0.6.0
       cookie: 1.0.2
@@ -6952,7 +6952,7 @@ snapshots:
     optionalDependencies:
       react-dom: 18.3.1(react@18.3.1)
 
-  react-scan@0.0.54(react-dom@18.3.1(react@18.3.1))(react-router-dom@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-router@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(rollup@4.20.0):
+  react-scan@0.0.54(react-dom@18.3.1(react@18.3.1))(react-router-dom@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-router@7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(rollup@4.20.0):
     dependencies:
       '@babel/core': 7.26.0
       '@babel/generator': 7.26.5
@@ -6973,8 +6973,8 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       tsx: 4.19.2
     optionalDependencies:
-      react-router: 7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-router-dom: 7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-router: 7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-router-dom: 7.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       unplugin: 2.1.0
     transitivePeerDependencies:
       - rollup
