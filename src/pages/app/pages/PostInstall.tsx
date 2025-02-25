@@ -176,6 +176,9 @@ const Steps = () => {
             </a>
           ))}
         </div>
+        <p className="text-slate-400 text-sm text-right">
+          {t('postInstall_text_stepGetWallet_comingSoon')}
+        </p>
       </Step>
 
       <Step
