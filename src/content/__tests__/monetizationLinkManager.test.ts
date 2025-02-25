@@ -995,6 +995,7 @@ describe('MonetizationLinkManager', () => {
       expect(msg.RESUME_MONETIZATION).toHaveBeenCalledWith([
         {
           requestId: walletAddressInfoRequestId,
+          walletAddress: WALLET_ADDRESS[0],
         },
       ]);
     });
