@@ -5810,7 +5810,7 @@ snapshots:
       has-tostringtag: 1.0.2
       hasown: 2.0.2
 
-  esbuild-node-builtin@0.1.1(esbuild@0.24.2)(rollup@4.20.0):
+  esbuild-node-builtin@0.1.1(esbuild@0.25.0)(rollup@4.20.0):
     dependencies:
       debug: 4.3.4
       esbuild: 0.25.0
