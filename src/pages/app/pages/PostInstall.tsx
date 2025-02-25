@@ -70,11 +70,7 @@ const WALLETS: Array<{
   id: string;
   name: string;
   url: string;
-  logo: {
-    path: string;
-    width: number;
-    height: number;
-  };
+  logo: { path: string; width: number; height: number };
 }> = [
   {
     id: 'interledger.app',
@@ -145,9 +141,12 @@ const Steps = () => {
       >
         <p>{t('postInstall_text_stepGetWallet_desc')}</p>
         <div
-          className="grid gap-4 justify-center mt-4 mx-auto group/wallet"
+          className={cn(
+            'grid gap-4 justify-center mt-4 mx-auto group/wallet',
+            WALLETS.filter((w) => !!w.url).length < 2 && 'w-fit',
+          )}
           style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, max-content))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, min-content))',
           }}
         >
           {WALLETS.map((wallet) => (
@@ -159,8 +158,8 @@ const Steps = () => {
               rel="noreferrer"
               className={cn(
                 { hidden: !wallet.url },
-                'p-4 shadow max-w-72',
-                'hover:shadow-lg transition-[transform,box-shadow] duration-300 ease-in-out',
+                'sm:p-2 p-4 shadow max-w-72 rounded-md',
+                'hover:shadow-lg hover:scale-105 transition-[transform,box-shadow] duration-300 ease-in-out',
                 'group-hover/wallet:opacity-25 group-focus-within/wallet:hover:opacity-25 group-focus-within/wallet:opacity-25',
                 'group-hover/wallet:hover:opacity-100',
                 'group-focus-within/wallet:focus:opacity-100 focus:hover:opacity-100',
