@@ -66,12 +66,16 @@ const Main = () => {
   );
 };
 
-const WALLETS: Array<{
+type WalletOption = {
   id: string;
   name: string;
   url: string;
   logo: { path: string; width: number; height: number };
-}> = [
+  keyScreenshot: { path: string; width: number; height: number };
+  walletAddressPlaceholder?: string;
+};
+
+const WALLETS: Array<WalletOption> = [
   {
     id: 'interledger.app',
     name: 'Interledger Wallet',
@@ -81,6 +85,12 @@ const WALLETS: Array<{
       width: 300,
       height: 74,
     },
+    keyScreenshot: {
+      path: '/assets/images/wallet-address-interledger.png',
+      width: 1500,
+      height: 836,
+    },
+    walletAddressPlaceholder: 'https://fynbos.me/my-wallet',
   },
   {
     id: 'gatehub',
@@ -91,6 +101,12 @@ const WALLETS: Array<{
       width: 300,
       height: 85,
     },
+    keyScreenshot: {
+      path: '/assets/images/wallet-address-gatehub.png',
+      width: 1829,
+      height: 984,
+    },
+    walletAddressPlaceholder: '$ilp.gatehub.net/150012570/USD',
   },
   {
     id: 'chimoney',
@@ -101,6 +117,12 @@ const WALLETS: Array<{
       width: 300,
       height: 75,
     },
+    keyScreenshot: {
+      path: '/assets/images/wallet-address-chimoney.png',
+      width: 1500,
+      height: 938,
+    },
+    walletAddressPlaceholder: 'https://ilp.chimoney.com/37294745',
   },
 ];
 
@@ -110,7 +132,11 @@ const Steps = () => {
   const isPinnedToToolbar = usePinnedStatus();
   const browserName = getBrowserName(browser, navigator.userAgent);
 
-  const [selectedWallet, setSelectedWallet] = React.useState('');
+  const [selectedWallet, setSelectedWallet] =
+    React.useState<WalletOption | null>(null);
+  const keyScreenshot = selectedWallet?.keyScreenshot?.path
+    ? selectedWallet.keyScreenshot
+    : WALLETS[0].keyScreenshot;
   const [isOpen, setIsOpen] = React.useState(0);
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
@@ -126,14 +152,12 @@ const Steps = () => {
           <React.Fragment>
             <a
               href="https://webmonetization.org/docs/resources/op-wallets/"
-              title="Web Monetization-enabled wallets"
               target="_blank"
               rel="noreferrer"
               className="group pr-1 text-primary outline-current hover:underline"
               onClick={(ev) => ev.stopPropagation()}
             >
               {t('postInstall_text_stepGetWallet_title')}{' '}
-              <span className="sr-only">list of supported wallets</span>
               <ExternalIcon className="inline-block size-4 align-baseline transition-transform hover:scale-125 group-focus:scale-125" />
             </a>
           </React.Fragment>
@@ -146,7 +170,7 @@ const Steps = () => {
             WALLETS.filter((w) => !!w.url).length < 2 && 'w-fit',
           )}
           style={{
-            gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, min-content))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, min-content))',
           }}
         >
           {WALLETS.map((wallet) => (
@@ -164,7 +188,7 @@ const Steps = () => {
                 'group-hover/wallet:hover:opacity-100',
                 'group-focus-within/wallet:focus:opacity-100 focus:hover:opacity-100',
               )}
-              onClick={() => setSelectedWallet(wallet.id)}
+              onClick={() => setSelectedWallet(wallet)}
             >
               <img
                 src={wallet.logo.path}
@@ -187,12 +211,12 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_text_stepWalletAddress_title')}
       >
-        <p>Selected wallet: {selectedWallet}</p>
-        {/* TODO: show different screenshot as per selectedWallet */}
         <img
-          src="/assets/images/wallet-wallet-address.png"
+          src={keyScreenshot.path}
+          width={keyScreenshot.width}
+          height={keyScreenshot.height}
           alt=""
-          className="mx-auto max-w-[90%] p-4 shadow-2xl"
+          className="mx-auto p-4 shadow-2xl"
         />
       </Step>
 
@@ -227,8 +251,7 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
-        {/* TODO: show different placeholder as per selectedWallet */}
-        <StepConnectWallet />
+        <StepConnectWallet wallet={selectedWallet} />
       </Step>
     </ol>
   );
@@ -327,7 +350,7 @@ function StepNumber({ number }: { number: number }) {
   );
 }
 
-function StepConnectWallet() {
+function StepConnectWallet({ wallet }: { wallet: WalletOption | null }) {
   const message = useMessage();
   const t = useTranslation();
   const {
@@ -367,6 +390,7 @@ function StepConnectWallet() {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
         getWalletInfo={getWalletInformation}
+        walletAddressPlaceholder={wallet?.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         clearConnectState={() => message.send('CONNECT_WALLET', null)}
       />

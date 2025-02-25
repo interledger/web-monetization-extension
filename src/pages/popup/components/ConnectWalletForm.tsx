@@ -44,6 +44,7 @@ interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<Inputs>;
   state?: ConnectTransientState;
+  walletAddressPlaceholder?: string;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
@@ -55,6 +56,7 @@ export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
   state,
+  walletAddressPlaceholder = 'https://ilp.interledger-test.dev/johndoe',
   getWalletInfo,
   connectWallet,
   clearConnectState,
@@ -298,7 +300,7 @@ export const ConnectWalletForm = ({
         type="text"
         label={t('connectWallet_label_walletAddress')}
         id="connectWalletAddressUrl"
-        placeholder="https://ilp.interledger-test.dev/johndoe"
+        placeholder={walletAddressPlaceholder}
         errorMessage={errors.walletAddressUrl?.message}
         defaultValue={walletAddressUrl}
         trailingAddOn={
