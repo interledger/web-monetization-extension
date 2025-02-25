@@ -161,11 +161,11 @@ importers:
         specifier: ^8.5.1
         version: 8.5.1
       prettier:
-        specifier: ^3.5.0
-        version: 3.5.0
+        specifier: ^3.5.2
+        version: 3.5.2
       prettier-plugin-tailwindcss:
         specifier: ^0.6.9
-        version: 0.6.9(prettier@3.5.0)
+        version: 0.6.9(prettier@3.5.2)
       react-scan:
         specifier: ^0.0.54
         version: 0.0.54(react-dom@18.3.1(react@18.3.1))(react-router-dom@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-router@7.1.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(rollup@4.20.0)
@@ -3122,8 +3122,8 @@ packages:
       prettier-plugin-svelte:
         optional: true
 
-  prettier@3.5.0:
-    resolution: {integrity: sha512-quyMrVt6svPS7CjQ9gKb3GLEX/rl3BCL2oa/QkNcXv4YNVBC9olt3s+H7ukto06q7B1Qz46PbrKLO34PR6vXcA==}
+  prettier@3.5.2:
+    resolution: {integrity: sha512-lc6npv5PH7hVqozBR7lkBNOGXV9vMwROAPlumdBkX0wTbbzPu/U1hk5yL8p2pt4Xoc+2mkT8t/sow2YrV/M5qg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -6865,11 +6865,11 @@ snapshots:
 
   preact@10.25.4: {}
 
-  prettier-plugin-tailwindcss@0.6.9(prettier@3.5.0):
+  prettier-plugin-tailwindcss@0.6.9(prettier@3.5.2):
     dependencies:
-      prettier: 3.5.0
+      prettier: 3.5.2
 
-  prettier@3.5.0: {}
+  prettier@3.5.2: {}
 
   pretty-format@27.5.1:
     dependencies:
