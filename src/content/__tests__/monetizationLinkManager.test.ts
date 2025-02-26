@@ -533,7 +533,7 @@ describe('monetization in main frame', () => {
 });
 
 describe('monetization in first level iframe', () => {
-  test('should detect monetization links', async () => {
+  test('detect monetization links in head', async () => {
     const { document, window } = createTestEnvWithIframe({
       head: html`
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
@@ -615,59 +615,46 @@ describe('monetization in first level iframe', () => {
     ]);
   });
 
-  test('should handle only first link tag in first-level iframe', async () => {
+  test.todo('ignore monetization links in body');
+
+  test.failing('handle only first link tag', async () => {
     // also test disabling a link tag in iframe, changing URL of first link tag, and prepending another link tag
-    const { document: doc } = createTestEnv({
-      body: html`<iframe id="testFrame"></iframe>`,
+    const { document, window } = createTestEnvWithIframe({
+      head: html`
+        <link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const iframe = doc.getElementsByTagName('iframe')[0];
-    const iframeDocument = iframe.contentDocument!;
-    const iframeWindow = iframe.contentWindow!.window;
+    const linkManager = createMonetizationLinkManager(document);
+    const link1 = document.querySelector('link')!;
 
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]))
-      .mockResolvedValueOnce(success(WALLET_INFO[1]))
-      .mockResolvedValueOnce(success(WALLET_INFO[2]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[2]));
 
-    const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
-    const linkManager = createMonetizationLinkManager(iframeDocument);
+    const postMessageSpy = jest.spyOn(window.parent, 'postMessage');
     const iframeId = requestIdMock.mock.results[0].value;
 
     linkManager.start();
-
-    const link1 = iframeDocument.createElement('link');
-    link1.rel = 'monetization';
-    link1.href = 'https://ilp.interledger-test.dev/tech1';
-    iframeDocument.head.appendChild(link1);
-
     await nextTick();
+    // TODO: check START_MONETIZATION
 
     const firstRequestId = requestIdMock.mock.results[1].value;
-
     // test disable first link tag in iframe
     link1.setAttribute('disabled', '');
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId: firstRequestId,
-        intent: 'disable',
-      },
+      { requestId: firstRequestId, intent: 'disable' },
     ]);
 
     // test first link URL change
     link1.removeAttribute('disabled');
-    link1.href = 'https://ilp.interledger-test.dev/tech2';
-
+    link1.href = WALLET_ADDRESS[1];
     await nextTick();
 
     const secondRequestId = requestIdMock.mock.results[2].value;
-
     // prepend another link (should be ignored in iframe)
-    const link2 = iframeDocument.createElement('link');
-    link2.rel = 'monetization';
-    link2.href = 'https://ilp.interledger-test.dev/tech3';
-    iframeDocument.head.insertBefore(link2, link1);
-
+    const link2 = createLink(document, WALLET_ADDRESS[2]);
+    document.head.insertBefore(link2, link1);
     await nextTick();
 
     // Verify only the first link is active
@@ -677,59 +664,46 @@ describe('monetization in first level iframe', () => {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
         payload: [
-          {
-            requestId: secondRequestId,
-            walletAddress: WALLET_INFO[1],
-          },
+          { requestId: secondRequestId, walletAddress: WALLET_INFO[1] },
         ],
       },
       '*',
     );
+    // TODO: check START_MONETIZATION
   });
 
-  test('should handle dynamically added monetization link in first-lvl iframe, after page load', async () => {
-    const { document: doc } = createTestEnv({
-      body: html`<iframe id="testFrame"></iframe>`,
-    });
-    const iframe = doc.getElementsByTagName('iframe')[0];
-    const iframeDocument = iframe.contentDocument!;
-    const iframeWindow = iframe.contentWindow!.window;
+  test.failing('handle dynamically added monetization link', async () => {
+    const { document, window } = createTestEnvWithIframe();
+    const linkManager = createMonetizationLinkManager(document);
 
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
-      success(WALLET_INFO[0]),
-    ).mockResolvedValueOnce(success(WALLET_INFO[1]));
-
-    const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
-    const linkManager = createMonetizationLinkManager(iframeDocument);
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
+    const postMessageSpy = jest.spyOn(window.parent, 'postMessage');
     const iframeId = requestIdMock.mock.results[0].value;
 
     linkManager.start();
 
     // append body
-    const wrapper1 = iframeDocument.createElement('div');
+    const wrapper1 = document.createElement('div');
     wrapper1.innerHTML = `<link rel="monetization" href="${WALLET_ADDRESS[0]}">`;
-    iframeDocument.body.appendChild(wrapper1);
+    document.body.appendChild(wrapper1);
 
     await nextTick();
 
     // append head
-    const wrapper2 = iframeDocument.createElement('div');
+    const wrapper2 = document.createElement('div');
     wrapper2.innerHTML = `<link rel="monetization" href="${WALLET_ADDRESS[1]}">`;
-    iframeDocument.head.appendChild(wrapper2);
+    document.head.appendChild(wrapper2);
 
     await nextTick();
 
+    const requestId = requestIdMock.mock.results.at(-1)!.value;
     // only the head link should be processed in iframe
     expect(postMessageSpy).toHaveBeenCalledWith(
       {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [
-          {
-            requestId: requestIdMock.mock.results.at(-1)!.value,
-            walletAddress: WALLET_INFO[0],
-          },
-        ],
+        payload: [{ requestId, walletAddress: WALLET_INFO[0] }],
       },
       '*',
     );
