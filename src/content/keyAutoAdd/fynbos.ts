@@ -1,5 +1,5 @@
 // cSpell:ignore nextjs
-import { errorWithKey, ErrorWithKey, sleep } from '@/shared/helpers';
+import { errorWithKey, ErrorWithKey } from '@/shared/helpers';
 import {
   KeyAutoAdd,
   LOGIN_WAIT_TIMEOUT,
@@ -23,8 +23,7 @@ const waitForLogin: Run<void> = async (
   let alreadyLoggedIn = window.location.href.startsWith(keyAddUrl);
   if (!alreadyLoggedIn) setNotificationSize('notification');
   try {
-    await sleep(2000);
-    alreadyLoggedIn = await waitForURL(
+    alreadyLoggedIn ||= await waitForURL(
       (url) => (url.origin + url.pathname).startsWith(keyAddUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
     );
