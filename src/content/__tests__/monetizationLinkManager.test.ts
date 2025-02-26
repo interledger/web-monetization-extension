@@ -133,7 +133,7 @@ describe('monetization in main frame', () => {
     });
     const linkManager = createMonetizationLinkManager(document);
 
-    const link = document.querySelector('link[rel="monetization"]')!;
+    const link = document.querySelector('link')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -179,7 +179,7 @@ describe('monetization in main frame', () => {
     await nextTick();
 
     const requestId = requestIdMock.mock.results[1].value;
-    document.querySelector('link[rel="monetization"]')!.remove();
+    document.querySelector('link')!.remove();
 
     await nextTick();
 
@@ -277,9 +277,9 @@ describe('monetization in main frame', () => {
     msg.GET_WALLET_ADDRESS_INFO.mockRejectedValueOnce(
       failure('This wallet address does not exist.'),
     );
-    const dispatchEventSpy = [
-      ...document.querySelectorAll('link[rel="monetization"]'),
-    ].map((link) => jest.spyOn(link, 'dispatchEvent'));
+    const dispatchEventSpy = [...document.querySelectorAll('link')].map(
+      (link) => jest.spyOn(link, 'dispatchEvent'),
+    );
 
     linkManager.start();
     await nextTick();
@@ -439,9 +439,7 @@ describe('monetization in main frame', () => {
     linkManager.start();
     await nextTick();
 
-    const link = document.querySelector<HTMLLinkElement>(
-      'link[rel="monetization"]',
-    )!;
+    const link = document.querySelector('link')!;
     const requestId = requestIdMock.mock.results[1].value;
 
     link.setAttribute('disabled', '');
@@ -508,7 +506,7 @@ describe('monetization in first level frame', () => {
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
-    const link = iframeDocument.querySelector('link[rel="monetization"]')!;
+    const link = iframeDocument.querySelector('link')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
@@ -725,9 +723,7 @@ describe('link tag attributes changes', () => {
     await nextTick();
 
     const walletAddressRequestId = requestIdMock.mock.results[1].value;
-    const link = document.querySelector(
-      'link[rel="monetization"]',
-    )! as HTMLLinkElement;
+    const link = document.querySelector('link')!;
     link.href = 'https://ilp.interledger-test.dev/new';
 
     await nextTick();
@@ -768,7 +764,7 @@ describe('link tag attributes changes', () => {
     await nextTick();
 
     const requestId = requestIdMock.mock.results[1].value;
-    const link = document.querySelector('link[rel="monetization"]')!;
+    const link = document.querySelector('link')!;
     link.setAttribute('disabled', '');
 
     await nextTick();
@@ -803,7 +799,7 @@ describe('link tag attributes changes', () => {
     await nextTick();
 
     const requestId = requestIdMock.mock.results[1].value;
-    const link = document.querySelector('link[rel="monetization"]')!;
+    const link = document.querySelector('link')!;
 
     link.setAttribute('rel', 'preload');
 
@@ -918,7 +914,7 @@ describe('load event dispatching', () => {
       `,
     });
 
-    const links = document.querySelectorAll('link[rel="monetization"]');
+    const links = document.querySelectorAll('link');
     const dispatchEventSpies = [...links].map((link) =>
       jest.spyOn(link, 'dispatchEvent'),
     );
@@ -947,9 +943,7 @@ describe('load event dispatching', () => {
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
 
-    const link = document.querySelector(
-      'link[rel="monetization"]',
-    )! as HTMLLinkElement;
+    const link = document.querySelector('link')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
 
     const linkManager = createMonetizationLinkManager(document);
@@ -992,7 +986,7 @@ describe('load event dispatching', () => {
 
     linkManager.start();
 
-    const originalLink = document.querySelector('link[rel="monetization"]')!;
+    const originalLink = document.querySelector('link')!;
     const originalDispatchSpy = jest.spyOn(originalLink, 'dispatchEvent');
 
     await nextTick();
@@ -1034,9 +1028,7 @@ describe('load event dispatching', () => {
       `,
     });
 
-    const [invalidLink, validLink] = document.querySelectorAll(
-      'link[rel="monetization"]',
-    );
+    const [invalidLink, validLink] = document.querySelectorAll('link');
     const invalidLinkSpy = jest.spyOn(invalidLink, 'dispatchEvent');
     const validLinkSpy = jest.spyOn(validLink, 'dispatchEvent');
 
