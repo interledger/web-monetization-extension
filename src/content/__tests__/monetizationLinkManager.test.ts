@@ -48,7 +48,14 @@ const messageManager = {
 const loggerMock = {
   error: jest.fn(),
 } as unknown as Logger;
-const requestIdMock = jest.fn(() => `request-${Math.random()}`);
+
+const requestIdIterator = (function* () {
+  let i = 0;
+  while (true) yield i++;
+})();
+const requestIdMock = jest.fn(
+  () => `request-${requestIdIterator.next().value}`,
+);
 
 const msg: {
   [k in keyof ContentToBackgroundMessage]: jest.Mock<
@@ -624,7 +631,6 @@ describe('monetization in first level iframe', () => {
     linkManager.start();
     await nextTick();
 
-    // Should only see INITIALIZE_IFRAME message, no monetization messages
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -858,7 +864,6 @@ describe('link tag attributes changes', () => {
     const parentDispatchSpy = jest.spyOn(parent, 'dispatchEvent');
     const childDispatchSpy = jest.spyOn(child, 'dispatchEvent');
 
-    // Add onmonetization to parent
     parent.setAttribute('onmonetization', 'parentHandler()');
     await nextTick();
 
@@ -870,7 +875,6 @@ describe('link tag attributes changes', () => {
     );
     expect(childDispatchSpy).not.toHaveBeenCalled();
 
-    // Remove onmonetization from parent
     parent.removeAttribute('onmonetization');
     await nextTick();
 
