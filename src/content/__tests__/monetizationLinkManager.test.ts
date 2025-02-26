@@ -449,7 +449,6 @@ describe('monetization in main frame', () => {
     link.href = 'https://ilp.interledger-test.dev/new';
     link.setAttribute('rel', 'preload');
     link.setAttribute('rel', 'monetization');
-
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
@@ -459,36 +458,25 @@ describe('monetization in main frame', () => {
   });
 
   test('should handle concurrent validation of multiple links with some failing', async () => {
-    const { document } = createTestEnv({});
-
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
     const linkManager = createMonetizationLinkManager(document);
+    const failingLink = document.querySelector('link')!;
 
-    const failingLink = document.createElement('link');
-    failingLink.rel = 'monetization';
-    failingLink.href = 'https://ilp.interledger-test.dev/tech2';
     const errorSpy = jest.spyOn(failingLink, 'dispatchEvent');
-    document.head.appendChild(failingLink);
-
     msg.GET_WALLET_ADDRESS_INFO.mockRejectedValueOnce(
       new Error('Network error'),
-    )
-      .mockResolvedValueOnce(success(WALLET_INFO[0]))
-      .mockResolvedValueOnce(success(WALLET_INFO[1]));
+    );
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
 
     linkManager.start();
+    await nextTick();
 
     // add other links after the failing one
-    [
-      'https://ilp.interledger-test.dev/tech1',
-      'https://ilp.interledger-test.dev/tech3',
-    ].map((href) => {
-      const link = document.createElement('link');
-      link.rel = 'monetization';
-      link.href = href;
-      document.head.appendChild(link);
-      return link;
-    });
-
+    document.head.appendChild(createLink(document, WALLET_ADDRESS[1]));
+    document.head.appendChild(createLink(document, WALLET_ADDRESS[2]));
     await nextTick();
 
     const requestId1 = requestIdMock.mock.results[1].value;
