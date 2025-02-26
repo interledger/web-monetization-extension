@@ -30,6 +30,9 @@ export const getDevOptions = ({
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
         'https://webmonetization.org/welcome',
       ),
+      CONFIG_LOG_SERVER_ENDPOINT: process.env.LOG_SERVER
+        ? JSON.stringify(process.env.LOG_SERVER)
+        : JSON.stringify(false),
     },
   };
 };
