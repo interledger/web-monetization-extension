@@ -115,6 +115,41 @@ function createTestEnv({
   };
 }
 
+function createTestEnvWithIframe({
+  head = '',
+  body = '',
+  attrs = {},
+  readyState = 'interactive',
+}: {
+  head?: string;
+  body?: string;
+  attrs?: Record<string, string>;
+  readyState?: DocumentReadyState | null;
+} = {}) {
+  const { id = 'test', allow = 'monetization' } = attrs;
+  const { window, document, documentReadyState } = createTestEnv({
+    body: html`<iframe id="${id}" allow="${allow}"></iframe>`,
+    readyState,
+  });
+  const iframe = document.getElementsByTagName('iframe')[0];
+  const iframeDocument = iframe.contentDocument!;
+  const iframeWindow = iframe.contentWindow!.window;
+
+  if (head) iframeDocument.head.insertAdjacentHTML('afterbegin', head);
+  if (body) iframeDocument.body.insertAdjacentHTML('afterbegin', body);
+
+  return {
+    document: iframeDocument,
+    window: iframeWindow,
+    iframe,
+    host: {
+      window,
+      document,
+      documentReadyState,
+    },
+  };
+}
+
 function createLink(document: Document, href: string) {
   const link = document.createElement('link');
   link.setAttribute('rel', 'monetization');
@@ -499,29 +534,25 @@ describe('monetization in main frame', () => {
 
 describe('monetization in first level iframe', () => {
   test('should detect monetization links', async () => {
-    const { document: doc } = createTestEnv({
-      body: html`<iframe id="testFrame"></iframe>`,
+    const { document, window } = createTestEnvWithIframe({
+      head: html`
+        <link rel="monetization" href="${WALLET_ADDRESS[0]}">
+        <link rel="monetization" href="${WALLET_ADDRESS[1]}">
+      `,
     });
-    const iframe = doc.getElementsByTagName('iframe')[0];
-    const iframeDocument = iframe.contentDocument!;
-    iframeDocument.head.insertAdjacentHTML(
-      'afterbegin',
-      html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
-    );
-    const iframeWindow = iframe.contentWindow!.window;
+    const linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
-    const link = iframeDocument.querySelector('link')!;
-    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
-
-    const postMessageSpy = jest.spyOn(iframeWindow.parent, 'postMessage');
-    const linkManager = createMonetizationLinkManager(iframeDocument);
+    const dispatchEvent = jest.spyOn(link, 'dispatchEvent');
+    const postMessage = jest.spyOn(window.parent, 'postMessage');
     const iframeId = requestIdMock.mock.results[0].value;
 
     linkManager.start();
+    await nextTick();
 
-    expect(postMessageSpy).toHaveBeenCalledWith(
+    expect(postMessage).toHaveBeenCalledWith(
       {
         message: 'INITIALIZE_IFRAME',
         id: iframeId,
@@ -543,15 +574,13 @@ describe('monetization in first level iframe', () => {
     await nextTick();
 
     const iframeWARequestId = requestIdMock.mock.results.at(-1)!.value;
-
-    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('load'));
-    const dispatchedLoadEvent = dispatchEventSpy.mock.lastCall![0] as Event;
+    expect(dispatchEvent).toHaveBeenCalledWith(new Event('load'));
+    const dispatchedLoadEvent = dispatchEvent.mock.lastCall![0] as Event;
     expect(dispatchedLoadEvent.type).toBe('load');
-    expect(dispatchEventSpy).toHaveBeenCalledTimes(1);
+    expect(dispatchEvent).toHaveBeenCalledTimes(1);
+    expect(dispatchEvent.mock.instances[0]).toBe(link);
 
-    expect(dispatchEventSpy.mock.instances[0]).toBe(link);
-
-    expect(postMessageSpy).toHaveBeenNthCalledWith(
+    expect(postMessage).toHaveBeenNthCalledWith(
       2,
       {
         id: iframeId,
@@ -566,20 +595,16 @@ describe('monetization in first level iframe', () => {
       '*',
     );
 
-    const messageEvent = new iframeWindow.MessageEvent('message', {
+    const messageEvent = new window.MessageEvent('message', {
       data: {
         message: 'START_MONETIZATION',
         id: iframeId,
         payload: [
-          {
-            requestId: iframeWARequestId,
-            walletAddress: WALLET_INFO[0],
-          },
+          { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
         ],
       },
     });
-
-    iframeWindow.dispatchEvent(messageEvent);
+    window.dispatchEvent(messageEvent);
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
