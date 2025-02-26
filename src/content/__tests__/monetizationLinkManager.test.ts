@@ -109,6 +109,13 @@ function createTestEnv({
   };
 }
 
+function createLink(document: Document, href: string) {
+  const link = document.createElement('link');
+  link.setAttribute('rel', 'monetization');
+  link.setAttribute('href', href);
+  return link;
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   for (const mock of Object.values(msg)) {
@@ -172,8 +179,7 @@ describe('monetization in main frame', () => {
     await nextTick();
 
     const requestId = requestIdMock.mock.results[1].value;
-    const link = document.querySelector('link[rel="monetization"]')!;
-    link.remove();
+    document.querySelector('link[rel="monetization"]')!.remove();
 
     await nextTick();
 
@@ -295,9 +301,7 @@ describe('monetization in main frame', () => {
     await nextTick();
     expect(messageMock).not.toHaveBeenCalled();
 
-    const link = document.createElement('link');
-    link.rel = 'monetization';
-    link.href = WALLET_ADDRESS[0];
+    const link = createLink(document, WALLET_ADDRESS[0]);
     document.head.appendChild(link);
     await nextTick();
 
@@ -308,6 +312,33 @@ describe('monetization in main frame', () => {
     const requestId = requestIdMock.mock.results[1].value;
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
       { requestId, walletAddress: WALLET_INFO[0] },
+    ]);
+  });
+
+  test('should handle dynamic link tag append and remove', async () => {
+    const { document } = createTestEnv({});
+    const linkManager = createMonetizationLinkManager(document);
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+
+    const wrapper = document.createElement('div');
+    wrapper.append(createLink(document, WALLET_ADDRESS[0]));
+    document.head.appendChild(wrapper);
+    await nextTick();
+
+    const requestId = requestIdMock.mock.results[1].value;
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId, walletAddress: WALLET_INFO[0] },
+    ]);
+
+    wrapper.remove();
+    await nextTick();
+
+    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
+      { requestId, intent: 'remove' },
     ]);
   });
 
@@ -324,14 +355,8 @@ describe('monetization in main frame', () => {
 
     expect(messageMock).not.toHaveBeenCalled();
 
-    const link1 = document.createElement('link');
-    link1.rel = 'monetization';
-    link1.href = WALLET_ADDRESS[0];
-
-    const link2 = document.createElement('link');
-    link2.rel = 'monetization';
-    link2.href = WALLET_ADDRESS[1];
-
+    const link1 = createLink(document, WALLET_ADDRESS[0]);
+    const link2 = createLink(document, WALLET_ADDRESS[1]);
     document.head.appendChild(link1);
     document.head.appendChild(link2);
     await nextTick();
@@ -362,99 +387,42 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should handle element with link tag append and removal', async () => {
+  test('more link tags added right after, leading to another MutationObserver callback', async () => {
     const { document } = createTestEnv({});
-
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[2]));
 
     linkManager.start();
-
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = `<link rel="monetization" href="${WALLET_ADDRESS[0]}">`;
-    document.head.appendChild(wrapper);
-
     await nextTick();
 
-    const requestId = requestIdMock.mock.results[1].value;
-    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId,
-        walletAddress: WALLET_INFO[0],
-      },
-    ]);
-
-    wrapper.remove();
-
-    await nextTick();
-
-    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId,
-        intent: 'remove',
-      },
-    ]);
-  });
-
-  test('more link tags added right after, leading to another mutation', async () => {
-    const { document } = createTestEnv({});
-
-    const linkManager = createMonetizationLinkManager(document);
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]))
-      .mockResolvedValueOnce(success(WALLET_INFO[1]))
-      .mockResolvedValueOnce(success(WALLET_INFO[2]));
-
-    linkManager.start();
-
-    for (const key of Object.keys(msg)) {
-      expect(msg[key as keyof typeof msg]).not.toHaveBeenCalled();
-    }
+    expect(messageMock).not.toHaveBeenCalled();
 
     // first mutation
-    const link1 = document.createElement('link');
-    link1.rel = 'monetization';
-    link1.href = `https://wallet.example.com/${WALLET_ADDRESS[0]}`;
+    const link1 = createLink(document, WALLET_ADDRESS[0]);
     document.head.appendChild(link1);
-
     await nextTick();
-
-    const walletAddress1RequestId = requestIdMock.mock.results[1].value;
-    expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(1, [
-      {
-        requestId: walletAddress1RequestId,
-        walletAddress: WALLET_INFO[0],
-      },
-    ]);
 
     // second mutation
-    const link2 = document.createElement('link');
-    link2.rel = 'monetization';
-    link2.href = `https://wallet2.example.com/${WALLET_ADDRESS[1]}`;
+    const link2 = createLink(document, WALLET_ADDRESS[1]);
+    const link3 = createLink(document, WALLET_ADDRESS[2]);
     document.head.appendChild(link2);
-
-    const link3 = document.createElement('link');
-    link3.rel = 'monetization';
-    link3.href = `https://wallet3.example.com/${WALLET_ADDRESS[2]}`;
     document.head.appendChild(link3);
-
     await nextTick();
 
-    const walletAddress2RequestId = requestIdMock.mock.results[2].value;
-    const walletAddress3RequestId = requestIdMock.mock.results[3].value;
-
+    const requestId1 = requestIdMock.mock.results[1].value;
+    const requestId2 = requestIdMock.mock.results[2].value;
+    const requestId3 = requestIdMock.mock.results[3].value;
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(3);
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(2);
+    expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(1, [
+      { requestId: requestId1, walletAddress: WALLET_INFO[0] },
+    ]);
     expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
-      {
-        requestId: walletAddress2RequestId,
-        walletAddress: WALLET_INFO[1],
-      },
-      {
-        requestId: walletAddress3RequestId,
-        walletAddress: WALLET_INFO[2],
-      },
+      { requestId: requestId2, walletAddress: WALLET_INFO[1] },
+      { requestId: requestId3, walletAddress: WALLET_INFO[2] },
     ]);
   });
 
@@ -462,7 +430,6 @@ describe('monetization in main frame', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
@@ -472,10 +439,10 @@ describe('monetization in main frame', () => {
     linkManager.start();
     await nextTick();
 
-    const link = document.querySelector(
+    const link = document.querySelector<HTMLLinkElement>(
       'link[rel="monetization"]',
-    )! as HTMLLinkElement;
-    const initialRequestId = requestIdMock.mock.results[1].value;
+    )!;
+    const requestId = requestIdMock.mock.results[1].value;
 
     link.setAttribute('disabled', '');
     link.removeAttribute('disabled');
@@ -486,10 +453,7 @@ describe('monetization in main frame', () => {
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId: initialRequestId,
-        intent: 'remove',
-      },
+      { requestId, intent: 'remove' }, // TODO: should this in end lead to START?
     ]);
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(1);
   });
@@ -527,18 +491,11 @@ describe('monetization in main frame', () => {
 
     await nextTick();
 
-    const walletAddress1RequestId = requestIdMock.mock.results[1].value;
-    const walletAddress3RequestId = requestIdMock.mock.results[2].value;
-
+    const requestId1 = requestIdMock.mock.results[1].value;
+    const requestId2 = requestIdMock.mock.results[2].value;
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId: walletAddress1RequestId,
-        walletAddress: WALLET_INFO[0],
-      },
-      {
-        requestId: walletAddress3RequestId,
-        walletAddress: WALLET_INFO[1],
-      },
+      { requestId: requestId1, walletAddress: WALLET_INFO[0] },
+      { requestId: requestId2, walletAddress: WALLET_INFO[1] },
     ]);
 
     const errorEvent = errorSpy.mock.lastCall![0] as Event;
