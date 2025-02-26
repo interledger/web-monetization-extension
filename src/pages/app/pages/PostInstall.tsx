@@ -70,8 +70,8 @@ type WalletOption = {
   id: string;
   name: string;
   url: string;
-  logo: { path: string; width: number; height: number };
-  walletAddressScreenshot: { path: string; width: number; height: number };
+  logo: { src: string; width: number; height: number };
+  walletAddressScreenshot: { src: string; width: number; height: number };
   walletAddressPlaceholder: string;
 };
 
@@ -81,12 +81,12 @@ const WALLETS: Array<WalletOption> = [
     name: 'Interledger Wallet',
     url: 'https://interledger.app/',
     logo: {
-      path: '/assets/images/logos/interledger-app-logo.svg',
+      src: '/assets/images/logos/interledger-app-logo.svg',
       width: 300,
       height: 74,
     },
     walletAddressScreenshot: {
-      path: '/assets/images/wallet-address-interledger.png',
+      src: '/assets/images/wallet-address-interledger.png',
       width: 1500,
       height: 836,
     },
@@ -97,12 +97,12 @@ const WALLETS: Array<WalletOption> = [
     name: 'GateHub Wallet',
     url: '', // empty URL to ignore it from listing
     logo: {
-      path: '/assets/images/logos/gatehub-logo.svg',
+      src: '/assets/images/logos/gatehub-logo.svg',
       width: 300,
       height: 85,
     },
     walletAddressScreenshot: {
-      path: '/assets/images/wallet-address-gatehub.png',
+      src: '/assets/images/wallet-address-gatehub.png',
       width: 1829,
       height: 984,
     },
@@ -113,12 +113,12 @@ const WALLETS: Array<WalletOption> = [
     name: 'Chimoney Wallet',
     url: '', // empty URL to ignore it from listing
     logo: {
-      path: '/assets/images/logos/chimoney-logo.svg',
+      src: '/assets/images/logos/chimoney-logo.svg',
       width: 300,
       height: 75,
     },
     walletAddressScreenshot: {
-      path: '/assets/images/wallet-address-chimoney.png',
+      src: '/assets/images/wallet-address-chimoney.png',
       width: 1500,
       height: 938,
     },
@@ -188,13 +188,7 @@ const Steps = () => {
               )}
               onClick={() => setSelectedWallet(wallet)}
             >
-              <img
-                src={wallet.logo.path}
-                width={wallet.logo.width}
-                height={wallet.logo.height}
-                alt={wallet.name}
-                className="mx-auto"
-              />
+              <img {...wallet.logo} alt={wallet.name} className="mx-auto" />
             </a>
           ))}
         </div>
@@ -210,10 +204,8 @@ const Steps = () => {
         title={t('postInstall_text_stepWalletAddress_title')}
       >
         <img
-          src={selectedWallet.walletAddressScreenshot.path}
-          width={selectedWallet.walletAddressScreenshot.width}
-          height={selectedWallet.walletAddressScreenshot.height}
-          alt=""
+          {...selectedWallet.walletAddressScreenshot}
+          alt={`Screenshot of wallet address for ${selectedWallet.name}`}
           className="mx-auto p-4 shadow-2xl"
         />
       </Step>
