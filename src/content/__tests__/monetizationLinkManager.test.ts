@@ -80,11 +80,11 @@ function createMonetizationLinkManager(document: Document) {
 function createTestEnv({
   head = '',
   body = '',
-  readyState = null,
+  readyState = 'interactive',
 }: {
   head?: string;
   body?: string;
-  readyState?: DocumentReadyState | null;
+  readyState?: DocumentReadyState;
 } = {}) {
   const htm = html`<!DOCTYPE html><html><head>${head}</head><body>${body}</body></html>`;
   const dom = new JSDOM(htm, {
@@ -97,9 +97,7 @@ function createTestEnv({
   const document = window.document;
   const documentReadyState = jest.spyOn(document, 'readyState', 'get');
 
-  if (readyState === null) {
-    documentReadyState.mockReturnValue('interactive');
-  }
+  documentReadyState.mockReturnValue(readyState);
 
   return {
     dom,
