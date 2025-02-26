@@ -127,11 +127,11 @@ function createTestEnvWithIframe({
   readyState?: DocumentReadyState | null;
 } = {}) {
   const { id = 'test', allow = 'monetization' } = attrs;
-  const { window, document, documentReadyState } = createTestEnv({
+  const host = createTestEnv({
     body: html`<iframe id="${id}" allow="${allow}"></iframe>`,
     readyState,
   });
-  const iframe = document.getElementsByTagName('iframe')[0];
+  const iframe = host.document.getElementsByTagName('iframe')[0];
   const iframeDocument = iframe.contentDocument!;
   const iframeWindow = iframe.contentWindow!.window;
 
@@ -142,11 +142,7 @@ function createTestEnvWithIframe({
     document: iframeDocument,
     window: iframeWindow,
     iframe,
-    host: {
-      window,
-      document,
-      documentReadyState,
-    },
+    host,
   };
 }
 
