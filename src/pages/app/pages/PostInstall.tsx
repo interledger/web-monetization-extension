@@ -79,7 +79,7 @@ const WALLETS: Array<WalletOption> = [
   {
     id: 'interledger.app',
     name: 'Interledger Wallet',
-    url: 'https://interledger.app/signup',
+    url: 'https://interledger.app/',
     logo: {
       path: '/assets/images/logos/interledger-app-logo.svg',
       width: 300,
