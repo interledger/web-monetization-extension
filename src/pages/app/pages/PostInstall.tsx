@@ -71,7 +71,7 @@ type WalletOption = {
   name: string;
   url: string;
   logo: { path: string; width: number; height: number };
-  keyScreenshot: { path: string; width: number; height: number };
+  walletAddressScreenshot: { path: string; width: number; height: number };
   walletAddressPlaceholder: string;
 };
 
@@ -85,7 +85,7 @@ const WALLETS: Array<WalletOption> = [
       width: 300,
       height: 74,
     },
-    keyScreenshot: {
+    walletAddressScreenshot: {
       path: '/assets/images/wallet-address-interledger.png',
       width: 1500,
       height: 836,
@@ -101,7 +101,7 @@ const WALLETS: Array<WalletOption> = [
       width: 300,
       height: 85,
     },
-    keyScreenshot: {
+    walletAddressScreenshot: {
       path: '/assets/images/wallet-address-gatehub.png',
       width: 1829,
       height: 984,
@@ -117,7 +117,7 @@ const WALLETS: Array<WalletOption> = [
       width: 300,
       height: 75,
     },
-    keyScreenshot: {
+    walletAddressScreenshot: {
       path: '/assets/images/wallet-address-chimoney.png',
       width: 1500,
       height: 938,
@@ -210,9 +210,9 @@ const Steps = () => {
         title={t('postInstall_text_stepWalletAddress_title')}
       >
         <img
-          src={selectedWallet.keyScreenshot.path}
-          width={selectedWallet.keyScreenshot.width}
-          height={selectedWallet.keyScreenshot.height}
+          src={selectedWallet.walletAddressScreenshot.path}
+          width={selectedWallet.walletAddressScreenshot.width}
+          height={selectedWallet.walletAddressScreenshot.height}
           alt=""
           className="mx-auto p-4 shadow-2xl"
         />
