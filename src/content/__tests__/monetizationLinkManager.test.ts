@@ -96,6 +96,11 @@ function createTestEnv({
   const window = dom.window;
   const document = window.document;
   const documentReadyState = jest.spyOn(document, 'readyState', 'get');
+  const documentVisibilityState = jest.spyOn(
+    document,
+    'visibilityState',
+    'get',
+  );
 
   if (readyState) {
     documentReadyState.mockReturnValue(readyState);
@@ -106,6 +111,7 @@ function createTestEnv({
     window,
     document,
     documentReadyState,
+    documentVisibilityState,
   };
 }
 
@@ -491,8 +497,8 @@ describe('monetization in main frame', () => {
   });
 });
 
-describe('monetization in first level frame', () => {
-  test('should detect link when running in first-level iframe', async () => {
+describe('monetization in first level iframe', () => {
+  test('should detect monetization links', async () => {
     const { document: doc } = createTestEnv({
       body: html`<iframe id="testFrame"></iframe>`,
     });
@@ -711,42 +717,28 @@ describe('link tag attributes changes', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
-      success(WALLET_INFO[0]),
-    ).mockResolvedValueOnce(success(WALLET_INFO[1]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
 
     linkManager.start();
-
     await nextTick();
 
-    const walletAddressRequestId = requestIdMock.mock.results[1].value;
-    const link = document.querySelector('link')!;
-    link.href = 'https://ilp.interledger-test.dev/new';
-
+    const requestId = requestIdMock.mock.results[1].value;
+    document.querySelector('link')!.href = WALLET_ADDRESS[1];
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId: walletAddressRequestId,
-        intent: 'remove',
-      },
+      { requestId: requestId, intent: 'remove' },
     ]);
-
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
-      walletAddressUrl: 'https://ilp.interledger-test.dev/new',
+      walletAddressUrl: WALLET_ADDRESS[1],
     });
 
-    await nextTick();
-
-    const newWalletAddressRequestId = requestIdMock.mock.results.at(-1)!.value;
+    const requestIdNew = requestIdMock.mock.results.at(-1)!.value;
     expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
-      {
-        requestId: newWalletAddressRequestId,
-        walletAddress: WALLET_INFO[1],
-      },
+      { requestId: requestIdNew, walletAddress: WALLET_INFO[1] },
     ]);
   });
 
@@ -754,19 +746,16 @@ describe('link tag attributes changes', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
     linkManager.start();
-
     await nextTick();
 
     const requestId = requestIdMock.mock.results[1].value;
     const link = document.querySelector('link')!;
     link.setAttribute('disabled', '');
-
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
@@ -774,14 +763,10 @@ describe('link tag attributes changes', () => {
     ]);
 
     link.removeAttribute('disabled');
-
     await nextTick();
 
     expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
-      {
-        requestId,
-        walletAddress: WALLET_INFO[0],
-      },
+      { requestId, walletAddress: WALLET_INFO[0] },
     ]);
   });
 
@@ -789,20 +774,16 @@ describe('link tag attributes changes', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
     linkManager.start();
-
     await nextTick();
 
     const requestId = requestIdMock.mock.results[1].value;
     const link = document.querySelector('link')!;
-
     link.setAttribute('rel', 'preload');
-
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
@@ -810,55 +791,42 @@ describe('link tag attributes changes', () => {
     ]);
 
     link.setAttribute('rel', 'monetization');
-
     await nextTick();
 
     const newRequestId = requestIdMock.mock.results[1].value;
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId: newRequestId,
-        walletAddress: WALLET_INFO[0],
-      },
+      { requestId: newRequestId, walletAddress: WALLET_INFO[0] },
     ]);
   });
+
+  test.todo('should handle onmonetization attribute change');
+  test.todo('should handle onmonetization attribute change on parent');
 });
 
-describe('page document events', () => {
+describe('document events', () => {
   test('should handle document visibility change event', async () => {
-    const { document, window } = createTestEnv({
+    const { document, window, documentVisibilityState } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
     linkManager.start();
-
     await nextTick();
 
     const requestId = requestIdMock.mock.results[1].value;
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'hidden',
-      writable: true,
-    });
+    documentVisibilityState.mockReturnValueOnce('hidden');
     document.dispatchEvent(new window.Event('visibilitychange'));
-
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([{ requestId }]);
 
-    Object.defineProperty(document, 'visibilityState', {
-      value: 'visible',
-      writable: true,
-    });
+    documentVisibilityState.mockReturnValueOnce('visible');
     document.dispatchEvent(new window.Event('visibilitychange'));
 
     expect(msg.RESUME_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId,
-        walletAddress: WALLET_INFO[0],
-      },
+      { requestId, walletAddress: WALLET_INFO[0] },
     ]);
   });
 
@@ -866,13 +834,11 @@ describe('page document events', () => {
     const { document, window } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
     linkManager.start();
-
     await nextTick();
 
     window.dispatchEvent(new window.Event('pagehide'));
@@ -887,19 +853,15 @@ describe('page document events', () => {
     const { document, window } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-
     jest.spyOn(document, 'hasFocus').mockReturnValue(true);
 
     linkManager.start();
-
     await nextTick();
 
     window.dispatchEvent(new window.Event('focus'));
-
     // once on start, once on focus event
     expect(msg.TAB_FOCUSED).toHaveBeenCalledTimes(2);
   });
@@ -913,20 +875,16 @@ describe('load event dispatching', () => {
         <link rel="monetization" href="${WALLET_ADDRESS[1]}">
       `,
     });
-
-    const links = document.querySelectorAll('link');
-    const dispatchEventSpies = [...links].map((link) =>
-      jest.spyOn(link, 'dispatchEvent'),
-    );
-
     const linkManager = createMonetizationLinkManager(document);
 
+    const dispatchEventSpies = [...document.querySelectorAll('link')].map(
+      (link) => jest.spyOn(link, 'dispatchEvent'),
+    );
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
       success(WALLET_INFO[0]),
     ).mockResolvedValueOnce(success(WALLET_INFO[1]));
 
     linkManager.start();
-
     await nextTick();
 
     // verify each link got exactly one load event
@@ -936,24 +894,23 @@ describe('load event dispatching', () => {
       );
       expect(loadEvents).toHaveLength(1);
     }
+    expect(
+      dispatchEventSpies.reduce((t, e) => e.mock.calls.length + t, 0),
+    ).toBe(dispatchEventSpies.length);
   });
 
   test('should dispatch load event once when link is modified, but link remains valid', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
+    const linkManager = createMonetizationLinkManager(document);
 
     const link = document.querySelector('link')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
-
-    const linkManager = createMonetizationLinkManager(document);
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
-      success(WALLET_INFO[0]),
-    ).mockResolvedValueOnce(success(WALLET_INFO[1]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
 
     linkManager.start();
-
     await nextTick();
 
     expect(
@@ -963,7 +920,6 @@ describe('load event dispatching', () => {
     ).toHaveLength(1);
 
     link.href = 'https://ilp.interledger-test.dev/tech2';
-
     await nextTick();
 
     expect(
@@ -977,18 +933,14 @@ describe('load event dispatching', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-
     const linkManager = createMonetizationLinkManager(document);
 
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
-      success(WALLET_INFO[0]),
-    ).mockResolvedValueOnce(success(WALLET_INFO[1]));
-
-    linkManager.start();
-
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
     const originalLink = document.querySelector('link')!;
     const originalDispatchSpy = jest.spyOn(originalLink, 'dispatchEvent');
 
+    linkManager.start();
     await nextTick();
 
     expect(
@@ -998,13 +950,10 @@ describe('load event dispatching', () => {
     ).toHaveLength(1);
 
     // replace the link with a new one
-    const newLink = document.createElement('link');
-    newLink.rel = 'monetization';
-    newLink.href = WALLET_ADDRESS[1];
+    const newLink = createLink(document, WALLET_ADDRESS[1]);
     const newDispatchSpy = jest.spyOn(newLink, 'dispatchEvent');
 
     originalLink.replaceWith(newLink);
-
     await nextTick();
 
     expect(
@@ -1012,7 +961,6 @@ describe('load event dispatching', () => {
         (call) => (call[0] as Event).type === 'load',
       ),
     ).toHaveLength(1);
-
     expect(
       newDispatchSpy.mock.calls.filter(
         (call) => (call[0] as Event).type === 'load',
@@ -1027,19 +975,16 @@ describe('load event dispatching', () => {
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
       `,
     });
+    const linkManager = createMonetizationLinkManager(document);
 
     const [invalidLink, validLink] = document.querySelectorAll('link');
     const invalidLinkSpy = jest.spyOn(invalidLink, 'dispatchEvent');
     const validLinkSpy = jest.spyOn(validLink, 'dispatchEvent');
 
-    const linkManager = createMonetizationLinkManager(document);
-
-    msg.GET_WALLET_ADDRESS_INFO.mockRejectedValue(
-      failure('Invalid URL'),
-    ).mockResolvedValue(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockRejectedValue(failure('Invalid URL'));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValue(success(WALLET_INFO[0]));
 
     linkManager.start();
-
     await nextTick();
 
     expect(
