@@ -66,12 +66,75 @@ const Main = () => {
   );
 };
 
+type WalletOption = {
+  id: string;
+  name: string;
+  url: string;
+  logo: { src: string; width: number; height: number };
+  walletAddressScreenshot: { src: string; width: number; height: number };
+  walletAddressPlaceholder: string;
+};
+
+const WALLETS: Array<WalletOption> = [
+  {
+    id: 'interledger.app',
+    name: 'Interledger Wallet',
+    url: 'https://interledger.app/',
+    logo: {
+      src: '/assets/images/logos/interledger-app-logo.svg',
+      width: 300,
+      height: 74,
+    },
+    walletAddressScreenshot: {
+      src: '/assets/images/wallet-address-interledger.png',
+      width: 1500,
+      height: 836,
+    },
+    walletAddressPlaceholder: 'https://fynbos.me/my-wallet',
+  },
+  {
+    id: 'gatehub',
+    name: 'GateHub Wallet',
+    url: '', // empty URL to ignore it from listing
+    logo: {
+      src: '/assets/images/logos/gatehub-logo.svg',
+      width: 300,
+      height: 85,
+    },
+    walletAddressScreenshot: {
+      src: '/assets/images/wallet-address-gatehub.png',
+      width: 1829,
+      height: 984,
+    },
+    walletAddressPlaceholder: '$ilp.gatehub.net/150012570/USD',
+  },
+  {
+    id: 'chimoney',
+    name: 'Chimoney Wallet',
+    url: '', // empty URL to ignore it from listing
+    logo: {
+      src: '/assets/images/logos/chimoney-logo.svg',
+      width: 300,
+      height: 75,
+    },
+    walletAddressScreenshot: {
+      src: '/assets/images/wallet-address-chimoney.png',
+      width: 1500,
+      height: 938,
+    },
+    walletAddressPlaceholder: 'https://ilp.chimoney.com/37294745',
+  },
+];
+
 const Steps = () => {
   const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
   const browserName = getBrowserName(browser, navigator.userAgent);
 
+  const [selectedWallet, setSelectedWallet] = React.useState<WalletOption>(
+    WALLETS[0],
+  );
   const [isOpen, setIsOpen] = React.useState(0);
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
@@ -85,32 +148,53 @@ const Steps = () => {
         onClick={onClick}
         title={
           <React.Fragment>
-            {t('postInstall_text_stepGetWallet_title')}{' '}
             <a
               href="https://webmonetization.org/docs/resources/op-wallets/"
-              title="Web Monetization-enabled wallets"
               target="_blank"
               rel="noreferrer"
-              className="group pr-1 text-primary outline-current"
+              className="group pr-1 text-primary outline-current hover:underline"
               onClick={(ev) => ev.stopPropagation()}
             >
-              <span className="sr-only">list of supported wallets</span>
+              {t('postInstall_text_stepGetWallet_title')}{' '}
               <ExternalIcon className="inline-block size-4 align-baseline transition-transform hover:scale-125 group-focus:scale-125" />
             </a>
           </React.Fragment>
         }
       >
-        <a
-          href="https://interledger.app/signup"
-          target="_blank"
-          rel="noreferrer"
+        <p>{t('postInstall_text_stepGetWallet_desc')}</p>
+        <div
+          className={cn(
+            'grid gap-4 justify-center mt-4 mx-auto group/wallet',
+            WALLETS.filter((w) => !!w.url).length < 2 && 'w-fit',
+          )}
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, min-content))',
+          }}
         >
-          <img
-            src="/assets/images/wallet-signup.png"
-            className="mx-auto"
-            alt=""
-          />
-        </a>
+          {WALLETS.map((wallet) => (
+            <a
+              key={wallet.id}
+              href={wallet.url}
+              target="_blank"
+              title={wallet.name}
+              rel="noreferrer"
+              className={cn(
+                { hidden: !wallet.url },
+                'sm:p-2 p-4 shadow max-w-72 rounded-md',
+                'hover:shadow-lg hover:scale-105 transition-[transform,box-shadow] duration-300 ease-in-out',
+                'group-hover/wallet:opacity-25 group-focus-within/wallet:hover:opacity-25 group-focus-within/wallet:opacity-25',
+                'group-hover/wallet:hover:opacity-100',
+                'group-focus-within/wallet:focus:opacity-100 focus:hover:opacity-100',
+              )}
+              onClick={() => setSelectedWallet(wallet)}
+            >
+              <img {...wallet.logo} alt={wallet.name} className="mx-auto" />
+            </a>
+          ))}
+        </div>
+        <p className="text-slate-400 text-sm text-right">
+          {t('postInstall_text_stepGetWallet_comingSoon')}
+        </p>
       </Step>
 
       <Step
@@ -120,9 +204,9 @@ const Steps = () => {
         title={t('postInstall_text_stepWalletAddress_title')}
       >
         <img
-          src="/assets/images/wallet-wallet-address.png"
-          alt=""
-          className="mx-auto max-w-[90%] p-4 shadow-2xl"
+          {...selectedWallet.walletAddressScreenshot}
+          alt={`Screenshot of wallet address for ${selectedWallet.name}`}
+          className="mx-auto p-4 shadow-2xl"
         />
       </Step>
 
@@ -157,7 +241,7 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
-        <StepConnectWallet />
+        <StepConnectWallet selectedWallet={selectedWallet} />
       </Step>
     </ol>
   );
@@ -256,7 +340,9 @@ function StepNumber({ number }: { number: number }) {
   );
 }
 
-function StepConnectWallet() {
+function StepConnectWallet({
+  selectedWallet,
+}: { selectedWallet: WalletOption }) {
   const message = useMessage();
   const t = useTranslation();
   const {
@@ -296,6 +382,7 @@ function StepConnectWallet() {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
         getWalletInfo={getWalletInformation}
+        walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         clearConnectState={() => message.send('CONNECT_WALLET', null)}
       />
