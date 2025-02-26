@@ -611,7 +611,33 @@ describe('monetization in first level iframe', () => {
     ]);
   });
 
-  test.todo('ignore monetization links in body');
+  test('ignore monetization links in body', async () => {
+    const { document, window } = createTestEnvWithIframe({
+      body: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
+    const linkManager = createMonetizationLinkManager(document);
+    const postMessageSpy = jest.spyOn(window.parent, 'postMessage');
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    const postMessage = jest.spyOn(window.parent, 'postMessage');
+
+    linkManager.start();
+    await nextTick();
+
+    // Should only see INITIALIZE_IFRAME message, no monetization messages
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'INITIALIZE_IFRAME',
+      }),
+      '*',
+    );
+
+    expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
+    expect(postMessageSpy).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'IS_MONETIZATION_ALLOWED_ON_START' }),
+    );
+  });
 
   test.failing('handle only first link tag', async () => {
     // also test disabling a link tag in iframe, changing URL of first link tag, and prepending another link tag
@@ -794,8 +820,67 @@ describe('link tag attributes changes', () => {
     ]);
   });
 
-  test.todo('should handle onmonetization attribute change');
-  test.todo('should handle onmonetization attribute change on parent');
+  test('should handle onmonetization attribute change', async () => {
+    const { document } = createTestEnv({
+      head: html`<div onmonetization="handleEvent()"></div>`,
+    });
+    const linkManager = createMonetizationLinkManager(document);
+    const div = document.querySelector('div')!;
+
+    linkManager.start();
+    const dispatchEventSpy = jest.spyOn(div, 'dispatchEvent');
+
+    // Change onmonetization attribute
+    div.setAttribute('onmonetization', 'newHandler()');
+    await nextTick();
+
+    expect(dispatchEventSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: '__wm_ext_onmonetization_attr_change',
+        detail: { attribute: 'newHandler()' },
+      }),
+    );
+  });
+
+  test('should handle onmonetization attribute change on parent', async () => {
+    const { document } = createTestEnv({
+      head: html`
+        <div id="parent">
+          <div id="child"></div>
+        </div>
+      `,
+    });
+    const linkManager = createMonetizationLinkManager(document);
+    const parent = document.getElementById('parent')!;
+    const child = document.getElementById('child')!;
+
+    linkManager.start();
+    const parentDispatchSpy = jest.spyOn(parent, 'dispatchEvent');
+    const childDispatchSpy = jest.spyOn(child, 'dispatchEvent');
+
+    // Add onmonetization to parent
+    parent.setAttribute('onmonetization', 'parentHandler()');
+    await nextTick();
+
+    expect(parentDispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: '__wm_ext_onmonetization_attr_change',
+        detail: { attribute: 'parentHandler()' },
+      }),
+    );
+    expect(childDispatchSpy).not.toHaveBeenCalled();
+
+    // Remove onmonetization from parent
+    parent.removeAttribute('onmonetization');
+    await nextTick();
+
+    expect(parentDispatchSpy).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: '__wm_ext_onmonetization_attr_change',
+        detail: { attribute: null },
+      }),
+    );
+  });
 });
 
 describe('document events', () => {
