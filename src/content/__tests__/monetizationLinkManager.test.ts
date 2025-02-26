@@ -5,37 +5,37 @@ import type {
   MessageManager,
   Response,
 } from '@/shared/messages';
-import { success, failure } from '@/shared/helpers';
 import type { Logger } from '@/shared/logger';
 import type { WalletAddress } from '@interledger/open-payments';
+import { success, failure } from '@/shared/helpers';
 
 // for syntax highlighting
 const html = String.raw;
 
 const WALLET_ADDRESS: WalletAddress[] = [
   {
+    id: '$wallet.example.com/alice',
     authServer: 'https://auth.example.com',
-    publicName: 'Test Wallet USD',
+    resourceServer: 'https://wallet.example.com',
+    publicName: 'Alice USD Wallet',
     assetCode: 'USD',
     assetScale: 2,
-    id: '',
-    resourceServer: '',
   },
   {
+    id: '$wallet.example.com/bob',
     authServer: 'https://auth2.example.com',
-    publicName: 'Test Wallet EUR',
+    resourceServer: 'https://wallet2.example.com',
+    publicName: 'Bob EUR Wallet',
     assetCode: 'EUR',
     assetScale: 2,
-    id: '',
-    resourceServer: '',
   },
   {
+    id: '$wallet.example.com/carol',
     authServer: 'https://auth3.example.com',
-    publicName: 'Test Wallet MXN',
+    resourceServer: 'https://wallet3.example.com',
+    publicName: 'Carol MXN Wallet',
     assetCode: 'MXN',
     assetScale: 2,
-    id: '',
-    resourceServer: '',
   },
 ];
 
@@ -310,19 +310,22 @@ describe('MonetizationLinkManager', () => {
       msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
         success(WALLET_ADDRESS[0]),
       );
-
       linkManager.start();
+
+      for (const key of Object.keys(msg)) {
+        expect(msg[key as keyof typeof msg]).not.toHaveBeenCalled();
+      }
 
       // add monetization link after initialization
       const link = document.createElement('link');
       link.rel = 'monetization';
-      link.href = 'https://ilp.interledger-test.dev/tech';
+      link.href = `https://wallet.example.com/${WALLET_ADDRESS[0].id}`;
       document.head.appendChild(link);
 
       await new Promise(process.nextTick);
 
       expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
-        walletAddressUrl: 'https://ilp.interledger-test.dev/tech',
+        walletAddressUrl: `https://wallet.example.com/${WALLET_ADDRESS[0].id}`,
       });
 
       const walletAddressInfoRequestId = requestIdMock.mock.results[1].value;
@@ -334,7 +337,7 @@ describe('MonetizationLinkManager', () => {
       ]);
     });
 
-    test('should handle two link tags added simultaneously; like first tag fires a single mutation callback, but in other added tag its fired twice', async () => {
+    test('should handle two link tags added simultaneously', async () => {
       const { document, documentReadyState } = createTestEnv({});
 
       const linkManager = createMonetizationLinkManager(document);
@@ -346,14 +349,18 @@ describe('MonetizationLinkManager', () => {
 
       linkManager.start();
 
+      for (const key of Object.keys(msg)) {
+        expect(msg[key as keyof typeof msg]).not.toHaveBeenCalled();
+      }
+
       // create and add two monetization links simultaneously
       const link1 = document.createElement('link');
       link1.rel = 'monetization';
-      link1.href = 'https://ilp.interledger-test.dev/tech1';
+      link1.href = `https://wallet.example.com/${WALLET_ADDRESS[0].id}`;
 
       const link2 = document.createElement('link');
       link2.rel = 'monetization';
-      link2.href = 'https://ilp.interledger-test.dev/tech2';
+      link2.href = `https://wallet2.example.com/${WALLET_ADDRESS[1].id}`;
 
       // append both links in quick succession
       document.head.appendChild(link1);
@@ -370,10 +377,10 @@ describe('MonetizationLinkManager', () => {
 
       expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
       expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(1, {
-        walletAddressUrl: 'https://ilp.interledger-test.dev/tech1',
+        walletAddressUrl: `https://wallet.example.com/${WALLET_ADDRESS[0].id}`,
       });
       expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
-        walletAddressUrl: 'https://ilp.interledger-test.dev/tech2',
+        walletAddressUrl: `https://wallet2.example.com/${WALLET_ADDRESS[1].id}`,
       });
 
       expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
@@ -453,34 +460,45 @@ describe('MonetizationLinkManager', () => {
 
       linkManager.start();
 
+      for (const key of Object.keys(msg)) {
+        expect(msg[key as keyof typeof msg]).not.toHaveBeenCalled();
+      }
+
+      // first mutation
       const link1 = document.createElement('link');
       link1.rel = 'monetization';
-      link1.href = 'https://ilp.interledger-test.dev/tech1';
+      link1.href = `https://wallet.example.com/${WALLET_ADDRESS[0].id}`;
       document.head.appendChild(link1);
-
-      const link2 = document.createElement('link');
-      link2.rel = 'monetization';
-      link2.href = 'https://ilp.interledger-test.dev/tech2';
-      document.head.appendChild(link2);
-
-      const link3 = document.createElement('link');
-      link3.rel = 'monetization';
-      link3.href = 'https://ilp.interledger-test.dev/tech3';
-      document.head.appendChild(link3);
 
       await new Promise(process.nextTick);
 
       const request1Id = requestIdMock.mock.results[1].value;
-      const request2Id = requestIdMock.mock.results[2].value;
-      const request3Id = requestIdMock.mock.results[3].value;
-
-      expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(3);
-      expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
-      expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(1, [
         {
           requestId: request1Id,
           walletAddress: WALLET_ADDRESS[0],
         },
+      ]);
+
+      // second mutation
+      const link2 = document.createElement('link');
+      link2.rel = 'monetization';
+      link2.href = `https://wallet2.example.com/${WALLET_ADDRESS[1].id}`;
+      document.head.appendChild(link2);
+
+      const link3 = document.createElement('link');
+      link3.rel = 'monetization';
+      link3.href = `https://wallet3.example.com/${WALLET_ADDRESS[2].id}`;
+      document.head.appendChild(link3);
+
+      await new Promise(process.nextTick);
+
+      const request2Id = requestIdMock.mock.results[2].value;
+      const request3Id = requestIdMock.mock.results[3].value;
+
+      expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(3);
+      expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(2);
+      expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
         {
           requestId: request2Id,
           walletAddress: WALLET_ADDRESS[1],
@@ -512,7 +530,6 @@ describe('MonetizationLinkManager', () => {
       )! as HTMLLinkElement;
       const initialRequestId = requestIdMock.mock.results[1].value;
 
-      // Rapid changes to link attributes
       link.setAttribute('disabled', '');
       link.removeAttribute('disabled');
       link.href = 'https://ilp.interledger-test.dev/new';
