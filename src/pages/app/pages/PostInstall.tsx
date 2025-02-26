@@ -132,11 +132,9 @@ const Steps = () => {
   const isPinnedToToolbar = usePinnedStatus();
   const browserName = getBrowserName(browser, navigator.userAgent);
 
-  const [selectedWallet, setSelectedWallet] =
-    React.useState<WalletOption | null>(null);
-  const keyScreenshot = selectedWallet?.keyScreenshot?.path
-    ? selectedWallet.keyScreenshot
-    : WALLETS[0].keyScreenshot;
+  const [selectedWallet, setSelectedWallet] = React.useState<WalletOption>(
+    WALLETS[0],
+  );
   const [isOpen, setIsOpen] = React.useState(0);
   const onClick = React.useCallback((index: number, open: boolean) => {
     setIsOpen((prev) => (!open ? index : prev + 1));
@@ -212,9 +210,9 @@ const Steps = () => {
         title={t('postInstall_text_stepWalletAddress_title')}
       >
         <img
-          src={keyScreenshot.path}
-          width={keyScreenshot.width}
-          height={keyScreenshot.height}
+          src={selectedWallet.keyScreenshot.path}
+          width={selectedWallet.keyScreenshot.width}
+          height={selectedWallet.keyScreenshot.height}
           alt=""
           className="mx-auto p-4 shadow-2xl"
         />
@@ -352,7 +350,7 @@ function StepNumber({ number }: { number: number }) {
 
 function StepConnectWallet({
   selectedWallet,
-}: { selectedWallet: WalletOption | null }) {
+}: { selectedWallet: WalletOption }) {
   const message = useMessage();
   const t = useTranslation();
   const {
@@ -392,7 +390,7 @@ function StepConnectWallet({
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
         getWalletInfo={getWalletInformation}
-        walletAddressPlaceholder={selectedWallet?.walletAddressPlaceholder}
+        walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         clearConnectState={() => message.send('CONNECT_WALLET', null)}
       />
