@@ -202,7 +202,29 @@ export const ConnectWalletForm = ({
   const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
     ev?.preventDefault();
 
-    const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
+    let walletAddress = walletAddressUrl;
+    if (ev) {
+      // When submitting form using Enter key on wallet address input, we want
+      // to ensure its current value is same as the value we've in React state
+      // (as state is not set until input field blur). If it's not same, we
+      // validate it before connecting.
+      const form = ev.currentTarget;
+      if (
+        form.connectWalletAddressUrl &&
+        walletAddress !== form.connectWalletAddressUrl.value
+      ) {
+        walletAddress = form.connectWalletAddressUrl.value;
+        const ok = await handleWalletAddressUrlChange(
+          walletAddress,
+          form.connectWalletAddressUrl,
+        );
+        if (!ok) return;
+        // above call will not immediately set `walletAddressUrl` state
+        // variable, so we get latest value via `walletAddress` variable.
+      }
+    }
+
+    const errWalletAddressUrl = validateWalletAddressUrl(walletAddress);
     const errAmount = validateAmount(amount, walletAddressInfo!);
     if (errAmount || errWalletAddressUrl) {
       setErrors((prev) => ({
@@ -222,7 +244,7 @@ export const ConnectWalletForm = ({
       }
       setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
-        walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
+        walletAddressUrl: toWalletAddressUrl(walletAddress),
         amount,
         recurring,
         autoKeyAdd: !skipAutoKeyShare,

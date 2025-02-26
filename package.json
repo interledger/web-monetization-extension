@@ -16,8 +16,8 @@
     "format": "biome format && prettier . --check",
     "format:fix": "biome format --write && prettier . --write --log-level=warn",
     "typecheck": "tsc --noEmit",
-    "test": "jest --maxWorkers=2 --passWithNoTests",
-    "test:watch": "jest --maxWorkers=2 --passWithNoTests --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "test:e2e": "playwright test",
     "test:e2e:chrome": "playwright test --project=chrome",
     "test:e2e:msedge": "playwright test --project=msedge",
@@ -49,6 +49,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.3",
+    "@jgoz/jest-esbuild": "^1.0.9",
     "@playwright/test": "^1.50.0",
     "@tailwindcss/forms": "^0.5.10",
     "@testing-library/jest-dom": "^6.6.3",
@@ -81,7 +82,6 @@
     "sade": "^1.8.1",
     "tailwindcss": "^3.4.17",
     "tinyspy": "^3.0.2",
-    "ts-jest": "^29.2.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },
