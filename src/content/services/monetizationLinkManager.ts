@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events';
 import { isNotNull } from '@/shared/helpers';
 import { mozClone, WalletAddressFormatError } from '../utils';
 import type { WalletAddress } from '@interledger/open-payments/dist/types';
@@ -10,11 +9,14 @@ import type {
   StopMonetizationPayload,
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
-import type { Cradle } from '@/content/container';
+import type { Cradle as _Cradle } from '@/content/container';
 import type { ContentToContentMessage } from '../messages';
 
-export class MonetizationLinkManager extends EventEmitter {
-  private window: Cradle['window'];
+type Cradle = Pick<_Cradle, 'document' | 'logger' | 'message' | 'global'>;
+
+export class MonetizationLinkManager {
+  private global: Cradle['global'];
+  private window: Window;
   private document: Cradle['document'];
   private logger: Cradle['logger'];
   private message: Cradle['message'];
@@ -30,25 +32,25 @@ export class MonetizationLinkManager extends EventEmitter {
     { walletAddress: WalletAddress; requestId: string }
   >();
 
-  constructor({ window, document, logger, message }: Cradle) {
-    super();
+  constructor({ document, logger, message, global }: Cradle) {
     Object.assign(this, {
-      window,
+      global,
       document,
       logger,
       message,
+      window: global.window,
     });
 
-    this.documentObserver = new MutationObserver((records) =>
+    this.documentObserver = new this.global.MutationObserver((records) =>
       this.onWholeDocumentObserved(records),
     );
 
-    this.monetizationLinkAttrObserver = new MutationObserver((records) =>
-      this.onLinkAttrChange(records),
+    this.monetizationLinkAttrObserver = new this.global.MutationObserver(
+      (records) => this.onLinkAttrChange(records),
     );
 
-    this.isTopFrame = window === window.top;
-    this.isFirstLevelFrame = window.parent === window.top;
+    this.isTopFrame = this.window === this.window.top;
+    this.isFirstLevelFrame = this.window.parent === this.window.top;
     this.id = crypto.randomUUID();
   }
 
@@ -182,6 +184,7 @@ export class MonetizationLinkManager extends EventEmitter {
 
   /** @throws never throws */
   private async checkLink(link: HTMLLinkElement) {
+    const { HTMLLinkElement } = this.global;
     if (!(link instanceof HTMLLinkElement && link.rel === 'monetization')) {
       return null;
     }
@@ -265,11 +268,11 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private dispatchLoadEvent(tag: HTMLLinkElement) {
-    tag.dispatchEvent(new Event('load'));
+    tag.dispatchEvent(new this.global.Event('load'));
   }
 
   private dispatchErrorEvent(tag: HTMLLinkElement) {
-    tag.dispatchEvent(new Event('error'));
+    tag.dispatchEvent(new this.global.Event('error'));
   }
 
   public dispatchMonetizationEvent({
@@ -293,6 +296,7 @@ export class MonetizationLinkManager extends EventEmitter {
     node: HTMLElement,
     { changeDetected = false } = {},
   ) {
+    const { CustomEvent } = this.global;
     const attribute = node.getAttribute('onmonetization');
     if (!attribute && !changeDetected) return;
 
@@ -371,6 +375,8 @@ export class MonetizationLinkManager extends EventEmitter {
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
+    const { HTMLElement } = this.global;
+
     const childListRecords = records.filter((e) => e.type === 'childList');
     const removedNodes = childListRecords.flatMap((e) => [...e.removedNodes]);
     const allRemovedLinkTags = removedNodes.map((node) =>
@@ -414,6 +420,8 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private async onLinkAttrChange(records: MutationRecord[]) {
+    const { HTMLLinkElement } = this.global;
+
     const handledTags = new Set<Node>();
     const startMonetizationPayload: StartMonetizationPayload = [];
     const stopMonetizationPayload: StopMonetizationPayload = [];
@@ -501,6 +509,8 @@ export class MonetizationLinkManager extends EventEmitter {
   private async onAddedNode(
     node: Node,
   ): Promise<StartMonetizationPayload | null> {
+    const { HTMLElement, HTMLLinkElement } = this.global;
+
     if (node instanceof HTMLElement) {
       this.dispatchOnMonetizationAttrChangedEvent(node);
     }
@@ -518,6 +528,8 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private onRemovedNode(node: Node): StopMonetizationPayload | null {
+    const { HTMLElement, HTMLLinkElement } = this.global;
+
     if (node instanceof HTMLLinkElement) {
       return [this.onRemovedLink(node)];
     } else if (node instanceof HTMLElement) {
