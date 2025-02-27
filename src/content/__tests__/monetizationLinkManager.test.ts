@@ -631,10 +631,12 @@ describe('monetization in first level iframe', () => {
     expect(postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ message: 'IS_MONETIZATION_ALLOWED_ON_START' }),
     );
+    expect(msg.START_MONETIZATION).not.toHaveBeenCalled();
   });
 
-  test.failing('accepts only first link tag', async () => {
-    // also test disabling a link tag in iframe, changing URL of first link tag, and prepending another link tag
+  test.todo('ignores first disabled link tag on start');
+
+  test('accepts only first link tag', async () => {
     const { document, postMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -648,7 +650,10 @@ describe('monetization in first level iframe', () => {
 
     linkManager.start();
     await nextTick();
-    // TODO: check START_MONETIZATION
+
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[0] },
+    ]);
 
     // test disable first link tag in iframe
     link1.setAttribute('disabled', '');
@@ -715,6 +720,15 @@ describe('monetization in first level iframe', () => {
     );
     expect(postMessage).toHaveBeenCalledTimes(1);
   });
+
+  test.todo('stops monetization if first & only first link tag is disabled');
+  test.todo('monetizes new URL for first tag (if valid)');
+
+  test.todo('monetizes prepended link tag');
+
+  test.todo('promotes second link tag if first is disabled');
+  test.todo('promotes second link tag if first has invalid URL');
+  test.todo('promotes second link tag if first has invalid URL (dynamic)');
 });
 
 describe('link tag attributes changes', () => {
