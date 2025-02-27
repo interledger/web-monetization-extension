@@ -16,6 +16,7 @@ import type {
   StepWithStatus,
 } from '@/content/keyAutoAdd/lib/types';
 import { reuseOrCreateTab } from '../utils';
+import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 
 export const CONNECTION_NAME = 'key-auto-add';
 
@@ -103,6 +104,7 @@ export class KeyAutoAddService {
       this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
       this.browser.tabs.onUpdated.removeListener(onTabUpdatedListener);
       this.browser.runtime.onConnect.removeListener(onConnectListener);
+      this.browser.runtime.onConnect.removeListener(onPopupOpenListener);
     };
 
     const onTabUpdatedListener: OnTabUpdatedCallback = (tabId, _, tab) => {
@@ -175,9 +177,26 @@ export class KeyAutoAddService {
       }
     };
 
+    // on popup opened, let's highlight the tab if user has lost it
+    const onPopupOpenListener: OnConnectCallback = async (port) => {
+      if (port.name !== BACKGROUND_TO_POPUP_CONNECTION_NAME) return;
+      if (port.error) return;
+
+      // Opera, Safari, Firefox Android don't support highlight API.
+      // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/highlight#browser_compatibility
+      if (typeof this.browser.tabs.highlight !== 'undefined') return;
+
+      // get latest tab index/windowId as that can change by the time of this call
+      const { index, windowId } = await this.browser.tabs.get(tab.id);
+      await this.browser.tabs
+        .highlight({ tabs: [index], windowId })
+        .catch(() => {});
+    };
+
     this.browser.tabs.onUpdated.addListener(onTabUpdatedListener);
     this.browser.tabs.onRemoved.addListener(onTabCloseListener);
     this.browser.runtime.onConnect.addListener(onConnectListener);
+    this.browser.runtime.onConnect.addListener(onPopupOpenListener);
 
     return promise;
   }
