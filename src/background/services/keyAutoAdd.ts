@@ -270,7 +270,7 @@ const CONTENT_SCRIPTS_HOSTS = CONTENT_SCRIPTS.map((script) =>
  * abort as user went to some other URL in the tab meant for key-add and lost
  * their way.
  */
-export function isAllowedURL(
+function isAllowedURL(
   url: string,
   keyAddUrl: string,
   allHosts = CONTENT_SCRIPTS_HOSTS,
