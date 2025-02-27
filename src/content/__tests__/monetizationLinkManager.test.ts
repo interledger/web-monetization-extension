@@ -651,6 +651,7 @@ describe('monetization in first level iframe', () => {
     linkManager.start();
     await nextTick();
 
+    // TODO: dispatch events as needed to make sure START is called
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
       { requestId: 'uuid-2', walletAddress: WALLET_INFO[0] },
     ]);
