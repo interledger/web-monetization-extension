@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom';
 import { MonetizationLinkManager } from '@/content/services/monetizationLinkManager';
 import { success, failure } from '@/shared/helpers';
 import type {
-  ContentToBackgroundMessage,
+  ContentToBackgroundMessage as Msg,
   MessageManager,
   Response,
 } from '@/shared/messages';
@@ -44,17 +44,18 @@ const WALLET_ADDRESS = WALLET_INFO.map((e) => e.id);
 
 const messageManager = {
   send: () => {},
-} as unknown as MessageManager<ContentToBackgroundMessage>;
+} as unknown as MessageManager<Msg>;
 const loggerMock = {
   error: jest.fn(),
 } as unknown as Logger;
 
-const msg: {
-  [k in keyof ContentToBackgroundMessage]: jest.Mock<
-    Promise<Response<ContentToBackgroundMessage[k]['output']>>,
-    [ContentToBackgroundMessage[k]['input']]
+type MessageMocks = {
+  [k in keyof Msg]: jest.Mock<
+    Promise<Response<Msg[k]['output']>>,
+    [Msg[k]['input']]
   >;
-} = {
+};
+const msg: MessageMocks = {
   GET_WALLET_ADDRESS_INFO: jest.fn(),
   RESUME_MONETIZATION: jest.fn(),
   START_MONETIZATION: jest.fn(),
