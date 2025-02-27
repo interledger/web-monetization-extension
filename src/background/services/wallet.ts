@@ -320,7 +320,8 @@ export class WalletService {
     } catch (error) {
       const tabId = keyAutoAdd.tabId;
       const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      if (tabId && !isTabClosed) {
+      const isTabNavAway = error.key === 'connectWallet_error_tabNavigatedAway';
+      if (tabId && (!isTabClosed || isTabNavAway)) {
         await redirectToWelcomeScreen(
           this.browser,
           tabId,

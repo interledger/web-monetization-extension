@@ -190,6 +190,9 @@
   "connectWallet_error_tabClosed": {
     "message": "Wallet connection cancelled. The tab was closed before completion."
   },
+  "connectWallet_error_tabNavigatedAway": {
+    "message": "Wallet connection cancelled. You switched to some other website before completion."
+  },
   "connectWallet_error_grantRejected": {
     "message": "Wallet connection cancelled. The request was not authorized."
   },
