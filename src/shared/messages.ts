@@ -132,7 +132,11 @@ export type PopupToBackgroundMessage = {
     output: PopupState;
   };
   CONNECT_WALLET: {
-    input: null | ConnectWalletPayload;
+    input: ConnectWalletPayload;
+    output: undefined;
+  };
+  RESET_CONNECT_STATE: {
+    input: never;
     output: undefined;
   };
   UPDATE_BUDGET: {
@@ -224,6 +228,7 @@ export type AppToBackgroundMessage = {
     output: AppState;
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
+  RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
 };
 // #endregion
 
