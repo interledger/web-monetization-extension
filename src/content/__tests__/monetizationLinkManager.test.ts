@@ -195,7 +195,7 @@ beforeEach(() => {
 });
 
 describe('monetization in main frame', () => {
-  test('should detect monetization link tags', async () => {
+  test('detects monetization link tags', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -232,7 +232,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should stop monetization on link element removal', async () => {
+  test('stops monetization on link element removal', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -252,7 +252,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should stop monetization when parent of link tag is removed', async () => {
+  test('stops monetization when parent of link tag is removed', async () => {
     const { document } = createTestEnv({
       head: html`<div id="container">
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
@@ -273,7 +273,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should start monetization when an element containing link tag is added', async () => {
+  test('starts monetization when an element containing link tag is added', async () => {
     const { document } = createTestEnv();
     using linkManager = createMonetizationLinkManager(document);
 
@@ -292,7 +292,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should handle two monetization link tags', async () => {
+  test('accepts two monetization link tags at start', async () => {
     const { document } = createTestEnv({
       head: html`
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
@@ -321,7 +321,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should reject invalid wallet address URL', async () => {
+  test('rejects invalid wallet address URL', async () => {
     const { document } = createTestEnv({
       head: html`
         <link rel="monetization" href="invalid-url">
@@ -350,7 +350,7 @@ describe('monetization in main frame', () => {
     expect(msg.START_MONETIZATION).not.toHaveBeenCalledWith(expect.any(Array));
   });
 
-  test('should handle dynamically added monetization link', async () => {
+  test('accepts dynamically added monetization link', async () => {
     const { document } = createTestEnv({});
     using linkManager = createMonetizationLinkManager(document);
 
@@ -373,7 +373,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should handle dynamic link tag append and remove', async () => {
+  test('handles dynamic link tag append and remove', async () => {
     const { document } = createTestEnv({});
     using linkManager = createMonetizationLinkManager(document);
 
@@ -400,7 +400,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should handle two link tags added simultaneously', async () => {
+  test('accepts two link tags added simultaneously', async () => {
     const { document } = createTestEnv({});
     using linkManager = createMonetizationLinkManager(document);
 
@@ -442,7 +442,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('more link tags added right after, leading to another MutationObserver callback', async () => {
+  test('handles link tags added right after (quick MutationObserver callback)', async () => {
     const { document } = createTestEnv({});
     using linkManager = createMonetizationLinkManager(document);
 
@@ -478,7 +478,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test('should handle rapid attribute changes on monetization link', async () => {
+  test('handles rapid attribute changes on monetization link', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -506,7 +506,7 @@ describe('monetization in main frame', () => {
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(1);
   });
 
-  test('should handle concurrent validation of multiple links with some failing', async () => {
+  test('handles concurrent validation of multiple links with some failing', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -541,7 +541,7 @@ describe('monetization in main frame', () => {
 });
 
 describe('monetization in first level iframe', () => {
-  test('detect monetization links in head', async () => {
+  test('detects monetization links in head', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
@@ -610,7 +610,7 @@ describe('monetization in first level iframe', () => {
     ]);
   });
 
-  test('ignore monetization links in body', async () => {
+  test('ignores monetization links in body', async () => {
     const { document, postMessage } = createTestEnvWithIframe({
       body: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -633,7 +633,7 @@ describe('monetization in first level iframe', () => {
     );
   });
 
-  test.failing('handle only first link tag', async () => {
+  test.failing('accepts only first link tag', async () => {
     // also test disabling a link tag in iframe, changing URL of first link tag, and prepending another link tag
     const { document, postMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
@@ -681,7 +681,7 @@ describe('monetization in first level iframe', () => {
     // TODO: check START_MONETIZATION
   });
 
-  test.failing('handle dynamically added monetization link', async () => {
+  test.failing('accepts dynamically added monetization link', async () => {
     const { document, postMessage } = createTestEnvWithIframe();
     using linkManager = createMonetizationLinkManager(document);
 
@@ -718,7 +718,7 @@ describe('monetization in first level iframe', () => {
 });
 
 describe('link tag attributes changes', () => {
-  test('should handle monetization link href attribute change', async () => {
+  test('handles monetization link href attribute change', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -745,7 +745,7 @@ describe('link tag attributes changes', () => {
     ]);
   });
 
-  test('should handle monetization link disabled attribute change', async () => {
+  test('handles monetization link disabled attribute change', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -773,7 +773,7 @@ describe('link tag attributes changes', () => {
     ]);
   });
 
-  test('should handle monetization link rel attribute change', async () => {
+  test('handles monetization link rel attribute change', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -801,7 +801,7 @@ describe('link tag attributes changes', () => {
     ]);
   });
 
-  test('should handle onmonetization attribute change', async () => {
+  test('handles onmonetization attribute change', async () => {
     const { document } = createTestEnv({
       head: html`<div onmonetization="handleEvent()"></div>`,
     });
@@ -823,7 +823,7 @@ describe('link tag attributes changes', () => {
     );
   });
 
-  test('should handle onmonetization attribute change on parent', async () => {
+  test('handles onmonetization attribute change on parent', async () => {
     const { document } = createTestEnv({
       head: html`
         <div id="parent">
@@ -863,7 +863,7 @@ describe('link tag attributes changes', () => {
 });
 
 describe('document events', () => {
-  test('should handle document visibility change event', async () => {
+  test('stops & resumes on document visibility change event', async () => {
     const { document, window, documentVisibilityState } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -889,7 +889,7 @@ describe('document events', () => {
     ]);
   });
 
-  test('should handle pagehide event', async () => {
+  test('stops on pagehide event', async () => {
     const { document, window } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -907,7 +907,7 @@ describe('document events', () => {
     ]);
   });
 
-  test('should handle focus event', async () => {
+  test('passes back focus events', async () => {
     const { document, window } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -926,7 +926,7 @@ describe('document events', () => {
 });
 
 describe('load event dispatching', () => {
-  test('should dispatch load event exactly once per validated link', async () => {
+  test('dispatches load event exactly once per validated link', async () => {
     const { document } = createTestEnv({
       head: html`
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
@@ -957,7 +957,7 @@ describe('load event dispatching', () => {
     ).toBe(dispatchEventSpies.length);
   });
 
-  test('should dispatch load event once when link is modified, but link remains valid', async () => {
+  test('dispatches load event once when link is modified, but link remains valid', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -987,7 +987,7 @@ describe('load event dispatching', () => {
     ).toHaveLength(2);
   });
 
-  test('should handle load events correctly when replacing a link element', async () => {
+  test('handles load events correctly when replacing a link element', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -1026,7 +1026,7 @@ describe('load event dispatching', () => {
     ).toHaveLength(1);
   });
 
-  test('should not dispatch load event for invalid links', async () => {
+  test('does not dispatch load event for invalid links', async () => {
     const { document } = createTestEnv({
       head: html`
         <link rel="monetization" href="invalid://url">
