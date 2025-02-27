@@ -8,13 +8,12 @@ import {
 } from '@/shared/helpers';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
-import type { Tab, TabId } from '@/shared/types';
+import type { TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
   KeyAutoAddToBackgroundMessage,
 } from '@/content/keyAutoAdd/lib/types';
-import { reuseOrCreateTab } from '../utils';
 
 export const CONNECTION_NAME = 'key-auto-add';
 
@@ -35,8 +34,6 @@ export class KeyAutoAddService {
   private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
-  private tab: Tab | null = null;
-
   constructor({
     browser,
     storage,
@@ -49,7 +46,7 @@ export class KeyAutoAddService {
 
   async addPublicKeyToWallet(
     walletAddress: WalletAddress,
-    existingTabId?: TabId,
+    existingTabId: TabId,
   ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
@@ -78,25 +75,16 @@ export class KeyAutoAddService {
     }
   }
 
-  /**
-   * Allows re-using same tab for further processing. Available only after
-   * {@linkcode addPublicKeyToWallet} has been called.
-   */
-  get tabId(): TabId | undefined {
-    return this.tab?.id;
-  }
-
   private async process(
     url: string,
     payload: BeginPayload,
-    existingTabId?: TabId,
+    existingTabId: TabId,
   ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
-    const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
-    this.tab = tab;
+    await this.browser.tabs.update(existingTabId, { url });
 
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
-      if (tabId !== tab.id) return;
+      if (tabId !== existingTabId) return;
       this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
@@ -105,7 +93,7 @@ export class KeyAutoAddService {
     const ports = new Set<Runtime.Port>();
     const onConnectListener: OnConnectCallback = (port) => {
       if (port.name !== CONNECTION_NAME) return;
-      if (port.sender?.tab && port.sender.tab.id !== tab.id) return;
+      if (port.sender?.tab && port.sender.tab.id !== existingTabId) return;
       if (port.error) {
         reject(new Error(port.error.message));
         return;
