@@ -444,6 +444,11 @@ export const ConnectWalletForm = ({
             !amount
           }
           loading={isSubmitting}
+          loadingText={
+            state?.status === 'connecting' || state?.status === 'connecting:key'
+              ? state.currentStep
+              : undefined
+          }
         >
           {t('connectWallet_action_connect')}
         </Button>
