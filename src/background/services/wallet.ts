@@ -92,7 +92,7 @@ export class WalletService {
     maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
-    this.setConnectState('connecting');
+    this.setConnectState('Waiting for you to Accept');
 
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
@@ -124,11 +124,12 @@ export class WalletService {
 
         // add key to wallet and try again
         try {
+          this.setConnectState('Adding public key to wallet');
           const tabId = await this.addPublicKeyToWallet(
             walletAddress,
             existingTab?.id,
           );
-          this.setConnectState('connecting');
+          this.setConnectState('Waiting for you to Accept');
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             amount,
             walletAddress,
@@ -153,7 +154,7 @@ export class WalletService {
       maxRateOfPay,
       connected: true,
     });
-    this.setConnectState(null);
+    this.resetConnectState();
   }
 
   async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
@@ -169,7 +170,7 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
-    this.setConnectState('connecting');
+    this.setConnectState('Connecting');
 
     try {
       await this.validateReconnect();
@@ -189,7 +190,7 @@ export class WalletService {
       }
     }
 
-    this.setConnectState(null);
+    this.resetConnectState();
   }
 
   async disconnectWallet() {
@@ -386,12 +387,14 @@ export class WalletService {
   }
 
   public resetConnectState() {
-    this.setConnectState(null);
+    this.storage.setPopupTransientState('connect', () => null);
   }
 
-  private setConnectState(status: 'connecting' | null) {
-    const state = status ? { status } : null;
-    this.storage.setPopupTransientState('connect', () => state);
+  private setConnectState(currentStep: string) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'connecting',
+      currentStep,
+    }));
   }
 
   private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
