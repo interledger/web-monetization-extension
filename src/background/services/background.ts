@@ -226,6 +226,11 @@ export class Background {
               }
               return success(undefined);
             }
+
+            case 'RESET_CONNECT_STATE':
+              this.walletService.resetConnectState();
+              return success(undefined);
+
             case 'RECONNECT_WALLET': {
               await this.walletService.reconnectWallet(message.payload);
               await this.monetizationService.resumePaymentSessionActiveTab();

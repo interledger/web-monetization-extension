@@ -384,7 +384,7 @@ function StepConnectWallet({
         getWalletInfo={getWalletInformation}
         walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
-        clearConnectState={() => message.send('CONNECT_WALLET', null)}
+        clearConnectState={() => message.send('RESET_CONNECT_STATE')}
       />
     </div>
   );
