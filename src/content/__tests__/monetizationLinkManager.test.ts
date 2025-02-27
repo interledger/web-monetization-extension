@@ -65,6 +65,9 @@ const messageMock = jest.spyOn(messageManager, 'send');
 // @ts-expect-error let it go
 messageMock.mockImplementation((action, payload) => msg[action](payload));
 
+// @ts-expect-error jest doesn't know of this
+Symbol.dispose ??= Symbol('Symbol.dispose');
+
 function createMonetizationLinkManager(document: Document) {
   const linkManager = new MonetizationLinkManager({
     global: document.defaultView!.globalThis,
@@ -73,7 +76,18 @@ function createMonetizationLinkManager(document: Document) {
     logger: loggerMock,
   });
 
-  return linkManager;
+  return {
+    start: () => linkManager.start(),
+    get isTopFrame() {
+      // @ts-expect-error accessing private property for testing
+      return linkManager.isTopFrame;
+    },
+    get isFirstLevelFrame() {
+      // @ts-expect-error accessing private property for testing
+      return linkManager.isFirstLevelFrame;
+    },
+    [Symbol.dispose]: () => linkManager.end(),
+  };
 }
 
 const createCounter = (prefix = 'uuid-', n = 0) => {
@@ -184,7 +198,7 @@ describe('monetization in main frame', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     const link = document.querySelector('link')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
@@ -200,9 +214,7 @@ describe('monetization in main frame', () => {
     expect(dispatchedLoadEvent.type).toBe('load');
     expect(dispatchEventSpy).toHaveBeenCalledTimes(1);
 
-    // @ts-ignore - accessing private property for testing
     expect(linkManager.isTopFrame).toBe(true);
-    // @ts-ignore
     expect(linkManager.isFirstLevelFrame).toBe(true);
 
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
@@ -223,7 +235,7 @@ describe('monetization in main frame', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -245,7 +257,7 @@ describe('monetization in main frame', () => {
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
       </div>`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -262,7 +274,7 @@ describe('monetization in main frame', () => {
 
   test('should start monetization when an element containing link tag is added', async () => {
     const { document } = createTestEnv();
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -286,7 +298,7 @@ describe('monetization in main frame', () => {
         <link rel="monetization" href="${WALLET_ADDRESS[1]}">
       `,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
@@ -315,7 +327,7 @@ describe('monetization in main frame', () => {
         <link rel="monetization" href="https://example.com">
       `,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockRejectedValueOnce(
       failure('Could not retrieve wallet address information'),
@@ -339,7 +351,7 @@ describe('monetization in main frame', () => {
 
   test('should handle dynamically added monetization link', async () => {
     const { document } = createTestEnv({});
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -362,7 +374,7 @@ describe('monetization in main frame', () => {
 
   test('should handle dynamic link tag append and remove', async () => {
     const { document } = createTestEnv({});
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -389,7 +401,7 @@ describe('monetization in main frame', () => {
 
   test('should handle two link tags added simultaneously', async () => {
     const { document } = createTestEnv({});
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
       success(WALLET_INFO[0]),
@@ -431,7 +443,7 @@ describe('monetization in main frame', () => {
 
   test('more link tags added right after, leading to another MutationObserver callback', async () => {
     const { document } = createTestEnv({});
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
@@ -469,7 +481,7 @@ describe('monetization in main frame', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
       success(WALLET_INFO[0]),
@@ -497,7 +509,7 @@ describe('monetization in main frame', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
     const failingLink = document.querySelector('link')!;
 
     const errorSpy = jest.spyOn(failingLink, 'dispatchEvent');
@@ -535,7 +547,7 @@ describe('monetization in first level iframe', () => {
         <link rel="monetization" href="${WALLET_ADDRESS[1]}">
       `,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
     const link = document.querySelector('link')!;
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
@@ -556,9 +568,7 @@ describe('monetization in first level iframe', () => {
       '*',
     );
 
-    // @ts-ignore - accessing private property for testing
     expect(linkManager.isTopFrame).toBe(false);
-    // @ts-ignore
     expect(linkManager.isFirstLevelFrame).toBe(true);
 
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
@@ -603,7 +613,7 @@ describe('monetization in first level iframe', () => {
     const { document, postMessage } = createTestEnvWithIframe({
       body: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -627,7 +637,7 @@ describe('monetization in first level iframe', () => {
     const { document, postMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
     const link1 = document.querySelector('link')!;
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
@@ -672,7 +682,7 @@ describe('monetization in first level iframe', () => {
 
   test.failing('handle dynamically added monetization link', async () => {
     const { document, postMessage } = createTestEnvWithIframe();
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
@@ -711,7 +721,7 @@ describe('link tag attributes changes', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
@@ -738,7 +748,7 @@ describe('link tag attributes changes', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -766,7 +776,7 @@ describe('link tag attributes changes', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     const requestId = 'uuid-1';
@@ -794,7 +804,7 @@ describe('link tag attributes changes', () => {
     const { document } = createTestEnv({
       head: html`<div onmonetization="handleEvent()"></div>`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
     const div = document.querySelector('div')!;
 
     linkManager.start();
@@ -820,7 +830,7 @@ describe('link tag attributes changes', () => {
         </div>
       `,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
     const parent = document.getElementById('parent')!;
     const child = document.getElementById('child')!;
 
@@ -856,7 +866,7 @@ describe('document events', () => {
     const { document, window, documentVisibilityState } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -882,7 +892,7 @@ describe('document events', () => {
     const { document, window } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -900,7 +910,7 @@ describe('document events', () => {
     const { document, window } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     jest.spyOn(document, 'hasFocus').mockReturnValue(true);
@@ -922,7 +932,7 @@ describe('load event dispatching', () => {
         <link rel="monetization" href="${WALLET_ADDRESS[1]}">
       `,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     const dispatchEventSpies = [...document.querySelectorAll('link')].map(
       (link) => jest.spyOn(link, 'dispatchEvent'),
@@ -950,7 +960,7 @@ describe('load event dispatching', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     const link = document.querySelector('link')!;
     const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
@@ -980,7 +990,7 @@ describe('load event dispatching', () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
@@ -1022,7 +1032,7 @@ describe('load event dispatching', () => {
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
       `,
     });
-    const linkManager = createMonetizationLinkManager(document);
+    using linkManager = createMonetizationLinkManager(document);
 
     const [invalidLink, validLink] = document.querySelectorAll('link');
     const invalidLinkSpy = jest.spyOn(invalidLink, 'dispatchEvent');
