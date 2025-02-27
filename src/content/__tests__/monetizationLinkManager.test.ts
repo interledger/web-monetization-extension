@@ -49,14 +49,6 @@ const loggerMock = {
   error: jest.fn(),
 } as unknown as Logger;
 
-const requestIdIterator = (function* () {
-  let i = 0;
-  while (true) yield i++;
-})();
-const requestIdMock = jest.fn(
-  () => `request-${requestIdIterator.next().value}`,
-);
-
 const msg: {
   [k in keyof ContentToBackgroundMessage]: jest.Mock<
     Promise<Response<ContentToBackgroundMessage[k]['output']>>,
@@ -83,6 +75,11 @@ function createMonetizationLinkManager(document: Document) {
 
   return linkManager;
 }
+
+const createCounter = (prefix = 'uuid-', n = 0) => {
+  // biome-ignore lint/style/noParameterAssign: it's cleaner and simpler
+  return () => `${prefix}${n++}`;
+};
 
 function createTestEnv({
   head = '',
@@ -113,6 +110,11 @@ function createTestEnv({
     documentReadyState.mockReturnValue(readyState);
   }
 
+  const crypto = document.defaultView!.globalThis.crypto;
+  Object.defineProperty(crypto, 'randomUUID', {
+    value: jest.fn(createCounter()),
+  });
+
   return {
     dom,
     window,
@@ -142,6 +144,11 @@ function createTestEnvWithIframe({
   const iframeDocument = iframe.contentDocument!;
   const iframeWindow = iframe.contentWindow!.window;
 
+  const crypto = iframeDocument.defaultView!.globalThis.crypto;
+  Object.defineProperty(crypto, 'randomUUID', {
+    value: jest.fn(createCounter('uuid-iframe-')),
+  });
+
   if (head) iframeDocument.head.insertAdjacentHTML('afterbegin', head);
   if (body) iframeDocument.body.insertAdjacentHTML('afterbegin', body);
 
@@ -149,6 +156,11 @@ function createTestEnvWithIframe({
     document: iframeDocument,
     window: iframeWindow,
     iframe,
+    postMessage: jest.spyOn(iframeWindow.parent, 'postMessage'),
+    dispatchMessage: (data: unknown) => {
+      const messageEvent = new iframeWindow.MessageEvent('message', { data });
+      iframeWindow.dispatchEvent(messageEvent);
+    },
     host,
   };
 }
@@ -165,9 +177,6 @@ beforeEach(() => {
   for (const mock of Object.values(msg)) {
     mock.mockReset();
   }
-
-  // @ts-expect-error let it go
-  global.crypto.randomUUID = requestIdMock;
 });
 
 describe('monetization in main frame', () => {
@@ -200,14 +209,13 @@ describe('monetization in main frame', () => {
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
       walletAddressUrl: WALLET_ADDRESS[0],
     });
-    const requestId = requestIdMock.mock.results.at(-1)!.value;
 
     // event was dispatched on correct link element
     expect(dispatchEventSpy.mock.instances[0]).toBe(link);
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId, walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
     ]);
   });
 
@@ -222,14 +230,12 @@ describe('monetization in main frame', () => {
     linkManager.start();
     await nextTick();
 
-    const requestId = requestIdMock.mock.results[1].value;
     document.querySelector('link')!.remove();
-
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId, intent: 'remove' },
+      { requestId: 'uuid-1', intent: 'remove' },
     ]);
   });
 
@@ -246,12 +252,11 @@ describe('monetization in main frame', () => {
     linkManager.start();
     await nextTick();
 
-    const requestId = requestIdMock.mock.results.at(-1)!.value;
     document.getElementById('container')!.remove();
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId, intent: 'remove' },
+      { requestId: 'uuid-1', intent: 'remove' },
     ]);
   });
 
@@ -269,9 +274,8 @@ describe('monetization in main frame', () => {
     document.head.appendChild(newContainer);
     await nextTick();
 
-    const requestId = requestIdMock.mock.results.at(-1)!.value;
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId, walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
     ]);
   });
 
@@ -290,8 +294,6 @@ describe('monetization in main frame', () => {
     linkManager.start();
     await nextTick();
 
-    const walletAddress1RequestId = requestIdMock.mock.results[1].value;
-    const walletAddress2RequestId = requestIdMock.mock.results[2].value;
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(1, {
       walletAddressUrl: WALLET_ADDRESS[0],
     });
@@ -301,8 +303,8 @@ describe('monetization in main frame', () => {
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: walletAddress1RequestId, walletAddress: WALLET_INFO[0] },
-      { requestId: walletAddress2RequestId, walletAddress: WALLET_INFO[1] },
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
     ]);
   });
 
@@ -353,9 +355,8 @@ describe('monetization in main frame', () => {
       walletAddressUrl: WALLET_ADDRESS[0],
     });
 
-    const requestId = requestIdMock.mock.results[1].value;
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId, walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
     ]);
   });
 
@@ -373,7 +374,7 @@ describe('monetization in main frame', () => {
     document.head.appendChild(wrapper);
     await nextTick();
 
-    const requestId = requestIdMock.mock.results[1].value;
+    const requestId = 'uuid-1';
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
       { requestId, walletAddress: WALLET_INFO[0] },
     ]);
@@ -405,9 +406,6 @@ describe('monetization in main frame', () => {
     document.head.appendChild(link2);
     await nextTick();
 
-    const requestId1 = requestIdMock.mock.results[1].value;
-    const requestId2 = requestIdMock.mock.results[2].value;
-
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(1, {
       walletAddressUrl: WALLET_ADDRESS[0],
@@ -418,8 +416,8 @@ describe('monetization in main frame', () => {
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: requestId1, walletAddress: WALLET_INFO[0] },
-      { requestId: requestId2, walletAddress: WALLET_INFO[1] },
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
     ]);
 
     // verify that both links are being observed for attribute changes
@@ -427,7 +425,7 @@ describe('monetization in main frame', () => {
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: requestId1, intent: 'remove' },
+      { requestId: 'uuid-1', intent: 'remove' },
     ]);
   });
 
@@ -456,17 +454,14 @@ describe('monetization in main frame', () => {
     document.head.appendChild(link3);
     await nextTick();
 
-    const requestId1 = requestIdMock.mock.results[1].value;
-    const requestId2 = requestIdMock.mock.results[2].value;
-    const requestId3 = requestIdMock.mock.results[3].value;
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(3);
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(2);
     expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(1, [
-      { requestId: requestId1, walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
     ]);
     expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
-      { requestId: requestId2, walletAddress: WALLET_INFO[1] },
-      { requestId: requestId3, walletAddress: WALLET_INFO[2] },
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
+      { requestId: 'uuid-3', walletAddress: WALLET_INFO[2] },
     ]);
   });
 
@@ -484,7 +479,6 @@ describe('monetization in main frame', () => {
     await nextTick();
 
     const link = document.querySelector('link')!;
-    const requestId = requestIdMock.mock.results[1].value;
 
     link.setAttribute('disabled', '');
     link.removeAttribute('disabled');
@@ -494,7 +488,7 @@ describe('monetization in main frame', () => {
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId, intent: 'remove' }, // TODO: should this in end lead to START?
+      { requestId: 'uuid-1', intent: 'remove' }, // TODO: should this in end lead to START?
     ]);
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(1);
   });
@@ -521,11 +515,9 @@ describe('monetization in main frame', () => {
     document.head.appendChild(createLink(document, WALLET_ADDRESS[2]));
     await nextTick();
 
-    const requestId1 = requestIdMock.mock.results[1].value;
-    const requestId2 = requestIdMock.mock.results[2].value;
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: requestId1, walletAddress: WALLET_INFO[0] },
-      { requestId: requestId2, walletAddress: WALLET_INFO[1] },
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
     ]);
 
     const errorEvent = errorSpy.mock.lastCall![0] as Event;
@@ -537,7 +529,7 @@ describe('monetization in main frame', () => {
 
 describe('monetization in first level iframe', () => {
   test('detect monetization links in head', async () => {
-    const { document, window } = createTestEnvWithIframe({
+    const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
         <link rel="monetization" href="${WALLET_ADDRESS[1]}">
@@ -547,10 +539,10 @@ describe('monetization in first level iframe', () => {
     const link = document.querySelector('link')!;
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-
     const dispatchEvent = jest.spyOn(link, 'dispatchEvent');
-    const postMessage = jest.spyOn(window.parent, 'postMessage');
-    const iframeId = requestIdMock.mock.results[0].value;
+
+    const iframeId = 'uuid-iframe-0';
+    const iframeWARequestId = 'uuid-iframe-1';
 
     linkManager.start();
     await nextTick();
@@ -576,7 +568,6 @@ describe('monetization in first level iframe', () => {
 
     await nextTick();
 
-    const iframeWARequestId = requestIdMock.mock.results.at(-1)!.value;
     expect(dispatchEvent).toHaveBeenCalledWith(new Event('load'));
     const dispatchedLoadEvent = dispatchEvent.mock.lastCall![0] as Event;
     expect(dispatchedLoadEvent.type).toBe('load');
@@ -589,67 +580,52 @@ describe('monetization in first level iframe', () => {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
         payload: [
-          {
-            requestId: iframeWARequestId,
-            walletAddress: WALLET_INFO[0],
-          },
+          { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
         ],
       },
       '*',
     );
-
-    const messageEvent = new window.MessageEvent('message', {
-      data: {
-        message: 'START_MONETIZATION',
-        id: iframeId,
-        payload: [
-          { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
-        ],
-      },
+    dispatchMessage({
+      message: 'START_MONETIZATION',
+      id: iframeId,
+      payload: [
+        { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
+      ],
     });
-    window.dispatchEvent(messageEvent);
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      {
-        requestId: iframeWARequestId,
-        walletAddress: WALLET_INFO[0],
-      },
+      { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
     ]);
   });
 
   test('ignore monetization links in body', async () => {
-    const { document, window } = createTestEnvWithIframe({
+    const { document, postMessage } = createTestEnvWithIframe({
       body: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
     const linkManager = createMonetizationLinkManager(document);
-    const postMessageSpy = jest.spyOn(window.parent, 'postMessage');
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-    const postMessage = jest.spyOn(window.parent, 'postMessage');
 
     linkManager.start();
     await nextTick();
 
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'INITIALIZE_IFRAME',
-      }),
+      expect.objectContaining({ message: 'INITIALIZE_IFRAME' }),
       '*',
     );
 
     expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
-    expect(postMessageSpy).not.toHaveBeenCalledWith(
+    expect(postMessage).not.toHaveBeenCalledWith(
       expect.objectContaining({ message: 'IS_MONETIZATION_ALLOWED_ON_START' }),
     );
   });
 
   test.failing('handle only first link tag', async () => {
     // also test disabling a link tag in iframe, changing URL of first link tag, and prepending another link tag
-    const { document, window } = createTestEnvWithIframe({
-      head: html`
-        <link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    const { document, postMessage } = createTestEnvWithIframe({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
     const linkManager = createMonetizationLinkManager(document);
     const link1 = document.querySelector('link')!;
@@ -657,21 +633,18 @@ describe('monetization in first level iframe', () => {
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[2]));
-
-    const postMessageSpy = jest.spyOn(window.parent, 'postMessage');
-    const iframeId = requestIdMock.mock.results[0].value;
+    const iframeId = 'uuid-1';
 
     linkManager.start();
     await nextTick();
     // TODO: check START_MONETIZATION
 
-    const firstRequestId = requestIdMock.mock.results[1].value;
     // test disable first link tag in iframe
     link1.setAttribute('disabled', '');
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: firstRequestId, intent: 'disable' },
+      { requestId: 'uuid-2', intent: 'disable' },
     ]);
 
     // test first link URL change
@@ -679,7 +652,6 @@ describe('monetization in first level iframe', () => {
     link1.href = WALLET_ADDRESS[1];
     await nextTick();
 
-    const secondRequestId = requestIdMock.mock.results[2].value;
     // prepend another link (should be ignored in iframe)
     const link2 = createLink(document, WALLET_ADDRESS[2]);
     document.head.insertBefore(link2, link1);
@@ -687,13 +659,11 @@ describe('monetization in first level iframe', () => {
 
     // Verify only the first link is active
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
-    expect(postMessageSpy).toHaveBeenLastCalledWith(
+    expect(postMessage).toHaveBeenLastCalledWith(
       {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [
-          { requestId: secondRequestId, walletAddress: WALLET_INFO[1] },
-        ],
+        payload: [{ requestId: 'uuid-3', walletAddress: WALLET_INFO[1] }],
       },
       '*',
     );
@@ -701,13 +671,11 @@ describe('monetization in first level iframe', () => {
   });
 
   test.failing('handle dynamically added monetization link', async () => {
-    const { document, window } = createTestEnvWithIframe();
+    const { document, postMessage } = createTestEnvWithIframe();
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
-    const postMessageSpy = jest.spyOn(window.parent, 'postMessage');
-    const iframeId = requestIdMock.mock.results[0].value;
 
     linkManager.start();
 
@@ -725,17 +693,16 @@ describe('monetization in first level iframe', () => {
 
     await nextTick();
 
-    const requestId = requestIdMock.mock.results.at(-1)!.value;
     // only the head link should be processed in iframe
-    expect(postMessageSpy).toHaveBeenCalledWith(
+    expect(postMessage).toHaveBeenCalledWith(
       {
-        id: iframeId,
+        id: 'uuid-1',
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [{ requestId, walletAddress: WALLET_INFO[0] }],
+        payload: [{ requestId: 'uuid-2', walletAddress: WALLET_INFO[0] }],
       },
       '*',
     );
-    expect(postMessageSpy).toHaveBeenCalledTimes(1);
+    expect(postMessage).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -752,20 +719,18 @@ describe('link tag attributes changes', () => {
     linkManager.start();
     await nextTick();
 
-    const requestId = requestIdMock.mock.results[1].value;
     document.querySelector('link')!.href = WALLET_ADDRESS[1];
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: requestId, intent: 'remove' },
+      { requestId: 'uuid-1', intent: 'remove' },
     ]);
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
       walletAddressUrl: WALLET_ADDRESS[1],
     });
 
-    const requestIdNew = requestIdMock.mock.results.at(-1)!.value;
     expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
-      { requestId: requestIdNew, walletAddress: WALLET_INFO[1] },
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
     ]);
   });
 
@@ -780,7 +745,7 @@ describe('link tag attributes changes', () => {
     linkManager.start();
     await nextTick();
 
-    const requestId = requestIdMock.mock.results[1].value;
+    const requestId = 'uuid-1';
     const link = document.querySelector('link')!;
     link.setAttribute('disabled', '');
     await nextTick();
@@ -804,11 +769,11 @@ describe('link tag attributes changes', () => {
     const linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    const requestId = 'uuid-1';
 
     linkManager.start();
     await nextTick();
 
-    const requestId = requestIdMock.mock.results[1].value;
     const link = document.querySelector('link')!;
     link.setAttribute('rel', 'preload');
     await nextTick();
@@ -820,9 +785,8 @@ describe('link tag attributes changes', () => {
     link.setAttribute('rel', 'monetization');
     await nextTick();
 
-    const newRequestId = requestIdMock.mock.results[1].value;
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: newRequestId, walletAddress: WALLET_INFO[0] },
+      { requestId, walletAddress: WALLET_INFO[0] },
     ]);
   });
 
@@ -899,11 +863,11 @@ describe('document events', () => {
     linkManager.start();
     await nextTick();
 
-    const requestId = requestIdMock.mock.results[1].value;
     documentVisibilityState.mockReturnValueOnce('hidden');
     document.dispatchEvent(new window.Event('visibilitychange'));
     await nextTick();
 
+    const requestId = 'uuid-1';
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([{ requestId }]);
 
     documentVisibilityState.mockReturnValueOnce('visible');
@@ -927,9 +891,8 @@ describe('document events', () => {
 
     window.dispatchEvent(new window.Event('pagehide'));
 
-    const requestId = requestIdMock.mock.results[1].value;
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId, intent: 'remove' },
+      { requestId: 'uuid-1', intent: 'remove' },
     ]);
   });
 

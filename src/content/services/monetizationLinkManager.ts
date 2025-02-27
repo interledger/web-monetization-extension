@@ -40,18 +40,19 @@ export class MonetizationLinkManager {
       message,
       window: global.window,
     });
+    const { MutationObserver, crypto, window } = this.global;
 
-    this.documentObserver = new this.global.MutationObserver((records) =>
+    this.id = crypto.randomUUID();
+    this.isTopFrame = window === window.top;
+    this.isFirstLevelFrame = window.parent === window.top;
+
+    this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records),
     );
 
-    this.monetizationLinkAttrObserver = new this.global.MutationObserver(
-      (records) => this.onLinkAttrChange(records),
+    this.monetizationLinkAttrObserver = new MutationObserver((records) =>
+      this.onLinkAttrChange(records),
     );
-
-    this.isTopFrame = this.window === this.window.top;
-    this.isFirstLevelFrame = this.window.parent === this.window.top;
-    this.id = crypto.randomUUID();
   }
 
   start(): void {
@@ -184,7 +185,7 @@ export class MonetizationLinkManager {
 
   /** @throws never throws */
   private async checkLink(link: HTMLLinkElement) {
-    const { HTMLLinkElement } = this.global;
+    const { HTMLLinkElement, crypto } = this.global;
     if (!(link instanceof HTMLLinkElement && link.rel === 'monetization')) {
       return null;
     }
