@@ -1,7 +1,11 @@
 import { test, expect } from './fixtures/base';
 import { getJWKS, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
-import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
+import {
+  getContinueWaitTime,
+  waitForPage,
+  waitForWelcomePage,
+} from './helpers/common';
 import {
   acceptGrant,
   KEYS_PAGE_URL,
@@ -62,10 +66,9 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   });
 
   page = await test.step('shows login page', async () => {
-    const openedPage = await context.waitForEvent('page', {
-      predicate: (page) => page.url().startsWith(LOGIN_PAGE_URL),
-      timeout: 3 * 1000,
-    });
+    const openedPage = await waitForPage(context, (url) =>
+      url.startsWith(LOGIN_PAGE_URL),
+    );
     await openedPage.getByLabel('Email').fill(username);
     await openedPage.getByLabel('Password').fill(password);
     await openedPage.getByRole('button', { name: 'Log in' }).click();
