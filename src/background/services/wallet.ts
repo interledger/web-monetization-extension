@@ -103,11 +103,22 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
+    const intent = InteractionIntent.CONNECT;
     try {
+      const clientNonce = crypto.randomUUID();
+      const grant =
+        await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+          clientNonce,
+          walletAddress,
+          walletAmount,
+          intent,
+        );
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
-        InteractionIntent.CONNECT,
+        grant,
+        clientNonce,
+        intent,
         existingTab?.id,
       );
     } catch (error) {
@@ -134,10 +145,20 @@ export class WalletService {
             existingTab?.id,
           );
           this.setConnectState('connecting');
+          const clientNonce = crypto.randomUUID();
+          const grant =
+            await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+              clientNonce,
+              walletAddress,
+              walletAmount,
+              intent,
+            );
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             walletAmount,
             walletAddress,
-            InteractionIntent.CONNECT,
+            grant,
+            clientNonce,
+            intent,
             tabId,
           );
         } catch (error) {
@@ -232,10 +253,21 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
+    const clientNonce = crypto.randomUUID();
+    const intent = InteractionIntent.FUNDS;
+    const grant =
+      await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+        clientNonce,
+        walletAddress,
+        walletAmount,
+        intent,
+      );
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       walletAmount,
       walletAddress,
-      InteractionIntent.FUNDS,
+      grant,
+      clientNonce,
+      intent,
     );
 
     await this.storage.setState({ out_of_funds: false });
@@ -267,10 +299,21 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
+    const clientNonce = crypto.randomUUID();
+    const intent = InteractionIntent.UPDATE_BUDGET;
+    const grant =
+      await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+        clientNonce,
+        walletAddress,
+        walletAmount,
+        intent,
+      );
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       walletAmount,
       walletAddress,
-      InteractionIntent.UPDATE_BUDGET,
+      grant,
+      clientNonce,
+      intent,
     );
 
     // Revoke all existing grants.

@@ -129,17 +129,11 @@ export class OutgoingPaymentGrantService {
   async completeOutgoingPaymentGrant(
     walletAmount: WalletAmount,
     walletAddress: WalletAddress,
+    grant: PendingGrant,
+    clientNonce: ReturnType<Crypto['randomUUID']>,
     intent: InteractionIntent,
     existingTabId?: number,
   ): Promise<GrantDetails> {
-    const clientNonce = crypto.randomUUID();
-    const grant = await this.createOutgoingPaymentGrant(
-      clientNonce,
-      walletAddress,
-      walletAmount,
-      intent,
-    );
-
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
@@ -223,7 +217,7 @@ export class OutgoingPaymentGrantService {
     return newToken;
   }
 
-  private async createOutgoingPaymentGrant(
+  async createOutgoingPaymentGrant(
     clientNonce: string,
     walletAddress: WalletAddress,
     amount: WalletAmount,
