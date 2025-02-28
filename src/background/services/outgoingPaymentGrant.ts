@@ -25,7 +25,6 @@ import {
   GrantResult,
   InteractionIntent,
   redirectToWelcomeScreen,
-  toAmount,
 } from '@/background/utils';
 
 interface InteractionParams {
@@ -128,18 +127,13 @@ export class OutgoingPaymentGrantService {
   }
 
   async completeOutgoingPaymentGrant(
-    amount: string,
+    walletAmount: WalletAmount,
     walletAddress: WalletAddress,
     recurring: boolean,
     intent: InteractionIntent,
     existingTabId?: number,
   ): Promise<GrantDetails> {
     const clientNonce = crypto.randomUUID();
-    const walletAmount = toAmount({
-      value: amount,
-      recurring,
-      assetScale: walletAddress.assetScale,
-    });
     const grant = await this.createOutgoingPaymentGrant(
       clientNonce,
       walletAddress,

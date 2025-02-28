@@ -25,6 +25,7 @@ import {
   GrantResult,
   redirectToWelcomeScreen,
   ensureTabExists,
+  toAmount,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -97,9 +98,14 @@ export class WalletService {
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
     });
+    const walletAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale,
+    });
     try {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-        amount,
+        walletAmount,
         walletAddress,
         recurring,
         InteractionIntent.CONNECT,
@@ -130,7 +136,7 @@ export class WalletService {
           );
           this.setConnectState('connecting');
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-            amount,
+            walletAmount,
             walletAddress,
             recurring,
             InteractionIntent.CONNECT,
@@ -219,10 +225,18 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Unexpected: walletAddress not found');
+    }
 
+    const walletAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale,
+    });
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      amount,
-      walletAddress!,
+      walletAmount,
+      walletAddress,
       recurring,
       InteractionIntent.FUNDS,
     );
@@ -247,10 +261,18 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Unexpected: walletAddress not found');
+    }
 
+    const walletAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale,
+    });
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      amount,
-      walletAddress!,
+      walletAmount,
+      walletAddress,
       recurring,
       InteractionIntent.UPDATE_BUDGET,
     );
