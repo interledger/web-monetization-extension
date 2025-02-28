@@ -129,10 +129,7 @@ export class OutgoingPaymentGrantService {
   async completeOutgoingPaymentGrant(
     walletAmount: WalletAmount,
     walletAddress: WalletAddress,
-    {
-      grant,
-      clientNonce,
-    }: { grant: PendingGrant; clientNonce: ReturnType<Crypto['randomUUID']> },
+    { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
     existingTabId?: number,
   ): Promise<GrantDetails> {
@@ -142,7 +139,7 @@ export class OutgoingPaymentGrantService {
     );
 
     await this.verifyInteractionHash(
-      clientNonce,
+      nonce,
       grant.interact.finish,
       interactRef,
       hash,
@@ -224,7 +221,7 @@ export class OutgoingPaymentGrantService {
     amount: WalletAmount,
     intent: InteractionIntent,
   ) {
-    const clientNonce = crypto.randomUUID();
+    const nonce = crypto.randomUUID();
     try {
       const grant = await this.openPaymentsService.client.grant.request(
         { url: walletAddress.authServer },
@@ -255,7 +252,7 @@ export class OutgoingPaymentGrantService {
             finish: {
               method: 'redirect',
               uri: OPEN_PAYMENTS_REDIRECT_URL,
-              nonce: clientNonce,
+              nonce: nonce,
             },
           },
         },
@@ -267,10 +264,7 @@ export class OutgoingPaymentGrantService {
         );
       }
 
-      return {
-        grant,
-        clientNonce,
-      };
+      return { grant, nonce };
     } catch (error) {
       if (isInvalidClientError(error)) {
         if (intent !== InteractionIntent.FUNDS) {
