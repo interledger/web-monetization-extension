@@ -131,7 +131,7 @@ export class OutgoingPaymentGrantService {
     walletAddress: WalletAddress,
     { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
-    existingTabId?: number,
+    existingTabId: number,
   ): Promise<GrantDetails> {
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
@@ -279,28 +279,26 @@ export class OutgoingPaymentGrantService {
 
   private async getInteractionInfo(
     url: string,
-    existingTabId?: TabId,
+    existingTabId: TabId,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
-    const tab = existingTabId
-      ? await this.browser.tabs.update(existingTabId, { url })
-      : await this.browser.tabs.create({ url });
-    if (!tab.id) {
+    await this.browser.tabs.update(existingTabId, { url });
+    if (!existingTabId) {
       reject(new Error('Could not create/update tab'));
       return promise;
     }
     this.events.emit('request_popup_close');
 
     const tabCloseListener: TabRemovedCallback = (tabId) => {
-      if (tabId !== tab.id) return;
+      if (tabId !== existingTabId) return;
 
       this.browser.tabs.onRemoved.removeListener(tabCloseListener);
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
 
     const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
-      if (tabId !== tab.id) return;
+      if (tabId !== existingTabId) return;
       try {
         const tabUrl = new URL(changeInfo.url || '');
         const interactRef = tabUrl.searchParams.get('interact_ref');
