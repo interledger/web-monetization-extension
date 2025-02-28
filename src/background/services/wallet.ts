@@ -25,6 +25,7 @@ import {
   GrantResult,
   redirectToWelcomeScreen,
   ensureTabExists,
+  toAmount,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -97,12 +98,24 @@ export class WalletService {
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
     });
+    const walletAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale,
+    });
+    const intent = InteractionIntent.CONNECT;
     try {
+      const grant =
+        await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+          walletAddress,
+          walletAmount,
+          intent,
+        );
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-        amount,
+        walletAmount,
         walletAddress,
-        recurring,
-        InteractionIntent.CONNECT,
+        grant,
+        intent,
         existingTab?.id,
       );
     } catch (error) {
@@ -129,11 +142,17 @@ export class WalletService {
             existingTab?.id,
           );
           this.setConnectState('connecting');
+          const grant =
+            await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+              walletAddress,
+              walletAmount,
+              intent,
+            );
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-            amount,
+            walletAmount,
             walletAddress,
-            recurring,
-            InteractionIntent.CONNECT,
+            grant,
+            intent,
             tabId,
           );
         } catch (error) {
@@ -219,12 +238,27 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Unexpected: walletAddress not found');
+    }
 
-    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      amount,
-      walletAddress!,
+    const walletAmount = toAmount({
+      value: amount,
       recurring,
-      InteractionIntent.FUNDS,
+      assetScale: walletAddress.assetScale,
+    });
+    const intent = InteractionIntent.FUNDS;
+    const grant =
+      await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+        walletAddress,
+        walletAmount,
+        intent,
+      );
+    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
+      walletAmount,
+      walletAddress,
+      grant,
+      intent,
     );
 
     await this.storage.setState({ out_of_funds: false });
@@ -247,12 +281,27 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Unexpected: walletAddress not found');
+    }
 
-    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      amount,
-      walletAddress!,
+    const walletAmount = toAmount({
+      value: amount,
       recurring,
-      InteractionIntent.UPDATE_BUDGET,
+      assetScale: walletAddress.assetScale,
+    });
+    const intent = InteractionIntent.UPDATE_BUDGET;
+    const grant =
+      await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+        walletAddress,
+        walletAmount,
+        intent,
+      );
+    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
+      walletAmount,
+      walletAddress,
+      grant,
+      intent,
     );
 
     // Revoke all existing grants.
