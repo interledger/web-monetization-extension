@@ -822,12 +822,11 @@ describe('monetization in first level iframe', () => {
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(2);
   });
 
-  test.failing('accepts dynamically added monetization link', async () => {
+  test('accepts dynamically added monetization link', async () => {
     const { document, postMessage, dispatchMessage } =
       createTestEnvWithIframe();
     using linkManager = createMonetizationLinkManager(document);
 
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
     const iframeId = 'uuid-iframe-0';
 
