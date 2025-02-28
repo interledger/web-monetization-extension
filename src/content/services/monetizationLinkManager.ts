@@ -1,4 +1,3 @@
-import { EventEmitter } from 'node:events';
 import { isNotNull } from '@/shared/helpers';
 import { mozClone, setDifference, WalletAddressFormatError } from '../utils';
 import type {
@@ -9,11 +8,14 @@ import type {
   StopMonetizationPayload,
   StopMonetizationPayloadEntry,
 } from '@/shared/messages';
-import type { Cradle } from '@/content/container';
+import type { Cradle as _Cradle } from '@/content/container';
 import type { ContentToContentMessage } from '../messages';
 
-export class MonetizationLinkManager extends EventEmitter {
-  private window: Cradle['window'];
+type Cradle = Pick<_Cradle, 'document' | 'logger' | 'message' | 'global'>;
+
+export class MonetizationLinkManager {
+  private global: Cradle['global'];
+  private window: Window;
   private document: Cradle['document'];
   private logger: Cradle['logger'];
   private message: Cradle['message'];
@@ -29,14 +31,19 @@ export class MonetizationLinkManager extends EventEmitter {
   >();
   private pendingValidationLinks = new WeakSet<HTMLLinkElement>();
 
-  constructor({ window, document, logger, message }: Cradle) {
-    super();
+  constructor({ document, logger, message, global }: Cradle) {
     Object.assign(this, {
-      window,
+      global,
       document,
       logger,
       message,
+      window: global.window,
     });
+    const { MutationObserver, crypto, window } = this.global;
+
+    this.id = crypto.randomUUID();
+    this.isTopFrame = window === window.top;
+    this.isFirstLevelFrame = window.parent === window.top;
 
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records),
@@ -45,10 +52,6 @@ export class MonetizationLinkManager extends EventEmitter {
     this.monetizationLinkAttrObserver = new MutationObserver((records) =>
       this.onLinkAttrChange(records),
     );
-
-    this.isTopFrame = window === window.top;
-    this.isFirstLevelFrame = window.parent === window.top;
-    this.id = crypto.randomUUID();
   }
 
   start(): void {
@@ -175,9 +178,8 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   /** @throws never throws */
-  private async checkLink(
-    link: HTMLLinkElement,
-  ): Promise<StartMonetizationPayloadEntry | null> {
+  private async checkLink(link: HTMLLinkElement) {
+    const { HTMLLinkElement } = this.global;
     if (!(link instanceof HTMLLinkElement && link.rel === 'monetization')) {
       return null;
     }
@@ -198,6 +200,7 @@ export class MonetizationLinkManager extends EventEmitter {
     link: HTMLLinkElement,
   ): Promise<StartMonetizationPayloadEntry | null> {
     const walletAddressUrl = link.href.trim();
+    const { crypto } = this.global;
     try {
       this.checkHrefFormat(walletAddressUrl);
       const response = await this.message.send('GET_WALLET_ADDRESS_INFO', {
@@ -262,11 +265,11 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private dispatchLoadEvent(tag: HTMLLinkElement) {
-    tag.dispatchEvent(new Event('load'));
+    tag.dispatchEvent(new this.global.Event('load'));
   }
 
   private dispatchErrorEvent(tag: HTMLLinkElement) {
-    tag.dispatchEvent(new Event('error'));
+    tag.dispatchEvent(new this.global.Event('error'));
   }
 
   public dispatchMonetizationEvent({
@@ -290,6 +293,7 @@ export class MonetizationLinkManager extends EventEmitter {
     node: HTMLElement,
     { changeDetected = false } = {},
   ) {
+    const { CustomEvent } = this.global;
     const attribute = node.getAttribute('onmonetization');
     if (!attribute && !changeDetected) return;
 
@@ -415,6 +419,8 @@ export class MonetizationLinkManager extends EventEmitter {
   }
 
   private async onLinkAttrChange(records: MutationRecord[]) {
+    const { HTMLLinkElement } = this.global;
+
     const handledTags = new Set<Node>();
     const startMonetizationPayload: StartMonetizationPayload = [];
     const stopMonetizationPayload: StopMonetizationPayload = [];
