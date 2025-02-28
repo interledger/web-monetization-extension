@@ -93,7 +93,6 @@ export class WalletService {
     maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
-    this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
 
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
@@ -111,6 +110,7 @@ export class WalletService {
           walletAmount,
           intent,
         );
+      this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
