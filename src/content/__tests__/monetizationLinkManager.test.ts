@@ -478,65 +478,53 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test.failing(
-    'handles rapid attribute changes on monetization link',
-    async () => {
-      const { document } = createTestEnv({
-        head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
-      });
-      using linkManager = createMonetizationLinkManager(document);
+  test.failing('handles rapid attribute changes on link', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
 
-      msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
-        success(WALLET_INFO[0]),
-      );
-      msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
-        success(WALLET_INFO[1]),
-      );
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValue(success(WALLET_INFO[1]));
 
-      linkManager.start();
-      await nextTick();
+    linkManager.start();
+    await nextTick();
 
-      expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-        { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
-      ]);
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+    ]);
 
-      // reset mocks to track subsequent calls
-      msg.START_MONETIZATION.mockClear();
+    const link = document.querySelector('link')!;
+    // make these changes without awaiting between them to simulate
+    // multiple changes happening within a single event loop
+    link.setAttribute('disabled', '');
+    link.removeAttribute('disabled');
+    link.href = WALLET_ADDRESS[1];
+    link.setAttribute('rel', 'preload');
+    link.setAttribute('rel', 'monetization');
+    await nextTick();
 
-      const link = document.querySelector('link')!;
+    // // check that monetization was stopped due to attribute changes
+    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', intent: 'remove' },
+    ]);
+    expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(1);
 
-      // make these changes without awaiting between them to simulate
-      // multiple changes happening within a single event loop
-      link.setAttribute('disabled', '');
-      link.removeAttribute('disabled');
-      link.href = 'https://ilp.interledger-test.dev/new';
-      link.setAttribute('rel', 'preload');
-      link.setAttribute('rel', 'monetization');
+    // the final state has rel="monetization" but the href changed, so it should
+    // attempt to validate the new wallet address
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
 
-      await nextTick();
+    // when the link stops using rel="monetization" and then starts again,
+    // it should be treated as a new monetization link and validate the URL again
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenLastCalledWith({
+      walletAddressUrl: WALLET_ADDRESS[1],
+    });
 
-      // check that monetization was stopped due to attribute changes
-      expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-        { requestId: 'uuid-1', intent: 'remove' },
-      ]);
-      expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(1);
-
-      // the final state has rel="monetization" but the href changed, so it should
-      // attempt to validate the new wallet address
-      expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
-
-      // when the link stops using rel="monetization" and then starts again,
-      // it should be treated as a new monetization link and validate the URL again
-      expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenLastCalledWith({
-        walletAddressUrl: WALLET_ADDRESS[1],
-      });
-
-      // after validation of the new URL, it should start monetization with the new address
-      expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-        { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
-      ]);
-    },
-  );
+    // after validation of the new URL, it should start monetization with the new address
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
+    ]);
+  });
 
   test('handles concurrent validation of multiple links with some failing', async () => {
     const { document } = createTestEnv({
