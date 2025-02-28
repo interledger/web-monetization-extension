@@ -61,7 +61,7 @@ export class KeyAutoAddService {
         'publicKey',
         'keyId',
       ]);
-      this.setConnectState('Adding public key to wallet');
+      this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
       await this.process(
         keyAddUrl,
         {
@@ -164,9 +164,9 @@ export class KeyAutoAddService {
       } else if (message.action === 'PROGRESS') {
         // can also save progress to show in popup
         const currentStep = this.getCurrentStep(message.payload.steps);
-        this.setConnectState(
-          currentStep?.name || 'Adding public key to wallet',
-        );
+        if (currentStep) {
+          this.setConnectState(currentStep.name);
+        }
         for (const p of ports) {
           if (p !== port) p.postMessage(message);
         }

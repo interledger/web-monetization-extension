@@ -92,7 +92,7 @@ export class WalletService {
     maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
-    this.setConnectState('Waiting for you to Accept');
+    this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
 
     const [existingTab] = await this.browser.tabs.query({
       url: this.browser.runtime.getURL(APP_URL),
@@ -124,12 +124,14 @@ export class WalletService {
 
         // add key to wallet and try again
         try {
-          this.setConnectState('Adding public key to wallet');
+          this.setConnectState(
+            this.t('connectWalletKeyService_text_stepAddKey'),
+          );
           const tabId = await this.addPublicKeyToWallet(
             walletAddress,
             existingTab?.id,
           );
-          this.setConnectState('Waiting for you to Accept');
+          this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             amount,
             walletAddress,
@@ -170,7 +172,7 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
-    this.setConnectState('Connecting');
+    this.setConnectState('Reconnecting wallet');
 
     try {
       await this.validateReconnect();
