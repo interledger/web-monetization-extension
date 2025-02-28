@@ -105,7 +105,6 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
-    let tabId: TabId;
     try {
       const grant =
         await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
@@ -113,7 +112,7 @@ export class WalletService {
           walletAmount,
           intent,
         );
-      tabId = await reuseOrCreateTab(
+      const tabId = await reuseOrCreateTab(
         this.browser,
         this.windowState.getCurrentWindowId(),
         (url) => url.startsWith(appUrl),
@@ -142,7 +141,7 @@ export class WalletService {
           throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
         }
 
-        tabId ??= await reuseOrCreateTab(
+        const tabId = await reuseOrCreateTab(
           this.browser,
           this.windowState.getCurrentWindowId(),
           (url) => url.startsWith(appUrl),
