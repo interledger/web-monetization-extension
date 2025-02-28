@@ -67,11 +67,7 @@ export class WalletService {
     });
   }
 
-  async connectWallet(params: ConnectWalletPayload | null) {
-    if (!params) {
-      this.setConnectState(null);
-      return;
-    }
+  async connectWallet(params: ConnectWalletPayload) {
     const {
       walletAddressUrl,
       amount,
@@ -386,6 +382,10 @@ export class WalletService {
       throw error;
     }
     await this.storage.setState({ key_revoked: false });
+  }
+
+  public resetConnectState() {
+    this.setConnectState(null);
   }
 
   private setConnectState(status: 'connecting' | null) {
