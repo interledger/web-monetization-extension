@@ -26,6 +26,7 @@ import {
   redirectToWelcomeScreen,
   reuseOrCreateTab,
   toAmount,
+  onPopupOpen,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -35,6 +36,7 @@ import { bytesToHex } from '@noble/hashes/utils';
 import type { Cradle } from '@/background/container';
 import type { AmountValue, TabId } from '@/shared/types';
 import type { WalletAddress } from '@interledger/open-payments';
+import type { Browser } from 'webextension-polyfill';
 
 export class WalletService {
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
@@ -105,6 +107,7 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
+    let cleanupListeners: () => void = () => {};
     try {
       const grant =
         await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
@@ -117,6 +120,7 @@ export class WalletService {
         this.windowState.getCurrentWindowId(),
         (url) => url.startsWith(appUrl),
       );
+      cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
@@ -124,7 +128,9 @@ export class WalletService {
         intent,
         tabId,
       );
+      cleanupListeners();
     } catch (error) {
+      cleanupListeners();
       if (
         isErrorWithKey(error) &&
         error.key === 'connectWallet_error_invalidClient' &&
@@ -146,6 +152,7 @@ export class WalletService {
           this.windowState.getCurrentWindowId(),
           (url) => url.startsWith(appUrl),
         );
+        cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
         // add key to wallet and try again
         try {
           await this.addPublicKeyToWallet(walletAddress, tabId);
@@ -163,7 +170,9 @@ export class WalletService {
             intent,
             tabId,
           );
+          cleanupListeners();
         } catch (error) {
+          cleanupListeners();
           this.setConnectStateError(error);
           throw error;
         }
@@ -461,3 +470,16 @@ export class WalletService {
     });
   }
 }
+
+// on popup opened, let's highlight the tab if user has lost it
+const highlightTabOnPopupOpen = (browser: Browser, tabId: TabId) => {
+  return onPopupOpen(browser, async () => {
+    // Opera, Safari, Firefox Android don't support highlight API.
+    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/highlight#browser_compatibility
+    if (typeof browser.tabs.highlight === 'undefined') return;
+
+    // get latest tab index/windowId as that can change by the time of this call
+    const { index, windowId } = await browser.tabs.get(tabId);
+    await browser.tabs.highlight({ tabs: [index], windowId }).catch(() => {});
+  });
+};
