@@ -7,7 +7,7 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/chimoney';
-import { waitForWelcomePage } from './helpers/common';
+import { waitForPage, waitForWelcomePage } from './helpers/common';
 import { getStorage } from './fixtures/helpers';
 
 test('Connect to Chimoney wallet with automatic key addition when not logged-in to wallet', async ({
@@ -74,10 +74,9 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
   });
 
   page = await test.step('shows login page', async () => {
-    const openedPage = await context.waitForEvent('page', {
-      predicate: (page) => page.url().startsWith(walletUrl),
-      timeout: 3 * 1000,
-    });
+    const openedPage = await waitForPage(context, (url) =>
+      url.startsWith(walletUrl),
+    );
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.login));
     await login(openedPage, { username, password });
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.keyPage));
