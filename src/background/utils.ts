@@ -7,10 +7,15 @@ import type {
   WindowId,
 } from '@/shared/types';
 import type { Browser, Runtime } from 'webextension-polyfill';
+import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 import { EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
+
+type OnConnectCallback = Parameters<
+  Browser['runtime']['onConnect']['addListener']
+>[0];
 
 export enum GrantResult {
   GRANT_SUCCESS = 'grant_success',
@@ -160,6 +165,23 @@ export const reuseOrCreateTab = async (
   }
   const newTab = await browser.tabs.create({});
   return newTab.id!;
+};
+
+export const onPopupOpen = (
+  browser: Browser,
+  callback: () => Promise<void>,
+) => {
+  const listener: OnConnectCallback = (port) => {
+    if (port.name !== BACKGROUND_TO_POPUP_CONNECTION_NAME) return;
+    if (port.error) return;
+
+    void callback();
+  };
+
+  browser.runtime.onConnect.addListener(listener);
+  return () => {
+    browser.runtime.onConnect.removeListener(listener);
+  };
 };
 
 export const getSender = (sender: Runtime.MessageSender) => {
