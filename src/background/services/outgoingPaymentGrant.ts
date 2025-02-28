@@ -147,7 +147,6 @@ export class OutgoingPaymentGrantService {
       intent,
     );
 
-    this.events.emit('request_popup_close');
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
@@ -305,6 +304,7 @@ export class OutgoingPaymentGrantService {
       reject(new Error('Could not create/update tab'));
       return promise;
     }
+    this.events.emit('request_popup_close');
 
     const tabCloseListener: TabRemovedCallback = (tabId) => {
       if (tabId !== tab.id) return;
