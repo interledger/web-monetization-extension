@@ -107,7 +107,6 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
-
     let cleanupListeners: () => void = () => {};
     try {
       const grant =

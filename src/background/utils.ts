@@ -161,6 +161,9 @@ export const reuseOrCreateTab = async (
     (tab) => !!tab.url && !!tab.id && isTabReusable(tab.url, tab.id),
   );
   if (reuseableTab?.id) {
+    await browser.tabs
+      .update(reuseableTab.id, { active: true })
+      .catch(() => {});
     return reuseableTab.id;
   }
   const newTab = await browser.tabs.create({});
