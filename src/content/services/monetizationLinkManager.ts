@@ -307,9 +307,9 @@ export class MonetizationLinkManager {
   private async stopMonetization(
     intent?: StopMonetizationPayloadEntry['intent'],
   ) {
-    const payload: StopMonetizationPayload = (
-      await Promise.all([...this.monetizationLinks.values()])
-    )
+    const payload: StopMonetizationPayload = [
+      ...this.monetizationLinks.values(),
+    ]
       .filter(isNotNull)
       .map(({ requestId }) => ({ requestId, intent }));
 
@@ -374,6 +374,7 @@ export class MonetizationLinkManager {
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
+    const { HTMLElement } = this.global;
     if (this.isTopFrame || this.isFirstLevelFrame) {
       const linkTagsNow = this.getMonetizationLinkTags();
 
@@ -381,10 +382,8 @@ export class MonetizationLinkManager {
         linkTagsNow,
         new Set(this.monetizationLinks.keys()),
       );
+
       const linkTagEntries = [...tagsAdded].map((tag) => this.onAddedLink(tag));
-      for (const tag of tagsAdded) {
-        this.pendingValidationLinks.add(tag);
-      }
       const validTags = await Promise.all(linkTagEntries);
       void this.sendStartMonetization(validTags.filter(isNotNull));
 
@@ -420,7 +419,6 @@ export class MonetizationLinkManager {
 
   private async onLinkAttrChange(records: MutationRecord[]) {
     const { HTMLLinkElement } = this.global;
-
     const handledTags = new Set<Node>();
     const startMonetizationPayload: StartMonetizationPayload = [];
     const stopMonetizationPayload: StopMonetizationPayload = [];
@@ -477,13 +475,13 @@ export class MonetizationLinkManager {
                 startMonetizationPayload.push(payloadEntry);
               }
             } catch {
+              // if we can't find existing entry, try to revalidate
               const payloadEntry = await this.checkLink(target);
               if (payloadEntry) {
                 this.monetizationLinks.set(target, payloadEntry);
                 startMonetizationPayload.push(payloadEntry);
               }
             }
-
             handledTags.add(target);
           }
         } else if (
@@ -492,14 +490,22 @@ export class MonetizationLinkManager {
           target instanceof HTMLLinkElement &&
           target.href !== record.oldValue
         ) {
-          const payloadEntry = await this.validateLink(target);
-          if (payloadEntry) {
-            startMonetizationPayload.push(payloadEntry);
-          } else {
-            if (this.monetizationLinks.has(target)) {
+          if (this.monetizationLinks.has(target)) {
+            // stop existing monetization first
+            try {
               const removedEntry = this.onRemovedLink(target);
               stopMonetizationPayload.push(removedEntry);
+            } catch (e) {
+              this.logger.error(e);
             }
+          }
+
+          // then validate with new href
+          const payloadEntry = await this.validateLink(target);
+          if (payloadEntry) {
+            this.monetizationLinks.set(target, payloadEntry);
+            startMonetizationPayload.push(payloadEntry);
+            this.observeLinkAttrs(target);
           }
           handledTags.add(target);
         }
@@ -513,15 +519,23 @@ export class MonetizationLinkManager {
   private async onAddedLink(
     link: HTMLLinkElement,
   ): Promise<StartMonetizationPayloadEntry | null> {
-    if (this.pendingValidationLinks.has(link)) {
+    if (
+      this.pendingValidationLinks.has(link) ||
+      this.monetizationLinks.has(link)
+    ) {
       return null;
     }
+
+    this.pendingValidationLinks.add(link);
+
     const walletAddress = await this.checkLink(link);
     if (!walletAddress) {
       return null;
     }
 
     this.monetizationLinks.set(link, walletAddress);
+    // if link validation failed, do not remove it from pending validation links
+    this.pendingValidationLinks.delete(link);
     this.observeLinkAttrs(link);
 
     return walletAddress;
@@ -535,7 +549,6 @@ export class MonetizationLinkManager {
       );
     }
     this.monetizationLinks.delete(link);
-    this.pendingValidationLinks.delete(link);
 
     return { requestId: details.requestId, intent: 'remove' };
   }
