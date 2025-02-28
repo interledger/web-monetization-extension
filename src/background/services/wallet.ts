@@ -25,6 +25,7 @@ import {
   GrantResult,
   redirectToWelcomeScreen,
   reuseOrCreateTab,
+  toAmount,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -98,17 +99,30 @@ export class WalletService {
     this.setConnectState('connecting');
 
     const appUrl = this.browser.runtime.getURL(APP_URL);
-    const tabId = await reuseOrCreateTab(
-      this.browser,
-      this.windowState.getCurrentWindowId(),
-      (url) => url.startsWith(appUrl),
-    );
+    const intent = InteractionIntent.CONNECT;
+    const walletAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale,
+    });
+    let tabId: TabId;
     try {
+      const grant =
+        await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+          walletAddress,
+          walletAmount,
+          intent,
+        );
+      tabId = await reuseOrCreateTab(
+        this.browser,
+        this.windowState.getCurrentWindowId(),
+        (url) => url.startsWith(appUrl),
+      );
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-        amount,
+        walletAmount,
         walletAddress,
-        recurring,
-        InteractionIntent.CONNECT,
+        grant,
+        intent,
         tabId,
       );
     } catch (error) {
@@ -128,15 +142,26 @@ export class WalletService {
           throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
         }
 
+        tabId ??= await reuseOrCreateTab(
+          this.browser,
+          this.windowState.getCurrentWindowId(),
+          (url) => url.startsWith(appUrl),
+        );
         // add key to wallet and try again
         try {
           await this.addPublicKeyToWallet(walletAddress, tabId);
           this.setConnectState('connecting');
+          const grant =
+            await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+              walletAddress,
+              walletAmount,
+              intent,
+            );
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-            amount,
+            walletAmount,
             walletAddress,
-            recurring,
-            InteractionIntent.CONNECT,
+            grant,
+            intent,
             tabId,
           );
         } catch (error) {
@@ -222,13 +247,28 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Unexpected: walletAddress not found');
+    }
 
+    const walletAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale,
+    });
+    const intent = InteractionIntent.FUNDS;
+    const grant =
+      await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+        walletAddress,
+        walletAmount,
+        intent,
+      );
     const tabId = await reuseOrCreateTab(this.browser);
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      amount,
-      walletAddress!,
-      recurring,
-      InteractionIntent.FUNDS,
+      walletAmount,
+      walletAddress,
+      grant,
+      intent,
       tabId,
     );
 
@@ -252,13 +292,28 @@ export class WalletService {
       'oneTimeGrant',
       'recurringGrant',
     ]);
+    if (!walletAddress) {
+      throw new Error('Unexpected: walletAddress not found');
+    }
 
+    const walletAmount = toAmount({
+      value: amount,
+      recurring,
+      assetScale: walletAddress.assetScale,
+    });
+    const intent = InteractionIntent.UPDATE_BUDGET;
+    const grant =
+      await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
+        walletAddress,
+        walletAmount,
+        intent,
+      );
     const tabId = await reuseOrCreateTab(this.browser);
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      amount,
-      walletAddress!,
-      recurring,
-      InteractionIntent.UPDATE_BUDGET,
+      walletAmount,
+      walletAddress,
+      grant,
+      intent,
       tabId,
     );
 
@@ -324,7 +379,8 @@ export class WalletService {
       await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
     } catch (error) {
       const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      if (tabId && !isTabClosed) {
+      const isTabNavAway = error.key === 'connectWallet_error_tabNavigatedAway';
+      if (tabId && (!isTabClosed || isTabNavAway)) {
         await redirectToWelcomeScreen(
           this.browser,
           tabId,

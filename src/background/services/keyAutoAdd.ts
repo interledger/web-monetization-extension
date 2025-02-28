@@ -20,6 +20,9 @@ export const CONNECTION_NAME = 'key-auto-add';
 type OnTabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
 >[0];
+type OnTabUpdatedCallback = Parameters<
+  Browser['tabs']['onUpdated']['addListener']
+>[0];
 type OnConnectCallback = Parameters<
   Browser['runtime']['onConnect']['addListener']
 >[0];
@@ -83,12 +86,26 @@ export class KeyAutoAddService {
     const { resolve, reject, promise } = withResolvers();
     await this.browser.tabs.update(existingTabId, { url });
 
+    const removeListeners = () => {
+      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      this.browser.tabs.onUpdated.removeListener(onTabUpdatedListener);
+      this.browser.runtime.onConnect.removeListener(onConnectListener);
+    };
+
+    const onTabUpdatedListener: OnTabUpdatedCallback = (tabId, _, tab) => {
+      if (tabId !== existingTabId) return;
+      const tabUrl = tab.url || '';
+      if (!isAllowedURL(tabUrl, url)) {
+        removeListeners();
+        reject(new ErrorWithKey('connectWallet_error_tabNavigatedAway'));
+      }
+    };
+
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
       if (tabId !== existingTabId) return;
-      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      removeListeners();
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
-    this.browser.tabs.onRemoved.addListener(onTabCloseListener);
 
     const ports = new Set<Runtime.Port>();
     const onConnectListener: OnConnectCallback = (port) => {
@@ -116,12 +133,10 @@ export class KeyAutoAddService {
       port,
     ) => {
       if (message.action === 'SUCCESS') {
-        this.browser.runtime.onConnect.removeListener(onConnectListener);
-        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+        removeListeners();
         resolve(message.payload);
       } else if (message.action === 'ERROR') {
-        this.browser.runtime.onConnect.removeListener(onConnectListener);
-        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+        removeListeners();
         const { stepName, details: err } = message.payload;
         reject(
           new ErrorWithKey(
@@ -143,6 +158,8 @@ export class KeyAutoAddService {
       }
     };
 
+    this.browser.tabs.onUpdated.addListener(onTabUpdatedListener);
+    this.browser.tabs.onRemoved.addListener(onTabCloseListener);
     this.browser.runtime.onConnect.addListener(onConnectListener);
 
     return promise;
@@ -181,44 +198,86 @@ export class KeyAutoAddService {
     const { scripting } = browser;
     const existingScripts = await scripting.getRegisteredContentScripts();
     const existingScriptIds = new Set(existingScripts.map((s) => s.id));
-    const scripts = getContentScripts().filter(
-      (s) => !existingScriptIds.has(s.id),
-    );
+    const scripts = CONTENT_SCRIPTS.filter((s) => !existingScriptIds.has(s.id));
     await scripting.registerContentScripts(scripts);
   }
 }
 
-function getContentScripts(): Scripting.RegisteredContentScript[] {
-  return [
-    {
-      id: 'keyAutoAdd/testWallet',
-      matches: [
-        'https://wallet.interledger-test.dev/*',
-        'https://wallet.interledger.cards/*',
-      ],
-      js: ['content/keyAutoAdd/testWallet.js'],
-    },
-    {
-      id: 'keyAutoAdd/fynbos',
-      matches: ['https://eu1.fynbos.dev/*', 'https://interledger.app/*'],
-      js: ['content/keyAutoAdd/fynbos.js'],
-    },
-    {
-      id: 'keyAutoAdd/chimoney',
-      matches: ['https://sandbox.chimoney.io/*', 'https://dash.chimoney.io/*'],
-      js: ['content/keyAutoAdd/chimoney.js'],
-    },
-    {
-      id: 'keyAutoAdd/gatehub',
-      matches: [
-        'https://wallet.sandbox.gatehub.net/*',
-        'https://signin.sandbox.gatehub.net/*',
-        'https://wallet.gatehub.net/*',
-        'https://signin.gatehub.net/*',
-      ],
-      js: ['content/keyAutoAdd/gatehub.js'],
-    },
-  ];
+const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
+  {
+    id: 'keyAutoAdd/testWallet/test',
+    matches: ['https://wallet.interledger-test.dev/*'],
+    js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/testWallet/cards',
+    matches: ['https://wallet.interledger.cards/*'],
+    js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/fynbos/sandbox',
+    matches: ['https://eu1.fynbos.dev/*'],
+    js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/fynbos/prod',
+    matches: ['https://interledger.app/*'],
+    js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/chimoney/sandbox',
+    matches: ['https://sandbox.chimoney.io/*'],
+    js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/chimoney/prod',
+    matches: ['https://dash.chimoney.io/*'],
+    js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/gatehub/sandbox',
+    matches: [
+      'https://wallet.sandbox.gatehub.net/*',
+      'https://signin.sandbox.gatehub.net/*',
+    ],
+    js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/gatehub/prod',
+    matches: ['https://wallet.gatehub.net/*', 'https://signin.gatehub.net/*'],
+    js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
+  },
+];
+// assumption: matches patterns are URL parse-able! Will crash on load if not.
+const CONTENT_SCRIPTS_HOSTS = CONTENT_SCRIPTS.map((script) =>
+  script.matches!.map((e) => new URL(e).host),
+);
+
+/**
+ * Is user allowed to be on this URL during key add process? If not, we should
+ * abort as user went to some other URL in the tab meant for key-add and lost
+ * their way.
+ */
+function isAllowedURL(
+  url: string,
+  keyAddUrl: string,
+  allHosts = CONTENT_SCRIPTS_HOSTS,
+): boolean {
+  const { host: provider } = new URL(keyAddUrl);
+  const { host: urlHost } = new URL(url);
+  return (
+    allHosts
+      .find((hosts) => hosts.some((host) => host.includes(provider)))
+      ?.some((host) => host === urlHost) ?? false
+  );
 }
 
 function walletAddressToProvider(walletAddress: WalletAddress): string {
