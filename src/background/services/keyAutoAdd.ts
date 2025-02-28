@@ -220,31 +220,37 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
     id: 'keyAutoAdd/testWallet/test',
     matches: ['https://wallet.interledger-test.dev/*'],
     js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
   },
   {
     id: 'keyAutoAdd/testWallet/cards',
     matches: ['https://wallet.interledger.cards/*'],
     js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
   },
   {
     id: 'keyAutoAdd/fynbos/sandbox',
     matches: ['https://eu1.fynbos.dev/*'],
     js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
   },
   {
     id: 'keyAutoAdd/fynbos/prod',
     matches: ['https://interledger.app/*'],
     js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
   },
   {
     id: 'keyAutoAdd/chimoney/sandbox',
     matches: ['https://sandbox.chimoney.io/*'],
     js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
   },
   {
     id: 'keyAutoAdd/chimoney/prod',
     matches: ['https://dash.chimoney.io/*'],
     js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
   },
   {
     id: 'keyAutoAdd/gatehub/sandbox',
@@ -253,11 +259,13 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
       'https://signin.sandbox.gatehub.net/*',
     ],
     js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
   },
   {
     id: 'keyAutoAdd/gatehub/prod',
     matches: ['https://wallet.gatehub.net/*', 'https://signin.gatehub.net/*'],
     js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
   },
 ];
 // assumption: matches patterns are URL parse-able! Will crash on load if not.
