@@ -105,10 +105,8 @@ export class WalletService {
     });
     const intent = InteractionIntent.CONNECT;
     try {
-      const clientNonce = crypto.randomUUID();
       const grant =
         await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
-          clientNonce,
           walletAddress,
           walletAmount,
           intent,
@@ -117,7 +115,6 @@ export class WalletService {
         walletAmount,
         walletAddress,
         grant,
-        clientNonce,
         intent,
         existingTab?.id,
       );
@@ -145,10 +142,8 @@ export class WalletService {
             existingTab?.id,
           );
           this.setConnectState('connecting');
-          const clientNonce = crypto.randomUUID();
           const grant =
             await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
-              clientNonce,
               walletAddress,
               walletAmount,
               intent,
@@ -157,7 +152,6 @@ export class WalletService {
             walletAmount,
             walletAddress,
             grant,
-            clientNonce,
             intent,
             tabId,
           );
@@ -253,11 +247,9 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
-    const clientNonce = crypto.randomUUID();
     const intent = InteractionIntent.FUNDS;
     const grant =
       await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
-        clientNonce,
         walletAddress,
         walletAmount,
         intent,
@@ -266,7 +258,6 @@ export class WalletService {
       walletAmount,
       walletAddress,
       grant,
-      clientNonce,
       intent,
     );
 
@@ -299,11 +290,9 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
-    const clientNonce = crypto.randomUUID();
     const intent = InteractionIntent.UPDATE_BUDGET;
     const grant =
       await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
-        clientNonce,
         walletAddress,
         walletAmount,
         intent,
@@ -312,7 +301,6 @@ export class WalletService {
       walletAmount,
       walletAddress,
       grant,
-      clientNonce,
       intent,
     );
 
