@@ -680,7 +680,45 @@ describe('monetization in first level iframe', () => {
     expect(msg.START_MONETIZATION).not.toHaveBeenCalled();
   });
 
-  test.failing('accepts only first link tag in iframe context', async () => {
+  test.failing('ignores first disabled link but picks 2nd one', async () => {
+    const { document, postMessage } = createTestEnvWithIframe({
+      head: html`
+        <link rel="monetization" href="${WALLET_ADDRESS[0]}" disabled>
+        <link rel="monetization" href="${WALLET_ADDRESS[1]}">
+      `,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
+
+    linkManager.start();
+    await nextTick();
+
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'INITIALIZE_IFRAME' }),
+      '*',
+    );
+
+    // Disabled link should not be processed for monetization
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
+      walletAddressUrl: WALLET_ADDRESS[1],
+    });
+    expect(postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'IS_MONETIZATION_ALLOWED_ON_START',
+      }),
+      '*',
+    );
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith({
+      requestId: 'uuid-1',
+      walletAddress: WALLET_INFO[1],
+    });
+  });
+
+  test.failing('accepts only first link tag', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
