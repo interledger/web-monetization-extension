@@ -508,7 +508,8 @@ function isAutoKeyAddFailed(state: ConnectTransientState) {
   if (state?.status === 'error') {
     return (
       isErrorWithKey(state.error) &&
-      state.error.key !== 'connectWallet_error_tabClosed'
+      state.error.key !== 'connectWallet_error_tabClosed' &&
+      state.error.key !== 'connectWallet_error_tabNavigatedAway'
     );
   } else if (state?.status === 'error:key') {
     return (
