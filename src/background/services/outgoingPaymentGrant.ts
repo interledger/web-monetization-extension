@@ -129,7 +129,6 @@ export class OutgoingPaymentGrantService {
   async completeOutgoingPaymentGrant(
     walletAmount: WalletAmount,
     walletAddress: WalletAddress,
-    recurring: boolean,
     intent: InteractionIntent,
     existingTabId?: number,
   ): Promise<GrantDetails> {
@@ -169,7 +168,7 @@ export class OutgoingPaymentGrantService {
       );
     }
 
-    this.grant = this.buildGrantDetails(continuation, recurring, walletAmount);
+    this.grant = this.buildGrantDetails(continuation, walletAmount);
     await this.persistGrantDetails(this.grant);
 
     await redirectToWelcomeScreen(
@@ -402,9 +401,9 @@ export class OutgoingPaymentGrantService {
 
   private buildGrantDetails(
     continuation: Grant,
-    recurring: boolean,
     amount: WalletAmount,
   ): GrantDetails {
+    const recurring = !!amount.interval;
     return {
       type: recurring ? 'recurring' : 'one-time',
       amount: amount as Required<WalletAmount>,

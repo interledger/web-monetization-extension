@@ -107,7 +107,6 @@ export class WalletService {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
-        recurring,
         InteractionIntent.CONNECT,
         existingTab?.id,
       );
@@ -138,7 +137,6 @@ export class WalletService {
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             walletAmount,
             walletAddress,
-            recurring,
             InteractionIntent.CONNECT,
             tabId,
           );
@@ -237,7 +235,6 @@ export class WalletService {
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       walletAmount,
       walletAddress,
-      recurring,
       InteractionIntent.FUNDS,
     );
 
@@ -273,7 +270,6 @@ export class WalletService {
     await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
       walletAmount,
       walletAddress,
-      recurring,
       InteractionIntent.UPDATE_BUDGET,
     );
 
