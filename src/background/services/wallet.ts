@@ -15,10 +15,11 @@ import {
   DEFAULT_RATE_OF_PAY,
   MIN_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
+  DEFAULT_SCALE,
 } from '@/background/config';
 import {
+  convertWithExchangeRate,
   getExchangeRates,
-  getRateOfPay as _getRateOfPay,
   InteractionIntent,
   ErrorCode,
   GrantResult,
@@ -31,7 +32,7 @@ import { isInvalidClientError } from '@/background/services/openPayments';
 import { APP_URL } from '@/background/constants';
 import { bytesToHex } from '@noble/hashes/utils';
 import type { Cradle } from '@/background/container';
-import type { TabId } from '@/shared/types';
+import type { AmountValue, TabId } from '@/shared/types';
 import type { WalletAddress } from '@interledger/open-payments';
 
 export class WalletService {
@@ -66,11 +67,7 @@ export class WalletService {
     });
   }
 
-  async connectWallet(params: ConnectWalletPayload | null) {
-    if (!params) {
-      this.setConnectState(null);
-      return;
-    }
+  async connectWallet(params: ConnectWalletPayload) {
     const {
       walletAddressUrl,
       amount,
@@ -86,19 +83,10 @@ export class WalletService {
     let minRateOfPay = MIN_RATE_OF_PAY;
     let maxRateOfPay = MAX_RATE_OF_PAY;
 
-    if (!exchangeRates.rates[walletAddress.assetCode]) {
-      throw new Error(
-        `Exchange rate for ${walletAddress.assetCode} not found.`,
-      );
-    }
-
-    const exchangeRate = exchangeRates.rates[walletAddress.assetCode];
-    const getRateOfPay = (rate: string) =>
-      _getRateOfPay({
-        rate,
-        exchangeRate,
-        assetScale: walletAddress.assetScale,
-      });
+    const getRateOfPay = (rate: AmountValue) => {
+      const from = { assetCode: 'USD', assetScale: DEFAULT_SCALE };
+      return convertWithExchangeRate(rate, from, walletAddress, exchangeRates);
+    };
     rateOfPay = getRateOfPay(DEFAULT_RATE_OF_PAY);
     minRateOfPay = getRateOfPay(MIN_RATE_OF_PAY);
     maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
@@ -394,6 +382,10 @@ export class WalletService {
       throw error;
     }
     await this.storage.setState({ key_revoked: false });
+  }
+
+  public resetConnectState() {
+    this.setConnectState(null);
   }
 
   private setConnectState(status: 'connecting' | null) {

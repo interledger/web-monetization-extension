@@ -243,6 +243,12 @@
   "postInstall_text_stepGetWallet_title": {
     "message": "Get a wallet compatible with Web Monetization"
   },
+  "postInstall_text_stepGetWallet_desc": {
+    "message": "If you don’t already have a Web Monetization-compatible wallet, please set one up, then return here to complete the setup."
+  },
+  "postInstall_text_stepGetWallet_comingSoon": {
+    "message": "More wallets will be added soon…"
+  },
   "postInstall_text_stepWalletAddress_title": {
     "message": "Find your wallet address or payment pointer"
   },

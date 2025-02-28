@@ -152,9 +152,10 @@ export class KeyAutoAdd {
           ? new Date(Date.now() + stepInfo.maxDuration).valueOf()
           : undefined,
       });
+      const minWait = sleep(2_000);
       try {
         const run = this.stepsInput.get(step.name)!.run;
-        const res = await run(payload, helpers);
+        const [res] = await Promise.all([run(payload, helpers), minWait]);
         this.outputs.set(run, res);
         this.setStatus(stepIdx, 'success', {});
       } catch (error) {
@@ -165,6 +166,7 @@ export class KeyAutoAdd {
         }
         const details = errorToDetails(error);
         this.setStatus(stepIdx, 'error', { details: details });
+        await minWait;
         this.postMessage('ERROR', { details, stepName: step.name, stepIdx });
         this.port.disconnect();
         return;

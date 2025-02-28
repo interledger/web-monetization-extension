@@ -157,6 +157,7 @@ export async function loadContext(
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],
+      ignoreDefaultArgs: ['--disable-back-forward-cache'],
     });
   } else if (browserName === 'firefox') {
     const RDP_PORT = 12345;

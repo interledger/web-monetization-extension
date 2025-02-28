@@ -5,10 +5,10 @@ import type {
   WalletAmount,
 } from '@/shared/types';
 import type { Browser, Runtime } from 'webextension-polyfill';
-import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
+import { EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
 import { notNullOrUndef } from '@/shared/helpers';
-import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
+import type { WalletAddress } from '@interledger/open-payments';
 
 export enum GrantResult {
   GRANT_SUCCESS = 'grant_success',
@@ -58,27 +58,6 @@ export const toAmount = ({
   };
 };
 
-export interface GetRateOfPayParams {
-  rate: string;
-  exchangeRate: number;
-  assetScale: number;
-}
-
-export const getRateOfPay = ({
-  rate,
-  exchangeRate,
-  assetScale,
-}: GetRateOfPayParams) => {
-  const scaleDiff = assetScale - DEFAULT_SCALE;
-
-  if (exchangeRate < 0.8 || exchangeRate > 1.5) {
-    const scaledExchangeRate = (1 / exchangeRate) * 10 ** scaleDiff;
-    return BigInt(Math.round(Number(rate) * scaledExchangeRate)).toString();
-  }
-
-  return (Number(rate) * 10 ** scaleDiff).toString();
-};
-
 interface ExchangeRates {
   base: string;
   rates: Record<string, number>;
@@ -99,6 +78,44 @@ export const getExchangeRates = async (): Promise<ExchangeRates> => {
   return rates;
 };
 
+export const getExchangeRate = (
+  rates: ExchangeRates,
+  forAssetCode: string,
+  fromAssetCode = 'USD',
+) => {
+  if (!Number.isFinite(rates.rates[forAssetCode])) {
+    throw new Error(`Exchange rate for ${forAssetCode} not found.`);
+  }
+
+  if (rates.base === fromAssetCode) {
+    return rates.rates[forAssetCode];
+  }
+
+  return rates.rates[forAssetCode] / rates.rates[fromAssetCode];
+};
+
+export const convertWithExchangeRate = <T extends AmountValue | bigint>(
+  amount: T,
+  from: Pick<WalletAddress, 'assetScale' | 'assetCode'>,
+  to: Pick<WalletAddress, 'assetScale' | 'assetCode'>,
+  exchangeRates: ExchangeRates,
+): T => {
+  const exchangeRate = getExchangeRate(
+    exchangeRates,
+    to.assetCode,
+    from.assetCode,
+  );
+
+  const scaleDiff = from.assetScale - to.assetScale;
+  const scaledExchangeRate = exchangeRate * 10 ** scaleDiff;
+
+  const converted = BigInt(Math.ceil(Number(amount) / scaledExchangeRate));
+
+  return typeof amount === 'string'
+    ? (converted.toString() as T)
+    : (converted as T);
+};
+
 export const getTabId = (sender: Runtime.MessageSender): number => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab').id, 'tab.id');
 };
@@ -114,6 +131,7 @@ export const redirectToWelcomeScreen = async (
   intent: InteractionIntent,
   errorCode?: ErrorCode,
 ): Promise<void> => {
+  const { OPEN_PAYMENTS_REDIRECT_URL } = await import('@/shared/defines');
   const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
   url.searchParams.set('result', result);
   url.searchParams.set('intent', intent);
