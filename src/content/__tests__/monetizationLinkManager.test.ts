@@ -822,12 +822,11 @@ describe('monetization in first level iframe', () => {
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(2);
   });
 
-  test.failing('accepts dynamically added monetization link', async () => {
+  test('accepts dynamically added monetization link', async () => {
     const { document, postMessage, dispatchMessage } =
       createTestEnvWithIframe();
     using linkManager = createMonetizationLinkManager(document);
 
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
     const iframeId = 'uuid-iframe-0';
 
@@ -862,7 +861,8 @@ describe('monetization in first level iframe', () => {
       walletAddressUrl: WALLET_ADDRESS[1],
     });
 
-    expect(postMessage).toHaveBeenCalledWith(
+    expect(postMessage).toHaveBeenNthCalledWith(
+      2,
       {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
@@ -959,7 +959,7 @@ describe('monetization in first level iframe', () => {
     );
   });
 
-  test.failing('monetizes prepended link tag', async () => {
+  test('monetizes prepended link tag', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
