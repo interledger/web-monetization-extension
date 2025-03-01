@@ -25,7 +25,6 @@ import {
   GrantResult,
   InteractionIntent,
   redirectToWelcomeScreen,
-  toAmount,
 } from '@/background/utils';
 
 interface InteractionParams {
@@ -128,33 +127,19 @@ export class OutgoingPaymentGrantService {
   }
 
   async completeOutgoingPaymentGrant(
-    amount: string,
+    walletAmount: WalletAmount,
     walletAddress: WalletAddress,
-    recurring: boolean,
+    { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
-    existingTabId?: number,
+    existingTabId: number,
   ): Promise<GrantDetails> {
-    const clientNonce = crypto.randomUUID();
-    const walletAmount = toAmount({
-      value: amount,
-      recurring,
-      assetScale: walletAddress.assetScale,
-    });
-    const grant = await this.createOutgoingPaymentGrant(
-      clientNonce,
-      walletAddress,
-      walletAmount,
-      intent,
-    );
-
-    this.events.emit('request_popup_close');
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
     );
 
     await this.verifyInteractionHash(
-      clientNonce,
+      nonce,
       grant.interact.finish,
       interactRef,
       hash,
@@ -176,7 +161,7 @@ export class OutgoingPaymentGrantService {
       );
     }
 
-    this.grant = this.buildGrantDetails(continuation, recurring, walletAmount);
+    this.grant = this.buildGrantDetails(continuation, walletAmount);
     await this.persistGrantDetails(this.grant);
 
     await redirectToWelcomeScreen(
@@ -231,12 +216,12 @@ export class OutgoingPaymentGrantService {
     return newToken;
   }
 
-  private async createOutgoingPaymentGrant(
-    clientNonce: string,
+  async createOutgoingPaymentGrant(
     walletAddress: WalletAddress,
     amount: WalletAmount,
     intent: InteractionIntent,
   ) {
+    const nonce = crypto.randomUUID();
     try {
       const grant = await this.openPaymentsService.client.grant.request(
         { url: walletAddress.authServer },
@@ -267,7 +252,7 @@ export class OutgoingPaymentGrantService {
             finish: {
               method: 'redirect',
               uri: OPEN_PAYMENTS_REDIRECT_URL,
-              nonce: clientNonce,
+              nonce: nonce,
             },
           },
         },
@@ -279,7 +264,7 @@ export class OutgoingPaymentGrantService {
         );
       }
 
-      return grant;
+      return { grant, nonce };
     } catch (error) {
       if (isInvalidClientError(error)) {
         if (intent !== InteractionIntent.FUNDS) {
@@ -294,27 +279,26 @@ export class OutgoingPaymentGrantService {
 
   private async getInteractionInfo(
     url: string,
-    existingTabId?: TabId,
+    existingTabId: TabId,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
-    const tab = existingTabId
-      ? await this.browser.tabs.update(existingTabId, { url })
-      : await this.browser.tabs.create({ url });
-    if (!tab.id) {
+    await this.browser.tabs.update(existingTabId, { url });
+    if (!existingTabId) {
       reject(new Error('Could not create/update tab'));
       return promise;
     }
+    this.events.emit('request_popup_close');
 
     const tabCloseListener: TabRemovedCallback = (tabId) => {
-      if (tabId !== tab.id) return;
+      if (tabId !== existingTabId) return;
 
       this.browser.tabs.onRemoved.removeListener(tabCloseListener);
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
 
     const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
-      if (tabId !== tab.id) return;
+      if (tabId !== existingTabId) return;
       try {
         const tabUrl = new URL(changeInfo.url || '');
         const interactRef = tabUrl.searchParams.get('interact_ref');
@@ -408,9 +392,9 @@ export class OutgoingPaymentGrantService {
 
   private buildGrantDetails(
     continuation: Grant,
-    recurring: boolean,
     amount: WalletAmount,
   ): GrantDetails {
+    const recurring = !!amount.interval;
     return {
       type: recurring ? 'recurring' : 'one-time',
       amount: amount as Required<WalletAmount>,
