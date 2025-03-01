@@ -375,27 +375,6 @@ export class MonetizationLinkManager {
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
     const { HTMLElement } = this.global;
-    if (this.isTopFrame || this.isFirstLevelFrame) {
-      const linkTagsNow = this.getMonetizationLinkTags();
-
-      const tagsAdded = setDifference(
-        linkTagsNow,
-        new Set(this.monetizationLinks.keys()),
-      );
-
-      const linkTagEntries = [...tagsAdded].map((tag) => this.onAddedLink(tag));
-      const validTags = await Promise.all(linkTagEntries);
-      void this.sendStartMonetization(validTags.filter(isNotNull));
-
-      const tagsRemoved = setDifference(
-        new Set(this.monetizationLinks.keys()),
-        linkTagsNow,
-      );
-      const stopMonetizationPayload = await Promise.all(
-        [...tagsRemoved].map((tag) => this.onRemovedLink(tag)),
-      );
-      void this.sendStopMonetization(stopMonetizationPayload.filter(isNotNull));
-    }
 
     for (const record of records) {
       if (
@@ -408,6 +387,29 @@ export class MonetizationLinkManager {
         });
       }
     }
+
+    if (!this.isTopFrame && !this.isFirstLevelFrame) {
+      return;
+    }
+
+    const linkTagsNow = this.getMonetizationLinkTags();
+    const tagsAdded = setDifference(
+      linkTagsNow,
+      new Set(this.monetizationLinks.keys()),
+    );
+
+    const linkTagEntries = [...tagsAdded].map((tag) => this.onAddedLink(tag));
+    const validTags = await Promise.all(linkTagEntries);
+    void this.sendStartMonetization(validTags.filter(isNotNull));
+
+    const tagsRemoved = setDifference(
+      new Set(this.monetizationLinks.keys()),
+      linkTagsNow,
+    );
+    const stopMonetizationPayload = await Promise.all(
+      [...tagsRemoved].map((tag) => this.onRemovedLink(tag)),
+    );
+    void this.sendStopMonetization(stopMonetizationPayload.filter(isNotNull));
   }
 
   private postMessage<K extends ContentToContentMessage['message']>(
