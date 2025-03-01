@@ -7,7 +7,7 @@ import { cn } from '@/shared/helpers';
 
 const buttonVariants = cva(
   [
-    'relative inline-flex items-center justify-center whitespace-nowrap rounded-xl font-semibold',
+    'relative inline-flex gap-2 items-center justify-center whitespace-nowrap rounded-xl font-semibold',
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
     'disabled:pointer-events-none disabled:select-none disabled:opacity-50',
   ],
@@ -27,7 +27,7 @@ const buttonVariants = cva(
         true: 'w-full',
       },
       loading: {
-        true: 'text-transparent',
+        true: '',
       },
     },
     defaultVariants: {
@@ -41,6 +41,7 @@ export interface ButtonProps
   extends VariantProps<typeof buttonVariants>,
     React.ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
+  loadingText?: string;
   /** Optional only when children are passed */
   'aria-label'?: string;
 }
@@ -52,6 +53,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       size,
       fullWidth,
       loading = false,
+      loadingText,
       className,
       type = 'button',
       children,
@@ -72,7 +74,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         aria-disabled={props.disabled ?? loading ?? false}
         {...props}
       >
-        {loading ? <LoadingSpinner /> : children}
+        {loading ? (
+          <>
+            <LoadingSpinner />
+            {loadingText}
+          </>
+        ) : (
+          children
+        )}
       </button>
     );
   },

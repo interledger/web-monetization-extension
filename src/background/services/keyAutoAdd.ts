@@ -13,6 +13,7 @@ import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
   KeyAutoAddToBackgroundMessage,
+  StepWithStatus,
 } from '@/content/keyAutoAdd/lib/types';
 
 export const CONNECTION_NAME = 'key-auto-add';
@@ -57,7 +58,7 @@ export class KeyAutoAddService {
         'publicKey',
         'keyId',
       ]);
-      this.updateConnectState();
+      this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
       await this.process(
         keyAddUrl,
         {
@@ -72,7 +73,7 @@ export class KeyAutoAddService {
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
       if (!error.key || !error.key.startsWith('connectWallet_error_')) {
-        this.updateConnectState(error);
+        this.setConnectStateError(error);
       }
       throw error;
     }
@@ -150,6 +151,10 @@ export class KeyAutoAddService {
         );
       } else if (message.action === 'PROGRESS') {
         // can also save progress to show in popup
+        const currentStep = this.getCurrentStep(message.payload.steps);
+        if (currentStep) {
+          this.setConnectState(currentStep.name);
+        }
         for (const p of ports) {
           if (p !== port) p.postMessage(message);
         }
@@ -165,6 +170,13 @@ export class KeyAutoAddService {
     return promise;
   }
 
+  private getCurrentStep(steps: Readonly<StepWithStatus[]>) {
+    return steps
+      .slice()
+      .reverse()
+      .find((step) => step.status !== 'pending');
+  }
+
   private async validate(walletAddressUrl: string, keyId: string) {
     const jwks = await getJWKS(walletAddressUrl);
     if (!jwks.keys.find((key) => key.kid === keyId)) {
@@ -172,17 +184,18 @@ export class KeyAutoAddService {
     }
   }
 
-  private updateConnectState(err?: ErrorWithKeyLike | { message: string }) {
-    if (err) {
-      this.storage.setPopupTransientState('connect', () => ({
-        status: 'error:key',
-        error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
-      }));
-    } else {
-      this.storage.setPopupTransientState('connect', () => ({
-        status: 'connecting:key',
-      }));
-    }
+  private setConnectState(currentStep: string) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'connecting:key',
+      currentStep,
+    }));
+  }
+
+  private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'error:key',
+      error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
+    }));
   }
 
   static supports(walletAddress: WalletAddress): boolean {

@@ -98,7 +98,6 @@ export class WalletService {
     maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
-    this.setConnectState('connecting');
 
     const appUrl = this.browser.runtime.getURL(APP_URL);
     const intent = InteractionIntent.CONNECT;
@@ -120,6 +119,7 @@ export class WalletService {
         this.windowState.getCurrentWindowId(),
         (url) => url.startsWith(appUrl),
       );
+      this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
       cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
@@ -155,14 +155,17 @@ export class WalletService {
         cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
         // add key to wallet and try again
         try {
+          this.setConnectState(
+            this.t('connectWalletKeyService_text_stepAddKey'),
+          );
           await this.addPublicKeyToWallet(walletAddress, tabId);
-          this.setConnectState('connecting');
           const grant =
             await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
               walletAddress,
               walletAmount,
               intent,
             );
+          this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             walletAmount,
             walletAddress,
@@ -189,7 +192,7 @@ export class WalletService {
       maxRateOfPay,
       connected: true,
     });
-    this.setConnectState(null);
+    this.resetConnectState();
   }
 
   async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
@@ -205,7 +208,7 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
-    this.setConnectState('connecting');
+    this.setConnectState('Reconnecting wallet');
 
     try {
       await this.validateReconnect();
@@ -225,7 +228,7 @@ export class WalletService {
       }
     }
 
-    this.setConnectState(null);
+    this.resetConnectState();
   }
 
   async disconnectWallet() {
@@ -450,12 +453,14 @@ export class WalletService {
   }
 
   public resetConnectState() {
-    this.setConnectState(null);
+    this.storage.setPopupTransientState('connect', () => null);
   }
 
-  private setConnectState(status: 'connecting' | null) {
-    const state = status ? { status } : null;
-    this.storage.setPopupTransientState('connect', () => state);
+  private setConnectState(currentStep: string) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'connecting',
+      currentStep,
+    }));
   }
 
   private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {

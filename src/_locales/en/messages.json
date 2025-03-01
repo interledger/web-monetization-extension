@@ -150,6 +150,9 @@
   "connectWallet_action_connect": {
     "message": "Connect"
   },
+  "connectWallet_text_stepAcceptGrant": {
+    "message": "Waiting for you to Accept"
+  },
   "connectWallet_error_urlRequired": {
     "message": "The wallet address is required."
   },
@@ -217,6 +220,18 @@
   },
   "connectWalletKeyService_label_consentDecline": {
     "message": "Decline"
+  },
+  "connectWalletKeyService_text_stepAddKey": {
+    "message": "Adding public key to wallet"
+  },
+  "connectWalletKeyService_text_stepWaitingLogin": {
+    "message": "Waiting for you to login"
+  },
+  "connectWalletKeyService_text_stepFindingWallet": {
+    "message": "Finding wallet"
+  },
+  "connectWalletKeyService_text_stepAddingKey": {
+    "message": "Adding key"
   },
   "connectWalletKeyService_error_notImplemented": {
     "message": "Automatic key addition is not yet implemented for the selected wallet provider."

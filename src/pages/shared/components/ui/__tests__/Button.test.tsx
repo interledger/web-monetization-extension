@@ -46,6 +46,21 @@ describe('Button', () => {
     expect(queryByRole('button')).toBeDisabled();
   });
 
+  it('should allow text along with loading spinner', () => {
+    const { queryByRole } = render(
+      <Button aria-label="test button" loading loadingText="me loading">
+        My Button
+      </Button>,
+    );
+
+    expect(queryByRole('button')).toBeInTheDocument();
+    expect(queryByRole('button')).toHaveAttribute('disabled');
+    expect(queryByRole('button')).toHaveAttribute('aria-disabled', 'true');
+    expect(queryByRole('button')?.querySelector('svg')).toBeDefined();
+    expect(queryByRole('button')).toHaveTextContent('me loading');
+    expect(queryByRole('button')).toBeDisabled();
+  });
+
   it('should have the `bg-button-base` class by default', () => {
     const { queryByRole } = render(
       <Button aria-label="test button">My Button</Button>,
