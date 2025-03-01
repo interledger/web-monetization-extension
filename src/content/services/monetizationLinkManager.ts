@@ -133,13 +133,16 @@ export class MonetizationLinkManager {
 
     const monetizationLinks = this.getMonetizationLinkTags();
 
-    const validLinks = (
-      await Promise.all(
-        [...monetizationLinks].map((elem) => this.onAddedLink(elem)),
-      )
-    ).filter(isNotNull);
-
-    await this.sendStartMonetization(validLinks);
+    if (this.isTopFrame) {
+      const validLinks = (
+        await Promise.all(
+          [...monetizationLinks].map((elem) => this.onAddedLink(elem)),
+        )
+      ).filter(isNotNull);
+      await this.sendStartMonetization(validLinks);
+    } else {
+      await this.sendIframeStartMonetization([...monetizationLinks]);
+    }
   }
 
   private onWindowMessage = (event: MessageEvent<ContentToContentMessage>) => {
@@ -170,10 +173,11 @@ export class MonetizationLinkManager {
         return new Set();
       }
 
-      const monetizationTag = this.document.querySelector<HTMLLinkElement>(
-        'head link[rel="monetization"]',
-      );
-      return new Set(monetizationTag ? [monetizationTag] : []);
+      const frameMonetizationTags =
+        this.document.querySelectorAll<HTMLLinkElement>(
+          'head link[rel="monetization"]',
+        );
+      return new Set(frameMonetizationTags);
     }
   }
 
@@ -337,6 +341,17 @@ export class MonetizationLinkManager {
     }
   }
 
+  private async sendIframeStartMonetization(linkTagsNow: HTMLLinkElement[]) {
+    for (const link of linkTagsNow) {
+      const validLink = await this.onAddedLink(link);
+      if (validLink) {
+        // found first valid link - use it and stop checking others
+        await this.sendStartMonetization([validLink]);
+        break;
+      }
+    }
+  }
+
   private async sendStopMonetization(payload: StopMonetizationPayload) {
     if (!payload.length) return;
     await this.message.send('STOP_MONETIZATION', payload);
@@ -392,24 +407,45 @@ export class MonetizationLinkManager {
       return;
     }
 
+    const previousLinks = new Set(this.monetizationLinks.keys());
     const linkTagsNow = this.getMonetizationLinkTags();
-    const tagsAdded = setDifference(
-      linkTagsNow,
-      new Set(this.monetizationLinks.keys()),
-    );
 
-    const linkTagEntries = [...tagsAdded].map((tag) => this.onAddedLink(tag));
-    const validTags = await Promise.all(linkTagEntries);
-    void this.sendStartMonetization(validTags.filter(isNotNull));
-
-    const tagsRemoved = setDifference(
-      new Set(this.monetizationLinks.keys()),
-      linkTagsNow,
-    );
+    // handle removed links first
+    const tagsRemoved = setDifference(previousLinks, linkTagsNow);
     const stopMonetizationPayload = await Promise.all(
       [...tagsRemoved].map((tag) => this.onRemovedLink(tag)),
     );
-    void this.sendStopMonetization(stopMonetizationPayload.filter(isNotNull));
+    await this.sendStopMonetization(stopMonetizationPayload.filter(isNotNull));
+
+    // then handle new added links
+    if (!this.isTopFrame) {
+      await this.validateFrameMonetization([...linkTagsNow]);
+    } else {
+      const tagsAdded = setDifference(linkTagsNow, previousLinks);
+      const validLinks = await Promise.all(
+        [...tagsAdded].map((link) => this.onAddedLink(link)),
+      );
+      await this.sendStartMonetization(validLinks.filter(isNotNull));
+    }
+  }
+
+  private async validateFrameMonetization(
+    linkTags: HTMLLinkElement[],
+  ): Promise<void> {
+    if (this.monetizationLinks.has(linkTags[0])) {
+      // the first link is already the valid one
+      return;
+    }
+
+    //if not, stop the current monetization and find the first valid link
+    const frameTagRemoved = await Promise.all(
+      [...this.monetizationLinks.keys()].map((tag) =>
+        this.onRemovedLink(tag, 'disable'),
+      ),
+    );
+    await this.sendStopMonetization(frameTagRemoved);
+
+    await this.sendIframeStartMonetization(linkTags);
   }
 
   private postMessage<K extends ContentToContentMessage['message']>(
@@ -419,6 +455,9 @@ export class MonetizationLinkManager {
     this.window.parent.postMessage({ message, id: this.id, payload }, '*');
   }
 
+  // For iframes, need to re-evaluate all links when attributes change
+  // Current link is no longer valid - stop it and try to find new valid link
+  // Try to find and validate next available link
   private async onLinkAttrChange(records: MutationRecord[]) {
     const { HTMLLinkElement } = this.global;
     const handledTags = new Set<Node>();
@@ -503,11 +542,13 @@ export class MonetizationLinkManager {
           }
 
           // then validate with new href
-          const payloadEntry = await this.validateLink(target);
-          if (payloadEntry) {
-            this.monetizationLinks.set(target, payloadEntry);
-            startMonetizationPayload.push(payloadEntry);
-            this.observeLinkAttrs(target);
+          if (this.isTopFrame) {
+            const payloadEntry = await this.validateLink(target);
+            if (payloadEntry) {
+              this.monetizationLinks.set(target, payloadEntry);
+              startMonetizationPayload.push(payloadEntry);
+              this.observeLinkAttrs(target);
+            }
           }
           handledTags.add(target);
         }
@@ -515,13 +556,20 @@ export class MonetizationLinkManager {
     }
 
     await this.sendStopMonetization(stopMonetizationPayload);
-    void this.sendStartMonetization(startMonetizationPayload);
+    if (!this.isTopFrame) {
+      // in iframes, validate all links to find first valid one
+      const linkTagsNow = this.getMonetizationLinkTags();
+      void this.sendIframeStartMonetization([...linkTagsNow]);
+    } else {
+      void this.sendStartMonetization(startMonetizationPayload);
+    }
   }
 
   private async onAddedLink(
     link: HTMLLinkElement,
   ): Promise<StartMonetizationPayloadEntry | null> {
     if (
+      // if link is already being validated, do not check same link again
       this.pendingValidationLinks.has(link) ||
       this.monetizationLinks.has(link)
     ) {
@@ -543,7 +591,10 @@ export class MonetizationLinkManager {
     return walletAddress;
   }
 
-  private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayloadEntry {
+  private onRemovedLink(
+    link: HTMLLinkElement,
+    intent: StopMonetizationPayloadEntry['intent'] = 'remove',
+  ): StopMonetizationPayloadEntry {
     const details = this.monetizationLinks.get(link);
     if (!details) {
       throw new Error(
@@ -552,6 +603,6 @@ export class MonetizationLinkManager {
     }
     this.monetizationLinks.delete(link);
 
-    return { requestId: details.requestId, intent: 'remove' };
+    return { requestId: details.requestId, intent };
   }
 }
