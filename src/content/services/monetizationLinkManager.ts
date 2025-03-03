@@ -270,7 +270,7 @@ export class MonetizationLinkManager {
     requestId,
     details,
   }: MonetizationEventPayload) {
-    for (const [tag, tagDetails] of this.monetizationLinks.entries()) {
+    for (const [tag, tagDetails] of this.monetizationLinks) {
       if (tagDetails.requestId !== requestId) continue;
 
       tag.dispatchEvent(
@@ -303,10 +303,7 @@ export class MonetizationLinkManager {
   ) {
     const payload: StopMonetizationPayload = [
       ...this.monetizationLinks.values(),
-    ]
-      .filter(isNotNull)
-      .map(({ requestId }) => ({ requestId, intent }));
-
+    ].map(({ requestId }) => ({ requestId, intent }));
     await this.sendStopMonetization(payload);
   }
 
