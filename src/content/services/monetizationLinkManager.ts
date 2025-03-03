@@ -367,6 +367,10 @@ export class MonetizationLinkManager {
   private async onWholeDocumentObserved(records: MutationRecord[]) {
     const { HTMLElement } = this.global;
 
+    if (!this.isTopFrame && !this.isFirstLevelFrame) {
+      return;
+    }
+
     for (const record of records) {
       if (
         record.type === 'attributes' &&
@@ -378,11 +382,6 @@ export class MonetizationLinkManager {
         });
       }
     }
-
-    if (!this.isTopFrame && !this.isFirstLevelFrame) {
-      return;
-    }
-
     const linkTagsNow = this.getMonetizationLinkTags();
 
     const tagsAdded = setDifference(
