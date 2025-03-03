@@ -157,19 +157,14 @@ export class MonetizationLinkManager {
     }
   };
 
-  private getMonetizationLinkTags(root?: HTMLElement): Set<HTMLLinkElement> {
+  private getMonetizationLinkTags(): Set<HTMLLinkElement> {
     if (this.isTopFrame) {
-      const parentNode = root ?? this.document;
       return new Set(
-        parentNode.querySelectorAll<HTMLLinkElement>(
+        this.document.querySelectorAll<HTMLLinkElement>(
           'link[rel="monetization"]',
         ),
       );
     } else {
-      if (root && !root.closest('head')) {
-        return new Set();
-      }
-
       const monetizationTag = this.document.querySelector<HTMLLinkElement>(
         'head link[rel="monetization"]',
       );
