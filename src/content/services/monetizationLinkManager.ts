@@ -538,9 +538,10 @@ export class MonetizationLinkManager {
     const details = this.monetizationLinks.get(link);
     if (!details) {
       throw new Error(
-        `Could not find wallet address for monetization node ${link.outerHTML.slice(0, 200)}`,
+        `Could not find details for monetization node ${link.outerHTML.slice(0, 200)}`,
       );
     }
+
     this.monetizationLinks.delete(link);
 
     return { requestId: details.requestId, intent: 'remove' };
