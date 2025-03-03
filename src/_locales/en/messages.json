@@ -151,7 +151,7 @@
     "message": "Connect"
   },
   "connectWallet_text_stepAcceptGrant": {
-    "message": "Waiting for you to Accept"
+    "message": "Waiting for your approval"
   },
   "connectWallet_error_urlRequired": {
     "message": "The wallet address is required."
