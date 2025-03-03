@@ -326,7 +326,7 @@ export class Background {
           }
         } catch (e) {
           if (isErrorWithKey(e)) {
-            this.logger.error(message.action, e);
+            this.logger.error(message.action, { err: e });
             return failure(errorWithKeyToJSON(e));
           }
           if (e instanceof OpenPaymentsClientError) {

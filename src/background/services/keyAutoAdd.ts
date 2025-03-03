@@ -6,6 +6,7 @@ import {
   withResolvers,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
+import { NEW_TAB_PAGES } from '@/background/constants';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { TabId } from '@/shared/types';
@@ -98,7 +99,7 @@ export class KeyAutoAddService {
       const tabUrl = tab.url || '';
       if (!isAllowedURL(tabUrl, url)) {
         removeListeners();
-        reject(new ErrorWithKey('connectWallet_error_tabNavigatedAway'));
+        reject(new ErrorWithKey('connectWallet_error_tabNavigatedAway', [url]));
       }
     };
 
@@ -286,6 +287,9 @@ function isAllowedURL(
 ): boolean {
   const { host: provider } = new URL(keyAddUrl);
   const { host: urlHost } = new URL(url);
+  if (NEW_TAB_PAGES.some((e) => url.startsWith(e))) {
+    return true;
+  }
   return (
     allHosts
       .find((hosts) => hosts.some((host) => host.includes(provider)))
