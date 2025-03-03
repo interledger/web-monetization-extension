@@ -133,14 +133,12 @@ export class MonetizationLinkManager {
     });
 
     const monetizationLinks = this.getMonetizationLinkTags();
-
-    const validLinks = (
-      await Promise.all(
-        [...monetizationLinks].map((elem) => this.onAddedLink(elem)),
-      )
-    ).filter(isNotNull);
-
-    await this.sendStartMonetization(validLinks);
+    const startMonetizationPayload = await Promise.all(
+      [...monetizationLinks].map((elem) => this.onAddedLink(elem)),
+    );
+    await this.sendStartMonetization(
+      startMonetizationPayload.filter(isNotNull),
+    );
   }
 
   private onWindowMessage = (event: MessageEvent<ContentToContentMessage>) => {
