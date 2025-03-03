@@ -37,7 +37,25 @@ export async function waitForPage(
   context: BrowserContext,
   isTargetPage: (url: string) => boolean,
 ): Promise<Page> {
-  const { resolve, promise } = withResolvers<Page>();
+  const { promise, resolve, reject } = withResolvers<Page>();
+  const timeoutSignal = AbortSignal.timeout(10 * 1000);
+  timeoutSignal.addEventListener('abort', () => {
+    reject(new Error('Timeout waiting for page'));
+  });
+  const pages = context.pages();
+  const existingPage = pages.find((page) => isTargetPage(page.url()));
+  if (existingPage) {
+    resolve(existingPage);
+    return promise;
+  }
+  const existingNewTabPage = pages.find((page, i) =>
+    NEW_TAB_PAGES.some((p) => i !== 0 && page.url().startsWith(p)),
+  );
+  if (existingNewTabPage) {
+    await existingNewTabPage.waitForURL((url) => isTargetPage(url.href));
+    resolve(existingNewTabPage);
+    return promise;
+  }
   context.on('page', async function onPage(page) {
     const url = page.url();
     if (isTargetPage(url)) {
