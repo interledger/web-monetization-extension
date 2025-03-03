@@ -485,12 +485,8 @@ export class MonetizationLinkManager {
         ) {
           if (this.monetizationLinks.has(target)) {
             // stop existing monetization first
-            try {
-              const removedEntry = this.onRemovedLink(target);
-              stopMonetizationPayload.push(removedEntry);
-            } catch (e) {
-              this.logger.error(e);
-            }
+            const removedEntry = this.onRemovedLink(target);
+            stopMonetizationPayload.push(removedEntry);
           }
 
           // then validate with new href
