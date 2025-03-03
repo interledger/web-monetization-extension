@@ -390,8 +390,7 @@ export class WalletService {
       await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
     } catch (error) {
       const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      const isTabNavAway = error.key === 'connectWallet_error_tabNavigatedAway';
-      if (tabId && (!isTabClosed || isTabNavAway)) {
+      if (tabId && !isTabClosed) {
         await redirectToWelcomeScreen(
           this.browser,
           tabId,
