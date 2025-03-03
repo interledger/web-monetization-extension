@@ -21,9 +21,6 @@ export const CONNECTION_NAME = 'key-auto-add';
 type OnTabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
 >[0];
-type OnTabUpdatedCallback = Parameters<
-  Browser['tabs']['onUpdated']['addListener']
->[0];
 type OnConnectCallback = Parameters<
   Browser['runtime']['onConnect']['addListener']
 >[0];
@@ -89,17 +86,7 @@ export class KeyAutoAddService {
 
     const removeListeners = () => {
       this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-      this.browser.tabs.onUpdated.removeListener(onTabUpdatedListener);
       this.browser.runtime.onConnect.removeListener(onConnectListener);
-    };
-
-    const onTabUpdatedListener: OnTabUpdatedCallback = (tabId, _, tab) => {
-      if (tabId !== existingTabId) return;
-      const tabUrl = tab.url || '';
-      if (!isAllowedURL(tabUrl, url)) {
-        removeListeners();
-        reject(new ErrorWithKey('connectWallet_error_tabNavigatedAway'));
-      }
     };
 
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
@@ -163,7 +150,6 @@ export class KeyAutoAddService {
       }
     };
 
-    this.browser.tabs.onUpdated.addListener(onTabUpdatedListener);
     this.browser.tabs.onRemoved.addListener(onTabCloseListener);
     this.browser.runtime.onConnect.addListener(onConnectListener);
 
@@ -269,29 +255,6 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
     persistAcrossSessions: false,
   },
 ];
-// assumption: matches patterns are URL parse-able! Will crash on load if not.
-const CONTENT_SCRIPTS_HOSTS = CONTENT_SCRIPTS.map((script) =>
-  script.matches!.map((e) => new URL(e).host),
-);
-
-/**
- * Is user allowed to be on this URL during key add process? If not, we should
- * abort as user went to some other URL in the tab meant for key-add and lost
- * their way.
- */
-function isAllowedURL(
-  url: string,
-  keyAddUrl: string,
-  allHosts = CONTENT_SCRIPTS_HOSTS,
-): boolean {
-  const { host: provider } = new URL(keyAddUrl);
-  const { host: urlHost } = new URL(url);
-  return (
-    allHosts
-      .find((hosts) => hosts.some((host) => host.includes(provider)))
-      ?.some((host) => host === urlHost) ?? false
-  );
-}
 
 function walletAddressToProvider(walletAddress: WalletAddress): string {
   const { host } = new URL(walletAddress.id);
