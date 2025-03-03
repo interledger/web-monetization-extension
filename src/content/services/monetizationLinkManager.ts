@@ -1,5 +1,6 @@
 import { isNotNull } from '@/shared/helpers';
 import { mozClone, setDifference, WalletAddressFormatError } from '../utils';
+import type { WalletAddress } from '@interledger/open-payments';
 import type {
   MonetizationEventPayload,
   ResumeMonetizationPayload,
@@ -27,7 +28,7 @@ export class MonetizationLinkManager {
   private id: string;
   private monetizationLinks = new Map<
     HTMLLinkElement,
-    StartMonetizationPayloadEntry
+    { walletAddress: WalletAddress; requestId: string }
   >();
   private pendingValidationLinks = new WeakSet<HTMLLinkElement>();
 
