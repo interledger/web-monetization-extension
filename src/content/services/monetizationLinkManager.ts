@@ -388,14 +388,15 @@ export class MonetizationLinkManager {
     }
 
     const linkTagsNow = this.getMonetizationLinkTags();
+
     const tagsAdded = setDifference(
       linkTagsNow,
       new Set(this.monetizationLinks.keys()),
     );
-
-    const linkTagEntries = [...tagsAdded].map((tag) => this.onAddedLink(tag));
-    const validTags = await Promise.all(linkTagEntries);
-    void this.sendStartMonetization(validTags.filter(isNotNull));
+    const startMonetizationPayload = await Promise.all(
+      [...tagsAdded].map((tag) => this.onAddedLink(tag)),
+    );
+    void this.sendStartMonetization(startMonetizationPayload.filter(isNotNull));
 
     const tagsRemoved = setDifference(
       new Set(this.monetizationLinks.keys()),
