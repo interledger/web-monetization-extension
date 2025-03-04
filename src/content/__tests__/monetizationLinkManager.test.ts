@@ -1293,6 +1293,52 @@ describe('link tag attributes changes', () => {
       }),
     );
   });
+
+  test.todo(
+    'handles link changing from invalid to valid via href change',
+    // link starts with invalid URL, gets changed to valid URL
+    // should trigger error event first, then load event after becoming valid
+    // should start monetization after becoming valid
+  );
+
+  test.todo(
+    'handles link changing from invalid to valid via rel attribute',
+    // link starts with rel="preload" and valid URL
+    // changes to rel="monetization"
+    // should validate and start monetization
+  );
+
+  test.todo(
+    'handles setting crossorigin attribute',
+    // link gets crossorigin attribute set/changed
+    // should not affect monetization state if other attributes valid
+  );
+
+  test.todo(
+    'handles setting type attribute',
+    // link gets type attribute set/changed
+    // should not affect monetization state if other attributes valid
+  );
+
+  test.todo(
+    'handles removal and re-addition of href attribute',
+    // link has href removed completely then re-added
+    // should stop monetization when removed, restart when valid href added
+  );
+
+  test.todo(
+    'handles invalid URL that becomes valid through multiple changes',
+    // link starts with partial/invalid URL
+    // gets modified multiple times through setAttribute
+    // finally becomes valid URL
+    // should start monetization only when finally valid
+  );
+
+  test.todo(
+    'handles validation of reinstated link that was previously invalid',
+    // link starts valid, becomes invalid, is removed, then added back valid
+    // should handle full lifecycle correctly
+  );
 });
 
 describe('document events', () => {
