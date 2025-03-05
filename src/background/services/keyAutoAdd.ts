@@ -147,10 +147,10 @@ export class KeyAutoAddService {
         );
       } else if (message.action === 'PROGRESS') {
         const steps = message.payload.steps;
-        const timeoutIn = steps
+        const timeoutMs = steps
           .filter(({ status }) => status === 'pending' || status === 'active')
-          .reduce((acc, { maxDuration }) => acc + maxDuration, BASE_TIMEOUT);
-        timeout.reset(timeoutIn);
+          .reduce((acc, { maxDuration }) => acc + maxDuration, 0);
+        timeout.reset(Math.max(timeoutMs, BASE_TIMEOUT));
         const currentStep = this.getCurrentStep(steps);
         if (currentStep) {
           this.setConnectState(currentStep.name);
