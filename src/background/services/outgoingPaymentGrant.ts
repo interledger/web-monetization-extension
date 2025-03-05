@@ -13,6 +13,7 @@ import {
 } from '@interledger/open-payments/dist/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
+import { ACCEPT_GRANT_TIMEOUT } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import { ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
@@ -132,8 +133,10 @@ export class OutgoingPaymentGrantService {
     { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
     existingTabId: number,
-    signal?: AbortSignal,
+    timeout = ACCEPT_GRANT_TIMEOUT,
   ): Promise<GrantDetails> {
+    const signal = AbortSignal.timeout(timeout);
+
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
@@ -149,7 +152,7 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
-    signal?.throwIfAborted();
+    signal.throwIfAborted();
 
     const continuation = await this.continueGrant(
       grant,
@@ -162,7 +165,7 @@ export class OutgoingPaymentGrantService {
         'Expected finalized grant. Received non-finalized grant.',
       );
     }
-    signal?.throwIfAborted();
+    signal.throwIfAborted();
 
     this.grant = this.buildGrantDetails(continuation, walletAmount);
     await this.persistGrantDetails(this.grant);
@@ -283,11 +286,11 @@ export class OutgoingPaymentGrantService {
   private async getInteractionInfo(
     url: string,
     existingTabId: TabId,
-    signal?: AbortSignal,
+    signal: AbortSignal,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
-    signal?.addEventListener('abort', () => {
+    signal.addEventListener('abort', () => {
       removeListeners();
       reject(signal.reason);
     });

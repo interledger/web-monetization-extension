@@ -15,6 +15,7 @@ import {
 } from '@/background/config';
 import {
   ErrorWithKey,
+  isAbortTimeout,
   isErrorWithKey,
   isOkState,
   removeQueryParams,
@@ -413,7 +414,7 @@ export class MonetizationService {
         (err) =>
           (isErrorWithKey(err) &&
             err.key === 'pay_warn_outgoingPaymentPollingIncomplete') ||
-          (err instanceof DOMException && err.name === 'TimeoutError'),
+          isAbortTimeout(err),
       );
 
       if (isNotEnoughFunds) {

@@ -3,8 +3,8 @@ import {
   isErrorWithKey,
   ErrorWithKey,
   errorWithKeyToJSON,
-  Timeout,
   type ErrorWithKeyLike,
+  isAbortTimeout,
 } from '@/shared/helpers';
 import type {
   AddFundsPayload,
@@ -103,18 +103,10 @@ export class WalletService {
     const appUrl = this.browser.runtime.getURL(APP_URL);
     const intent = InteractionIntent.CONNECT;
 
-    /**
-     * This a bit long to give users enough time in case they need to login (and
-     * not everyone has a password manager ready for quick login). If we were
-     * sure that user is logged in, we could make it < 1min.
-     */
-    const ACCEPT_GRANT_TIMEOUT = 3 * 60 * 1000;
-    const abortController = new AbortController();
-    const timeout = new Timeout(ACCEPT_GRANT_TIMEOUT, () => {
+    const onTimeoutAbort = (): never => {
       cleanupListeners();
       const err = new ErrorWithKey('connectWallet_error_timeout');
       this.setConnectStateError(err);
-      abortController.abort(err);
       if (tabId) {
         void redirectToWelcomeScreen(
           this.browser,
@@ -124,7 +116,8 @@ export class WalletService {
           ErrorCode.TIMEOUT,
         );
       }
-    });
+      throw err;
+    };
 
     const walletAmount = toAmount({
       value: amount,
@@ -147,19 +140,15 @@ export class WalletService {
       );
       this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
       cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
-      timeout.reset(ACCEPT_GRANT_TIMEOUT); // begin timeout now
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
         grant,
         intent,
         tabId,
-        abortController.signal,
       );
-      timeout.clear();
       cleanupListeners();
     } catch (error) {
-      timeout.clear(); // addPublicKeyToWallet key will have its own timeout
       cleanupListeners();
       if (
         isErrorWithKey(error) &&
@@ -196,33 +185,30 @@ export class WalletService {
               intent,
             );
           this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
-          timeout.reset(ACCEPT_GRANT_TIMEOUT);
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             walletAmount,
             walletAddress,
             grant,
             intent,
             tabId,
-            abortController.signal,
           );
-          timeout.clear();
           cleanupListeners();
         } catch (error) {
-          timeout.clear();
+          if (isAbortTimeout(error)) {
+            onTimeoutAbort();
+          }
           cleanupListeners();
           this.setConnectStateError(error);
           throw error;
         }
+      } else if (isAbortTimeout(error)) {
+        onTimeoutAbort();
       } else {
-        timeout.clear();
         cleanupListeners();
         this.setConnectStateError(error);
         throw error;
       }
     }
-
-    // Make sure not to save state in case we've redirected to welcome page
-    abortController.signal.throwIfAborted();
 
     await this.storage.set({
       walletAddress,

@@ -288,6 +288,13 @@ export class Timeout {
   }
 }
 
+/**
+ * Check if `err` (reason) is result of `AbortSignal.timeout()`
+ */
+export const isAbortTimeout = (err: unknown): err is DOMException => {
+  return err instanceof DOMException && err.name === 'TimeoutError';
+};
+
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source;
   if (scaleDiff > 0) {
