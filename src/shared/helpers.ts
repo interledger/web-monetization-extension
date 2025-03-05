@@ -291,7 +291,7 @@ export class Timeout {
 /**
  * Check if `err` (reason) is result of `AbortSignal.timeout()`
  */
-export const isAbortTimeout = (err: unknown): err is DOMException => {
+export const isAbortSignalTimeout = (err: unknown): err is DOMException => {
   return err instanceof DOMException && err.name === 'TimeoutError';
 };
 

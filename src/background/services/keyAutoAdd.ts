@@ -51,9 +51,12 @@ export class KeyAutoAddService {
     existingTabId: TabId,
   ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
-    const { publicKey, keyId } = await this.storage.get(['publicKey', 'keyId']);
-    this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
     try {
+      const { publicKey, keyId } = await this.storage.get([
+        'publicKey',
+        'keyId',
+      ]);
+      this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
       await this.process(
         keyAddUrl,
         {

@@ -4,7 +4,7 @@ import {
   ErrorWithKey,
   errorWithKeyToJSON,
   type ErrorWithKeyLike,
-  isAbortTimeout,
+  isAbortSignalTimeout,
 } from '@/shared/helpers';
 import type {
   AddFundsPayload,
@@ -194,14 +194,14 @@ export class WalletService {
           );
           cleanupListeners();
         } catch (error) {
-          if (isAbortTimeout(error)) {
+          if (isAbortSignalTimeout(error)) {
             onTimeoutAbort();
           }
           cleanupListeners();
           this.setConnectStateError(error);
           throw error;
         }
-      } else if (isAbortTimeout(error)) {
+      } else if (isAbortSignalTimeout(error)) {
         onTimeoutAbort();
       } else {
         cleanupListeners();
