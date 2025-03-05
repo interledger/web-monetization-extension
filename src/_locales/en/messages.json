@@ -196,6 +196,9 @@
   "connectWallet_error_grantRejected": {
     "message": "Wallet connection cancelled. The request was not authorized."
   },
+  "connectWallet_error_timeout": {
+    "message": "Wallet connection timed out."
+  },
   "connectWalletKeyService_text_consentP1": {
     "message": "We will automatically connect with your wallet provider."
   },

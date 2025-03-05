@@ -4,6 +4,7 @@ import {
   getJWKS,
   isErrorWithKey,
   withResolvers,
+  Timeout,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
@@ -50,12 +51,9 @@ export class KeyAutoAddService {
     existingTabId: TabId,
   ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
+    const { publicKey, keyId } = await this.storage.get(['publicKey', 'keyId']);
+    this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
     try {
-      const { publicKey, keyId } = await this.storage.get([
-        'publicKey',
-        'keyId',
-      ]);
-      this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
       await this.process(
         keyAddUrl,
         {
@@ -84,7 +82,14 @@ export class KeyAutoAddService {
     const { resolve, reject, promise } = withResolvers();
     await this.browser.tabs.update(existingTabId, { url });
 
+    const BASE_TIMEOUT = 5 * 1000;
+    const timeout = new Timeout(BASE_TIMEOUT, () => {
+      removeListeners();
+      reject(new ErrorWithKey('connectWallet_error_timeout'));
+    });
+
     const removeListeners = () => {
+      timeout.clear();
       this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
       this.browser.runtime.onConnect.removeListener(onConnectListener);
     };
@@ -100,6 +105,7 @@ export class KeyAutoAddService {
       if (port.name !== CONNECTION_NAME) return;
       if (port.sender?.tab && port.sender.tab.id !== existingTabId) return;
       if (port.error) {
+        removeListeners();
         reject(new Error(port.error.message));
         return;
       }
@@ -137,8 +143,12 @@ export class KeyAutoAddService {
           ),
         );
       } else if (message.action === 'PROGRESS') {
-        // can also save progress to show in popup
-        const currentStep = this.getCurrentStep(message.payload.steps);
+        const steps = message.payload.steps;
+        const timeoutIn = steps
+          .filter(({ status }) => status === 'pending' || status === 'active')
+          .reduce((acc, { maxDuration }) => acc + maxDuration, BASE_TIMEOUT);
+        timeout.reset(timeoutIn);
+        const currentStep = this.getCurrentStep(steps);
         if (currentStep) {
           this.setConnectState(currentStep.name);
         }
@@ -146,6 +156,7 @@ export class KeyAutoAddService {
           if (p !== port) p.postMessage(message);
         }
       } else {
+        removeListeners();
         reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
       }
     };

@@ -132,10 +132,12 @@ export class OutgoingPaymentGrantService {
     { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
     existingTabId: number,
+    signal?: AbortSignal,
   ): Promise<GrantDetails> {
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
+      signal,
     );
 
     await this.verifyInteractionHash(
@@ -147,6 +149,7 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
+    signal?.throwIfAborted();
 
     const continuation = await this.continueGrant(
       grant,
@@ -154,12 +157,12 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
-
     if (!isFinalizedGrant(continuation)) {
       throw new Error(
         'Expected finalized grant. Received non-finalized grant.',
       );
     }
+    signal?.throwIfAborted();
 
     this.grant = this.buildGrantDetails(continuation, walletAmount);
     await this.persistGrantDetails(this.grant);
@@ -280,8 +283,14 @@ export class OutgoingPaymentGrantService {
   private async getInteractionInfo(
     url: string,
     existingTabId: TabId,
+    signal?: AbortSignal,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
+
+    signal?.addEventListener('abort', () => {
+      removeListeners();
+      reject(signal.reason);
+    });
 
     await this.browser.tabs.update(existingTabId, { url });
     if (!existingTabId) {
@@ -290,10 +299,15 @@ export class OutgoingPaymentGrantService {
     }
     this.events.emit('request_popup_close');
 
+    const removeListeners = () => {
+      this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
+      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+    };
+
     const tabCloseListener: TabRemovedCallback = (tabId) => {
       if (tabId !== existingTabId) return;
 
-      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+      removeListeners();
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
 
@@ -310,8 +324,7 @@ export class OutgoingPaymentGrantService {
           result === 'grant_rejected' ||
           result === 'grant_invalid'
         ) {
-          this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
-          this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+          removeListeners();
         }
 
         if (interactRef && hash) {
