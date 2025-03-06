@@ -16,20 +16,20 @@ const NavigationButton = () => {
 
     if (pathname.includes('/s/')) {
       return (
-        <Link to={pathname.split('/s/')[0]}>
+        <Link to={pathname.split('/s/')[0]} aria-label="Back">
           <ArrowBack className="h-6 text-gray-500" />
         </Link>
       );
     }
 
     return pathname === `${ROUTES_PATH.SETTINGS}` ? (
-      <Link to={ROUTES_PATH.HOME}>
+      <Link to={ROUTES_PATH.HOME} aria-label="Back">
         <ArrowBack className="h-6 text-gray-500" />
       </Link>
     ) : (
       <React.Fragment>
         {connected && <TogglePaymentsButton />}
-        <Link to={ROUTES_PATH.SETTINGS}>
+        <Link to={ROUTES_PATH.SETTINGS} aria-label="Settings">
           <Settings className="h-6" />
         </Link>
       </React.Fragment>

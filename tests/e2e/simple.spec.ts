@@ -1,6 +1,11 @@
 import { test, expect, DEFAULT_BUDGET } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
-import { sendOneTimePayment } from './pages/popup';
+import {
+  goToHome,
+  locators,
+  sendOneTimePayment,
+  setContinuousPayments,
+} from './pages/popup';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
@@ -42,8 +47,7 @@ test('does not monetize when continuous payments are disabled', async ({
   await test.step('disable continuous payments', async () => {
     await expect(background).toHaveStorage({ continuousPaymentsEnabled: true });
 
-    const settingsLink = popup.locator(`[href="/settings"]`).first();
-    await settingsLink.click();
+    await locators.settingsLink(popup).click();
 
     await popup.bringToFront();
     await popup.getByRole('tab', { name: 'Rate' }).click();
@@ -98,8 +102,7 @@ test('does not monetize when continuous payments are disabled', async ({
   });
 
   await test.step('and re-enabling lets send continuous payments', async () => {
-    const settingsLink = popup.locator(`[href="/settings"]`).first();
-    await settingsLink.click();
+    await locators.settingsLink(popup).click();
 
     await popup.bringToFront();
     await popup.getByRole('tab', { name: 'Rate' }).click();
@@ -164,8 +167,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
   });
 
   await test.step('and does not monetize even with continuous payments toggle on/off', async () => {
-    const settingsLink = popup.locator(`[href="/settings"]`).first();
-    await settingsLink.click();
+    await locators.settingsLink(popup).click();
 
     await popup.getByRole('tab', { name: 'Rate' }).click();
     const continuousPaymentsToggle = popup.getByTestId(
@@ -193,8 +195,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
   });
 
   await test.step('checking global payments toggle re-enables payments in extension', async () => {
-    const backHomeLink = popup.locator(`[href="/"]`).first();
-    await backHomeLink.click();
+    await locators.backLink(popup).click();
 
     await popup
       .getByRole('checkbox', { name: 'Enable extension' })
@@ -215,19 +216,11 @@ test.describe('one-time payment', () => {
   test.beforeEach(
     'disable continuous payments',
     async ({ popup, background }) => {
-      const settingsLink = popup.locator(`[href="/settings"]`).first();
-      await settingsLink.click();
-
-      await popup.getByRole('tab', { name: 'Rate' }).click();
-      const continuousPaymentsToggle = popup.getByTestId(
-        'continuous-payments-toggle',
-      );
-      await continuousPaymentsToggle.uncheck({ force: true });
-
+      await setContinuousPayments(popup, false);
       await expect(background).toHaveStorage({
         continuousPaymentsEnabled: false,
       });
-      await popup.reload();
+      await goToHome(popup);
     },
   );
 

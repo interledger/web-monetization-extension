@@ -1,11 +1,14 @@
 import React from 'react';
+import { useLocation } from 'wouter';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { useMessage } from '@/popup/lib/context';
 import { getWalletInformation } from '@/shared/helpers';
 import { usePopupState } from '@/popup/lib/store';
+import { ROUTES_PATH } from '@/popup/Popup';
 
 export default () => {
   const message = useMessage();
+  const [_location, navigate] = useLocation();
   const {
     transientState: { connect: connectState },
     publicKey,
@@ -33,6 +36,7 @@ export default () => {
         // The popup closes due to redirects on connect, so we don't need to
         // update any state manually.
         // But we reload it, as it's open all-time when running E2E tests
+        navigate(ROUTES_PATH.HOME);
         window.location.reload();
       }}
       clearConnectState={() => message.send('RESET_CONNECT_STATE')}
