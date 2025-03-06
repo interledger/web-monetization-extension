@@ -159,12 +159,12 @@ test('does not monetize when global payments toggle in unchecked', async ({
       enabled: false,
     });
     await expect(monetizationCallback).toHaveBeenCalledTimes(0);
-    await goToHome(popup);
 
     await expect(
       popup.getByRole('tabpanel', { name: 'Rate' }).locator('p'),
     ).toContainText('Ongoing payments are now disabled');
 
+    await goToHome(popup);
     await setContinuousPayments(popup, true);
     await expect(background).toHaveStorage({
       continuousPaymentsEnabled: true,
