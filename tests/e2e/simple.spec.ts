@@ -31,9 +31,8 @@ test('should monetize site with single wallet address', async ({
     incomingPayment: expect.stringContaining(new URL(walletAddressUrl).origin),
   });
 
-  await popup.reload({ waitUntil: 'networkidle' });
+  await goToHome(popup);
   await page.bringToFront();
-  await popup.waitForSelector(`[data-testid="home-page"]`);
 
   await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
   expect(await popup.getByRole('textbox').all()).toHaveLength(1);
@@ -46,15 +45,7 @@ test('does not monetize when continuous payments are disabled', async ({
 }) => {
   await test.step('disable continuous payments', async () => {
     await expect(background).toHaveStorage({ continuousPaymentsEnabled: true });
-
-    await locators.settingsLink(popup).click();
-
-    await popup.bringToFront();
-    await popup.getByRole('tab', { name: 'Rate' }).click();
-    await popup
-      .getByTestId('continuous-payments-toggle')
-      .uncheck({ force: true });
-
+    await setContinuousPayments(popup, false);
     await expect(
       popup.getByRole('tabpanel', { name: 'Rate' }).locator('p'),
     ).toContainText('Ongoing payments are now disabled');
@@ -81,7 +72,7 @@ test('does not monetize when continuous payments are disabled', async ({
   });
 
   await test.step('but can send one-time payment', async () => {
-    await popup.reload();
+    await goToHome(popup);
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
     expect(await popup.getByRole('textbox').all()).toHaveLength(1);
 
@@ -102,13 +93,8 @@ test('does not monetize when continuous payments are disabled', async ({
   });
 
   await test.step('and re-enabling lets send continuous payments', async () => {
-    await locators.settingsLink(popup).click();
-
-    await popup.bringToFront();
-    await popup.getByRole('tab', { name: 'Rate' }).click();
-    await popup
-      .getByTestId('continuous-payments-toggle')
-      .check({ force: true });
+    await setContinuousPayments(popup, true);
+    await goToHome(popup);
 
     await expect(background).toHaveStorage({
       continuousPaymentsEnabled: true,
@@ -167,26 +153,19 @@ test('does not monetize when global payments toggle in unchecked', async ({
   });
 
   await test.step('and does not monetize even with continuous payments toggle on/off', async () => {
-    await locators.settingsLink(popup).click();
-
-    await popup.getByRole('tab', { name: 'Rate' }).click();
-    const continuousPaymentsToggle = popup.getByTestId(
-      'continuous-payments-toggle',
-    );
-    await continuousPaymentsToggle.uncheck({ force: true });
-
+    await setContinuousPayments(popup, false);
     await expect(background).toHaveStorage({
       continuousPaymentsEnabled: false,
       enabled: false,
     });
     await expect(monetizationCallback).toHaveBeenCalledTimes(0);
+    await goToHome(popup);
 
     await expect(
       popup.getByRole('tabpanel', { name: 'Rate' }).locator('p'),
     ).toContainText('Ongoing payments are now disabled');
 
-    await continuousPaymentsToggle.check({ force: true });
-
+    await setContinuousPayments(popup, true);
     await expect(background).toHaveStorage({
       continuousPaymentsEnabled: true,
       enabled: false,
