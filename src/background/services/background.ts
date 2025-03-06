@@ -61,6 +61,7 @@ export class Background {
   }
 
   async start() {
+    this.logger.info('Background started');
     this.bindOnInstalled();
     this.bindMessageHandler();
     await this.injectPolyfill();
@@ -73,6 +74,12 @@ export class Background {
     this.sendToPopup.start();
     this.sendToApp.start();
     await KeyAutoAddService.registerContentScripts({ browser: this.browser });
+    // When the background restarts (e.g. after computer wake up), ask the
+    // content script to resume monetization for active tab as the background no
+    // longer has those sessions.
+    await this.monetizationService
+      .resumePaymentSessionActiveTab()
+      .catch(() => {}); // if tabs not ready yet
   }
 
   // TODO: When Firefox 128 is old enough, inject directly via manifest.
@@ -221,6 +228,11 @@ export class Background {
               }
               return success(undefined);
             }
+
+            case 'RESET_CONNECT_STATE':
+              this.walletService.resetConnectState();
+              return success(undefined);
+
             case 'RECONNECT_WALLET': {
               await this.walletService.reconnectWallet(message.payload);
               await this.monetizationService.resumePaymentSessionActiveTab();

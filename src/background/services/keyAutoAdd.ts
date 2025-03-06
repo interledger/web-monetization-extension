@@ -8,13 +8,13 @@ import {
 } from '@/shared/helpers';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
 import type { WalletAddress } from '@interledger/open-payments';
-import type { Tab, TabId } from '@/shared/types';
+import type { TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
   KeyAutoAddToBackgroundMessage,
+  StepWithStatus,
 } from '@/content/keyAutoAdd/lib/types';
-import { reuseOrCreateTab } from '../utils';
 
 export const CONNECTION_NAME = 'key-auto-add';
 
@@ -35,8 +35,6 @@ export class KeyAutoAddService {
   private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
-  private tab: Tab | null = null;
-
   constructor({
     browser,
     storage,
@@ -49,7 +47,7 @@ export class KeyAutoAddService {
 
   async addPublicKeyToWallet(
     walletAddress: WalletAddress,
-    existingTabId?: TabId,
+    existingTabId: TabId,
   ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
@@ -57,7 +55,7 @@ export class KeyAutoAddService {
         'publicKey',
         'keyId',
       ]);
-      this.updateConnectState();
+      this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
       await this.process(
         keyAddUrl,
         {
@@ -72,40 +70,35 @@ export class KeyAutoAddService {
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
       if (!error.key || !error.key.startsWith('connectWallet_error_')) {
-        this.updateConnectState(error);
+        this.setConnectStateError(error);
       }
       throw error;
     }
   }
 
-  /**
-   * Allows re-using same tab for further processing. Available only after
-   * {@linkcode addPublicKeyToWallet} has been called.
-   */
-  get tabId(): TabId | undefined {
-    return this.tab?.id;
-  }
-
   private async process(
     url: string,
     payload: BeginPayload,
-    existingTabId?: TabId,
+    existingTabId: TabId,
   ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
-    const tab = await reuseOrCreateTab(this.browser, url, existingTabId);
-    this.tab = tab;
+    await this.browser.tabs.update(existingTabId, { url });
+
+    const removeListeners = () => {
+      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      this.browser.runtime.onConnect.removeListener(onConnectListener);
+    };
 
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
-      if (tabId !== tab.id) return;
-      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      if (tabId !== existingTabId) return;
+      removeListeners();
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
-    this.browser.tabs.onRemoved.addListener(onTabCloseListener);
 
     const ports = new Set<Runtime.Port>();
     const onConnectListener: OnConnectCallback = (port) => {
       if (port.name !== CONNECTION_NAME) return;
-      if (port.sender?.tab && port.sender.tab.id !== tab.id) return;
+      if (port.sender?.tab && port.sender.tab.id !== existingTabId) return;
       if (port.error) {
         reject(new Error(port.error.message));
         return;
@@ -128,12 +121,10 @@ export class KeyAutoAddService {
       port,
     ) => {
       if (message.action === 'SUCCESS') {
-        this.browser.runtime.onConnect.removeListener(onConnectListener);
-        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+        removeListeners();
         resolve(message.payload);
       } else if (message.action === 'ERROR') {
-        this.browser.runtime.onConnect.removeListener(onConnectListener);
-        this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+        removeListeners();
         const { stepName, details: err } = message.payload;
         reject(
           new ErrorWithKey(
@@ -147,6 +138,10 @@ export class KeyAutoAddService {
         );
       } else if (message.action === 'PROGRESS') {
         // can also save progress to show in popup
+        const currentStep = this.getCurrentStep(message.payload.steps);
+        if (currentStep) {
+          this.setConnectState(currentStep.name);
+        }
         for (const p of ports) {
           if (p !== port) p.postMessage(message);
         }
@@ -155,9 +150,17 @@ export class KeyAutoAddService {
       }
     };
 
+    this.browser.tabs.onRemoved.addListener(onTabCloseListener);
     this.browser.runtime.onConnect.addListener(onConnectListener);
 
     return promise;
+  }
+
+  private getCurrentStep(steps: Readonly<StepWithStatus[]>) {
+    return steps
+      .slice()
+      .reverse()
+      .find((step) => step.status !== 'pending');
   }
 
   private async validate(walletAddressUrl: string, keyId: string) {
@@ -167,17 +170,18 @@ export class KeyAutoAddService {
     }
   }
 
-  private updateConnectState(err?: ErrorWithKeyLike | { message: string }) {
-    if (err) {
-      this.storage.setPopupTransientState('connect', () => ({
-        status: 'error:key',
-        error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
-      }));
-    } else {
-      this.storage.setPopupTransientState('connect', () => ({
-        status: 'connecting:key',
-      }));
-    }
+  private setConnectState(currentStep: string) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'connecting:key',
+      currentStep,
+    }));
+  }
+
+  private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'error:key',
+      error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
+    }));
   }
 
   static supports(walletAddress: WalletAddress): boolean {
@@ -193,45 +197,64 @@ export class KeyAutoAddService {
     const { scripting } = browser;
     const existingScripts = await scripting.getRegisteredContentScripts();
     const existingScriptIds = new Set(existingScripts.map((s) => s.id));
-    const scripts = getContentScripts().filter(
-      (s) => !existingScriptIds.has(s.id),
-    );
+    const scripts = CONTENT_SCRIPTS.filter((s) => !existingScriptIds.has(s.id));
     await scripting.registerContentScripts(scripts);
   }
 }
 
-function getContentScripts(): Scripting.RegisteredContentScript[] {
-  return [
-    {
-      id: 'keyAutoAdd/testWallet',
-      matches: [
-        'https://wallet.interledger-test.dev/*',
-        'https://wallet.interledger.cards/*',
-      ],
-      js: ['content/keyAutoAdd/testWallet.js'],
-    },
-    {
-      id: 'keyAutoAdd/fynbos',
-      matches: ['https://eu1.fynbos.dev/*', 'https://interledger.app/*'],
-      js: ['content/keyAutoAdd/fynbos.js'],
-    },
-    {
-      id: 'keyAutoAdd/chimoney',
-      matches: ['https://sandbox.chimoney.io/*', 'https://dash.chimoney.io/*'],
-      js: ['content/keyAutoAdd/chimoney.js'],
-    },
-    {
-      id: 'keyAutoAdd/gatehub',
-      matches: [
-        'https://wallet.sandbox.gatehub.net/*',
-        'https://signin.sandbox.gatehub.net/*',
-        'https://wallet.gatehub.net/*',
-        'https://signin.gatehub.net/*',
-      ],
-      js: ['content/keyAutoAdd/gatehub.js'],
-    },
-  ];
-}
+const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
+  {
+    id: 'keyAutoAdd/testWallet/test',
+    matches: ['https://wallet.interledger-test.dev/*'],
+    js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/testWallet/cards',
+    matches: ['https://wallet.interledger.cards/*'],
+    js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/fynbos/sandbox',
+    matches: ['https://eu1.fynbos.dev/*'],
+    js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/fynbos/prod',
+    matches: ['https://interledger.app/*'],
+    js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/chimoney/sandbox',
+    matches: ['https://sandbox.chimoney.io/*'],
+    js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/chimoney/prod',
+    matches: ['https://dash.chimoney.io/*'],
+    js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/gatehub/sandbox',
+    matches: [
+      'https://wallet.sandbox.gatehub.net/*',
+      'https://signin.sandbox.gatehub.net/*',
+    ],
+    js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/gatehub/prod',
+    matches: ['https://wallet.gatehub.net/*', 'https://signin.gatehub.net/*'],
+    js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
+  },
+];
 
 function walletAddressToProvider(walletAddress: WalletAddress): string {
   const { host } = new URL(walletAddress.id);
