@@ -4,7 +4,7 @@ import { useMessage } from '@/popup/lib/context';
 import { getWalletInformation } from '@/shared/helpers';
 import { usePopupState } from '@/popup/lib/store';
 
-export const Component = () => {
+export default () => {
   const message = useMessage();
   const {
     transientState: { connect: connectState },

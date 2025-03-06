@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'wouter';
 import { ArrowBack, Settings } from '@/pages/shared/components/Icons';
 import { HeaderEmpty } from './HeaderEmpty';
 import { TogglePaymentsButton } from '@/popup/components/TogglePaymentsButton';
@@ -8,21 +8,21 @@ import { useBrowser } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
 
 const NavigationButton = () => {
-  const location = useLocation();
+  const [pathname] = useLocation();
   const { connected } = usePopupState();
 
   return React.useMemo(() => {
     if (!connected) return null;
 
-    if (location.pathname.includes('/s/')) {
+    if (pathname.includes('/s/')) {
       return (
-        <Link to={location.pathname.split('/s/')[0]}>
+        <Link to={pathname.split('/s/')[0]}>
           <ArrowBack className="h-6 text-gray-500" />
         </Link>
       );
     }
 
-    return location.pathname === `${ROUTES_PATH.SETTINGS}` ? (
+    return pathname === `${ROUTES_PATH.SETTINGS}` ? (
       <Link to={ROUTES_PATH.HOME}>
         <ArrowBack className="h-6 text-gray-500" />
       </Link>
@@ -34,7 +34,7 @@ const NavigationButton = () => {
         </Link>
       </React.Fragment>
     );
-  }, [location, connected]);
+  }, [pathname, connected]);
 };
 
 export const Header = () => {
