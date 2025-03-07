@@ -37,6 +37,7 @@ export const getProdOptions = ({
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
         'https://webmonetization.org/welcome',
       ),
+      CONFIG_LOG_SERVER_ENDPOINT: JSON.stringify(false),
     },
   };
 };
