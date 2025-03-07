@@ -1,9 +1,9 @@
 import React from 'react';
-import { AnimatePresence, m } from 'framer-motion';
 import { AutoKeyAddConsent } from '@/pages/shared/components/AutoKeyAddConsent';
 import { WarningSign } from '@/pages/shared/components/Icons';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { Code } from '@/pages/shared/components/ui/Code';
+import { FadeInOut } from '@/pages/shared/components/FadeInOut';
 import { useTranslation } from '@/pages/shared/lib/context';
 import { useLocalStorage } from '@/pages/shared/lib/hooks';
 import type { PopupStore } from '@/shared/types';
@@ -34,17 +34,17 @@ export const ErrorKeyRevoked = ({
 
   if (screen === 'main') {
     return (
-      <AnimatePresence mode="sync">
+      <>
         <MainScreen
           disconnectWallet={disconnectWallet}
           onDisconnect={onDisconnect}
           setScreen={setScreen}
         />
-      </AnimatePresence>
+      </>
     );
   } else if (screen === 'consent-reconnect') {
     return (
-      <AnimatePresence mode="sync">
+      <>
         <AutoKeyAddConsent
           onAccept={async () => {
             try {
@@ -59,11 +59,11 @@ export const ErrorKeyRevoked = ({
           onDecline={() => setScreen('manual-reconnect')}
           intent="RECONNECT_WALLET"
         />
-      </AnimatePresence>
+      </>
     );
   } else {
     return (
-      <AnimatePresence mode="sync">
+      <>
         <ManualReconnectScreen
           info={info}
           reconnectWallet={reconnectWallet}
@@ -72,7 +72,7 @@ export const ErrorKeyRevoked = ({
             onReconnect?.();
           }}
         />
-      </AnimatePresence>
+      </>
     );
   }
 };
@@ -105,11 +105,7 @@ const MainScreen = ({
   };
 
   return (
-    <m.div
-      exit={{ opacity: 0 }}
-      className="space-y-4 text-sm"
-      data-user-action="required"
-    >
+    <div className="space-y-4 text-sm" data-user-action="required">
       <div className="flex gap-2 rounded-md bg-error p-2">
         <WarningSign className="size-6 text-error" />
         <h3 className="text-base font-medium text-error">
@@ -118,26 +114,22 @@ const MainScreen = ({
       </div>
       <p className="text-sm text-medium">{t('keyRevoked_error_text')}</p>
 
-      {errorMsg && (
-        <m.div
-          animate={{ opacity: 1 }}
-          initial={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="rounded-sm px-2 text-sm text-error"
-        >
-          {errorMsg}
-        </m.div>
-      )}
+      <FadeInOut
+        visible={!!errorMsg}
+        className="rounded-sm px-2 text-sm text-error"
+      >
+        {errorMsg}
+      </FadeInOut>
 
-      <m.form className="flex flex-col items-stretch gap-4">
+      <form className="flex flex-col items-stretch gap-4">
         <Button onClick={() => requestDisconnect()} loading={loading}>
           {t('keyRevoked_action_disconnect')}
         </Button>
         <Button onClick={() => setScreen('consent-reconnect')}>
           {t('keyRevoked_action_reconnect')}
         </Button>
-      </m.form>
-    </m.div>
+      </form>
+    </div>
   );
 };
 
@@ -178,10 +170,9 @@ const ManualReconnectScreen = ({
   };
 
   return (
-    <m.form
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <FadeInOut
+      as="form"
+      visible={true}
       className="flex flex-col items-stretch gap-4"
       onSubmit={(ev) => {
         ev.preventDefault();
@@ -200,20 +191,16 @@ const ManualReconnectScreen = ({
         <Code className="text-xs" value={info.publicKey} />
       </div>
 
-      {errors?.root?.message && (
-        <m.div
-          animate={{ opacity: 1 }}
-          initial={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
-          className="rounded-sm px-2 text-sm text-error"
-        >
-          {errors.root.message}
-        </m.div>
-      )}
+      <FadeInOut
+        visible={!!errors.root?.message}
+        className="rounded-sm px-2 text-sm text-error"
+      >
+        {errors.root?.message}
+      </FadeInOut>
 
       <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
         {t('keyRevoked_action_reconnectBtn')}
       </Button>
-    </m.form>
+    </FadeInOut>
   );
 };
