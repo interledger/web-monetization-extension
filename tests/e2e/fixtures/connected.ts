@@ -1,6 +1,11 @@
 import { mergeExpects, type Page } from '@playwright/test';
 import { test as base, expect as baseExpect } from './base';
-import { connectWallet, disconnectWallet, type Popup } from '../pages/popup';
+import {
+  connectWallet,
+  disconnectWallet,
+  goToHome,
+  type Popup,
+} from '../pages/popup';
 
 export const DEFAULT_BUDGET = {
   /** amount is what user fills in budget's amount field, parsed as Number */
@@ -17,7 +22,7 @@ export const test = base.extend<{ page: Page }, { popup: Popup }>({
         amount: DEFAULT_BUDGET.amount.toString(),
         recurring: DEFAULT_BUDGET.recurring,
       });
-      await popup.reload();
+      await goToHome(popup);
 
       await use(popup);
 

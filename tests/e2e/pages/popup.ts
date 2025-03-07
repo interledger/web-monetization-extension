@@ -1,4 +1,4 @@
-import type { BrowserContext } from '@playwright/test';
+import type { BrowserContext, Locator } from '@playwright/test';
 import type { BrowserIntl, Background } from '../fixtures/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
@@ -32,8 +32,8 @@ export async function openPopup(
 }
 
 export async function disconnectWallet(popup: Popup) {
-  await popup.reload();
-  await popup.locator(`[href="/settings"]`).click({ timeout: 1000 });
+  await goToHome(popup);
+  await locators.settingsLink(popup).click({ timeout: 1000 });
   await popup.getByRole('tab', { name: 'Wallet' }).click();
 
   await popup
@@ -94,8 +94,8 @@ export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
 }
 
 export async function setContinuousPayments(popup: Popup, enabled: boolean) {
-  await popup.reload();
-  await popup.locator(`[href="/settings"]`).click({ timeout: 1000 });
+  await goToHome(popup);
+  await locators.settingsLink(popup).click({ timeout: 1000 });
   await popup.getByRole('tab', { name: 'Rate' }).click();
 
   await popup
@@ -107,7 +107,7 @@ export async function setContinuousPayments(popup: Popup, enabled: boolean) {
 export async function goToHome(popup: Popup) {
   await popup.reload(); // reload is enough to reset state
   await popup.waitForSelector(
-    '[data-testid="home-page"], [data-testid="not-monetized-message"]',
+    '[data-testid="home-page"], [data-testid="not-monetized-message"], [data-user-action="required"]',
     { timeout: 1000 },
   );
 }
@@ -127,3 +127,8 @@ export async function sendOneTimePayment(
   }
   return sendButton;
 }
+
+export const locators = {
+  settingsLink: (popup) => popup.getByRole('link', { name: 'Settings' }),
+  backLink: (popup) => popup.getByRole('link', { name: 'Back' }),
+} satisfies { [key: string]: (popup: Popup) => Locator };

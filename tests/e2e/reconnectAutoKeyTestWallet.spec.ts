@@ -16,7 +16,7 @@ import {
   setupPlayground,
   waitForPage,
 } from './helpers/common';
-import { disconnectWallet, fillPopup } from './pages/popup';
+import { disconnectWallet, fillPopup, goToHome } from './pages/popup';
 
 test('Reconnect to test wallet with automatic key addition', async ({
   page,
@@ -152,7 +152,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
   });
 
   await test.step('make one-time payment after reconnecting the wallet', async () => {
-    await popup.reload();
+    await goToHome(popup);
     await expect(popup.getByTestId('home-page')).toBeVisible();
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
 

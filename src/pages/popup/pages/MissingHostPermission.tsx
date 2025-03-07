@@ -7,7 +7,10 @@ export const Component = () => {
   const browser = useBrowser();
   const t = useTranslation();
   return (
-    <div className="rounded-md bg-orange-50 p-4 text-sm">
+    <div
+      className="rounded-md bg-orange-50 p-4 text-sm"
+      data-user-action="required"
+    >
       <div className="flex">
         <div className="flex-shrink-0">
           <WarningSign className="size-8 text-orange-500" />
