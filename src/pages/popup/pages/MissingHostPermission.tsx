@@ -9,7 +9,7 @@ export const Component = () => {
   return (
     <div
       className="rounded-md bg-orange-50 p-4 text-sm"
-      data-state="user-action-required"
+      data-user-action="required"
     >
       <div className="flex">
         <div className="flex-shrink-0">

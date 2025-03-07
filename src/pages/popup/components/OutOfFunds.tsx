@@ -29,7 +29,7 @@ export const OutOfFunds = ({
   const t = useTranslation();
 
   return (
-    <div className="flex flex-col gap-4" data-state="user-action-required">
+    <div className="flex flex-col gap-4" data-user-action="required">
       <ErrorMessage
         error={t('outOfFunds_error_title')}
         className="mb-0 text-error"
