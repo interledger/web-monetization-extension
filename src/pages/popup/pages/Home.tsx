@@ -6,10 +6,25 @@ import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
 import { useTranslation } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
+import { ROUTES_PATH } from '../Popup';
+import { Redirect as Navigate } from 'wouter';
 
-export const Component = () => {
+export default () => {
   const t = useTranslation();
-  const { tab, enabled } = usePopupState();
+  const { tab, enabled, state, connected } = usePopupState();
+
+  if (state.missing_host_permissions) {
+    return <Navigate to={ROUTES_PATH.MISSING_HOST_PERMISSION} />;
+  }
+  if (state.key_revoked) {
+    return <Navigate to={ROUTES_PATH.ERROR_KEY_REVOKED} />;
+  }
+  if (state.out_of_funds) {
+    return <Navigate to={ROUTES_PATH.OUT_OF_FUNDS} />;
+  }
+  if (connected === false) {
+    return <Navigate to={ROUTES_PATH.CONNECT_WALLET} />;
+  }
 
   if (!enabled) {
     return <NotMonetized text={t('app_text_disabled')} />;

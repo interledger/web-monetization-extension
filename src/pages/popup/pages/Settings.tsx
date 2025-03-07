@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+// import { useLocation } from 'wouter';
 import * as Tabs from '@radix-ui/react-tabs';
 import { WalletInformation } from '@/popup/components/Settings/WalletInformation';
 import { BudgetScreen } from '@/popup/components/Settings/Budget';
@@ -18,18 +18,18 @@ const isValidTabId = (id: string) => {
   return TABS.some((e) => e.id === id);
 };
 
-export const Component = () => {
+export default () => {
   const { balance, grants, publicKey, walletAddress } = usePopupState();
-  const location = useLocation();
+  // const [location] = useLocation();
   const [storedTabId, setStoredTabId] = useLocalStorage(
     'settings.tabId',
     TABS[0].id,
     { maxAge: 10 * 60 * 1000, validate: isValidTabId },
   );
-  const tabIdFromState =
+  const tabIdFromState = null; /*
     location.state?.tabId && isValidTabId(location.state?.tabId)
       ? (location.state.tabId as string)
-      : null;
+      : null; */
   const [currentTabId, setCurrentTabId] = React.useState(
     tabIdFromState ?? storedTabId ?? TABS[0].id,
   );
