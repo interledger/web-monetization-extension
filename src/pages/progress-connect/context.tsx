@@ -16,15 +16,21 @@ type OnPortMessageListener = Parameters<
   Runtime.Port['onMessage']['addListener']
 >[0];
 
+const DEFAULT_CURRENT_STEP: StepWithStatus = {
+  name: '',
+  status: 'pending',
+  maxDuration: 0,
+};
+
 const StateContext = React.createContext<State>({
-  currentStep: { name: '', status: 'active' },
+  currentStep: DEFAULT_CURRENT_STEP,
   steps: [],
 });
 
 export const StateContextProvider = ({ children }: React.PropsWithChildren) => {
   const browser = useBrowser();
   const [state, setState] = React.useState<State>({
-    currentStep: { name: '', status: 'active' },
+    currentStep: DEFAULT_CURRENT_STEP,
     steps: [],
   });
 
@@ -36,7 +42,7 @@ export const StateContextProvider = ({ children }: React.PropsWithChildren) => {
         const { steps } = message.payload;
         const currentStep = getCurrentStep(steps);
         setState({
-          currentStep: currentStep || { name: '', status: 'pending' },
+          currentStep: currentStep || DEFAULT_CURRENT_STEP,
           steps: steps,
         });
       }

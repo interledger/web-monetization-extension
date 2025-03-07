@@ -178,7 +178,9 @@ for (const testCase of TEST_CASES) {
         );
         const continueWaitMs = await continueWaitMsPromise;
         await completeGrant(newPage, continueWaitMs);
-        expect(newPage.url()).toContain('intent=update_budget');
+        await expect(newPage).toHaveURL(
+          (url) => url.searchParams.get('intent') === 'update_budget',
+        );
         await newPage.close();
 
         const newGrants = await getStorage(background, [
