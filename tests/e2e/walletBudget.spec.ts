@@ -3,6 +3,8 @@ import { getStorage } from './fixtures/helpers';
 import {
   connectWallet,
   disconnectWallet,
+  goToHome,
+  locators,
   sendOneTimePayment,
 } from './pages/popup';
 import {
@@ -77,7 +79,7 @@ for (const testCase of TEST_CASES) {
     });
 
     test(testCase.name, async ({ context, background, popup, page }) => {
-      const settingsLink = popup.locator(`[href="/settings"]`);
+      const settingsLink = locators.settingsLink(popup);
       const budgetTab = popup.getByRole('tab', { name: 'Budget' });
 
       const remainingBalanceInput = popup.getByLabel('Remaining balance');
@@ -125,7 +127,7 @@ for (const testCase of TEST_CASES) {
       await test.step('make payment to reduce remaining balance', async () => {
         await setupPlayground(page, walletAddressUrl);
 
-        await popup.reload();
+        await goToHome(popup);
         await sendOneTimePayment(popup, '2.00', true);
         // Make an extra payment to update balance:
         // https://github.com/interledger/web-monetization-extension/issues/737
@@ -208,7 +210,7 @@ for (const testCase of TEST_CASES) {
       });
 
       await test.step('shows new budget', async () => {
-        await popup.reload();
+        await goToHome(popup);
         await settingsLink.click();
         await budgetTab.click();
 

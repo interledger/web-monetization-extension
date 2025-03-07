@@ -3,6 +3,8 @@ import { getStorage } from './fixtures/helpers';
 import {
   connectWallet,
   disconnectWallet,
+  goToHome,
+  locators,
   sendOneTimePayment,
   setContinuousPayments,
 } from './pages/popup';
@@ -85,7 +87,7 @@ for (const testCase of TEST_CASES) {
         await expect(background).toHaveStorage({
           continuousPaymentsEnabled: false,
         });
-        await popup.reload();
+        await goToHome(popup);
       },
     );
 
@@ -130,7 +132,7 @@ for (const testCase of TEST_CASES) {
         await expect(background).toHaveStorage({
           continuousPaymentsEnabled: true,
         });
-        await popup.reload();
+        await goToHome(popup);
 
         await expect(popup.getByRole('alert')).toBeVisible({ timeout: 10_000 });
         await expect(popup.getByRole('alert')).toHaveText(
@@ -153,7 +155,7 @@ for (const testCase of TEST_CASES) {
         await expect(background).toHaveStorage({
           continuousPaymentsEnabled: false,
         });
-        await popup.reload();
+        await goToHome(popup);
       });
 
       await test.step('set new budget', async () => {
@@ -254,14 +256,14 @@ for (const testCase of TEST_CASES) {
         await expect(background).toHaveStorage({
           state: expect.objectContaining({ out_of_funds: false }),
         });
-        await popup.reload();
+        await goToHome(popup);
 
         const page = await context.newPage();
         await setupPlayground(page, walletAddressUrl);
 
         await expect(popup.getByTestId('home-page')).toBeVisible();
 
-        await popup.locator(`a[href="/settings"]`).click();
+        await locators.settingsLink(popup).click();
         await popup.getByRole('tab', { name: 'Budget' }).click();
 
         const budgetAmountInput = popup.getByLabel('Budget amount');
