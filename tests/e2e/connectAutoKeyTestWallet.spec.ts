@@ -75,7 +75,7 @@ for (const testCase of TEST_CASES) {
         await context.clearCookies();
 
         await page.goto(KEYS_PAGE_URL);
-        expect(page.url()).toBe(LOGIN_PAGE_URL);
+        await expect(page).toHaveURL(LOGIN_PAGE_URL);
         await page.close();
       });
 
