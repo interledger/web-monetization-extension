@@ -197,7 +197,7 @@
     "message": "Wallet connection cancelled. The request was not authorized."
   },
   "connectWallet_error_timeout": {
-    "message": "Wallet connection timed out."
+    "message": "Connecting to wallet took too long. Please try again."
   },
   "connectWalletKeyService_text_consentP1": {
     "message": "We will automatically connect with your wallet provider."
