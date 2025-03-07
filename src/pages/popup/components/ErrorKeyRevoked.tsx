@@ -105,7 +105,11 @@ const MainScreen = ({
   };
 
   return (
-    <m.div exit={{ opacity: 0 }} className="space-y-4 text-sm">
+    <m.div
+      exit={{ opacity: 0 }}
+      className="space-y-4 text-sm"
+      data-state="user-action-required"
+    >
       <div className="flex gap-2 rounded-md bg-error p-2">
         <WarningSign className="size-6 text-error" />
         <h3 className="text-base font-medium text-error">
