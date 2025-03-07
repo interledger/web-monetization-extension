@@ -107,9 +107,7 @@ export class WalletService {
       cleanupListeners();
       const err = new ErrorWithKey('connectWallet_error_timeout');
       this.setConnectStateError(err);
-      if (tabId) {
-        void this.redirectOnTimeout(tabId, intent);
-      }
+      void this.redirectOnTimeout(tabId, intent);
       throw err;
     };
 
