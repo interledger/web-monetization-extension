@@ -141,7 +141,7 @@ test.describe('should not pay immediately when overpaying', () => {
     await expect(homePage, 'site is shown as monetized').toBeVisible();
 
     await page.getByRole('link', { name: 'Hash link' }).click();
-    expect(page.url()).toMatch(/#foo$/);
+    await expect(page).toHaveURL(/#foo$/);
     await expect(homePage, 'site is shown as monetized').toBeVisible();
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
 

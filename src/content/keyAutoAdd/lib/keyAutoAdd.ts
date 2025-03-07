@@ -34,7 +34,11 @@ export class KeyAutoAdd {
 
   constructor(steps: Step[]) {
     this.stepsInput = new Map(steps.map((step) => [step.name, step]));
-    this.steps = steps.map((step) => ({ name: step.name, status: 'pending' }));
+    this.steps = steps.map((step) => ({
+      name: step.name,
+      status: 'pending',
+      maxDuration: step.maxDuration || 4 * 1000,
+    }));
   }
 
   init() {
@@ -188,12 +192,16 @@ export class KeyAutoAdd {
   private setStatus<T extends StepWithStatus['status']>(
     stepIdx: number,
     status: T,
-    data: Omit<Extract<StepWithStatus, { status: T }>, 'name' | 'status'>,
+    data: Omit<
+      Extract<StepWithStatus, { status: T }>,
+      'name' | 'status' | 'maxDuration'
+    >,
   ) {
     // @ts-expect-error what's missing is part of data, TypeScript!
     this.steps[stepIdx] = {
       name: this.steps[stepIdx].name,
       status,
+      maxDuration: this.steps[stepIdx].maxDuration,
       ...data,
     };
     this.postMessage('PROGRESS', { steps: this.steps });

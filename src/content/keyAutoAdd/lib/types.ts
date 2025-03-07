@@ -23,6 +23,7 @@ export type Details = Omit<ErrorResponse, 'success'>;
 interface StepWithStatusBase {
   name: Step['name'];
   status: string;
+  maxDuration: number;
 }
 interface StepWithStatusNormal extends StepWithStatusBase {
   status: 'pending' | 'success';

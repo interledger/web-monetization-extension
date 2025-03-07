@@ -41,7 +41,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
 
   await test.step('ensure not logged in', async () => {
     await page.goto(KEYS_PAGE_URL);
-    expect(page.url()).toBe(LOGIN_PAGE_URL);
+    await expect(page).toHaveURL(LOGIN_PAGE_URL);
     await page.close();
   });
 
