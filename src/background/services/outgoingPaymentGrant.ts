@@ -13,6 +13,7 @@ import {
 } from '@interledger/open-payments/dist/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
+import { ACCEPT_GRANT_TIMEOUT } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import { ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
@@ -132,10 +133,14 @@ export class OutgoingPaymentGrantService {
     { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
     existingTabId: number,
+    timeout = ACCEPT_GRANT_TIMEOUT,
   ): Promise<GrantDetails> {
+    const signal = AbortSignal.timeout(timeout);
+
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
+      signal,
     );
 
     await this.verifyInteractionHash(
@@ -147,6 +152,7 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
+    signal.throwIfAborted();
 
     const continuation = await this.continueGrant(
       grant,
@@ -154,12 +160,12 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
-
     if (!isFinalizedGrant(continuation)) {
       throw new Error(
         'Expected finalized grant. Received non-finalized grant.',
       );
     }
+    signal.throwIfAborted();
 
     this.grant = this.buildGrantDetails(continuation, walletAmount);
     await this.persistGrantDetails(this.grant);
@@ -280,8 +286,14 @@ export class OutgoingPaymentGrantService {
   private async getInteractionInfo(
     url: string,
     existingTabId: TabId,
+    signal: AbortSignal,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
+
+    signal.addEventListener('abort', () => {
+      removeListeners();
+      reject(signal.reason);
+    });
 
     await this.browser.tabs.update(existingTabId, { url });
     if (!existingTabId) {
@@ -290,10 +302,15 @@ export class OutgoingPaymentGrantService {
     }
     this.events.emit('request_popup_close');
 
+    const removeListeners = () => {
+      this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
+      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+    };
+
     const tabCloseListener: TabRemovedCallback = (tabId) => {
       if (tabId !== existingTabId) return;
 
-      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+      removeListeners();
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
 
@@ -310,8 +327,7 @@ export class OutgoingPaymentGrantService {
           result === 'grant_rejected' ||
           result === 'grant_invalid'
         ) {
-          this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
-          this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+          removeListeners();
         }
 
         if (interactRef && hash) {

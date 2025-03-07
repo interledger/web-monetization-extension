@@ -5,7 +5,6 @@ import {
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
 import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
-import { LazyMotion, domAnimation } from 'framer-motion';
 import { Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import browser from 'webextension-polyfill';
@@ -58,7 +57,7 @@ const Routes = () => {
 
 export const Popup = () => {
   return (
-    <LazyMotion features={domAnimation} strict>
+    <>
       <BrowserContextProvider browser={browser}>
         <MessageContextProvider>
           <TranslationContextProvider>
@@ -72,6 +71,6 @@ export const Popup = () => {
           </TranslationContextProvider>
         </MessageContextProvider>
       </BrowserContextProvider>
-    </LazyMotion>
+    </>
   );
 };

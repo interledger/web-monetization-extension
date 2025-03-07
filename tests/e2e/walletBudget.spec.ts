@@ -80,7 +80,6 @@ for (const testCase of TEST_CASES) {
 
     test(testCase.name, async ({ context, background, popup, page }) => {
       const settingsLink = locators.settingsLink(popup);
-      await settingsLink.click();
       const budgetTab = popup.getByRole('tab', { name: 'Budget' });
 
       const remainingBalanceInput = popup.getByLabel('Remaining balance');
@@ -181,7 +180,9 @@ for (const testCase of TEST_CASES) {
         );
         const continueWaitMs = await continueWaitMsPromise;
         await completeGrant(newPage, continueWaitMs);
-        expect(newPage.url()).toContain('intent=update_budget');
+        await expect(newPage).toHaveURL(
+          (url) => url.searchParams.get('intent') === 'update_budget',
+        );
         await newPage.close();
 
         const newGrants = await getStorage(background, [

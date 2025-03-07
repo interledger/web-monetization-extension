@@ -107,7 +107,7 @@ export async function setContinuousPayments(popup: Popup, enabled: boolean) {
 export async function goToHome(popup: Popup) {
   await popup.goto(popup.url().replace(/#.*$/, ''));
   await popup.waitForSelector(
-    '[data-testid="home-page"], [data-testid="not-monetized-message"]',
+    '[data-testid="home-page"], [data-testid="not-monetized-message"], [data-user-action="required"]',
     { timeout: 1000 },
   );
 }

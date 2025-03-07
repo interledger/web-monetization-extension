@@ -35,6 +35,7 @@ export enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
   HASH_FAILED = 'hash_failed',
   KEY_ADD_FAILED = 'key_add_failed',
+  TIMEOUT = 'timeout',
 }
 
 export const getCurrentActiveTab = async (browser: Browser) => {
