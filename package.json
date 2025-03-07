@@ -33,7 +33,6 @@
     "class-variance-authority": "^0.7.1",
     "crypto-browserify": "^3.12.1",
     "date-fns": "^4.1.0",
-    "framer-motion": "^11.11.17",
     "http-message-signatures": "^1.0.4",
     "httpbis-digest-headers": "^1.0.0",
     "iso8601-duration": "^2.1.2",
