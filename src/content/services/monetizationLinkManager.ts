@@ -30,7 +30,10 @@ export class MonetizationLinkManager {
     HTMLLinkElement,
     { walletAddress: WalletAddress; requestId: string }
   >();
-  private pendingValidationLinks = new WeakSet<HTMLLinkElement>();
+  private linksValidationStatus = new WeakMap<
+    HTMLLinkElement,
+    'pending' | 'failed'
+  >();
 
   constructor({ document, logger, message, global }: Cradle) {
     Object.assign(this, {
@@ -189,7 +192,6 @@ export class MonetizationLinkManager {
     return walletAddress;
   }
 
-  /** @throws never throws */
   private async validateLink(
     link: HTMLLinkElement,
   ): Promise<StartMonetizationPayloadEntry | null> {
@@ -219,7 +221,7 @@ export class MonetizationLinkManager {
     } catch (e) {
       this.logger.error(e);
       this.dispatchErrorEvent(link);
-      return null;
+      throw e;
     }
   }
 
@@ -430,6 +432,7 @@ export class MonetizationLinkManager {
       // this will also handle the case of a @disabled tag that
       // is not tracked, becoming enabled
       if (!hasTarget && linkRelSpecified) {
+        this.linksValidationStatus.delete(target);
         const payloadEntry = await this.onAddedLink(target);
         if (payloadEntry) {
           startMonetizationPayload.push(payloadEntry);
@@ -469,9 +472,9 @@ export class MonetizationLinkManager {
               }
             } catch {
               // if we can't find existing entry, try to revalidate
-              const payloadEntry = await this.checkLink(target);
+              this.linksValidationStatus.delete(target);
+              const payloadEntry = await this.onAddedLink(target);
               if (payloadEntry) {
-                this.monetizationLinks.set(target, payloadEntry);
                 startMonetizationPayload.push(payloadEntry);
               }
             }
@@ -487,14 +490,15 @@ export class MonetizationLinkManager {
             // stop existing monetization first
             const removedEntry = this.onRemovedLink(target);
             stopMonetizationPayload.push(removedEntry);
+          } else {
+            // it's failed or pending, so remove it
+            this.linksValidationStatus.delete(target);
           }
 
           // then validate with new href
-          const payloadEntry = await this.validateLink(target);
+          const payloadEntry = await this.onAddedLink(target);
           if (payloadEntry) {
-            this.monetizationLinks.set(target, payloadEntry);
             startMonetizationPayload.push(payloadEntry);
-            this.observeLinkAttrs(target);
           }
           handledTags.add(target);
         }
@@ -508,26 +512,33 @@ export class MonetizationLinkManager {
   private async onAddedLink(
     link: HTMLLinkElement,
   ): Promise<StartMonetizationPayloadEntry | null> {
-    if (
-      this.pendingValidationLinks.has(link) ||
-      this.monetizationLinks.has(link)
-    ) {
+    try {
+      if (
+        this.linksValidationStatus.has(link) ||
+        this.monetizationLinks.has(link)
+      ) {
+        return null;
+      }
+
+      this.linksValidationStatus.set(link, 'pending');
+
+      const walletAddress = await this.checkLink(link);
+      if (!walletAddress) {
+        this.linksValidationStatus.set(link, 'failed');
+        this.observeLinkAttrs(link);
+        return null;
+      }
+
+      this.monetizationLinks.set(link, walletAddress);
+      this.linksValidationStatus.delete(link);
+      this.observeLinkAttrs(link);
+
+      return walletAddress;
+    } catch {
+      this.linksValidationStatus.set(link, 'failed');
+      this.observeLinkAttrs(link);
       return null;
     }
-
-    this.pendingValidationLinks.add(link);
-
-    const walletAddress = await this.checkLink(link);
-    if (!walletAddress) {
-      return null;
-    }
-
-    this.monetizationLinks.set(link, walletAddress);
-    // if link validation failed, do not remove it from pending validation links
-    this.pendingValidationLinks.delete(link);
-    this.observeLinkAttrs(link);
-
-    return walletAddress;
   }
 
   private onRemovedLink(link: HTMLLinkElement): StopMonetizationPayloadEntry {
