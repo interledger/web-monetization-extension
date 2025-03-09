@@ -32,7 +32,7 @@ export class MonetizationLinkManager {
   >();
   private linksValidationStatus = new WeakMap<
     HTMLLinkElement,
-    'pending' | 'failed'
+    'pending' | 'invalid'
   >();
 
   constructor({ document, logger, message, global }: Cradle) {
@@ -524,7 +524,7 @@ export class MonetizationLinkManager {
 
       const walletAddress = await this.checkLink(link);
       if (!walletAddress) {
-        this.linksValidationStatus.set(link, 'failed');
+        this.linksValidationStatus.set(link, 'invalid');
         this.observeLinkAttrs(link);
         return null;
       }
@@ -535,7 +535,7 @@ export class MonetizationLinkManager {
 
       return walletAddress;
     } catch {
-      this.linksValidationStatus.set(link, 'failed');
+      this.linksValidationStatus.set(link, 'invalid');
       this.observeLinkAttrs(link);
       return null;
     }
