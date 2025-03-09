@@ -26,6 +26,7 @@ export class MonetizationLinkManager {
   private documentObserver: MutationObserver;
   private monetizationLinkAttrObserver: MutationObserver;
   private id: string;
+  // only entries corresponding to valid wallet addresses are here
   private monetizationLinks = new Map<
     HTMLLinkElement,
     { walletAddress: WalletAddress; requestId: string }
