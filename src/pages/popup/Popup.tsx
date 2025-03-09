@@ -4,7 +4,6 @@ import {
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
 import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
-import { LazyMotion, domAnimation } from 'framer-motion';
 import React from 'react';
 import browser from 'webextension-polyfill';
 import { ProtectedRoute } from '@/popup/components/ProtectedRoute';
@@ -73,7 +72,7 @@ const router = createMemoryRouter(routes);
 
 export const Popup = () => {
   return (
-    <LazyMotion features={domAnimation} strict>
+    <>
       <BrowserContextProvider browser={browser}>
         <MessageContextProvider>
           <TranslationContextProvider>
@@ -83,6 +82,6 @@ export const Popup = () => {
           </TranslationContextProvider>
         </MessageContextProvider>
       </BrowserContextProvider>
-    </LazyMotion>
+    </>
   );
 };

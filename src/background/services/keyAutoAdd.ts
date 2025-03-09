@@ -4,6 +4,7 @@ import {
   getJWKS,
   isErrorWithKey,
   withResolvers,
+  Timeout,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
@@ -13,15 +14,13 @@ import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
   KeyAutoAddToBackgroundMessage,
+  StepWithStatus,
 } from '@/content/keyAutoAdd/lib/types';
 
 export const CONNECTION_NAME = 'key-auto-add';
 
 type OnTabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
->[0];
-type OnTabUpdatedCallback = Parameters<
-  Browser['tabs']['onUpdated']['addListener']
 >[0];
 type OnConnectCallback = Parameters<
   Browser['runtime']['onConnect']['addListener']
@@ -57,7 +56,7 @@ export class KeyAutoAddService {
         'publicKey',
         'keyId',
       ]);
-      this.updateConnectState();
+      this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
       await this.process(
         keyAddUrl,
         {
@@ -72,7 +71,7 @@ export class KeyAutoAddService {
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
       if (!error.key || !error.key.startsWith('connectWallet_error_')) {
-        this.updateConnectState(error);
+        this.setConnectStateError(error);
       }
       throw error;
     }
@@ -86,19 +85,16 @@ export class KeyAutoAddService {
     const { resolve, reject, promise } = withResolvers();
     await this.browser.tabs.update(existingTabId, { url });
 
-    const removeListeners = () => {
-      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
-      this.browser.tabs.onUpdated.removeListener(onTabUpdatedListener);
-      this.browser.runtime.onConnect.removeListener(onConnectListener);
-    };
+    const BASE_TIMEOUT = 5 * 1000;
+    const timeout = new Timeout(BASE_TIMEOUT, () => {
+      removeListeners();
+      reject(new ErrorWithKey('connectWallet_error_timeout'));
+    });
 
-    const onTabUpdatedListener: OnTabUpdatedCallback = (tabId, _, tab) => {
-      if (tabId !== existingTabId) return;
-      const tabUrl = tab.url || '';
-      if (!isAllowedURL(tabUrl, url)) {
-        removeListeners();
-        reject(new ErrorWithKey('connectWallet_error_tabNavigatedAway'));
-      }
+    const removeListeners = () => {
+      timeout.clear();
+      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      this.browser.runtime.onConnect.removeListener(onConnectListener);
     };
 
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
@@ -112,6 +108,7 @@ export class KeyAutoAddService {
       if (port.name !== CONNECTION_NAME) return;
       if (port.sender?.tab && port.sender.tab.id !== existingTabId) return;
       if (port.error) {
+        removeListeners();
         reject(new Error(port.error.message));
         return;
       }
@@ -149,20 +146,35 @@ export class KeyAutoAddService {
           ),
         );
       } else if (message.action === 'PROGRESS') {
-        // can also save progress to show in popup
+        const steps = message.payload.steps;
+        const timeoutMs = steps
+          .filter(({ status }) => status === 'pending' || status === 'active')
+          .reduce((acc, { maxDuration }) => acc + maxDuration, 0);
+        timeout.reset(Math.max(timeoutMs, BASE_TIMEOUT));
+        const currentStep = this.getCurrentStep(steps);
+        if (currentStep) {
+          this.setConnectState(currentStep.name);
+        }
         for (const p of ports) {
           if (p !== port) p.postMessage(message);
         }
       } else {
+        removeListeners();
         reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
       }
     };
 
-    this.browser.tabs.onUpdated.addListener(onTabUpdatedListener);
     this.browser.tabs.onRemoved.addListener(onTabCloseListener);
     this.browser.runtime.onConnect.addListener(onConnectListener);
 
     return promise;
+  }
+
+  private getCurrentStep(steps: Readonly<StepWithStatus[]>) {
+    return steps
+      .slice()
+      .reverse()
+      .find((step) => step.status !== 'pending');
   }
 
   private async validate(walletAddressUrl: string, keyId: string) {
@@ -172,17 +184,18 @@ export class KeyAutoAddService {
     }
   }
 
-  private updateConnectState(err?: ErrorWithKeyLike | { message: string }) {
-    if (err) {
-      this.storage.setPopupTransientState('connect', () => ({
-        status: 'error:key',
-        error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
-      }));
-    } else {
-      this.storage.setPopupTransientState('connect', () => ({
-        status: 'connecting:key',
-      }));
-    }
+  private setConnectState(currentStep: string) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'connecting:key',
+      currentStep,
+    }));
+  }
+
+  private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'error:key',
+      error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
+    }));
   }
 
   static supports(walletAddress: WalletAddress): boolean {
@@ -256,29 +269,6 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
     persistAcrossSessions: false,
   },
 ];
-// assumption: matches patterns are URL parse-able! Will crash on load if not.
-const CONTENT_SCRIPTS_HOSTS = CONTENT_SCRIPTS.map((script) =>
-  script.matches!.map((e) => new URL(e).host),
-);
-
-/**
- * Is user allowed to be on this URL during key add process? If not, we should
- * abort as user went to some other URL in the tab meant for key-add and lost
- * their way.
- */
-function isAllowedURL(
-  url: string,
-  keyAddUrl: string,
-  allHosts = CONTENT_SCRIPTS_HOSTS,
-): boolean {
-  const { host: provider } = new URL(keyAddUrl);
-  const { host: urlHost } = new URL(url);
-  return (
-    allHosts
-      .find((hosts) => hosts.some((host) => host.includes(provider)))
-      ?.some((host) => host === urlHost) ?? false
-  );
-}
 
 function walletAddressToProvider(walletAddress: WalletAddress): string {
   const { host } = new URL(walletAddress.id);

@@ -444,6 +444,11 @@ export const ConnectWalletForm = ({
             !amount
           }
           loading={isSubmitting}
+          loadingText={
+            state?.status === 'connecting' || state?.status === 'connecting:key'
+              ? state.currentStep
+              : undefined
+          }
         >
           {t('connectWallet_action_connect')}
         </Button>
@@ -509,7 +514,7 @@ function isAutoKeyAddFailed(state: ConnectTransientState) {
     return (
       isErrorWithKey(state.error) &&
       state.error.key !== 'connectWallet_error_tabClosed' &&
-      state.error.key !== 'connectWallet_error_tabNavigatedAway'
+      state.error.key !== 'connectWallet_error_timeout'
     );
   } else if (state?.status === 'error:key') {
     return (

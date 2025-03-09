@@ -266,6 +266,35 @@ export function debounceSync<T extends unknown[], R>(
     });
 }
 
+export class Timeout {
+  private timeout: ReturnType<typeof setTimeout> | null = null;
+  constructor(
+    ms: number,
+    private callback: () => void,
+  ) {
+    this.reset(ms);
+  }
+
+  reset(ms: number) {
+    this.clear();
+    this.timeout = setTimeout(this.callback, ms);
+  }
+
+  clear() {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+  }
+}
+
+/**
+ * Check if `err` (reason) is result of `AbortSignal.timeout()`
+ */
+export const isAbortSignalTimeout = (err: unknown): err is DOMException => {
+  return err instanceof DOMException && err.name === 'TimeoutError';
+};
+
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source;
   if (scaleDiff > 0) {

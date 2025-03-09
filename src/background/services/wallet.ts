@@ -4,6 +4,7 @@ import {
   ErrorWithKey,
   errorWithKeyToJSON,
   type ErrorWithKeyLike,
+  isAbortSignalTimeout,
 } from '@/shared/helpers';
 import type {
   AddFundsPayload,
@@ -98,15 +99,24 @@ export class WalletService {
     maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
-    this.setConnectState('connecting');
 
     const appUrl = this.browser.runtime.getURL(APP_URL);
     const intent = InteractionIntent.CONNECT;
+
+    const onTimeoutAbort = (): never => {
+      cleanupListeners();
+      const err = new ErrorWithKey('connectWallet_error_timeout');
+      this.setConnectStateError(err);
+      void this.redirectOnTimeout(tabId, intent);
+      throw err;
+    };
+
     const walletAmount = toAmount({
       value: amount,
       recurring,
       assetScale: walletAddress.assetScale,
     });
+    let tabId: TabId;
     let cleanupListeners: () => void = () => {};
     try {
       const grant =
@@ -115,11 +125,12 @@ export class WalletService {
           walletAmount,
           intent,
         );
-      const tabId = await reuseOrCreateTab(
+      tabId = await reuseOrCreateTab(
         this.browser,
         this.windowState.getCurrentWindowId(),
         (url) => url.startsWith(appUrl),
       );
+      this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
       cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
@@ -147,7 +158,7 @@ export class WalletService {
           throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
         }
 
-        const tabId = await reuseOrCreateTab(
+        tabId = await reuseOrCreateTab(
           this.browser,
           this.windowState.getCurrentWindowId(),
           (url) => url.startsWith(appUrl),
@@ -155,14 +166,17 @@ export class WalletService {
         cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
         // add key to wallet and try again
         try {
+          this.setConnectState(
+            this.t('connectWalletKeyService_text_stepAddKey'),
+          );
           await this.addPublicKeyToWallet(walletAddress, tabId);
-          this.setConnectState('connecting');
           const grant =
             await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
               walletAddress,
               walletAmount,
               intent,
             );
+          this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             walletAmount,
             walletAddress,
@@ -172,11 +186,17 @@ export class WalletService {
           );
           cleanupListeners();
         } catch (error) {
+          if (isAbortSignalTimeout(error)) {
+            onTimeoutAbort();
+          }
           cleanupListeners();
           this.setConnectStateError(error);
           throw error;
         }
+      } else if (isAbortSignalTimeout(error)) {
+        onTimeoutAbort();
       } else {
+        cleanupListeners();
         this.setConnectStateError(error);
         throw error;
       }
@@ -189,7 +209,7 @@ export class WalletService {
       maxRateOfPay,
       connected: true,
     });
-    this.setConnectState(null);
+    this.resetConnectState();
   }
 
   async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
@@ -205,7 +225,7 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
-    this.setConnectState('connecting');
+    this.setConnectState('Reconnecting wallet');
 
     try {
       await this.validateReconnect();
@@ -225,7 +245,7 @@ export class WalletService {
       }
     }
 
-    this.setConnectState(null);
+    this.resetConnectState();
   }
 
   async disconnectWallet() {
@@ -272,13 +292,21 @@ export class WalletService {
         intent,
       );
     const tabId = await reuseOrCreateTab(this.browser);
-    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      walletAmount,
-      walletAddress,
-      grant,
-      intent,
-      tabId,
-    );
+    try {
+      await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
+        walletAmount,
+        walletAddress,
+        grant,
+        intent,
+        tabId,
+      );
+    } catch (error) {
+      if (isAbortSignalTimeout(error)) {
+        await this.redirectOnTimeout(tabId, intent);
+        throw new ErrorWithKey('connectWallet_error_timeout');
+      }
+      throw error;
+    }
 
     await this.storage.setState({ out_of_funds: false });
 
@@ -317,13 +345,21 @@ export class WalletService {
         intent,
       );
     const tabId = await reuseOrCreateTab(this.browser);
-    await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-      walletAmount,
-      walletAddress,
-      grant,
-      intent,
-      tabId,
-    );
+    try {
+      await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
+        walletAmount,
+        walletAddress,
+        grant,
+        intent,
+        tabId,
+      );
+    } catch (error) {
+      if (isAbortSignalTimeout(error)) {
+        await this.redirectOnTimeout(tabId, intent);
+        throw new ErrorWithKey('connectWallet_error_timeout');
+      }
+      throw error;
+    }
 
     // Revoke all existing grants.
     // Note: Clear storage only if new grant type is not same as previous grant
@@ -387,14 +423,15 @@ export class WalletService {
       await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
     } catch (error) {
       const isTabClosed = error.key === 'connectWallet_error_tabClosed';
-      const isTabNavAway = error.key === 'connectWallet_error_tabNavigatedAway';
-      if (tabId && (!isTabClosed || isTabNavAway)) {
+      if (tabId && !isTabClosed) {
         await redirectToWelcomeScreen(
           this.browser,
           tabId,
           GrantResult.GRANT_ERROR,
           InteractionIntent.CONNECT,
-          ErrorCode.KEY_ADD_FAILED,
+          error.key === 'connectWallet_error_timeout'
+            ? ErrorCode.TIMEOUT
+            : ErrorCode.KEY_ADD_FAILED,
         );
       }
       if (error instanceof ErrorWithKey) {
@@ -425,6 +462,9 @@ export class WalletService {
           tabId,
           GrantResult.KEY_ADD_ERROR,
           InteractionIntent.RECONNECT,
+          error.key === 'connectWallet_error_timeout'
+            ? ErrorCode.TIMEOUT
+            : ErrorCode.KEY_ADD_FAILED,
         );
       }
 
@@ -449,13 +489,25 @@ export class WalletService {
     await this.storage.setState({ key_revoked: false });
   }
 
-  public resetConnectState() {
-    this.setConnectState(null);
+  private async redirectOnTimeout(tabId: TabId, intent: InteractionIntent) {
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_ERROR,
+      intent,
+      ErrorCode.TIMEOUT,
+    );
   }
 
-  private setConnectState(status: 'connecting' | null) {
-    const state = status ? { status } : null;
-    this.storage.setPopupTransientState('connect', () => state);
+  public resetConnectState() {
+    this.storage.setPopupTransientState('connect', () => null);
+  }
+
+  private setConnectState(currentStep: string) {
+    this.storage.setPopupTransientState('connect', () => ({
+      status: 'connecting',
+      currentStep,
+    }));
   }
 
   private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
