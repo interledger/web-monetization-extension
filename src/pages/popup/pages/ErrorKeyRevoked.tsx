@@ -1,14 +1,14 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { ErrorKeyRevoked } from '@/popup/components/ErrorKeyRevoked';
 import { useMessage } from '@/popup/lib/context';
 import { ROUTES_PATH } from '@/popup/Popup';
 import { dispatch, usePopupState } from '@/popup/lib/store';
 
-export const Component = () => {
+export default () => {
   const message = useMessage();
   const { publicKey, walletAddress } = usePopupState();
-  const navigate = useNavigate();
+  const [_location, navigate] = useLocation();
 
   const onReconnect = () => {
     dispatch({

@@ -5,6 +5,8 @@ import { Label } from '@/pages/shared/components/ui/Label';
 import { Code } from '@/pages/shared/components/ui/Code';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { useMessage } from '@/popup/lib/context';
+import { ROUTES_PATH } from '@/popup/Popup';
+import { useLocation } from 'wouter';
 import type { PopupStore } from '@/shared/types';
 
 interface WalletInformationProps {
@@ -17,6 +19,7 @@ export const WalletInformation = ({
   walletAddress,
 }: WalletInformationProps) => {
   const message = useMessage();
+  const [_location, navigate] = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   return (
@@ -28,6 +31,7 @@ export const WalletInformation = ({
           ev.preventDefault();
           setIsSubmitting(true);
           await message.send('DISCONNECT_WALLET');
+          navigate(ROUTES_PATH.HOME);
           window.location.reload();
         }}
       >
