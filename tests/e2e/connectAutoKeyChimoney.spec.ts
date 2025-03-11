@@ -22,7 +22,10 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
   const walletAddressUrl = process.env.CHIMONEY_WALLET_ADDRESS_URL!;
   const walletUrl = process.env.CHIMONEY_WALLET_ORIGIN!;
 
-  test.skip(true, 'https://github.com/interledger/web-monetization-extension/issues/972');
+  test.skip(
+    true,
+    'https://github.com/interledger/web-monetization-extension/issues/972',
+  );
   test.skip(
     !username || !password || !walletAddressUrl || !walletUrl,
     'Missing credentials',
