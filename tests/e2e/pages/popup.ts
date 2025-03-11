@@ -108,6 +108,7 @@ export async function goToHome(popup: Popup) {
   await popup.evaluate(() => {
     location.hash = '';
   });
+  await popup.reload();
   await popup.waitForSelector(
     '[data-testid="home-page"], [data-testid="not-monetized-message"], [data-user-action="required"]',
     { timeout: 1000 },
