@@ -72,20 +72,22 @@ export const PayWebsiteForm = () => {
       onSubmit={onSubmit}
       data-testid="pay-form"
     >
-      <FadeInOut
-        visible={!!errors.pay || !!payStatus}
-        className={cn(
-          'break-word flex items-center gap-2 rounded-xl border px-3 py-2',
-          errors.pay
-            ? errors.pay?.info?.key.includes('_warn_')
-              ? 'border-orange-600 bg-orange-100 text-orange-800'
-              : 'border-red-300 bg-red-500/10'
-            : 'border-green-500 bg-green-500/10 text-secondary-dark',
-        )}
-        role="alert"
-      >
-        <div>{payStatus?.message || errors.pay?.message}</div>
-      </FadeInOut>
+      {(!!errors.pay || !!payStatus) && (
+        <FadeInOut
+          visible={true}
+          className={cn(
+            'break-word flex items-center gap-2 rounded-xl border px-3 py-2',
+            errors.pay
+              ? errors.pay?.info?.key.includes('_warn_')
+                ? 'border-orange-600 bg-orange-100 text-orange-800'
+                : 'border-red-300 bg-red-500/10'
+              : 'border-green-500 bg-green-500/10 text-secondary-dark',
+          )}
+          role="alert"
+        >
+          {payStatus?.message || errors.pay?.message}
+        </FadeInOut>
+      )}
 
       <InputAmount
         id="payAmount"
