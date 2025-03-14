@@ -1,18 +1,13 @@
+import React, { lazy, Suspense } from 'react';
 import { MainLayout } from '@/popup/components/layout/MainLayout';
 import {
   BrowserContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
 import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
-import { LazyMotion, domAnimation } from 'framer-motion';
-import React from 'react';
+import { Route, Router, Switch } from 'wouter';
+import { useHashLocation } from 'wouter/use-hash-location';
 import browser from 'webextension-polyfill';
-import { ProtectedRoute } from '@/popup/components/ProtectedRoute';
-import {
-  type RouteObject,
-  RouterProvider,
-  createMemoryRouter,
-} from 'react-router-dom';
 
 export const ROUTES_PATH = {
   HOME: '/',
@@ -20,69 +15,62 @@ export const ROUTES_PATH = {
   SETTINGS: '/settings',
   MISSING_HOST_PERMISSION: '/missing-host-permission',
   OUT_OF_FUNDS: '/out-of-funds',
-  OUT_OF_FUNDS_ADD_FUNDS: '/out-of-funds/s/add-funds',
+  OUT_OF_FUNDS_ADD_FUNDS: '/out-of-funds/s/add-funds/:recurring?',
   ERROR_KEY_REVOKED: '/error/key-revoked',
 } as const;
 
-export const routes = [
-  {
-    element: <MainLayout />,
-    children: [
-      {
-        element: <ProtectedRoute />,
-        children: [
-          {
-            path: ROUTES_PATH.HOME,
-            lazy: () => import('./pages/Home'),
-          },
-        ],
-      },
-      {
-        children: [
-          {
-            path: ROUTES_PATH.MISSING_HOST_PERMISSION,
-            lazy: () => import('./pages/MissingHostPermission'),
-          },
-          {
-            path: ROUTES_PATH.ERROR_KEY_REVOKED,
-            lazy: () => import('./pages/ErrorKeyRevoked'),
-          },
-          {
-            path: ROUTES_PATH.OUT_OF_FUNDS,
-            lazy: () => import('./pages/OutOfFunds'),
-          },
-          {
-            path: ROUTES_PATH.OUT_OF_FUNDS_ADD_FUNDS,
-            lazy: () => import('./pages/OutOfFunds_AddFunds'),
-          },
-          {
-            path: ROUTES_PATH.SETTINGS,
-            lazy: () => import('./pages/Settings'),
-          },
-          {
-            path: ROUTES_PATH.CONNECT_WALLET,
-            lazy: () => import('./pages/ConnectWallet'),
-          },
-        ],
-      },
-    ],
-  },
-] satisfies RouteObject[];
+const Routes = () => {
+  const R = ROUTES_PATH;
+  return (
+    <Suspense>
+      <Switch>
+        <Route path={R.HOME} component={lazy(() => import('./pages/Home'))} />
 
-const router = createMemoryRouter(routes);
+        <Route
+          path={R.MISSING_HOST_PERMISSION}
+          component={lazy(() => import('./pages/MissingHostPermission'))}
+        />
+        <Route
+          path={R.ERROR_KEY_REVOKED}
+          component={lazy(() => import('./pages/ErrorKeyRevoked'))}
+        />
+        <Route
+          path={R.OUT_OF_FUNDS}
+          component={lazy(() => import('./pages/OutOfFunds'))}
+        />
+        <Route
+          path={R.OUT_OF_FUNDS_ADD_FUNDS}
+          component={lazy(() => import('./pages/OutOfFunds_AddFunds'))}
+        />
+        <Route
+          path={R.SETTINGS}
+          component={lazy(() => import('./pages/Settings'))}
+        />
+        <Route
+          path={R.CONNECT_WALLET}
+          component={lazy(() => import('./pages/ConnectWallet'))}
+        />
+      </Switch>
+    </Suspense>
+  );
+};
 
 export const Popup = () => {
   return (
-    <LazyMotion features={domAnimation} strict>
+    <>
       <BrowserContextProvider browser={browser}>
         <MessageContextProvider>
           <TranslationContextProvider>
             <WaitForStateLoad>
-              <RouterProvider router={router} />
+              <Router hook={useHashLocation}>
+                <MainLayout>
+                  <Routes />
+                </MainLayout>
+              </Router>
             </WaitForStateLoad>
           </TranslationContextProvider>
         </MessageContextProvider>
       </BrowserContextProvider>
-    </LazyMotion>
+    </>
   );
 };

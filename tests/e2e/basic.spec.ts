@@ -1,10 +1,6 @@
 import { test, expect } from './fixtures/base';
 import { fillPopup } from './pages/popup';
 
-test.beforeEach(async ({ popup }) => {
-  await popup.reload();
-});
-
 test('should load popup', async ({ popup }) => {
   await popup.bringToFront();
   await expect(popup).toHaveTitle('Web Monetization Extension');

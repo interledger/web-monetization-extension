@@ -1,13 +1,13 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { OutOfFunds } from '@/popup/components/OutOfFunds';
 import { usePopupState } from '@/popup/lib/store';
 import { ROUTES_PATH } from '@/popup/Popup';
 import type { State } from '@/popup/pages/OutOfFunds_AddFunds';
 
-export const Component = () => {
+export default () => {
   const { grants, walletAddress } = usePopupState();
-  const navigate = useNavigate();
+  const [_location, navigate] = useLocation();
 
   return (
     <OutOfFunds
@@ -16,7 +16,12 @@ export const Component = () => {
       grantRecurring={grants.recurring}
       onChooseOption={(recurring) => {
         const state: State = { recurring };
-        navigate(ROUTES_PATH.OUT_OF_FUNDS_ADD_FUNDS, { state });
+        navigate(
+          ROUTES_PATH.OUT_OF_FUNDS_ADD_FUNDS.replace(
+            ':recurring',
+            String(state.recurring),
+          ),
+        );
       }}
     />
   );

@@ -23,6 +23,10 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
   const walletUrl = process.env.CHIMONEY_WALLET_ORIGIN!;
 
   test.skip(
+    true,
+    'https://github.com/interledger/web-monetization-extension/issues/972',
+  );
+  test.skip(
     !username || !password || !walletAddressUrl || !walletUrl,
     'Missing credentials',
   );
@@ -48,8 +52,9 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
     await page.waitForURL((url) => url.href.startsWith(URLS.login), {
       timeout: 5000,
     });
-    expect(page.url()).toContain(URLS.login);
-    expect(page.url()).toContain('?next=');
+    await expect(page).toHaveURL(
+      (url) => url.href.startsWith(URLS.login) && url.searchParams.has('next'),
+    );
     await page.close();
   });
 

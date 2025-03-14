@@ -1,5 +1,10 @@
 import { test, expect } from './fixtures/base';
-import { connectWallet, disconnectWallet } from './pages/popup';
+import {
+  connectWallet,
+  disconnectWallet,
+  goToHome,
+  locators,
+} from './pages/popup';
 
 test('connects with correct details provided', async ({
   context,
@@ -26,10 +31,9 @@ test('connects with correct details provided', async ({
     amount: '10',
     recurring: false,
   });
-  await popup.reload();
+  await goToHome(popup);
 
-  const settingsLink = popup.locator(`[href="/settings"]`).first();
-  await expect(settingsLink).toBeVisible();
+  await expect(locators.settingsLink(popup)).toBeVisible();
 
   await expect(background).toHaveStorage({
     connected: true,

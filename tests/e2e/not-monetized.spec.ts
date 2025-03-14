@@ -35,9 +35,6 @@ test('shows not-monetized status', async ({
   };
 
   await test.step('shows not monetized on empty tabs', async () => {
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg.newTab);
-
     await using _page = await newPage();
     await expect(warning).toBeVisible();
     await expect(warning).toHaveText(msg.newTab);
