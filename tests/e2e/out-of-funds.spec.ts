@@ -176,7 +176,7 @@ for (const testCase of TEST_CASES) {
           await expect(inputField).toHaveValue(initialAmountFormatted);
 
           await expect(
-            popup.locator(`a[href="/out-of-funds"]`),
+            popup.locator(`a[href="#/out-of-funds"]`),
             'has link to previous screen',
           ).toBeVisible();
 

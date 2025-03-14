@@ -45,6 +45,7 @@ httpbis
 loglevel
 openapi
 valtio
+wouter
 apidevtools
 tailwindcss
 esbuild
