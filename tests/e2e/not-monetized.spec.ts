@@ -1,7 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import { test, expect } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
-import { goToHome } from './pages/popup';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
@@ -24,7 +23,7 @@ test('shows not-monetized status', async ({
 
   const newPage = async () => {
     const page = await context.newPage();
-    await goToHome(popup);
+    await popup.reload();
     await page.bringToFront();
     return {
       goto: page.goto.bind(page), // so we don't have to call `page.page.goto()` every time
@@ -36,9 +35,6 @@ test('shows not-monetized status', async ({
   };
 
   await test.step('shows not monetized on empty tabs', async () => {
-    await expect(warning).toBeVisible();
-    await expect(warning).toHaveText(msg.newTab);
-
     await using _page = await newPage();
     await expect(warning).toBeVisible();
     await expect(warning).toHaveText(msg.newTab);

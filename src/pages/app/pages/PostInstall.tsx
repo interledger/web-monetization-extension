@@ -15,7 +15,7 @@ import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { useMessage } from '@/app/lib/context';
 import { useAppState } from '@/app/lib/store';
 
-export const Component = () => {
+export default () => {
   return (
     <div
       className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center"

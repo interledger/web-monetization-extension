@@ -3,7 +3,7 @@ import { PERMISSION_HOSTS } from '@/shared/defines';
 import { WarningSign } from '@/pages/shared/components/Icons';
 import { useBrowser, useTranslation } from '@/popup/lib/context';
 
-export const Component = () => {
+export default () => {
   const browser = useBrowser();
   const t = useTranslation();
   return (
