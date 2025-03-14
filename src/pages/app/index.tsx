@@ -1,4 +1,4 @@
-import './index.css';
+import '@/pages/shared/style.css';
 
 // import '@/pages/shared/lib/react-scan'; // uncomment this to check performance or re-renders
 import React from 'react';
