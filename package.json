@@ -75,7 +75,7 @@
     "jest-expect-message": "^1.1.3",
     "jest-transform-stub": "^2.0.0",
     "jsdom": "^26.0.0",
-    "postcss": "^8.5.1",
+    "postcss": "^8.5.3",
     "prettier": "^3.5.0",
     "prettier-plugin-tailwindcss": "^0.6.9",
     "react-scan": "^0.2.9",
