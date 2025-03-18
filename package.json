@@ -82,7 +82,7 @@
     "sade": "^1.8.1",
     "tailwindcss": "^3.4.17",
     "tinyspy": "^3.0.2",
-    "tsx": "^4.19.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   },
   "engines": {
