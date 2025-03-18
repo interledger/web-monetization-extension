@@ -61,6 +61,7 @@ const msg: MessageMocks = {
   START_MONETIZATION: jest.fn(),
   STOP_MONETIZATION: jest.fn(),
   TAB_FOCUSED: jest.fn(),
+  IS_MONETIZATION_ALLOWED: jest.fn(),
 };
 const messageMock = jest.spyOn(messageManager, 'send');
 // @ts-expect-error let it go
