@@ -37,6 +37,7 @@
     "httpbis-digest-headers": "^1.0.0",
     "iso8601-duration": "^2.1.2",
     "loglevel": "^1.9.2",
+    "permissions-policy-allows-feature": "^0.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "safe-buffer": "5.2.1",

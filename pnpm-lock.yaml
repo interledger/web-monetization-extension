@@ -51,6 +51,9 @@ importers:
       loglevel:
         specifier: ^1.9.2
         version: 1.9.2
+      permissions-policy-allows-feature:
+        specifier: ^0.0.1
+        version: 0.0.1
       react:
         specifier: ^19.0.0
         version: 19.0.0
@@ -3012,6 +3015,9 @@ packages:
   pbkdf2@3.1.2:
     resolution: {integrity: sha512-iuh7L6jA7JEGu2WxDwtQP1ddOpaJNC4KlDEFfdQajSGgGPNi4OyDc2R7QnbY2bR9QjBVGwgvTdNJZoE7RaxUMA==}
     engines: {node: '>=0.12'}
+
+  permissions-policy-allows-feature@0.0.1:
+    resolution: {integrity: sha512-e4jKNNwFFzzY4ypI6d/ZdcOoTZUQxDP+U2vnFCVZrTIPKTFqQQfDaDbQqdkgayZiafpV0CJ3NjeN5Fw6MvJYqw==}
 
   picocolors@1.1.1:
     resolution: {integrity: sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==}
@@ -6941,6 +6947,10 @@ snapshots:
       ripemd160: 2.0.2
       safe-buffer: 5.2.1
       sha.js: 2.4.11
+
+  permissions-policy-allows-feature@0.0.1:
+    dependencies:
+      structured-headers: 1.0.1
 
   picocolors@1.1.1: {}
 

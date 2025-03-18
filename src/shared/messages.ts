@@ -193,6 +193,11 @@ export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
 export type ResumeMonetizationPayload = StartMonetizationPayload;
 
+export interface IsMonetizationAllowedPayload {
+  allowAttribute: string;
+  origin: string;
+}
+
 export interface IsTabMonetizedPayload {
   value: boolean;
 }
@@ -217,6 +222,10 @@ export type ContentToBackgroundMessage = {
   RESUME_MONETIZATION: {
     input: ResumeMonetizationPayload;
     output: never;
+  };
+  IS_MONETIZATION_ALLOWED: {
+    input: IsMonetizationAllowedPayload;
+    output: boolean;
   };
 };
 // #endregion
