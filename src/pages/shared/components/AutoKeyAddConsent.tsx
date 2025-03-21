@@ -27,7 +27,7 @@ export const AutoKeyAddConsent = ({ onAccept, onDecline, intent }: Props) => {
         {t(consentMessage[intent])}{' '}
         <a
           hidden
-          href="https://webmonetization.org"
+          href="https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure"
           className="text-primary hover:underline"
           target="_blank"
           rel="noreferrer"

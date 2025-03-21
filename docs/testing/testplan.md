@@ -27,7 +27,7 @@ Below is a list of the available wallet providers if you want to use real money:
 - [GateHub](https://gatehub.net)
 
 Wallet availability in a specific country, or availability in particular currency depends on the wallet provider.  
-We maintain a list of [Web Monetization compatible wallets](https://webmonetization.org/docs/resources/op-wallets/).
+We maintain a list of [Web Monetization compatible wallets](https://webmonetization.org/wallets/).
 
 #### Test Digital Wallet
 
