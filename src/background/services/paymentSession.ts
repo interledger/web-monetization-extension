@@ -13,6 +13,7 @@ import {
   transformBalance,
 } from '@/shared/helpers';
 import {
+  isInternalServerError,
   isInvalidReceiverError,
   isKeyRevokedError,
   isMissingGrantPermissionsError,
@@ -179,7 +180,12 @@ export class PaymentSession {
           await this.outgoingPaymentGrantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
           amountToSend = BigInt(amountIter.next().value);
-        } else if (isInvalidReceiverError(e)) {
+        } else if (isInvalidReceiverError(e) || isInternalServerError(e)) {
+          // Treat InternalServerError same as invalid receiver due to
+          // https://github.com/interledger/rafiki/issues/3093
+          //
+          // It is also sensible to mark the session invalid in case server is
+          // having issues.
           this.markInvalid();
           this.events.emit('open_payments.invalid_receiver', {
             tabId: this.tabId,
