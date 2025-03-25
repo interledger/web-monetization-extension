@@ -496,7 +496,7 @@ const ManualKeyPairNeeded: React.FC<{
       <p className="px-2 text-left text-xs">
         {text}{' '}
         <a
-          href="https://webmonetization.org/docs/resources/op-wallets/"
+          href="https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure"
           className="text-primary"
           target="_blank"
           rel="noreferrer"

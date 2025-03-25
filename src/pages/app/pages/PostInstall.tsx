@@ -149,7 +149,7 @@ const Steps = () => {
         title={
           <React.Fragment>
             <a
-              href="https://webmonetization.org/docs/resources/op-wallets/"
+              href="https://webmonetization.org/wallets/"
               target="_blank"
               rel="noreferrer"
               className="group pr-1 text-primary outline-current hover:underline"
