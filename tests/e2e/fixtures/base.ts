@@ -3,6 +3,7 @@ import {
   type ExpectMatcherState,
   type BrowserContext,
   type Page,
+  type Locator,
 } from '@playwright/test';
 import type { SpyFn } from 'tinyspy';
 import {
@@ -200,6 +201,31 @@ export const expect = test.expect.extend({
       pass = true;
     } catch {
       result = { actual: getAmount() };
+      pass = false;
+    }
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  async toHaveEitherText(locator: Locator, expected: string[]) {
+    const name = 'toHaveEitherText';
+
+    let pass: boolean;
+    let result: { actual: unknown } | undefined;
+
+    try {
+      await Promise.race(
+        expected.map((text) => expect(locator).toHaveText(text)),
+      );
+      pass = true;
+    } catch {
+      result = { actual: await locator.textContent() };
       pass = false;
     }
 
