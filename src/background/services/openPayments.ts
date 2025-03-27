@@ -284,6 +284,11 @@ export const isInvalidReceiverError = (error: unknown) => {
   return error.status === 400 && error.description === 'invalid receiver';
 };
 
+export const isInternalServerError = (error: unknown) => {
+  if (!isOpenPaymentsClientError(error)) return false;
+  return error.status === 500;
+};
+
 export const isNotFoundError = (error: unknown) => {
   if (!isOpenPaymentsClientError(error)) return false;
   return error.status === 404;
