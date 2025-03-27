@@ -34,7 +34,7 @@ interface InteractionParams {
   tabId: TabId;
 }
 
-type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0];
+type TabUpdateCallback = Parameters<Tabs.OnUpdatedEvent['addListener']>[0];
 type TabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
 >[0];

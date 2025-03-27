@@ -1,4 +1,4 @@
-import type { Browser } from 'webextension-polyfill';
+import type { Browser, Runtime } from 'webextension-polyfill';
 import type { ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
@@ -209,7 +209,7 @@ export class Background {
 
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
-      async (message: ToBackgroundMessage, sender) => {
+      async (message: ToBackgroundMessage, sender: Runtime.MessageSender) => {
         this.logger.debug('Received message', message);
         try {
           switch (message.action) {
