@@ -31,7 +31,7 @@ const Routes = () => (
       component={C.MissingHostPermission}
     />
     <Route path={P.ERROR_KEY_REVOKED} component={C.ErrorKeyRevoked} />
-    <Route path={P.OUT_OF_FUNDS} component={C.ErrorKeyRevoked} />
+    <Route path={P.OUT_OF_FUNDS} component={C.OutOfFunds} />
     <Route path={P.OUT_OF_FUNDS_ADD_FUNDS} component={C.OutOfFundsAddFunds} />
 
     <Route path={P.SETTINGS} component={C.Settings} />
