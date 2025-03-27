@@ -158,9 +158,8 @@ function processManifestPlugin({
         }
 
         if (target === 'firefox') {
-          // @ts-expect-error Firefox doesn't support Service Worker in MV3 yet
           json.background = {
-            scripts: [json.background.service_worker],
+            scripts: [json.background.service_worker!],
           };
           json.minimum_chrome_version = undefined;
         } else {

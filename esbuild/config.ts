@@ -68,7 +68,7 @@ export const options: BuildOptions = {
 };
 
 export type WebExtensionManifest = Manifest.WebExtensionManifest & {
-  background: Manifest.WebExtensionManifestBackgroundC3Type;
+  background: Manifest.WebExtensionManifestBackgroundType;
 };
 
 export const SERVE_PORTS: Record<Target, number> = {
