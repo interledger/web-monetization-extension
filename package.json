@@ -63,7 +63,7 @@
     "@types/react-dom": "^19.0.4",
     "@types/webextension-polyfill": "^0.12.3",
     "archiver": "^7.0.1",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "dotenv": "^16.4.7",
     "esbuild": "^0.25.0",
     "esbuild-node-builtin": "^0.1.1",
