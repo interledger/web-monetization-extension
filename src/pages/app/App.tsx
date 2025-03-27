@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import {
   BrowserContextProvider,
   TranslationContextProvider,
@@ -7,23 +7,19 @@ import { MessageContextProvider, WaitForStateLoad } from '@/app/lib/context';
 import browser from 'webextension-polyfill';
 import { Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
+import * as PAGES from './pages/index';
 
 export const ROUTES = {
   DEFAULT: '/',
 } as const;
 
-const Routes = () => {
-  return (
-    <Suspense>
-      <Switch>
-        <Route
-          path={ROUTES.DEFAULT}
-          component={lazy(() => import('./pages/PostInstall'))}
-        />
-      </Switch>
-    </Suspense>
-  );
-};
+const P = ROUTES;
+const C = PAGES;
+const Routes = () => (
+  <Switch>
+    <Route path={P.DEFAULT} component={C.PostInstall} />
+  </Switch>
+);
 
 export const App = () => {
   return (
