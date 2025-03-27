@@ -128,10 +128,12 @@ for (const testCase of TEST_CASES) {
         await setupPlayground(page, walletAddressUrl);
 
         await goToHome(popup);
-        await sendOneTimePayment(popup, '2.00', true);
+        await sendOneTimePayment(popup, '2.00', false);
+        await popup.reload();
         // Make an extra payment to update balance:
         // https://github.com/interledger/web-monetization-extension/issues/737
-        await sendOneTimePayment(popup, '0.50', true);
+        await sendOneTimePayment(popup, '0.50', false);
+        await popup.reload();
 
         await settingsLink.click();
         await budgetTab.click();
