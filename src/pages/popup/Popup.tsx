@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { MainLayout } from '@/popup/components/layout/MainLayout';
 import {
   BrowserContextProvider,
@@ -8,6 +8,7 @@ import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
 import { Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import browser from 'webextension-polyfill';
+import * as PAGES from './pages/index';
 
 export const ROUTES_PATH = {
   HOME: '/',
@@ -19,41 +20,24 @@ export const ROUTES_PATH = {
   ERROR_KEY_REVOKED: '/error/key-revoked',
 } as const;
 
-const Routes = () => {
-  const R = ROUTES_PATH;
-  return (
-    <Suspense>
-      <Switch>
-        <Route path={R.HOME} component={lazy(() => import('./pages/Home'))} />
+const P = ROUTES_PATH;
+const C = PAGES;
+const Routes = () => (
+  <Switch>
+    <Route path={P.HOME} component={C.Home} />
 
-        <Route
-          path={R.MISSING_HOST_PERMISSION}
-          component={lazy(() => import('./pages/MissingHostPermission'))}
-        />
-        <Route
-          path={R.ERROR_KEY_REVOKED}
-          component={lazy(() => import('./pages/ErrorKeyRevoked'))}
-        />
-        <Route
-          path={R.OUT_OF_FUNDS}
-          component={lazy(() => import('./pages/OutOfFunds'))}
-        />
-        <Route
-          path={R.OUT_OF_FUNDS_ADD_FUNDS}
-          component={lazy(() => import('./pages/OutOfFunds_AddFunds'))}
-        />
-        <Route
-          path={R.SETTINGS}
-          component={lazy(() => import('./pages/Settings'))}
-        />
-        <Route
-          path={R.CONNECT_WALLET}
-          component={lazy(() => import('./pages/ConnectWallet'))}
-        />
-      </Switch>
-    </Suspense>
-  );
-};
+    <Route
+      path={P.MISSING_HOST_PERMISSION}
+      component={C.MissingHostPermission}
+    />
+    <Route path={P.ERROR_KEY_REVOKED} component={C.ErrorKeyRevoked} />
+    <Route path={P.OUT_OF_FUNDS} component={C.ErrorKeyRevoked} />
+    <Route path={P.OUT_OF_FUNDS_ADD_FUNDS} component={C.OutOfFundsAddFunds} />
+
+    <Route path={P.SETTINGS} component={C.Settings} />
+    <Route path={P.CONNECT_WALLET} component={C.ConnectWallet} />
+  </Switch>
+);
 
 export const Popup = () => {
   return (
