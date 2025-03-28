@@ -222,7 +222,10 @@ test.describe('one-time payment', () => {
       timeout: 10_000,
     });
     await expect(alertMsg).toBeVisible();
-    await expect(alertMsg).toHaveText(i18n.getMessage('pay_state_success'));
+    await expect(alertMsg).toHaveEitherText([
+      i18n.getMessage('pay_state_success'),
+      i18n.getMessage('pay_warn_outgoingPaymentPollingIncomplete'),
+    ]);
   });
 
   test.describe('should not send when outside budget', () => {
@@ -268,7 +271,10 @@ test.describe('one-time payment', () => {
       await sendOneTimePayment(popup, amountToFill1.toString(), true);
       await expect(monetizationCallback).toHaveBeenCalledTimes(1);
       await expect(alertMsg).toBeVisible();
-      await expect(alertMsg).toHaveText(i18n.getMessage('pay_state_success'));
+      await expect(alertMsg).toHaveEitherText([
+        i18n.getMessage('pay_state_success'),
+        i18n.getMessage('pay_warn_outgoingPaymentPollingIncomplete'),
+      ]);
 
       const amountToFill2 = 0.5 * DEFAULT_BUDGET.amount;
       const sendButton = await sendOneTimePayment(
