@@ -18,7 +18,12 @@ export class FrameManager {
   private frameAllowAttrObserver: MutationObserver;
   private frames = new Map<
     HTMLIFrameElement,
-    { frameId: string | null; requestIds: string[] }
+    {
+      frameId: string | null;
+      requestIds: string[];
+      allowAttribute: string;
+      origin: string;
+    }
   >();
 
   constructor({ window, document, logger, message }: Cradle) {
@@ -78,9 +83,21 @@ export class FrameManager {
       }
       const hasTarget = this.frames.has(target);
       const typeSpecified =
-        target instanceof HTMLIFrameElement && target.allow === 'monetization';
+        target instanceof HTMLIFrameElement &&
+        target.allow.includes('monetization');
 
+      let allowedByPermissionsPolicy = false;
       if (!hasTarget && typeSpecified) {
+        const res = await this.message.send('IS_MONETIZATION_ALLOWED', {
+          allowAttribute: target.allow,
+          origin: new URL(target.src, location.origin).origin,
+        });
+        if (res.success && res.payload) {
+          allowedByPermissionsPolicy = true;
+        }
+      }
+
+      if (!hasTarget && typeSpecified && allowedByPermissionsPolicy) {
         await this.onAddedFrame(target);
         handledTags.add(target);
       } else if (hasTarget && !typeSpecified) {
@@ -97,6 +114,8 @@ export class FrameManager {
     this.frames.set(frame, {
       frameId: null,
       requestIds: [],
+      allowAttribute: frame.allow,
+      origin: new URL(frame.src, location.origin).origin,
     });
   }
 
@@ -181,7 +200,7 @@ export class FrameManager {
   private bindMessageHandler() {
     this.window.addEventListener(
       'message',
-      (event: MessageEvent<ContentToContentMessage>) => {
+      async (event: MessageEvent<ContentToContentMessage>) => {
         const { message, payload, id } = event.data;
         if (!HANDLED_MESSAGES.includes(message)) {
           return;
@@ -201,15 +220,26 @@ export class FrameManager {
             this.frames.set(frame, {
               frameId: id,
               requestIds: [],
+              allowAttribute: frame.allow,
+              origin: new URL(frame.src, location.origin).origin,
             });
             return;
 
-          case 'IS_MONETIZATION_ALLOWED_ON_START':
+          case 'IS_MONETIZATION_ALLOWED_ON_START': {
             event.stopPropagation();
-            if (frame.allow === 'monetization') {
+            const permissionsPolicyPayload = {
+              allowAttribute: frame.allow,
+              origin: new URL(frame.src, location.origin).origin,
+            };
+            const res = await this.message.send(
+              'IS_MONETIZATION_ALLOWED',
+              permissionsPolicyPayload,
+            );
+            if (res.success && res.payload) {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map((p) => p.requestId),
+                ...permissionsPolicyPayload,
               });
               eventSource.postMessage(
                 { message: 'START_MONETIZATION', id, payload },
@@ -218,13 +248,23 @@ export class FrameManager {
             }
 
             return;
+          }
 
-          case 'IS_MONETIZATION_ALLOWED_ON_RESUME':
+          case 'IS_MONETIZATION_ALLOWED_ON_RESUME': {
             event.stopPropagation();
-            if (frame.allow === 'monetization') {
+            const permissionsPolicyPayload = {
+              allowAttribute: frame.allow,
+              origin: new URL(frame.src, location.origin).origin,
+            };
+            const res = await this.message.send(
+              'IS_MONETIZATION_ALLOWED',
+              permissionsPolicyPayload,
+            );
+            if (res.success && res.payload) {
               this.frames.set(frame, {
                 frameId: id,
                 requestIds: payload.map((p) => p.requestId),
+                ...permissionsPolicyPayload,
               });
               eventSource.postMessage(
                 { message: 'RESUME_MONETIZATION', id, payload },
@@ -232,6 +272,7 @@ export class FrameManager {
               );
             }
             return;
+          }
 
           default:
             return;

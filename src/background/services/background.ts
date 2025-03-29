@@ -314,6 +314,14 @@ export class Background {
               );
               return;
 
+            case 'IS_MONETIZATION_ALLOWED':
+              return success(
+                this.monetizationService.isMonetizationAllowed(
+                  message.payload,
+                  sender,
+                ),
+              );
+
             // endregion
 
             // region App
