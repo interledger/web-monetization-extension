@@ -1,5 +1,6 @@
 import type { Runtime, Tabs } from 'webextension-polyfill';
 import type {
+  IsMonetizationAllowedPayload,
   PayWebsitePayload,
   PayWebsiteResponse,
   ResumeMonetizationPayload,
@@ -7,7 +8,7 @@ import type {
   StopMonetizationPayload,
 } from '@/shared/messages';
 import { PaymentSession } from './paymentSession';
-import { computeRate, getSender, getTabId } from '@/background/utils';
+import { computeRate, getSender, getTab, getTabId } from '@/background/utils';
 import { isOutOfBalanceError } from './openPayments';
 import {
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
@@ -21,6 +22,7 @@ import {
   removeQueryParams,
   transformBalance,
 } from '@/shared/helpers';
+import { PermissionsPolicy } from 'permissions-policy-allows-feature';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
 import type { OutgoingPayment } from '@interledger/open-payments';
 import type { Cradle } from '@/background/container';
@@ -548,6 +550,30 @@ export class MonetizationService {
         recurring: recurringGrant?.amount,
       },
     };
+  }
+
+  isMonetizationAllowed(
+    payload: IsMonetizationAllowedPayload,
+    sender: Runtime.MessageSender,
+  ): boolean {
+    const tab = getTab(sender);
+
+    // This will be stored in tabState likely
+    // https://github.com/interledger/web-monetization-extension/issues/959
+    // We also want to allow/disallow monetization on host-document in future with this.
+    const permissionsPolicy = new PermissionsPolicy({
+      headerValue: '', // we'll get this via webRequest in future
+      origin: tab.url,
+      defaultAllowlist: { monetization: "'self'" },
+    });
+
+    // get the permissions policy for given iframe
+    const { allowAttribute: allow, origin } = payload;
+    const iframePermissionsPolicy = permissionsPolicy.inherit({
+      allow,
+      origin,
+    });
+    return iframePermissionsPolicy.allowsFeature('monetization', origin);
   }
 
   private async adjustSessionsAmount(
