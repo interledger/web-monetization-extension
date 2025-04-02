@@ -19,6 +19,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: Chromium
+            project: chromium
+            target: chrome
+            runs-on: ubuntu-22.04
           - name: Chrome
             project: chrome
             target: chrome
