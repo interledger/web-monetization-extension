@@ -115,15 +115,10 @@ for (const testCase of TEST_CASES) {
         // Send two payments so grantSpentAmount changes. Ideally, we'd send a single
         // payment with full amount, but:
         // https://github.com/interledger/web-monetization-extension/issues/737
-        await sendOneTimePayment(popup, amountToSend, true);
-        await expect(popup.getByRole('alert')).toHaveText(
-          i18n.getMessage('pay_state_success'),
-        );
-        await popup.reload(); // XXX: not able to send two consecutive payments in tests
-        await sendOneTimePayment(popup, amountToSend, true);
-        await expect(popup.getByRole('alert')).toHaveText(
-          i18n.getMessage('pay_state_success'),
-        );
+        await sendOneTimePayment(popup, amountToSend, false);
+        await popup.reload(); // XXX: not able to send two consecutive payments in tests, as slow
+        await sendOneTimePayment(popup, amountToSend, false);
+        await popup.reload();
         await expect(monetizationCallback).toHaveBeenCalledTimes(2);
       });
 

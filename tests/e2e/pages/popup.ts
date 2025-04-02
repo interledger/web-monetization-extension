@@ -127,6 +127,8 @@ export async function sendOneTimePayment(
     await popup.waitForSelector('button[data-progress="false"]', {
       timeout: 10_000,
     });
+  } else {
+    await popup.waitForTimeout(1_000); // at least let the payment be initiated
   }
   return sendButton;
 }
