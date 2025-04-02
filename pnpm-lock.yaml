@@ -16,8 +16,8 @@ importers:
   .:
     dependencies:
       '@interledger/open-payments':
-        specifier: ^6.14.0
-        version: 6.14.0
+        specifier: ^6.14.1
+        version: 6.14.1
       '@noble/ed25519':
         specifier: ^2.2.3
         version: 2.2.3
@@ -773,14 +773,14 @@ packages:
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
     engines: {node: '>=14'}
 
-  '@interledger/http-signature-utils@2.0.2':
-    resolution: {integrity: sha512-gTAPFMt7xwG1zv1rbrltcZTAqOw/ZJwkVdnNjQzu5G9JTfvJQzS6pcpiVUej1cblpewotbOzosgdX00f93q9zA==}
+  '@interledger/http-signature-utils@2.0.3':
+    resolution: {integrity: sha512-/vn6+FxZ3g1A5ZC3vOVivjFns5A6F4lhEmdAGg3W9mD2uADXI575rIBcMdqI3wTOJo7qOXRutPXOG/jXONFs/Q==}
 
-  '@interledger/open-payments@6.14.0':
-    resolution: {integrity: sha512-8eAcpGfOS3knmi5pmiXsJovrOHVMR4rOW4L2nhqEDBxWkPZdVBOn77Rb5WfOAaJgQUTKE2G+sg+UvNJWHy09Ag==}
+  '@interledger/open-payments@6.14.1':
+    resolution: {integrity: sha512-nINTIoiPdY3wC639UVHOnRDdTz2gB9MSx2lhzd4qlvNysgS6bSq7WlfWUQw190T6XdZoGw7L+25/kqSXkXg3WQ==}
 
-  '@interledger/openapi@2.0.2':
-    resolution: {integrity: sha512-HOQnALmRtRkGkh63OnFhoCVsK4BKhQosJyoBCe6Cuu+jp8Oj2fAqTNz8ys+h6s30cJcIpk2UBlsj4wZ3pj26Ug==}
+  '@interledger/openapi@2.0.3':
+    resolution: {integrity: sha512-5wGncgpc/WVHd+RNE9oZHzdNdZK8UjaOqLmMnPm6kyNfXBtcZmDOumE00jEYa4BOXbaIm82qB4zD/dLc46AjRA==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -4182,17 +4182,17 @@ snapshots:
 
   '@fastify/busboy@2.1.1': {}
 
-  '@interledger/http-signature-utils@2.0.2':
+  '@interledger/http-signature-utils@2.0.3':
     dependencies:
       http-message-signatures: 1.0.4
       httpbis-digest-headers: 1.0.0
       jose: 4.15.4
       uuid: 9.0.1
 
-  '@interledger/open-payments@6.14.0':
+  '@interledger/open-payments@6.14.1':
     dependencies:
-      '@interledger/http-signature-utils': 2.0.2
-      '@interledger/openapi': 2.0.2
+      '@interledger/http-signature-utils': 2.0.3
+      '@interledger/openapi': 2.0.3
       base64url: 3.0.1
       http-message-signatures: 0.1.2
       ky: 1.2.4
@@ -4201,7 +4201,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@interledger/openapi@2.0.2':
+  '@interledger/openapi@2.0.3':
     dependencies:
       '@apidevtools/json-schema-ref-parser': 11.7.2
       ajv: 8.13.0
