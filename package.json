@@ -41,7 +41,7 @@
     "react-dom": "^19.0.0",
     "safe-buffer": "5.2.1",
     "tailwind-merge": "^2.6.0",
-    "valtio": "^2.1.3",
+    "valtio": "^2.1.4",
     "webextension-polyfill": "^0.12.0",
     "wouter": "^3.6.0"
   },
