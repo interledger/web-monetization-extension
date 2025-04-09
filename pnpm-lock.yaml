@@ -98,8 +98,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       '@types/chrome':
-        specifier: ^0.0.299
-        version: 0.0.299
+        specifier: ^0.0.313
+        version: 0.0.313
       '@types/github-script':
         specifier: github:actions/github-script
         version: '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb'
@@ -1315,8 +1315,8 @@ packages:
   '@types/chrome@0.0.114':
     resolution: {integrity: sha512-i7qRr74IrxHtbnrZSKUuP5Uvd5EOKwlwJq/yp7+yTPihOXnPhNQO4Z5bqb1XTnrjdbUKEJicaVVbhcgtRijmLA==}
 
-  '@types/chrome@0.0.299':
-    resolution: {integrity: sha512-hPoHmFWUaKw2s3wDjUtMsvZqeh9lKL7nFQx6yaAYt7RxBKv/V3rDUaA4BgUR145nnpF6hpNhHaxhtcCSFJ5b7w==}
+  '@types/chrome@0.0.313':
+    resolution: {integrity: sha512-9R5T7gTaYZhkxlu+Ho4wk9FL+y/werWQY2yjGWSqCuiTsqS7nL/BE5UMTP6rU7J+oIG2FRKqrEycHhJATeltVA==}
 
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
@@ -4818,7 +4818,7 @@ snapshots:
       '@types/filesystem': 0.0.35
       '@types/har-format': 1.2.15
 
-  '@types/chrome@0.0.299':
+  '@types/chrome@0.0.313':
     dependencies:
       '@types/filesystem': 0.0.35
       '@types/har-format': 1.2.15
