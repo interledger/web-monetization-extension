@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import fs from 'node:fs/promises';
 import type { Plugin as ESBuildPlugin } from 'esbuild';
 import { nodeBuiltin } from 'esbuild-node-builtin';
@@ -13,6 +14,8 @@ import {
   type BuildArgs,
   type WebExtensionManifest,
 } from './config';
+
+const require = createRequire(import.meta.url);
 
 export const getPlugins = ({
   outDir,
