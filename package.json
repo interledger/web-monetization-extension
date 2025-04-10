@@ -100,5 +100,6 @@
       "structured-headers": "1.0.1"
     }
   },
+  "type": "module",
   "packageManager": "pnpm@9.15.4"
 }

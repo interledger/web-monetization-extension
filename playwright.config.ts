@@ -1,8 +1,10 @@
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { defineConfig, devices } from '@playwright/test';
 import { testDir, authFile } from './tests/e2e/fixtures/helpers';
 
 if (!process.env.CI) {
+  const require = createRequire(import.meta.url);
   require('dotenv').config({ path: path.join(testDir, '.env') });
 }
 
