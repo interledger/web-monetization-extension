@@ -1,7 +1,7 @@
 import React from 'react';
-import { AnimatePresence, m } from 'framer-motion';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
+import { FadeInOut } from '@/pages/shared/components/FadeInOut';
 import { roundWithPrecision } from '@/pages/shared/lib/utils';
 import { cn, type ErrorWithKeyLike } from '@/shared/helpers';
 import { useMessage, useTranslation } from '@/popup/lib/context';
@@ -55,9 +55,8 @@ export const PayWebsiteForm = () => {
       }));
     } else {
       setAmount('');
-      const { type, sentAmountFormatted } = response.payload;
-      const msg = t('pay_state_success', [sentAmountFormatted]);
-      setPayStatus({ type, message: msg });
+      const { type } = response.payload;
+      setPayStatus({ type, message: t('pay_state_success') });
       form.current?.reset();
     }
     setIsSubmitting(false);
@@ -71,32 +70,24 @@ export const PayWebsiteForm = () => {
         !errors.pay && 'pb-12',
       )}
       onSubmit={onSubmit}
+      data-testid="pay-form"
     >
-      <AnimatePresence mode="sync">
-        {errors.pay || !!payStatus ? (
-          <m.div
-            transition={{ duration: 0.3, bounce: 0 }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div
-              className={cn(
-                'break-word flex items-center gap-2 rounded-xl border px-3 py-2',
-                errors.pay
-                  ? errors.pay?.info?.key.includes('_warn_')
-                    ? 'border-orange-600 bg-orange-100 text-orange-800'
-                    : 'border-red-300 bg-red-500/10'
-                  : 'border-green-500 bg-green-500/10 text-secondary-dark',
-              )}
-              role="alert"
-            >
-              <div>{payStatus?.message || errors.pay?.message}</div>
-            </div>
-          </m.div>
-        ) : null}
-      </AnimatePresence>
+      {(!!errors.pay || !!payStatus) && (
+        <FadeInOut
+          visible={true}
+          className={cn(
+            'break-word flex items-center gap-2 rounded-xl border px-3 py-2',
+            errors.pay
+              ? errors.pay?.info?.key.includes('_warn_')
+                ? 'border-orange-600 bg-orange-100 text-orange-800'
+                : 'border-red-300 bg-red-500/10'
+              : 'border-green-500 bg-green-500/10 text-secondary-dark',
+          )}
+          role="alert"
+        >
+          {payStatus?.message || errors.pay?.message}
+        </FadeInOut>
+      )}
 
       <InputAmount
         id="payAmount"
@@ -134,16 +125,7 @@ export const PayWebsiteForm = () => {
         loading={isSubmitting}
         aria-label={t('pay_action_pay')}
       >
-        <AnimatePresence mode="popLayout" initial={false}>
-          <m.span
-            transition={{ type: 'spring', duration: 0.3, bounce: 0 }}
-            initial={{ opacity: 0, y: -25 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 25 }}
-          >
-            {t('pay_action_pay')}
-          </m.span>
-        </AnimatePresence>
+        {t('pay_action_pay')}
       </Button>
     </form>
   );

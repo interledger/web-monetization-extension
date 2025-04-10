@@ -1,4 +1,4 @@
-import type { BrowserContext } from '@playwright/test';
+import type { BrowserContext, Locator } from '@playwright/test';
 import type { BrowserIntl, Background } from '../fixtures/helpers';
 
 export type Popup = Awaited<ReturnType<typeof openPopup>>;
@@ -32,8 +32,8 @@ export async function openPopup(
 }
 
 export async function disconnectWallet(popup: Popup) {
-  await popup.reload();
-  await popup.locator(`[href="/settings"]`).click({ timeout: 1000 });
+  await goToHome(popup);
+  await locators.settingsLink(popup).click({ timeout: 1000 });
   await popup.getByRole('tab', { name: 'Wallet' }).click();
 
   await popup
@@ -93,7 +93,47 @@ export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
   };
 }
 
-export async function sendOneTimePayment(popup: Popup, amount: string) {
-  await popup.getByRole('textbox').fill(amount);
-  await popup.getByRole('button', { name: 'Send now' }).click();
+export async function setContinuousPayments(popup: Popup, enabled: boolean) {
+  await goToHome(popup);
+  await locators.settingsLink(popup).click({ timeout: 1000 });
+  await popup.getByRole('tab', { name: 'Rate' }).click();
+
+  await popup
+    .getByTestId('continuous-payments-toggle')
+    .setChecked(enabled, { force: true });
 }
+
+/** Whatever screen we're on in popup right now, take us to Home screen */
+export async function goToHome(popup: Popup) {
+  await popup.evaluate(() => {
+    location.hash = '';
+  });
+  await popup.reload();
+  await popup.waitForSelector(
+    '[data-testid="home-page"], [data-testid="not-monetized-message"], [data-user-action="required"]',
+    { timeout: 1000 },
+  );
+}
+
+export async function sendOneTimePayment(
+  popup: Popup,
+  amount: string,
+  waitForComplete = false,
+) {
+  await popup.getByRole('textbox').fill(amount);
+  const sendButton = popup.getByRole('button', { name: 'Send now' });
+  await sendButton.click();
+  if (waitForComplete) {
+    await popup.waitForSelector('button[data-progress="false"]', {
+      timeout: 10_000,
+    });
+  } else {
+    await popup.waitForTimeout(1_000); // at least let the payment be initiated
+  }
+  return sendButton;
+}
+
+export const locators = {
+  settingsLink: (popup) => popup.getByRole('link', { name: 'Settings' }),
+  backLink: (popup) => popup.getByRole('link', { name: 'Back' }),
+} satisfies { [key: string]: (popup: Popup) => Locator };

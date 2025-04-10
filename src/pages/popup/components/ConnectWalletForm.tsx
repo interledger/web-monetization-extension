@@ -44,6 +44,7 @@ interface ConnectWalletFormProps {
   publicKey: string;
   defaultValues: Partial<Inputs>;
   state?: ConnectTransientState;
+  walletAddressPlaceholder?: string;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
@@ -55,6 +56,7 @@ export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
   state,
+  walletAddressPlaceholder = 'https://ilp.interledger-test.dev/johndoe',
   getWalletInfo,
   connectWallet,
   clearConnectState,
@@ -200,7 +202,29 @@ export const ConnectWalletForm = ({
   const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
     ev?.preventDefault();
 
-    const errWalletAddressUrl = validateWalletAddressUrl(walletAddressUrl);
+    let walletAddress = walletAddressUrl;
+    if (ev) {
+      // When submitting form using Enter key on wallet address input, we want
+      // to ensure its current value is same as the value we've in React state
+      // (as state is not set until input field blur). If it's not same, we
+      // validate it before connecting.
+      const form = ev.currentTarget;
+      if (
+        form.connectWalletAddressUrl &&
+        walletAddress !== form.connectWalletAddressUrl.value
+      ) {
+        walletAddress = form.connectWalletAddressUrl.value;
+        const ok = await handleWalletAddressUrlChange(
+          walletAddress,
+          form.connectWalletAddressUrl,
+        );
+        if (!ok) return;
+        // above call will not immediately set `walletAddressUrl` state
+        // variable, so we get latest value via `walletAddress` variable.
+      }
+    }
+
+    const errWalletAddressUrl = validateWalletAddressUrl(walletAddress);
     const errAmount = validateAmount(amount, walletAddressInfo!);
     if (errAmount || errWalletAddressUrl) {
       setErrors((prev) => ({
@@ -220,7 +244,7 @@ export const ConnectWalletForm = ({
       }
       setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
-        walletAddressUrl: toWalletAddressUrl(walletAddressUrl),
+        walletAddressUrl: toWalletAddressUrl(walletAddress),
         amount,
         recurring,
         autoKeyAdd: !skipAutoKeyShare,
@@ -298,7 +322,7 @@ export const ConnectWalletForm = ({
         type="text"
         label={t('connectWallet_label_walletAddress')}
         id="connectWalletAddressUrl"
-        placeholder="https://ilp.interledger-test.dev/johndoe"
+        placeholder={walletAddressPlaceholder}
         errorMessage={errors.walletAddressUrl?.message}
         defaultValue={walletAddressUrl}
         trailingAddOn={
@@ -420,6 +444,11 @@ export const ConnectWalletForm = ({
             !amount
           }
           loading={isSubmitting}
+          loadingText={
+            state?.status === 'connecting' || state?.status === 'connecting:key'
+              ? state.currentStep
+              : undefined
+          }
         >
           {t('connectWallet_action_connect')}
         </Button>
@@ -467,7 +496,7 @@ const ManualKeyPairNeeded: React.FC<{
       <p className="px-2 text-left text-xs">
         {text}{' '}
         <a
-          href="https://webmonetization.org/docs/resources/op-wallets/"
+          href="https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure"
           className="text-primary"
           target="_blank"
           rel="noreferrer"
@@ -484,7 +513,8 @@ function isAutoKeyAddFailed(state: ConnectTransientState) {
   if (state?.status === 'error') {
     return (
       isErrorWithKey(state.error) &&
-      state.error.key !== 'connectWallet_error_tabClosed'
+      state.error.key !== 'connectWallet_error_tabClosed' &&
+      state.error.key !== 'connectWallet_error_timeout'
     );
   } else if (state?.status === 'error:key') {
     return (

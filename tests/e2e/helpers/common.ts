@@ -1,7 +1,13 @@
 import type { BrowserContext, Page } from '@playwright/test';
+import type {
+  WalletAddress,
+  IncomingPayment,
+  OutgoingPayment,
+} from '@interledger/open-payments';
 import type { ConnectDetails } from '../pages/popup';
 import { spy, type SpyFn } from 'tinyspy';
-import { getWalletInformation } from '@/shared/helpers';
+import { getWalletInformation, withResolvers } from '@/shared/helpers';
+import { NEW_TAB_PAGES } from '@/background/constants';
 
 const OPEN_PAYMENTS_REDIRECT_URL = 'https://webmonetization.org/welcome';
 const PLAYGROUND_URL = 'https://webmonetization.org/play';
@@ -22,6 +28,30 @@ export async function waitForReconnectWelcomePage(page: Page) {
   );
 }
 
+/**
+ * Some times, we open a new tab then update its URL.
+ * Other times, we open tab with URL already set.
+ * This handles both the scenarios.
+ */
+export async function waitForPage(
+  context: BrowserContext,
+  isTargetPage: (url: string) => boolean,
+): Promise<Page> {
+  const { resolve, promise } = withResolvers<Page>();
+  context.on('page', async function onPage(page) {
+    const url = page.url();
+    if (isTargetPage(url)) {
+      context.off('page', onPage);
+      resolve(page);
+    } else if (NEW_TAB_PAGES.some((p) => url.startsWith(p))) {
+      await page.waitForURL((url) => isTargetPage(url.href));
+      context.off('page', onPage);
+      resolve(page);
+    }
+  });
+  return promise;
+}
+
 export async function getContinueWaitTime(
   context: BrowserContext,
   params: Pick<ConnectDetails, 'walletAddressUrl'>,
@@ -32,7 +62,7 @@ export async function getContinueWaitTime(
     if (process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS !== '1') {
       return Promise.resolve(defaultWaitMs);
     }
-    const walletInfo = await getWalletInformation(params.walletAddressUrl);
+    const walletInfo = await getWalletInfoCached(params.walletAddressUrl);
     return await new Promise<number>((resolve) => {
       const authServer = new URL(walletInfo.authServer).href;
       context.on('requestfinished', async function intercept(req) {
@@ -60,6 +90,16 @@ export function playgroundUrl(...walletAddressUrls: string[]) {
   return url.href;
 }
 
+const walletInfoCache = new Map<string, Promise<WalletAddress>>();
+export function getWalletInfoCached(walletAddressUrl: string) {
+  if (walletInfoCache.has(walletAddressUrl)) {
+    return walletInfoCache.get(walletAddressUrl)!;
+  }
+  const walletInfoPromise = getWalletInformation(walletAddressUrl);
+  walletInfoCache.set(walletAddressUrl, walletInfoPromise);
+  return walletInfoPromise;
+}
+
 export async function setupPlayground(
   page: Page,
   ...walletAddressUrls: string[]
@@ -76,4 +116,45 @@ export async function setupPlayground(
 export function getLastCallArg<T>(fn: SpyFn<[T]>) {
   // we only deal with single arg functions
   return fn.calls[fn.calls.length - 1][0];
+}
+
+/**
+ * Intercept following requests:
+ * - https://openpayments.dev/apis/resource-server/operations/create-incoming-payment/
+ * - https://openpayments.dev/apis/resource-server/operations/create-outgoing-payment/
+ */
+export function interceptPaymentCreateRequests(context: BrowserContext) {
+  const outgoingPaymentCreatedCallback = spy<[OutgoingPayment], void>();
+  const incomingPaymentCreatedCallback = spy<[IncomingPayment], void>();
+
+  context.on('requestfinished', async (req) => {
+    if (!req.serviceWorker()) return;
+    if (req.method() !== 'POST') return;
+
+    const isIncomingPayment = req.url().endsWith('/incoming-payments');
+    const isOutgoingPayment = req.url().endsWith('/outgoing-payments');
+
+    if (!isIncomingPayment && !isOutgoingPayment) {
+      return;
+    }
+
+    const res = await req.response();
+    if (!res) {
+      throw new Error(`no response from POST ${req.url()}`);
+    }
+
+    if (isIncomingPayment) {
+      const incomingPayment: IncomingPayment = await res.json();
+      incomingPaymentCreatedCallback(incomingPayment);
+      return;
+    }
+
+    const outgoingPayment: OutgoingPayment = await res.json();
+    outgoingPaymentCreatedCallback(outgoingPayment);
+  });
+
+  return {
+    outgoingPaymentCreatedCallback,
+    incomingPaymentCreatedCallback,
+  };
 }

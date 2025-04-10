@@ -24,7 +24,7 @@ export const Radio = ({
   onChange,
   checked,
   noSelected,
-}: RadioProps): JSX.Element => {
+}: RadioProps) => {
   const inputId = id || `id-${name}-${value}`;
   const divId = `div-${inputId}`;
 

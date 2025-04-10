@@ -146,7 +146,8 @@ export const failure = (message: string | ErrorWithKeyLike) => ({
     : { error: message, message: message.key }),
 });
 
-export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) =>
+  new Promise<void>((r) => setTimeout(r, ms));
 
 export const notNullOrUndef = <T>(
   t: T | null | undefined,
@@ -264,6 +265,35 @@ export function debounceSync<T extends unknown[], R>(
       }, wait);
     });
 }
+
+export class Timeout {
+  private timeout: ReturnType<typeof setTimeout> | null = null;
+  constructor(
+    ms: number,
+    private callback: () => void,
+  ) {
+    this.reset(ms);
+  }
+
+  reset(ms: number) {
+    this.clear();
+    this.timeout = setTimeout(this.callback, ms);
+  }
+
+  clear() {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+  }
+}
+
+/**
+ * Check if `err` (reason) is result of `AbortSignal.timeout()`
+ */
+export const isAbortSignalTimeout = (err: unknown): err is DOMException => {
+  return err instanceof DOMException && err.name === 'TimeoutError';
+};
 
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source;

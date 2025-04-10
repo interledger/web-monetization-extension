@@ -12,3 +12,10 @@ export const OUTGOING_PAYMENT_POLLING_MAX_DURATION = 8_000;
 export const OUTGOING_PAYMENT_POLLING_INITIAL_DELAY = 1500;
 export const OUTGOING_PAYMENT_POLLING_INTERVAL = 1500;
 export const OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS = 8;
+
+/**
+ * This a bit long to give users enough time in case they need to login (and not
+ * everyone has a password manager ready for quick login). If we were sure that
+ * user is logged in, we could make it < 1min.
+ */
+export const ACCEPT_GRANT_TIMEOUT = 3 * 60 * 1000;

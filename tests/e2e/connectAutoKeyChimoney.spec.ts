@@ -7,13 +7,13 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/chimoney';
-import { waitForWelcomePage } from './helpers/common';
+import { waitForPage, waitForWelcomePage } from './helpers/common';
 import { getStorage } from './fixtures/helpers';
 
 test('Connect to Chimoney wallet with automatic key addition when not logged-in to wallet', async ({
   page,
   popup,
-  persistentContext: context,
+  context,
   background,
   i18n,
 }) => {
@@ -22,6 +22,10 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
   const walletAddressUrl = process.env.CHIMONEY_WALLET_ADDRESS_URL!;
   const walletUrl = process.env.CHIMONEY_WALLET_ORIGIN!;
 
+  test.skip(
+    true,
+    'https://github.com/interledger/web-monetization-extension/issues/972',
+  );
   test.skip(
     !username || !password || !walletAddressUrl || !walletUrl,
     'Missing credentials',
@@ -48,8 +52,9 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
     await page.waitForURL((url) => url.href.startsWith(URLS.login), {
       timeout: 5000,
     });
-    expect(page.url()).toContain(URLS.login);
-    expect(page.url()).toContain('?next=');
+    await expect(page).toHaveURL(
+      (url) => url.href.startsWith(URLS.login) && url.searchParams.has('next'),
+    );
     await page.close();
   });
 
@@ -74,10 +79,9 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
   });
 
   page = await test.step('shows login page', async () => {
-    const openedPage = await context.waitForEvent('page', {
-      predicate: (page) => page.url().startsWith(walletUrl),
-      timeout: 3 * 1000,
-    });
+    const openedPage = await waitForPage(context, (url) =>
+      url.startsWith(walletUrl),
+    );
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.login));
     await login(openedPage, { username, password });
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.keyPage));

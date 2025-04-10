@@ -21,7 +21,7 @@
     "message": "Permission to access your data on all websites is required to use Web Monetization."
   },
   "notMonetized_text_allInvalid": {
-    "message": "You cannot make payments to this website at the moment.",
+    "message": "This page cannot receive payments from your wallet at this time. Please check back later.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "notMonetized_text_noLinks": {
@@ -71,17 +71,14 @@
     "message": "We were unable to process this transaction. Please try again!"
   },
   "pay_error_invalidReceivers": {
-    "message": "At the moment, you cannot pay this website.",
+    "message": "This page cannot receive payments from your wallet at this time. Please check back later.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "pay_error_notMonetized": {
     "message": "This website is not monetized."
   },
   "pay_state_success": {
-    "message": "Thank you for your $AMOUNT$ support!",
-    "placeholders": {
-      "AMOUNT": { "content": "$1", "example": "$2.05" }
-    }
+    "message": "Thank you for your support!"
   },
   "outOfFunds_error_title": {
     "message": "Out of funds"
@@ -153,6 +150,9 @@
   "connectWallet_action_connect": {
     "message": "Connect"
   },
+  "connectWallet_text_stepAcceptGrant": {
+    "message": "Waiting for your approval"
+  },
   "connectWallet_error_urlRequired": {
     "message": "The wallet address is required."
   },
@@ -196,6 +196,9 @@
   "connectWallet_error_grantRejected": {
     "message": "Wallet connection cancelled. The request was not authorized."
   },
+  "connectWallet_error_timeout": {
+    "message": "Connecting to wallet took too long. Please try again."
+  },
   "connectWalletKeyService_text_consentP1": {
     "message": "We will automatically connect with your wallet provider."
   },
@@ -217,6 +220,18 @@
   },
   "connectWalletKeyService_label_consentDecline": {
     "message": "Decline"
+  },
+  "connectWalletKeyService_text_stepAddKey": {
+    "message": "Adding public key to wallet"
+  },
+  "connectWalletKeyService_text_stepWaitingLogin": {
+    "message": "Waiting for you to login"
+  },
+  "connectWalletKeyService_text_stepFindingWallet": {
+    "message": "Finding wallet"
+  },
+  "connectWalletKeyService_text_stepAddingKey": {
+    "message": "Adding key"
   },
   "connectWalletKeyService_error_notImplemented": {
     "message": "Automatic key addition is not yet implemented for the selected wallet provider."
@@ -245,6 +260,12 @@
   },
   "postInstall_text_stepGetWallet_title": {
     "message": "Get a wallet compatible with Web Monetization"
+  },
+  "postInstall_text_stepGetWallet_desc": {
+    "message": "If you don’t already have a Web Monetization-compatible wallet, please set one up, then return here to complete the setup."
+  },
+  "postInstall_text_stepGetWallet_comingSoon": {
+    "message": "More wallets will be added soon…"
   },
   "postInstall_text_stepWalletAddress_title": {
     "message": "Find your wallet address or payment pointer"

@@ -25,6 +25,11 @@ sade('build [target]', true)
   .describe([`\`target\` should be one of ${TARGETS.join(', ')}`])
   .action(async (target: Target, opts: BuildArgs) => {
     const options = { ...opts, target };
+    if (!CHANNELS.includes(options.channel)) {
+      console.warn(`Invalid --channel. Must be one of ${CHANNELS.join(', ')}`);
+      process.exit(1);
+    }
+
     if (!options.target && !options.dev) {
       console.log(`Building all targets with channel: ${options.channel}`);
       return Promise.all(TARGETS.map((t) => build({ ...options, target: t })));
@@ -37,10 +42,6 @@ sade('build [target]', true)
 
     if (!TARGETS.includes(options.target)) {
       console.warn(`Invalid --target. Must be one of ${TARGETS.join(', ')}`);
-      process.exit(1);
-    }
-    if (!CHANNELS.includes(options.channel)) {
-      console.warn(`Invalid --channel. Must be one of ${CHANNELS.join(', ')}`);
       process.exit(1);
     }
 

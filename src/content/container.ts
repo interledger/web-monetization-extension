@@ -20,6 +20,7 @@ export interface Cradle {
   browser: Browser;
   document: Document;
   window: Window;
+  global: typeof globalThis;
   message: MessageManager<ContentToBackgroundMessage>;
   monetizationLinkManager: MonetizationLinkManager;
   frameManager: FrameManager;
@@ -38,6 +39,7 @@ export const configureContainer = () => {
     browser: asValue(browser),
     document: asValue(document),
     window: asValue(window),
+    global: asValue(globalThis),
     message: asClass(MessageManager<ContentToBackgroundMessage>).singleton(),
     frameManager: asClass(FrameManager)
       .singleton()

@@ -4,7 +4,7 @@
   "extends": ["config:recommended", "customManagers:biomeVersions"],
   "prConcurrentLimit": 10,
   "branchConcurrentLimit": 0,
-  "prHourlyLimit": 5,
+  "prHourlyLimit": 10,
   "schedule": ["before 4am on tuesday"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "bump",

@@ -3,11 +3,14 @@ import { PERMISSION_HOSTS } from '@/shared/defines';
 import { WarningSign } from '@/pages/shared/components/Icons';
 import { useBrowser, useTranslation } from '@/popup/lib/context';
 
-export const Component = () => {
+export default () => {
   const browser = useBrowser();
   const t = useTranslation();
   return (
-    <div className="rounded-md bg-orange-50 p-4 text-sm">
+    <div
+      className="rounded-md bg-orange-50 p-4 text-sm"
+      data-user-action="required"
+    >
       <div className="flex">
         <div className="flex-shrink-0">
           <WarningSign className="size-8 text-orange-500" />

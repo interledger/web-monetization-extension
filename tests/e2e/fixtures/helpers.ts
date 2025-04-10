@@ -157,6 +157,7 @@ export async function loadContext(
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],
+      ignoreDefaultArgs: ['--disable-back-forward-cache'],
     });
   } else if (browserName === 'firefox') {
     const RDP_PORT = 12345;
@@ -346,7 +347,7 @@ export class BrowserIntl {
     }
 
     for (const [key, { content }] of Object.entries(msg.placeholders)) {
-      const idx = Number(content.replace('$', ''));
+      const idx = Number(content.replace('$', '')) - 1;
       result = result.replaceAll(`$${key.toUpperCase()}$`, substitutions[idx]);
     }
     return result;

@@ -3,6 +3,7 @@ import {
   type ExpectMatcherState,
   type BrowserContext,
   type Page,
+  type Locator,
 } from '@playwright/test';
 import type { SpyFn } from 'tinyspy';
 import {
@@ -17,7 +18,7 @@ import { openPopup, type Popup } from '../pages/popup';
 import type { DeepPartial, Storage } from '@/shared/types';
 
 type Fixtures = {
-  persistentContext: BrowserContext;
+  context: BrowserContext;
   background: Background;
   popup: Popup;
   i18n: BrowserIntl;
@@ -25,7 +26,7 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures>({
-  persistentContext: [
+  context: [
     async ({ browserName, channel }, use, testInfo) => {
       const context = await loadContext({ browserName, channel }, testInfo);
       await use(context);
@@ -38,7 +39,7 @@ export const test = base.extend<Fixtures>({
   // context in Firefox. We can run extension APIs, such as
   // `chrome.storage.local.get` in this context with `background.evaluate()`.
   background: [
-    async ({ persistentContext: context, browserName }, use) => {
+    async ({ context, browserName }, use) => {
       const background = await getBackground(browserName, context);
       await use(background);
     },
@@ -54,8 +55,8 @@ export const test = base.extend<Fixtures>({
   ],
 
   popup: [
-    async ({ background, persistentContext }, use) => {
-      const popup = await openPopup(persistentContext, background);
+    async ({ background, context }, use) => {
+      const popup = await openPopup(context, background);
 
       await use(popup);
       await popup.close();
@@ -63,7 +64,7 @@ export const test = base.extend<Fixtures>({
     { scope: 'test', timeout: 5_000 },
   ],
 
-  page: async ({ persistentContext: context }, use) => {
+  page: async ({ context }, use) => {
     const page = await context.newPage();
     await use(page);
     await page.close();
@@ -168,6 +169,63 @@ export const expect = test.expect.extend({
       pass = true;
     } catch {
       result = { actual: getLastCallArg(fn as SpyFnTyped) };
+      pass = false;
+    }
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  toHaveLastAmountSentCloseTo(fn: SpyFn, expected: number) {
+    const name = 'toHaveLastAmountSentCloseTo';
+
+    // Playwright doesn't let us extend to created generic matchers, so we'll
+    // typecast (as) in the way we need it.
+    type SpyFnTyped = SpyFn<[window.MonetizationEvent]>;
+
+    let pass: boolean;
+    let result: { actual: unknown } | undefined;
+
+    const getAmount = () => {
+      const lastCallArg = getLastCallArg(fn as SpyFnTyped);
+      return lastCallArg?.amountSent?.value;
+    };
+
+    try {
+      expect(Number(getAmount())).toBeCloseTo(expected, 1);
+      pass = true;
+    } catch {
+      result = { actual: getAmount() };
+      pass = false;
+    }
+
+    return {
+      name,
+      pass,
+      expected,
+      actual: result?.actual,
+      message: defaultMessage(this, name, pass, expected, result),
+    };
+  },
+
+  async toHaveEitherText(locator: Locator, expected: string[]) {
+    const name = 'toHaveEitherText';
+
+    let pass: boolean;
+    let result: { actual: unknown } | undefined;
+
+    try {
+      await Promise.race(
+        expected.map((text) => expect(locator).toHaveText(text)),
+      );
+      pass = true;
+    } catch {
+      result = { actual: await locator.textContent() };
       pass = false;
     }
 

@@ -57,7 +57,7 @@ export class MessageManager<TMessages extends MessageMap> {
 
   async sendToTab<T extends keyof TMessages>(
     tabId: number,
-    frameId: number,
+    frameId: number | undefined,
     action: T,
     payload: TMessages[T]['input'],
   ): Promise<
@@ -114,7 +114,6 @@ export interface PayWebsitePayload {
 export interface PayWebsiteResponse {
   type: 'full' | 'partial';
   sentAmount: string;
-  sentAmountFormatted: string;
 }
 
 export interface UpdateRateOfPayPayload {
@@ -133,7 +132,11 @@ export type PopupToBackgroundMessage = {
     output: PopupState;
   };
   CONNECT_WALLET: {
-    input: null | ConnectWalletPayload;
+    input: ConnectWalletPayload;
+    output: undefined;
+  };
+  RESET_CONNECT_STATE: {
+    input: never;
     output: undefined;
   };
   UPDATE_BUDGET: {
@@ -188,10 +191,7 @@ export interface StopMonetizationPayloadEntry {
 }
 export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
-export interface ResumeMonetizationPayloadEntry {
-  requestId: string;
-}
-export type ResumeMonetizationPayload = ResumeMonetizationPayloadEntry[];
+export type ResumeMonetizationPayload = StartMonetizationPayload;
 
 export interface IsTabMonetizedPayload {
   value: boolean;
@@ -228,6 +228,7 @@ export type AppToBackgroundMessage = {
     output: AppState;
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
+  RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
 };
 // #endregion
 
@@ -264,6 +265,10 @@ export type BackgroundToContentMessage = {
   IS_TAB_IN_VIEW: {
     input: undefined;
     output: boolean;
+  };
+  REQUEST_RESUME_MONETIZATION: {
+    input: null;
+    output: undefined;
   };
 };
 

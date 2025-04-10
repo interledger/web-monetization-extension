@@ -14,13 +14,14 @@ import {
   waitForWelcomePage,
   waitForReconnectWelcomePage,
   setupPlayground,
+  waitForPage,
 } from './helpers/common';
-import { disconnectWallet, fillPopup } from './pages/popup';
+import { disconnectWallet, fillPopup, goToHome } from './pages/popup';
 
 test('Reconnect to test wallet with automatic key addition', async ({
   page,
   popup,
-  persistentContext: context,
+  context,
   background,
   i18n,
 }) => {
@@ -54,9 +55,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
     );
 
     const revokeInfo = await test.step('adds key to wallet', async () => {
-      page = await context.waitForEvent('page', {
-        predicate: (page) => page.url().startsWith(KEYS_PAGE_URL),
-      });
+      page = await waitForPage(context, (url) => url.startsWith(KEYS_PAGE_URL));
 
       const { resolve, reject, promise } = withResolvers<{
         accountId: string;
@@ -144,16 +143,16 @@ test('Reconnect to test wallet with automatic key addition', async ({
       })
       .click();
 
-    const newPage = await context.waitForEvent('page', {
-      predicate: (page) => page.url().startsWith(KEYS_PAGE_URL),
-    });
+    const newPage = await waitForPage(context, (url) =>
+      url.startsWith(KEYS_PAGE_URL),
+    );
 
     await waitForReconnectWelcomePage(newPage);
     await newPage.close();
   });
 
   await test.step('make one-time payment after reconnecting the wallet', async () => {
-    await popup.reload();
+    await goToHome(popup);
     await expect(popup.getByTestId('home-page')).toBeVisible();
     await expect(popup.getByRole('button', { name: 'Send now' })).toBeVisible();
 

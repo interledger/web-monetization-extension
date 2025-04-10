@@ -1,5 +1,7 @@
+import { spy } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
-import { setupPlayground } from './helpers/common';
+import { getLastCallArg, setupPlayground } from './helpers/common';
+import { goToHome, setContinuousPayments } from './pages/popup';
 
 test('iframe add/remove does not de-monetize main page', async ({
   page,
@@ -81,10 +83,6 @@ test('iframe navigate does not de-monetize main page', async ({
     });
   });
 
-  test.fail(
-    true,
-    'https://github.com/interledger/web-monetization-extension/issues/819#issuecomment-2602266550',
-  );
   await test.step('navigate iframe', async () => {
     await page.evaluate(() => {
       return new Promise((resolve, reject) => {
@@ -102,4 +100,49 @@ test('iframe navigate does not de-monetize main page', async ({
     await expect(popup.getByTestId('not-monetized-message')).not.toBeVisible();
     await expect(popup.getByTestId('home-page')).toBeVisible();
   });
+});
+
+test('keep site monetized on back-forward buttons', async ({ page, popup }) => {
+  await setContinuousPayments(popup, false); // don't need payments to see monetized status
+  await goToHome(popup);
+
+  // to check if page was loaded with bf-cache or not (persisted = true means from bf-cache)
+  const pageShowCallback = spy<[[persisted: boolean, url: string]], void>();
+  await page.exposeFunction('pageShowCallback', pageShowCallback);
+  await page.addInitScript({
+    content: `window.addEventListener('pageshow', ev => {
+      pageShowCallback([ev.persisted, window.location.href])
+    });`,
+  });
+
+  const homePage = popup.getByTestId('home-page');
+  const notMonetizedMsg = popup.getByTestId('not-monetized-message');
+
+  // TODO: use URLs from a local server with more-controlled fixtures
+  const URL_A = 'https://sidvishnoi.com/test/wm/';
+  const URL_B = 'https://example.com/';
+
+  await page.goto(URL_A);
+  await expect(pageShowCallback).toHaveBeenCalledTimes(1);
+  expect(getLastCallArg(pageShowCallback)).toEqual([false, URL_A]);
+  await expect(homePage).toBeVisible();
+  await expect(notMonetizedMsg).not.toBeVisible();
+
+  await page.goto(URL_B);
+  await expect(pageShowCallback).toHaveBeenCalledTimes(2);
+  expect(getLastCallArg(pageShowCallback)).toEqual([false, URL_B]);
+  await expect(homePage).not.toBeVisible();
+  await expect(notMonetizedMsg).toBeVisible();
+
+  await page.evaluate(() => history.back());
+  await expect(pageShowCallback).toHaveBeenCalledTimes(3);
+  expect(getLastCallArg(pageShowCallback)).toEqual([true, URL_A]);
+  await expect(homePage).toBeVisible();
+  await expect(notMonetizedMsg).not.toBeVisible();
+
+  await page.evaluate(() => history.forward());
+  await expect(pageShowCallback).toHaveBeenCalledTimes(4);
+  expect(getLastCallArg(pageShowCallback)).toEqual([true, URL_B]);
+  await expect(homePage).not.toBeVisible();
+  await expect(notMonetizedMsg).toBeVisible();
 });

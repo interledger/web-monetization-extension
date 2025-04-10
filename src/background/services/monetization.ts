@@ -15,7 +15,7 @@ import {
 } from '@/background/config';
 import {
   ErrorWithKey,
-  formatCurrency,
+  isAbortSignalTimeout,
   isErrorWithKey,
   isOkState,
   removeQueryParams,
@@ -218,6 +218,14 @@ export class MonetizationService {
 
     if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`);
+      // If there are no sessions and we got a resume call, treat it as a fresh
+      // start call. The sessions could be cleared as:
+      // - the background script/worker had terminated, so all sessions (stored
+      //   in-memory) were cleared
+      // - user hit back/forward button, so sessions for this tabId+URL were
+      //   cleared (we clear sessions on URL change in `onUpdatedTab`).
+      this.logger.info('setting up sessions & starting');
+      await this.startPaymentSession(payload, sender);
       return;
     }
 
@@ -246,6 +254,17 @@ export class MonetizationService {
     const sessions = this.tabState.getSessions(tabId);
     if (!sessions.size) {
       this.logger.debug(`No active sessions found for tab ${tabId}.`);
+      // If there are no sessions and we got a resume call, request content
+      // script to get us the latest resume payload. The sessions could be
+      // cleared as the background script/worker had terminated (for example,
+      // computer went to sleep), so all sessions (stored in-memory) were
+      // cleared.
+      await this.message.sendToTab(
+        tabId,
+        undefined,
+        'REQUEST_RESUME_MONETIZATION',
+        null,
+      );
       return;
     }
 
@@ -327,7 +346,7 @@ export class MonetizationService {
     if (!walletAddress) {
       throw new Error('Unexpected: wallet address not found.');
     }
-    const { assetCode, assetScale } = walletAddress;
+    const { assetScale } = walletAddress;
 
     const splitAmount = Number(amount) / payableSessions.length;
     // TODO: handle paying across two grants (when one grant doesn't have enough funds)
@@ -382,11 +401,9 @@ export class MonetizationService {
         // This permission request to read outgoing payments was added at a
         // later time, so existing connected wallets won't have this permission.
         // Assume as success for backward compatibility.
-        const sentAmount = transformBalance(totalDebitAmount, assetScale);
         return {
           type: 'full',
-          sentAmount: sentAmount,
-          sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+          sentAmount: transformBalance(totalDebitAmount, assetScale),
         };
       }
 
@@ -397,7 +414,7 @@ export class MonetizationService {
         (err) =>
           (isErrorWithKey(err) &&
             err.key === 'pay_warn_outgoingPaymentPollingIncomplete') ||
-          (err instanceof DOMException && err.name === 'TimeoutError'),
+          isAbortSignalTimeout(err),
       );
 
       if (isNotEnoughFunds) {
@@ -409,11 +426,9 @@ export class MonetizationService {
       throw new ErrorWithKey('pay_error_general');
     }
 
-    const sentAmount = transformBalance(totalSentAmount, assetScale);
     return {
       type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
-      sentAmount: sentAmount,
-      sentAmountFormatted: formatCurrency(sentAmount, assetCode),
+      sentAmount: transformBalance(totalSentAmount, assetScale),
     };
   }
 

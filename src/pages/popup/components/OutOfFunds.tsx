@@ -29,7 +29,7 @@ export const OutOfFunds = ({
   const t = useTranslation();
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" data-user-action="required">
       <ErrorMessage
         error={t('outOfFunds_error_title')}
         className="mb-0 text-error"
@@ -38,7 +38,7 @@ export const OutOfFunds = ({
         <p>{t('outOfFunds_error_text')}</p>
         <p>{t('outOfFunds_error_textHint')}</p>
         {grantRecurring?.value && (
-          <p className="mt-1">
+          <p className="mt-1" data-testid="out-of-funds-recurring-info">
             <RecurringAutoRenewInfo
               info={info}
               grantRecurring={grantRecurring}

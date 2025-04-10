@@ -1,8 +1,13 @@
 import { test, expect } from './fixtures/base';
-import { connectWallet, disconnectWallet } from './pages/popup';
+import {
+  connectWallet,
+  disconnectWallet,
+  goToHome,
+  locators,
+} from './pages/popup';
 
 test('connects with correct details provided', async ({
-  persistentContext,
+  context,
   background,
   popup,
   i18n,
@@ -21,20 +26,14 @@ test('connects with correct details provided', async ({
 
   await expect(background).toHaveStorage({ connected: false });
 
-  const keyInfo = {
-    keyId: TEST_WALLET_KEY_ID,
-    privateKey: TEST_WALLET_PRIVATE_KEY,
-    publicKey: TEST_WALLET_PUBLIC_KEY,
-  };
-  await connectWallet(persistentContext, background, i18n, keyInfo, popup, {
+  await connectWallet(context, background, popup, i18n, {
     walletAddressUrl: TEST_WALLET_ADDRESS_URL,
     amount: '10',
     recurring: false,
   });
-  await popup.reload();
+  await goToHome(popup);
 
-  const settingsLink = popup.locator(`[href="/settings"]`).first();
-  await expect(settingsLink).toBeVisible();
+  await expect(locators.settingsLink(popup)).toBeVisible();
 
   await expect(background).toHaveStorage({
     connected: true,

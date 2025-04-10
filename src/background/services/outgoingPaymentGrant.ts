@@ -13,6 +13,7 @@ import {
 } from '@interledger/open-payments/dist/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
+import { ACCEPT_GRANT_TIMEOUT } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import { ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
@@ -25,7 +26,6 @@ import {
   GrantResult,
   InteractionIntent,
   redirectToWelcomeScreen,
-  toAmount,
 } from '@/background/utils';
 
 interface InteractionParams {
@@ -34,7 +34,7 @@ interface InteractionParams {
   tabId: TabId;
 }
 
-type TabUpdateCallback = Parameters<Tabs.onUpdatedEvent['addListener']>[0];
+type TabUpdateCallback = Parameters<Tabs.OnUpdatedEvent['addListener']>[0];
 type TabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
 >[0];
@@ -128,33 +128,23 @@ export class OutgoingPaymentGrantService {
   }
 
   async completeOutgoingPaymentGrant(
-    amount: string,
+    walletAmount: WalletAmount,
     walletAddress: WalletAddress,
-    recurring: boolean,
+    { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
-    existingTabId?: number,
+    existingTabId: number,
+    timeout = ACCEPT_GRANT_TIMEOUT,
   ): Promise<GrantDetails> {
-    const clientNonce = crypto.randomUUID();
-    const walletAmount = toAmount({
-      value: amount,
-      recurring,
-      assetScale: walletAddress.assetScale,
-    });
-    const grant = await this.createOutgoingPaymentGrant(
-      clientNonce,
-      walletAddress,
-      walletAmount,
-      intent,
-    );
+    const signal = AbortSignal.timeout(timeout);
 
-    this.events.emit('request_popup_close');
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
       existingTabId,
+      signal,
     );
 
     await this.verifyInteractionHash(
-      clientNonce,
+      nonce,
       grant.interact.finish,
       interactRef,
       hash,
@@ -162,6 +152,7 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
+    signal.throwIfAborted();
 
     const continuation = await this.continueGrant(
       grant,
@@ -169,14 +160,14 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
-
     if (!isFinalizedGrant(continuation)) {
       throw new Error(
         'Expected finalized grant. Received non-finalized grant.',
       );
     }
+    signal.throwIfAborted();
 
-    this.grant = this.buildGrantDetails(continuation, recurring, walletAmount);
+    this.grant = this.buildGrantDetails(continuation, walletAmount);
     await this.persistGrantDetails(this.grant);
 
     await redirectToWelcomeScreen(
@@ -231,12 +222,12 @@ export class OutgoingPaymentGrantService {
     return newToken;
   }
 
-  private async createOutgoingPaymentGrant(
-    clientNonce: string,
+  async createOutgoingPaymentGrant(
     walletAddress: WalletAddress,
     amount: WalletAmount,
     intent: InteractionIntent,
   ) {
+    const nonce = crypto.randomUUID();
     try {
       const grant = await this.openPaymentsService.client.grant.request(
         { url: walletAddress.authServer },
@@ -267,7 +258,7 @@ export class OutgoingPaymentGrantService {
             finish: {
               method: 'redirect',
               uri: OPEN_PAYMENTS_REDIRECT_URL,
-              nonce: clientNonce,
+              nonce: nonce,
             },
           },
         },
@@ -279,7 +270,7 @@ export class OutgoingPaymentGrantService {
         );
       }
 
-      return grant;
+      return { grant, nonce };
     } catch (error) {
       if (isInvalidClientError(error)) {
         if (intent !== InteractionIntent.FUNDS) {
@@ -294,27 +285,37 @@ export class OutgoingPaymentGrantService {
 
   private async getInteractionInfo(
     url: string,
-    existingTabId?: TabId,
+    existingTabId: TabId,
+    signal: AbortSignal,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
-    const tab = existingTabId
-      ? await this.browser.tabs.update(existingTabId, { url })
-      : await this.browser.tabs.create({ url });
-    if (!tab.id) {
+    signal.addEventListener('abort', () => {
+      removeListeners();
+      reject(signal.reason);
+    });
+
+    await this.browser.tabs.update(existingTabId, { url });
+    if (!existingTabId) {
       reject(new Error('Could not create/update tab'));
       return promise;
     }
+    this.events.emit('request_popup_close');
+
+    const removeListeners = () => {
+      this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
+      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+    };
 
     const tabCloseListener: TabRemovedCallback = (tabId) => {
-      if (tabId !== tab.id) return;
+      if (tabId !== existingTabId) return;
 
-      this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+      removeListeners();
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
 
     const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
-      if (tabId !== tab.id) return;
+      if (tabId !== existingTabId) return;
       try {
         const tabUrl = new URL(changeInfo.url || '');
         const interactRef = tabUrl.searchParams.get('interact_ref');
@@ -326,8 +327,7 @@ export class OutgoingPaymentGrantService {
           result === 'grant_rejected' ||
           result === 'grant_invalid'
         ) {
-          this.browser.tabs.onUpdated.removeListener(getInteractionInfo);
-          this.browser.tabs.onRemoved.removeListener(tabCloseListener);
+          removeListeners();
         }
 
         if (interactRef && hash) {
@@ -408,9 +408,9 @@ export class OutgoingPaymentGrantService {
 
   private buildGrantDetails(
     continuation: Grant,
-    recurring: boolean,
     amount: WalletAmount,
   ): GrantDetails {
+    const recurring = !!amount.interval;
     return {
       type: recurring ? 'recurring' : 'one-time',
       amount: amount as Required<WalletAmount>,
