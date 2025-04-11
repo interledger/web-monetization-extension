@@ -34,6 +34,16 @@ export default defineConfig({
     },
 
     {
+      name: 'chromium',
+      use: {
+        browserName: 'chromium',
+        channel: 'chromium',
+        storageState: authFile,
+      },
+      dependencies: ['setup'],
+    },
+
+    {
       name: 'chrome',
       use: {
         ...devices['Desktop Chrome'],
