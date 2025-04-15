@@ -128,7 +128,7 @@ export async function sendOneTimePayment(
       timeout: 10_000,
     });
   } else {
-    await popup.waitForTimeout(1_000); // at least let the payment be initiated
+    await popup.waitForTimeout(1_500); // at least let the payment be initiated
   }
   return sendButton;
 }
