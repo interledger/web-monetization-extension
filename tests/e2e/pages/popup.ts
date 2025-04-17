@@ -117,10 +117,10 @@ export async function goToHome(popup: Popup) {
 
 export async function sendOneTimePayment(
   popup: Popup,
-  amount: string,
+  amount: string | number,
   waitForComplete = false,
 ) {
-  await popup.getByRole('textbox').fill(amount);
+  await popup.getByRole('textbox').fill(amount.toString());
   const sendButton = popup.getByRole('button', { name: 'Send now' });
   await sendButton.click();
   if (waitForComplete) {
@@ -128,7 +128,7 @@ export async function sendOneTimePayment(
       timeout: 10_000,
     });
   } else {
-    await popup.waitForTimeout(1_000); // at least let the payment be initiated
+    await popup.waitForTimeout(1_500); // at least let the payment be initiated
   }
   return sendButton;
 }

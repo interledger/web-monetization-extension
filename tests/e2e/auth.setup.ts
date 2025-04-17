@@ -47,7 +47,7 @@ setup('validate test wallet has provided keys added', async () => {
   expect(jwks.keys.length).toBeGreaterThan(0);
 
   const key = jwks.keys.find((key) => key.kid === TEST_WALLET_KEY_ID);
-  expect(key).toBeDefined();
+  expect(key, 'Key should exist for wallet address').toBeDefined();
   const { x } = JSON.parse(atob(TEST_WALLET_PUBLIC_KEY)) as JWK;
   expect(key).toMatchObject({ kid: TEST_WALLET_KEY_ID, x });
 });
