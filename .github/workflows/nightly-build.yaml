@@ -93,6 +93,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-24.04
     needs: test-e2e
+    if: ${{ always() }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
