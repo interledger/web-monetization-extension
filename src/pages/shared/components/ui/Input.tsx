@@ -1,12 +1,12 @@
+import React from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
-import React, { forwardRef } from 'react';
 import { cn } from '@/pages/shared/lib/utils';
 import { Label } from '@/pages/shared/components/ui/Label';
 
 const inputVariants = cva(
   [
-    'h-14 w-full rounded-xl border border-2 px-4 text-base text-medium',
-    'focus:border-focus focus:outline-none',
+    'border-none focus:border-none focus:ring-0 focus:outline-none',
+    'table-cell w-full py-4 px-2 text-base text-medium',
     'placeholder:text-disabled',
   ],
 
@@ -35,31 +35,28 @@ export interface InputProps
   disabled?: boolean;
   readOnly?: boolean;
   leadingAddOn?: React.ReactNode;
-  leadingAddonWidth?: 10 | 16;
   trailingAddOn?: React.ReactNode;
   label?: React.ReactNode;
   description?: React.ReactNode;
   wrapperClassName?: string;
+  ref?: React.Ref<HTMLInputElement>;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  {
-    type = 'text',
-    leadingAddOn,
-    leadingAddonWidth = 10,
-    trailingAddOn,
-    label,
-    description,
-    errorMessage,
-    disabled,
-    readOnly,
-    className,
-    wrapperClassName,
-    id,
-    ...props
-  },
+export function Input({
+  type = 'text',
+  leadingAddOn,
+  trailingAddOn,
+  label,
+  description,
+  errorMessage,
+  disabled,
+  readOnly,
+  className,
+  wrapperClassName,
+  id,
   ref,
-) {
+  ...props
+}: InputProps) {
   const randomId = React.useId();
   id ||= randomId; // cannot call useId conditionally, but use randomId only if default not provided
 
@@ -71,17 +68,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {description}
         </p>
       ) : null}
-      <div className={cn('relative', wrapperClassName)}>
+      <div
+        className={cn(
+          'table px-2 w-full rounded-xl overflow-hidden',
+          'border-2 outline-transparent focus-within:border-focus',
+          wrapperClassName,
+        )}
+      >
         {leadingAddOn ? (
-          <div
-            className={cn(
-              'pointer-events-none absolute inset-y-0 left-0',
-              'flex p-1 items-center justify-center text-sm font-medium',
-              leadingAddonWidth === 10 ? 'w-10' : 'w-16',
-            )}
-          >
+          <InputAddon type="leading" inputRef={ref}>
             {leadingAddOn}
-          </div>
+          </InputAddon>
         ) : null}
         <input
           id={id}
@@ -89,8 +86,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           type={type}
           className={cn(
             inputVariants({ disabled, readOnly }),
-            leadingAddOn && (leadingAddonWidth === 10 ? 'pl-10' : 'pl-16'),
-            trailingAddOn && 'pr-10',
             errorMessage && 'border-error',
             className,
           )}
@@ -102,9 +97,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {...props}
         />
         {trailingAddOn ? (
-          <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center p-1 text-sm font-medium">
+          <InputAddon type="trailing" inputRef={ref}>
             {trailingAddOn}
-          </div>
+          </InputAddon>
         ) : null}
       </div>
       {errorMessage && (
@@ -112,4 +107,30 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       )}
     </div>
   );
-});
+}
+
+function InputAddon({
+  children,
+  className = '',
+  type,
+  inputRef,
+}: {
+  children: React.ReactNode;
+  type: 'leading' | 'trailing';
+  className?: string;
+  inputRef?: React.Ref<HTMLInputElement>;
+}) {
+  return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: only need to handle click on prefix/suffix to trigger input focus
+    <div
+      className={cn(
+        'whitespace-nowrap table-cell align-middle select-none w-[1%]',
+        'text-sm font-medium p-1 cursor-text',
+        className,
+      )}
+      onClick={() => inputRef?.current?.focus()}
+    >
+      {children}
+    </div>
+  );
+}
