@@ -39,7 +39,7 @@ export interface InputProps
   label?: React.ReactNode;
   description?: React.ReactNode;
   wrapperClassName?: string;
-  ref?: React.Ref<HTMLInputElement>;
+  ref?: React.RefObject<HTMLInputElement | null>;
 }
 
 export function Input({
@@ -118,7 +118,7 @@ function InputAddon({
   children: React.ReactNode;
   type: 'leading' | 'trailing';
   className?: string;
-  inputRef?: React.Ref<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }) {
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: only need to handle click on prefix/suffix to trigger input focus
