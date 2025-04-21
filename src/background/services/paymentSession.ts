@@ -5,13 +5,7 @@ import {
   type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress,
 } from '@interledger/open-payments';
-import {
-  bigIntMax,
-  convert,
-  ErrorWithKey,
-  sleep,
-  transformBalance,
-} from '@/shared/helpers';
+import { ErrorWithKey, sleep, transformBalance } from '@/shared/helpers';
 import {
   isInternalServerError,
   isInvalidReceiverError,
@@ -21,7 +15,7 @@ import {
   isOutOfBalanceError,
   isTokenExpiredError,
 } from '@/background/services/openPayments';
-import { getNextSendableAmount } from '@/background/utils';
+import { bigIntMax, convert, getNextSendableAmount } from '@/background/utils';
 import type {
   EventsService,
   OpenPaymentsService,

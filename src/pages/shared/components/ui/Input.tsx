@@ -1,6 +1,6 @@
 import { type VariantProps, cva } from 'class-variance-authority';
 import React, { forwardRef } from 'react';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 import { Label } from '@/pages/shared/components/ui/Label';
 
 const inputVariants = cva(

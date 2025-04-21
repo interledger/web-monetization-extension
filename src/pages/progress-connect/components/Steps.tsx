@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 import type { StepWithStatus } from '@/content/keyAutoAdd/lib/types';
 
 export function Steps({ steps }: { steps: StepWithStatus[] }) {

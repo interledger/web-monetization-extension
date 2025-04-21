@@ -3,9 +3,10 @@ import {
   isOkState,
   objectEquals,
   removeQueryParams,
-  getNextOccurrence,
   withResolvers,
-} from './helpers';
+  getNextOccurrence,
+  toWalletAddressUrl,
+} from '../helpers';
 
 describe('objectEquals', () => {
   it('should return true if objects are equal', () => {
@@ -136,6 +137,14 @@ describe('getNextOccurrence', () => {
   it('should return the next occurrence with /PT', () => {
     expect(getNextOccurrence(`R/${nowISO}/PT30S`, now)).toEqual(
       addSeconds(now, 30),
+    );
+  });
+});
+
+describe('toWalletAddressUrl', () => {
+  it('converts from short form to long form', () => {
+    expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
+      'https://wallet.com/bob',
     );
   });
 });

@@ -1,7 +1,7 @@
 import { promisify } from 'node:util';
 import { JSDOM } from 'jsdom';
 import { MonetizationLinkManager } from '@/content/services/monetizationLinkManager';
-import { success, failure } from '@/shared/helpers';
+import { success, failure } from '@/shared/messages';
 import type {
   ContentToBackgroundMessage as Msg,
   MessageManager,

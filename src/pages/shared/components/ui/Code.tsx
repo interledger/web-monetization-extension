@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from './Button';
 import { CheckIcon, ClipboardIcon } from '../Icons';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 interface CodeProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string;

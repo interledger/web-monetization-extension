@@ -320,3 +320,17 @@ export type BackgroundToPortMessagesMap =
   | BackgroundToPopupMessagesMap
   | BackgroundToAppMessagesMap;
 // #endregion
+
+export const success = <TPayload = undefined>(
+  payload: TPayload,
+): SuccessResponse<TPayload> => ({
+  success: true,
+  payload,
+});
+
+export const failure = (message: string | ErrorWithKeyLike) => ({
+  success: false as const,
+  ...(typeof message === 'string'
+    ? { message }
+    : { error: message, message: message.key }),
+});

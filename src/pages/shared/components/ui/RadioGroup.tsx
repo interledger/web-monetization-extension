@@ -2,7 +2,7 @@ import React from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
 import { useEffect, useMemo, useState } from 'react';
 
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 export interface RadioProps {
   checked?: boolean;
