@@ -1,7 +1,7 @@
 import React from 'react';
 import { forwardRef } from 'react';
 
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 export interface SliderProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

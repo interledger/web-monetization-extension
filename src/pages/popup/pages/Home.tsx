@@ -1,7 +1,10 @@
 import React from 'react';
-import { formatCurrency } from '@/shared/helpers';
 import { Settings } from '@/pages/shared/components/Icons';
-import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
+import {
+  formatNumber,
+  roundWithPrecision,
+  formatCurrency,
+} from '@/pages/shared/lib/utils';
 import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
 import { useTranslation } from '@/popup/lib/context';

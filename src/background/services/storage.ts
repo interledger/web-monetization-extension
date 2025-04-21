@@ -7,8 +7,8 @@ import type {
   StorageKey,
   WalletAmount,
 } from '@/shared/types';
-import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers';
-import { computeBalance } from '../utils';
+import { objectEquals, ThrottleBatch } from '@/shared/helpers';
+import { bigIntMax, computeBalance } from '../utils';
 import type { Cradle } from '../container';
 
 const defaultStorage = {

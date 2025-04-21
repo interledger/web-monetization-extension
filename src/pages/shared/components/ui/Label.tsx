@@ -1,7 +1,7 @@
 import React from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
 
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 const labelVariants = cva(
   'flex items-center px-2 font-medium leading-6 text-medium',

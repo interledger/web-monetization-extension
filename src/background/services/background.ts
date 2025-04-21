@@ -1,12 +1,10 @@
 import type { Browser, Runtime } from 'webextension-polyfill';
-import type { ToBackgroundMessage } from '@/shared/messages';
+import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
-  failure,
   getNextOccurrence,
   getWalletInformation,
   isErrorWithKey,
-  success,
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';

@@ -3,7 +3,7 @@ import { forwardRef } from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
 
 import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 const buttonVariants = cva(
   [

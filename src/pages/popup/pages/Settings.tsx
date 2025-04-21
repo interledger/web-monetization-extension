@@ -4,7 +4,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { WalletInformation } from '@/popup/components/Settings/WalletInformation';
 import { BudgetScreen } from '@/popup/components/Settings/Budget';
 import { RateOfPayScreen } from '@/popup/components/Settings/RateOfPay';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 import { useLocalStorage } from '@/pages/shared/lib/hooks';
 import { usePopupState } from '@/popup/lib/store';
 

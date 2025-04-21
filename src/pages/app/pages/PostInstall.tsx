@@ -5,13 +5,13 @@ import {
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
 import {
-  cn,
   getBrowserName,
   getWalletInformation,
   type BrowserName,
 } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
+import { cn } from '@/pages/shared/lib/utils';
 import { useMessage } from '@/app/lib/context';
 import { useAppState } from '@/app/lib/store';
 

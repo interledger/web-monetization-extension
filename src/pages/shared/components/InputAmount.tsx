@@ -1,12 +1,8 @@
 import React from 'react';
 import { Input } from './ui/Input';
 import type { WalletAddress } from '@interledger/open-payments';
-import { charIsNumber, formatNumber, getCurrencySymbol } from '../lib/utils';
-import {
-  errorWithKey,
-  type ErrorWithKeyLike,
-  formatCurrency,
-} from '@/shared/helpers';
+import { formatNumber, formatCurrency, getCurrencySymbol } from '../lib/utils';
+import { errorWithKey, type ErrorWithKeyLike } from '@/shared/helpers';
 import { useLongPress, useThrottle } from '@/pages/shared/lib/hooks';
 
 interface Props {
@@ -287,4 +283,8 @@ function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
   ) {
     ev.preventDefault();
   }
+}
+
+function charIsNumber(char?: string) {
+  return !!(char || '').match(/\d|\./);
 }

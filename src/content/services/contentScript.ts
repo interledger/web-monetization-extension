@@ -1,6 +1,6 @@
 import type { ToContentMessage } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
-import { failure, success } from '@/shared/helpers';
+import { failure, success } from '@/shared/messages';
 
 export class ContentScript {
   private browser: Cradle['browser'];

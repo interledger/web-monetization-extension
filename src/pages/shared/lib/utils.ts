@@ -1,3 +1,6 @@
+import { cx, type CxOptions } from 'class-variance-authority';
+import { twMerge } from 'tailwind-merge';
+
 export const getCurrencySymbol = (assetCode: string): string => {
   return new Intl.NumberFormat('en-US', {
     currency: assetCode,
@@ -11,9 +14,18 @@ export const getCurrencySymbol = (assetCode: string): string => {
     .trim();
 };
 
-export function charIsNumber(char?: string) {
-  return !!(char || '').match(/\d|\./);
-}
+export const formatCurrency = (
+  value: string | number,
+  currency: string,
+  maximumFractionDigits = 2,
+  locale?: string,
+): string => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits,
+  }).format(Number(value));
+};
 
 export function roundWithPrecision(num: number, precision: number) {
   const multiplier = 10 ** precision;
@@ -50,6 +62,6 @@ export function formatNumber(
   }
 }
 
-export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace('$', 'https://') : s;
-}
+export const cn = (...inputs: CxOptions) => {
+  return twMerge(cx(inputs));
+};

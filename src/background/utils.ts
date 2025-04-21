@@ -66,6 +66,10 @@ export const toAmount = ({
   };
 };
 
+export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
+  return BigInt(a) > BigInt(b) ? a : b;
+}
+
 interface ExchangeRates {
   base: string;
   rates: Record<string, number>;
@@ -123,6 +127,14 @@ export const convertWithExchangeRate = <T extends AmountValue | bigint>(
     ? (converted.toString() as T)
     : (converted as T);
 };
+
+export function convert(value: bigint, source: number, target: number) {
+  const scaleDiff = target - source;
+  if (scaleDiff > 0) {
+    return value * BigInt(10 ** scaleDiff);
+  }
+  return value / BigInt(10 ** -scaleDiff);
+}
 
 export const getTabId = (sender: Runtime.MessageSender): number => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab').id, 'tab.id');

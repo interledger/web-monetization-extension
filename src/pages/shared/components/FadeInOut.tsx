@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 type ElementType = keyof React.JSX.IntrinsicElements;
 const defaultElem: ElementType = 'div';

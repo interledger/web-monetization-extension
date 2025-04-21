@@ -10,14 +10,14 @@ import {
   InputAmount,
   validateAmount,
 } from '@/pages/shared/components/InputAmount';
-import { toWalletAddressUrl } from '@/pages/shared/lib/utils';
+import { cn } from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
-  cn,
   errorWithKey,
   isErrorWithKey,
   sleep,
+  toWalletAddressUrl,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';

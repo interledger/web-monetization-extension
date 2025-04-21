@@ -1,6 +1,6 @@
 import React from 'react';
 import { XIcon } from './Icons';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> {
   error?: string;
