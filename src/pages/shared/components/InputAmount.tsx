@@ -130,11 +130,16 @@ export const InputAmount = ({
       aria-label={labelHidden && typeof label === 'string' ? label : undefined}
       description={description}
       placeholder={placeholder}
-      className={className}
+      className={currencySymbol.length > 3 ? 'max-w-40' : 'max-w-32'}
       wrapperClassName={wrapperClassName}
       defaultValue={amount}
       readOnly={readOnly}
-      leadingAddOn={<span className="text-weak">{currencySymbol}</span>}
+      leadingAddOn={
+        <span className="overflow-hidden text-ellipsis text-weak whitespace-nowrap">
+          {currencySymbol}
+        </span>
+      }
+      leadingAddonWidth={currencySymbol.length > 3 ? 16 : 10}
       trailingAddOn={
         controls ? (
           <Controls readOnly={readOnly} inc={controlInc} dec={controlDec} />

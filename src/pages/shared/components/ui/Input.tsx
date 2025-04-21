@@ -35,6 +35,7 @@ export interface InputProps
   disabled?: boolean;
   readOnly?: boolean;
   leadingAddOn?: React.ReactNode;
+  leadingAddonWidth?: 10 | 16;
   trailingAddOn?: React.ReactNode;
   label?: React.ReactNode;
   description?: React.ReactNode;
@@ -45,6 +46,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   {
     type = 'text',
     leadingAddOn,
+    leadingAddonWidth = 10,
     trailingAddOn,
     label,
     description,
@@ -71,7 +73,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       ) : null}
       <div className={cn('relative', wrapperClassName)}>
         {leadingAddOn ? (
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-sm font-medium">
+          <div
+            className={cn(
+              'pointer-events-none absolute inset-y-0 left-0',
+              'flex p-1 items-center justify-center text-sm font-medium',
+              leadingAddonWidth === 10 ? 'w-10' : 'w-16',
+            )}
+          >
             {leadingAddOn}
           </div>
         ) : null}
@@ -81,7 +89,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           type={type}
           className={cn(
             inputVariants({ disabled, readOnly }),
-            leadingAddOn && 'pl-10',
+            leadingAddOn && (leadingAddonWidth === 10 ? 'pl-10' : 'pl-16'),
             trailingAddOn && 'pr-10',
             errorMessage && 'border-error',
             className,
@@ -94,7 +102,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {...props}
         />
         {trailingAddOn ? (
-          <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-sm font-medium">
+          <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center p-1 text-sm font-medium">
             {trailingAddOn}
           </div>
         ) : null}
