@@ -216,6 +216,8 @@ const RemainingBalance = ({
     <div className="space-y-2">
       <InputAmount
         id="remainingBalance"
+        onChange={() => {}}
+        onError={() => {}}
         label="Remaining balance"
         className="max-w-56"
         walletAddress={walletAddress}

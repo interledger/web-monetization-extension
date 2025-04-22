@@ -16,8 +16,8 @@ interface Props {
   description?: string | React.ReactNode;
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>;
   amount: string;
-  onChange?: (amount: string, inputEl: HTMLInputElement) => void;
-  onError?: (error: ErrorWithKeyLike) => void;
+  onChange: (amount: string, inputEl: HTMLInputElement) => void;
+  onError: (error: ErrorWithKeyLike) => void;
   className?: string;
   placeholder?: string;
   errorMessage?: string;
@@ -62,14 +62,14 @@ export const InputAmount = ({
     (value: string, skipSetValue = false) => {
       const error = validateAmount(value, walletAddress, min, max);
       if (error) {
-        onError?.(error);
+        onError(error);
       } else {
         const input = inputRef.current!;
         const formattedValue = formatAmount(+value);
         if (!skipSetValue) {
           input.value = formattedValue;
         }
-        onChange?.(formattedValue, input);
+        onChange(formattedValue, input);
       }
     },
     [walletAddress, onChange, onError, formatAmount, min, max],
