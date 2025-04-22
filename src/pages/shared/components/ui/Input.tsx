@@ -5,21 +5,24 @@ import { Label } from '@/pages/shared/components/ui/Label';
 
 const inputVariants = cva(
   [
-    'border-none focus:border-none focus:ring-0 focus:outline-none',
-    'table-cell w-full py-4 px-2 text-base text-medium',
-    'placeholder:text-disabled',
+    'table w-full rounded-xl overflow-hidden',
+    'outline outline-2 -outline-offset-2 outline-transparent focus-within:outline-focus',
+    'text-medium',
   ],
 
   {
     variants: {
       variant: {
-        default: 'border-base',
+        default: 'outline-base text-medium',
       },
       disabled: {
-        true: 'cursor-default border-transparent bg-disabled text-disabled',
+        true: 'cursor-default outline-transparent bg-disabled text-disabled',
       },
       readOnly: {
-        true: 'cursor-default border-transparent bg-disabled text-disabled',
+        true: 'cursor-default outline-transparent bg-disabled text-disabled',
+      },
+      error: {
+        true: 'outline-error',
       },
     },
     defaultVariants: {
@@ -70,23 +73,23 @@ export function Input({
       ) : null}
       <div
         className={cn(
-          'table px-2 w-full rounded-xl overflow-hidden',
-          'border-2 outline-transparent focus-within:border-focus',
+          inputVariants({ disabled, readOnly, error: !!errorMessage }),
           wrapperClassName,
         )}
       >
         {leadingAddOn ? (
-          <InputAddon type="leading" inputRef={ref}>
-            {leadingAddOn}
-          </InputAddon>
+          <InputAddon inputRef={ref}>{leadingAddOn}</InputAddon>
         ) : null}
         <input
           id={id}
           ref={ref}
           type={type}
           className={cn(
-            inputVariants({ disabled, readOnly }),
-            errorMessage && 'border-error',
+            'border-none focus:border-none focus:ring-0 focus:outline-none',
+            'table-cell w-full py-4 text-base',
+            'text-inherit bg-inherit',
+            'placeholder:text-disabled',
+            leadingAddOn ? 'px-0' : 'px-4',
             className,
           )}
           disabled={disabled}
@@ -97,9 +100,7 @@ export function Input({
           {...props}
         />
         {trailingAddOn ? (
-          <InputAddon type="trailing" inputRef={ref}>
-            {trailingAddOn}
-          </InputAddon>
+          <InputAddon inputRef={ref}>{trailingAddOn}</InputAddon>
         ) : null}
       </div>
       {errorMessage && (
@@ -111,22 +112,16 @@ export function Input({
 
 function InputAddon({
   children,
-  className = '',
-  type,
   inputRef,
-}: {
-  children: React.ReactNode;
-  type: 'leading' | 'trailing';
-  className?: string;
+}: React.PropsWithChildren<{
   inputRef?: React.RefObject<HTMLInputElement | null>;
-}) {
+}>) {
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: only need to handle click on prefix/suffix to trigger input focus
     <div
       className={cn(
         'whitespace-nowrap table-cell align-middle select-none w-[1%]',
-        'text-sm font-medium p-1 cursor-text',
-        className,
+        'text-sm font-medium cursor-text px-2',
       )}
       onClick={() => inputRef?.current?.focus()}
     >

@@ -1,7 +1,12 @@
 import React from 'react';
 import { Input } from './ui/Input';
 import type { WalletAddress } from '@interledger/open-payments';
-import { formatNumber, formatCurrency, getCurrencySymbol } from '../lib/utils';
+import {
+  formatNumber,
+  formatCurrency,
+  getCurrencySymbol,
+  cn,
+} from '../lib/utils';
 import { errorWithKey, type ErrorWithKeyLike } from '@/shared/helpers';
 import { useLongPress, useThrottle } from '@/pages/shared/lib/hooks';
 
@@ -11,10 +16,9 @@ interface Props {
   description?: string | React.ReactNode;
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>;
   amount: string;
-  onChange: (amount: string, inputEl: HTMLInputElement) => void;
-  onError: (error: ErrorWithKeyLike) => void;
+  onChange?: (amount: string, inputEl: HTMLInputElement) => void;
+  onError?: (error: ErrorWithKeyLike) => void;
   className?: string;
-  wrapperClassName?: string;
   placeholder?: string;
   errorMessage?: string;
   readOnly?: boolean;
@@ -30,8 +34,7 @@ export const InputAmount = ({
   id,
   walletAddress,
   amount,
-  className,
-  wrapperClassName,
+  className: wrapperClassName,
   placeholder,
   errorMessage,
   onChange,
@@ -59,14 +62,14 @@ export const InputAmount = ({
     (value: string, skipSetValue = false) => {
       const error = validateAmount(value, walletAddress, min, max);
       if (error) {
-        onError(error);
+        onError?.(error);
       } else {
         const input = inputRef.current!;
         const formattedValue = formatAmount(+value);
         if (!skipSetValue) {
           input.value = formattedValue;
         }
-        onChange(formattedValue, input);
+        onChange?.(formattedValue, input);
       }
     },
     [walletAddress, onChange, onError, formatAmount, min, max],
@@ -130,14 +133,16 @@ export const InputAmount = ({
       aria-label={labelHidden && typeof label === 'string' ? label : undefined}
       description={description}
       placeholder={placeholder}
-      className="max-w-32"
       wrapperClassName={wrapperClassName}
       defaultValue={amount}
       readOnly={readOnly}
       leadingAddOn={
         <span
-          className="overflow-hidden block text-ellipsis text-weak whitespace-nowrap"
-          style={{ maxWidth: '7ch' }}
+          className={cn(
+            'overflow-hidden block text-ellipsis text-weak whitespace-nowrap',
+            walletAddress.assetCode.length !== 3 && 'font-normal font-mono',
+          )}
+          style={{ maxWidth: '6ch', paddingLeft: '1ch' }}
           title={`Currency: ${walletAddress.assetCode.toUpperCase()}`}
         >
           {currencySymbol}

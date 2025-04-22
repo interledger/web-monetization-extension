@@ -378,6 +378,7 @@ export const ConnectWalletForm = ({
             label={t('connectWallet_label_amount')}
             labelHidden={true}
             amount={amount}
+            className="max-w-48"
             walletAddress={
               walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
             }

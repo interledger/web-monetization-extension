@@ -40,6 +40,12 @@ module.exports = {
         'disabled-hover': 'rgb(var(--bg-disabled-base-hover) / <alpha-value>)',
         'disabled-strong': 'rgb(var(--bg-disabled-strong) / <alpha-value>)',
       },
+      outlineColor: {
+        base: 'rgb(var(--border-base) / <alpha-value>)',
+        popup: 'rgb(var(--border-popup) / <alpha-value>)',
+        focus: 'rgb(var(--border-focus) / <alpha-value>)',
+        error: 'rgb(var(--border-error) / <alpha-value>)',
+      },
       borderColor: {
         base: 'rgb(var(--border-base) / <alpha-value>)',
         popup: 'rgb(var(--border-popup) / <alpha-value>)',

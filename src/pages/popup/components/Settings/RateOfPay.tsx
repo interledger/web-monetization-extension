@@ -117,7 +117,6 @@ const RateOfPayInput = ({
       <InputAmount
         id="rateOfPay"
         className="max-w-56"
-        wrapperClassName="w-fit"
         label="Rate of pay per hour"
         walletAddress={walletAddress}
         onChange={(value) => {
