@@ -80,7 +80,7 @@
     "prettier": "^3.5.3",
     "react-scan": "^0.3.3",
     "sade": "^1.8.1",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.1.4",
     "tinyspy": "^4.0.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
