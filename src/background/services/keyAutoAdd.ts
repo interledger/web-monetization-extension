@@ -268,6 +268,18 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
     js: ['content/keyAutoAdd/gatehub.js'],
     persistAcrossSessions: false,
   },
+  {
+    id: 'keyAutoAdd/mmaon/sandbox',
+    matches: ['https://staging.mmaon.com/*'],
+    js: ['content/keyAutoAdd/mmaon.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/mmaon/prod',
+    matches: ['https://mmaon.com/*'],
+    js: ['content/keyAutoAdd/mmaon.js'],
+    persistAcrossSessions: false,
+  },
 ];
 
 function walletAddressToProvider(walletAddress: WalletAddress): string {
@@ -287,9 +299,13 @@ function walletAddressToProvider(walletAddress: WalletAddress): string {
     case 'ilp.chimoney.com':
       return 'https://dash.chimoney.io/interledger';
     case 'ilp.sandbox.gatehub.net':
-      return 'https://wallet.sandbox.gatehub.net/#/wallets/';
+      return walletAddress.assetCode === 'MMAON'
+        ? 'https://staging.mmaon.com/wallet/dashboard'
+        : 'https://wallet.sandbox.gatehub.net/#/wallets/';
     case 'ilp.gatehub.net':
       return 'https://wallet.gatehub.net/#/wallets/';
+    case 'tbd.mmaon.com': // TODO
+      return 'https://www.mmaon.com/wallet/dashboard';
     default:
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
