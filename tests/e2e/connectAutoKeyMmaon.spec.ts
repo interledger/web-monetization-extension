@@ -27,8 +27,6 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
     'Missing credentials',
   );
 
-  test.slow(true, 'Some pages load slow');
-
   const walletURL = new URL(walletUrl);
   const { keyId: kid } = await getStorage(background, ['keyId']);
 
