@@ -23,12 +23,12 @@ describe('Input', () => {
     expect(queryByLabelText('test input')).not.toBeDisabled();
   });
 
-  it('should have the `outline-base` class by default', () => {
+  it('should have the `border-base` class by default', () => {
     const { queryByLabelText } = render(<Input aria-label="test input" />);
 
     const input = queryByLabelText('test input')!;
     expect(input).toBeInTheDocument();
-    expect(input.closest('div')).toHaveClass('outline-base');
+    expect(input.closest('div')).toHaveClass('border-base');
   });
 
   it('should display `leadingAddOn`', () => {
@@ -53,7 +53,7 @@ describe('Input', () => {
     expect(input.previousElementSibling).toBeNull();
   });
 
-  it('should have the `bg-disabled` and `outline-transparent` classes when the `disabled` variant is passed', () => {
+  it('should have the `bg-disabled` and `border-transparent` classes when the `disabled` variant is passed', () => {
     const { queryByLabelText } = render(
       <Input aria-label="test input" disabled />,
     );
@@ -62,7 +62,7 @@ describe('Input', () => {
     expect(input).toBeInTheDocument();
     const wrapper = input.closest('div');
     expect(wrapper).toHaveClass('bg-disabled');
-    expect(wrapper).toHaveClass('outline-transparent');
+    expect(wrapper).toHaveClass('border-transparent');
   });
 
   it('should have the `aria-invalid` and `aria-describedby` attributes if errorMessage is present', () => {
