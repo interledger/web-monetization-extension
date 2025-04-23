@@ -6,23 +6,23 @@ import { Label } from '@/pages/shared/components/ui/Label';
 const inputVariants = cva(
   [
     'table w-full rounded-xl overflow-hidden',
-    'shadow-transparent focus-within:shadow-focus',
+    'border border-2 border-transparent focus-within:border-focus',
     'text-medium',
   ],
 
   {
     variants: {
       variant: {
-        default: 'shadow-base text-medium',
+        default: 'border-base text-medium',
       },
       disabled: {
-        true: 'cursor-default shadow-transparent bg-disabled text-disabled',
+        true: 'cursor-default border-transparent bg-disabled text-disabled',
       },
       readOnly: {
-        true: 'cursor-default shadow-transparent bg-disabled text-disabled',
+        true: 'cursor-default border-transparent bg-disabled text-disabled',
       },
       error: {
-        true: 'shadow-error',
+        true: 'border-error',
       },
     },
     defaultVariants: {
@@ -76,12 +76,6 @@ export function Input({
           inputVariants({ disabled, readOnly, error: !!errorMessage }),
           wrapperClassName,
         )}
-        style={{
-          // We use shadow instead of outline as border-radius doesn't work with
-          // outline in Firefox/Safari. And if we use a border with
-          // border-radius, it takes space (changes size).
-          boxShadow: '0 0 0 2px var(--tw-shadow-color, transparent)',
-        }}
       >
         {leadingAddOn ? (
           <InputAddon inputRef={ref}>{leadingAddOn}</InputAddon>
