@@ -26,26 +26,31 @@ describe('Input', () => {
   it('should have the `border-base` class by default', () => {
     const { queryByLabelText } = render(<Input aria-label="test input" />);
 
-    expect(queryByLabelText('test input')).toBeInTheDocument();
-    expect(queryByLabelText('test input')).toHaveClass('border-base');
+    const input = queryByLabelText('test input')!;
+    expect(input).toBeInTheDocument();
+    expect(input.closest('div')).toHaveClass('border-base');
   });
 
-  it('should have the `pl-10` class when the `leadingAddOn` variant is passed', () => {
+  it('should display `leadingAddOn`', () => {
     const { queryByLabelText } = render(
       <Input aria-label="test input" leadingAddOn="$" />,
     );
 
-    expect(queryByLabelText('test input')).toBeInTheDocument();
-    expect(queryByLabelText('test input')).toHaveClass('pl-10');
+    const input = queryByLabelText('test input')!;
+    expect(input).toBeInTheDocument();
+    expect(input.previousElementSibling).toHaveTextContent('$');
+    expect(input.nextElementSibling).toBeNull();
   });
 
-  it('should have the `pr-10` class when the `trailingAddon` variant is passed', () => {
+  it('should display the `trailingAddon`', () => {
     const { queryByLabelText } = render(
       <Input aria-label="test input" trailingAddOn="$" />,
     );
 
-    expect(queryByLabelText('test input')).toBeInTheDocument();
-    expect(queryByLabelText('test input')).toHaveClass('pr-10');
+    const input = queryByLabelText('test input')!;
+    expect(input).toBeInTheDocument();
+    expect(input.nextElementSibling).toHaveTextContent('$');
+    expect(input.previousElementSibling).toBeNull();
   });
 
   it('should have the `bg-disabled` and `border-transparent` classes when the `disabled` variant is passed', () => {
@@ -53,9 +58,11 @@ describe('Input', () => {
       <Input aria-label="test input" disabled />,
     );
 
-    expect(queryByLabelText('test input')).toBeInTheDocument();
-    expect(queryByLabelText('test input')).toHaveClass('bg-disabled');
-    expect(queryByLabelText('test input')).toHaveClass('border-transparent');
+    const input = queryByLabelText('test input')!;
+    expect(input).toBeInTheDocument();
+    const wrapper = input.closest('div');
+    expect(wrapper).toHaveClass('bg-disabled');
+    expect(wrapper).toHaveClass('border-transparent');
   });
 
   it('should have the `aria-invalid` and `aria-describedby` attributes if errorMessage is present', () => {

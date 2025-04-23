@@ -1,5 +1,4 @@
 import React from 'react';
-import { Input } from '@/pages/shared/components/ui/Input';
 import { Switch } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
@@ -9,7 +8,6 @@ import {
   getNextOccurrence,
   transformBalance,
 } from '@/shared/helpers';
-import { getCurrencySymbol } from '@/pages/shared/lib/utils';
 import { useMessage, useTranslation } from '@/popup/lib/context';
 import type { Response, UpdateBudgetPayload } from '@/shared/messages';
 import type { PopupState } from '@/popup/lib/store';
@@ -216,16 +214,15 @@ const RemainingBalance = ({
   const amount = transformBalance(balance, walletAddress.assetScale);
   return (
     <div className="space-y-2">
-      <Input
+      <InputAmount
+        id="remainingBalance"
+        onChange={() => {}}
+        onError={() => {}}
         label="Remaining balance"
         className="max-w-56"
-        leadingAddOn={
-          <span className="text-weak">
-            {getCurrencySymbol(walletAddress.assetCode)}
-          </span>
-        }
-        value={amount}
-        disabled={true}
+        walletAddress={walletAddress}
+        amount={amount}
+        readOnly={true}
       />
     </div>
   );

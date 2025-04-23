@@ -378,6 +378,7 @@ export const ConnectWalletForm = ({
             label={t('connectWallet_label_amount')}
             labelHidden={true}
             amount={amount}
+            className="max-w-48"
             walletAddress={
               walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
             }
@@ -388,7 +389,6 @@ export const ConnectWalletForm = ({
               setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
             onChange={handleAmountChange}
-            className="max-w-32"
             placeholder="5.00"
           />
 
