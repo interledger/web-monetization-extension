@@ -6,23 +6,23 @@ import { Label } from '@/pages/shared/components/ui/Label';
 const inputVariants = cva(
   [
     'table w-full rounded-xl overflow-hidden',
-    'outline outline-2 -outline-offset-2 outline-transparent focus-within:outline-focus',
+    'shadow-transparent focus-within:shadow-focus',
     'text-medium',
   ],
 
   {
     variants: {
       variant: {
-        default: 'outline-base text-medium',
+        default: 'shadow-base text-medium',
       },
       disabled: {
-        true: 'cursor-default outline-transparent bg-disabled text-disabled',
+        true: 'cursor-default shadow-transparent bg-disabled text-disabled',
       },
       readOnly: {
-        true: 'cursor-default outline-transparent bg-disabled text-disabled',
+        true: 'cursor-default shadow-transparent bg-disabled text-disabled',
       },
       error: {
-        true: 'outline-error',
+        true: 'shadow-error',
       },
     },
     defaultVariants: {
@@ -76,6 +76,12 @@ export function Input({
           inputVariants({ disabled, readOnly, error: !!errorMessage }),
           wrapperClassName,
         )}
+        style={{
+          // We use shadow instead of outline as border-radius doesn't work with
+          // outline in Firefox/Safari. And if we use a border with
+          // border-radius, it takes space (changes size).
+          boxShadow: '0 0 0 2px var(--tw-shadow-color, transparent)',
+        }}
       >
         {leadingAddOn ? (
           <InputAddon inputRef={ref}>{leadingAddOn}</InputAddon>
@@ -86,7 +92,7 @@ export function Input({
           type={type}
           className={cn(
             'border-none focus:border-none focus:ring-0 focus:outline-none',
-            'table-cell w-full py-4 text-base',
+            'table-cell w-full py-3.5 text-base',
             'text-inherit bg-inherit',
             'placeholder:text-disabled',
             leadingAddOn ? 'px-0' : 'px-4',
