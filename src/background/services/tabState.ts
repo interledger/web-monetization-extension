@@ -4,8 +4,11 @@ import type { PopupTabInfo, TabId } from '@/shared/types';
 import type { PaymentSession } from './paymentSession';
 import type { Cradle } from '@/background/container';
 import { removeQueryParams } from '@/shared/helpers';
-import { ALLOWED_PROTOCOLS } from '@/shared/defines';
-import { isBrowserInternalPage, isBrowserNewTabPage } from '@/background/utils';
+import {
+  isBrowserInternalPage,
+  isBrowserNewTabPage,
+  isSecureContext,
+} from '@/background/utils';
 
 type State = {
   monetizationEvent: MonetizationEventDetails;
@@ -137,7 +140,7 @@ export class TabState {
     }
 
     let url = '';
-    if (tabUrl && ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
+    if (tabUrl && isSecureContext(tabUrl)) {
       // Do not include search params
       url = removeQueryParams(tabUrl.href);
     }
@@ -145,7 +148,7 @@ export class TabState {
     let status: PopupTabInfo['status'] = 'no_monetization_links';
     if (!tabUrl) {
       status = 'unsupported_scheme';
-    } else if (!ALLOWED_PROTOCOLS.includes(tabUrl.protocol)) {
+    } else if (!isSecureContext(tabUrl)) {
       if (tabUrl && isBrowserInternalPage(tabUrl)) {
         if (isBrowserNewTabPage(tabUrl)) {
           status = 'new_tab';
