@@ -28,7 +28,7 @@ const ARTIFACTS_DATA = {
  */
 function getBadge(conclusion, badgeColor, badgeLabel) {
   const url = new URL(
-    `/badge/${conclusion}-${badgeColor}`,
+    `/badge/${conclusion}-${COLORS[badgeColor]}`,
     'https://img.shields.io',
   );
   url.searchParams.set('style', 'for-the-badge');
