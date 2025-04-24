@@ -215,6 +215,18 @@ export const isBrowserNewTabPage = (url: URL) => {
   return NEW_TAB_PAGES.some((e) => url.href.startsWith(e));
 };
 
+export function isSecureContext(url: string | URL) {
+  const { hostname, protocol } = new URL(url);
+  if (protocol === 'https:') return true;
+  return (
+    hostname === 'localhost' ||
+    // Let localhost be localhost
+    hostname.endsWith('.localhost') ||
+    // even though it's 127.0.0.0/8, 127.0.0.1 should be ok as most common case
+    hostname === '127.0.0.1'
+  );
+}
+
 export const computeRate = (rate: string, sessionsCount: number): AmountValue =>
   (BigInt(rate) / BigInt(sessionsCount)).toString();
 

@@ -110,7 +110,6 @@ function processManifestPlugin({
   outDir,
   target,
   channel,
-  dev,
 }: BuildArgs & { outDir: string }): ESBuildPlugin {
   return {
     name: 'process-manifest',
@@ -144,20 +143,6 @@ function processManifestPlugin({
           json.name = `${json.name} Preview`;
         } else if (channel === 'nightly') {
           json.name = `${json.name} Nightly`;
-        }
-
-        if (dev) {
-          if (
-            json.host_permissions &&
-            !json.host_permissions.includes('http://*/*')
-          ) {
-            json.host_permissions.push('http://*/*');
-          }
-          for (const contentScript of json.content_scripts ?? []) {
-            if (!contentScript.matches.includes('http://*/*')) {
-              contentScript.matches.push('http://*/*');
-            }
-          }
         }
 
         if (target === 'firefox') {

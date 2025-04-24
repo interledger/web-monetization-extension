@@ -1,5 +1,9 @@
 /// <reference types="jest-expect-message" />
-import { convertWithExchangeRate, getNextSendableAmount } from './utils';
+import {
+  convertWithExchangeRate,
+  getNextSendableAmount,
+  isSecureContext,
+} from './utils';
 
 // same as BuiltinIterator.take(n)
 function take<T>(iter: IterableIterator<T>, n: number) {
@@ -220,5 +224,37 @@ describe('convertWithExchangeRate', () => {
         `input: ${input} ${from.assetCode}, expected: ${expected} ${to.assetCode}`,
       ).toBe(expected);
     }
+  });
+});
+
+describe('isSecureContext', () => {
+  it('returns true for https:// URLs', () => {
+    expect(isSecureContext('https://example.com')).toBe(true);
+    expect(isSecureContext('https://example.com/foo')).toBe(true);
+
+    expect(isSecureContext('https://localhost')).toBe(true);
+    expect(isSecureContext('https://localhost:4000')).toBe(true);
+
+    expect(isSecureContext('https://127.0.0.1')).toBe(true);
+    expect(isSecureContext('https://127.0.0.1:3000')).toBe(true);
+  });
+
+  it('returns true for localhost URLs', () => {
+    expect(isSecureContext('http://localhost')).toBe(true);
+    expect(isSecureContext('http://localhost:4000')).toBe(true);
+    expect(isSecureContext('http://example.localhost')).toBe(true);
+    expect(isSecureContext('http://example.localhost:5000')).toBe(true);
+
+    expect(isSecureContext('http://127.0.0.1:3000')).toBe(true);
+    expect(isSecureContext('http://127.0.0.1')).toBe(true);
+  });
+
+  it('returns false for everything else', () => {
+    expect(isSecureContext('http://example.com')).toBe(false);
+    expect(isSecureContext('http://example.com/foo')).toBe(false);
+
+    // Not supported for our use case
+    expect(isSecureContext('wss://example.com')).toBe(false);
+    expect(isSecureContext('file:///users/sid')).toBe(false);
   });
 });

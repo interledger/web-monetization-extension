@@ -1,6 +1,6 @@
 // @ts-check
 const fs = require('node:fs/promises');
-const { COLORS, TEMPLATE_VARS, BADGE } = require('./constants.cjs');
+const { COLORS, TEMPLATE_VARS } = require('./constants.cjs');
 
 /**
  * @typedef {import('./constants.cjs').Browser} Browser
@@ -21,14 +21,19 @@ const ARTIFACTS_DATA = {
 };
 
 /**
- * @param {string} conclusion
- * @param {string} badgeColor
+ * @param {'failure' | 'success'} conclusion
+ * @param {keyof typeof COLORS} badgeColor
  * @param {string} badgeLabel
+ * @returns {string} HTML for badge image
  */
 function getBadge(conclusion, badgeColor, badgeLabel) {
-  return BADGE.replace(TEMPLATE_VARS.conclusion, conclusion)
-    .replace(TEMPLATE_VARS.badgeColor, badgeColor)
-    .replace(TEMPLATE_VARS.badgeLabel, badgeLabel);
+  const url = new URL(
+    `/badge/${conclusion}-${COLORS[badgeColor]}`,
+    'https://img.shields.io',
+  );
+  url.searchParams.set('style', 'for-the-badge');
+  url.searchParams.set('label', badgeLabel);
+  return `<img src="${url}" alt="${badgeLabel}" />`;
 }
 
 /**
@@ -84,12 +89,12 @@ module.exports = async ({ github, context, core }) => {
   for (const k of Object.keys(ARTIFACTS_DATA)) {
     const { name, url, size } = ARTIFACTS_DATA[/** @type {Browser} */ (k)];
     if (!url && !size) {
-      const badgeUrl = getBadge('failure', COLORS.red, name);
+      const badge = getBadge('failure', 'red', name);
       tableRows.push(
-        `<tr><td align="center">${badgeUrl}</td><td align="center">N/A</td></tr>`,
+        `<tr><td align="center">${badge}</td><td align="center">N/A</td></tr>`,
       );
     } else {
-      const badgeUrl = getBadge('success', COLORS.green, `${name} (${size})`);
+      const badgeUrl = getBadge('success', 'green', `${name} (${size})`);
       tableRows.push(
         `<tr><td align="center">${badgeUrl}</td><td align="center"><a href="${url}">Download</a></td></tr>`,
       );
