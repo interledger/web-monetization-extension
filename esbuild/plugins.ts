@@ -110,7 +110,6 @@ function processManifestPlugin({
   outDir,
   target,
   channel,
-  dev,
 }: BuildArgs & { outDir: string }): ESBuildPlugin {
   return {
     name: 'process-manifest',
