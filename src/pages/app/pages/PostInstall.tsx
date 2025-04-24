@@ -95,7 +95,7 @@ const WALLETS: Array<WalletOption> = [
   {
     id: 'gatehub',
     name: 'GateHub Wallet',
-    url: '', // empty URL to ignore it from listing
+    url: 'https://gatehub.net/',
     logo: {
       src: '/assets/images/logos/gatehub-logo.svg',
       width: 300,
@@ -106,7 +106,7 @@ const WALLETS: Array<WalletOption> = [
       width: 1829,
       height: 984,
     },
-    walletAddressPlaceholder: '$ilp.gatehub.net/150012570/USD',
+    walletAddressPlaceholder: '$ilp.gatehub.net/150012570/usd',
   },
   {
     id: 'chimoney',
