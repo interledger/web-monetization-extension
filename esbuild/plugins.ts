@@ -146,20 +146,6 @@ function processManifestPlugin({
           json.name = `${json.name} Nightly`;
         }
 
-        if (dev) {
-          if (
-            json.host_permissions &&
-            !json.host_permissions.includes('http://*/*')
-          ) {
-            json.host_permissions.push('http://*/*');
-          }
-          for (const contentScript of json.content_scripts ?? []) {
-            if (!contentScript.matches.includes('http://*/*')) {
-              contentScript.matches.push('http://*/*');
-            }
-          }
-        }
-
         if (target === 'firefox') {
           json.background = {
             scripts: [json.background.service_worker!],

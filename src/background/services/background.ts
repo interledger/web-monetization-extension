@@ -9,7 +9,6 @@ import {
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
 import { getTab } from '@/background/utils';
-import { PERMISSION_HOSTS } from '@/shared/defines';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
 import type { AppStore } from '@/shared/types';
@@ -91,7 +90,7 @@ export class Background {
           id: 'polyfill',
           allFrames: true,
           js: ['polyfill/polyfill.js'],
-          matches: PERMISSION_HOSTS.origins,
+          matches: this.browser.runtime.getManifest().host_permissions,
           runAt: 'document_start',
         },
       ]);
@@ -400,8 +399,9 @@ export class Background {
   checkPermissions = async () => {
     try {
       this.logger.debug('checking hosts permission');
-      const hasPermissions =
-        await this.browser.permissions.contains(PERMISSION_HOSTS);
+      const hasPermissions = await this.browser.permissions.contains({
+        origins: this.browser.runtime.getManifest().host_permissions,
+      });
       this.storage.setState({ missing_host_permissions: !hasPermissions });
     } catch (error) {
       this.logger.error(error);

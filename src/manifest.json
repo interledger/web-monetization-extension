@@ -13,7 +13,7 @@
   "default_locale": "en",
   "content_scripts": [
     {
-      "matches": ["https://*/*"],
+      "matches": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
       "js": ["content/content.js"],
       "run_at": "document_start",
       "all_frames": true
@@ -40,7 +40,11 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
-  "host_permissions": ["https://*/*"],
+  "host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
   "browser_specific_settings": {
     "gecko": {
       "strict_min_version": "110.0",
