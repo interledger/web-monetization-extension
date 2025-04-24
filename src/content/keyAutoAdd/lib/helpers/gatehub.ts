@@ -21,7 +21,7 @@ export const getAuthToken = async (): Promise<string> => {
 /**
  * @example
  * ```ts
- * walletAddressUrlToId('https://ilp.*.gatehub.net/150012576/USD')
+ * walletAddressUrlToId('https://ilp.*.gatehub.net/150012576/usd')
  *  // "150012576"
  * ```
  */
