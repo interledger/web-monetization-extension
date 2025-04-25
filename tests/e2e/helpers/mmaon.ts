@@ -14,7 +14,7 @@ export async function revokeKey(page: Page, revokeInfo: { keyId: string }) {
   await page.goto(URLS.keyPage);
 
   return await page.evaluate(async (revokeInfo) => {
-    const res = await fetch('/api/open-payments/revoke-key', {
+    const res = await fetch('/api/open-payments/revoke-keys', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'include',
@@ -40,7 +40,7 @@ export async function login(
   page: Page,
   { username, password }: { username: string; password: string },
 ) {
-  await page.getByLabel('Email').fill(username);
+  await page.getByLabel('Email Address').fill(username);
   await page.getByLabel('Password').fill(password);
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await page.getByRole('button', { name: 'Log On', exact: true }).click();
 }

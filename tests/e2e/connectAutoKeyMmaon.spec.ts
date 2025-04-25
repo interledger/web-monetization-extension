@@ -33,7 +33,7 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
   const connectButton = await test.step('fill popup', async () => {
     const connectButton = await fillPopup(popup, i18n, {
       walletAddressUrl,
-      amount: '10',
+      amount: '100',
       recurring: false,
     });
     return connectButton;
@@ -79,14 +79,9 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
     await openedPage.waitForURL((url) => url.href === URLS.loginFull);
     await login(openedPage, { username, password });
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.keyPage));
-    // await expect(openedPage.locator('h5')).toHaveText(
-    //   'Interledger Wallet Address Info',
-    // );
-
     return openedPage;
   });
 
-  // TODO
   const revokeInfo = await test.step('adds key to wallet', async () => {
     const { resolve, reject, promise } = withResolvers<{ keyId: string }>();
     page.on('requestfinished', async function intercept(req) {
@@ -112,7 +107,7 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
       }
     });
 
-    await expect(promise).resolves.toEqual({
+    await expect(promise).resolves.toMatchObject({
       keyId: expect.any(String),
     });
 
