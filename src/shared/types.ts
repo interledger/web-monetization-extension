@@ -1,4 +1,4 @@
-import type { WalletAddress } from '@interledger/open-payments/dist/types';
+import type { WalletAddress } from '@interledger/open-payments';
 import type { Tabs } from 'webextension-polyfill';
 import type { ErrorWithKeyLike } from './helpers';
 
@@ -40,6 +40,16 @@ export interface RecurringGrant extends GrantDetailsBase {
 }
 export type GrantDetails = OneTimeGrant | RecurringGrant;
 
+export type WalletInfo = WalletAddress & {
+  /**
+   * The (normalized) wallet URL provided by user. Sometimes, wallets URLs have
+   * redirects, and in those cases, we want to preserve what user has provided.
+   *
+   * @since Available only if wallet connected after this feature was released.
+   */
+  url?: string;
+};
+
 export type ExtensionState =
   | never // just added for code formatting
   /** Extension can't inject scripts and fetch resources from all hosts */
@@ -70,7 +80,7 @@ export interface Storage {
   maxRateOfPay?: string | undefined | null;
 
   /** User wallet address information */
-  walletAddress?: WalletAddress | undefined | null;
+  walletAddress?: WalletInfo | undefined | null;
 
   recurringGrant?: RecurringGrant | undefined | null;
   recurringGrantSpentAmount?: AmountValue | undefined | null;
