@@ -26,10 +26,10 @@
     "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
   },
   "dependencies": {
-    "@interledger/open-payments": "^6.14.0",
+    "@interledger/open-payments": "^7.0.0",
     "@noble/ed25519": "^2.2.3",
     "@noble/hashes": "^1.8.0",
-    "@radix-ui/react-tabs": "^1.1.4",
+    "@radix-ui/react-tabs": "^1.1.9",
     "awilix": "^12.0.5",
     "class-variance-authority": "^0.7.1",
     "crypto-browserify": "^3.12.1",
@@ -55,7 +55,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/archiver": "^6.0.3",
-    "@types/chrome": "^0.0.315",
+    "@types/chrome": "^0.0.317",
     "@types/github-script": "github:actions/github-script",
     "@types/jest": "^29.5.14",
     "@types/jsdom": "^21.1.7",
@@ -66,7 +66,7 @@
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.21",
     "dotenv": "^16.5.0",
-    "esbuild": "^0.25.2",
+    "esbuild": "^0.25.3",
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-style-plugin": "^1.6.3",
@@ -81,12 +81,12 @@
     "react-scan": "^0.3.3",
     "sade": "^1.8.1",
     "tailwindcss": "^3.4.17",
-    "tinyspy": "^4.0.2",
-    "tsx": "^4.19.3",
+    "tinyspy": "^4.0.3",
+    "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
   "engines": {
-    "pnpm": "^9.15.4",
+    "pnpm": "^10.10.0",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "^20.18.2"
@@ -101,5 +101,5 @@
     }
   },
   "type": "module",
-  "packageManager": "pnpm@9.15.4"
+  "packageManager": "pnpm@10.10.0"
 }
