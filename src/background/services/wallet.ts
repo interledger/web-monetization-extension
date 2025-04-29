@@ -203,7 +203,7 @@ export class WalletService {
     }
 
     await this.storage.set({
-      walletAddress,
+      walletAddress: { url: walletAddressUrl, ...walletAddress },
       rateOfPay,
       minRateOfPay,
       maxRateOfPay,
