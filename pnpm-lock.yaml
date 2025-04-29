@@ -176,8 +176,8 @@ importers:
         specifier: ^3.4.17
         version: 3.4.17(ts-node@10.9.2(@types/node@22.14.1)(typescript@5.8.3))
       tinyspy:
-        specifier: ^4.0.2
-        version: 4.0.2
+        specifier: ^4.0.3
+        version: 4.0.3
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -3387,8 +3387,8 @@ packages:
   thread-stream@2.4.1:
     resolution: {integrity: sha512-d/Ex2iWd1whipbT681JmTINKw0ZwOUBZm7+Gjs64DHuX34mmw8vJL2bFAaNacaW72zYiTJxSHi5abUuOi5nsfg==}
 
-  tinyspy@4.0.2:
-    resolution: {integrity: sha512-1gniIIoDOAivEwCUNJI1Vz0y47HfxLlVJLYAi3TtDvu0PIxeV6tICaJPiZFUxc/0RoohyECxSwLHvnBDBIhDdw==}
+  tinyspy@4.0.3:
+    resolution: {integrity: sha512-t2T/WLB2WRgZ9EpE4jgPJ9w+i66UZfDc8wHh0xrwiRNN+UwH98GIJkTeZqX9rg0i0ptwzqW+uYeIF0T4F8LR7A==}
     engines: {node: '>=14.0.0'}
 
   tldts-core@6.1.78:
@@ -7226,7 +7226,7 @@ snapshots:
     dependencies:
       real-require: 0.2.0
 
-  tinyspy@4.0.2: {}
+  tinyspy@4.0.3: {}
 
   tldts-core@6.1.78: {}
 
