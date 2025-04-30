@@ -161,7 +161,7 @@ export class MonetizationLinkManager {
   };
 
   private getMonetizationLinkTags(): Set<HTMLLinkElement> {
-    const root = this.isTopFrame ? this.document : this.document.head;
+    const root = this.document;
     return new Set(
       root.querySelectorAll<HTMLLinkElement>('link[rel="monetization"]'),
     );

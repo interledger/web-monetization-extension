@@ -562,11 +562,13 @@ describe('monetization in main frame', () => {
 });
 
 describe('monetization in first level iframe', () => {
-  test('detects monetization links in head', async () => {
+  test('detects monetization links', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
         <link rel="monetization" href="${WALLET_ADDRESS[2]}" disabled>
+      `,
+      body: html`
         <link rel="monetization" href="${WALLET_ADDRESS[1]}">
       `,
     });
@@ -645,36 +647,13 @@ describe('monetization in first level iframe', () => {
     ]);
   });
 
-  test('ignores monetization links in body', async () => {
-    const { document, postMessage } = createTestEnvWithIframe({
-      body: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-
-    linkManager.start();
-    await nextTick();
-
-    expect(postMessage).toHaveBeenCalledTimes(1);
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'INITIALIZE_IFRAME' }),
-      '*',
-    );
-
-    expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
-    expect(postMessage).not.toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'IS_MONETIZATION_ALLOWED_ON_START' }),
-    );
-    expect(msg.START_MONETIZATION).not.toHaveBeenCalled();
-  });
-
   test('accepts dynamically added monetization link', async () => {
     const { document, postMessage, dispatchMessage } =
       createTestEnvWithIframe();
     using linkManager = createMonetizationLinkManager(document);
 
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValue(success(WALLET_INFO[1]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
     const iframeId = 'uuid-iframe-0';
 
     linkManager.start();
@@ -689,22 +668,17 @@ describe('monetization in first level iframe', () => {
       '*',
     );
 
-    // append body - should be ignored in iframe
-    const wrapper1 = document.createElement('div');
-    wrapper1.innerHTML = `<link rel="monetization" href="${WALLET_ADDRESS[0]}">`;
-    document.body.appendChild(wrapper1);
+    const wrapper = document.createElement('div');
+    wrapper.append(createLink(document, WALLET_ADDRESS[1]));
+    document.head.appendChild(createLink(document, WALLET_ADDRESS[0]));
+    document.body.appendChild(wrapper);
     await nextTick();
 
-    expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
-
-    // append head - should be processed in iframe
-    const wrapper2 = document.createElement('div');
-    wrapper2.innerHTML = `<link rel="monetization" href="${WALLET_ADDRESS[1]}">`;
-    document.head.appendChild(wrapper2);
-    await nextTick();
-
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(1, {
+      walletAddressUrl: WALLET_ADDRESS[0],
+    });
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
       walletAddressUrl: WALLET_ADDRESS[1],
     });
 
@@ -713,7 +687,8 @@ describe('monetization in first level iframe', () => {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
         payload: [
-          { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[1] },
+          { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] },
+          { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
         ],
       },
       '*',
@@ -722,12 +697,16 @@ describe('monetization in first level iframe', () => {
     dispatchMessage({
       message: 'START_MONETIZATION',
       id: iframeId,
-      payload: [{ requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[1] }],
+      payload: [
+        { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] },
+        { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
+      ],
     });
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[1] },
+      { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
     ]);
   });
 
