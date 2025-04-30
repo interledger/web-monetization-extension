@@ -434,7 +434,7 @@ describe('monetization in main frame', () => {
     ]);
 
     // verify that both links are being observed for attribute changes
-    link1.href = 'https://ilp.interledger-test.dev/tech1-updated';
+    link1.href = WALLET_ADDRESS[1];
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
@@ -1291,7 +1291,7 @@ describe('load event dispatching', () => {
       ),
     ).toHaveLength(1);
 
-    link.href = 'https://ilp.interledger-test.dev/tech2';
+    link.href = WALLET_ADDRESS[1];
     await nextTick();
 
     expect(
