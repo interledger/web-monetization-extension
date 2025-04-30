@@ -731,7 +731,7 @@ describe('monetization in first level iframe', () => {
     ]);
   });
 
-  test('stops monetization if first & only first link tag is disabled', async () => {
+  test('stops monetization if only link tag is disabled', async () => {
     const { document, dispatchMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -759,7 +759,7 @@ describe('monetization in first level iframe', () => {
     ]);
   });
 
-  test('monetizes new URL for first tag (if valid)', async () => {
+  test('monetizes new URL for link tag (if valid)', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
