@@ -107,6 +107,12 @@ export class PaymentSession {
     // The amount that needs to be sent every second.
     // In senders asset scale already.
     await this.findMinSendAmount();
+    if (this.rate !== hourlyRate) {
+      throw new DOMException(
+        `Aborting existing probing for rate=${hourlyRate}`,
+        'AbortError',
+      );
+    }
     const amount = bigIntMax(BigInt(this.rate) / 3600n, this.#minSendAmount);
     this.setAmount(amount);
   }

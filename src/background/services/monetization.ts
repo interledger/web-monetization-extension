@@ -561,7 +561,7 @@ export class MonetizationService {
       return true;
     } catch (err) {
       if (err.name === 'AbortError') {
-        this.logger.debug('adjustAmount aborted due to new call');
+        this.logger.debug('setRate aborted due to new call', { err });
         return false;
       } else {
         throw err;
