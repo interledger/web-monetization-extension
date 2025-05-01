@@ -91,40 +91,44 @@ export class MonetizationService {
       );
       return;
     }
-    const { tabId, frameId, url } = getSender(sender);
+
+    const deps = {
+      storage: this.storage,
+      openPaymentsService: this.openPaymentsService,
+      outgoingPaymentGrantService: this.outgoingPaymentGrantService,
+      events: this.events,
+      tabState: this.tabState,
+      logger: this.logger,
+      message: this.message,
+    };
+
+    const { tabId, frameId, url: fullUrl } = getSender(sender);
+    const url = removeQueryParams(fullUrl!);
+
     const sessions = this.tabState.getSessions(tabId);
-
-    const replacedSessions = new Set<string>();
-
+    const existingSessions = new Set<string>();
     // Initialize new sessions
-    for (const p of payload) {
-      const { requestId, walletAddress: receiver } = p;
-
-      // Q: How does this impact client side apps/routing?
+    for (const { requestId, walletAddress: receiver } of payload) {
       const existingSession = sessions.get(requestId);
       if (existingSession) {
         existingSession.stop();
+        existingSession.enable(); // if was disabled earlier
+        existingSessions.add(requestId);
+        // move existing into correct order
         sessions.delete(requestId);
-        replacedSessions.add(requestId);
+        sessions.set(requestId, existingSession);
+      } else {
+        const session = new PaymentSession(
+          receiver,
+          connectedWallet,
+          requestId,
+          tabId,
+          frameId,
+          url,
+          deps,
+        );
+        sessions.set(requestId, session);
       }
-
-      const session = new PaymentSession(
-        receiver,
-        connectedWallet,
-        requestId,
-        tabId,
-        frameId,
-        this.storage,
-        this.openPaymentsService,
-        this.outgoingPaymentGrantService,
-        this.events,
-        this.tabState,
-        removeQueryParams(url!),
-        this.logger,
-        this.message,
-      );
-
-      sessions.set(requestId, session);
     }
 
     this.events.emit('monetization.state_update', tabId);
@@ -144,7 +148,7 @@ export class MonetizationService {
     ) {
       for (const session of sessionsArr) {
         if (!sessions.get(session.id)) continue;
-        const source = replacedSessions.has(session.id)
+        const source = existingSessions.has(session.id)
           ? 'request-id-reused'
           : 'new-link';
         void session.start(source);
@@ -177,17 +181,15 @@ export class MonetizationService {
       return;
     }
 
-    for (const p of payload) {
-      const { requestId } = p;
-
+    for (const { requestId, intent } of payload) {
       const session = sessions.get(requestId);
       if (!session) continue;
 
-      if (p.intent === 'remove') {
+      if (intent === 'remove') {
         needsAdjustAmount = true;
         session.stop();
         sessions.delete(requestId);
-      } else if (p.intent === 'disable') {
+      } else if (intent === 'disable') {
         needsAdjustAmount = true;
         session.disable();
       } else {

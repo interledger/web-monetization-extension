@@ -17,20 +17,11 @@ import {
 } from '@/background/services/openPayments';
 import { bigIntMax, convert, getNextSendableAmount } from '@/background/utils';
 import type {
-  EventsService,
-  OpenPaymentsService,
-  OutgoingPaymentGrantService,
-  StorageService,
-  TabState,
-} from '.';
-import type {
-  BackgroundToContentMessage,
-  MessageManager,
   MonetizationEventDetails,
   MonetizationEventPayload,
 } from '@/shared/messages';
 import type { AmountValue } from '@/shared/types';
-import type { Logger } from '@/shared/logger';
+import type { Cradle as Cradle_ } from '@/background/container';
 import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
   OUTGOING_PAYMENT_POLLING_INTERVAL,
@@ -48,7 +39,26 @@ interface CreateOutgoingPaymentParams {
   amount: string;
 }
 
+type Cradle = Pick<
+  Cradle_,
+  | 'storage'
+  | 'openPaymentsService'
+  | 'outgoingPaymentGrantService'
+  | 'events'
+  | 'tabState'
+  | 'logger'
+  | 'message'
+>;
+
 export class PaymentSession {
+  private storage: Cradle['storage'];
+  private openPaymentsService: Cradle['openPaymentsService'];
+  private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
+  private events: Cradle['events'];
+  private tabState: Cradle['tabState'];
+  private logger: Cradle['logger'];
+  private message: Cradle['message'];
+
   private rate: string;
   private active = false;
   /** Invalid receiver (providers not peered or other reasons) */
@@ -69,15 +79,11 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
-    private storage: StorageService,
-    private openPaymentsService: OpenPaymentsService,
-    private outgoingPaymentGrantService: OutgoingPaymentGrantService,
-    private events: EventsService,
-    private tabState: TabState,
     private url: string,
-    private logger: Logger,
-    private message: MessageManager<BackgroundToContentMessage>,
-  ) {}
+    private deps: Cradle,
+  ) {
+    Object.assign(this, this.deps);
+  }
 
   #adjustAmountLastRate: AmountValue;
   #adjustAmountController = new AbortController();
@@ -209,13 +215,8 @@ export class PaymentSession {
     this.stop();
   }
 
-  /**
-   * there's no enable() as we replace the sessions with new ones when
-   * resume/start or removal of disabled attribute at the moment.
-   * @deprecated
-   */
   enable() {
-    throw new Error('Method not implemented.');
+    this.isDisabled = false;
   }
 
   private markInvalid() {
