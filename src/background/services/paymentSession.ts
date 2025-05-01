@@ -59,7 +59,6 @@ export class PaymentSession {
   private logger: Cradle['logger'];
   private message: Cradle['message'];
 
-  private rate: AmountValue;
   private active = false;
   /** Invalid receiver (providers not peered or other reasons) */
   private isInvalid = false;
@@ -67,6 +66,7 @@ export class PaymentSession {
   private isDisabled = false;
   private incomingPaymentUrl: string;
   private incomingPaymentExpiresAt: number;
+  private rate: AmountValue;
   private amount: AmountValue;
   private intervalInMs: number;
   private shouldRetryImmediately = false;
