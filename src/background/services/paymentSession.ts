@@ -85,8 +85,10 @@ export class PaymentSession {
     Object.assign(this, this.deps);
   }
 
-  #minSendAmount = 0n;
+  // We keep setting #minSendAmount to non-zero values as we probe. Instead of
+  // checking #minSendAmount > 0, use this boolean to know if probing completed.
   #minSendAmountFound = false;
+  #minSendAmount = 0n;
   get minSendAmount(): bigint {
     if (!this.#minSendAmountFound) {
       throw new Error('minSendAmount not figured out yet');
