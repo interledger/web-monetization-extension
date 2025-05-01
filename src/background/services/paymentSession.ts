@@ -17,20 +17,11 @@ import {
 } from '@/background/services/openPayments';
 import { bigIntMax, convert, getNextSendableAmount } from '@/background/utils';
 import type {
-  EventsService,
-  OpenPaymentsService,
-  OutgoingPaymentGrantService,
-  StorageService,
-  TabState,
-} from '.';
-import type {
-  BackgroundToContentMessage,
-  MessageManager,
   MonetizationEventDetails,
   MonetizationEventPayload,
 } from '@/shared/messages';
 import type { AmountValue } from '@/shared/types';
-import type { Logger } from '@/shared/logger';
+import type { Cradle as Cradle_ } from '@/background/container';
 import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
   OUTGOING_PAYMENT_POLLING_INTERVAL,
@@ -47,9 +38,26 @@ interface CreateOutgoingPaymentParams {
   incomingPaymentId: IncomingPayment['id'];
   amount: string;
 }
+type Cradle = Pick<
+  Cradle_,
+  | 'storage'
+  | 'openPaymentsService'
+  | 'outgoingPaymentGrantService'
+  | 'events'
+  | 'tabState'
+  | 'logger'
+  | 'message'
+>;
 
 export class PaymentSession {
-  private rate: string;
+  private storage: Cradle['storage'];
+  private openPaymentsService: Cradle['openPaymentsService'];
+  private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
+  private events: Cradle['events'];
+  private tabState: Cradle['tabState'];
+  private logger: Cradle['logger'];
+  private message: Cradle['message'];
+
   private active = false;
   /** Invalid receiver (providers not peered or other reasons) */
   private isInvalid = false;
@@ -57,7 +65,8 @@ export class PaymentSession {
   private isDisabled = false;
   private incomingPaymentUrl: string;
   private incomingPaymentExpiresAt: number;
-  private amount: string;
+  private rate: AmountValue;
+  private amount: AmountValue;
   private intervalInMs: number;
   private shouldRetryImmediately = false;
 
@@ -69,15 +78,11 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
-    private storage: StorageService,
-    private openPaymentsService: OpenPaymentsService,
-    private outgoingPaymentGrantService: OutgoingPaymentGrantService,
-    private events: EventsService,
-    private tabState: TabState,
     private url: string,
-    private logger: Logger,
-    private message: MessageManager<BackgroundToContentMessage>,
-  ) {}
+    private deps: Cradle,
+  ) {
+    Object.assign(this, this.deps);
+  }
 
   #adjustAmountLastRate: AmountValue;
   #adjustAmountController = new AbortController();
