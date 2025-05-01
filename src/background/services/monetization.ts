@@ -557,7 +557,7 @@ export class MonetizationService {
     rate: AmountValue,
   ): Promise<boolean> {
     try {
-      await Promise.all(sessions.map((session) => session.adjustAmount(rate)));
+      await Promise.all(sessions.map((session) => session.setRate(rate)));
       return true;
     } catch (err) {
       if (err.name === 'AbortError') {

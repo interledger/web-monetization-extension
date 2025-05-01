@@ -59,7 +59,7 @@ export class PaymentSession {
   private logger: Cradle['logger'];
   private message: Cradle['message'];
 
-  private rate: string;
+  private rate: AmountValue;
   private active = false;
   /** Invalid receiver (providers not peered or other reasons) */
   private isInvalid = false;
@@ -67,7 +67,7 @@ export class PaymentSession {
   private isDisabled = false;
   private incomingPaymentUrl: string;
   private incomingPaymentExpiresAt: number;
-  private amount: string;
+  private amount: AmountValue;
   private intervalInMs: number;
   private shouldRetryImmediately = false;
 
@@ -85,56 +85,37 @@ export class PaymentSession {
     Object.assign(this, this.deps);
   }
 
-  #adjustAmountLastRate: AmountValue;
-  #adjustAmountController = new AbortController();
-  #adjustAmountPromise: null | Promise<void> = null;
-  adjustAmount(rate: AmountValue): Promise<void> {
-    if (this.#adjustAmountLastRate && rate !== this.#adjustAmountLastRate) {
-      this.#adjustAmountController.abort(
-        new DOMException(
-          `Aborting existing probing for rate=${this.#adjustAmountLastRate}`,
-          'AbortError',
-        ),
-      );
-      this.#adjustAmountController = new AbortController();
-      this.#adjustAmountPromise = null;
+  #minSendAmount = 0n;
+  #minSendAmountFound = false;
+  get minSendAmount(): bigint {
+    if (!this.#minSendAmountFound) {
+      throw new Error('minSendAmount not figured out yet');
     }
-
-    this.#adjustAmountLastRate = rate;
-    this.#adjustAmountPromise ??= this._adjustAmount(
-      rate,
-      this.#adjustAmountController.signal,
-    );
-
-    return this.#adjustAmountPromise;
+    return this.#minSendAmount;
   }
 
-  private async _adjustAmount(
-    rate: AmountValue,
-    signal: AbortSignal,
-  ): Promise<void> {
-    this.rate = rate;
+  #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
+  findMinSendAmount(): Promise<void> {
+    this.#minSendAmountPromise ??= this._findMinSendAmount();
+    return this.#minSendAmountPromise;
+  }
 
+  async setRate(hourlyRate: AmountValue) {
+    this.rate = hourlyRate;
     // The amount that needs to be sent every second.
     // In senders asset scale already.
-    let amountToSend = BigInt(this.rate) / 3600n;
+    await this.findMinSendAmount();
+    const amount = bigIntMax(BigInt(this.rate) / 3600n, this.#minSendAmount);
+    this.setAmount(amount);
+  }
+
+  private async _findMinSendAmount(signal?: AbortSignal): Promise<void> {
+    let amountToSend = bigIntMax(this.#minSendAmount, MIN_SEND_AMOUNT);
     const senderAssetScale = this.sender.assetScale;
     const receiverAssetScale = this.receiver.assetScale;
     const isCrossCurrency = this.sender.assetCode !== this.receiver.assetCode;
 
     if (!isCrossCurrency) {
-      if (amountToSend <= MIN_SEND_AMOUNT) {
-        // We need to add another unit when using a debit amount, since
-        // @interledger/pay subtracts one unit.
-        if (senderAssetScale <= receiverAssetScale) {
-          amountToSend = MIN_SEND_AMOUNT + 1n;
-        } else if (senderAssetScale > receiverAssetScale) {
-          // If the sender scale is greater than the receiver scale, the unit
-          // issue will not be present.
-          amountToSend = MIN_SEND_AMOUNT;
-        }
-      }
-
       // If the sender can facilitate the rate, but the amount can not be
       // represented in the receiver's scale we need to send the minimum amount
       // for the receiver (1 unit, but in the sender's asset scale)
@@ -166,14 +147,15 @@ export class PaymentSession {
 
     amountToSend = BigInt(amountIter.next().value);
     while (true) {
-      signal.throwIfAborted();
+      signal?.throwIfAborted();
+      this.#minSendAmount = amountToSend;
       try {
         await this.createPaymentQuote(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
         );
-        this.setAmount(amountToSend);
+        this.#minSendAmountFound = true;
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
@@ -287,13 +269,13 @@ export class PaymentSession {
     };
 
     if (!this.rate) {
-      // this.rate is set when adjustAmount begins. this.amount is set only after first successful adjustAmount
-      throw new Error('Unexpected: adjustAmount not yet ready');
+      // this.rate is set when setRate begins. this.amount is set only after first successful setRate
+      throw new Error('Unexpected: setRate not yet ready');
     }
     if (this.canContinuePayment) {
       this.timeout = setTimeout(async () => {
         if (!this.amount) {
-          await this.adjustAmount(this.rate);
+          await this.setRate(this.rate);
         }
         if (!this.amount) {
           // if still not set, fail
