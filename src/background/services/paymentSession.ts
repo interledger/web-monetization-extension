@@ -102,7 +102,7 @@ export class PaymentSession {
     return this.#minSendAmountPromise;
   }
 
-  async setRate(hourlyRate: AmountValue) {
+  async adjustAmount(hourlyRate: AmountValue) {
     this.rate = hourlyRate;
     // The amount that needs to be sent every second.
     // In senders asset scale already.
@@ -283,7 +283,7 @@ export class PaymentSession {
     if (this.canContinuePayment) {
       this.timeout = setTimeout(async () => {
         if (!this.amount) {
-          await this.setRate(this.rate);
+          await this.adjustAmount(this.rate);
         }
         if (!this.amount) {
           // if still not set, fail

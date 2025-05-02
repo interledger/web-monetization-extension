@@ -557,11 +557,11 @@ export class MonetizationService {
     rate: AmountValue,
   ): Promise<boolean> {
     try {
-      await Promise.all(sessions.map((session) => session.setRate(rate)));
+      await Promise.all(sessions.map((session) => session.adjustAmount(rate)));
       return true;
     } catch (err) {
       if (err.name === 'AbortError') {
-        this.logger.debug('setRate aborted due to new call', { err });
+        this.logger.debug('adjustAmount aborted due to new call');
         return false;
       } else {
         throw err;
