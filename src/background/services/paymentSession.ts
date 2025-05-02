@@ -89,17 +89,18 @@ export class PaymentSession {
   // checking #minSendAmount > 0, use this boolean to know if probing completed.
   #minSendAmountFound = false;
   #minSendAmount = 0n;
+  #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
+
+  findMinSendAmount(): Promise<void> {
+    this.#minSendAmountPromise ??= this._findMinSendAmount();
+    return this.#minSendAmountPromise;
+  }
+
   get minSendAmount(): bigint {
     if (!this.#minSendAmountFound) {
       throw new Error('minSendAmount not figured out yet');
     }
     return this.#minSendAmount;
-  }
-
-  #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
-  findMinSendAmount(): Promise<void> {
-    this.#minSendAmountPromise ??= this._findMinSendAmount();
-    return this.#minSendAmountPromise;
   }
 
   async adjustAmount(hourlyRate: AmountValue) {
