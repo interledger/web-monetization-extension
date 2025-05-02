@@ -85,6 +85,21 @@ export class PaymentSession {
     Object.assign(this, this.deps);
   }
 
+  async adjustAmount(hourlyRate: AmountValue) {
+    this.rate = hourlyRate;
+    // The amount that needs to be sent every second.
+    // In senders asset scale already.
+    await this.findMinSendAmount();
+    if (this.rate !== hourlyRate) {
+      throw new DOMException(
+        `Aborting existing probing for rate=${hourlyRate}`,
+        'AbortError',
+      );
+    }
+    const amount = bigIntMax(BigInt(this.rate) / 3600n, this.#minSendAmount);
+    this.setAmount(amount);
+  }
+
   // We keep setting #minSendAmount to non-zero values as we probe. Instead of
   // checking #minSendAmount > 0, use this boolean to know if probing completed.
   #minSendAmountFound = false;
@@ -100,21 +115,6 @@ export class PaymentSession {
   findMinSendAmount(): Promise<void> {
     this.#minSendAmountPromise ??= this._findMinSendAmount();
     return this.#minSendAmountPromise;
-  }
-
-  async adjustAmount(hourlyRate: AmountValue) {
-    this.rate = hourlyRate;
-    // The amount that needs to be sent every second.
-    // In senders asset scale already.
-    await this.findMinSendAmount();
-    if (this.rate !== hourlyRate) {
-      throw new DOMException(
-        `Aborting existing probing for rate=${hourlyRate}`,
-        'AbortError',
-      );
-    }
-    const amount = bigIntMax(BigInt(this.rate) / 3600n, this.#minSendAmount);
-    this.setAmount(amount);
   }
 
   private async _findMinSendAmount(signal?: AbortSignal): Promise<void> {
