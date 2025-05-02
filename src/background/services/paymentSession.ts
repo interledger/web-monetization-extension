@@ -38,7 +38,6 @@ interface CreateOutgoingPaymentParams {
   incomingPaymentId: IncomingPayment['id'];
   amount: string;
 }
-
 type Cradle = Pick<
   Cradle_,
   | 'storage'
@@ -114,8 +113,8 @@ export class PaymentSession {
         'AbortError',
       );
     }
-    const amount = bigIntMax(BigInt(this.rate) / 3600n, this.#minSendAmount);
-    this.setAmount(amount);
+    const amount = BigInt(this.rate) / 3600n;
+    this.setAmount(bigIntMax(amount, this.#minSendAmount));
   }
 
   private async _findMinSendAmount(signal?: AbortSignal): Promise<void> {
