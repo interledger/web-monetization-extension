@@ -205,13 +205,8 @@ export class PaymentSession {
     this.stop();
   }
 
-  /**
-   * there's no enable() as we replace the sessions with new ones when
-   * resume/start or removal of disabled attribute at the moment.
-   * @deprecated
-   */
   enable() {
-    throw new Error('Method not implemented.');
+    this.isDisabled = false;
   }
 
   private markInvalid() {

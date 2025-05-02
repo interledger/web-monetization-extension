@@ -104,31 +104,31 @@ export class MonetizationService {
 
     const { tabId, frameId, url: fullUrl } = getSender(sender);
     const url = removeQueryParams(fullUrl!);
+
     const sessions = this.tabState.getSessions(tabId);
-
-    const replacedSessions = new Set<string>();
-
+    const existingSessions = new Set<string>();
     // Initialize new sessions
     for (const { requestId, walletAddress: receiver } of payload) {
-      // Q: How does this impact client side apps/routing?
       const existingSession = sessions.get(requestId);
       if (existingSession) {
         existingSession.stop();
+        existingSession.enable(); // if was disabled earlier
+        existingSessions.add(requestId);
+        // move existing into correct order
         sessions.delete(requestId);
-        replacedSessions.add(requestId);
+        sessions.set(requestId, existingSession);
+      } else {
+        const session = new PaymentSession(
+          receiver,
+          connectedWallet,
+          requestId,
+          tabId,
+          frameId,
+          url,
+          deps,
+        );
+        sessions.set(requestId, session);
       }
-
-      const session = new PaymentSession(
-        receiver,
-        connectedWallet,
-        requestId,
-        tabId,
-        frameId,
-        url,
-        deps,
-      );
-
-      sessions.set(requestId, session);
     }
 
     this.events.emit('monetization.state_update', tabId);
@@ -148,7 +148,7 @@ export class MonetizationService {
     ) {
       for (const session of sessionsArr) {
         if (!sessions.get(session.id)) continue;
-        const source = replacedSessions.has(session.id)
+        const source = existingSessions.has(session.id)
           ? 'request-id-reused'
           : 'new-link';
         void session.start(source);
