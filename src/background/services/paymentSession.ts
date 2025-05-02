@@ -84,56 +84,46 @@ export class PaymentSession {
     Object.assign(this, this.deps);
   }
 
-  #adjustAmountLastRate: AmountValue;
-  #adjustAmountController = new AbortController();
-  #adjustAmountPromise: null | Promise<void> = null;
-  adjustAmount(rate: AmountValue): Promise<void> {
-    if (this.#adjustAmountLastRate && rate !== this.#adjustAmountLastRate) {
-      this.#adjustAmountController.abort(
-        new DOMException(
-          `Aborting existing probing for rate=${this.#adjustAmountLastRate}`,
-          'AbortError',
-        ),
-      );
-      this.#adjustAmountController = new AbortController();
-      this.#adjustAmountPromise = null;
-    }
+  // We keep setting #minSendAmount to non-zero values as we probe. Instead of
+  // checking #minSendAmount > 0, use this boolean to know if probing completed.
+  #minSendAmountFound = false;
+  #minSendAmount = 0n;
+  #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
 
-    this.#adjustAmountLastRate = rate;
-    this.#adjustAmountPromise ??= this._adjustAmount(
-      rate,
-      this.#adjustAmountController.signal,
-    );
-
-    return this.#adjustAmountPromise;
+  findMinSendAmount(): Promise<void> {
+    this.#minSendAmountPromise ??= this._findMinSendAmount();
+    return this.#minSendAmountPromise;
   }
 
-  private async _adjustAmount(
-    rate: AmountValue,
-    signal: AbortSignal,
-  ): Promise<void> {
-    this.rate = rate;
+  get minSendAmount(): bigint {
+    if (!this.#minSendAmountFound) {
+      throw new Error('minSendAmount not figured out yet');
+    }
+    return this.#minSendAmount;
+  }
 
+  async adjustAmount(hourlyRate: AmountValue) {
+    this.rate = hourlyRate;
     // The amount that needs to be sent every second.
     // In senders asset scale already.
-    let amountToSend = BigInt(this.rate) / 3600n;
+    await this.findMinSendAmount();
+    if (this.rate !== hourlyRate) {
+      throw new DOMException(
+        `Aborting existing probing for rate=${hourlyRate}`,
+        'AbortError',
+      );
+    }
+    const amount = BigInt(this.rate) / 3600n;
+    this.setAmount(bigIntMax(amount, this.#minSendAmount));
+  }
+
+  private async _findMinSendAmount(signal?: AbortSignal): Promise<void> {
+    let amountToSend = bigIntMax(this.#minSendAmount, MIN_SEND_AMOUNT);
     const senderAssetScale = this.sender.assetScale;
     const receiverAssetScale = this.receiver.assetScale;
     const isCrossCurrency = this.sender.assetCode !== this.receiver.assetCode;
 
     if (!isCrossCurrency) {
-      if (amountToSend <= MIN_SEND_AMOUNT) {
-        // We need to add another unit when using a debit amount, since
-        // @interledger/pay subtracts one unit.
-        if (senderAssetScale <= receiverAssetScale) {
-          amountToSend = MIN_SEND_AMOUNT + 1n;
-        } else if (senderAssetScale > receiverAssetScale) {
-          // If the sender scale is greater than the receiver scale, the unit
-          // issue will not be present.
-          amountToSend = MIN_SEND_AMOUNT;
-        }
-      }
-
       // If the sender can facilitate the rate, but the amount can not be
       // represented in the receiver's scale we need to send the minimum amount
       // for the receiver (1 unit, but in the sender's asset scale)
@@ -165,14 +155,15 @@ export class PaymentSession {
 
     amountToSend = BigInt(amountIter.next().value);
     while (true) {
-      signal.throwIfAborted();
+      signal?.throwIfAborted();
+      this.#minSendAmount = amountToSend;
       try {
         await this.createPaymentQuote(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
         );
-        this.setAmount(amountToSend);
+        this.#minSendAmountFound = true;
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
