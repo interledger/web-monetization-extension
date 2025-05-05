@@ -34,6 +34,14 @@ export const ensureEnd = (str: string, suffix: string) => {
 };
 
 /**
+ * Polyfill for `Set.difference()`
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/difference
+ */
+export function setDifference<T>(a: Set<T>, b: Set<T>): Set<T> {
+  return new Set([...a].filter((x) => !b.has(x)));
+}
+
+/**
  * Polyfill for `Promise.withResolvers()`
  */
 export function withResolvers<T>() {

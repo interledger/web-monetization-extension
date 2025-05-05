@@ -40,13 +40,15 @@ export interface RecurringGrant extends GrantDetailsBase {
 }
 export type GrantDetails = OneTimeGrant | RecurringGrant;
 
-export type WalletInfo = WalletAddress & {
+export interface WalletInfo extends WalletAddress {
   /**
    * The (normalized) wallet URL provided by user. Sometimes, wallets URLs have
    * redirects, and in those cases, we want to preserve what user has provided.
+   *
+   * @since Available only if wallet connected after this feature was released.
    */
-  url: string;
-};
+  url?: string;
+}
 
 export type ExtensionState =
   | never // just added for code formatting

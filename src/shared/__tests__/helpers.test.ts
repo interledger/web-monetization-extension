@@ -6,6 +6,7 @@ import {
   withResolvers,
   getNextOccurrence,
   toWalletAddressUrl,
+  setDifference,
 } from '../helpers';
 
 describe('objectEquals', () => {
@@ -34,6 +35,22 @@ describe('removeQueryParams', () => {
       'https://example.com/',
     );
   });
+});
+
+test('setDifference', () => {
+  const set = <T>(...items: T[]) => new Set(items);
+  expect(setDifference(set(1, 2, 3), set(2, 3, 4))).toEqual(set(1));
+  expect(setDifference(set(1, 2, 3), set(1, 2))).toEqual(set(3));
+  expect(setDifference(set(3), set(1, 2))).toEqual(set(3));
+  expect(setDifference(set(1, 2, 3), set(1, 2, 3))).toEqual(set());
+  expect(setDifference(set('a', 'b', 'c'), set('b', 'c'))).toEqual(set('a'));
+
+  const a = { foo: 1 };
+  const b = { foo: 2 };
+  const c = { foo: 3 };
+  const diff = setDifference(set(a, b, c), set(b, c));
+  expect(diff).toEqual(set(a));
+  expect(diff).toContain(a);
 });
 
 describe('withResolvers', () => {

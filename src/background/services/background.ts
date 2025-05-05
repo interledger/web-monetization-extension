@@ -92,9 +92,13 @@ export class Background {
           js: ['polyfill/polyfill.js'],
           matches: this.browser.runtime.getManifest().host_permissions,
           runAt: 'document_start',
+          persistAcrossSessions: false,
         },
       ]);
     } catch (error) {
+      if (/duplicate/i.test(error.message)) {
+        return;
+      }
       // Firefox <128 will throw saying world: MAIN isn't supported. So, we'll
       // inject via contentScript later. Injection via contentScript is slow,
       // but apart from WM detection on page-load, everything else works fine.
