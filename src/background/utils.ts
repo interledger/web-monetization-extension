@@ -82,11 +82,15 @@ export const getExchangeRates = async (): Promise<ExchangeRates> => {
       `Could not fetch exchange rates. [Status code: ${response.status}]`,
     );
   }
-  const rates = await response.json();
+  const rates: ExchangeRates = await response.json();
   if (!rates.base || !rates.rates) {
     throw new Error('Invalid rates format');
   }
 
+  // MMAON rate is not listed at EXCHANGE_RATES_URL. Hardcode it here until it's
+  // either added to the list or we switch to the preferred solution:
+  // https://github.com/interledger/web-monetization-extension/issues/977
+  rates.rates.MMAON ??= 20; // 20 USD = 1 MMAON
   return rates;
 };
 
