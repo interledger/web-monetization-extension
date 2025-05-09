@@ -105,10 +105,7 @@ export async function setContinuousPayments(popup: Popup, enabled: boolean) {
 
 /** Whatever screen we're on in popup right now, take us to Home screen */
 export async function goToHome(popup: Popup) {
-  await popup.evaluate(() => {
-    location.hash = '';
-  });
-  await popup.reload();
+  await popup.goto(popup.url().replace(/#.*$/, ''));
   await popup.waitForSelector(
     '[data-testid="home-page"], [data-testid="not-monetized-message"], [data-user-action="required"]',
     { timeout: 1000 },
