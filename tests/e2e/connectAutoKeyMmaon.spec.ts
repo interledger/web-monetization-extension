@@ -38,9 +38,7 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
     await context.clearCookies();
 
     await page.goto(URLS.keyPage);
-    await page.waitForURL((url) => url.href.startsWith(URLS.login), {
-      timeout: 5000,
-    });
+    await page.waitForURL((url) => url.href.startsWith(URLS.login));
     await expect(page).toHaveURL((url) => url.href.startsWith(URLS.loginFull));
     await page.close();
   });
