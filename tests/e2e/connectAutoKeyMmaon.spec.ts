@@ -111,7 +111,7 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
     return await promise;
   });
 
-  /* // TODO
+  /* // TODO https://github.com/interledger/web-monetization-extension/issues/1050
   await test.step('shows connect consent page', async () => {
     await waitForGrantConsentPage(page);
     await expect(
