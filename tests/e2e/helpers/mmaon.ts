@@ -20,7 +20,7 @@ export async function revokeKey(page: Page, revokeInfo: { keyId: string }) {
       credentials: 'include',
       body: JSON.stringify({ keyId: revokeInfo.keyId }),
     });
-    return res.ok;
+    return await res.json();
   }, revokeInfo);
 }
 

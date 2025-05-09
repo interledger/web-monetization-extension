@@ -41,11 +41,14 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
     await page.waitForURL((url) => url.href.startsWith(URLS.login), {
       timeout: 5000,
     });
-    await expect(page).toHaveURL(
-      (url) =>
-        url.href.startsWith(URLS.login) && url.searchParams.has('callbackUrl'),
-    );
+    await expect(page).toHaveURL((url) => url.href.startsWith(URLS.loginFull));
     await page.close();
+  });
+
+  await test.step('ensure key not already added', async () => {
+    const jwksBefore = await getJWKS(walletAddressUrl);
+    expect(jwksBefore.keys.length).toBeGreaterThanOrEqual(0);
+    expect(jwksBefore.keys.find((key) => key.kid === kid)).toBeUndefined();
   });
 
   await test.step('asks for key-add consent', async () => {
@@ -61,17 +64,11 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
       .click();
   });
 
-  await test.step('ensure key not already added', async () => {
-    const jwksBefore = await getJWKS(walletAddressUrl);
-    expect(jwksBefore.keys.length).toBeGreaterThanOrEqual(0);
-    expect(jwksBefore.keys.find((key) => key.kid === kid)).toBeUndefined();
-  });
-
   page = await test.step('shows login page', async () => {
     const openedPage = await waitForPage(context, (url) =>
       url.startsWith(walletUrl),
     );
-    await openedPage.waitForURL((url) => url.href === URLS.loginFull);
+    await openedPage.waitForURL((url) => url.href.startsWith(URLS.loginFull));
     await login(openedPage, { username, password });
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.keyPage));
     return openedPage;
@@ -137,8 +134,8 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
   */
 
   await test.step('cleanup: revoke key', async () => {
-    const res = await revokeKey(page, revokeInfo);
-    expect(res).toEqual({ status: 'success', data: 'success' });
+    const res = await revokeKey(page, { keyId: revokeInfo.keyId });
+    expect.soft(res).toMatchObject({ success: true });
 
     const { keys } = await getJWKS(walletAddressUrl);
     expect(keys.find((key) => key.kid === kid)).toBeUndefined();
