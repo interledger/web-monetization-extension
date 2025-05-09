@@ -15,14 +15,13 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
   const username = process.env.MMAON_USERNAME!;
   const password = process.env.MMAON_PASSWORD!;
   const walletAddressUrl = process.env.MMAON_WALLET_ADDRESS_URL!;
-  const walletUrl = process.env.MMAON_WALLET_ORIGIN!;
+  const walletOrigin = process.env.MMAON_WALLET_ORIGIN!;
 
   test.skip(
-    !username || !password || !walletAddressUrl || !walletUrl,
+    !username || !password || !walletAddressUrl || !walletOrigin,
     'Missing credentials',
   );
 
-  const walletURL = new URL(walletUrl);
   const { keyId: kid } = await getStorage(background, ['keyId']);
 
   const connectButton = await test.step('fill popup', async () => {
@@ -64,7 +63,7 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
 
   page = await test.step('shows login page', async () => {
     const openedPage = await waitForPage(context, (url) =>
-      url.startsWith(walletUrl),
+      url.startsWith(walletOrigin),
     );
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.loginFull));
     await login(openedPage, { username, password });
@@ -79,7 +78,7 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
       if (req.method() !== 'POST') return;
       const url = new URL(req.url());
       const { origin, pathname: p } = url;
-      if (origin !== walletURL.origin) return;
+      if (origin !== walletOrigin) return;
 
       if (p.startsWith('/api/open-payments/upload-keys')) {
         page.off('requestfinished', intercept);
