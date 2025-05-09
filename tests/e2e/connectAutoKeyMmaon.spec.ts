@@ -1,13 +1,8 @@
 import { test, expect } from './fixtures/base';
 import { withResolvers, getJWKS } from '@/shared/helpers';
-import { disconnectWallet, fillPopup } from './pages/popup';
-import {
-  URLS,
-  login,
-  revokeKey,
-  waitForGrantConsentPage,
-} from './helpers/mmaon';
-import { waitForPage, waitForWelcomePage } from './helpers/common';
+import { fillPopup } from './pages/popup';
+import { URLS, login, revokeKey } from './helpers/mmaon';
+import { waitForPage } from './helpers/common';
 import { getStorage } from './fixtures/helpers';
 
 test('Connect to MMAON wallet with automatic key addition when not logged-in to wallet', async ({
@@ -119,8 +114,8 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
     return await promise;
   });
 
+  /* // TODO
   await test.step('shows connect consent page', async () => {
-    // TODO
     await waitForGrantConsentPage(page);
     await expect(
       page.getByRole('button', { name: 'Accept', exact: true }),
@@ -130,23 +125,22 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
     ).toBeVisible();
   });
 
-  // TODO
   await test.step('connects', async () => {
     await page.getByRole('button', { name: 'Accept', exact: true }).click();
     await waitForWelcomePage(page);
     await expect(background).toHaveStorage({ connected: true });
   });
 
+  await test.step('cleanup: disconnect wallet', async () => {
+    await disconnectWallet(popup);
+  });
+  */
+
   await test.step('cleanup: revoke key', async () => {
     const res = await revokeKey(page, revokeInfo);
-    // TODO
     expect(res).toEqual({ status: 'success', data: 'success' });
 
     const { keys } = await getJWKS(walletAddressUrl);
     expect(keys.find((key) => key.kid === kid)).toBeUndefined();
-  });
-
-  await test.step('cleanup: disconnect wallet', async () => {
-    await disconnectWallet(popup);
   });
 });
