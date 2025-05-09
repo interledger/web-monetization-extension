@@ -14,15 +14,14 @@ const waitForLogin: Run<void> = async (
   { keyAddUrl },
   { skip, setNotificationSize },
 ) => {
-  await sleep(2000);
+  await sleep(500);
   let alreadyLoggedIn = window.location.href.startsWith(keyAddUrl);
   if (!alreadyLoggedIn) setNotificationSize('notification');
   try {
-    alreadyLoggedIn = await waitForURL(
+    alreadyLoggedIn ||= await waitForURL(
       (url) => (url.origin + url.pathname).startsWith(keyAddUrl),
       { timeout: LOGIN_WAIT_TIMEOUT },
     );
-
     setNotificationSize('fullscreen');
   } catch (error) {
     if (isTimedOut(error)) {
@@ -41,7 +40,6 @@ const findWallet: Run<void> = async (
   { setNotificationSize },
 ) => {
   setNotificationSize('fullscreen');
-  // TODO: this might need different logic for production environment
   const accountAddress = walletAddressUrlToId(walletAddressUrl);
 
   const res = await fetch('/api/gatehub/wallet', { credentials: 'include' });
