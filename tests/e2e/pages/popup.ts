@@ -26,7 +26,7 @@ export async function openPopup(
   }
 
   // prevent popup from closing via `window.close()`
-  popup.exposeFunction('close', () => {});
+  await popup.exposeFunction('close', () => {});
 
   return popup;
 }
