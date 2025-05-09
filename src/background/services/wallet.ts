@@ -457,7 +457,11 @@ export class WalletService {
   private async retryAddPublicKeyToWallet(walletAddress: WalletInfo) {
     const tabId = await reuseOrCreateTab(this.browser);
     try {
-      await this.addPublicKeyToWallet(walletAddress, tabId, walletAddress.url);
+      await this.addPublicKeyToWallet(
+        walletAddress,
+        tabId,
+        walletAddress.url || '',
+      );
       await this.outgoingPaymentGrantService.rotateToken();
       await redirectToWelcomeScreen(
         this.browser,
