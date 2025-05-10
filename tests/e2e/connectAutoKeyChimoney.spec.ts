@@ -60,7 +60,9 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
       `[data-testid="connect-wallet-auto-key-consent"]`,
     );
 
-    expect(popup.getByTestId('connect-wallet-auto-key-consent')).toBeVisible();
+    await expect(
+      popup.getByTestId('connect-wallet-auto-key-consent'),
+    ).toBeVisible();
     await popup
       .getByRole('button', {
         name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
@@ -105,10 +107,10 @@ test('Connect to Chimoney wallet with automatic key addition when not logged-in 
           return reject('no response from /upload-key API');
         }
         if (!res.ok) {
-          return reject(`Failed to upload public key (${res.statusText})`);
+          return reject(`Failed to upload public key (${res.statusText()})`);
         }
 
-        const json = await res.json();
+        const json: { status: string } = await res.json();
         resolve(json);
       }
     });
