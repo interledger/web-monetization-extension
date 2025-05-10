@@ -26,7 +26,7 @@ export async function openPopup(
   }
 
   // prevent popup from closing via `window.close()`
-  popup.exposeFunction('close', () => {});
+  await popup.exposeFunction('close', () => {});
 
   return popup;
 }
@@ -105,10 +105,8 @@ export async function setContinuousPayments(popup: Popup, enabled: boolean) {
 
 /** Whatever screen we're on in popup right now, take us to Home screen */
 export async function goToHome(popup: Popup) {
-  await popup.evaluate(() => {
-    location.hash = '';
-  });
-  await popup.reload();
+  const homeUrl = popup.url().split('#', 2)[0];
+  await popup.goto(homeUrl, { timeout: 1000 });
   await popup.waitForSelector(
     '[data-testid="home-page"], [data-testid="not-monetized-message"], [data-user-action="required"]',
     { timeout: 1000 },

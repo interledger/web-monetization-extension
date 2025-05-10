@@ -85,7 +85,7 @@ for (const testCase of TEST_CASES) {
           `[data-testid="connect-wallet-auto-key-consent"]`,
         );
 
-        expect(
+        await expect(
           popup.getByTestId('connect-wallet-auto-key-consent'),
         ).toBeVisible();
         await popup
