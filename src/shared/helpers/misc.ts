@@ -55,6 +55,24 @@ export function withResolvers<T>() {
   return { resolve, reject, promise };
 }
 
+/**
+ * Equivalent to :
+ * - `Iterator.filter(filter).drop(n).take(1).next().value`, or
+ * - `[...iter].filter(filter).at(n)`
+ */
+export function getNth<T>(
+  iter: Readonly<IterableIterator<T>>,
+  n: number,
+  filter: (item: T) => boolean = () => true,
+) {
+  let i = 0;
+  for (const item of iter) {
+    if (!filter(item)) continue;
+    if (i === n) return item;
+    ++i;
+  }
+}
+
 export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false);
 };
