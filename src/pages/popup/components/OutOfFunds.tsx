@@ -186,5 +186,5 @@ function getNextOccurrenceDate(period: 'P1M', baseDate = new Date()) {
     `R/${baseDate.toISOString()}/${period}`,
     baseDate,
   );
-  return date.toLocaleDateString(undefined, { dateStyle: 'medium' });
+  return date.toLocaleDateString(navigator.languages, { dateStyle: 'medium' });
 }

@@ -53,7 +53,7 @@ for (const testCase of TEST_CASES) {
     let newAmount: number;
     let newAmountFormatted: string;
     let amountToSend: string;
-    let locale: string;
+    let locale: string[];
 
     test.beforeAll('get wallet info', async ({ background }) => {
       walletAddress = await getWalletInfoCached(walletAddressUrl);
@@ -70,7 +70,7 @@ for (const testCase of TEST_CASES) {
         assetScale,
       );
 
-      locale = await background.evaluate(() => navigator.language);
+      locale = await background.evaluate(() => navigator.languages.slice());
     });
 
     test.beforeEach(
