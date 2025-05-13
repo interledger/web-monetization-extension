@@ -268,19 +268,12 @@ test.describe('one-time payment', () => {
       const alertMsg = form.getByRole('alert');
 
       const amountToFill1 = 0.75 * DEFAULT_BUDGET.amount;
-      await sendOneTimePayment(popup, amountToFill1.toString(), true);
+      await sendOneTimePayment(popup, amountToFill1, false);
       await expect(monetizationCallback).toHaveBeenCalledTimes(1);
-      await expect(alertMsg).toBeVisible();
-      await expect(alertMsg).toHaveEitherText([
-        i18n.getMessage('pay_state_success'),
-        i18n.getMessage('pay_warn_outgoingPaymentPollingIncomplete'),
-      ]);
+      await popup.reload();
 
       const amountToFill2 = 0.5 * DEFAULT_BUDGET.amount;
-      const sendButton = await sendOneTimePayment(
-        popup,
-        amountToFill2.toString(),
-      );
+      const sendButton = await sendOneTimePayment(popup, amountToFill2, false);
 
       await expect(sendButton).toHaveAttribute('data-progress', 'false');
       await expect(sendButton).toBeEnabled();

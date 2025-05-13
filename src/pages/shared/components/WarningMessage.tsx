@@ -1,6 +1,6 @@
 import React from 'react';
 import { WarningSign } from './Icons';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 
 interface WarningMessageProps extends React.HTMLAttributes<HTMLDivElement> {
   warning?: string;

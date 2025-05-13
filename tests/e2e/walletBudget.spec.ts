@@ -6,6 +6,7 @@ import {
   goToHome,
   locators,
   sendOneTimePayment,
+  setContinuousPayments,
 } from './pages/popup';
 import {
   getContinueWaitTime,
@@ -71,6 +72,8 @@ for (const testCase of TEST_CASES) {
           amount: String(INITIAL_AMOUNT),
           recurring: testCase.from.recurring,
         });
+        await setContinuousPayments(popup, false);
+        await goToHome(popup);
       },
     );
 
@@ -125,16 +128,22 @@ for (const testCase of TEST_CASES) {
       });
 
       await test.step('make payment to reduce remaining balance', async () => {
-        await setupPlayground(page, walletAddressUrl);
+        const monetizationCallback = await setupPlayground(
+          page,
+          walletAddressUrl,
+        );
 
         await goToHome(popup);
         await sendOneTimePayment(popup, '2.00', false);
+        await expect(monetizationCallback).toHaveBeenCalledTimes(1);
         await popup.reload();
         // Make an extra payment to update balance:
         // https://github.com/interledger/web-monetization-extension/issues/737
         await sendOneTimePayment(popup, '0.50', false);
+        await expect(monetizationCallback).toHaveBeenCalledTimes(2);
         await popup.reload();
 
+        await popup.waitForTimeout(1_000); // wait for balance to update.- it's queued/throttled.
         await settingsLink.click();
         await budgetTab.click();
 

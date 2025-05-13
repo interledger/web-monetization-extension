@@ -1,25 +1,28 @@
+import React from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
-import React, { forwardRef } from 'react';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 import { Label } from '@/pages/shared/components/ui/Label';
 
 const inputVariants = cva(
   [
-    'h-14 w-full rounded-xl border border-2 px-4 text-base text-medium',
-    'focus:border-focus focus:outline-none',
-    'placeholder:text-disabled',
+    'table w-full rounded-xl overflow-hidden',
+    'border border-2 border-transparent focus-within:border-focus',
+    'text-medium',
   ],
 
   {
     variants: {
       variant: {
-        default: 'border-base',
+        default: 'border-base text-medium',
       },
       disabled: {
         true: 'cursor-default border-transparent bg-disabled text-disabled',
       },
       readOnly: {
         true: 'cursor-default border-transparent bg-disabled text-disabled',
+      },
+      error: {
+        true: 'border-error',
       },
     },
     defaultVariants: {
@@ -39,25 +42,24 @@ export interface InputProps
   label?: React.ReactNode;
   description?: React.ReactNode;
   wrapperClassName?: string;
+  ref?: React.RefObject<HTMLInputElement | null>;
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  {
-    type = 'text',
-    leadingAddOn,
-    trailingAddOn,
-    label,
-    description,
-    errorMessage,
-    disabled,
-    readOnly,
-    className,
-    wrapperClassName,
-    id,
-    ...props
-  },
+export function Input({
+  type = 'text',
+  leadingAddOn,
+  trailingAddOn,
+  label,
+  description,
+  errorMessage,
+  disabled,
+  readOnly,
+  className,
+  wrapperClassName,
+  id,
   ref,
-) {
+  ...props
+}: InputProps) {
   const randomId = React.useId();
   id ||= randomId; // cannot call useId conditionally, but use randomId only if default not provided
 
@@ -69,21 +71,25 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {description}
         </p>
       ) : null}
-      <div className={cn('relative', wrapperClassName)}>
+      <div
+        className={cn(
+          inputVariants({ disabled, readOnly, error: !!errorMessage }),
+          wrapperClassName,
+        )}
+      >
         {leadingAddOn ? (
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-10 items-center justify-center text-sm font-medium">
-            {leadingAddOn}
-          </div>
+          <InputAddon inputRef={ref}>{leadingAddOn}</InputAddon>
         ) : null}
         <input
           id={id}
           ref={ref}
           type={type}
           className={cn(
-            inputVariants({ disabled, readOnly }),
-            leadingAddOn && 'pl-10',
-            trailingAddOn && 'pr-10',
-            errorMessage && 'border-error',
+            'border-none focus:border-none focus:ring-0 focus:outline-none',
+            'table-cell w-full py-3.5 text-base',
+            'text-inherit bg-inherit',
+            'placeholder:text-disabled',
+            leadingAddOn ? 'px-0' : 'px-4',
             className,
           )}
           disabled={disabled}
@@ -94,9 +100,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {...props}
         />
         {trailingAddOn ? (
-          <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-sm font-medium">
-            {trailingAddOn}
-          </div>
+          <InputAddon inputRef={ref}>{trailingAddOn}</InputAddon>
         ) : null}
       </div>
       {errorMessage && (
@@ -104,4 +108,24 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       )}
     </div>
   );
-});
+}
+
+function InputAddon({
+  children,
+  inputRef,
+}: React.PropsWithChildren<{
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+}>) {
+  return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: only need to handle click on prefix/suffix to trigger input focus
+    <div
+      className={cn(
+        'whitespace-nowrap table-cell align-middle select-none w-[1%]',
+        'text-sm font-medium cursor-text px-2',
+      )}
+      onClick={() => inputRef?.current?.focus()}
+    >
+      {children}
+    </div>
+  );
+}

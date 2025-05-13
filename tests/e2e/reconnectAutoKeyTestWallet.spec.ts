@@ -136,7 +136,9 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await expect(reconnectButton).toBeVisible();
     await reconnectButton.click();
 
-    expect(popup.getByTestId('connect-wallet-auto-key-consent')).toBeVisible();
+    await expect(
+      popup.getByTestId('connect-wallet-auto-key-consent'),
+    ).toBeVisible();
     await popup
       .getByRole('button', {
         name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),

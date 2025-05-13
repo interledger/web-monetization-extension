@@ -1,6 +1,6 @@
 import React from 'react';
 import { Power } from '@/pages/shared/components/Icons';
-import { cn } from '@/shared/helpers';
+import { cn } from '@/pages/shared/lib/utils';
 import { useMessage } from '@/popup/lib/context';
 import { dispatch, usePopupState } from '@/popup/lib/store';
 

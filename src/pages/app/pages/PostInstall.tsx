@@ -5,13 +5,13 @@ import {
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
 import {
-  cn,
   getBrowserName,
   getWalletInformation,
   type BrowserName,
 } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
+import { cn } from '@/pages/shared/lib/utils';
 import { useMessage } from '@/app/lib/context';
 import { useAppState } from '@/app/lib/store';
 
@@ -95,7 +95,7 @@ const WALLETS: Array<WalletOption> = [
   {
     id: 'gatehub',
     name: 'GateHub Wallet',
-    url: '', // empty URL to ignore it from listing
+    url: 'https://gatehub.net/',
     logo: {
       src: '/assets/images/logos/gatehub-logo.svg',
       width: 300,
@@ -106,7 +106,7 @@ const WALLETS: Array<WalletOption> = [
       width: 1829,
       height: 984,
     },
-    walletAddressPlaceholder: '$ilp.gatehub.net/150012570/USD',
+    walletAddressPlaceholder: '$ilp.gatehub.net/150012570/usd',
   },
   {
     id: 'chimoney',

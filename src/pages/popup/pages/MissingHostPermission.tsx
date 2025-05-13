@@ -1,5 +1,4 @@
 import React from 'react';
-import { PERMISSION_HOSTS } from '@/shared/defines';
 import { WarningSign } from '@/pages/shared/components/Icons';
 import { useBrowser, useTranslation } from '@/popup/lib/context';
 
@@ -25,13 +24,14 @@ export default () => {
       <button
         type="button"
         className="mx-auto mt-3 block w-fit rounded-md bg-orange-100 px-2 py-1.5 font-medium text-orange-800 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 focus:ring-offset-orange-50"
-        onClick={() =>
-          browser.permissions.request(PERMISSION_HOSTS).finally(() => {
+        onClick={() => {
+          const origins = browser.runtime.getManifest().host_permissions!;
+          return browser.permissions.request({ origins }).finally(() => {
             // So we open popup with refreshed state, avoiding additional message passing.
             // Firefox closes popup automatically.
             window.close();
-          })
-        }
+          });
+        }}
       >
         Grant permission
       </button>

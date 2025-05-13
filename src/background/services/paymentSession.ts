@@ -5,13 +5,7 @@ import {
   type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress,
 } from '@interledger/open-payments';
-import {
-  bigIntMax,
-  convert,
-  ErrorWithKey,
-  sleep,
-  transformBalance,
-} from '@/shared/helpers';
+import { ErrorWithKey, sleep, transformBalance } from '@/shared/helpers';
 import {
   isInternalServerError,
   isInvalidReceiverError,
@@ -21,22 +15,13 @@ import {
   isOutOfBalanceError,
   isTokenExpiredError,
 } from '@/background/services/openPayments';
-import { getNextSendableAmount } from '@/background/utils';
+import { bigIntMax, convert, getNextSendableAmount } from '@/background/utils';
 import type {
-  EventsService,
-  OpenPaymentsService,
-  OutgoingPaymentGrantService,
-  StorageService,
-  TabState,
-} from '.';
-import type {
-  BackgroundToContentMessage,
-  MessageManager,
   MonetizationEventDetails,
   MonetizationEventPayload,
 } from '@/shared/messages';
 import type { AmountValue } from '@/shared/types';
-import type { Logger } from '@/shared/logger';
+import type { Cradle as Cradle_ } from '@/background/container';
 import {
   OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
   OUTGOING_PAYMENT_POLLING_INTERVAL,
@@ -53,9 +38,26 @@ interface CreateOutgoingPaymentParams {
   incomingPaymentId: IncomingPayment['id'];
   amount: string;
 }
+type Cradle = Pick<
+  Cradle_,
+  | 'storage'
+  | 'openPaymentsService'
+  | 'outgoingPaymentGrantService'
+  | 'events'
+  | 'tabState'
+  | 'logger'
+  | 'message'
+>;
 
 export class PaymentSession {
-  private rate: string;
+  private storage: Cradle['storage'];
+  private openPaymentsService: Cradle['openPaymentsService'];
+  private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
+  private events: Cradle['events'];
+  private tabState: Cradle['tabState'];
+  private logger: Cradle['logger'];
+  private message: Cradle['message'];
+
   private active = false;
   /** Invalid receiver (providers not peered or other reasons) */
   private isInvalid = false;
@@ -63,7 +65,8 @@ export class PaymentSession {
   private isDisabled = false;
   private incomingPaymentUrl: string;
   private incomingPaymentExpiresAt: number;
-  private amount: string;
+  private rate: AmountValue;
+  private amount: AmountValue;
   private intervalInMs: number;
   private shouldRetryImmediately = false;
 
@@ -75,66 +78,52 @@ export class PaymentSession {
     private requestId: string,
     private tabId: number,
     private frameId: number,
-    private storage: StorageService,
-    private openPaymentsService: OpenPaymentsService,
-    private outgoingPaymentGrantService: OutgoingPaymentGrantService,
-    private events: EventsService,
-    private tabState: TabState,
     private url: string,
-    private logger: Logger,
-    private message: MessageManager<BackgroundToContentMessage>,
-  ) {}
-
-  #adjustAmountLastRate: AmountValue;
-  #adjustAmountController = new AbortController();
-  #adjustAmountPromise: null | Promise<void> = null;
-  adjustAmount(rate: AmountValue): Promise<void> {
-    if (this.#adjustAmountLastRate && rate !== this.#adjustAmountLastRate) {
-      this.#adjustAmountController.abort(
-        new DOMException(
-          `Aborting existing probing for rate=${this.#adjustAmountLastRate}`,
-          'AbortError',
-        ),
-      );
-      this.#adjustAmountController = new AbortController();
-      this.#adjustAmountPromise = null;
-    }
-
-    this.#adjustAmountLastRate = rate;
-    this.#adjustAmountPromise ??= this._adjustAmount(
-      rate,
-      this.#adjustAmountController.signal,
-    );
-
-    return this.#adjustAmountPromise;
+    private deps: Cradle,
+  ) {
+    Object.assign(this, this.deps);
   }
 
-  private async _adjustAmount(
-    rate: AmountValue,
-    signal: AbortSignal,
-  ): Promise<void> {
-    this.rate = rate;
+  // We keep setting #minSendAmount to non-zero values as we probe. Instead of
+  // checking #minSendAmount > 0, use this boolean to know if probing completed.
+  #minSendAmountFound = false;
+  #minSendAmount = 0n;
+  #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
 
+  findMinSendAmount(): Promise<void> {
+    this.#minSendAmountPromise ??= this._findMinSendAmount();
+    return this.#minSendAmountPromise;
+  }
+
+  get minSendAmount(): bigint {
+    if (!this.#minSendAmountFound) {
+      throw new Error('minSendAmount not figured out yet');
+    }
+    return this.#minSendAmount;
+  }
+
+  async adjustAmount(hourlyRate: AmountValue) {
+    this.rate = hourlyRate;
     // The amount that needs to be sent every second.
     // In senders asset scale already.
-    let amountToSend = BigInt(this.rate) / 3600n;
+    await this.findMinSendAmount();
+    if (this.rate !== hourlyRate) {
+      throw new DOMException(
+        `Aborting existing probing for rate=${hourlyRate}`,
+        'AbortError',
+      );
+    }
+    const amount = BigInt(this.rate) / 3600n;
+    this.setAmount(bigIntMax(amount, this.#minSendAmount));
+  }
+
+  private async _findMinSendAmount(signal?: AbortSignal): Promise<void> {
+    let amountToSend = bigIntMax(this.#minSendAmount, MIN_SEND_AMOUNT);
     const senderAssetScale = this.sender.assetScale;
     const receiverAssetScale = this.receiver.assetScale;
     const isCrossCurrency = this.sender.assetCode !== this.receiver.assetCode;
 
     if (!isCrossCurrency) {
-      if (amountToSend <= MIN_SEND_AMOUNT) {
-        // We need to add another unit when using a debit amount, since
-        // @interledger/pay subtracts one unit.
-        if (senderAssetScale <= receiverAssetScale) {
-          amountToSend = MIN_SEND_AMOUNT + 1n;
-        } else if (senderAssetScale > receiverAssetScale) {
-          // If the sender scale is greater than the receiver scale, the unit
-          // issue will not be present.
-          amountToSend = MIN_SEND_AMOUNT;
-        }
-      }
-
       // If the sender can facilitate the rate, but the amount can not be
       // represented in the receiver's scale we need to send the minimum amount
       // for the receiver (1 unit, but in the sender's asset scale)
@@ -166,14 +155,15 @@ export class PaymentSession {
 
     amountToSend = BigInt(amountIter.next().value);
     while (true) {
-      signal.throwIfAborted();
+      signal?.throwIfAborted();
+      this.#minSendAmount = amountToSend;
       try {
         await this.createPaymentQuote(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
         );
-        this.setAmount(amountToSend);
+        this.#minSendAmountFound = true;
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
@@ -215,13 +205,8 @@ export class PaymentSession {
     this.stop();
   }
 
-  /**
-   * there's no enable() as we replace the sessions with new ones when
-   * resume/start or removal of disabled attribute at the moment.
-   * @deprecated
-   */
   enable() {
-    throw new Error('Method not implemented.');
+    this.isDisabled = false;
   }
 
   private markInvalid() {

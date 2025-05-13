@@ -1,12 +1,13 @@
 import React from 'react';
 import { Input } from './ui/Input';
 import type { WalletAddress } from '@interledger/open-payments';
-import { charIsNumber, formatNumber, getCurrencySymbol } from '../lib/utils';
 import {
-  errorWithKey,
-  type ErrorWithKeyLike,
+  formatNumber,
   formatCurrency,
-} from '@/shared/helpers';
+  getCurrencySymbol,
+  cn,
+} from '../lib/utils';
+import { errorWithKey, type ErrorWithKeyLike } from '@/shared/helpers';
 import { useLongPress, useThrottle } from '@/pages/shared/lib/hooks';
 
 interface Props {
@@ -18,7 +19,6 @@ interface Props {
   onChange: (amount: string, inputEl: HTMLInputElement) => void;
   onError: (error: ErrorWithKeyLike) => void;
   className?: string;
-  wrapperClassName?: string;
   placeholder?: string;
   errorMessage?: string;
   readOnly?: boolean;
@@ -34,8 +34,7 @@ export const InputAmount = ({
   id,
   walletAddress,
   amount,
-  className,
-  wrapperClassName,
+  className: wrapperClassName,
   placeholder,
   errorMessage,
   onChange,
@@ -134,11 +133,21 @@ export const InputAmount = ({
       aria-label={labelHidden && typeof label === 'string' ? label : undefined}
       description={description}
       placeholder={placeholder}
-      className={className}
       wrapperClassName={wrapperClassName}
       defaultValue={amount}
       readOnly={readOnly}
-      leadingAddOn={<span className="text-weak">{currencySymbol}</span>}
+      leadingAddOn={
+        <span
+          className={cn(
+            'overflow-hidden block text-ellipsis text-weak whitespace-nowrap',
+            walletAddress.assetCode.length !== 3 && 'font-normal font-mono',
+          )}
+          style={{ maxWidth: '6ch', paddingLeft: '1ch' }}
+          title={`Currency: ${walletAddress.assetCode.toUpperCase()}`}
+        >
+          {currencySymbol}
+        </span>
+      }
       trailingAddOn={
         controls ? (
           <Controls readOnly={readOnly} inc={controlInc} dec={controlDec} />
@@ -287,4 +296,8 @@ function allowOnlyNumericInput(ev: React.KeyboardEvent<HTMLInputElement>) {
   ) {
     ev.preventDefault();
   }
+}
+
+function charIsNumber(char?: string) {
+  return !!(char || '').match(/\d|\./);
 }

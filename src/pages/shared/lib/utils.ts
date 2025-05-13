@@ -1,4 +1,10 @@
+import { cx, type CxOptions } from 'class-variance-authority';
+import { twMerge } from 'tailwind-merge';
+
 export const getCurrencySymbol = (assetCode: string): string => {
+  if (!isISO4217Code(assetCode)) {
+    return assetCode.toUpperCase();
+  }
   return new Intl.NumberFormat('en-US', {
     currency: assetCode,
     style: 'currency',
@@ -11,9 +17,37 @@ export const getCurrencySymbol = (assetCode: string): string => {
     .trim();
 };
 
-export function charIsNumber(char?: string) {
-  return !!(char || '').match(/\d|\./);
-}
+export const formatCurrency = (
+  value: string | number,
+  currency: string,
+  maximumFractionDigits = 2,
+  locale?: string,
+): string => {
+  const isCurrencyCode = isISO4217Code(currency);
+  const PLACEHOLDER_CURRENCY_CODE = 'ABC';
+  const fmt = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: isCurrencyCode ? currency : PLACEHOLDER_CURRENCY_CODE,
+    maximumFractionDigits,
+  });
+
+  if (isCurrencyCode) {
+    return fmt.format(Number(value));
+  }
+  return fmt
+    .formatToParts(Number(value))
+    .map((e) => (e.type === 'currency' ? currency.toUpperCase() : e.value))
+    .join('');
+};
+
+/**
+ * Currency identifiers are three-letter uppercase codes defined in ISO 4217.
+ * Intl.NumberFormat API allows any 3-letter code to be used without throwing a RangeError.
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/supportedValuesOf#supported_currency_identifiers
+ */
+export const isISO4217Code = (code: string): boolean => {
+  return code.length === 3;
+};
 
 export function roundWithPrecision(num: number, precision: number) {
   const multiplier = 10 ** precision;
@@ -50,6 +84,6 @@ export function formatNumber(
   }
 }
 
-export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace('$', 'https://') : s;
-}
+export const cn = (...inputs: CxOptions) => {
+  return twMerge(cx(inputs));
+};

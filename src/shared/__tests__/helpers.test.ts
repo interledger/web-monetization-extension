@@ -3,9 +3,11 @@ import {
   isOkState,
   objectEquals,
   removeQueryParams,
-  getNextOccurrence,
   withResolvers,
-} from './helpers';
+  getNextOccurrence,
+  toWalletAddressUrl,
+  setDifference,
+} from '../helpers';
 
 describe('objectEquals', () => {
   it('should return true if objects are equal', () => {
@@ -33,6 +35,22 @@ describe('removeQueryParams', () => {
       'https://example.com/',
     );
   });
+});
+
+test('setDifference', () => {
+  const set = <T>(...items: T[]) => new Set(items);
+  expect(setDifference(set(1, 2, 3), set(2, 3, 4))).toEqual(set(1));
+  expect(setDifference(set(1, 2, 3), set(1, 2))).toEqual(set(3));
+  expect(setDifference(set(3), set(1, 2))).toEqual(set(3));
+  expect(setDifference(set(1, 2, 3), set(1, 2, 3))).toEqual(set());
+  expect(setDifference(set('a', 'b', 'c'), set('b', 'c'))).toEqual(set('a'));
+
+  const a = { foo: 1 };
+  const b = { foo: 2 };
+  const c = { foo: 3 };
+  const diff = setDifference(set(a, b, c), set(b, c));
+  expect(diff).toEqual(set(a));
+  expect(diff).toContain(a);
 });
 
 describe('withResolvers', () => {
@@ -136,6 +154,14 @@ describe('getNextOccurrence', () => {
   it('should return the next occurrence with /PT', () => {
     expect(getNextOccurrence(`R/${nowISO}/PT30S`, now)).toEqual(
       addSeconds(now, 30),
+    );
+  });
+});
+
+describe('toWalletAddressUrl', () => {
+  it('converts from short form to long form', () => {
+    expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
+      'https://wallet.com/bob',
     );
   });
 });

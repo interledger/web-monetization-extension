@@ -1,7 +1,7 @@
 import { promisify } from 'node:util';
 import { JSDOM } from 'jsdom';
 import { MonetizationLinkManager } from '@/content/services/monetizationLinkManager';
-import { success, failure } from '@/shared/helpers';
+import { success, failure } from '@/shared/messages';
 import type {
   ContentToBackgroundMessage as Msg,
   MessageManager,
@@ -434,7 +434,7 @@ describe('monetization in main frame', () => {
     ]);
 
     // verify that both links are being observed for attribute changes
-    link1.href = 'https://ilp.interledger-test.dev/tech1-updated';
+    link1.href = WALLET_ADDRESS[1];
     await nextTick();
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
@@ -548,6 +548,7 @@ describe('monetization in main frame', () => {
     document.head.appendChild(createLink(document, WALLET_ADDRESS[2]));
     await nextTick();
 
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(3);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
       { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
       { requestId: 'uuid-2', walletAddress: WALLET_INFO[1] },
@@ -561,21 +562,28 @@ describe('monetization in main frame', () => {
 });
 
 describe('monetization in first level iframe', () => {
-  test('detects monetization links in head', async () => {
+  test('detects monetization links', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`
         <link rel="monetization" href="${WALLET_ADDRESS[0]}">
+        <link rel="monetization" href="${WALLET_ADDRESS[2]}" disabled>
+      `,
+      body: html`
         <link rel="monetization" href="${WALLET_ADDRESS[1]}">
       `,
     });
     using linkManager = createMonetizationLinkManager(document);
-    const link = document.querySelector('link')!;
+    const [link1, link2, link3] = document.querySelectorAll('link');
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-    const dispatchEvent = jest.spyOn(link, 'dispatchEvent');
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
+    const dispatchEventLink1 = jest.spyOn(link1, 'dispatchEvent');
+    const dispatchEventLink2 = jest.spyOn(link2, 'dispatchEvent');
+    const dispatchEventLink3 = jest.spyOn(link3, 'dispatchEvent');
 
     const iframeId = 'uuid-iframe-0';
-    const iframeWARequestId = 'uuid-iframe-1';
+    const iframeWARequestId1 = 'uuid-iframe-1';
+    const iframeWARequestId2 = 'uuid-iframe-2';
 
     linkManager.start();
     await nextTick();
@@ -592,18 +600,24 @@ describe('monetization in first level iframe', () => {
     expect(linkManager.isTopFrame).toBe(false);
     expect(linkManager.isFirstLevelFrame).toBe(true);
 
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(1, {
       walletAddressUrl: WALLET_ADDRESS[0],
+    });
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
+      walletAddressUrl: WALLET_ADDRESS[1],
     });
 
     await nextTick();
 
-    expect(dispatchEvent).toHaveBeenCalledWith(new Event('load'));
-    const dispatchedLoadEvent = dispatchEvent.mock.lastCall![0] as Event;
+    expect(dispatchEventLink1).toHaveBeenCalledWith(new Event('load'));
+    const dispatchedLoadEvent = dispatchEventLink1.mock.lastCall![0] as Event;
     expect(dispatchedLoadEvent.type).toBe('load');
-    expect(dispatchEvent).toHaveBeenCalledTimes(1);
-    expect(dispatchEvent.mock.instances[0]).toBe(link);
+    expect(dispatchEventLink1).toHaveBeenCalledTimes(1);
+    expect(dispatchEventLink1.mock.instances[0]).toBe(link1);
+    expect(dispatchEventLink2).not.toHaveBeenCalled();
+    expect(dispatchEventLink3).toHaveBeenCalledTimes(1);
+    expect(dispatchEventLink3.mock.instances[0]).toBe(link3);
 
     expect(postMessage).toHaveBeenNthCalledWith(
       2,
@@ -611,7 +625,8 @@ describe('monetization in first level iframe', () => {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
         payload: [
-          { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
+          { requestId: iframeWARequestId1, walletAddress: WALLET_INFO[0] },
+          { requestId: iframeWARequestId2, walletAddress: WALLET_INFO[1] },
         ],
       },
       '*',
@@ -620,209 +635,19 @@ describe('monetization in first level iframe', () => {
       message: 'START_MONETIZATION',
       id: iframeId,
       payload: [
-        { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
+        { requestId: iframeWARequestId1, walletAddress: WALLET_INFO[0] },
+        { requestId: iframeWARequestId2, walletAddress: WALLET_INFO[1] },
       ],
     });
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: iframeWARequestId, walletAddress: WALLET_INFO[0] },
+      { requestId: iframeWARequestId1, walletAddress: WALLET_INFO[0] },
+      { requestId: iframeWARequestId2, walletAddress: WALLET_INFO[1] },
     ]);
   });
 
-  test('ignores monetization links in body', async () => {
-    const { document, postMessage } = createTestEnvWithIframe({
-      body: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-
-    linkManager.start();
-    await nextTick();
-
-    expect(postMessage).toHaveBeenCalledTimes(1);
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'INITIALIZE_IFRAME' }),
-      '*',
-    );
-
-    expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
-    expect(postMessage).not.toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'IS_MONETIZATION_ALLOWED_ON_START' }),
-    );
-    expect(msg.START_MONETIZATION).not.toHaveBeenCalled();
-  });
-
-  test('ignores first disabled link tag on start', async () => {
-    const { document, postMessage } = createTestEnvWithIframe({
-      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}" disabled>`,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-
-    linkManager.start();
-    await nextTick();
-
-    expect(postMessage).toHaveBeenCalledTimes(1);
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'INITIALIZE_IFRAME' }),
-      '*',
-    );
-
-    // Disabled link should not be processed for monetization
-    expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
-    expect(postMessage).not.toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'IS_MONETIZATION_ALLOWED_ON_START' }),
-      '*',
-    );
-    expect(msg.START_MONETIZATION).not.toHaveBeenCalled();
-  });
-
-  test.failing('ignores first disabled link but picks 2nd one', async () => {
-    const { document, postMessage } = createTestEnvWithIframe({
-      head: html`
-        <link rel="monetization" href="${WALLET_ADDRESS[0]}" disabled>
-        <link rel="monetization" href="${WALLET_ADDRESS[1]}">
-      `,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
-
-    linkManager.start();
-    await nextTick();
-
-    expect(postMessage).toHaveBeenCalledTimes(1);
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'INITIALIZE_IFRAME' }),
-      '*',
-    );
-
-    // Disabled link should not be processed for monetization
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
-      walletAddressUrl: WALLET_ADDRESS[1],
-    });
-    expect(postMessage).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'IS_MONETIZATION_ALLOWED_ON_START',
-      }),
-      '*',
-    );
-    expect(msg.START_MONETIZATION).toHaveBeenCalledWith({
-      requestId: 'uuid-1',
-      walletAddress: WALLET_INFO[1],
-    });
-  });
-
-  test.failing('accepts only first link tag', async () => {
-    const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
-      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-    const link1 = document.querySelector('link')!;
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[2]));
-    const iframeId = 'uuid-iframe-0';
-    const requestId1 = 'uuid-iframe-1';
-    const requestId2 = 'uuid-iframe-2';
-    const requestId3 = 'uuid-iframe-3';
-
-    linkManager.start();
-    await nextTick();
-
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [{ requestId: requestId1, walletAddress: WALLET_INFO[0] }],
-      }),
-      '*',
-    );
-
-    dispatchMessage({
-      message: 'START_MONETIZATION',
-      id: iframeId,
-      payload: [{ requestId: requestId1, walletAddress: WALLET_INFO[0] }],
-    });
-
-    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: requestId1, walletAddress: WALLET_INFO[0] },
-    ]);
-
-    // first link is disabled
-    link1.setAttribute('disabled', '');
-    await nextTick();
-
-    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: requestId1, intent: 'disable' },
-    ]);
-
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
-      walletAddressUrl: WALLET_ADDRESS[1],
-    });
-
-    link1.removeAttribute('disabled');
-    link1.href = WALLET_ADDRESS[1];
-    await nextTick();
-
-    // verify link with new URL is validated and message sent to parent
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(3, {
-      walletAddressUrl: WALLET_ADDRESS[1],
-    });
-
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [{ requestId: requestId2, walletAddress: WALLET_INFO[1] }],
-      }),
-      '*',
-    );
-
-    dispatchMessage({
-      message: 'START_MONETIZATION',
-      id: iframeId,
-      payload: [{ requestId: requestId2, walletAddress: WALLET_INFO[1] }],
-    });
-
-    // prepend a new link before the original one
-    const link2 = createLink(document, WALLET_ADDRESS[2]);
-    document.head.insertBefore(link2, link1);
-    await nextTick();
-
-    // verify the prepended link (now the first one) is validated
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(3, {
-      walletAddressUrl: WALLET_ADDRESS[2],
-    });
-
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [{ requestId: requestId3, walletAddress: WALLET_INFO[2] }],
-      }),
-      '*',
-    );
-
-    dispatchMessage({
-      message: 'START_MONETIZATION',
-      id: iframeId,
-      payload: [{ requestId: requestId3, walletAddress: WALLET_INFO[2] }],
-    });
-
-    // verify monetization started for the new first link
-    expect(msg.START_MONETIZATION).toHaveBeenLastCalledWith([
-      { requestId: requestId3, walletAddress: WALLET_INFO[2] },
-    ]);
-
-    // verify monetization was stopped for the previous link
-    expect(msg.STOP_MONETIZATION).toHaveBeenCalledTimes(2);
-  });
-
-  test.failing('accepts dynamically added monetization link', async () => {
+  test('accepts dynamically added monetization link', async () => {
     const { document, postMessage, dispatchMessage } =
       createTestEnvWithIframe();
     using linkManager = createMonetizationLinkManager(document);
@@ -843,22 +668,17 @@ describe('monetization in first level iframe', () => {
       '*',
     );
 
-    // append body - should be ignored in iframe
-    const wrapper1 = document.createElement('div');
-    wrapper1.innerHTML = `<link rel="monetization" href="${WALLET_ADDRESS[0]}">`;
-    document.body.appendChild(wrapper1);
+    const wrapper = document.createElement('div');
+    wrapper.append(createLink(document, WALLET_ADDRESS[1]));
+    document.head.appendChild(createLink(document, WALLET_ADDRESS[0]));
+    document.body.appendChild(wrapper);
     await nextTick();
 
-    expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
-
-    // append head - should be processed in iframe
-    const wrapper2 = document.createElement('div');
-    wrapper2.innerHTML = `<link rel="monetization" href="${WALLET_ADDRESS[1]}">`;
-    document.head.appendChild(wrapper2);
-    await nextTick();
-
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(2);
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(1, {
+      walletAddressUrl: WALLET_ADDRESS[0],
+    });
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
       walletAddressUrl: WALLET_ADDRESS[1],
     });
 
@@ -867,7 +687,8 @@ describe('monetization in first level iframe', () => {
         id: iframeId,
         message: 'IS_MONETIZATION_ALLOWED_ON_START',
         payload: [
-          { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[1] },
+          { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] },
+          { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
         ],
       },
       '*',
@@ -876,16 +697,20 @@ describe('monetization in first level iframe', () => {
     dispatchMessage({
       message: 'START_MONETIZATION',
       id: iframeId,
-      payload: [{ requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[1] }],
+      payload: [
+        { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] },
+        { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
+      ],
     });
 
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
     expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[1] },
+      { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] },
+      { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
     ]);
   });
 
-  test('stops monetization if first & only first link tag is disabled', async () => {
+  test('stops monetization if only link tag is disabled', async () => {
     const { document, dispatchMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -913,7 +738,7 @@ describe('monetization in first level iframe', () => {
     ]);
   });
 
-  test('monetizes new URL for first tag (if valid)', async () => {
+  test('monetizes new URL for link tag (if valid)', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -959,7 +784,7 @@ describe('monetization in first level iframe', () => {
     );
   });
 
-  test.failing('monetizes prepended link tag', async () => {
+  test('monetizes prepended link tag', async () => {
     const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -980,162 +805,17 @@ describe('monetization in first level iframe', () => {
     });
     expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
 
-    // prepend a new link tag (in iframe, should become the new active link)
+    // prepend a new link tag
     const newLink = createLink(document, WALLET_ADDRESS[1]);
     document.head.insertBefore(newLink, originalLink);
     await nextTick();
 
-    // should stop the first monetization
-    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: 'uuid-iframe-1', intent: 'remove' },
-    ]);
+    expect(
+      msg.STOP_MONETIZATION,
+      'previous link tag stays monetized',
+    ).not.toHaveBeenCalled();
 
     expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
-      walletAddressUrl: WALLET_ADDRESS[1],
-    });
-
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [
-          { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
-        ],
-      }),
-      '*',
-    );
-  });
-
-  test.failing('promotes second link tag if first is disabled', async () => {
-    const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
-      head: html`
-        <link id="first" rel="monetization" href="${WALLET_ADDRESS[0]}">
-        <link id="second" rel="monetization" href="${WALLET_ADDRESS[1]}">
-      `,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-    const firstLink = document.getElementById('first') as HTMLLinkElement;
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
-    const iframeId = 'uuid-iframe-0';
-
-    linkManager.start();
-    await nextTick();
-
-    // only first link should be validated initially
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledWith({
-      walletAddressUrl: WALLET_ADDRESS[0],
-    });
-
-    // simulate response from top frame to allow monetization
-    dispatchMessage({
-      message: 'START_MONETIZATION',
-      id: iframeId,
-      payload: [{ requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] }],
-    });
-
-    firstLink.setAttribute('disabled', '');
-    await nextTick();
-
-    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: 'uuid-iframe-1', intent: 'disable' },
-    ]);
-
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
-      walletAddressUrl: WALLET_ADDRESS[1],
-    });
-
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [
-          { requestId: 'uuid-iframe-2', walletAddress: WALLET_INFO[1] },
-        ],
-      }),
-      '*',
-    );
-  });
-
-  test.failing('promotes 2nd link tag if first has invalid URL', async () => {
-    const { document, postMessage } = createTestEnvWithIframe({
-      head: html`
-        <link id="first" rel="monetization" href="invalid://address">
-        <link id="second" rel="monetization" href="${WALLET_ADDRESS[0]}">
-      `,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-    const firstLink = document.getElementById('first') as HTMLLinkElement;
-    const secondLink = document.getElementById('second') as HTMLLinkElement;
-
-    msg.GET_WALLET_ADDRESS_INFO.mockRejectedValueOnce(
-      failure('Invalid wallet address URL'),
-    );
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-
-    const dispatchEventSpy1 = jest.spyOn(firstLink, 'dispatchEvent');
-    const dispatchEventSpy2 = jest.spyOn(secondLink, 'dispatchEvent');
-
-    linkManager.start();
-    await nextTick();
-
-    // first link should trigger error event
-    expect(dispatchEventSpy1).toHaveBeenCalledWith(new Event('error'));
-
-    // second link should be validated and used
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(2, {
-      walletAddressUrl: WALLET_ADDRESS[0],
-    });
-    expect(dispatchEventSpy2).toHaveBeenCalledWith(new Event('load'));
-
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'IS_MONETIZATION_ALLOWED_ON_START',
-        payload: [
-          { requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] },
-        ],
-      }),
-      '*',
-    );
-  });
-
-  test.failing('promotes 2nd link if 1st URL dynamic invalid', async () => {
-    const { document, postMessage, dispatchMessage } = createTestEnvWithIframe({
-      head: html`<link id="first" rel="monetization" href="${WALLET_ADDRESS[0]}">`,
-    });
-    using linkManager = createMonetizationLinkManager(document);
-    const firstLink = document.getElementById('first') as HTMLLinkElement;
-
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-    msg.GET_WALLET_ADDRESS_INFO.mockRejectedValueOnce(
-      failure('Invalid wallet address URL'),
-    );
-    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
-
-    const iframeId = 'uuid-iframe-0';
-
-    linkManager.start();
-    await nextTick();
-
-    dispatchMessage({
-      message: 'START_MONETIZATION',
-      id: iframeId,
-      payload: [{ requestId: 'uuid-iframe-1', walletAddress: WALLET_INFO[0] }],
-    });
-
-    firstLink.href = 'invalid://address';
-    await nextTick();
-
-    // add a second valid link, dynamic
-    const secondLink = createLink(document, WALLET_ADDRESS[1]);
-    document.head.appendChild(secondLink);
-    await nextTick();
-
-    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
-      { requestId: 'uuid-iframe-1', intent: 'remove' },
-    ]);
-
-    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenNthCalledWith(3, {
       walletAddressUrl: WALLET_ADDRESS[1],
     });
 
@@ -1293,6 +973,186 @@ describe('link tag attributes changes', () => {
       }),
     );
   });
+
+  test('handles link changing from invalid to valid via href change', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="invalid://wallet">`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+
+    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('error'));
+    expect(msg.START_MONETIZATION).not.toHaveBeenCalled();
+
+    link.href = WALLET_ADDRESS[0];
+    await nextTick();
+
+    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('load'));
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+    ]);
+  });
+
+  test('handles link changing from invalid to valid via disabled attribute', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}" disabled>`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+    expect(msg.START_MONETIZATION).not.toHaveBeenCalled();
+
+    link.removeAttribute('disabled');
+    await nextTick();
+
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+    ]);
+  });
+
+  test('handles setting crossorigin attribute', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+    ]);
+
+    link.setAttribute('crossorigin', 'anonymous');
+    await nextTick();
+
+    // crossorigin change should not affect monetization
+    expect(msg.STOP_MONETIZATION).not.toHaveBeenCalled();
+    expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
+  });
+
+  test('handles setting type attribute', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+
+    link.setAttribute('type', 'text/plain');
+    await nextTick();
+
+    // type change should not affect monetization
+    expect(msg.STOP_MONETIZATION).not.toHaveBeenCalled();
+    expect(msg.START_MONETIZATION).toHaveBeenCalledTimes(1);
+  });
+
+  test('handles removal and re-addition of href attribute', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+
+    link.removeAttribute('href');
+    await nextTick();
+
+    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', intent: 'remove' },
+    ]);
+
+    link.setAttribute('href', WALLET_ADDRESS[0]);
+    await nextTick();
+
+    expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[0] },
+    ]);
+  });
+
+  test('handles invalid URL that becomes valid through multiple changes', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="https://partial">`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+
+    // initial URL is invalid
+    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('error'));
+
+    link.href = 'https://invalid';
+    await nextTick();
+    // second URL is invalid
+    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('error'));
+
+    link.href = WALLET_ADDRESS[0];
+    await nextTick();
+
+    expect(dispatchEventSpy).toHaveBeenCalledWith(new Event('load'));
+    expect(msg.START_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', walletAddress: WALLET_INFO[0] },
+    ]);
+  });
+
+  test('handles validation of reinstated link that was previously invalid', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
+    using linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+    msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
+
+    linkManager.start();
+    await nextTick();
+
+    link.href = 'invalid://url';
+    await nextTick();
+
+    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
+      { requestId: 'uuid-1', intent: 'remove' },
+    ]);
+
+    // remove and re-add the link with valid URL
+    link.remove();
+    await nextTick();
+    document.head.appendChild(link);
+    link.href = WALLET_ADDRESS[0];
+    await nextTick();
+
+    expect(msg.START_MONETIZATION).toHaveBeenNthCalledWith(2, [
+      { requestId: 'uuid-2', walletAddress: WALLET_INFO[0] },
+    ]);
+  });
 });
 
 describe('document events', () => {
@@ -1410,7 +1270,7 @@ describe('load event dispatching', () => {
       ),
     ).toHaveLength(1);
 
-    link.href = 'https://ilp.interledger-test.dev/tech2';
+    link.href = WALLET_ADDRESS[1];
     await nextTick();
 
     expect(

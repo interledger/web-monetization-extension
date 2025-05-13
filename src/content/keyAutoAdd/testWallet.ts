@@ -1,5 +1,10 @@
 // cSpell:ignore nextjs
-import { errorWithKey, ErrorWithKey, sleep } from '@/shared/helpers';
+import {
+  errorWithKey,
+  ErrorWithKey,
+  sleep,
+  toWalletAddressUrl,
+} from '@/shared/helpers';
 import {
   KeyAutoAdd,
   LOGIN_WAIT_TIMEOUT,
@@ -7,7 +12,6 @@ import {
 } from './lib/keyAutoAdd';
 import { isTimedOut, waitForURL } from './lib/helpers';
 import { revokeKey } from './lib/helpers/testWallet';
-import { toWalletAddressUrl } from '@/pages/shared/lib/utils';
 
 // region: Steps
 type Account = {

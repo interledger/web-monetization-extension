@@ -66,6 +66,10 @@ export const toAmount = ({
   };
 };
 
+export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
+  return BigInt(a) > BigInt(b) ? a : b;
+}
+
 interface ExchangeRates {
   base: string;
   rates: Record<string, number>;
@@ -123,6 +127,14 @@ export const convertWithExchangeRate = <T extends AmountValue | bigint>(
     ? (converted.toString() as T)
     : (converted as T);
 };
+
+export function convert(value: bigint, source: number, target: number) {
+  const scaleDiff = target - source;
+  if (scaleDiff > 0) {
+    return value * BigInt(10 ** scaleDiff);
+  }
+  return value / BigInt(10 ** -scaleDiff);
+}
 
 export const getTabId = (sender: Runtime.MessageSender): number => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab').id, 'tab.id');
@@ -202,6 +214,18 @@ export const isBrowserInternalPage = (url: URL) => {
 export const isBrowserNewTabPage = (url: URL) => {
   return NEW_TAB_PAGES.some((e) => url.href.startsWith(e));
 };
+
+export function isSecureContext(url: string | URL) {
+  const { hostname, protocol } = new URL(url);
+  if (protocol === 'https:') return true;
+  return (
+    hostname === 'localhost' ||
+    // Let localhost be localhost
+    hostname.endsWith('.localhost') ||
+    // even though it's 127.0.0.0/8, 127.0.0.1 should be ok as most common case
+    hostname === '127.0.0.1'
+  );
+}
 
 export const computeRate = (rate: string, sessionsCount: number): AmountValue =>
   (BigInt(rate) / BigInt(sessionsCount)).toString();

@@ -10,14 +10,14 @@ import {
   InputAmount,
   validateAmount,
 } from '@/pages/shared/components/InputAmount';
-import { toWalletAddressUrl } from '@/pages/shared/lib/utils';
+import { cn } from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
-  cn,
   errorWithKey,
   isErrorWithKey,
   sleep,
+  toWalletAddressUrl,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
@@ -378,6 +378,7 @@ export const ConnectWalletForm = ({
             label={t('connectWallet_label_amount')}
             labelHidden={true}
             amount={amount}
+            className="max-w-48"
             walletAddress={
               walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
             }
@@ -388,7 +389,6 @@ export const ConnectWalletForm = ({
               setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
             onChange={handleAmountChange}
-            className="max-w-32"
             placeholder="5.00"
           />
 

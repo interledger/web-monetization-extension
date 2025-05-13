@@ -1,7 +1,10 @@
 import path from 'node:path';
 import { readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import type { BuildOptions } from 'esbuild';
 import type { Manifest } from 'webextension-polyfill';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const TARGETS = ['chrome', 'firefox'] as const;
 export const CHANNELS = ['nightly', 'preview', 'stable'] as const;

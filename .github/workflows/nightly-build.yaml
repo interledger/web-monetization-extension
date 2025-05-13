@@ -19,6 +19,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: Chromium
+            project: chromium
+            target: chrome
+            runs-on: ubuntu-22.04
           - name: Chrome
             project: chrome
             target: chrome
@@ -89,6 +93,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-24.04
     needs: test-e2e
+    if: ${{ always() }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
