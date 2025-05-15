@@ -89,7 +89,7 @@
     "pnpm": "^10.10.0",
     "npm": "pnpm",
     "yarn": "pnpm",
-    "node": "^20.18.2"
+    "node": "^22.15.1"
   },
   "pnpm": {
     "overrides": {

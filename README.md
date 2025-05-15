@@ -17,10 +17,10 @@ The Web Monetization browser extension is an open source implementation of the W
 ### Environment Setup
 
 ```sh
-# Install Node 20
+# Install Node 22
 # For Linux/macOS
-nvm install lts/iron
-nvm use lts/iron
+nvm install lts/jod
+nvm use lts/jod
 
 # For Windows
 nvm install lts
