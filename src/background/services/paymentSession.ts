@@ -15,7 +15,13 @@ import {
   isOutOfBalanceError,
   isTokenExpiredError,
 } from '@/background/services/openPayments';
-import { bigIntMax, convert, getNextSendableAmount } from '@/background/utils';
+import {
+  bigIntMax,
+  convert,
+  convertWithExchangeRate,
+  getExchangeRatesMemoized,
+  getNextSendableAmount,
+} from '@/background/utils';
 import type {
   MonetizationEventDetails,
   MonetizationEventPayload,
@@ -142,6 +148,19 @@ export class PaymentSession {
           );
         }
       }
+    }
+
+    if (isCrossCurrency) {
+      try {
+        const exchangeRates = await getExchangeRatesMemoized();
+        amountToSend = convertWithExchangeRate(
+          amountToSend,
+          this.receiver,
+          this.sender,
+          exchangeRates,
+        );
+        this.logger.debug('minSendAmount: via exchangeRate', amountToSend);
+      } catch {}
     }
 
     // This all will eventually get replaced by OpenPayments response update
