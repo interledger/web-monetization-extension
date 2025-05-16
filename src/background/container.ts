@@ -39,6 +39,7 @@ import {
 
 export interface Cradle {
   logger: Logger;
+  createLogger: ReturnType<typeof createLogger>['getLogger'];
   browser: Browser;
   browserName: BrowserName;
   appName: string;
@@ -69,6 +70,7 @@ export const configureContainer = () => {
 
   container.register({
     logger: asValue(logger),
+    createLogger: asValue(logger.getLogger.bind(logger)),
     browser: asValue(browser),
     browserName: asValue(getBrowserName(browser, navigator.userAgent)),
     appName: asValue(browser.runtime.getManifest().name),
