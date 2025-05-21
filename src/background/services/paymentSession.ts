@@ -251,10 +251,7 @@ export class PaymentSession {
   }
 
   private debug(message: string) {
-    this.logger.debug(
-      `[PAYMENT SESSION] receiver=${this.receiver.id}\n\n`,
-      `   ${message}`,
-    );
+    this.logger.debug(`[receiver=${this.receiver.id}]`, message);
   }
 
   async start(source: PaymentSessionSource) {
