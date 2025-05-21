@@ -27,6 +27,7 @@ import type { Cradle } from '@/background/container';
 
 export class MonetizationService {
   private logger: Cradle['logger'];
+  private rootLogger: Cradle['rootLogger'];
   private t: Cradle['t'];
   private openPaymentsService: Cradle['openPaymentsService'];
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
@@ -38,6 +39,7 @@ export class MonetizationService {
 
   constructor({
     logger,
+    rootLogger,
     t,
     openPaymentsService,
     outgoingPaymentGrantService,
@@ -49,6 +51,7 @@ export class MonetizationService {
   }: Cradle) {
     Object.assign(this, {
       logger,
+      rootLogger,
       t,
       openPaymentsService,
       outgoingPaymentGrantService,
@@ -92,16 +95,6 @@ export class MonetizationService {
       return;
     }
 
-    const deps = {
-      storage: this.storage,
-      openPaymentsService: this.openPaymentsService,
-      outgoingPaymentGrantService: this.outgoingPaymentGrantService,
-      events: this.events,
-      tabState: this.tabState,
-      logger: this.logger,
-      message: this.message,
-    };
-
     const { tabId, frameId, url: fullUrl } = getSender(sender);
     const url = removeQueryParams(fullUrl!);
 
@@ -125,7 +118,15 @@ export class MonetizationService {
           tabId,
           frameId,
           url,
-          deps,
+          {
+            storage: this.storage,
+            openPaymentsService: this.openPaymentsService,
+            outgoingPaymentGrantService: this.outgoingPaymentGrantService,
+            events: this.events,
+            tabState: this.tabState,
+            logger: this.rootLogger.getLogger(`payment-session/${requestId}`),
+            message: this.message,
+          },
         );
         sessions.set(requestId, session);
       }

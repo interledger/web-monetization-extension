@@ -252,7 +252,7 @@ export class PaymentSession {
 
   private debug(message: string) {
     this.logger.debug(
-      `[PAYMENT SESSION] requestId=${this.requestId}; receiver=${this.receiver.id}\n\n`,
+      `[PAYMENT SESSION] receiver=${this.receiver.id}\n\n`,
       `   ${message}`,
     );
   }

@@ -20,7 +20,7 @@ import {
   Heartbeat,
   Deduplicator,
 } from './services';
-import { createLogger, type Logger } from '@/shared/logger';
+import { createLogger, type Logger, type RootLogger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
 import {
   getBrowserName,
@@ -39,6 +39,7 @@ import {
 
 export interface Cradle {
   logger: Logger;
+  rootLogger: RootLogger;
   browser: Browser;
   browserName: BrowserName;
   appName: string;
@@ -69,6 +70,7 @@ export const configureContainer = () => {
 
   container.register({
     logger: asValue(logger),
+    rootLogger: asValue(logger),
     browser: asValue(browser),
     browserName: asValue(getBrowserName(browser, navigator.userAgent)),
     appName: asValue(browser.runtime.getManifest().name),
