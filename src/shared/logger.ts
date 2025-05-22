@@ -32,7 +32,8 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
   return log;
 };
 
-export type Logger = log.RootLogger;
+export type Logger = log.Logger;
+export type RootLogger = log.RootLogger;
 
 export type RemoteLoggerMessage = {
   msg: unknown[];
