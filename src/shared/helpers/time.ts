@@ -117,7 +117,7 @@ export function debounceSync<T extends unknown[], R>(
 export class Timeout {
   private timeout: ReturnType<typeof setTimeout> | null = null;
   constructor(
-    ms: number,
+    private ms: number,
     private callback: () => void,
   ) {
     this.reset(ms);
@@ -126,6 +126,13 @@ export class Timeout {
   reset(ms: number) {
     this.clear();
     this.timeout = setTimeout(this.callback, ms);
+    this.ms = ms;
+  }
+
+  add(ms: number) {
+    this.clear();
+    this.ms += ms;
+    this.timeout = setTimeout(this.callback, this.ms);
   }
 
   clear() {

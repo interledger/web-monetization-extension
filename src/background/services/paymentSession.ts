@@ -42,7 +42,7 @@ type IncomingPaymentSource = 'one-time' | 'continuous';
 interface CreateOutgoingPaymentParams {
   walletAddress: WalletAddress;
   incomingPaymentId: IncomingPayment['id'];
-  amount: string;
+  amount: AmountValue;
 }
 type Cradle = Pick<
   Cradle_,
@@ -211,6 +211,10 @@ export class PaymentSession {
     return this.requestId;
   }
 
+  get walletAddress() {
+    return this.receiver.id;
+  }
+
   get disabled() {
     return this.isDisabled;
   }
@@ -279,40 +283,23 @@ export class PaymentSession {
       });
     }
 
-    const continuePayment = () => {
-      if (!this.canContinuePayment) return;
-      void this.payContinuous().catch((err) => {
-        this.logger.error('Error while making continuous payment', err);
-      });
-      // This recursive call in setTimeout is essentially setInterval here,
-      // except we can have a dynamic interval (immediate vs intervalInMs).
-      this.timeout = setTimeout(
-        continuePayment,
-        this.shouldRetryImmediately ? 0 : this.intervalInMs,
-      );
-    };
-
     if (!this.rate) {
       // this.rate is set when adjustAmount begins. this.amount is set only after first successful adjustAmount
       throw new Error('Unexpected: adjustAmount not yet ready');
     }
-    if (this.canContinuePayment) {
-      this.timeout = setTimeout(async () => {
-        if (!this.amount) {
-          await this.adjustAmount(this.rate);
-        }
-        if (!this.amount) {
-          // if still not set, fail
-          throw new Error('amount not set for continuous payments');
-        }
+    // if (this.canContinuePayment) {
+    //   this.timeout = setTimeout(async () => {
+    //     if (!this.amount) {
+    //       await this.adjustAmount(this.rate);
+    //     }
+    //     if (!this.amount) {
+    //       // if still not set, fail
+    //       throw new Error('amount not set for continuous payments');
+    //     }
 
-        await this.payContinuous();
-        this.timeout = setTimeout(
-          continuePayment,
-          this.shouldRetryImmediately ? 0 : this.intervalInMs,
-        );
-      }, waitTime);
-    }
+    //     // await this.payContinuous();
+    //   }, waitTime);
+    // }
   }
 
   private async sendMonetizationEvent(payload: MonetizationEventPayload) {
@@ -463,7 +450,7 @@ export class PaymentSession {
     );
   }
 
-  async pay(amount: number): Promise<OutgoingPayment> {
+  async pay(amount: bigint): Promise<OutgoingPayment> {
     if (this.isDisabled) {
       throw new Error('Attempted to send a payment to a disabled session.');
     }
@@ -481,7 +468,7 @@ export class PaymentSession {
       const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
         incomingPaymentId: incomingPayment.id,
-        amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
+        amount: amount.toString(),
       });
 
       this.sendMonetizationEvent({
@@ -575,13 +562,16 @@ export class PaymentSession {
     this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate));
   }
 
-  private async payContinuous() {
+  dispatchLastMonetizationEvent() {}
+
+  async payContinuous(amount: bigint) {
     this.shouldRetryImmediately = false;
+    await this.setIncomingPaymentUrl();
     try {
       const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
         incomingPaymentId: this.incomingPaymentUrl,
-        amount: this.amount,
+        amount: amount.toString(),
       });
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment;
       const monetizationEventDetails: MonetizationEventDetails = {

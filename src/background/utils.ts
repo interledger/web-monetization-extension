@@ -232,9 +232,6 @@ export function isSecureContext(url: string | URL) {
   );
 }
 
-export const computeRate = (rate: string, sessionsCount: number): AmountValue =>
-  (BigInt(rate) / BigInt(sessionsCount)).toString();
-
 export function computeBalance(
   grant?: GrantDetails | null,
   grantSpentAmount?: AmountValue | null,
