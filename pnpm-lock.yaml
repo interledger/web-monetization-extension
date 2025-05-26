@@ -102,7 +102,7 @@ importers:
         version: 0.0.323
       '@types/github-script':
         specifier: github:actions/github-script
-        version: '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb'
+        version: '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/5ee2b97722aeebb4c5d5c867345a6745cd868065'
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
@@ -193,8 +193,8 @@ packages:
   '@actions/exec@1.1.1':
     resolution: {integrity: sha512-+sCcHHbVdk93a0XT19ECtO/gIXoxvdsgQLzb2fE2/5sIZmWQuluYyjPQtrtTHdU1YzTZ7bAPN4sITq2xi1679w==}
 
-  '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb':
-    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb}
+  '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/5ee2b97722aeebb4c5d5c867345a6745cd868065':
+    resolution: {tarball: https://codeload.github.com/actions/github-script/tar.gz/5ee2b97722aeebb4c5d5c867345a6745cd868065}
     version: 7.0.1
     engines: {node: '>=20.0.0 <21.0.0'}
 
@@ -3534,7 +3534,7 @@ snapshots:
     dependencies:
       '@actions/io': 1.1.3
 
-  '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb':
+  '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/5ee2b97722aeebb4c5d5c867345a6745cd868065':
     dependencies:
       '@actions/core': 1.10.1
       '@actions/exec': 1.1.1
