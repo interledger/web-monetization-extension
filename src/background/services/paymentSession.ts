@@ -173,6 +173,7 @@ export class PaymentSession {
     );
 
     amountToSend = BigInt(amountIter.next().value);
+    let prevAmountToSend = amountToSend;
     while (true) {
       signal?.throwIfAborted();
       this.#minSendAmount = amountToSend;
@@ -182,12 +183,12 @@ export class PaymentSession {
           this.incomingPaymentUrl,
           this.sender,
         );
-        this.#minSendAmountFound = true;
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
           await this.outgoingPaymentGrantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
+          prevAmountToSend = amountToSend;
           amountToSend = BigInt(amountIter.next().value);
         } else if (isInvalidReceiverError(e) || isInternalServerError(e)) {
           // Treat InternalServerError same as invalid receiver due to
@@ -205,6 +206,41 @@ export class PaymentSession {
         }
       }
     }
+
+    if (prevAmountToSend === amountToSend) {
+      this.#minSendAmountFound = true;
+      return;
+    }
+
+    // Once we've found a sendable amount with exponential probing above, ensure
+    // it's the minimum.
+    let left = prevAmountToSend;
+    let right = amountToSend;
+    while (left < right && !this.#minSendAmountFound) {
+      signal?.throwIfAborted();
+      const mid = (left + right) / 2n;
+      try {
+        // this.logger.log('minSendAmount: binary search', { left, right, mid });
+        await this.createPaymentQuote(
+          mid.toString(),
+          this.incomingPaymentUrl,
+          this.sender,
+        );
+        this.#minSendAmount = mid;
+        right = mid - 1n;
+      } catch (e) {
+        if (isTokenExpiredError(e)) {
+          await this.outgoingPaymentGrantService.rotateToken();
+        } else if (isNonPositiveAmountError(e)) {
+          left = mid + 1n;
+        } else {
+          // it won't be invalidReceiver or any other now, so just throw
+          throw e;
+        }
+      }
+    }
+    this.#minSendAmountFound = true;
+    // this.logger.log('minSendAmount: binary search gave us', this.minSendAmount);
   }
 
   get id() {
