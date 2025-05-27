@@ -42,7 +42,7 @@ type IncomingPaymentSource = 'one-time' | 'continuous';
 interface CreateOutgoingPaymentParams {
   walletAddress: WalletAddress;
   incomingPaymentId: IncomingPayment['id'];
-  amount: string;
+  amount: AmountValue;
 }
 type Cradle = Pick<
   Cradle_,
@@ -245,6 +245,10 @@ export class PaymentSession {
 
   get id() {
     return this.requestId;
+  }
+
+  get walletAddress() {
+    return this.receiver.id;
   }
 
   get disabled() {
@@ -499,7 +503,7 @@ export class PaymentSession {
     );
   }
 
-  async pay(amount: number): Promise<OutgoingPayment> {
+  async pay(amount: bigint): Promise<OutgoingPayment> {
     if (this.isDisabled) {
       throw new Error('Attempted to send a payment to a disabled session.');
     }
@@ -517,7 +521,7 @@ export class PaymentSession {
       const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
         incomingPaymentId: incomingPayment.id,
-        amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
+        amount: amount.toString(),
       });
 
       this.sendMonetizationEvent({

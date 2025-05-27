@@ -167,3 +167,6 @@ export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type Tab = RequiredFields<Tabs.Tab, 'id' | 'url'>;
 export type TabId = NonNullable<Tabs.Tab['id']>;
 export type WindowId = NonNullable<Tabs.Tab['windowId']>;
+/** `0` represents the top-level frame, everything else is an _iframe_ */
+export type FrameId = number;
+export type SessionId = string;

@@ -6,13 +6,10 @@ import type {
   StartMonetizationPayload,
   StopMonetizationPayload,
 } from '@/shared/messages';
-import { PaymentSession } from './paymentSession';
+import { PaymentManager } from './paymentManager';
 import { computeRate, getSender, getTabId } from '@/background/utils';
+import { OUTGOING_PAYMENT_POLLING_MAX_DURATION } from '@/background/config';
 import { isOutOfBalanceError } from './openPayments';
-import {
-  OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
-  OUTGOING_PAYMENT_POLLING_MAX_DURATION,
-} from '@/background/config';
 import {
   ErrorWithKey,
   isAbortSignalTimeout,
@@ -96,64 +93,42 @@ export class MonetizationService {
     }
 
     const { tabId, frameId, url: fullUrl } = getSender(sender);
-    const url = removeQueryParams(fullUrl!);
 
-    const sessions = this.tabState.getSessions(tabId);
-    const existingSessions = new Set<string>();
-    // Initialize new sessions
-    for (const { requestId, walletAddress: receiver } of payload) {
-      const existingSession = sessions.get(requestId);
-      if (existingSession) {
-        existingSession.stop();
-        existingSession.enable(); // if was disabled earlier
-        existingSessions.add(requestId);
-        // move existing into correct order
-        sessions.delete(requestId);
-        sessions.set(requestId, existingSession);
-      } else {
-        const session = new PaymentSession(
-          receiver,
-          connectedWallet,
-          requestId,
-          tabId,
-          frameId,
-          url,
-          {
-            storage: this.storage,
-            openPaymentsService: this.openPaymentsService,
-            outgoingPaymentGrantService: this.outgoingPaymentGrantService,
-            events: this.events,
-            tabState: this.tabState,
-            logger: this.rootLogger.getLogger(`payment-session/${requestId}`),
-            message: this.message,
-          },
-        );
-        sessions.set(requestId, session);
-      }
+    let paymentManager = this.tabState.paymentManagers.get(tabId);
+    if (!paymentManager) {
+      const url = removeQueryParams(this.tabState.url.get(tabId) || fullUrl!);
+      paymentManager = new PaymentManager(
+        tabId,
+        url,
+        connectedWallet,
+        rateOfPay,
+        {
+          storage: this.storage,
+          openPaymentsService: this.openPaymentsService,
+          outgoingPaymentGrantService: this.outgoingPaymentGrantService,
+          events: this.events,
+          tabState: this.tabState,
+          logger: this.rootLogger.getLogger('payment-manager'),
+          rootLogger: this.rootLogger,
+          message: this.message,
+        },
+      );
+      this.tabState.paymentManagers.set(tabId, paymentManager);
     }
 
+    await Promise.all(
+      payload.map(({ requestId, walletAddress: receiver }) => {
+        return paymentManager.addSession(frameId, requestId, receiver, true);
+      }),
+    );
     this.events.emit('monetization.state_update', tabId);
-
-    const sessionsArr = this.tabState.getPayableSessions(tabId);
-    if (!sessionsArr.length) return;
-    const rate = computeRate(rateOfPay, sessionsArr.length);
-
-    // Since we probe (through quoting) the debitAmount we have to await this call.
-    const isAdjusted = await this.adjustSessionsAmount(sessionsArr, rate);
-    if (!isAdjusted) return;
 
     if (
       enabled &&
       continuousPaymentsEnabled &&
       this.canTryPayment(connected, state)
     ) {
-      for (const session of sessionsArr) {
-        if (!sessions.get(session.id)) continue;
-        const source = existingSessions.has(session.id)
-          ? 'request-id-reused'
-          : 'new-link';
-        void session.start(source);
-      }
+      paymentManager.start();
     }
   }
 
