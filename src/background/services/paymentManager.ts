@@ -240,6 +240,9 @@ export class PaymentManager {
   async adjustAmount() {
     const hourlyRate = this.hourlyRate;
     const sessions = this.payableSessions;
+    if (!sessions.length) {
+      return;
+    }
     const rate = computeRate(hourlyRate, sessions.length);
     this.logger.debug(`Adjusting rate for ${sessions.length} sessions.`, {
       hourlyRate,
