@@ -6,6 +6,7 @@ import type {
 import type { Cradle as Cradle_ } from '@/background/container';
 import { PaymentSession } from './paymentSession';
 import { OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS } from '../config';
+import { computeRate } from '../utils';
 import {
   ErrorWithKey,
   isAbortSignalTimeout,
@@ -231,9 +232,20 @@ export class PaymentManager {
 
   // #region Streaming payments
 
-  setRate(hourlyRate: AmountValue) {
+  async setRate(hourlyRate: AmountValue) {
     this.hourlyRate = hourlyRate;
-    // TODO
+    await this.adjustAmount();
+  }
+
+  async adjustAmount() {
+    const hourlyRate = this.hourlyRate;
+    const sessions = this.payableSessions;
+    const rate = computeRate(hourlyRate, sessions.length);
+    this.logger.debug(`Adjusting rate for ${sessions.length} sessions.`, {
+      hourlyRate,
+      rate,
+    });
+    await Promise.all(sessions.map((session) => session.adjustAmount(rate)));
   }
 
   start() {

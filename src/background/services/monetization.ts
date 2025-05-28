@@ -7,7 +7,7 @@ import type {
   StopMonetizationPayload,
 } from '@/shared/messages';
 import { PaymentManager } from './paymentManager';
-import { computeRate, getSender, getTabId } from '@/background/utils';
+import { getSender, getTabId } from '@/background/utils';
 import { OUTGOING_PAYMENT_POLLING_MAX_DURATION } from '@/background/config';
 import {
   ErrorWithKey,
@@ -15,7 +15,7 @@ import {
   removeQueryParams,
   transformBalance,
 } from '@/shared/helpers';
-import type { AmountValue, PopupStore, Storage } from '@/shared/types';
+import type { PopupStore, Storage } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 
 export class MonetizationService {
@@ -119,7 +119,9 @@ export class MonetizationService {
         return paymentManager.addSession(frameId, requestId, receiver, true);
       }),
     );
+
     this.events.emit('monetization.state_update', tabId);
+    await paymentManager.adjustAmount();
 
     if (
       enabled &&
@@ -131,15 +133,12 @@ export class MonetizationService {
   }
 
   async stopPaymentSessionsByTabId(tabId: number) {
-    const sessions = this.tabState.getSessions(tabId);
-    if (!sessions.size) {
-      this.logger.debug(`No active sessions found for tab ${tabId}.`);
+    const paymentManager = this.tabState.paymentManagers.get(tabId);
+    if (!paymentManager) {
+      this.logger.debug(`No payment manager found for tab ${tabId}.`);
       return;
     }
-
-    for (const session of sessions.values()) {
-      session.stop();
-    }
+    paymentManager.stop();
   }
 
   async stopPaymentSession(
@@ -148,40 +147,27 @@ export class MonetizationService {
   ) {
     let needsAdjustAmount = false;
     const tabId = getTabId(sender);
-    const sessions = this.tabState.getSessions(tabId);
-
-    if (!sessions.size) {
-      this.logger.debug(`No active sessions found for tab ${tabId}.`);
+    const paymentManager = this.tabState.paymentManagers.get(tabId);
+    if (!paymentManager) {
+      this.logger.warn(`No payment manager found for tab ${tabId}.`);
       return;
     }
 
     for (const { requestId, intent } of payload) {
-      const session = sessions.get(requestId);
-      if (!session) continue;
-
       if (intent === 'remove') {
+        paymentManager.removeSession(requestId);
         needsAdjustAmount = true;
-        session.stop();
-        sessions.delete(requestId);
       } else if (intent === 'disable') {
+        paymentManager.disableSession(requestId);
         needsAdjustAmount = true;
-        session.disable();
       } else {
-        session.stop();
+        paymentManager.stopSession(requestId);
       }
     }
 
-    const { rateOfPay } = await this.storage.get(['rateOfPay']);
-    if (!rateOfPay) return;
-
     if (needsAdjustAmount) {
-      const sessionsArr = this.tabState.getPayableSessions(tabId);
       this.events.emit('monetization.state_update', tabId);
-      if (!sessionsArr.length) return;
-      const rate = computeRate(rateOfPay, sessionsArr.length);
-      await this.adjustSessionsAmount(sessionsArr, rate).catch((e) => {
-        this.logger.error(e);
-      });
+      await paymentManager.adjustAmount();
     }
   }
 
@@ -190,10 +176,10 @@ export class MonetizationService {
     sender: Runtime.MessageSender,
   ) {
     const tabId = getTabId(sender);
-    const sessions = this.tabState.getSessions(tabId);
+    const paymentManager = this.tabState.paymentManagers.get(tabId);
 
-    if (!sessions.size) {
-      this.logger.debug(`No active sessions found for tab ${tabId}.`);
+    if (!paymentManager) {
+      this.logger.debug(`No payment manager found for tab ${tabId}.`);
       // If there are no sessions and we got a resume call, treat it as a fresh
       // start call. The sessions could be cleared as:
       // - the background script/worker had terminated, so all sessions (stored
@@ -220,16 +206,14 @@ export class MonetizationService {
       return;
     }
 
-    for (const p of payload) {
-      const { requestId } = p;
-      sessions.get(requestId)?.resume();
-    }
+    paymentManager.resume();
   }
 
   async resumePaymentSessionsByTabId(tabId: number) {
-    const sessions = this.tabState.getSessions(tabId);
-    if (!sessions.size) {
-      this.logger.debug(`No active sessions found for tab ${tabId}.`);
+    const paymentManager = this.tabState.paymentManagers.get(tabId);
+
+    if (!paymentManager) {
+      this.logger.debug(`No payment manager found for tab ${tabId}.`);
       // If there are no sessions and we got a resume call, request content
       // script to get us the latest resume payload. The sessions could be
       // cleared as the background script/worker had terminated (for example,
@@ -259,9 +243,7 @@ export class MonetizationService {
       return;
     }
 
-    for (const session of sessions.values()) {
-      session.resume();
-    }
+    paymentManager.resume();
   }
 
   async resumePaymentSessionActiveTab() {
@@ -385,12 +367,8 @@ export class MonetizationService {
       }
 
       for (const tabId of tabIds) {
-        const sessions = this.tabState.getPayableSessions(tabId);
-        if (!sessions.length) continue;
-        const computedRate = computeRate(rate, sessions.length);
-        await this.adjustSessionsAmount(sessions, computedRate).catch((e) => {
-          this.logger.error(e);
-        });
+        const paymentManager = this.tabState.paymentManagers.get(tabId);
+        await paymentManager?.setRate(rate);
       }
     });
   }
@@ -457,22 +435,5 @@ export class MonetizationService {
         recurring: recurringGrant?.amount,
       },
     };
-  }
-
-  private async adjustSessionsAmount(
-    sessions: PaymentSession[],
-    rate: AmountValue,
-  ): Promise<boolean> {
-    try {
-      await Promise.all(sessions.map((session) => session.adjustAmount(rate)));
-      return true;
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        this.logger.debug('adjustAmount aborted due to new call');
-        return false;
-      } else {
-        throw err;
-      }
-    }
   }
 }
