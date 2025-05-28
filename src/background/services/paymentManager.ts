@@ -31,7 +31,6 @@ export class PaymentManager {
   private logger: Cradle['logger'];
 
   private streams = new Map<FrameId, PaymentStream>();
-  private lastPaymentTimestamp = 0;
 
   constructor(
     private tabId: TabId,
