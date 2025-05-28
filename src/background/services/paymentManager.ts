@@ -40,12 +40,6 @@ export class PaymentManager {
     private deps: Cradle,
   ) {
     Object.assign(this, this.deps);
-    this.logger = this.rootLogger.getLogger(
-      `payment-manager/${new URL(url).host}`,
-    );
-
-    // ensure frameId=0 is first in this.streams
-    this.createStreamIfNotExists(0);
   }
 
   // #region Session management
@@ -73,16 +67,25 @@ export class PaymentManager {
     return session;
   }
 
-  removeSession(frameId: FrameId, sessionId: SessionId) {
-    return this.streams.get(frameId)?.removeSession(sessionId);
+  removeSession(sessionId: SessionId, frameId?: FrameId) {
+    if (typeof frameId !== 'undefined') {
+      return this.streams.get(frameId)?.removeSession(sessionId) ?? false;
+    }
+    for (const stream of this.streams.values()) {
+      const removed = stream.removeSession(sessionId);
+      if (removed) return true;
+    }
+    return false;
   }
 
-  stopSession(frameId: FrameId, sessionId: SessionId) {
-    return this.streams.get(frameId)?.getSession(sessionId)?.stop();
+  stopSession(sessionId: SessionId, frameId?: FrameId) {
+    return this.getSession(sessionId, frameId)?.stop() ?? false;
   }
 
-  disableSession(frameId: FrameId, sessionId: SessionId) {
-    return this.streams.get(frameId)?.getSession(sessionId)?.disable();
+  // To enable, call addSession with isActive=true. It'll reuse the existing
+  // session and enable it.
+  disableSession(sessionId: SessionId, frameId?: FrameId) {
+    return this.getSession(sessionId, frameId)?.disable() ?? false;
   }
 
   getSession(sessionId: SessionId, frameId?: FrameId) {
@@ -126,13 +129,25 @@ export class PaymentManager {
   }
   // #endregion
 
-  changeRate(hourlyRate: AmountValue) {
-    this.hourlyRate = hourlyRate;
-    // TODO
-  }
-
   // #region One time payment
-  async pay(amount: bigint, verifySignal?: AbortSignal) {}
+  async pay(amount: bigint, signal?: AbortSignal) {
+    const payableSessions = this.payableSessions;
+
+    const splitAmount = amount / BigInt(payableSessions.length);
+    const results = await Promise.allSettled(
+      payableSessions.map((session) => session.pay(splitAmount)),
+    );
+
+    this.logger.debug('polling outgoing payments for completion');
+    const result = await this.getPayStatus(results, payableSessions, signal);
+
+    return {
+      amounts: {
+        ...result,
+        amount: amount.toString(),
+      },
+    };
+  }
 
   private async getPayStatus(
     results: PromiseSettledResult<OutgoingPayment>[],
@@ -215,15 +230,35 @@ export class PaymentManager {
   // #endregion
 
   // #region Streaming payments
-  start() {
-    // check overpaying
+
+  setRate(hourlyRate: AmountValue) {
+    this.hourlyRate = hourlyRate;
+    // TODO
   }
 
-  pause(reason: string) {}
+  start() {
+    for (const session of this.enabledSessions) {
+      session.start('new-link');
+    }
+  }
 
-  resume() {}
+  pause(_reason?: string) {
+    for (const session of this.enabledSessions) {
+      session.stop();
+    }
+  }
 
-  stop(reason: string) {}
+  resume() {
+    for (const session of this.enabledSessions) {
+      session.resume();
+    }
+  }
+
+  stop(_reason?: string) {
+    for (const session of this.enabledSessions) {
+      session.stop();
+    }
+  }
   // #endregion
 }
 
@@ -262,7 +297,8 @@ export class PaymentStream {
   }
 
   removeSession(sessionId: SessionId) {
-    // TODO: stopping isn't needed I guess?
+    const session = this.#sessions.get(sessionId);
+    session?.stop();
     return this.#sessions.delete(sessionId);
   }
 

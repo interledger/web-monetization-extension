@@ -9,23 +9,19 @@ import type {
 import { PaymentManager } from './paymentManager';
 import { computeRate, getSender, getTabId } from '@/background/utils';
 import { OUTGOING_PAYMENT_POLLING_MAX_DURATION } from '@/background/config';
-import { isOutOfBalanceError } from './openPayments';
 import {
   ErrorWithKey,
-  isAbortSignalTimeout,
-  isErrorWithKey,
   isOkState,
   removeQueryParams,
   transformBalance,
 } from '@/shared/helpers';
 import type { AmountValue, PopupStore, Storage } from '@/shared/types';
-import type { OutgoingPayment } from '@interledger/open-payments';
 import type { Cradle } from '@/background/container';
 
 export class MonetizationService {
   private logger: Cradle['logger'];
   private rootLogger: Cradle['rootLogger'];
-  private t: Cradle['t'];
+  // private t: Cradle['t'];
   private openPaymentsService: Cradle['openPaymentsService'];
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private storage: Cradle['storage'];
@@ -108,7 +104,9 @@ export class MonetizationService {
           outgoingPaymentGrantService: this.outgoingPaymentGrantService,
           events: this.events,
           tabState: this.tabState,
-          logger: this.rootLogger.getLogger('payment-manager'),
+          logger: this.rootLogger.getLogger(
+            `payment-manager/${new URL(url).host}`,
+          ),
           rootLogger: this.rootLogger,
           message: this.message,
         },
@@ -306,12 +304,9 @@ export class MonetizationService {
       throw new Error('Unexpected error: could not find active tab.');
     }
 
-    const payableSessions = this.tabState.getPayableSessions(tab.id);
-    if (!payableSessions.length) {
-      if (this.tabState.getEnabledSessions(tab.id).length) {
-        throw new Error(this.t('pay_error_invalidReceivers'));
-      }
-      throw new Error(this.t('pay_error_notMonetized'));
+    const paymentManager = this.tabState.paymentManagers.get(tab.id);
+    if (!paymentManager) {
+      throw new Error('Unexpected: no payment manager found for tab');
     }
 
     const { enabled, walletAddress } = await this.storage.get([
@@ -324,89 +319,25 @@ export class MonetizationService {
     if (!walletAddress) {
       throw new Error('Unexpected: wallet address not found.');
     }
-    const { assetScale } = walletAddress;
 
-    const splitAmount = Number(amount) / payableSessions.length;
-    // TODO: handle paying across two grants (when one grant doesn't have enough funds)
-    const results = await Promise.allSettled(
-      payableSessions.map((session) => session.pay(splitAmount)),
-    );
-
-    const outgoingPayments = new Map<string, OutgoingPayment | null>(
-      payableSessions.map((s, i) => [
-        s.id,
-        results[i].status === 'fulfilled' ? results[i].value : null,
-      ]),
-    );
-    this.logger.debug('polling outgoing payments for completion');
-    const signal = AbortSignal.timeout(OUTGOING_PAYMENT_POLLING_MAX_DURATION); // can use other signals as well, such as popup closed etc.
-    const pollingResults = await Promise.allSettled(
-      [...outgoingPayments]
-        .filter(([, outgoingPayment]) => outgoingPayment !== null)
-        .map(async ([sessionId, outgoingPaymentInitial]) => {
-          const session = payableSessions.find((s) => s.id === sessionId);
-          if (!session) {
-            this.logger.error('Could not find session for outgoing payment.');
-            return null;
-          }
-          for await (const outgoingPayment of session.pollOutgoingPayment(
-            // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
-            outgoingPaymentInitial!.id,
-            { signal, maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS },
-          )) {
-            outgoingPayments.set(sessionId, outgoingPayment);
-          }
-          return outgoingPayments.get(sessionId);
-        }),
-    );
-
-    const totalSentAmount = [...outgoingPayments.values()].reduce(
-      (acc, op) => acc + BigInt(op?.sentAmount?.value ?? 0),
-      0n,
-    );
-    const totalDebitAmount = [...outgoingPayments.values()].reduce(
-      (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
-      0n,
-    );
-
-    if (totalSentAmount === 0n) {
-      const pollingErrors = pollingResults
-        .filter((e) => e.status === 'rejected')
-        .map((e) => e.reason);
-
-      if (pollingErrors.some((e) => e.message === 'InsufficientGrant')) {
-        this.logger.warn('Insufficient grant to read outgoing payments');
-        // This permission request to read outgoing payments was added at a
-        // later time, so existing connected wallets won't have this permission.
-        // Assume as success for backward compatibility.
-        return {
-          type: 'full',
-          sentAmount: transformBalance(totalDebitAmount, assetScale),
-        };
+    const payableSessions = paymentManager.payableSessions;
+    if (!payableSessions.length) {
+      if (paymentManager.enabledSessions.length) {
+        throw new ErrorWithKey('pay_error_invalidReceivers');
       }
-
-      const isNotEnoughFunds = results
-        .filter((e) => e.status === 'rejected')
-        .some((e) => isOutOfBalanceError(e.reason));
-      const isPollingLimitReached = pollingErrors.some(
-        (err) =>
-          (isErrorWithKey(err) &&
-            err.key === 'pay_warn_outgoingPaymentPollingIncomplete') ||
-          isAbortSignalTimeout(err),
-      );
-
-      if (isNotEnoughFunds) {
-        throw new ErrorWithKey('pay_error_notEnoughFunds');
-      }
-      if (isPollingLimitReached) {
-        throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
-      }
-      throw new ErrorWithKey('pay_error_general');
+      throw new ErrorWithKey('pay_error_notMonetized');
     }
 
+    const signal = AbortSignal.timeout(OUTGOING_PAYMENT_POLLING_MAX_DURATION); // can use other signals as well, such as popup closed etc.
+    const amountToSend = BigInt(
+      (Number(amount) * 10 ** walletAddress.assetScale).toFixed(0),
+    );
+    const result = await paymentManager.pay(amountToSend, signal);
+
+    const { sentAmount, debitAmount } = result.amounts;
     return {
-      type: totalSentAmount < totalDebitAmount ? 'partial' : 'full',
-      sentAmount: transformBalance(totalSentAmount, assetScale),
+      type: sentAmount < debitAmount ? 'partial' : 'full',
+      sentAmount: transformBalance(sentAmount, walletAddress.assetScale),
     };
   }
 
