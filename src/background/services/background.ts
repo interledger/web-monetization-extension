@@ -190,6 +190,7 @@ export class Background {
           }
           await this.updateVisualIndicatorsForCurrentTab();
         } else {
+          if (!tabIds.length) continue;
           this.logger.info(
             `[focus change] pause monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
@@ -214,7 +215,7 @@ export class Background {
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
       async (message: ToBackgroundMessage, sender: Runtime.MessageSender) => {
-        this.logger.debug('Received message', message);
+        this.logger.debug('Received message', message.action, message.payload);
         try {
           switch (message.action) {
             // region Popup

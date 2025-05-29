@@ -10,6 +10,15 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
   const factory = log.methodFactory;
   log.methodFactory = (methodName, logLevel, loggerName) => {
     const raw = factory(methodName, logLevel, loggerName);
+    if (loggerName?.toString().includes('/')) {
+      const [a, b] = loggerName.toString().split('/', 2);
+      return raw.bind(
+        log,
+        `%c${a}%c/${b}`,
+        'font-weight: bold; text-transform: uppercase; background: #2f8785; color: #fff; padding-inline: 5px;',
+        'background: #def4ef; color: #000; padding-inline: 5px;',
+      );
+    }
     return raw.bind(
       log,
       `%c${loggerName as string}`,
