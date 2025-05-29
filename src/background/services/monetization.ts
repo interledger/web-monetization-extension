@@ -132,13 +132,13 @@ export class MonetizationService {
     }
   }
 
-  async stopPaymentSessionsByTabId(tabId: number) {
+  async pausePaymentSessionsByTabId(tabId: number, reason?: string) {
     const paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
       this.logger.debug(`No payment manager found for tab ${tabId}.`);
       return;
     }
-    paymentManager.stop();
+    paymentManager.pause(reason);
   }
 
   async stopPaymentSession(
@@ -146,7 +146,7 @@ export class MonetizationService {
     sender: Runtime.MessageSender,
   ) {
     let needsAdjustAmount = false;
-    const tabId = getTabId(sender);
+    const { tabId, frameId } = getSender(sender);
     const paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
       this.logger.warn(`No payment manager found for tab ${tabId}.`);
@@ -155,13 +155,13 @@ export class MonetizationService {
 
     for (const { requestId, intent } of payload) {
       if (intent === 'remove') {
-        paymentManager.removeSession(requestId);
+        paymentManager.removeSession(requestId, frameId);
         needsAdjustAmount = true;
       } else if (intent === 'disable') {
-        paymentManager.disableSession(requestId);
+        paymentManager.disableSession(requestId, frameId);
         needsAdjustAmount = true;
       } else {
-        paymentManager.stopSession(requestId);
+        paymentManager.stopSession(requestId, frameId);
       }
     }
 

@@ -132,6 +132,7 @@ export class PaymentManager {
   // #region One time payment
   async pay(amount: bigint, signal?: AbortSignal) {
     const payableSessions = this.payableSessions;
+    this.logger.debug(`pay(${amount}) to ${payableSessions.length} sessions`);
 
     const splitAmount = amount / BigInt(payableSessions.length);
     const results = await Promise.allSettled(
@@ -251,24 +252,36 @@ export class PaymentManager {
   }
 
   start() {
-    for (const session of this.enabledSessions) {
+    const sessions = this.payableSessions;
+    this.logger.debug(`Starting ${sessions.length} sessions`);
+    for (const session of sessions) {
       session.start('new-link');
     }
   }
 
-  pause(_reason?: string) {
-    for (const session of this.enabledSessions) {
+  pause(reason?: string) {
+    const sessions = this.enabledSessions;
+    this.logger.debug(
+      `Pausing ${sessions.length} sessions [reason: ${reason}]`,
+    );
+    for (const session of sessions) {
       session.stop();
     }
   }
 
   resume() {
+    const sessions = this.enabledSessions;
+    this.logger.debug(`Resuming ${sessions.length} sessions`);
     for (const session of this.enabledSessions) {
       session.resume();
     }
   }
 
-  stop(_reason?: string) {
+  stop(reason?: string) {
+    const sessions = this.enabledSessions;
+    this.logger.debug(
+      `Stopping ${sessions.length} sessions [reason: ${reason}]`,
+    );
     for (const session of this.enabledSessions) {
       session.stop();
     }
