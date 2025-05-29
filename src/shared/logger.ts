@@ -14,7 +14,7 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
       const [a, b] = loggerName.toString().split('/', 2);
       return raw.bind(
         log,
-        `%c${a}%c/${b}`,
+        `%c${a}%c${b}`,
         'font-weight: bold; text-transform: uppercase; background: #2f8785; color: #fff; padding-inline: 5px;',
         'background: #def4ef; color: #000; padding-inline: 5px;',
       );
