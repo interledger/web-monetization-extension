@@ -177,11 +177,6 @@ export class TabState {
 
   clearSessionsByTabId(tabId: TabId) {
     this.currentIcon.delete(tabId);
-
-    const paymentManager = this.paymentManagers.get(tabId);
-    if (!paymentManager) return;
-
-    paymentManager.stop('TODO');
     this.paymentManagers.destroy(tabId);
   }
 }
@@ -214,6 +209,11 @@ class PaymentManagers {
   }
 
   destroy(tabId: TabId) {
+    const paymentManager = this.map.get(tabId);
+    if (!paymentManager) {
+      return false;
+    }
+    paymentManager.stop('destroy');
     return this.map.delete(tabId);
   }
 
