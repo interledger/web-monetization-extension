@@ -90,7 +90,7 @@ const WALLETS: Array<WalletOption> = [
       width: 1500,
       height: 836,
     },
-    walletAddressPlaceholder: 'https://fynbos.me/my-wallet',
+    walletAddressPlaceholder: 'https://ilp.link/hello',
   },
   {
     id: 'gatehub',

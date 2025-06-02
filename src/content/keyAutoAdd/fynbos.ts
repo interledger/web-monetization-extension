@@ -81,7 +81,9 @@ const addKey: Run<void> = async ({ nickName, publicKey }) => {
   });
 
   if (!res.ok) {
-    throw new Error(`Failed to upload public key (${res.statusText})`);
+    throw new Error(
+      `Failed to upload public key (${res.statusText || `HTTP ${res.status}`})`,
+    );
   }
 };
 // #endregion
