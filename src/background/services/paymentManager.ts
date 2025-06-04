@@ -67,15 +67,30 @@ export class PaymentManager {
     return session;
   }
 
-  removeSession(sessionId: SessionId, frameId?: FrameId) {
-    if (typeof frameId !== 'undefined') {
-      return this.streams.get(frameId)?.removeSession(sessionId) ?? false;
+  /**
+   * Removes a session by ID.
+   *
+   * If there are no more sessions for that frameId, remove the PaymentStream
+   * for that frame. This is needed as PaymentManager isn't always destroyed
+   * when a tab is refresh, but we still get `removeSession` calls from
+   * `STOP_MONETIZATION` messages. So, we "empty out" the PaymentManager there,
+   * as we're not sure if it can be safely destroyed.
+   *
+   * @returns true if session was removed
+   */
+  removeSession(sessionId: SessionId, frameId?: FrameId): boolean {
+    // biome-ignore lint/style/noParameterAssign: it's cleaner and simpler
+    frameId ??= this.findFrameIdBySessionId(sessionId);
+    if (typeof frameId === 'undefined') return false;
+
+    const stream = this.streams.get(frameId);
+    if (!stream) return false;
+
+    const removed = stream.removeSession(sessionId);
+    if (removed && !stream.size) {
+      this.streams.delete(frameId);
     }
-    for (const stream of this.streams.values()) {
-      const removed = stream.removeSession(sessionId);
-      if (removed) return true;
-    }
-    return false;
+    return removed;
   }
 
   stopSession(sessionId: SessionId, frameId?: FrameId) {
@@ -126,6 +141,14 @@ export class PaymentManager {
       this.streams.set(frameId, stream);
     }
     return stream;
+  }
+
+  private findFrameIdBySessionId(sessionId: SessionId): FrameId | undefined {
+    for (const [frameId, stream] of this.streams) {
+      if (stream.getSession(sessionId)) {
+        return frameId;
+      }
+    }
   }
   // #endregion
 
@@ -331,6 +354,10 @@ export class PaymentStream {
 
   getSession(sessionId: SessionId) {
     return this.#sessions.get(sessionId);
+  }
+
+  get size() {
+    return this.#sessions.size;
   }
 
   get sessions() {
