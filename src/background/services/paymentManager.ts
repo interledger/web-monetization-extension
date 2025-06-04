@@ -72,9 +72,9 @@ export class PaymentManager {
    *
    * If there are no more sessions for that frameId, remove the PaymentStream
    * for that frame. This is needed as PaymentManager isn't always destroyed
-   * when a tab is refresh, but we still get `removeSession` calls from
+   * when a tab is refreshed, but we still get `removeSession` calls from
    * `STOP_MONETIZATION` messages. So, we "empty out" the PaymentManager there,
-   * as we're not sure if it can be safely destroyed.
+   * as we're not sure if it can be safely destroyed at that stage.
    *
    * @returns true if session was removed
    */
