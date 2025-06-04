@@ -192,10 +192,13 @@ export class Background {
         } else {
           if (!tabIds.length) continue;
           this.logger.info(
-            `[focus change] stop monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
+            `[focus change] pause monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
           for (const tabId of tabIds) {
-            void this.monetizationService.stopPaymentSessionsByTabId(tabId);
+            void this.monetizationService.pausePaymentSessionsByTabId(
+              tabId,
+              'window-unfocussed',
+            );
           }
         }
       }

@@ -1,8 +1,8 @@
 import type { Tabs } from 'webextension-polyfill';
 import type { MonetizationEventDetails } from '@/shared/messages';
 import type { PopupTabInfo, TabId } from '@/shared/types';
-import type { PaymentSession } from './paymentSession';
 import type { Cradle } from '@/background/container';
+import type { PaymentManager } from './paymentManager';
 import { removeQueryParams } from '@/shared/helpers';
 import {
   isBrowserInternalPage,
@@ -22,15 +22,13 @@ interface SaveOverpayingDetails {
   intervalInMs: number;
 }
 
-type SessionId = string;
-
 export class TabState {
   private logger: Cradle['logger'];
 
   private state = new Map<TabId, Map<string, State>>();
-  private sessions = new Map<TabId, Map<SessionId, PaymentSession>>();
   private currentIcon = new Map<TabId, Record<number, string>>();
   public readonly url = new UrlMap();
+  public readonly paymentManagers = new PaymentManagers();
 
   constructor({ logger }: Cradle) {
     Object.assign(this, {
@@ -97,21 +95,14 @@ export class TabState {
     }
   }
 
-  getSessions(tabId: TabId) {
-    let sessions = this.sessions.get(tabId);
-    if (!sessions) {
-      sessions = new Map();
-      this.sessions.set(tabId, sessions);
-    }
-    return sessions;
-  }
-
   getEnabledSessions(tabId: TabId) {
-    return [...this.getSessions(tabId).values()].filter((s) => !s.disabled);
+    const paymentManager = this.paymentManagers.get(tabId);
+    return paymentManager?.enabledSessions ?? [];
   }
 
   getPayableSessions(tabId: TabId) {
-    return this.getEnabledSessions(tabId).filter((s) => !s.invalid);
+    const paymentManager = this.paymentManagers.get(tabId);
+    return paymentManager?.payableSessions ?? [];
   }
 
   isTabMonetized(tabId: TabId) {
@@ -124,7 +115,7 @@ export class TabState {
   }
 
   getAllSessions() {
-    return [...this.sessions.values()].flatMap((s) => [...s.values()]);
+    return [...this.paymentManagers.values()].flatMap((s) => s.sessions);
   }
 
   getPopupTabData(tab: Pick<Tabs.Tab, 'id' | 'url'>): PopupTabInfo {
@@ -176,7 +167,7 @@ export class TabState {
   }
 
   getAllTabs(): TabId[] {
-    return [...this.sessions.keys()];
+    return this.paymentManagers.tabIds;
   }
 
   clearOverpayingByTabId(tabId: TabId) {
@@ -186,15 +177,7 @@ export class TabState {
 
   clearSessionsByTabId(tabId: TabId) {
     this.currentIcon.delete(tabId);
-
-    const sessions = this.getSessions(tabId);
-    if (!sessions.size) return;
-
-    for (const session of sessions.values()) {
-      session.stop();
-    }
-    this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`);
-    this.sessions.delete(tabId);
+    this.paymentManagers.destroy(tabId);
   }
 }
 
@@ -211,5 +194,34 @@ class UrlMap {
 
   delete(tabId: TabId) {
     this.map.delete(tabId);
+  }
+}
+
+class PaymentManagers {
+  private map = new Map<TabId, PaymentManager>();
+
+  get(tabId: TabId) {
+    return this.map.get(tabId);
+  }
+
+  set(tabId: TabId, paymentManager: PaymentManager) {
+    this.map.set(tabId, paymentManager);
+  }
+
+  destroy(tabId: TabId) {
+    const paymentManager = this.map.get(tabId);
+    if (!paymentManager) {
+      return false;
+    }
+    paymentManager.stop('destroy');
+    return this.map.delete(tabId);
+  }
+
+  get tabIds() {
+    return [...this.map.keys()];
+  }
+
+  values() {
+    return this.map.values();
   }
 }
