@@ -91,9 +91,7 @@ export class TabEvents {
       if (!existingTabUrl || removeQueryParams(existingTabUrl) !== url) {
         // Navigating to new URL. Clear overpaying state if any.
         this.tabState.clearSessionsByTabId(tabId); // for sanity
-        if (this.tabState.shouldClearOverpaying(tabId, url)) {
-          this.tabState.clearOverpayingByTabId(tabId);
-        }
+        this.tabState.clearOverpayingByTabId(tabId);
       }
 
       void this.updateVisualIndicators(tab);

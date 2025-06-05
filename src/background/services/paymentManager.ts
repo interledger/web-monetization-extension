@@ -5,12 +5,17 @@ import type {
 } from '@interledger/open-payments';
 import type { Cradle as Cradle_ } from '@/background/container';
 import { PaymentSession } from './paymentSession';
-import { OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS } from '../config';
-import { computeRate } from '../utils';
+import {
+  MIN_PAYMENT_WAIT,
+  OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
+} from '../config';
+import { bigIntMax } from '../utils';
 import {
   ErrorWithKey,
   isAbortSignalTimeout,
   isErrorWithKey,
+  sleep,
+  Timeout,
 } from '@/shared/helpers';
 import { isOutOfBalanceError } from './openPayments';
 
@@ -26,20 +31,51 @@ type Cradle = Pick<
   | 'message'
 >;
 
+type Interval = {
+  /** Payable amount to increase every {@linkcode Interval.duration} */
+  units: bigint;
+  /** Duration in milliseconds */
+  duration: number;
+};
+
+const MS_IN_HOUR = 3600;
+
 export class PaymentManager {
   private rootLogger: Cradle['rootLogger'];
   private logger: Cradle['logger'];
 
   private streams = new Map<FrameId, PaymentStream>();
 
+  private hourlyRate: bigint;
+  private interval: Interval;
+  private timer: Timeout;
+  #state: 'stopped' | 'active' | 'paused' = 'stopped';
+
   constructor(
     private tabId: TabId,
     private url: string,
     private sender: WalletAddress,
-    private hourlyRate: AmountValue,
+    hourlyRate: AmountValue,
     private deps: Cradle,
   ) {
     Object.assign(this, this.deps);
+    this.hourlyRate = BigInt(hourlyRate);
+    this.timer = new Timeout(0, this.checkAndPayContinuously);
+    void this.setRate(hourlyRate);
+  }
+
+  get info() {
+    return {
+      tabId: this.tabId,
+      url: this.url,
+      frames: this.streams.size,
+      state: this.#state,
+      sessions: {
+        total: this.sessions.length,
+        enabled: this.enabledSessions.length,
+        payable: this.payableSessions.length,
+      },
+    };
   }
 
   // #region Session management
@@ -90,11 +126,18 @@ export class PaymentManager {
     if (removed && !stream.size) {
       this.streams.delete(frameId);
     }
+
+    if (!this.enabledSessions.length) {
+      this.#state = 'stopped';
+    }
+
     return removed;
   }
 
   stopSession(sessionId: SessionId, frameId?: FrameId) {
-    return this.getSession(sessionId, frameId)?.stop() ?? false;
+    // this is essentially to remove this session from list of payments
+    // TODO: see when this is triggered. On _PAUSE_MONETIZATION_?
+    return this.getSession(sessionId, frameId)?.deactivate() ?? false;
   }
 
   // To enable, call addSession with isActive=true. It'll reuse the existing
@@ -159,7 +202,7 @@ export class PaymentManager {
 
     const splitAmount = amount / BigInt(payableSessions.length);
     const results = await Promise.allSettled(
-      payableSessions.map((session) => session.pay(splitAmount)),
+      payableSessions.map((session) => session.payOneTime(splitAmount)),
     );
 
     this.logger.debug('polling outgoing payments for completion');
@@ -254,60 +297,159 @@ export class PaymentManager {
   // #endregion
 
   // #region Streaming payments
-
   async setRate(hourlyRate: AmountValue) {
-    this.hourlyRate = hourlyRate;
-    await this.adjustAmount();
-  }
-
-  async adjustAmount() {
-    const hourlyRate = this.hourlyRate;
-    const sessions = this.payableSessions;
-    if (!sessions.length) {
-      return;
+    this.hourlyRate = BigInt(hourlyRate);
+    const secondsPerUnit = MS_IN_HOUR / Number(this.hourlyRate);
+    const duration = Math.ceil(secondsPerUnit * 1000);
+    // TODO: see if we can set interval based on some minSendAmount (HCF of all
+    // minSendAmount?)
+    this.interval = { units: 1n, duration };
+    while (this.interval.duration < MIN_PAYMENT_WAIT) {
+      this.interval.units += 1n;
+      this.interval.duration += duration;
     }
-    const rate = computeRate(hourlyRate, sessions.length);
-    this.logger.debug(`Adjusting rate for ${sessions.length} sessions.`, {
-      hourlyRate,
-      rate,
-    });
-    await Promise.all(sessions.map((session) => session.adjustAmount(rate)));
+    this.logger.debug(`Setting hourly rate to ${hourlyRate},
+       or, ${Number(this.hourlyRate) / 3600}c every second
+       or ${1}unit every ${secondsPerUnit} seconds
+       :> ${this.interval.units}unit every ${this.interval.duration}ms`);
+    this.timer.reset(this.interval.duration);
   }
 
-  start() {
+  private pendingAmount = 0n;
+  async start() {
     const sessions = this.payableSessions;
     this.logger.debug(`Starting ${sessions.length} sessions`);
-    for (const session of sessions) {
-      session.start('new-link');
+
+    // find last payment timestamp, wait as per interval for next payment.
+    // ... if there was a last payment, emit monetization event (for last one)
+    const lastPaymentInfo = this.getLastPayment();
+    if (lastPaymentInfo) {
+      const elapsed = Date.now() - lastPaymentInfo.lastPaymentAt.valueOf();
+      const waitTime = this.interval.duration - elapsed;
+      if (waitTime > 0) {
+        this.logger.log('[overpaying] Preventing overpaying:', {
+          ...lastPaymentInfo,
+          waitTime,
+        });
+        const session = this.sessions.find(
+          // FIXME: in case `href` is different from walletAddressId
+          (s) => s.walletAddress === lastPaymentInfo.walletAddressId,
+        );
+        if (session) {
+          this.logger.debug(
+            '[overpaying] Emitting monetization event for last payment',
+          );
+          session.sendMonetizationEvent(lastPaymentInfo.monetizationEvent);
+        }
+        await sleep(waitTime);
+        if (this.#state === 'active') {
+          return;
+        }
+      }
     }
+
+    if (this.#state !== 'active') {
+      const session = this.getSessionToPay();
+      const amount = bigIntMax(this.interval.units, session.minSendAmount);
+      void session.payWithRetry(amount);
+      this.pendingAmount -= amount;
+    }
+
+    this.timer.reset(this.interval.duration);
+    this.#state = 'active';
   }
 
   pause(reason?: string) {
-    const sessions = this.enabledSessions;
-    this.logger.debug(
-      `Pausing ${sessions.length} sessions [reason: ${reason}]`,
-    );
-    for (const session of sessions) {
-      session.stop();
-    }
+    this.logger.debug(`Pausing sessions [reason: ${reason}]`);
+    this.timer.pause();
+    this.#state = 'paused';
   }
 
   resume() {
     const sessions = this.enabledSessions;
     this.logger.debug(`Resuming ${sessions.length} sessions`);
-    for (const session of this.enabledSessions) {
-      session.resume();
-    }
+    this.timer.resume();
+    this.#state = 'active';
   }
 
   stop(reason?: string) {
-    const sessions = this.enabledSessions;
-    this.logger.debug(
-      `Stopping ${sessions.length} sessions [reason: ${reason}]`,
-    );
-    for (const session of this.enabledSessions) {
-      session.stop();
+    this.logger.debug(`Stopping sessions [reason: ${reason}]`);
+    this.timer.clear();
+    this.#state = 'stopped';
+  }
+
+  private getLastPayment() {
+    return this.deps.tabState.getLastPaymentDetails(this.tabId, this.url);
+  }
+
+  private checkAndPayContinuously = () => {
+    if (this.#state !== 'active') {
+      return;
     }
+
+    this.pendingAmount += this.interval.units;
+    const session = this.peekSessionToPay();
+    this.logger.debug('checkAndPayContinuously', {
+      pendingAmount: this.pendingAmount,
+      sessionIdToPay: session.id,
+    });
+    if (this.pendingAmount >= session.minSendAmount) {
+      const s = this.getSessionToPay();
+      if (s.id !== session.id) {
+        this.logger.warn(
+          `Unexpected session: expected ${session.id} but got ${s.id}`,
+        );
+      }
+      const amount = this.getPayableAmount(session);
+      void session.pay(amount);
+      this.pendingAmount -= amount;
+    }
+    this.timer.reset(this.interval.duration);
+  };
+
+  /**
+   * For current {@linkcode pendingAmount} and a given session, see how much of
+   * pending amount we can utilize in one go.
+   */
+  private getPayableAmount(session: PaymentSession): bigint {
+    const minSendAmount = session.minSendAmount;
+    const amount = this.pendingAmount / minSendAmount;
+    return amount > 0n ? amount : minSendAmount;
+  }
+
+  private index = 0;
+  private getSessionToPay(): PaymentSession {
+    const stream = [...this.streams.values()][this.index];
+    if (stream) {
+      const session = stream.getNext();
+      if (session) {
+        if (!stream.isTopFrame) {
+          this.toNextFrame();
+        }
+        return session;
+      }
+    }
+    this.toNextFrame();
+    return this.getSessionToPay();
+  }
+
+  private peekSessionToPay(frameIndex = this.index): PaymentSession {
+    const stream = [...this.streams.values()][frameIndex];
+    if (stream) {
+      const session = stream.peekNext();
+      if (session) {
+        return session;
+      }
+    }
+    return this.peekSessionToPay(this.nextFrameIndex(frameIndex));
+  }
+
+  private toNextFrame() {
+    this.index = this.nextFrameIndex(this.index);
+  }
+
+  private nextFrameIndex(frameIndex: number) {
+    return (frameIndex + 1) % this.streams.size;
   }
   // #endregion
 }
@@ -327,6 +469,7 @@ export class PaymentStream {
   addSession(sessionId: SessionId, receiver: WalletAddress, isActive: boolean) {
     let session = this.#sessions.get(sessionId);
     if (session && isActive) {
+      session.activate();
       session.enable(); // if was disabled earlier
       return session;
     }
@@ -348,7 +491,7 @@ export class PaymentStream {
 
   removeSession(sessionId: SessionId) {
     const session = this.#sessions.get(sessionId);
-    session?.stop();
+    session?.deactivate();
     return this.#sessions.delete(sessionId);
   }
 
@@ -371,6 +514,23 @@ export class PaymentStream {
   get isTopFrame() {
     return this.frameId === 0;
   }
+
+  private index = -1;
+  getNext(): PaymentSession | undefined {
+    const payableSessions = this.payableSessions;
+    const nextIdx = (this.index + 1) % payableSessions.length;
+    const session = payableSessions.at(nextIdx);
+    if (session) {
+      this.index = nextIdx;
+    }
+    return session;
+  }
+
+  peekNext(currentIndex = this.index): PaymentSession | undefined {
+    const payableSessions = this.payableSessions;
+    const nextIdx = (currentIndex + 1) % payableSessions.length;
+    return payableSessions.at(nextIdx);
+  }
 }
 
 function isUsable(session: PaymentSession) {
@@ -379,5 +539,5 @@ function isUsable(session: PaymentSession) {
   } catch {
     return false;
   }
-  return !session.invalid && !session.disabled;
+  return session.active && !session.invalid && !session.disabled;
 }

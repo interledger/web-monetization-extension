@@ -80,6 +80,7 @@ export class MonetizationService {
       'rateOfPay',
       'walletAddress',
     ]);
+    // const rateOfPay = '1000';
 
     if (!rateOfPay || !connectedWallet) {
       this.logger.error(
@@ -121,7 +122,6 @@ export class MonetizationService {
     );
 
     this.events.emit('monetization.state_update', tabId);
-    await paymentManager.adjustAmount();
 
     if (
       enabled &&
@@ -145,7 +145,6 @@ export class MonetizationService {
     payload: StopMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
-    let needsAdjustAmount = false;
     const { tabId, frameId } = getSender(sender);
     const paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
@@ -156,19 +155,14 @@ export class MonetizationService {
     for (const { requestId, intent } of payload) {
       if (intent === 'remove') {
         paymentManager.removeSession(requestId, frameId);
-        needsAdjustAmount = true;
       } else if (intent === 'disable') {
         paymentManager.disableSession(requestId, frameId);
-        needsAdjustAmount = true;
       } else {
         paymentManager.stopSession(requestId, frameId);
       }
     }
 
-    if (needsAdjustAmount) {
-      this.events.emit('monetization.state_update', tabId);
-      await paymentManager.adjustAmount();
-    }
+    this.events.emit('monetization.state_update', tabId);
   }
 
   async resumePaymentSession(
@@ -401,8 +395,8 @@ export class MonetizationService {
   }
 
   private stopAllSessions() {
-    for (const session of this.tabState.getAllSessions()) {
-      session.stop();
+    for (const paymentManager of this.tabState.paymentManagers.values()) {
+      paymentManager.stop();
     }
     this.logger.debug('All payment sessions stopped.');
   }
