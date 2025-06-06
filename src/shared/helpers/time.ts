@@ -115,59 +115,58 @@ export function debounceSync<T extends unknown[], R>(
 }
 
 export class Timeout {
-  private timeout: ReturnType<typeof setTimeout> | null = null;
   private callback: () => void;
-  private isPaused = false;
-  private lastCalledAt = 0;
-  private remaining = 0;
+  #timeout: ReturnType<typeof setTimeout> | null = null;
+  #isPaused = false;
+  #lastCalledAt = 0;
+  #remaining = 0;
 
   constructor(
     private ms: number,
     callback: () => void,
   ) {
     this.callback = () => {
-      this.lastCalledAt = Date.now();
+      this.#lastCalledAt = Date.now();
       callback();
     };
     if (ms > 0) this.reset(ms);
   }
 
   reset(ms: number) {
+    const lastCalledAt = this.#lastCalledAt;
     this.clear();
-    this.lastCalledAt = Date.now();
-    this.timeout = setTimeout(this.callback, ms);
+    this.ms = ms;
+    this.#isPaused = false;
+    this.#lastCalledAt = lastCalledAt;
+    this.#timeout = setTimeout(this.callback, ms);
   }
 
   pause() {
-    console.log('resume', this.isPaused, new Date(this.lastCalledAt));
-    if (this.isPaused) return;
+    if (this.#isPaused) return;
+    const lastCalledAt = this.#lastCalledAt;
+    this.#remaining = lastCalledAt ? Date.now() - lastCalledAt : 0;
     this.clear();
-    this.remaining = this.lastCalledAt ? Date.now() - this.lastCalledAt : 0;
-    this.isPaused = true;
+    this.#lastCalledAt = lastCalledAt;
+    this.#isPaused = true;
   }
 
   resume() {
-    console.log('resume', this.isPaused, this.remaining);
-    if (!this.isPaused) return;
-    if (this.remaining > 0) {
-      this.timeout = setTimeout(() => {
+    if (!this.#isPaused) return;
+    if (this.#remaining > 0) {
+      this.#timeout = setTimeout(() => {
         this.callback();
-        this.isPaused = false;
         this.reset(this.ms);
-      }, this.remaining);
+      }, this.#remaining);
     } else {
-      this.isPaused = false;
       this.reset(this.ms);
     }
   }
 
   clear() {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-      this.lastCalledAt = 0;
-    }
-    return this;
+    if (this.#timeout === null) return;
+    clearTimeout(this.#timeout);
+    this.#timeout = null;
+    this.#lastCalledAt = 0;
   }
 }
 

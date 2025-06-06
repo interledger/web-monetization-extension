@@ -317,7 +317,9 @@ export class PaymentManager {
        or, ${Number(this.hourlyRate) / 3600}c every second
        or ${1}unit every ${secondsPerUnit} seconds
        :> ${this.interval.units}unit every ${this.interval.duration}ms`);
-    this.timer.reset(this.interval.duration);
+    if (this.#state === 'active') {
+      this.timer.reset(this.interval.duration);
+    }
   }
 
   private pendingAmount = 0n;
@@ -326,6 +328,7 @@ export class PaymentManager {
       this.logger.warn('Already active');
       return;
     }
+    this.#state = 'active';
 
     const sessions = this.payableSessions;
     this.logger.debug(`Starting ${sessions.length} sessions`, {
@@ -337,16 +340,12 @@ export class PaymentManager {
       return;
     }
 
-    // let i = 0;
-    // const id = crypto.randomUUID().slice(0, 8);
-    // const interval = setInterval(() => {
-    //   this.logger.warn('peekSessionToPay', id, i, this.peekSessionToPay());
-    //   if (++i > 15) clearInterval(interval);
-    // }, 400);
-
     // find last payment timestamp, wait as per interval for next payment.
     // ... if there was a last payment, emit monetization event (for last one)
     await this.preventOverpaying();
+    if (this.#state !== 'active') {
+      return;
+    }
 
     const session = this.iter.next().value ?? this.iter.next().value;
     if (!session) {
@@ -359,8 +358,8 @@ export class PaymentManager {
     });
     this.pendingAmount -= amount;
 
+    this.checkAndPayContinuously();
     this.timer.reset(this.interval.duration);
-    this.#state = 'active';
   }
 
   pause(reason?: string) {
@@ -372,6 +371,9 @@ export class PaymentManager {
   resume() {
     const sessions = this.enabledSessions;
     this.logger.debug(`Resuming ${sessions.length} sessions`);
+    for (const session of sessions) {
+      session.activate();
+    }
     this.timer.resume();
     this.#state = 'active';
   }
@@ -414,6 +416,12 @@ export class PaymentManager {
   }
 
   private checkAndPayContinuously = () => {
+    this.logger.debug(
+      'checkAndPayContinuously:',
+      `sessions=${this.size}`,
+      this.#state,
+      this.pendingAmount,
+    );
     if (this.#state !== 'active' || !this.size) {
       return;
     }
@@ -422,12 +430,15 @@ export class PaymentManager {
     this.timer.reset(this.interval.duration); // as if setInterval
 
     const session = this.peekSessionToPay();
-    if (!session) return;
+    if (!session) {
+      this.logger.warn('No session to pay');
+      return;
+    }
 
-    // this.logger.debug('checkAndPayContinuously', {
-    //   pendingAmount: this.pendingAmount,
-    //   sessionIdToPay: session.id,
-    // });
+    this.logger.debug('checkAndPayContinuously', {
+      pendingAmount: this.pendingAmount,
+      sessionIdToPay: session.id,
+    });
     if (this.pendingAmount >= session.minSendAmount) {
       this.consumeSession();
       const amount = this.getPayableAmount(session);

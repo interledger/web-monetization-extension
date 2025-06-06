@@ -69,7 +69,7 @@ export class MonetizationService {
       state,
       continuousPaymentsEnabled,
       enabled,
-      // rateOfPay,
+      rateOfPay,
       connected,
       walletAddress: connectedWallet,
     } = await this.storage.get([
@@ -80,7 +80,7 @@ export class MonetizationService {
       'rateOfPay',
       'walletAddress',
     ]);
-    const rateOfPay = '8000';
+    // const rateOfPay = '8000';
 
     if (!rateOfPay || !connectedWallet) {
       this.logger.error(
@@ -153,6 +153,7 @@ export class MonetizationService {
     }
 
     let removedCount = 0;
+    let pausedCount = 0;
     for (const { requestId, intent } of payload) {
       if (intent === 'remove') {
         paymentManager.removeSession(requestId, frameId);
@@ -161,10 +162,14 @@ export class MonetizationService {
         paymentManager.disableSession(requestId, frameId);
       } else {
         paymentManager.deactivateSession(requestId, frameId);
+        pausedCount++;
       }
     }
     this.logger.info('paymentManager', paymentManager.info);
 
+    if (pausedCount > 0 && paymentManager.payableSessions.length === 0) {
+      paymentManager?.pause('all-paused');
+    }
     if (removedCount > 0 && paymentManager.size === 0) {
       this.tabState.paymentManagers.destroy(tabId);
     }
