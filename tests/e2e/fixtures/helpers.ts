@@ -26,7 +26,7 @@ export const BUILD_DIR = DIST_DIR;
 // https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
 export const authFile = path.join(
   testDir,
-  'test-results',
+  // 'test-results',
   '.auth',
   'rafiki-money.json',
 );

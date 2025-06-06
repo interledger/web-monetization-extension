@@ -489,6 +489,9 @@ export class PaymentManager {
       const session = stream.iter.next().value;
       if (session) {
         yield session;
+        if (!stream.isTopFrame) {
+          self.toNextFrame();
+        }
       } else {
         self.toNextFrame();
       }
