@@ -287,7 +287,7 @@ export class MonetizationLinkManager {
   }
 
   private async stopMonetization(
-    intent?: StopMonetizationPayloadEntry['intent'],
+    intent: StopMonetizationPayloadEntry['intent'],
   ) {
     const payload: StopMonetizationPayload = [
       ...this.monetizationLinks.values(),
@@ -338,7 +338,7 @@ export class MonetizationLinkManager {
     if (this.document.visibilityState === 'visible') {
       await this.resumeMonetization();
     } else {
-      await this.stopMonetization();
+      await this.stopMonetization('pause');
     }
   };
 
@@ -510,6 +510,7 @@ export class MonetizationLinkManager {
       return null;
     }
 
+    if (this.monetizationLinks.has(link)) return null;
     const linkInfo = {
       walletAddress,
       requestId: this.getRequestId(link),
