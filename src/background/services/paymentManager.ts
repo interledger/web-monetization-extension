@@ -323,6 +323,7 @@ export class PaymentManager {
   }
 
   private pendingAmount = 0n;
+  private iter: PeekAbleIterator<PaymentSession>;
   async start() {
     if (this.#state === 'active') {
       this.logger.warn('Already active');
@@ -347,7 +348,8 @@ export class PaymentManager {
       return;
     }
 
-    const session = this.iter.next().value ?? this.iter.next().value;
+    this.iter ??= this.setupSessionIterator();
+    const session = this.consumeSession();
     if (!session) {
       this.logger.error('No session to pay');
       return;
@@ -459,12 +461,38 @@ export class PaymentManager {
     return mul > 0n ? mul * minSendAmount : minSendAmount;
   }
 
-  private peekSessionToPay(): PaymentSession | undefined {
-    return this.iter.peek().value ?? undefined;
+  private peekSessionToPay(): PaymentSession {
+    this.iter ??= this.setupSessionIterator();
+    return this.iter.peek().value;
   }
 
-  private consumeSession() {
-    void this.iter.next();
+  private consumeSession(): PaymentSession {
+    this.iter ??= this.setupSessionIterator();
+    return this.iter.next().value;
+  }
+
+  private setupSessionIterator() {
+    return new PeekAbleIterator(this.sessionIterator(this));
+  }
+
+  private *sessionIterator(
+    self: PaymentManager,
+  ): Generator<PaymentSession, never, never> {
+    while (true) {
+      if (!self.payableSessions.length) {
+        // @ts-expect-error It's simpler this way
+        this.iter = null;
+        throw new Error('No sessions!!');
+      }
+      const streams = Array.from(self.streams.values());
+      const stream = streams[self.index % streams.length];
+      const session = stream.iter.next().value;
+      if (session) {
+        yield session;
+      } else {
+        self.toNextFrame();
+      }
+    }
   }
 
   private index = 0;
@@ -475,30 +503,6 @@ export class PaymentManager {
   private nextFrameIndex(frameIndex: number) {
     return (frameIndex + 1) % this.streams.size;
   }
-
-  iter = new PeekAbleIterator(
-    (function* (self): Generator<PaymentSession | undefined, never, never> {
-      while (true) {
-        const streams = Array.from(self.streams.values());
-        if (!streams.length) {
-          yield undefined;
-        }
-        let didFind = false;
-        for (let i = 0; i < streams.length; i++) {
-          const stream = streams[(i + self.index) % streams.length];
-          const session = stream.iter.next().value;
-          if (session) {
-            didFind = true;
-            yield session;
-            break;
-          }
-        }
-        if (!didFind) {
-          self.toNextFrame();
-        }
-      }
-    })(this),
-  );
   // #endregion
 }
 
@@ -582,9 +586,9 @@ export class PaymentStream {
   })(this);
 }
 
-class PeekAbleIterator<T> implements Iterator<T, void> {
-  #peek: IteratorResult<T, void>;
-  constructor(private iterator: Iterator<T, void>) {
+class PeekAbleIterator<T> implements Iterator<T, never, never> {
+  #peek: IteratorResult<T, never>;
+  constructor(private iterator: Iterator<T, never>) {
     this.#peek = iterator.next();
   }
 
