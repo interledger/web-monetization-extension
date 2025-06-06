@@ -187,7 +187,7 @@ export type StartMonetizationPayload = StartMonetizationPayloadEntry[];
 
 export interface StopMonetizationPayloadEntry {
   requestId: string;
-  intent?: 'remove' | 'disable';
+  intent: 'remove' | 'disable' | 'pause';
 }
 export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 

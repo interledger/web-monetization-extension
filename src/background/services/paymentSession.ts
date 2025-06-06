@@ -243,6 +243,15 @@ export class PaymentSession {
     return !this.isStopped;
   }
 
+  get isUsable() {
+    try {
+      void this.minSendAmount;
+    } catch {
+      return false;
+    }
+    return this.active && !this.invalid && !this.disabled;
+  }
+
   disable() {
     this.isDisabled = true;
   }
@@ -591,11 +600,13 @@ export class PaymentSession {
    * @throws never
    */
   async payWithRetry(amount: bigint) {
+    let paid: boolean | null = false;
     try {
-      const res = await this.pay(amount);
-      if (res === false) await this.pay(amount);
+      paid = await this.pay(amount);
+      if (paid === false) paid = await this.pay(amount);
     } catch (error) {
       this.logger.error(error);
     }
+    return paid === true;
   }
 }

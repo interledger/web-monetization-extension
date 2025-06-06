@@ -122,7 +122,7 @@ const RateOfPayInput = ({
         onChange={(value) => {
           setErrorMessage('');
           const rate = Number(value) * 10 ** walletAddress.assetScale;
-          onRateChange(rate.toString());
+          onRateChange(Math.floor(rate).toString());
         }}
         onError={(error) => setErrorMessage(t(error))}
         errorMessage={errorMessage}

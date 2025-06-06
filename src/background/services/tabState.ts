@@ -16,7 +16,7 @@ interface SaveLastPaymentDetails {
 }
 
 interface State extends SaveLastPaymentDetails {
-  lastPaymentAt: Date;
+  ts: Date;
 }
 
 export class TabState {
@@ -54,11 +54,11 @@ export class TabState {
       tabState.set(url, {
         walletAddressId,
         monetizationEvent,
-        lastPaymentAt: now,
+        ts: now,
       });
       this.state.set(tabId, tabState);
     } else {
-      state.lastPaymentAt = now;
+      state.ts = now;
     }
   }
 
@@ -168,7 +168,9 @@ class PaymentManagers {
   private map = new Map<TabId, PaymentManager>();
 
   get(tabId: TabId) {
-    return this.map.get(tabId);
+    const manager = this.map.get(tabId);
+    // if (manager) console.warn('PaymentManager->', manager.info);
+    return manager;
   }
 
   set(tabId: TabId, paymentManager: PaymentManager) {
