@@ -512,11 +512,11 @@ export class PaymentStream {
     }
     session = new this.PaymentSessionConstructor(
       receiver,
-      this.sender,
       sessionId,
       this.tabId,
       this.frameId,
       this.tabUrl,
+      this.sender,
       {
         ...this.deps,
         logger: this.rootLogger.getLogger(`payment-session/${sessionId}`),

@@ -117,7 +117,7 @@ export interface PayWebsiteResponse {
 }
 
 export interface UpdateRateOfPayPayload {
-  rateOfPay: string;
+  rateOfPay: AmountValue;
 }
 
 export interface UpdateBudgetPayload {

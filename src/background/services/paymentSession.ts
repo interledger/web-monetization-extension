@@ -72,11 +72,11 @@ export class PaymentSession {
 
   constructor(
     public readonly receiver: WalletAddress,
-    private sender: WalletAddress,
     public readonly id: string,
     public readonly tabId: number,
     public readonly frameId: number,
     public readonly tabUrl: string,
+    private sender: WalletAddress,
     private deps: Cradle,
   ) {
     Object.assign(this, this.deps);
