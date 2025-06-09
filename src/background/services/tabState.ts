@@ -10,16 +10,13 @@ import {
   isSecureContext,
 } from '@/background/utils';
 
-type State = {
-  monetizationEvent: MonetizationEventDetails;
-  lastPaymentTimestamp: number;
-  expiresAtTimestamp: number;
-};
-
-interface SaveOverpayingDetails {
+interface SaveLastPaymentDetails {
   walletAddressId: string;
   monetizationEvent: MonetizationEventDetails;
-  intervalInMs: number;
+}
+
+interface State extends SaveLastPaymentDetails {
+  ts: Date;
 }
 
 export class TabState {
@@ -36,62 +33,32 @@ export class TabState {
     });
   }
 
-  private getOverpayingStateKey(url: string, walletAddressId: string): string {
-    return `${url}:${walletAddressId}`;
+  getLastPaymentDetails(tabId: TabId, url: string): Readonly<State> | null {
+    const state = this.state.get(tabId)?.get(url);
+    return state ? { ...state } : null;
   }
 
-  shouldClearOverpaying(tabId: TabId, url: string): boolean {
-    const tabState = this.state.get(tabId);
-    if (!tabState?.size || !url) return false;
-    return ![...tabState.keys()].some((key) => key.startsWith(`${url}:`));
-  }
-
-  getOverpayingDetails(
+  saveLastPaymentDetails(
     tabId: TabId,
     url: string,
-    walletAddressId: string,
-  ): { waitTime: number; monetizationEvent?: MonetizationEventDetails } {
-    const key = this.getOverpayingStateKey(url, walletAddressId);
-    const state = this.state.get(tabId)?.get(key);
-    const now = Date.now();
-
-    if (state && state.expiresAtTimestamp > now) {
-      return {
-        waitTime: state.expiresAtTimestamp - now,
-        monetizationEvent: state.monetizationEvent,
-      };
-    }
-
-    return {
-      waitTime: 0,
-    };
-  }
-
-  saveOverpaying(
-    tabId: TabId,
-    url: string,
-    details: SaveOverpayingDetails,
+    details: SaveLastPaymentDetails,
   ): void {
-    const { intervalInMs, walletAddressId, monetizationEvent } = details;
-    if (!intervalInMs) return;
+    const { walletAddressId, monetizationEvent } = details;
 
-    const now = Date.now();
-    const expiresAtTimestamp = now + intervalInMs;
+    const now = new Date();
 
-    const key = this.getOverpayingStateKey(url, walletAddressId);
-    const state = this.state.get(tabId)?.get(key);
+    const state = this.state.get(tabId)?.get(url);
 
     if (!state) {
       const tabState = this.state.get(tabId) || new Map<string, State>();
-      tabState.set(key, {
+      tabState.set(url, {
+        walletAddressId,
         monetizationEvent,
-        expiresAtTimestamp: expiresAtTimestamp,
-        lastPaymentTimestamp: now,
+        ts: now,
       });
       this.state.set(tabId, tabState);
     } else {
-      state.expiresAtTimestamp = expiresAtTimestamp;
-      state.lastPaymentTimestamp = now;
+      state.ts = now;
     }
   }
 
@@ -171,8 +138,10 @@ export class TabState {
   }
 
   clearOverpayingByTabId(tabId: TabId) {
-    this.state.delete(tabId);
-    this.logger.debug(`Cleared overpaying state for tab ${tabId}.`);
+    const cleared = this.state.delete(tabId);
+    if (cleared) {
+      this.logger.debug(`Cleared overpaying state for tab ${tabId}.`);
+    }
   }
 
   clearSessionsByTabId(tabId: TabId) {

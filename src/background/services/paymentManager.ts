@@ -5,12 +5,17 @@ import type {
 } from '@interledger/open-payments';
 import type { Cradle as Cradle_ } from '@/background/container';
 import { PaymentSession } from './paymentSession';
-import { OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS } from '../config';
-import { computeRate } from '../utils';
+import {
+  MIN_PAYMENT_WAIT,
+  OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
+} from '../config';
+import { bigIntMax } from '../utils';
 import {
   ErrorWithKey,
   isAbortSignalTimeout,
   isErrorWithKey,
+  sleep,
+  Timeout,
 } from '@/shared/helpers';
 import { isOutOfBalanceError } from './openPayments';
 
@@ -26,6 +31,11 @@ type Cradle = Pick<
   | 'message'
 >;
 
+/** Payable amount to increase by {@linkcode Interval.units} every {@linkcode Interval.duration}ms. */
+type Interval = { units: bigint; duration: number };
+
+const MS_IN_HOUR = 3600;
+
 export class PaymentManager {
   private rootLogger: Cradle['rootLogger'];
   private logger: Cradle['logger'];
@@ -36,10 +46,13 @@ export class PaymentManager {
     private tabId: TabId,
     private url: string,
     private sender: WalletAddress,
-    private hourlyRate: AmountValue,
+    hourlyRate: AmountValue,
     private deps: Cradle,
   ) {
     Object.assign(this, this.deps);
+    this.createStreamIfNotExists(0); // ensure frameId=0 is first in iteration (priority)
+    this.timer = new Timeout(0, this.checkAndPayContinuously);
+    this.setRate(hourlyRate);
   }
 
   // #region Session management
@@ -89,12 +102,18 @@ export class PaymentManager {
     const removed = stream.removeSession(sessionId);
     if (removed && !stream.size) {
       this.streams.delete(frameId);
+      this.createStreamIfNotExists(0); // ensure frameId=0 is first in iteration (priority)
     }
+
+    if (!this.enabledSessions.length) {
+      this.#state = 'stopped';
+    }
+
     return removed;
   }
 
-  stopSession(sessionId: SessionId, frameId?: FrameId) {
-    return this.getSession(sessionId, frameId)?.stop() ?? false;
+  deactivateSession(sessionId: SessionId, frameId?: FrameId) {
+    return this.getSession(sessionId, frameId)?.deactivate() ?? false;
   }
 
   // To enable, call addSession with isActive=true. It'll reuse the existing
@@ -113,6 +132,10 @@ export class PaymentManager {
     }
   }
 
+  get size() {
+    return this.sessions.length; // TODO: make this more efficient
+  }
+
   get sessions() {
     return Array.from(this.streams.values()).flatMap(
       (stream) => stream.sessions,
@@ -124,7 +147,7 @@ export class PaymentManager {
   }
 
   get payableSessions() {
-    return this.sessions.filter(isUsable);
+    return this.sessions.filter((s) => s.isUsable);
   }
 
   private createStreamIfNotExists(frameId: FrameId) {
@@ -136,6 +159,7 @@ export class PaymentManager {
         this.tabId,
         this.sender,
         this.rootLogger,
+        PaymentSession,
         this.deps,
       );
       this.streams.set(frameId, stream);
@@ -159,7 +183,7 @@ export class PaymentManager {
 
     const splitAmount = amount / BigInt(payableSessions.length);
     const results = await Promise.allSettled(
-      payableSessions.map((session) => session.pay(splitAmount)),
+      payableSessions.map((session) => session.payOneTime(splitAmount)),
     );
 
     this.logger.debug('polling outgoing payments for completion');
@@ -254,89 +278,245 @@ export class PaymentManager {
   // #endregion
 
   // #region Streaming payments
+  #state: 'stopped' | 'active' | 'paused' = 'stopped';
+  private hourlyRate: bigint;
+  private interval: Interval;
+  private timer: Timeout;
+  private pendingAmount = 0n;
+  #iter: PeekAbleIterator<PaymentSession>;
 
-  async setRate(hourlyRate: AmountValue) {
-    this.hourlyRate = hourlyRate;
-    await this.adjustAmount();
+  setRate(hourlyRate: AmountValue) {
+    this.hourlyRate = BigInt(hourlyRate);
+    const secondsPerUnit = MS_IN_HOUR / Number(this.hourlyRate);
+    const duration = Math.ceil(secondsPerUnit * 1000);
+    // The math below is equivalent to:
+    // interval = { units: 1n, duration };
+    // while (interval.duration < MIN_PAYMENT_WAIT) {
+    //   interval.units += 1n;
+    //   interval.duration += duration;
+    // }
+    const units = BigInt(Math.ceil(MIN_PAYMENT_WAIT / duration));
+    this.interval = { units, duration: Number(units) * duration };
+    // TODO: Optimization opportunity above: see if we can set interval based on
+    // some minSendAmount (HCF of all minSendAmount?). i.e. we will increment
+    // amount by minSendAmount unit to make the interval longer.
+
+    if (this.#state === 'active') {
+      this.timer.reset(this.interval.duration);
+    }
   }
 
-  async adjustAmount() {
-    const hourlyRate = this.hourlyRate;
-    const sessions = this.payableSessions;
-    if (!sessions.length) {
+  async start() {
+    if (this.#state === 'active') {
+      this.logger.warn('Already active');
       return;
     }
-    const rate = computeRate(hourlyRate, sessions.length);
-    this.logger.debug(`Adjusting rate for ${sessions.length} sessions.`, {
-      hourlyRate,
-      rate,
-    });
-    await Promise.all(sessions.map((session) => session.adjustAmount(rate)));
-  }
 
-  start() {
     const sessions = this.payableSessions;
-    this.logger.debug(`Starting ${sessions.length} sessions`);
-    for (const session of sessions) {
-      session.start('new-link');
+    if (!sessions.length) {
+      this.logger.warn('No sessions to start');
+      return;
     }
+    // this.logger.debug(`Starting ${sessions.length} sessions`, {
+    //   sessions: sessions.map((s) => [s.id, s.receiver.id]),
+    // });
+
+    this.#state = 'active';
+
+    await this.preventOverpaying();
+    if (this.#state !== 'active') {
+      return;
+    }
+
+    this.#iter ??= this.setupSessionIterator();
+    const session = this.consumeSession();
+    if (!session) {
+      this.logger.error('No session to pay');
+      return;
+    }
+    const amount = bigIntMax(this.interval.units, session.minSendAmount);
+    void session.payWithRetry(amount).then((paid) => {
+      if (!paid) this.pendingAmount += amount;
+    });
+    this.pendingAmount -= amount;
+
+    this.checkAndPayContinuously();
+    this.timer.reset(this.interval.duration);
   }
 
   pause(reason?: string) {
-    const sessions = this.enabledSessions;
-    this.logger.debug(
-      `Pausing ${sessions.length} sessions [reason: ${reason}]`,
-    );
-    for (const session of sessions) {
-      session.stop();
-    }
+    this.logger.debug(`Pausing sessions [reason: ${reason}]`);
+    this.timer.pause();
+    this.#state = 'paused';
   }
 
   resume() {
     const sessions = this.enabledSessions;
     this.logger.debug(`Resuming ${sessions.length} sessions`);
-    for (const session of this.enabledSessions) {
-      session.resume();
+    for (const session of sessions) {
+      session.activate();
     }
+    this.timer.resume();
+    this.#state = 'active';
   }
 
   stop(reason?: string) {
-    const sessions = this.enabledSessions;
-    this.logger.debug(
-      `Stopping ${sessions.length} sessions [reason: ${reason}]`,
-    );
-    for (const session of this.enabledSessions) {
-      session.stop();
+    this.logger.debug(`Stopping sessions [reason: ${reason}]`);
+    this.timer.clear();
+    this.#state = 'stopped';
+  }
+
+  /**
+   * If there was a payment in the last interval, we need to wait to respect the
+   * payment interval, to avoid overpaying websites on each {@linkcode start()}
+   * call (like on page refresh, adding/removing link tags etc.)
+   */
+  private async preventOverpaying(): Promise<boolean> {
+    const lastPaymentInfo = this.getLastPayment();
+    if (!lastPaymentInfo) {
+      return false;
     }
+
+    const elapsed = Date.now() - lastPaymentInfo.ts.valueOf();
+    const waitTime = this.interval.duration - elapsed;
+    if (waitTime > 0) {
+      this.logger.log('[overpaying] Preventing overpaying:', {
+        ...lastPaymentInfo,
+        waitTime,
+      });
+      const session = this.sessions.find(
+        // FIXME: in case `href` is different from walletAddressId
+        (s) => s.receiver.id === lastPaymentInfo.walletAddressId,
+      );
+      if (session) {
+        this.logger.debug(
+          '[overpaying] Emitting MonetizationEvent for last payment',
+        );
+        session.sendMonetizationEvent(lastPaymentInfo.monetizationEvent);
+      }
+      await sleep(waitTime);
+      return true;
+    }
+
+    return false;
+  }
+
+  private getLastPayment() {
+    return this.deps.tabState.getLastPaymentDetails(this.tabId, this.url);
+  }
+
+  private checkAndPayContinuously = () => {
+    if (this.#state !== 'active' || !this.size) {
+      return;
+    }
+
+    this.pendingAmount += this.interval.units;
+    this.timer.reset(this.interval.duration); // as if setInterval
+
+    const session = this.peekSessionToPay();
+    if (!session) {
+      this.logger.warn('No session to pay');
+      return;
+    }
+
+    // this.logger.debug('checkAndPayContinuously', {
+    //   pendingAmount: this.pendingAmount,
+    //   sessionIdToPay: session.id,
+    // });
+    if (this.pendingAmount >= session.minSendAmount) {
+      this.consumeSession();
+      const amount = this.getPayableAmount(session);
+      void session.payWithRetry(amount).then((paid) => {
+        if (!paid) this.pendingAmount += amount;
+      });
+      this.pendingAmount -= amount;
+    }
+  };
+
+  /**
+   * For current {@linkcode pendingAmount} and a given session, see how much of
+   * pending amount we can utilize in one go.
+   */
+  private getPayableAmount(session: PaymentSession): bigint {
+    const minSendAmount = session.minSendAmount;
+    const mul = this.pendingAmount / minSendAmount;
+    return mul > 0n ? mul * minSendAmount : minSendAmount;
+  }
+
+  private peekSessionToPay(): PaymentSession {
+    this.#iter ??= this.setupSessionIterator();
+    return this.#iter.peek().value;
+  }
+
+  private consumeSession(): PaymentSession {
+    this.#iter ??= this.setupSessionIterator();
+    return this.#iter.next().value;
+  }
+
+  private setupSessionIterator() {
+    return new PeekAbleIterator(this.sessionIterator(this));
+  }
+
+  private *sessionIterator(
+    self: PaymentManager,
+  ): Generator<PaymentSession, never, never> {
+    while (true) {
+      if (!self.payableSessions.length) {
+        // @ts-expect-error It's simpler this way
+        this.#iter = null;
+        throw new Error('No sessions!!');
+      }
+      const streams = Array.from(self.streams.values());
+      const stream = streams[self.frameIndex % streams.length];
+      const session = stream.iter.next().value;
+      if (session) {
+        yield session;
+        if (!stream.isTopFrame) {
+          self.toNextFrame();
+        }
+      } else {
+        self.toNextFrame();
+      }
+    }
+  }
+
+  private frameIndex = 0;
+  private toNextFrame() {
+    this.frameIndex = (this.frameIndex + 1) % this.streams.size;
   }
   // #endregion
 }
 
 export class PaymentStream {
-  #sessions = new Map<SessionId, PaymentSession>();
+  public iter: Iterator<PaymentSession | undefined, never, never>;
 
+  #sessions = new Map<SessionId, PaymentSession>();
   constructor(
-    private frameId: FrameId,
-    private url: string,
-    private tabId: TabId,
+    private readonly frameId: FrameId,
+    private readonly tabUrl: string,
+    private readonly tabId: TabId,
     private sender: WalletAddress,
     private rootLogger: Cradle['rootLogger'],
+    private PaymentSessionConstructor: typeof PaymentSession,
     private deps: ConstructorParameters<typeof PaymentSession>[6],
-  ) {}
+  ) {
+    this.iter = this.sessionsIter(this);
+  }
 
   addSession(sessionId: SessionId, receiver: WalletAddress, isActive: boolean) {
     let session = this.#sessions.get(sessionId);
     if (session && isActive) {
+      session.activate();
       session.enable(); // if was disabled earlier
       return session;
     }
-    session = new PaymentSession(
+    session = new this.PaymentSessionConstructor(
       receiver,
       this.sender,
       sessionId,
       this.tabId,
       this.frameId,
-      this.url,
+      this.tabUrl,
       {
         ...this.deps,
         logger: this.rootLogger.getLogger(`payment-session/${sessionId}`),
@@ -348,7 +528,7 @@ export class PaymentStream {
 
   removeSession(sessionId: SessionId) {
     const session = this.#sessions.get(sessionId);
-    session?.stop();
+    session?.deactivate();
     return this.#sessions.delete(sessionId);
   }
 
@@ -365,19 +545,47 @@ export class PaymentStream {
   }
 
   get payableSessions() {
-    return this.sessions.filter(isUsable);
+    return this.sessions.filter((s) => s.isUsable);
   }
 
   get isTopFrame() {
     return this.frameId === 0;
   }
+
+  #picked = new WeakSet<PaymentSession>();
+  private *sessionsIter(
+    self: PaymentStream,
+  ): Generator<PaymentSession | undefined, never, never> {
+    while (true) {
+      const session = self.payableSessions.find((s) => !self.#picked.has(s));
+      if (session) {
+        self.#picked.add(session);
+        yield session;
+      } else {
+        self.#picked = new WeakSet<PaymentSession>();
+        yield undefined;
+      }
+    }
+  }
 }
 
-function isUsable(session: PaymentSession) {
-  try {
-    void session.minSendAmount;
-  } catch {
-    return false;
+class PeekAbleIterator<T> implements Iterator<T, never, never> {
+  #peek: IteratorResult<T, never>;
+  constructor(private iterator: Iterator<T, never>) {
+    this.#peek = iterator.next();
   }
-  return !session.invalid && !session.disabled;
+
+  next() {
+    const curr = this.#peek;
+    this.#peek = this.iterator.next();
+    return curr;
+  }
+
+  peek() {
+    return this.#peek;
+  }
+
+  [Symbol.iterator]() {
+    return this;
+  }
 }

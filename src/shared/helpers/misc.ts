@@ -62,13 +62,18 @@ export function memoize<T extends () => Promise<unknown>>(
   const { maxAge, mechanism = 'max-age' } = options;
   let result: ReturnType<T>;
   let lastCall = 0;
-  return () => {
+  // @ts-expect-error TODO later
+  return async () => {
     const lastResult = result;
     if (Date.now() - lastCall > maxAge) {
       lastCall = Date.now();
-      result = fn() as ReturnType<T>;
+      try {
+        result = (await fn()) as ReturnType<T>;
+      } catch {
+        lastCall = 0;
+      }
     }
-    if (mechanism === 'stale-while-revalidate') {
+    if (mechanism === 'stale-while-revalidate' && lastCall) {
       return lastResult;
     }
     return result;

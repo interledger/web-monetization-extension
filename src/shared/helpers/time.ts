@@ -115,24 +115,58 @@ export function debounceSync<T extends unknown[], R>(
 }
 
 export class Timeout {
-  private timeout: ReturnType<typeof setTimeout> | null = null;
+  private callback: () => void;
+  #timeout: ReturnType<typeof setTimeout> | null = null;
+  #isPaused = false;
+  #lastCalledAt = 0;
+  #remaining = 0;
+
   constructor(
-    ms: number,
-    private callback: () => void,
+    private ms: number,
+    callback: () => void,
   ) {
-    this.reset(ms);
+    this.callback = () => {
+      this.#lastCalledAt = Date.now();
+      callback();
+    };
+    if (ms > 0) this.reset(ms);
   }
 
   reset(ms: number) {
+    const lastCalledAt = this.#lastCalledAt;
     this.clear();
-    this.timeout = setTimeout(this.callback, ms);
+    this.ms = ms;
+    this.#isPaused = false;
+    this.#lastCalledAt = lastCalledAt;
+    this.#timeout = setTimeout(this.callback, ms);
+  }
+
+  pause() {
+    if (this.#isPaused) return;
+    const lastCalledAt = this.#lastCalledAt;
+    this.#remaining = lastCalledAt ? Date.now() - lastCalledAt : 0;
+    this.clear();
+    this.#lastCalledAt = lastCalledAt;
+    this.#isPaused = true;
+  }
+
+  resume() {
+    if (!this.#isPaused) return;
+    if (this.#remaining > 0) {
+      this.#timeout = setTimeout(() => {
+        this.callback();
+        this.reset(this.ms);
+      }, this.#remaining);
+    } else {
+      this.reset(this.ms);
+    }
   }
 
   clear() {
-    if (this.timeout) {
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
+    if (this.#timeout === null) return;
+    clearTimeout(this.#timeout);
+    this.#timeout = null;
+    this.#lastCalledAt = 0;
   }
 }
 
