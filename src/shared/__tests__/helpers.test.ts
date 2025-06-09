@@ -7,6 +7,7 @@ import {
   getNextOccurrence,
   toWalletAddressUrl,
   setDifference,
+  Timeout,
   memoize,
 } from '../helpers';
 
@@ -164,6 +165,57 @@ describe('toWalletAddressUrl', () => {
     expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
       'https://wallet.com/bob',
     );
+  });
+});
+
+describe('Timeout', () => {
+  jest.useFakeTimers();
+
+  let callback: jest.Mock;
+  let timeout: Timeout;
+  beforeEach(() => {
+    callback = jest.fn();
+    timeout = new Timeout(1000, callback);
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    test;
+  });
+
+  it('should call the callback after the specified time', () => {
+    jest.advanceTimersByTime(1000);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reset the timeout', () => {
+    timeout.reset(2000);
+    // @ts-expect-error for testing it's ok to access private properties
+    expect(timeout.ms).toBe(2000);
+    jest.advanceTimersByTime(2000);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should pause the timeout', () => {
+    timeout.pause();
+    jest.advanceTimersByTime(1000);
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should resume the timeout', () => {
+    timeout.pause();
+    jest.advanceTimersByTime(500);
+    timeout.resume();
+    jest.advanceTimersByTime(500);
+    expect(callback).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(500);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should clear the timeout', () => {
+    timeout.clear();
+    jest.advanceTimersByTime(1000);
+    expect(callback).not.toHaveBeenCalled();
   });
 });
 
