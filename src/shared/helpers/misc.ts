@@ -60,18 +60,25 @@ export function memoize<T extends () => Promise<unknown>>(
   options: { maxAge: number; mechanism: 'stale-while-revalidate' | 'max-age' },
 ): () => ReturnType<T> {
   const { maxAge, mechanism = 'max-age' } = options;
-  let result: ReturnType<T>;
+
   let lastCall = 0;
+  const result: { promise: ReturnType<T> | null } = { promise: null };
+
   return () => {
-    const lastResult = result;
-    if (Date.now() - lastCall > maxAge) {
+    const lastResult = result.promise;
+    if (!result.promise || Date.now() - lastCall > maxAge) {
       lastCall = Date.now();
-      result = fn() as ReturnType<T>;
+      const promise = fn() as ReturnType<T>;
+      promise.catch(() => {
+        result.promise = null;
+      });
+      result.promise = promise;
     }
-    if (mechanism === 'stale-while-revalidate') {
+
+    if (mechanism === 'stale-while-revalidate' && lastResult) {
       return lastResult;
     }
-    return result;
+    return result.promise;
   };
 }
 
