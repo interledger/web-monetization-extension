@@ -5,12 +5,13 @@ import { debounceAsync } from '@/shared/helpers';
 import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
 import { useMessage, useTranslation } from '@/popup/lib/context';
 import { dispatch, usePopupState, type PopupState } from '@/popup/lib/store';
+import type { AmountValue } from '@/shared/types';
 
 export const RateOfPayScreen = () => {
   const message = useMessage();
 
   const updateRateOfPay = React.useRef(
-    debounceAsync(async (rateOfPay: string) => {
+    debounceAsync(async (rateOfPay: AmountValue) => {
       const response = await message.send('UPDATE_RATE_OF_PAY', { rateOfPay });
       if (!response.success) {
         // TODO: Maybe reset to old state, but not while user is active (avoid
@@ -19,7 +20,7 @@ export const RateOfPayScreen = () => {
     }, 1000),
   );
 
-  const onRateChange = async (rateOfPay: string) => {
+  const onRateChange = async (rateOfPay: AmountValue) => {
     dispatch({ type: 'UPDATE_RATE_OF_PAY', data: { rateOfPay } });
     void updateRateOfPay.current(rateOfPay);
   };
@@ -38,7 +39,7 @@ export const RateOfPayScreen = () => {
 };
 
 interface Props {
-  onRateChange: (rate: string) => Promise<void>;
+  onRateChange: (rate: AmountValue) => Promise<void>;
   toggle: () => void | Promise<void>;
 }
 
@@ -122,7 +123,7 @@ const RateOfPayInput = ({
         onChange={(value) => {
           setErrorMessage('');
           const rate = Number(value) * 10 ** walletAddress.assetScale;
-          onRateChange(rate.toString());
+          onRateChange(Math.round(rate).toString());
         }}
         onError={(error) => setErrorMessage(t(error))}
         errorMessage={errorMessage}
