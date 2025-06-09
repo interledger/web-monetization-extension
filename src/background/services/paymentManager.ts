@@ -316,9 +316,9 @@ export class PaymentStream {
   #sessions = new Map<SessionId, PaymentSession>();
 
   constructor(
-    private frameId: FrameId,
-    private url: string,
-    private tabId: TabId,
+    public readonly frameId: FrameId,
+    public readonly tabUrl: string,
+    public readonly tabId: TabId,
     private sender: WalletAddress,
     private rootLogger: Cradle['rootLogger'],
     private deps: ConstructorParameters<typeof PaymentSession>[6],
@@ -332,11 +332,11 @@ export class PaymentStream {
     }
     session = new PaymentSession(
       receiver,
-      this.sender,
       sessionId,
       this.tabId,
       this.frameId,
-      this.url,
+      this.tabUrl,
+      this.sender,
       {
         ...this.deps,
         logger: this.rootLogger.getLogger(`payment-session/${sessionId}`),

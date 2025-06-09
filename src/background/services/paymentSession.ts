@@ -79,12 +79,12 @@ export class PaymentSession {
   private timeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
-    private receiver: WalletAddress,
+    public readonly receiver: WalletAddress,
+    public readonly id: string,
+    public readonly tabId: number,
+    public readonly frameId: number,
+    public readonly tabUrl: string,
     private sender: WalletAddress,
-    private requestId: string,
-    private tabId: number,
-    private frameId: number,
-    private url: string,
     private deps: Cradle,
   ) {
     Object.assign(this, this.deps);
@@ -243,14 +243,6 @@ export class PaymentSession {
     // this.logger.log('minSendAmount: binary search gave us', this.minSendAmount);
   }
 
-  get id() {
-    return this.requestId;
-  }
-
-  get walletAddress() {
-    return this.receiver.id;
-  }
-
   get disabled() {
     return this.isDisabled;
   }
@@ -306,17 +298,14 @@ export class PaymentSession {
 
     const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
       this.tabId,
-      this.url,
+      this.tabUrl,
       this.receiver.id,
     );
 
     this.debug(`Overpaying: waitTime=${waitTime}`);
 
     if (monetizationEvent && source !== 'tab-change') {
-      this.sendMonetizationEvent({
-        requestId: this.requestId,
-        details: monetizationEvent,
-      });
+      this.sendMonetizationEvent(monetizationEvent);
     }
 
     const continuePayment = () => {
@@ -355,12 +344,14 @@ export class PaymentSession {
     }
   }
 
-  private async sendMonetizationEvent(payload: MonetizationEventPayload) {
+  private async sendMonetizationEvent(
+    payload: MonetizationEventPayload['details'],
+  ) {
     await this.message.sendToTab(
       this.tabId,
       this.frameId,
       'MONETIZATION_EVENT',
-      payload,
+      { requestId: this.id, details: payload },
     );
   }
 
@@ -525,18 +516,15 @@ export class PaymentSession {
       });
 
       this.sendMonetizationEvent({
-        requestId: this.requestId,
-        details: {
-          amountSent: {
-            currency: outgoingPayment.receiveAmount.assetCode,
-            value: transformBalance(
-              outgoingPayment.receiveAmount.value,
-              outgoingPayment.receiveAmount.assetScale,
-            ),
-          },
-          incomingPayment: outgoingPayment.receiver,
-          paymentPointer: this.receiver.id,
+        amountSent: {
+          currency: outgoingPayment.receiveAmount.assetCode,
+          value: transformBalance(
+            outgoingPayment.receiveAmount.value,
+            outgoingPayment.receiveAmount.assetScale,
+          ),
         },
+        incomingPayment: outgoingPayment.receiver,
+        paymentPointer: this.receiver.id,
       });
 
       return outgoingPayment;
@@ -636,14 +624,11 @@ export class PaymentSession {
         paymentPointer: this.receiver.id,
       };
 
-      this.sendMonetizationEvent({
-        requestId: this.requestId,
-        details: monetizationEventDetails,
-      });
+      this.sendMonetizationEvent(monetizationEventDetails);
 
       // TO DO: find a better source of truth for deciding if overpaying is applicable
       if (this.intervalInMs > 1000) {
-        this.tabState.saveOverpaying(this.tabId, this.url, {
+        this.tabState.saveOverpaying(this.tabId, this.tabUrl, {
           walletAddressId: this.receiver.id,
           monetizationEvent: monetizationEventDetails,
           intervalInMs: this.intervalInMs,
