@@ -7,6 +7,7 @@ import {
   getNextOccurrence,
   toWalletAddressUrl,
   setDifference,
+  memoize,
 } from '../helpers';
 
 describe('objectEquals', () => {
@@ -163,5 +164,113 @@ describe('toWalletAddressUrl', () => {
     expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
       'https://wallet.com/bob',
     );
+  });
+});
+
+describe('memoize', () => {
+  jest.useFakeTimers();
+
+  type SuccessResponse = { data: string };
+  type MockFunction = () => Promise<SuccessResponse>;
+
+  const successResponse1: SuccessResponse = { data: 'success1' };
+  const successResponse2: SuccessResponse = { data: 'success2' };
+  const errorResponse = new Error('failure');
+
+  let mockFn: jest.MockedFunction<MockFunction>;
+  beforeEach(() => {
+    mockFn = jest.fn();
+  });
+
+  it('should cache the result of a successful promise with max-age mechanism', async () => {
+    mockFn.mockResolvedValueOnce(successResponse1);
+    mockFn.mockResolvedValueOnce(successResponse2);
+    const memoizedFn = memoize(mockFn, { maxAge: 1000, mechanism: 'max-age' });
+
+    const result1 = await memoizedFn();
+    const result2 = await memoizedFn();
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    expect(result1).toBe(successResponse1);
+    expect(result2).toBe(successResponse1);
+
+    jest.advanceTimersByTime(1001);
+    const result3 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result3).toBe(successResponse2);
+  });
+
+  it('should cache the result of a successful promise with stale-while-revalidate mechanism', async () => {
+    mockFn.mockResolvedValueOnce(successResponse1);
+    mockFn.mockResolvedValueOnce(successResponse2);
+    const memoizedFn = memoize(mockFn, {
+      maxAge: 1000,
+      mechanism: 'stale-while-revalidate',
+    });
+
+    const result1 = await memoizedFn();
+    const result2 = await memoizedFn();
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    expect(result1).toBe(successResponse1);
+    expect(result2).toBe(successResponse1);
+
+    jest.advanceTimersByTime(1001);
+    const result3 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result3).toBe(successResponse1);
+
+    jest.advanceTimersByTime(50);
+    const result4 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result4).toBe(successResponse2);
+  });
+
+  it('should reject if there is an error in first call with max-age mechanism', async () => {
+    mockFn.mockRejectedValueOnce(errorResponse);
+    mockFn.mockResolvedValueOnce(successResponse1);
+
+    const memoizedFn = memoize(mockFn, { maxAge: 1000, mechanism: 'max-age' });
+
+    await expect(memoizedFn).rejects.toBe(errorResponse);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    const result = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result).toBe(successResponse1);
+  });
+
+  it('should not return error response from previous call when using state-while-revalidate mechanism', async () => {
+    mockFn.mockRejectedValueOnce(errorResponse);
+    mockFn.mockResolvedValueOnce(successResponse1);
+    mockFn.mockRejectedValueOnce(errorResponse);
+    mockFn.mockResolvedValueOnce(successResponse2);
+
+    const memoizedFn = memoize(mockFn, {
+      maxAge: 1000,
+      mechanism: 'stale-while-revalidate',
+    });
+
+    await expect(memoizedFn).rejects.toBe(errorResponse);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    const result1 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result1).toBe(successResponse1);
+
+    jest.advanceTimersByTime(1001);
+
+    // even though 3rd call results in an error, reuse successful response from
+    // a previous call
+    const result2 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(3);
+    expect(mockFn.mock.results.at(-1)).toEqual(
+      expect.objectContaining(errorResponse),
+    );
+    expect(result2).toBe(successResponse1);
+
+    const result3 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(4);
+    expect(result3).toBe(successResponse2);
   });
 });
