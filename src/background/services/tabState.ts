@@ -144,6 +144,13 @@ export class TabState {
     }
   }
 
+  clearAllState(reason: string) {
+    this.logger.info('Clear all state', { reason });
+    this.state.clear();
+    this.currentIcon.clear();
+    this.paymentManagers.destroyAll(reason);
+  }
+
   clearSessionsByTabId(tabId: TabId) {
     this.currentIcon.delete(tabId);
     this.paymentManagers.destroy(tabId);
@@ -184,6 +191,13 @@ class PaymentManagers {
     }
     paymentManager.stop('destroy');
     return this.map.delete(tabId);
+  }
+
+  destroyAll(reason = 'destroy') {
+    for (const pm of this.map.values()) {
+      pm.stop(reason);
+    }
+    this.map.clear();
   }
 
   get tabIds() {
