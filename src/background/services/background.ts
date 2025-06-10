@@ -2,6 +2,7 @@ import type { Browser, Runtime } from 'webextension-polyfill';
 import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
+  getConnectWalletAddressInfo,
   getNextOccurrence,
   getWalletInformation,
   isErrorWithKey,
@@ -224,6 +225,11 @@ export class Background {
                 await this.monetizationService.getPopupData(
                   await this.windowState.getCurrentTab(),
                 ),
+              );
+
+            case 'GET_CONNECT_WALLET_ADDRESS_INFO':
+              return success(
+                await getConnectWalletAddressInfo(message.payload),
               );
 
             case 'CONNECT_WALLET': {

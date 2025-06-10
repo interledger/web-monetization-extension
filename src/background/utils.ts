@@ -133,6 +133,27 @@ export const convertWithExchangeRate = <T extends AmountValue | bigint>(
     : (converted as T);
 };
 
+// https://interledger.github.io/web-monetization-budget-suggestions/v1/schema.json
+type BudgetRecommendationsDataSchema = {
+  [currency: string]: {
+    budget: { default: number; max: number };
+    hourly: { default: number; max: number };
+  };
+};
+
+export const getBudgetRecommendationsData = memoize(
+  async () => {
+    const { BUDGET_RECOMMENDATIONS_URL } = await import('@/background/config');
+    const response = await fetch(BUDGET_RECOMMENDATIONS_URL);
+    if (!response.ok) {
+      throw new Error('Failed to fetch budget recommendations data.');
+    }
+    const data: BudgetRecommendationsDataSchema = await response.json();
+    return data;
+  },
+  { maxAge: 30 * 60 * 1000, mechanism: 'stale-while-revalidate' },
+);
+
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source;
   if (scaleDiff > 0) {

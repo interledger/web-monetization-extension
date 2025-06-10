@@ -3,7 +3,12 @@ import type {
   OutgoingPayment,
 } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
-import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
+import type {
+  AmountValue,
+  PopupTransientState,
+  Storage,
+  WalletInfo,
+} from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { PopupState } from '@/popup/lib/store';
 import type { AppState } from '@/app/lib/store';
@@ -90,9 +95,16 @@ export class MessageManager<TMessages extends MessageMap> {
 // #endregion
 
 // #region Popup ↦ BG
+export interface GetConnectWalletAddressInfoResponse {
+  walletAddress: WalletInfo;
+  defaultBudget: number;
+  defaultRateOfPay: AmountValue;
+}
+
 export interface ConnectWalletPayload {
   walletAddressUrl: string;
   amount: string;
+  rateOfPay: AmountValue;
   recurring: boolean;
   autoKeyAdd: boolean;
   autoKeyAddConsent: boolean | null;
@@ -130,6 +142,10 @@ export type PopupToBackgroundMessage = {
   GET_DATA_POPUP: {
     input: never;
     output: PopupState;
+  };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: GetConnectWalletAddressInfoResponse;
   };
   CONNECT_WALLET: {
     input: ConnectWalletPayload;

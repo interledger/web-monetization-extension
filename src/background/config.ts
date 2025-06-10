@@ -7,6 +7,8 @@ export const MAX_RATE_OF_PAY = '100';
 
 export const EXCHANGE_RATES_URL =
   'https://telemetry-exchange-rates.s3.amazonaws.com/exchange-rates-usd.json';
+export const BUDGET_RECOMMENDATIONS_URL =
+  'https://interledger.github.io/web-monetization-budget-suggestions/v1/data.json';
 
 export const OUTGOING_PAYMENT_POLLING_MAX_DURATION = 8_000;
 export const OUTGOING_PAYMENT_POLLING_INITIAL_DELAY = 1500;
