@@ -22,6 +22,7 @@ export class Background {
   private monetizationService: Cradle['monetizationService'];
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
+  private tabState: Cradle['tabState'];
   private tabEvents: Cradle['tabEvents'];
   private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
@@ -35,6 +36,7 @@ export class Background {
     monetizationService,
     storage,
     logger,
+    tabState,
     tabEvents,
     windowState,
     sendToPopup,
@@ -49,6 +51,7 @@ export class Background {
       storage,
       sendToPopup,
       sendToApp,
+      tabState,
       tabEvents,
       windowState,
       logger,
@@ -259,6 +262,7 @@ export class Background {
 
             case 'DISCONNECT_WALLET':
               await this.walletService.disconnectWallet();
+              this.tabState.clearAllState('disconnect');
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               await this.updateVisualIndicatorsForCurrentTab();
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
