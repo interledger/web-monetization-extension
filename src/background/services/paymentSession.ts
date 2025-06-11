@@ -19,7 +19,7 @@ import {
   bigIntMax,
   convert,
   convertWithExchangeRate,
-  getExchangeRatesMemoized,
+  getExchangeRates,
   getNextSendableAmount,
 } from '@/background/utils';
 import type {
@@ -129,7 +129,7 @@ export class PaymentSession {
 
     if (isCrossCurrency) {
       try {
-        const exchangeRates = await getExchangeRatesMemoized();
+        const exchangeRates = await getExchangeRates();
         amountToSend = convertWithExchangeRate(
           amountToSend,
           this.receiver,
