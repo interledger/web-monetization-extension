@@ -2,7 +2,13 @@ import type { WalletAddress, JWKS } from '@interledger/open-payments';
 import { ensureEnd } from './misc';
 
 export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace('$', 'https://') : s;
+  if (s.startsWith('https://')) return s;
+
+  const addr = s.replace(/^\$/, '').replace(/\/$/, '');
+  if (/\/[^\/]*$/.test(addr)) {
+    return `https://${addr}`;
+  }
+  return `https://${addr}/.well-known/pay`;
 }
 
 const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {

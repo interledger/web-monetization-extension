@@ -165,6 +165,21 @@ describe('toWalletAddressUrl', () => {
     expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
       'https://wallet.com/bob',
     );
+    expect(toWalletAddressUrl('$wallet.com')).toEqual(
+      'https://wallet.com/.well-known/pay',
+    );
+    expect(toWalletAddressUrl('$wallet.com/')).toEqual(
+      'https://wallet.com/.well-known/pay',
+    );
+  });
+
+  it('preserves https:// forms', () => {
+    expect(toWalletAddressUrl('https://wallet.com/bob')).toEqual(
+      'https://wallet.com/bob',
+    );
+    expect(toWalletAddressUrl('https://wallet.com')).toEqual(
+      'https://wallet.com',
+    );
   });
 });
 
