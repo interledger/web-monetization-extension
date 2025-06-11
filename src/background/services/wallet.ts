@@ -1,5 +1,4 @@
 import {
-  getWalletInformation,
   isErrorWithKey,
   ErrorWithKey,
   errorWithKeyToJSON,
@@ -74,15 +73,9 @@ export class WalletService {
   }
 
   async connectWallet(params: ConnectWalletPayload) {
-    const {
-      walletAddressUrl,
-      amount,
-      recurring,
-      autoKeyAdd,
-      autoKeyAddConsent,
-    } = params;
+    const { walletAddress, amount, recurring, autoKeyAdd, autoKeyAddConsent } =
+      params;
 
-    const walletAddress = await getWalletInformation(walletAddressUrl);
     const exchangeRates = await getExchangeRates();
 
     let rateOfPay = DEFAULT_RATE_OF_PAY;
