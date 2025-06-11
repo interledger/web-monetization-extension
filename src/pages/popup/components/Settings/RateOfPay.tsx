@@ -44,19 +44,13 @@ interface Props {
 }
 
 export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
-  const {
-    continuousPaymentsEnabled,
-    rateOfPay,
-    minRateOfPay,
-    maxRateOfPay,
-    walletAddress,
-  } = usePopupState();
+  const { continuousPaymentsEnabled, rateOfPay, maxRateOfPay, walletAddress } =
+    usePopupState();
   return (
     <div className="space-y-8">
       <RateOfPayInput
         onRateChange={onRateChange}
         rateOfPay={rateOfPay}
-        minRateOfPay={minRateOfPay}
         maxRateOfPay={maxRateOfPay}
         walletAddress={walletAddress}
         disabled={!continuousPaymentsEnabled}
@@ -87,7 +81,6 @@ type RateOfPayInputProps = {
   onRateChange: Props['onRateChange'];
   walletAddress: PopupState['walletAddress'];
   rateOfPay: PopupState['rateOfPay'];
-  minRateOfPay: PopupState['minRateOfPay'];
   maxRateOfPay: PopupState['maxRateOfPay'];
   disabled?: boolean;
 };
@@ -96,7 +89,6 @@ const RateOfPayInput = ({
   onRateChange,
   walletAddress,
   rateOfPay,
-  minRateOfPay,
   maxRateOfPay,
   disabled,
 }: RateOfPayInputProps) => {
@@ -127,7 +119,7 @@ const RateOfPayInput = ({
         }}
         onError={(error) => setErrorMessage(t(error))}
         errorMessage={errorMessage}
-        min={Number(formatAmount(minRateOfPay))}
+        min={Number(formatAmount(1))}
         max={Number(formatAmount(maxRateOfPay))}
         amount={formatAmount(rateOfPay)}
         controls={true}
