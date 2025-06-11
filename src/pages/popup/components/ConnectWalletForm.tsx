@@ -10,7 +10,7 @@ import {
   InputAmount,
   validateAmount,
 } from '@/pages/shared/components/InputAmount';
-import { cn } from '@/pages/shared/lib/utils';
+import { cn, formatNumber } from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
@@ -134,8 +134,15 @@ export const ConnectWalletForm = ({
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
-        const walletAddress = await getWalletInfo(url.toString());
-        setWalletAddressInfo(walletAddress);
+        const walletInfo = await getWalletInfo(url.toString());
+        setWalletAddressInfo(walletInfo);
+        const defaultBudget = formatNumber(
+          walletInfo.defaultBudget,
+          walletInfo.walletAddress.assetScale,
+        );
+        handleAmountChange(defaultBudget);
+        document.querySelector<HTMLInputElement>('#connectAmount')!.value =
+          defaultBudget;
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
@@ -407,7 +414,7 @@ export const ConnectWalletForm = ({
               setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
             onChange={handleAmountChange}
-            placeholder="5.00"
+            placeholder={walletAddressInfo?.defaultBudget?.toString() || '5.00'}
           />
 
           <Switch
