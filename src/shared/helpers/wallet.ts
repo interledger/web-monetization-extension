@@ -4,11 +4,11 @@ import { ensureEnd } from './misc';
 export function toWalletAddressUrl(s: string): string {
   if (s.startsWith('https://')) return s;
 
-  const addr = s.replace(/^\$/, '').replace(/\/$/, '');
+  const addr = s.replace(/^\$/, 'https://').replace(/\/$/, '');
   if (/\/[^\/]*$/.test(addr)) {
-    return `https://${addr}`;
+    return addr;
   }
-  return `https://${addr}/.well-known/pay`;
+  return `${addr}/.well-known/pay`;
 }
 
 const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {
