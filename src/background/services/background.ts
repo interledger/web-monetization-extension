@@ -2,8 +2,8 @@ import type { Browser, Runtime } from 'webextension-polyfill';
 import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
-  getConnectWalletAddressInfo,
   getNextOccurrence,
+  getConnectWalletInfo,
   getWalletInformation,
   isErrorWithKey,
 } from '@/shared/helpers';
@@ -231,9 +231,7 @@ export class Background {
               );
 
             case 'GET_CONNECT_WALLET_ADDRESS_INFO':
-              return success(
-                await getConnectWalletAddressInfo(message.payload),
-              );
+              return success(await getConnectWalletInfo(message.payload));
 
             case 'CONNECT_WALLET': {
               await this.walletService.connectWallet(message.payload);

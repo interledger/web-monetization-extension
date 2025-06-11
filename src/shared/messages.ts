@@ -95,16 +95,18 @@ export class MessageManager<TMessages extends MessageMap> {
 // #endregion
 
 // #region Popup ↦ BG
-export interface GetConnectWalletAddressInfoResponse {
+export interface ConnectWalletAddressInfo {
   walletAddress: WalletInfo;
   defaultBudget: number;
   defaultRateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
 }
 
 export interface ConnectWalletPayload {
-  walletAddressUrl: string;
+  walletAddress: WalletInfo;
   amount: string;
   rateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
   recurring: boolean;
   autoKeyAdd: boolean;
   autoKeyAddConsent: boolean | null;
@@ -133,7 +135,7 @@ export interface UpdateRateOfPayPayload {
 }
 
 export interface UpdateBudgetPayload {
-  walletAddressUrl: ConnectWalletPayload['walletAddressUrl'];
+  walletAddressUrl: string;
   amount: ConnectWalletPayload['amount'];
   recurring: ConnectWalletPayload['recurring'];
 }
@@ -145,7 +147,7 @@ export type PopupToBackgroundMessage = {
   };
   GET_CONNECT_WALLET_ADDRESS_INFO: {
     input: GetWalletAddressInfoPayload['walletAddressUrl'];
-    output: GetConnectWalletAddressInfoResponse;
+    output: ConnectWalletAddressInfo;
   };
   CONNECT_WALLET: {
     input: ConnectWalletPayload;

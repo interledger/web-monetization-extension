@@ -31,7 +31,6 @@ const defaultStorage = {
   oneTimeGrant: null,
   oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
-  minRateOfPay: null,
   maxRateOfPay: null,
 } satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>;
 

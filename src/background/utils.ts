@@ -75,25 +75,23 @@ interface ExchangeRates {
   rates: Record<string, number>;
 }
 
-export const getExchangeRates = async (): Promise<ExchangeRates> => {
-  const response = await fetch(EXCHANGE_RATES_URL);
-  if (!response.ok) {
-    throw new Error(
-      `Could not fetch exchange rates. [Status code: ${response.status}]`,
-    );
-  }
-  const rates = await response.json();
-  if (!rates.base || !rates.rates) {
-    throw new Error('Invalid rates format');
-  }
+export const getExchangeRates = memoize(
+  async (): Promise<ExchangeRates> => {
+    const response = await fetch(EXCHANGE_RATES_URL);
+    if (!response.ok) {
+      throw new Error(
+        `Could not fetch exchange rates. [Status code: ${response.status}]`,
+      );
+    }
+    const rates = await response.json();
+    if (!rates.base || !rates.rates) {
+      throw new Error('Invalid rates format');
+    }
 
-  return rates;
-};
-
-export const getExchangeRatesMemoized = memoize(getExchangeRates, {
-  maxAge: 15 * 60 * 1000,
-  mechanism: 'stale-while-revalidate',
-});
+    return rates;
+  },
+  { maxAge: 15 * 60 * 1000, mechanism: 'stale-while-revalidate' },
+);
 
 export const getExchangeRate = (
   rates: ExchangeRates,

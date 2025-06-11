@@ -1,5 +1,4 @@
 import {
-  getWalletInformation,
   isErrorWithKey,
   ErrorWithKey,
   errorWithKeyToJSON,
@@ -13,14 +12,6 @@ import type {
   UpdateBudgetPayload,
 } from '@/shared/messages';
 import {
-  DEFAULT_RATE_OF_PAY,
-  MIN_RATE_OF_PAY,
-  MAX_RATE_OF_PAY,
-  DEFAULT_SCALE,
-} from '@/background/config';
-import {
-  convertWithExchangeRate,
-  getExchangeRates,
   InteractionIntent,
   ErrorCode,
   GrantResult,
@@ -35,7 +26,7 @@ import { isInvalidClientError } from '@/background/services/openPayments';
 import { APP_URL } from '@/background/constants';
 import { bytesToHex } from '@noble/hashes/utils';
 import type { Cradle } from '@/background/container';
-import type { AmountValue, TabId } from '@/shared/types';
+import type { TabId } from '@/shared/types';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
 
@@ -76,27 +67,14 @@ export class WalletService {
 
   async connectWallet(params: ConnectWalletPayload) {
     const {
-      walletAddressUrl,
+      walletAddress,
+      rateOfPay,
+      maxRateOfPay,
       amount,
       recurring,
       autoKeyAdd,
       autoKeyAddConsent,
     } = params;
-
-    const walletAddress = await getWalletInformation(walletAddressUrl);
-    const exchangeRates = await getExchangeRates();
-
-    let rateOfPay = DEFAULT_RATE_OF_PAY;
-    let minRateOfPay = MIN_RATE_OF_PAY;
-    let maxRateOfPay = MAX_RATE_OF_PAY;
-
-    const getRateOfPay = (rate: AmountValue) => {
-      const from = { assetCode: 'USD', assetScale: DEFAULT_SCALE };
-      return convertWithExchangeRate(rate, from, walletAddress, exchangeRates);
-    };
-    rateOfPay = getRateOfPay(DEFAULT_RATE_OF_PAY);
-    minRateOfPay = getRateOfPay(MIN_RATE_OF_PAY);
-    maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
 
@@ -203,9 +181,8 @@ export class WalletService {
     }
 
     await this.storage.set({
-      walletAddress: { url: walletAddressUrl, ...walletAddress },
+      walletAddress,
       rateOfPay,
-      minRateOfPay,
       maxRateOfPay,
       connected: true,
     });

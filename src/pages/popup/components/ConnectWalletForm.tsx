@@ -20,8 +20,11 @@ import {
   toWalletAddressUrl,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { WalletAddress } from '@interledger/open-payments';
-import type { ConnectWalletPayload, Response } from '@/shared/messages';
+import type {
+  ConnectWalletPayload,
+  ConnectWalletAddressInfo,
+  Response,
+} from '@/shared/messages';
 import type { DeepReadonly, PopupTransientState } from '@/shared/types';
 
 interface Inputs {
@@ -46,7 +49,9 @@ interface ConnectWalletFormProps {
   state?: ConnectTransientState;
   walletAddressPlaceholder?: string;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
-  getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
+  getWalletInfo: (
+    walletAddressUrl: string,
+  ) => Promise<ConnectWalletAddressInfo>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
   clearConnectState: () => Promise<unknown>;
   onConnect?: () => void;
@@ -102,7 +107,7 @@ export const ConnectWalletForm = ({
   );
 
   const [walletAddressInfo, setWalletAddressInfo] =
-    React.useState<WalletAddress | null>(null);
+    React.useState<ConnectWalletAddressInfo | null>(null);
 
   const [errors, setErrors] = React.useState<Errors>({
     walletAddressUrl: null,
@@ -202,7 +207,7 @@ export const ConnectWalletForm = ({
   const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
     ev?.preventDefault();
 
-    let walletAddress = walletAddressUrl;
+    let walletAddressInput = walletAddressUrl;
     if (ev) {
       // When submitting form using Enter key on wallet address input, we want
       // to ensure its current value is same as the value we've in React state
@@ -211,11 +216,11 @@ export const ConnectWalletForm = ({
       const form = ev.currentTarget;
       if (
         form.connectWalletAddressUrl &&
-        walletAddress !== form.connectWalletAddressUrl.value
+        walletAddressInput !== form.connectWalletAddressUrl.value
       ) {
-        walletAddress = form.connectWalletAddressUrl.value;
+        walletAddressInput = form.connectWalletAddressUrl.value;
         const ok = await handleWalletAddressUrlChange(
-          walletAddress,
+          walletAddressInput,
           form.connectWalletAddressUrl,
         );
         if (!ok) return;
@@ -224,13 +229,21 @@ export const ConnectWalletForm = ({
       }
     }
 
-    const errWalletAddressUrl = validateWalletAddressUrl(walletAddress);
-    const errAmount = validateAmount(amount, walletAddressInfo!);
+    const errWalletAddressUrl = validateWalletAddressUrl(walletAddressInput);
+    const errAmount = validateAmount(amount, walletAddressInfo!.walletAddress);
     if (errAmount || errWalletAddressUrl) {
       setErrors((prev) => ({
         ...prev,
         walletAddressUrl: toErrorInfo(errWalletAddressUrl),
         amount: toErrorInfo(errAmount),
+      }));
+      return;
+    }
+
+    if (!walletAddressInfo) {
+      setErrors((prev) => ({
+        ...prev,
+        connect: toErrorInfo('connectWallet_error_noWalletInfo'),
       }));
       return;
     }
@@ -244,7 +257,9 @@ export const ConnectWalletForm = ({
       }
       setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
-        walletAddressUrl: toWalletAddressUrl(walletAddress),
+        walletAddress: walletAddressInfo.walletAddress,
+        rateOfPay: walletAddressInfo.defaultRateOfPay,
+        maxRateOfPay: walletAddressInfo.maxRateOfPay,
         amount,
         recurring,
         autoKeyAdd: !skipAutoKeyShare,
@@ -380,7 +395,10 @@ export const ConnectWalletForm = ({
             amount={amount}
             className="max-w-48"
             walletAddress={
-              walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
+              walletAddressInfo?.walletAddress || {
+                assetCode: 'USD',
+                assetScale: 2,
+              }
             }
             errorMessage={errors.amount?.message}
             errorHidden={true}

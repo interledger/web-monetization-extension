@@ -76,7 +76,6 @@ export interface Storage {
   state: Partial<Record<ExtensionState, boolean>>;
 
   rateOfPay?: AmountValue | undefined | null;
-  minRateOfPay?: AmountValue | undefined | null;
   maxRateOfPay?: AmountValue | undefined | null;
 
   /** User wallet address information */
