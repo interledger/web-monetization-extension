@@ -14,7 +14,6 @@ import type {
 } from '@/shared/messages';
 import {
   DEFAULT_RATE_OF_PAY,
-  MIN_RATE_OF_PAY,
   MAX_RATE_OF_PAY,
   DEFAULT_SCALE,
 } from '@/background/config';
@@ -87,7 +86,6 @@ export class WalletService {
     const exchangeRates = await getExchangeRates();
 
     let rateOfPay = DEFAULT_RATE_OF_PAY;
-    let minRateOfPay = MIN_RATE_OF_PAY;
     let maxRateOfPay = MAX_RATE_OF_PAY;
 
     const getRateOfPay = (rate: AmountValue) => {
@@ -95,7 +93,6 @@ export class WalletService {
       return convertWithExchangeRate(rate, from, walletAddress, exchangeRates);
     };
     rateOfPay = getRateOfPay(DEFAULT_RATE_OF_PAY);
-    minRateOfPay = getRateOfPay(MIN_RATE_OF_PAY);
     maxRateOfPay = getRateOfPay(MAX_RATE_OF_PAY);
 
     await this.openPaymentsService.initClient(walletAddress.id);
@@ -203,9 +200,8 @@ export class WalletService {
     }
 
     await this.storage.set({
-      walletAddress: { url: walletAddressUrl, ...walletAddress },
+      walletAddress,
       rateOfPay,
-      minRateOfPay,
       maxRateOfPay,
       connected: true,
     });
