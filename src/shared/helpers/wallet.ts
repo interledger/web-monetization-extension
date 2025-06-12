@@ -3,7 +3,13 @@ import type { WalletInfo } from '@/shared/types';
 import { ensureEnd } from './misc';
 
 export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace('$', 'https://') : s;
+  if (s.startsWith('https://')) return s;
+
+  const addr = s.replace(/^\$/, 'https://').replace(/\/$/, '');
+  if (/^https:\/\/.*\/[^\/].*$/.test(addr)) {
+    return addr;
+  }
+  return `${addr}/.well-known/pay`;
 }
 
 const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {
