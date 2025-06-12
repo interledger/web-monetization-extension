@@ -119,7 +119,7 @@ const RateOfPayInput = ({
         }}
         onError={(error) => setErrorMessage(t(error))}
         errorMessage={errorMessage}
-        min={Number(formatAmount(1))}
+        min={1}
         max={Number(formatAmount(maxRateOfPay))}
         amount={formatAmount(rateOfPay)}
         controls={true}
