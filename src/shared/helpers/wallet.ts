@@ -70,10 +70,12 @@ export const getConnectWalletBudgetInfo = async (
     MAX_RATE_OF_PAY,
     DEFAULT_SCALE,
   } = await import('@/background/config');
-  const budgetData = await getBudgetRecommendationsData();
+  const { assetCode, assetScale } = walletAddress;
 
-  if (Object.hasOwn(budgetData, walletAddress.assetCode)) {
-    const { assetCode, assetScale } = walletAddress;
+  const budgetData = await getBudgetRecommendationsData().catch(
+    (): Awaited<ReturnType<typeof getBudgetRecommendationsData>> => ({}),
+  );
+  if (Object.hasOwn(budgetData, assetCode)) {
     const { budget, hourly } = budgetData[assetCode];
     const defaultRateOfPay = Number(hourly.default) * 10 ** assetScale;
     const maxRateOfPay = Number(hourly.max) * 10 ** assetScale;
@@ -84,7 +86,9 @@ export const getConnectWalletBudgetInfo = async (
     };
   }
 
-  const exchangeRates = await getExchangeRates();
+  const exchangeRates = await getExchangeRates().catch(() => {
+    return { base: 'USD', rates: { [assetCode]: 1 } };
+  });
   const convert = (amount: AmountValue): AmountValue => {
     const src = { assetCode: 'USD', assetScale: DEFAULT_SCALE };
     return convertWithExchangeRate(amount, src, walletAddress, exchangeRates);
@@ -94,9 +98,7 @@ export const getConnectWalletBudgetInfo = async (
   const defaultRateOfPay = convert(DEFAULT_RATE_OF_PAY);
   const maxRateOfPay = convert(MAX_RATE_OF_PAY);
   return {
-    defaultBudget: Number(
-      transformBalance(defaultBudget, walletAddress.assetScale),
-    ),
+    defaultBudget: Number(transformBalance(defaultBudget, assetScale)),
     defaultRateOfPay,
     maxRateOfPay,
   };
