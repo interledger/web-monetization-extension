@@ -418,7 +418,6 @@ export class MonetizationService {
       'connected',
       'state',
       'rateOfPay',
-      'minRateOfPay',
       'maxRateOfPay',
       'walletAddress',
       'oneTimeGrant',
