@@ -40,7 +40,12 @@ export const WalletInformation = ({
           label="Connected wallet address"
           disabled={true}
           readOnly={true}
-          value={walletAddress?.id}
+          value={walletAddress?.url}
+          title={
+            walletAddress && walletAddress.id !== walletAddress.url
+              ? `Wallet address ID: ${walletAddress.id}`
+              : undefined
+          }
         />
 
         <Button
