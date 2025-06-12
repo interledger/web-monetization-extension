@@ -23,7 +23,7 @@
     "test:e2e:chrome": "playwright test --project=chrome",
     "test:e2e:msedge": "playwright test --project=msedge",
     "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
-    "test:ci": "pnpm test -- --reporters=default --reporters=github-actions"
+    "test:ci": "jest --reporters=default --reporters=github-actions"
   },
   "dependencies": {
     "@interledger/open-payments": "^7.0.0",

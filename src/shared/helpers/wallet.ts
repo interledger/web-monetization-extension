@@ -1,8 +1,15 @@
 import type { WalletAddress, JWKS } from '@interledger/open-payments';
+import type { WalletInfo } from '@/shared/types';
 import { ensureEnd } from './misc';
 
 export function toWalletAddressUrl(s: string): string {
-  return s.startsWith('$') ? s.replace('$', 'https://') : s;
+  if (s.startsWith('https://')) return s;
+
+  const addr = s.replace(/^\$/, 'https://').replace(/\/$/, '');
+  if (/^https:\/\/.*\/[^\/].*$/.test(addr)) {
+    return addr;
+  }
+  return `${addr}/.well-known/pay`;
 }
 
 const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {
@@ -22,7 +29,7 @@ const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {
 
 export const getWalletInformation = async (
   walletAddressUrl: string,
-): Promise<WalletAddress> => {
+): Promise<WalletInfo> => {
   const response = await fetch(walletAddressUrl, {
     headers: {
       Accept: 'application/json',
@@ -43,7 +50,7 @@ export const getWalletInformation = async (
     throw new Error(msgInvalidWalletAddress);
   }
 
-  return json;
+  return { ...json, url: walletAddressUrl };
 };
 
 export const getJWKS = async (walletAddressUrl: string) => {

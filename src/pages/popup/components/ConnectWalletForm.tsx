@@ -20,9 +20,12 @@ import {
   toWalletAddressUrl,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { WalletAddress } from '@interledger/open-payments';
 import type { ConnectWalletPayload, Response } from '@/shared/messages';
-import type { DeepReadonly, PopupTransientState } from '@/shared/types';
+import type {
+  DeepReadonly,
+  PopupTransientState,
+  WalletInfo,
+} from '@/shared/types';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -46,7 +49,7 @@ interface ConnectWalletFormProps {
   state?: ConnectTransientState;
   walletAddressPlaceholder?: string;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
-  getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
+  getWalletInfo: (walletAddressUrl: string) => Promise<WalletInfo>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
   clearConnectState: () => Promise<unknown>;
   onConnect?: () => void;
@@ -102,7 +105,7 @@ export const ConnectWalletForm = ({
   );
 
   const [walletAddressInfo, setWalletAddressInfo] =
-    React.useState<WalletAddress | null>(null);
+    React.useState<WalletInfo | null>(null);
 
   const [errors, setErrors] = React.useState<Errors>({
     walletAddressUrl: null,
@@ -244,7 +247,9 @@ export const ConnectWalletForm = ({
       }
       setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
-        walletAddressUrl: toWalletAddressUrl(walletAddress),
+        walletAddress:
+          walletAddressInfo ??
+          (await getWalletInfo(toWalletAddressUrl(walletAddress))),
         amount,
         recurring,
         autoKeyAdd: !skipAutoKeyShare,
