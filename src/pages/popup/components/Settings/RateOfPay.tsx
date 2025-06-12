@@ -119,11 +119,7 @@ const RateOfPayInput = ({
         }}
         onError={(error) => setErrorMessage(t(error))}
         errorMessage={errorMessage}
-<<<<<<< show-url-in-connected-wallet-not-id
-        min={Number(formatAmount(1))}
-=======
         min={1}
->>>>>>> main
         max={Number(formatAmount(maxRateOfPay))}
         amount={formatAmount(rateOfPay)}
         controls={true}
