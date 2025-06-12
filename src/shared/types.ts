@@ -45,9 +45,10 @@ export interface WalletInfo extends WalletAddress {
    * The (normalized) wallet URL provided by user. Sometimes, wallets URLs have
    * redirects, and in those cases, we want to preserve what user has provided.
    *
-   * @since Available only if wallet connected after this feature was released.
+   * For wallets that were connected before this property was introduced, this
+   * will be same as {@linkcode WalletAddress.id}.
    */
-  url?: string;
+  url: string;
 }
 
 export type ExtensionState =

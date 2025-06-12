@@ -247,14 +247,6 @@ export const ConnectWalletForm = ({
       return;
     }
 
-    if (!walletAddressInfo) {
-      setErrors((prev) => ({
-        ...prev,
-        connect: toErrorInfo('connectWallet_error_noWalletInfo'),
-      }));
-      return;
-    }
-
     try {
       setIsSubmitting(true);
       let skipAutoKeyShare = autoKeyShareFailed;
@@ -262,12 +254,15 @@ export const ConnectWalletForm = ({
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
+      const walletAddress =
+        walletAddressInfo ??
+        (await getWalletInfo(toWalletAddressUrl(walletAddressUrl)));
       setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
-        walletAddress: walletAddressInfo.walletAddress,
-        rateOfPay: walletAddressInfo.defaultRateOfPay,
-        maxRateOfPay: walletAddressInfo.maxRateOfPay,
+        walletAddress: walletAddress.walletAddress,
         amount,
+        rateOfPay: walletAddress.defaultRateOfPay,
+        maxRateOfPay: walletAddress.maxRateOfPay,
         recurring,
         autoKeyAdd: !skipAutoKeyShare,
         autoKeyAddConsent: autoKeyAddConsent.current,

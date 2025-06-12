@@ -1172,7 +1172,9 @@ describe('document events', () => {
     await nextTick();
 
     const requestId = 'uuid-1';
-    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([{ requestId }]);
+    expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
+      { requestId, intent: 'pause' },
+    ]);
 
     documentVisibilityState.mockReturnValueOnce('visible');
     document.dispatchEvent(new window.Event('visibilitychange'));

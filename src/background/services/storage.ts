@@ -19,7 +19,7 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 4,
+  version: 5,
   state: {},
   connected: false,
   enabled: true,
@@ -285,5 +285,11 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
     data.continuousPaymentsEnabled = data.enabled;
     data.enabled = true;
     return [data];
+  },
+  5: (data) => {
+    if (data.walletAddress && !data.walletAddress.url) {
+      data.walletAddress.url = data.walletAddress.id;
+    }
+    return [data, ['minRateOfPay']];
   },
 };
