@@ -162,24 +162,31 @@ describe('getNextOccurrence', () => {
 
 describe('toWalletAddressUrl', () => {
   it('converts from short form to long form', () => {
-    expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
+    expect(toWalletAddressUrl('$wallet.com/bob')).toBe(
       'https://wallet.com/bob',
     );
-    expect(toWalletAddressUrl('$wallet.com')).toEqual(
+    expect(toWalletAddressUrl('$wallet.com/bob/')).toBe(
+      'https://wallet.com/bob',
+    );
+    expect(toWalletAddressUrl('$sub.wallet.com/bob/')).toBe(
+      'https://sub.wallet.com/bob',
+    );
+    expect(toWalletAddressUrl('$wallet.com')).toBe(
       'https://wallet.com/.well-known/pay',
     );
-    expect(toWalletAddressUrl('$wallet.com/')).toEqual(
+    expect(toWalletAddressUrl('$sub.wallet.com')).toBe(
+      'https://sub.wallet.com/.well-known/pay',
+    );
+    expect(toWalletAddressUrl('$wallet.com/')).toBe(
       'https://wallet.com/.well-known/pay',
     );
   });
 
-  it('preserves https:// forms', () => {
-    expect(toWalletAddressUrl('https://wallet.com/bob')).toEqual(
+  it('preserves https:// form as is', () => {
+    expect(toWalletAddressUrl('https://wallet.com/bob')).toBe(
       'https://wallet.com/bob',
     );
-    expect(toWalletAddressUrl('https://wallet.com')).toEqual(
-      'https://wallet.com',
-    );
+    expect(toWalletAddressUrl('https://wallet.com')).toBe('https://wallet.com');
   });
 });
 
