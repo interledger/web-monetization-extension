@@ -11,3 +11,5 @@ export { SendToPort } from './sendToPort';
 export { EventsService } from './events';
 export { Deduplicator } from './deduplicator';
 export { Heartbeat } from './heartbeat';
+export { PaymentManager } from './paymentManager';
+export { PaymentSession } from './paymentSession';

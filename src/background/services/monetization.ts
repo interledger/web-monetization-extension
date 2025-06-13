@@ -6,7 +6,6 @@ import type {
   StartMonetizationPayload,
   StopMonetizationPayload,
 } from '@/shared/messages';
-import { PaymentManager } from './paymentManager';
 import { getSender, getTabId } from '@/background/utils';
 import { OUTGOING_PAYMENT_POLLING_MAX_DURATION } from '@/background/config';
 import {
@@ -29,6 +28,8 @@ export class MonetizationService {
   private tabState: Cradle['tabState'];
   private windowState: Cradle['windowState'];
   private message: Cradle['message'];
+  private PaymentSession: Cradle['PaymentSession'];
+  private PaymentManager: Cradle['PaymentManager'];
 
   constructor({
     logger,
@@ -41,6 +42,8 @@ export class MonetizationService {
     tabState,
     windowState,
     message,
+    PaymentSession,
+    PaymentManager,
   }: Cradle) {
     Object.assign(this, {
       logger,
@@ -53,6 +56,8 @@ export class MonetizationService {
       tabState,
       windowState,
       message,
+      PaymentSession,
+      PaymentManager,
     });
 
     this.registerEventListeners();
@@ -93,7 +98,7 @@ export class MonetizationService {
     let paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
       const url = removeQueryParams(this.tabState.url.get(tabId) || fullUrl!);
-      paymentManager = new PaymentManager(
+      paymentManager = new this.PaymentManager(
         tabId,
         url,
         connectedWallet,
@@ -109,6 +114,7 @@ export class MonetizationService {
           ),
           rootLogger: this.rootLogger,
           message: this.message,
+          PaymentSession: this.PaymentSession,
         },
       );
       this.tabState.paymentManagers.set(tabId, paymentManager);
