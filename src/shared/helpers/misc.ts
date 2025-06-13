@@ -55,6 +55,33 @@ export function withResolvers<T>() {
   return { resolve, reject, promise };
 }
 
+export function memoize<T extends () => Promise<unknown>>(
+  fn: T,
+  options: { maxAge: number; mechanism: 'stale-while-revalidate' | 'max-age' },
+): () => ReturnType<T> {
+  const { maxAge, mechanism = 'max-age' } = options;
+
+  let lastCall = 0;
+  const result: { promise: ReturnType<T> | null } = { promise: null };
+
+  return () => {
+    const lastResult = result.promise;
+    if (!result.promise || Date.now() - lastCall > maxAge) {
+      lastCall = Date.now();
+      const promise = fn() as ReturnType<T>;
+      promise.catch(() => {
+        result.promise = null;
+      });
+      result.promise = promise;
+    }
+
+    if (mechanism === 'stale-while-revalidate' && lastResult) {
+      return lastResult;
+    }
+    return result.promise;
+  };
+}
+
 export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false);
 };

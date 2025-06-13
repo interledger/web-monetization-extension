@@ -1,5 +1,5 @@
 import { proxy, useSnapshot } from 'valtio';
-import type { DeepNonNullable, PopupStore } from '@/shared/types';
+import type { AmountValue, DeepNonNullable, PopupStore } from '@/shared/types';
 import type { BackgroundToPopupMessage } from '@/shared/messages';
 
 export type PopupState = Required<
@@ -58,5 +58,5 @@ type Actions =
   | { type: 'TOGGLE_CONTINUOUS_PAYMENTS'; data?: never }
   | { type: 'TOGGLE_PAYMENTS'; data?: never }
   | { type: 'SET_CONNECTED'; data: { connected: boolean } }
-  | { type: 'UPDATE_RATE_OF_PAY'; data: { rateOfPay: string } }
+  | { type: 'UPDATE_RATE_OF_PAY'; data: { rateOfPay: AmountValue } }
   | BackgroundToPopupMessage;

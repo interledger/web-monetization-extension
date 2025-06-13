@@ -1,8 +1,8 @@
 import type { Tabs } from 'webextension-polyfill';
 import type { MonetizationEventDetails } from '@/shared/messages';
 import type { PopupTabInfo, TabId } from '@/shared/types';
-import type { PaymentSession } from './paymentSession';
 import type { Cradle } from '@/background/container';
+import type { PaymentManager } from './paymentManager';
 import { removeQueryParams } from '@/shared/helpers';
 import {
   isBrowserInternalPage,
@@ -10,27 +10,22 @@ import {
   isSecureContext,
 } from '@/background/utils';
 
-type State = {
-  monetizationEvent: MonetizationEventDetails;
-  lastPaymentTimestamp: number;
-  expiresAtTimestamp: number;
-};
-
-interface SaveOverpayingDetails {
+interface SaveLastPaymentDetails {
   walletAddressId: string;
   monetizationEvent: MonetizationEventDetails;
-  intervalInMs: number;
 }
 
-type SessionId = string;
+interface State extends SaveLastPaymentDetails {
+  ts: Date;
+}
 
 export class TabState {
   private logger: Cradle['logger'];
 
   private state = new Map<TabId, Map<string, State>>();
-  private sessions = new Map<TabId, Map<SessionId, PaymentSession>>();
   private currentIcon = new Map<TabId, Record<number, string>>();
   public readonly url = new UrlMap();
+  public readonly paymentManagers = new PaymentManagers();
 
   constructor({ logger }: Cradle) {
     Object.assign(this, {
@@ -38,80 +33,43 @@ export class TabState {
     });
   }
 
-  private getOverpayingStateKey(url: string, walletAddressId: string): string {
-    return `${url}:${walletAddressId}`;
+  getLastPaymentDetails(tabId: TabId, url: string): Readonly<State> | null {
+    const state = this.state.get(tabId)?.get(url);
+    return state ? { ...state } : null;
   }
 
-  shouldClearOverpaying(tabId: TabId, url: string): boolean {
-    const tabState = this.state.get(tabId);
-    if (!tabState?.size || !url) return false;
-    return ![...tabState.keys()].some((key) => key.startsWith(`${url}:`));
-  }
-
-  getOverpayingDetails(
+  saveLastPaymentDetails(
     tabId: TabId,
     url: string,
-    walletAddressId: string,
-  ): { waitTime: number; monetizationEvent?: MonetizationEventDetails } {
-    const key = this.getOverpayingStateKey(url, walletAddressId);
-    const state = this.state.get(tabId)?.get(key);
-    const now = Date.now();
-
-    if (state && state.expiresAtTimestamp > now) {
-      return {
-        waitTime: state.expiresAtTimestamp - now,
-        monetizationEvent: state.monetizationEvent,
-      };
-    }
-
-    return {
-      waitTime: 0,
-    };
-  }
-
-  saveOverpaying(
-    tabId: TabId,
-    url: string,
-    details: SaveOverpayingDetails,
+    details: SaveLastPaymentDetails,
   ): void {
-    const { intervalInMs, walletAddressId, monetizationEvent } = details;
-    if (!intervalInMs) return;
+    const { walletAddressId, monetizationEvent } = details;
 
-    const now = Date.now();
-    const expiresAtTimestamp = now + intervalInMs;
+    const now = new Date();
 
-    const key = this.getOverpayingStateKey(url, walletAddressId);
-    const state = this.state.get(tabId)?.get(key);
+    const state = this.state.get(tabId)?.get(url);
 
     if (!state) {
       const tabState = this.state.get(tabId) || new Map<string, State>();
-      tabState.set(key, {
+      tabState.set(url, {
+        walletAddressId,
         monetizationEvent,
-        expiresAtTimestamp: expiresAtTimestamp,
-        lastPaymentTimestamp: now,
+        ts: now,
       });
       this.state.set(tabId, tabState);
     } else {
-      state.expiresAtTimestamp = expiresAtTimestamp;
-      state.lastPaymentTimestamp = now;
+      state.ts = now;
     }
-  }
-
-  getSessions(tabId: TabId) {
-    let sessions = this.sessions.get(tabId);
-    if (!sessions) {
-      sessions = new Map();
-      this.sessions.set(tabId, sessions);
-    }
-    return sessions;
   }
 
   getEnabledSessions(tabId: TabId) {
-    return [...this.getSessions(tabId).values()].filter((s) => !s.disabled);
+    const paymentManager = this.paymentManagers.get(tabId);
+    return paymentManager?.enabledSessions ?? [];
   }
 
   getPayableSessions(tabId: TabId) {
-    return this.getEnabledSessions(tabId).filter((s) => !s.invalid);
+    const paymentManager = this.paymentManagers.get(tabId);
+    return paymentManager?.payableSessions ?? [];
   }
 
   isTabMonetized(tabId: TabId) {
@@ -124,7 +82,7 @@ export class TabState {
   }
 
   getAllSessions() {
-    return [...this.sessions.values()].flatMap((s) => [...s.values()]);
+    return [...this.paymentManagers.values()].flatMap((s) => s.sessions);
   }
 
   getPopupTabData(tab: Pick<Tabs.Tab, 'id' | 'url'>): PopupTabInfo {
@@ -176,25 +134,26 @@ export class TabState {
   }
 
   getAllTabs(): TabId[] {
-    return [...this.sessions.keys()];
+    return this.paymentManagers.tabIds;
   }
 
   clearOverpayingByTabId(tabId: TabId) {
-    this.state.delete(tabId);
-    this.logger.debug(`Cleared overpaying state for tab ${tabId}.`);
+    const cleared = this.state.delete(tabId);
+    if (cleared) {
+      this.logger.debug(`Cleared overpaying state for tab ${tabId}.`);
+    }
+  }
+
+  clearAllState(reason: string) {
+    this.logger.info('Clear all state', { reason });
+    this.state.clear();
+    this.currentIcon.clear();
+    this.paymentManagers.destroyAll(reason);
   }
 
   clearSessionsByTabId(tabId: TabId) {
     this.currentIcon.delete(tabId);
-
-    const sessions = this.getSessions(tabId);
-    if (!sessions.size) return;
-
-    for (const session of sessions.values()) {
-      session.stop();
-    }
-    this.logger.debug(`Cleared ${sessions.size} sessions for tab ${tabId}.`);
-    this.sessions.delete(tabId);
+    this.paymentManagers.destroy(tabId);
   }
 }
 
@@ -211,5 +170,41 @@ class UrlMap {
 
   delete(tabId: TabId) {
     this.map.delete(tabId);
+  }
+}
+
+class PaymentManagers {
+  private map = new Map<TabId, PaymentManager>();
+
+  get(tabId: TabId) {
+    return this.map.get(tabId);
+  }
+
+  set(tabId: TabId, paymentManager: PaymentManager) {
+    this.map.set(tabId, paymentManager);
+  }
+
+  destroy(tabId: TabId) {
+    const paymentManager = this.map.get(tabId);
+    if (!paymentManager) {
+      return false;
+    }
+    paymentManager.stop('destroy');
+    return this.map.delete(tabId);
+  }
+
+  destroyAll(reason = 'destroy') {
+    for (const pm of this.map.values()) {
+      pm.stop(reason);
+    }
+    this.map.clear();
+  }
+
+  get tabIds() {
+    return [...this.map.keys()];
+  }
+
+  values() {
+    return this.map.values();
   }
 }

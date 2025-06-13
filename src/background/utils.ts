@@ -10,7 +10,7 @@ import type { Browser, Runtime } from 'webextension-polyfill';
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 import { EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
-import { notNullOrUndef } from '@/shared/helpers';
+import { memoize, notNullOrUndef } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 
 type OnConnectCallback = Parameters<
@@ -75,20 +75,23 @@ interface ExchangeRates {
   rates: Record<string, number>;
 }
 
-export const getExchangeRates = async (): Promise<ExchangeRates> => {
-  const response = await fetch(EXCHANGE_RATES_URL);
-  if (!response.ok) {
-    throw new Error(
-      `Could not fetch exchange rates. [Status code: ${response.status}]`,
-    );
-  }
-  const rates = await response.json();
-  if (!rates.base || !rates.rates) {
-    throw new Error('Invalid rates format');
-  }
+export const getExchangeRates = memoize(
+  async (): Promise<ExchangeRates> => {
+    const response = await fetch(EXCHANGE_RATES_URL);
+    if (!response.ok) {
+      throw new Error(
+        `Could not fetch exchange rates. [Status code: ${response.status}]`,
+      );
+    }
+    const rates = await response.json();
+    if (!rates.base || !rates.rates) {
+      throw new Error('Invalid rates format');
+    }
 
-  return rates;
-};
+    return rates;
+  },
+  { maxAge: 15 * 60 * 1000, mechanism: 'stale-while-revalidate' },
+);
 
 export const getExchangeRate = (
   rates: ExchangeRates,
@@ -121,7 +124,7 @@ export const convertWithExchangeRate = <T extends AmountValue | bigint>(
   const scaleDiff = from.assetScale - to.assetScale;
   const scaledExchangeRate = exchangeRate * 10 ** scaleDiff;
 
-  const converted = BigInt(Math.ceil(Number(amount) / scaledExchangeRate));
+  const converted = BigInt(Math.round(Number(amount) / scaledExchangeRate));
 
   return typeof amount === 'string'
     ? (converted.toString() as T)

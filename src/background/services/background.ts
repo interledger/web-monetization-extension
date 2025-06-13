@@ -22,6 +22,7 @@ export class Background {
   private monetizationService: Cradle['monetizationService'];
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
+  private tabState: Cradle['tabState'];
   private tabEvents: Cradle['tabEvents'];
   private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
@@ -35,6 +36,7 @@ export class Background {
     monetizationService,
     storage,
     logger,
+    tabState,
     tabEvents,
     windowState,
     sendToPopup,
@@ -49,6 +51,7 @@ export class Background {
       storage,
       sendToPopup,
       sendToApp,
+      tabState,
       tabEvents,
       windowState,
       logger,
@@ -190,11 +193,15 @@ export class Background {
           }
           await this.updateVisualIndicatorsForCurrentTab();
         } else {
+          if (!tabIds.length) continue;
           this.logger.info(
-            `[focus change] stop monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
+            `[focus change] pause monetization for window=${windowId}, tabIds=${JSON.stringify(tabIds)}`,
           );
           for (const tabId of tabIds) {
-            void this.monetizationService.stopPaymentSessionsByTabId(tabId);
+            void this.monetizationService.pausePaymentSessionsByTabId(
+              tabId,
+              'window-unfocussed',
+            );
           }
         }
       }
@@ -211,7 +218,7 @@ export class Background {
   bindMessageHandler() {
     this.browser.runtime.onMessage.addListener(
       async (message: ToBackgroundMessage, sender: Runtime.MessageSender) => {
-        this.logger.debug('Received message', message);
+        this.logger.debug('Received message', message.action, message.payload);
         try {
           switch (message.action) {
             // region Popup
@@ -255,6 +262,7 @@ export class Background {
 
             case 'DISCONNECT_WALLET':
               await this.walletService.disconnectWallet();
+              this.tabState.clearAllState('disconnect');
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               await this.updateVisualIndicatorsForCurrentTab();
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });

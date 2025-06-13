@@ -3,7 +3,12 @@ import type {
   OutgoingPayment,
 } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
-import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
+import type {
+  AmountValue,
+  PopupTransientState,
+  Storage,
+  WalletInfo,
+} from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { PopupState } from '@/popup/lib/store';
 import type { AppState } from '@/app/lib/store';
@@ -91,7 +96,7 @@ export class MessageManager<TMessages extends MessageMap> {
 
 // #region Popup ↦ BG
 export interface ConnectWalletPayload {
-  walletAddressUrl: string;
+  walletAddress: WalletInfo;
   amount: string;
   recurring: boolean;
   autoKeyAdd: boolean;
@@ -117,11 +122,11 @@ export interface PayWebsiteResponse {
 }
 
 export interface UpdateRateOfPayPayload {
-  rateOfPay: string;
+  rateOfPay: AmountValue;
 }
 
 export interface UpdateBudgetPayload {
-  walletAddressUrl: ConnectWalletPayload['walletAddressUrl'];
+  walletAddressUrl: string;
   amount: ConnectWalletPayload['amount'];
   recurring: ConnectWalletPayload['recurring'];
 }
@@ -187,7 +192,7 @@ export type StartMonetizationPayload = StartMonetizationPayloadEntry[];
 
 export interface StopMonetizationPayloadEntry {
   requestId: string;
-  intent?: 'remove' | 'disable';
+  intent: 'remove' | 'disable' | 'pause';
 }
 export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
