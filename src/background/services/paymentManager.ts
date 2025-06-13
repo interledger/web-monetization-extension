@@ -4,7 +4,7 @@ import type {
   WalletAddress,
 } from '@interledger/open-payments';
 import type { Cradle as Cradle_ } from '@/background/container';
-import { PaymentSession } from './paymentSession';
+import type { PaymentSession } from './paymentSession';
 import {
   MIN_PAYMENT_WAIT,
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
@@ -17,7 +17,6 @@ import {
   sleep,
   Timeout,
 } from '@/shared/helpers';
-import { isOutOfBalanceError } from './openPayments';
 
 type Cradle = Pick<
   Cradle_,
@@ -29,6 +28,7 @@ type Cradle = Pick<
   | 'events'
   | 'tabState'
   | 'message'
+  | 'PaymentSession'
 >;
 
 /** Payable amount to increase by {@linkcode Interval.units} every {@linkcode Interval.duration}ms. */
@@ -159,7 +159,6 @@ export class PaymentManager {
         this.tabId,
         this.sender,
         this.rootLogger,
-        PaymentSession,
         this.deps,
       );
       this.streams.set(frameId, stream);
@@ -179,21 +178,50 @@ export class PaymentManager {
   // #region One time payment
   async pay(amount: bigint, signal?: AbortSignal) {
     const payableSessions = this.payableSessions;
+    if (!payableSessions.length) {
+      throw new Error('No sessions to pay');
+    }
     this.logger.debug(`pay(${amount}) to ${payableSessions.length} sessions`);
 
-    const splitAmount = amount / BigInt(payableSessions.length);
-    const results = await Promise.allSettled(
-      payableSessions.map((session) => session.payOneTime(splitAmount)),
+    const { remainingAmount, distribution } = distributeAmount(
+      amount,
+      payableSessions,
+    );
+    if (!distribution.size) {
+      throw new Error(
+        `Cannot distribute amount (${amount}) to current sessions`,
+      );
+    }
+
+    const outgoingPaymentResults = await Promise.allSettled(
+      [...distribution.entries()].map(([session, amount]) =>
+        session.payOneTime(amount),
+      ),
     );
 
     this.logger.debug('polling outgoing payments for completion');
-    const result = await this.getPayStatus(results, payableSessions, signal);
+    const result = await this.getPayStatus(
+      outgoingPaymentResults,
+      Array.from(distribution.keys()),
+      signal,
+    );
 
     return {
-      amounts: {
-        ...result,
-        amount: amount.toString(),
-      },
+      amounts: { ...result, amount, remainingAmount },
+      distribution: [...distribution.entries()].map(([session, amount]) => {
+        const outgoingPayment = result.outgoingPayments.get(session.id);
+        return {
+          id: session.id,
+          walletAddress: session.receiver.id,
+          amount: amount.toString(),
+          ...(outgoingPayment
+            ? {
+                debitAmount: outgoingPayment.debitAmount.value,
+                sentAmount: outgoingPayment.sentAmount.value,
+              }
+            : {}),
+        };
+      }),
     };
   }
 
@@ -202,6 +230,7 @@ export class PaymentManager {
     payableSessions: PaymentSession[],
     signal?: AbortSignal,
   ) {
+    const { isOutOfBalanceError } = await import('./openPayments');
     const outgoingPayments = new Map<string, OutgoingPayment | null>(
       payableSessions.map((session, i) => [
         session.id,
@@ -497,8 +526,7 @@ export class PaymentStream {
     private readonly tabId: TabId,
     private sender: WalletAddress,
     private rootLogger: Cradle['rootLogger'],
-    private PaymentSessionConstructor: typeof PaymentSession,
-    private deps: ConstructorParameters<typeof PaymentSession>[6],
+    private deps: Cradle,
   ) {
     this.iter = this.sessionsIter(this);
   }
@@ -510,7 +538,7 @@ export class PaymentStream {
       session.enable(); // if was disabled earlier
       return session;
     }
-    session = new this.PaymentSessionConstructor(
+    session = new this.deps.PaymentSession(
       receiver,
       sessionId,
       this.tabId,
@@ -567,6 +595,69 @@ export class PaymentStream {
       }
     }
   }
+}
+
+/**
+ * Distribute {@linkcode amount} among all payable sessions.
+ *
+ * - Each session can have sendable amount allocated only in multiple of its
+ *   {@linkcode PaymentSession.minSendAmount}.
+ * - We try to distribute such that each session gets something.
+ * - We also try to distribute amounts roughly equally across sessions.
+ * - If there's not enough amount, some sessions won't have anything, and
+ *   that's ok.
+ * - We never pay more than {@linkcode amount}. Some amount may be leftover.
+ * - The order of sessions is not changed to get an optimal distribution.
+ *
+ * @param sessions The payable sessions to distribute the amount into.
+ *
+ * @returns The distribution only includes sessions that have an amount > 0. A
+ * leftover amount that could not be distributed is also returned.
+ */
+export function distributeAmount<
+  PaymentSessionLike extends Pick<PaymentSession, 'minSendAmount'>,
+>(
+  amount: bigint,
+  sessions: Array<PaymentSessionLike>,
+): { distribution: Map<PaymentSessionLike, bigint>; remainingAmount: bigint } {
+  const distribution = new Map<PaymentSessionLike, bigint>();
+  let remainingAmount = amount;
+
+  const targetSplit = amount / BigInt(sessions.length);
+  for (const session of sessions) {
+    const minSendAmount = session.minSendAmount;
+    if (minSendAmount > remainingAmount) continue;
+
+    const mul = targetSplit / minSendAmount;
+    let splitAmount = mul * minSendAmount;
+    if (splitAmount > remainingAmount) {
+      splitAmount = (mul - 1n) * minSendAmount;
+    }
+    if (splitAmount <= 0n) continue;
+
+    distribution.set(session, splitAmount);
+    remainingAmount -= splitAmount;
+  }
+
+  let didAssign = false;
+  while (remainingAmount > 0n) {
+    didAssign = false;
+    for (const session of sessions) {
+      if (remainingAmount <= 0n) break;
+
+      const currentSplit = distribution.get(session) ?? 0n;
+      const minSendAmount = session.minSendAmount;
+
+      if (remainingAmount >= minSendAmount) {
+        distribution.set(session, currentSplit + minSendAmount);
+        remainingAmount -= minSendAmount;
+        didAssign = true;
+      }
+    }
+    if (!didAssign) break;
+  }
+
+  return { distribution, remainingAmount };
 }
 
 class PeekAbleIterator<T> implements Iterator<T, never, never> {
