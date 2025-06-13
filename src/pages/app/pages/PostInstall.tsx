@@ -6,7 +6,7 @@ import {
 } from '@/pages/shared/components/Icons';
 import {
   getBrowserName,
-  getWalletInformation,
+  getConnectWalletInfo,
   type BrowserName,
 } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
@@ -381,7 +381,7 @@ function StepConnectWallet({
         saveValue={(key, val) => {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
-        getWalletInfo={getWalletInformation}
+        getWalletInfo={getConnectWalletInfo}
         walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         clearConnectState={() => message.send('RESET_CONNECT_STATE')}

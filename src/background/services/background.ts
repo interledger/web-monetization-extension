@@ -3,6 +3,7 @@ import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
   getNextOccurrence,
+  getConnectWalletInfo,
   getWalletInformation,
   isErrorWithKey,
 } from '@/shared/helpers';
@@ -228,6 +229,9 @@ export class Background {
                   await this.windowState.getCurrentTab(),
                 ),
               );
+
+            case 'GET_CONNECT_WALLET_ADDRESS_INFO':
+              return success(await getConnectWalletInfo(message.payload));
 
             case 'CONNECT_WALLET': {
               await this.walletService.connectWallet(message.payload);
