@@ -193,6 +193,18 @@ export class PaymentManager {
       );
     }
 
+    this.logger.debug('sending outgoing payments', {
+      amount: {
+        total: amount.toString(),
+        paying: (amount - remainingAmount).toString(),
+        remaining: remainingAmount.toString(),
+      },
+      distribution: [...distribution].map(([s, amount]) => ({
+        id: s.id,
+        receiver: s.receiver.id,
+        amount: amount.toString(),
+      })),
+    });
     const outgoingPaymentResults = await Promise.allSettled(
       [...distribution.entries()].map(([session, amount]) =>
         session.payOneTime(amount),
