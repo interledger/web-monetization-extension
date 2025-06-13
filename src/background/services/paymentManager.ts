@@ -651,9 +651,8 @@ export function distributeAmount<
     remainingAmount -= splitAmount;
   }
 
-  let didAssign = false;
   while (remainingAmount > 0n) {
-    didAssign = false;
+    let didAssign = false;
     for (const session of sessions) {
       if (remainingAmount <= 0n) break;
 
