@@ -170,12 +170,10 @@ describe('one time payments / distributeAmount', () => {
 
     const res = distributeAmount(amount, sessions);
     expect(res.remainingAmount).toBe(0n);
-    expect(res.distribution).toEqual(
-      new Map([
-        [sessions[0], 30n],
-        [sessions[1], 30n],
-        [sessions[2], 30n],
-      ]),
-    );
+    expect([...res.distribution.entries()]).toEqual([
+      [sessions[0], 30n],
+      [sessions[1], 30n],
+      [sessions[2], 30n],
+    ]);
   });
 });
