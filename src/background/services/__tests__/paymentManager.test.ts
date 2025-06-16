@@ -140,14 +140,14 @@ describe('one time payments / distributeAmount', () => {
 
   it('should distribute amount with sessions having varying minSendAmounts', () => {
     const amount = 280n;
-    const sessions = [ps(7n), ps(13n), ps(23n)];
+    const sessions = [ps(13n), ps(23n), ps(7n)];
 
     const res = distributeAmount(amount, sessions);
     expect(res.remainingAmount).toBe(6n);
     expect([...res.distribution.entries()]).toEqual([
       [sessions[0], 91n],
-      [sessions[1], 91n],
-      [sessions[2], 92n],
+      [sessions[1], 92n],
+      [sessions[2], 91n],
     ]);
   });
 
@@ -161,6 +161,20 @@ describe('one time payments / distributeAmount', () => {
       [sessions[0], 49n],
       [sessions[1], 52n],
       [sessions[2], 23n],
+    ]);
+  });
+
+  it('should distribute amount with sessions having varying minSendAmounts #3', () => {
+    const amount = 197n;
+    const sessions = [ps(7n), ps(23n), ps(13n), ps(1n)];
+
+    const res = distributeAmount(amount, sessions);
+    expect(res.remainingAmount).toBe(0n);
+    expect([...res.distribution.entries()]).toEqual([
+      [sessions[0], 56n],
+      [sessions[1], 46n],
+      [sessions[2], 39n],
+      [sessions[3], 56n],
     ]);
   });
 
