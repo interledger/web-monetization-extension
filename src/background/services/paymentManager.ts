@@ -4,7 +4,7 @@ import type {
   WalletAddress,
 } from '@interledger/open-payments';
 import type { Cradle as Cradle_ } from '@/background/container';
-import { PaymentSession } from './paymentSession';
+import type { PaymentSession } from './paymentSession';
 import {
   MIN_PAYMENT_WAIT,
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
@@ -17,7 +17,6 @@ import {
   sleep,
   Timeout,
 } from '@/shared/helpers';
-import { isOutOfBalanceError } from './openPayments';
 
 type Cradle = Pick<
   Cradle_,
@@ -29,6 +28,7 @@ type Cradle = Pick<
   | 'events'
   | 'tabState'
   | 'message'
+  | 'PaymentSession'
 >;
 
 /** Payable amount to increase by {@linkcode Interval.units} every {@linkcode Interval.duration}ms. */
@@ -159,7 +159,6 @@ export class PaymentManager {
         this.tabId,
         this.sender,
         this.rootLogger,
-        PaymentSession,
         this.deps,
       );
       this.streams.set(frameId, stream);
@@ -202,6 +201,7 @@ export class PaymentManager {
     payableSessions: PaymentSession[],
     signal?: AbortSignal,
   ) {
+    const { isOutOfBalanceError } = await import('./openPayments');
     const outgoingPayments = new Map<string, OutgoingPayment | null>(
       payableSessions.map((session, i) => [
         session.id,
@@ -497,8 +497,7 @@ export class PaymentStream {
     private readonly tabId: TabId,
     private sender: WalletAddress,
     private rootLogger: Cradle['rootLogger'],
-    private PaymentSessionConstructor: typeof PaymentSession,
-    private deps: ConstructorParameters<typeof PaymentSession>[6],
+    private deps: Cradle,
   ) {
     this.iter = this.sessionsIter(this);
   }
@@ -510,7 +509,7 @@ export class PaymentStream {
       session.enable(); // if was disabled earlier
       return session;
     }
-    session = new this.PaymentSessionConstructor(
+    session = new this.deps.PaymentSession(
       receiver,
       sessionId,
       this.tabId,
