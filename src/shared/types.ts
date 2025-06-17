@@ -140,6 +140,7 @@ export type PopupStore = Omit<
   balance: AmountValue;
   tab: PopupTabInfo;
   transientState: PopupTransientState;
+  minSendAmount: string; // # 1071
   grants?: Partial<{
     oneTime: OneTimeGrant['amount'];
     recurring: RecurringGrant['amount'];
