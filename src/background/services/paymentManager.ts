@@ -150,6 +150,18 @@ export class PaymentManager {
     return this.sessions.filter((s) => s.isUsable);
   }
 
+  // bugfix #1071
+  get minSendAmount(): bigint {
+    // Check to see if there are any payable sessions
+    if (!this.payableSessions.length) return 0n;
+
+    // NOTE: How is a payable session defined, i.e. are could the minSendAmount be different currencies?
+    return this.payableSessions.reduce(
+      (max, session) => session.minSendAmount > max ? session.minSendAmount : max,
+      0n
+    );
+  }
+
   private createStreamIfNotExists(frameId: FrameId) {
     let stream = this.streams.get(frameId);
     if (!stream) {
