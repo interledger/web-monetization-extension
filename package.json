@@ -57,7 +57,7 @@
     "@types/archiver": "^6.0.3",
     "@types/chrome": "^0.0.326",
     "@types/github-script": "github:actions/github-script",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.15.31",
     "@types/react": "^19.1.7",
