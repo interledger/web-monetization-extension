@@ -434,22 +434,19 @@ export class MonetizationService {
 
     const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData;
 
-    // #1071
-    let minSendAmount = '0';
-      if (tab.id) {
-        // If we have a payment manager for this tab, get the min send amount
-        const paymentManager = this.tabState.paymentManagers.get(tab.id);
-        if (paymentManager) {
-          minSendAmount = paymentManager.minSendAmount.toString();
-        }
-      }
+    const minSendAmount = tab.id
+      ? (this.tabState.paymentManagers.get(tab.id)?.minSendAmount?.toString() ??
+        '0')
+      : '0';
 
     return {
       ...dataFromStorage,
       balance: balance.total.toString(),
-      tab: this.tabState.getPopupTabData(tab),
+      tab: {
+        ...this.tabState.getPopupTabData(tab),
+        minSendAmount,
+      },
       transientState: this.storage.getPopupTransientState(),
-      minSendAmount,
       grants: {
         oneTime: oneTimeGrant?.amount,
         recurring: recurringGrant?.amount,
