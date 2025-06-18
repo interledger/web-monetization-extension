@@ -14,7 +14,7 @@ type Errors = Record<ErrorsParams, ErrorInfo | null>;
 export const PayWebsiteForm = () => {
   const t = useTranslation();
   const message = useMessage();
-  const { walletAddress, tab, minSendAmount } = usePopupState();
+  const { walletAddress, tab } = usePopupState();
 
   const toErrorInfo = React.useCallback(
     (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
@@ -100,9 +100,8 @@ export const PayWebsiteForm = () => {
         walletAddress={walletAddress}
         amount={amount}
         placeholder="0.00"
-        // #1071
         min={roundWithPrecision(
-          Number(minSendAmount) / 10 ** walletAddress.assetScale,
+          Number(tab.minSendAmount) / 10 ** walletAddress.assetScale,
           walletAddress.assetScale,
         )}
         errorMessage={errors.amount?.message}

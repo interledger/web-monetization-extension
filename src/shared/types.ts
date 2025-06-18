@@ -119,6 +119,7 @@ export type PopupTabInfo = {
      */
     | 'all_sessions_invalid'
     | never; // just added for code formatting
+  minSendAmount: string;
 };
 
 export type PopupTransientState = Partial<{
@@ -140,7 +141,6 @@ export type PopupStore = Omit<
   balance: AmountValue;
   tab: PopupTabInfo;
   transientState: PopupTransientState;
-  minSendAmount: string; // # 1071
   grants?: Partial<{
     oneTime: OneTimeGrant['amount'];
     recurring: RecurringGrant['amount'];
