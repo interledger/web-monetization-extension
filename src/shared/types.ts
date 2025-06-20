@@ -119,6 +119,7 @@ export type PopupTabInfo = {
      */
     | 'all_sessions_invalid'
     | never; // just added for code formatting
+  minSendAmount: string;
 };
 
 export type PopupTransientState = Partial<{

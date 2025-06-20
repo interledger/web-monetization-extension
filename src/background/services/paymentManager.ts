@@ -150,6 +150,14 @@ export class PaymentManager {
     return this.sessions.filter((s) => s.isUsable);
   }
 
+  get minSendAmount(): bigint {
+    return this.payableSessions.reduce(
+      (highestMin, session) =>
+        session.minSendAmount > highestMin ? session.minSendAmount : highestMin,
+      0n,
+    );
+  }
+
   private createStreamIfNotExists(frameId: FrameId) {
     let stream = this.streams.get(frameId);
     if (!stream) {

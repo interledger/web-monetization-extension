@@ -101,7 +101,7 @@ export const PayWebsiteForm = () => {
         amount={amount}
         placeholder="0.00"
         min={roundWithPrecision(
-          2 / 10 ** walletAddress.assetScale,
+          Number(tab.minSendAmount) / 10 ** walletAddress.assetScale,
           walletAddress.assetScale,
         )}
         errorMessage={errors.amount?.message}
