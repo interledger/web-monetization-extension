@@ -270,7 +270,7 @@ Note that, we only support [manifest version 3](https://developer.chrome.com/doc
 
 When a `PaymentSession` is created, we find a `minSendAmount` before we try to make any payment. This value is used in figuring out the amounts and timings for the payments for given link element. The `minSendAmount` is obtained by creating a quote with particular amount and seeing if the quote is accepted at that amount.
 
-The `minSendAmount` is a property of user's connected wallet, the wallet of the link tag and associated fees at that time. For a browsing session (which _resets_ on navigation), we typically find this amount only once. But if future payments fail, we may need to adjust the `minSendAmount` again.
+The `minSendAmount` is a property of user's connected wallet (currency/assetScale), the wallet for the given link element and associated payment fees at that time. For a browsing session (which _resets_ on navigation), we typically find this amount only once. But if future payments fail, we may need to adjust the `minSendAmount` again.
 
 We make payments only in multiples of `minSendAmount`. This ensures some fairness for the sender and receivers - as the amounts higher than in-multiple of `minSendAmount` are absorbed by ASEs to maintain cross-currency liquidity for other transactions when user may send an amount less than multiple of `minSendAmount`.
 
