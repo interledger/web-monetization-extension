@@ -157,17 +157,17 @@ mindmap
   - The real orchestrator of payments, for all tabs
   - Sets up `PaymentManager`s
   - Handles messages from background/content-scripts/popup to maintain/update/control the payment sessions
-  - **`PaymentManager`**
-    - Manages payments for a tab
-    - Abstracts all monetization link elements in a page, manages payment sessions
-    - Keep track of what amount to send, which session to send to, and when to send
-    - **`PaymentStream`**
-      - Contains sessions for link elements in a "frame" within the tab
-        (host website is main frame (id=0), rest are _iframes_)
-      - **`PaymentSession`**:
-        - Abstraction over a monetization link element
-        - Calls OpenPayments APIs to make actual payments
-        - Publish events to a website when a payment was sent
+- **`PaymentManager`**
+  - Manages payments for a tab
+  - Abstracts all monetization link elements in a page, manages payment sessions
+  - Keep track of what amount to send, which session to send to, and when to send
+- **`PaymentStream`**
+  - Contains sessions for link elements in a "frame" within the tab
+    (host website is main frame (id=0), rest are _iframes_)
+- **`PaymentSession`**:
+  - Abstraction over a monetization link element
+  - Calls OpenPayments APIs to make actual payments
+  - Publish events to a website when a payment was sent
 - **`OpenPaymentsService`**:
   - An abstraction over OpenPayments client
   - Preserves tokens, and manages a single client for all operations.
