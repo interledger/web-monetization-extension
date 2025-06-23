@@ -152,9 +152,9 @@ export class PaymentManager {
 
   get minSendAmount(): bigint {
     return this.payableSessions.reduce(
-      (highestMin, session) =>
-        session.minSendAmount > highestMin ? session.minSendAmount : highestMin,
-      0n,
+      (prevMinSendAmount, { minSendAmount }) =>
+        minSendAmount < prevMinSendAmount ? minSendAmount : prevMinSendAmount,
+      BigInt(Number.MAX_SAFE_INTEGER),
     );
   }
 

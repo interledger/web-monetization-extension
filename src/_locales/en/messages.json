@@ -169,7 +169,7 @@
     "message": "Please enter a valid number for the amount."
   },
   "connectWallet_error_amountMinimum": {
-    "message": "An amount at least $AMOUNT$ is required.",
+    "message": "A minimum amount of $AMOUNT$ is required.",
     "placeholders": {
       "AMOUNT": { "content": "$1", "example": "$2.05" }
     }
