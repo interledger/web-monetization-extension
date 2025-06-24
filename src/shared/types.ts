@@ -101,6 +101,7 @@ export type StorageKey = keyof Storage;
 export type PopupTabInfo = {
   tabId: TabId;
   url: string;
+  minSendAmount: AmountValue;
   status:
     | never // just added for code formatting
     /** Happy state */
@@ -119,7 +120,6 @@ export type PopupTabInfo = {
      */
     | 'all_sessions_invalid'
     | never; // just added for code formatting
-  minSendAmount: AmountValue;
 };
 
 export type PopupTransientState = Partial<{
