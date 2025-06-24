@@ -122,10 +122,11 @@ export class TabState {
       status = 'monetized';
     }
 
+    const tabId = tab.id;
     const minSendAmount =
-      this.paymentManagers.get(tab.id)?.minSendAmount.toString() ?? '0';
+      this.paymentManagers.get(tabId)?.minSendAmount.toString() ?? '0';
 
-    return { tabId: tab.id, url, status, minSendAmount };
+    return { tabId, url, status, minSendAmount };
   }
 
   getIcon(tabId: TabId) {
