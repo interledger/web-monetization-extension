@@ -101,6 +101,7 @@ export type StorageKey = keyof Storage;
 export type PopupTabInfo = {
   tabId: TabId;
   url: string;
+  minSendAmount: AmountValue;
   status:
     | never // just added for code formatting
     /** Happy state */
