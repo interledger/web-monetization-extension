@@ -144,8 +144,9 @@ mindmap
         Storage
     (_helpers_)
         OpenPayments
-        KeyAutoAdd
         HeartBeat
+    Wallet
+      KeyAutoAdd
 ```
 
 - **`Background`**:
@@ -190,6 +191,9 @@ mindmap
 - **`SendToPopup`**:
   - Send messages from the background to popup via `Runtime.Port`
   - Exists as we send messages to the popup often, and sending via a regular message channel would be noisy.
+- **`WalletService`**
+  - Handles wallet connection, budget updates, disconnecting and reconnecting wallet
+  - Uses `KeyAutoAddService` to add keys during connection
 - **`KeyAutoAddService`**:
   - Different wallets have different ways to upload public keys, and we don't want users to be scared by the complexity of "public keys"
   - This service complimented by its counterpart content scripts, takes control of the user's browser (after their consent) to add the key via reverse engineering how different wallets upload keys.
