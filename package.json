@@ -70,7 +70,7 @@
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-style-plugin": "^1.6.3",
-    "jest": "^30.0.2",
+    "jest": "^30.0.3",
     "jest-chrome": "^0.8.0",
     "jest-environment-jsdom": "^30.0.2",
     "jest-expect-message": "^1.1.3",
