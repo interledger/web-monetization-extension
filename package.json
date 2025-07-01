@@ -65,7 +65,7 @@
     "@types/webextension-polyfill": "^0.12.3",
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.21",
-    "dotenv": "^16.5.0",
+    "dotenv": "^16.6.1",
     "esbuild": "^0.25.5",
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",
