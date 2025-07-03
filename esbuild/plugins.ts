@@ -150,6 +150,9 @@ function processManifestPlugin({
             scripts: [json.background.service_worker!],
           };
           json.minimum_chrome_version = undefined;
+          json.browser_specific_settings = {
+            gecko: json.browser_specific_settings!.gecko,
+          };
         } else if (target === 'safari') {
           json.browser_specific_settings = {
             safari: json.browser_specific_settings!.safari,
