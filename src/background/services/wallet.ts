@@ -136,11 +136,22 @@ export class WalletService {
           throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
         }
 
+        let appTabId: TabId | undefined;
         tabId = await reuseOrCreateTab(
           this.browser,
           this.windowState.getCurrentWindowId(),
-          (url) => url.startsWith(appUrl),
+          (url, tabId) => {
+            const isAppTab = url.startsWith(appUrl);
+            if (isAppTab) appTabId = tabId;
+            return this.browserName !== 'safari' && isAppTab;
+          },
         );
+        if (appTabId && appTabId !== tabId) {
+          // In Safari, connect process crashes with "tab closed" error if we
+          // reuse the tab. So, instead of reusing, close the app tab and open a
+          // new one - goal is to not have too many extension tabs for user.
+          await this.browser.tabs.remove(appTabId);
+        }
         cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
         // add key to wallet and try again
         try {
