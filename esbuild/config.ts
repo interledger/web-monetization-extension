@@ -6,7 +6,7 @@ import type { Manifest } from 'webextension-polyfill';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export const TARGETS = ['chrome', 'firefox'] as const;
+export const TARGETS = ['chrome', 'firefox', 'safari'] as const;
 export const CHANNELS = ['nightly', 'preview', 'stable'] as const;
 
 export const ROOT_DIR = path.resolve(__dirname, '..');
@@ -72,9 +72,13 @@ export const options: BuildOptions = {
 
 export type WebExtensionManifest = Manifest.WebExtensionManifest & {
   background: Manifest.WebExtensionManifestBackgroundType;
+  browser_specific_settings?: Manifest.BrowserSpecificSettings & {
+    safari?: { strict_min_version?: string; strict_max_version?: string };
+  };
 };
 
 export const SERVE_PORTS: Record<Target, number> = {
   chrome: 7000,
   firefox: 7002,
+  safari: 7004,
 };

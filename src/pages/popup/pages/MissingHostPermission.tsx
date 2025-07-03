@@ -29,7 +29,12 @@ export default () => {
           return browser.permissions.request({ origins }).finally(() => {
             // So we open popup with refreshed state, avoiding additional message passing.
             // Firefox closes popup automatically.
-            window.close();
+            try {
+              window.close();
+            } catch {
+              // Safari won't allow closing popup, so reload instead
+              window.location.reload();
+            }
           });
         }}
       >
