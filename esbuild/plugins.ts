@@ -149,17 +149,17 @@ function processManifestPlugin({
           json.background = {
             scripts: [json.background.service_worker!],
           };
-          json.minimum_chrome_version = undefined;
           json.browser_specific_settings = {
             gecko: json.browser_specific_settings!.gecko,
           };
+          json.minimum_chrome_version = undefined;
         } else if (target === 'safari') {
-          json.browser_specific_settings = {
-            safari: json.browser_specific_settings!.safari,
-          };
           // https://developer.apple.com/forums/thread/758479?answerId=818592022#818592022
           json.background = {
             scripts: [json.background.service_worker!],
+          };
+          json.browser_specific_settings = {
+            safari: json.browser_specific_settings!.safari,
           };
         } else {
           json.browser_specific_settings = undefined;
