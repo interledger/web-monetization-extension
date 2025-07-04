@@ -19,6 +19,8 @@
     "pnpm-lock.yaml",
     ".gitignore",
     ".vscode/extensions.json",
-    "cspell-dictionary.txt"
+    "cspell-dictionary.txt",
+    "project.pbxproj",
+    "*.storyboard"
   ]
 }

@@ -38,6 +38,8 @@ networkidle
 webextensions
 firefoxUserPrefs
 textbox
+appex
+pbxproj
 
 # packages and 3rd party tools/libraries
 awilix
