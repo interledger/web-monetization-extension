@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # In a pull request trigger, ref is required as GitHub Actions checks out in detached HEAD mode, meaning it doesn’t check out your branch by default.
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Get workflow artifacts
         uses: actions/github-script@v7
