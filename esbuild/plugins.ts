@@ -85,6 +85,7 @@ export const getPlugins = ({
       },
     }),
     processManifestPlugin({ outDir, dev, target, channel }),
+    safariCopyPlugin({ outDir, target }),
   ];
 };
 
@@ -183,6 +184,53 @@ function cleanPlugin(dirs: string[]): ESBuildPlugin {
         await Promise.all(
           dirs.map((dir) => fs.rm(dir, { recursive: true, force: true })),
         );
+      });
+    },
+  };
+}
+
+function safariCopyPlugin({
+  outDir,
+  target,
+}: Pick<BuildArgs, 'target'> & { outDir: string }): ESBuildPlugin {
+  const DEST = path.join(
+    ROOT_DIR,
+    'src',
+    'safari',
+    'Web Monetization',
+    'Shared (Extension)',
+    'Resources',
+  );
+
+  const FILES_TO_KEEP = ['.gitkeep'];
+  const KEEP_PATHS = FILES_TO_KEEP.map((p) => path.join(DEST, p));
+
+  return {
+    name: 'safari-copy',
+    setup(build) {
+      if (target !== 'safari') {
+        return;
+      }
+
+      build.onEnd(async () => {
+        // clean DEST (while preserving FILES_TO_KEEP)
+        const filesToKeep = await Promise.all(
+          KEEP_PATHS.map((file) => fs.readFile(file, 'utf8')),
+        );
+        await fs.rm(DEST, { recursive: true, force: true });
+        await fs.mkdir(DEST, { recursive: true });
+        await Promise.all(
+          filesToKeep.map((data, i) =>
+            fs.writeFile(KEEP_PATHS[i], data, 'utf8'),
+          ),
+        );
+
+        // copy outDir to DEST
+        await fs.cp(outDir, DEST, {
+          preserveTimestamps: true,
+          recursive: true,
+          force: true,
+        });
       });
     },
   };
