@@ -1,5 +1,0 @@
-# Generated!!
-
-Content of this folder is generated as per build.
-
-We don't use symlink to something in repository as content is generated after a build process. But we do symlink to the build output folder.
