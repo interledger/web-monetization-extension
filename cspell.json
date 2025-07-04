@@ -16,11 +16,11 @@
     "build",
     "temp",
     "*.svg",
+    "project.pbxproj",
+    "*.storyboard",
     "pnpm-lock.yaml",
     ".gitignore",
     ".vscode/extensions.json",
-    "cspell-dictionary.txt",
-    "project.pbxproj",
-    "*.storyboard"
+    "cspell-dictionary.txt"
   ]
 }
