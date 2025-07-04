@@ -202,14 +202,8 @@ function safariSupportPlugin({
   outDir,
   target,
 }: Pick<BuildArgs, 'target'> & { outDir: string }): ESBuildPlugin {
-  const DEST = path.join(
-    ROOT_DIR,
-    'src',
-    'safari',
-    'Web Monetization',
-    'Shared (Extension)',
-    'Resources',
-  );
+  const BASE_DIR = path.join(ROOT_DIR, 'src', 'safari', 'Web Monetization');
+  const DEST = path.join(BASE_DIR, 'Shared (Extension)', 'Resources');
 
   // clean DEST (while preserving FILES_TO_KEEP)
   async function cleanResourcesFolder() {
