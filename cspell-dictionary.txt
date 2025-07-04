@@ -41,6 +41,7 @@ textbox
 appex
 pbxproj
 xcconfig
+xcscheme
 
 # packages and 3rd party tools/libraries
 awilix

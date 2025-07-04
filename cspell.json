@@ -18,6 +18,7 @@
     "*.svg",
     "project.pbxproj",
     "*.storyboard",
+    "*.xcscheme",
     "pnpm-lock.yaml",
     ".gitignore",
     ".vscode/extensions.json",
