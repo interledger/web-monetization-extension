@@ -14,7 +14,6 @@ import {
   type BuildArgs,
   type WebExtensionManifest,
 } from './config';
-import { isNotNull } from '@/shared/helpers';
 
 const require = createRequire(import.meta.url);
 
@@ -81,7 +80,9 @@ export const getPlugins = ({
       ],
       watch: dev,
       globbyOptions: {
-        ignore: [target !== 'safari' ? '**/*safari*' : null].filter(isNotNull),
+        ignore: [target !== 'safari' ? '**/*safari*' : null].filter(
+          (e) => e !== null,
+        ),
       },
     }),
     processManifestPlugin({ outDir, dev, target, channel }),
@@ -235,7 +236,7 @@ function safariSupportPlugin({
   }
 
   return {
-    name: 'safari-copy',
+    name: 'safari-support',
     setup(build) {
       if (target !== 'safari') return;
       build.onEnd(handler);
