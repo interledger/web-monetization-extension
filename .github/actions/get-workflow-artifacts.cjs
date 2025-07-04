@@ -18,6 +18,11 @@ const ARTIFACTS_DATA = {
     url: '',
     size: '',
   },
+  safari: {
+    name: 'Safari',
+    url: '',
+    size: '',
+  },
 };
 
 /**

@@ -1,0 +1,5 @@
+# Generated!!
+
+Content of this directory is generated as per build.
+
+We don't use symlink to something in repository as content is generated after a build process. We copy generated files from relevant build directory (dev or dist) to this directory (via the custom built `safariSupportPlugin`).
