@@ -40,6 +40,8 @@ xcuserdata/
 *.lock
 *.swp
 .Trashes
+src/safari/Web Monetization/Shared (Extension)/Resources/
+!src/safari/Web Monetization/Shared (Extension)/Resources/.gitkeep
 
 # playwright
 /tests/e2e/test-results/

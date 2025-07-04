@@ -108,13 +108,13 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/_locales,
-				Resources/background.js,
-				Resources/content.js,
-				Resources/images,
+				Resources/assets,
+				Resources/background,
+				Resources/content,
 				Resources/manifest.json,
-				Resources/popup.css,
-				Resources/popup.html,
-				Resources/popup.js,
+				Resources/pages,
+				Resources/polyfill,
+				Resources/popup,
 				SafariWebExtensionHandler.swift,
 			);
 			target = 1FF67DFC2E17ED8100E3792A /* Web Monetization Extension (iOS) */;
@@ -123,13 +123,13 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/_locales,
-				Resources/background.js,
-				Resources/content.js,
-				Resources/images,
+				Resources/assets,
+				Resources/background,
+				Resources/content,
 				Resources/manifest.json,
-				Resources/popup.css,
-				Resources/popup.html,
-				Resources/popup.js,
+				Resources/pages,
+				Resources/polyfill,
+				Resources/popup,
 				SafariWebExtensionHandler.swift,
 			);
 			target = 1FF67E062E17ED8100E3792A /* Web Monetization Extension (macOS) */;
@@ -154,7 +154,12 @@
 			);
 			explicitFolders = (
 				Resources/_locales,
-				Resources/images,
+				Resources/assets,
+				Resources/background,
+				Resources/content,
+				Resources/pages,
+				Resources/polyfill,
+				Resources/popup,
 			);
 			path = "Shared (Extension)";
 			sourceTree = "<group>";
