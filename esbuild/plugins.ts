@@ -14,6 +14,7 @@ import {
   type BuildArgs,
   type WebExtensionManifest,
 } from './config';
+import { isNotNull } from '@/shared/helpers';
 
 const require = createRequire(import.meta.url);
 
@@ -79,6 +80,9 @@ export const getPlugins = ({
         },
       ],
       watch: dev,
+      globbyOptions: {
+        ignore: [target !== 'safari' ? '**/*safari*' : null].filter(isNotNull),
+      },
     }),
     processManifestPlugin({ outDir, dev, target, channel }),
   ];
