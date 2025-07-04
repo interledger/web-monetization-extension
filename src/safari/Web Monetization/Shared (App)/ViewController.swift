@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  Shared (App)
 //
-//  Created by github.com/sidvishnoi on 04/07/25.
+//  Created by https://github.com/sidvishnoi on 04/07/25.
 //
 
 import WebKit
