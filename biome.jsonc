@@ -89,10 +89,10 @@
   "overrides": [
     {
       "includes": [
-        "**/esbuild/**/*",
-        "**/scripts/**/*",
-        "**/.github/actions/**/*",
-        "**/src/content/debug.ts"
+        "esbuild/**/*",
+        "scripts/**/*",
+        ".github/actions/**/*",
+        "src/content/debug.ts"
       ],
       "linter": {
         "rules": {
