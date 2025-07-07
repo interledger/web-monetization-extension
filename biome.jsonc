@@ -23,6 +23,11 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "project": "all",
+      "react": "all",
+      "test": "all"
+    },
     "rules": {
       "recommended": true,
       "style": {
@@ -43,7 +48,8 @@
       },
       "correctness": {
         "noUnusedVariables": "warn",
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "useImportExtensions": "off"
       },
       "a11y": {
         "noSvgWithoutTitle": "off"
