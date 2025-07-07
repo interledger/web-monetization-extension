@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+build/
 temp
 preview
 dev
@@ -30,6 +31,17 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# XCode for the Safari extension
+xcuserdata/
+*.xccheckout
+*.pbxuser
+*~.nib
+*.lock
+*.swp
+.Trashes
+src/safari/Web Monetization/Shared \(Extension\)/Resources/*
+!src/safari/Web Monetization/Shared \(Extension\)/Resources/.gitkeep
 
 # playwright
 /tests/e2e/test-results/
