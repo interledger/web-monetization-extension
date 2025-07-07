@@ -13,7 +13,7 @@ export const EXCHANGE_RATES_URL =
 export const BUDGET_RECOMMENDATIONS_URL =
   'https://interledger.github.io/web-monetization-budget-suggestions/v1/data.json';
 
-export const OUTGOING_PAYMENT_POLLING_MAX_DURATION = 8_000;
+export const OUTGOING_PAYMENT_POLLING_MAX_DURATION = 8000;
 export const OUTGOING_PAYMENT_POLLING_INITIAL_DELAY = 1500;
 export const OUTGOING_PAYMENT_POLLING_INTERVAL = 1500;
 export const OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS = 8;

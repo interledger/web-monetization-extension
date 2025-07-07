@@ -115,7 +115,7 @@ export class MonetizationLinkManager {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
-    this.onFocus();
+    void this.onFocus();
     this.window.addEventListener('focus', this.onFocus);
     this.window.addEventListener('pagehide', this.onPageHide);
 

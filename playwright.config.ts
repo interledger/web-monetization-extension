@@ -23,7 +23,7 @@ export default defineConfig({
   ],
   use: {
     trace: 'retain-on-failure',
-    actionTimeout: 8_000,
+    actionTimeout: 8000,
     navigationTimeout: 10_000,
     userAgent: 'Web Monetization Extension E2E Tests Bot',
   },

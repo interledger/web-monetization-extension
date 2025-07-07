@@ -165,7 +165,7 @@ export class OpenPaymentsService {
 
     this.client = await createAuthenticatedClient({
       validateResponses: false,
-      requestTimeoutMs: 10000,
+      requestTimeoutMs: 10_000,
       walletAddressUrl,
       authenticatedRequestInterceptor: async (request) => {
         if (!request.method || !request.url) {

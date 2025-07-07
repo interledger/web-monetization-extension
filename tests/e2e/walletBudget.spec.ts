@@ -143,7 +143,7 @@ for (const testCase of TEST_CASES) {
         await expect(monetizationCallback).toHaveBeenCalledTimes(2);
         await popup.reload();
 
-        await popup.waitForTimeout(1_000); // wait for balance to update.- it's queued/throttled.
+        await popup.waitForTimeout(1000); // wait for balance to update.- it's queued/throttled.
         await settingsLink.click();
         await budgetTab.click();
 

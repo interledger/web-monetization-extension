@@ -610,7 +610,7 @@ export class PaymentStream {
         yield session;
       } else {
         self.#picked = new WeakSet<PaymentSession>();
-        yield undefined;
+        yield;
       }
     }
   }

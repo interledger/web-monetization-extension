@@ -19,16 +19,16 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
       const response = await message.send('GET_DATA_APP');
 
       if (response.success) {
-        dispatch({ type: 'SET_DATA_APP', data: response.payload });
+        void dispatch({ type: 'SET_DATA_APP', data: response.payload });
         setIsLoading(false);
       }
     }
 
-    get();
+    void get();
   }, [message]);
 
   if (isLoading) {
-    return <>Loading</>;
+    return 'Loading';
   }
 
   return <>{children}</>;

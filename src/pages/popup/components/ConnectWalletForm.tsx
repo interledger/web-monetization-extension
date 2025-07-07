@@ -126,6 +126,14 @@ export const ConnectWalletForm = ({
   const [isSubmitting, setIsSubmitting] = React.useState(
     state?.status?.startsWith('connecting') || false,
   );
+  const handleAmountChange = React.useCallback(
+    (amountValue: string) => {
+      setErrors((prev) => ({ ...prev, amount: null }));
+      setAmount(amountValue);
+      saveValue('amount', amountValue);
+    },
+    [saveValue],
+  );
 
   const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<boolean> => {
@@ -154,7 +162,7 @@ export const ConnectWalletForm = ({
       }
       return true;
     },
-    [getWalletInfo, toErrorInfo],
+    [getWalletInfo, toErrorInfo, handleAmountChange],
   );
 
   const handleWalletAddressUrlChange = React.useCallback(
@@ -200,15 +208,6 @@ export const ConnectWalletForm = ({
       });
     },
     [handleWalletAddressUrlChange, resetState, walletAddressUrl],
-  );
-
-  const handleAmountChange = React.useCallback(
-    (amountValue: string) => {
-      setErrors((prev) => ({ ...prev, amount: null }));
-      setAmount(amountValue);
-      saveValue('amount', amountValue);
-    },
-    [saveValue],
   );
 
   const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
@@ -301,10 +300,10 @@ export const ConnectWalletForm = ({
   if (showConsent) {
     return (
       <AutoKeyAddConsent
-        onAccept={() => {
+        onAccept={async () => {
           autoKeyAddConsent.current = true;
           setShowConsent(false);
-          handleSubmit();
+          await handleSubmit();
         }}
         onDecline={() => {
           const error = errorWithKey('connectWalletKeyService_error_noConsent');
