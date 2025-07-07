@@ -57,6 +57,7 @@ msedge
 SVGOMG
 xvfb
 Titillium
+mindmap
 
 # user names
 raducristianpopa
