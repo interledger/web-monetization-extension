@@ -1,11 +1,11 @@
 // @ts-check
 
 /**
- * @typedef {'chrome' | 'firefox'} Browser
+ * @typedef {'chrome' | 'firefox' | 'safari'} Browser
  */
 
 /** @type {Browser[]} */
-const BROWSERS = ['chrome', 'firefox'];
+const BROWSERS = ['chrome', 'firefox', 'safari'];
 const COLORS = {
   green: '3fb950',
   red: 'd73a49',
