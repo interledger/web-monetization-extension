@@ -224,6 +224,10 @@ export type ContentToBackgroundMessage = {
     input: never;
     output: never;
   };
+  PAGE_HIDE: {
+    input: never;
+    output: never;
+  };
   STOP_MONETIZATION: {
     input: StopMonetizationPayload;
     output: never;

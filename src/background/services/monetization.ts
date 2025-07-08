@@ -150,32 +150,27 @@ export class MonetizationService {
     payload: StopMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
-    const { tabId, frameId } = getSender(sender);
+    const tabId = getTabId(sender);
     const paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
       this.logger.warn(`No payment manager found for tab ${tabId}.`);
       return;
     }
 
-    let removedCount = 0;
     let pausedCount = 0;
     for (const { requestId, intent } of payload) {
       if (intent === 'remove') {
-        paymentManager.removeSession(requestId, frameId);
-        removedCount++;
+        paymentManager.removeSession(requestId);
       } else if (intent === 'disable') {
-        paymentManager.disableSession(requestId, frameId);
+        paymentManager.disableSession(requestId);
       } else {
-        paymentManager.deactivateSession(requestId, frameId);
+        paymentManager.deactivateSession(requestId);
         pausedCount++;
       }
     }
 
     if (pausedCount > 0 && paymentManager.payableSessions.length === 0) {
       paymentManager?.pause('all-paused');
-    }
-    if (removedCount > 0 && paymentManager.size === 0) {
-      this.tabState.paymentManagers.destroy(tabId);
     }
 
     this.events.emit('monetization.state_update', tabId);
