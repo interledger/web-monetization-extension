@@ -47,7 +47,7 @@ export class KeyAutoAdd {
     this.port.onMessage.addListener(
       (message: BackgroundToKeyAutoAddMessage) => {
         if (message.action === 'BEGIN') {
-          this.runAll(message.payload);
+          void this.runAll(message.payload);
         }
       },
     );
@@ -156,7 +156,7 @@ export class KeyAutoAdd {
           ? new Date(Date.now() + stepInfo.maxDuration).valueOf()
           : undefined,
       });
-      const minWait = sleep(2_000);
+      const minWait = sleep(2000);
       try {
         const run = this.stepsInput.get(step.name)!.run;
         const [res] = await Promise.all([run(payload, helpers), minWait]);

@@ -84,7 +84,7 @@ export class FrameManager {
         await this.onAddedFrame(target);
         handledTags.add(target);
       } else if (hasTarget && !typeSpecified) {
-        this.onRemovedFrame(target);
+        void this.onRemovedFrame(target);
         handledTags.add(target);
       } else if (!hasTarget && !typeSpecified) {
         // ignore these changes
@@ -121,7 +121,7 @@ export class FrameManager {
     for (const record of records) {
       if (record.type === 'childList') {
         for (const node of record.removedNodes) {
-          this.check('removed', node);
+          void this.check('removed', node);
         }
       }
     }
@@ -129,7 +129,7 @@ export class FrameManager {
     for (const record of records) {
       if (record.type === 'childList') {
         for (const node of record.addedNodes) {
-          this.check('added', node);
+          void this.check('added', node);
         }
       }
     }
@@ -141,7 +141,7 @@ export class FrameManager {
         this.observeFrameAllowAttrs(node);
         await this.onAddedFrame(node);
       } else if (op === 'removed' && this.frames.has(node)) {
-        this.onRemovedFrame(node);
+        await this.onRemovedFrame(node);
       }
     }
   }

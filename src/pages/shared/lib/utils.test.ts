@@ -22,9 +22,9 @@ describe('formatNumber', () => {
 
     expect(formatNumber(5.0009, 4)).toEqual('5.0009');
 
-    expect(formatNumber(5.000009, 9)).toEqual('5.000009');
+    expect(formatNumber(5.000_009, 9)).toEqual('5.000009');
 
-    expect(formatNumber(5.000000009, 9)).toEqual('5.000000009');
+    expect(formatNumber(5.000_000_009, 9)).toEqual('5.000000009');
   });
 
   it('should display right format for real numbers smaller than 1', () => {
@@ -32,19 +32,19 @@ describe('formatNumber', () => {
 
     expect(formatNumber(0.0009, 4)).toEqual('0.0009');
 
-    expect(formatNumber(0.000000009, 9)).toEqual('0.000000009');
+    expect(formatNumber(0.000_000_009, 9)).toEqual('0.000000009');
 
-    expect(formatNumber(0.00009, 9)).toEqual('0.00009');
+    expect(formatNumber(0.000_09, 9)).toEqual('0.00009');
 
-    expect(formatNumber(0.000000009, 9, true)).toEqual('9e-9');
+    expect(formatNumber(0.000_000_009, 9, true)).toEqual('9e-9');
 
-    expect(formatNumber(0.00009, 9, true)).toEqual('9e-5');
+    expect(formatNumber(0.000_09, 9, true)).toEqual('9e-5');
 
-    expect(formatNumber(0.0000109, 9, true)).toEqual('1.09e-5');
+    expect(formatNumber(0.000_010_9, 9, true)).toEqual('1.09e-5');
 
-    expect(formatNumber(0.000010009, 9, true)).toEqual('1.0009e-5');
+    expect(formatNumber(0.000_010_009, 9, true)).toEqual('1.0009e-5');
 
-    expect(formatNumber(0.000100009, 9)).toEqual('0.000100009');
+    expect(formatNumber(0.000_100_009, 9)).toEqual('0.000100009');
   });
 });
 
@@ -77,7 +77,7 @@ describe('formatCurrency', () => {
     expect(formatCurrency(5.12, 'USD', 2)).toEqual('$5.12');
     expect(formatCurrency(5.12, 'USD', 4)).toEqual('$5.12');
     expect(formatCurrency(5.19, 'EUR', 1)).toEqual('€5.2');
-    expect(formatCurrency(5.12058, 'USD', 4)).toEqual('$5.1206');
+    expect(formatCurrency(5.120_58, 'USD', 4)).toEqual('$5.1206');
   });
 
   it('should display right format in different locales', () => {

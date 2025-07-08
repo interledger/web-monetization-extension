@@ -160,7 +160,7 @@ export async function loadContext(
       ignoreDefaultArgs: ['--disable-back-forward-cache'],
     });
   } else if (browserName === 'firefox') {
-    const RDP_PORT = 12345;
+    const RDP_PORT = 12_345;
     context = await firefox.launchPersistentContext('', {
       headless: false,
       args: ['-start-debugger-server', String(RDP_PORT)],

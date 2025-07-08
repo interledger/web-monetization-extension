@@ -151,7 +151,7 @@ const Steps = () => {
       if (!open) {
         return id;
       }
-      const idx = STEP_ID.findIndex((e) => e === prev);
+      const idx = STEP_ID.indexOf(prev);
       return STEP_ID[idx + 1];
     });
   }, []);
@@ -377,7 +377,7 @@ function Step({
             : 'bg-white text-weak hover:bg-slate-50',
         )}
       >
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Not needed here */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Not needed here */}
         <summary
           className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
           onClick={(ev) => {
@@ -425,7 +425,9 @@ function StepNumber({ number }: { number: number }) {
 
 function StepConnectWallet({
   selectedWallet,
-}: { selectedWallet: WalletOption }) {
+}: {
+  selectedWallet: WalletOption;
+}) {
   const message = useMessage();
   const t = useTranslation();
   const {

@@ -106,25 +106,23 @@ const RateOfPayInput = ({
   );
 
   return (
-    <>
-      <InputAmount
-        id="rateOfPay"
-        className="max-w-56"
-        label="Rate of pay per hour"
-        walletAddress={walletAddress}
-        onChange={(value) => {
-          setErrorMessage('');
-          const rate = Number(value) * 10 ** walletAddress.assetScale;
-          onRateChange(Math.round(rate).toString());
-        }}
-        onError={(error) => setErrorMessage(t(error))}
-        errorMessage={errorMessage}
-        min={1}
-        max={Number(formatAmount(maxRateOfPay))}
-        amount={formatAmount(rateOfPay)}
-        controls={true}
-        readOnly={disabled}
-      />
-    </>
+    <InputAmount
+      id="rateOfPay"
+      className="max-w-56"
+      label="Rate of pay per hour"
+      walletAddress={walletAddress}
+      onChange={(value) => {
+        setErrorMessage('');
+        const rate = Number(value) * 10 ** walletAddress.assetScale;
+        onRateChange(Math.round(rate).toString());
+      }}
+      onError={(error) => setErrorMessage(t(error))}
+      errorMessage={errorMessage}
+      min={1}
+      max={Number(formatAmount(maxRateOfPay))}
+      amount={formatAmount(rateOfPay)}
+      controls={true}
+      readOnly={disabled}
+    />
   );
 };

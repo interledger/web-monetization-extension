@@ -426,7 +426,7 @@ export class PaymentSession {
         amount: amount.toString(),
       });
 
-      this.sendMonetizationEvent({
+      void this.sendMonetizationEvent({
         amountSent: {
           currency: outgoingPayment.receiveAmount.assetCode,
           value: transformBalance(
@@ -535,7 +535,7 @@ export class PaymentSession {
         paymentPointer: this.receiver.id,
       };
 
-      this.sendMonetizationEvent(monetizationEventDetails);
+      void this.sendMonetizationEvent(monetizationEventDetails);
 
       this.tabState.saveLastPaymentDetails(this.tabId, this.tabUrl, {
         walletAddressId: this.receiver.id,

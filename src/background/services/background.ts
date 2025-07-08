@@ -236,7 +236,7 @@ export class Background {
             case 'CONNECT_WALLET': {
               await this.walletService.connectWallet(message.payload);
               if (message.payload?.recurring) {
-                this.scheduleResetOutOfFundsState();
+                await this.scheduleResetOutOfFundsState();
               }
               return success(undefined);
             }
@@ -260,7 +260,7 @@ export class Background {
               await this.walletService.addFunds(message.payload);
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               if (message.payload.recurring) {
-                this.scheduleResetOutOfFundsState();
+                await this.scheduleResetOutOfFundsState();
               }
               return;
 

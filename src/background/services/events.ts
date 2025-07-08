@@ -61,7 +61,7 @@ export class EventsService extends EventEmitter {
    * @deprecated
    */
   removeListener(): this {
-    // biome-ignore lint/style/noArguments: it's cleaner and simpler
+    // biome-ignore lint/complexity/noArguments: it's cleaner and simpler
     return super.removeListener.apply(this, arguments);
   }
 }

@@ -47,7 +47,7 @@
     "wouter": "^3.7.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.0.6",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.3",
     "@jgoz/jest-esbuild": "^1.0.9",
     "@playwright/test": "^1.53.2",

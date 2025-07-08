@@ -34,45 +34,39 @@ export const ErrorKeyRevoked = ({
 
   if (screen === 'main') {
     return (
-      <>
-        <MainScreen
-          disconnectWallet={disconnectWallet}
-          onDisconnect={onDisconnect}
-          setScreen={setScreen}
-        />
-      </>
+      <MainScreen
+        disconnectWallet={disconnectWallet}
+        onDisconnect={onDisconnect}
+        setScreen={setScreen}
+      />
     );
   } else if (screen === 'consent-reconnect') {
     return (
-      <>
-        <AutoKeyAddConsent
-          onAccept={async () => {
-            try {
-              await reconnectWallet({ autoKeyAddConsent: true });
-              clearScreen();
-              onReconnect?.();
-            } catch (error) {
-              setScreen('manual-reconnect');
-              throw error;
-            }
-          }}
-          onDecline={() => setScreen('manual-reconnect')}
-          intent="RECONNECT_WALLET"
-        />
-      </>
+      <AutoKeyAddConsent
+        onAccept={async () => {
+          try {
+            await reconnectWallet({ autoKeyAddConsent: true });
+            clearScreen();
+            onReconnect?.();
+          } catch (error) {
+            setScreen('manual-reconnect');
+            throw error;
+          }
+        }}
+        onDecline={() => setScreen('manual-reconnect')}
+        intent="RECONNECT_WALLET"
+      />
     );
   } else {
     return (
-      <>
-        <ManualReconnectScreen
-          info={info}
-          reconnectWallet={reconnectWallet}
-          onReconnect={() => {
-            clearScreen();
-            onReconnect?.();
-          }}
-        />
-      </>
+      <ManualReconnectScreen
+        info={info}
+        reconnectWallet={reconnectWallet}
+        onReconnect={() => {
+          clearScreen();
+          onReconnect?.();
+        }}
+      />
     );
   }
 };
@@ -176,7 +170,7 @@ const ManualReconnectScreen = ({
       className="flex flex-col items-stretch gap-4"
       onSubmit={(ev) => {
         ev.preventDefault();
-        requestManualReconnect();
+        void requestManualReconnect();
       }}
     >
       <div className="space-y-1 text-sm">

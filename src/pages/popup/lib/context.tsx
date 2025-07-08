@@ -24,11 +24,11 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
       }
     }
 
-    get();
+    void get();
   }, [message]);
 
   if (isLoading) {
-    return <>Loading</>;
+    return 'Loading';
   }
 
   return <>{children}</>;
