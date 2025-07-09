@@ -3,11 +3,8 @@ import { Switch } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
 import { ErrorMessage } from '@/pages/shared/components/ErrorMessage';
-import {
-  type ErrorWithKeyLike,
-  getNextOccurrence,
-  transformBalance,
-} from '@/shared/helpers';
+import { toErrorInfoFactory, type ErrorInfo } from '@/pages/shared/lib/utils';
+import { getNextOccurrence, transformBalance } from '@/shared/helpers';
 import { useMessage, useTranslation } from '@/popup/lib/context';
 import type { Response, UpdateBudgetPayload } from '@/shared/messages';
 import type { PopupState } from '@/popup/lib/store';
@@ -39,7 +36,6 @@ type BudgetAmountProps = {
   onBudgetChanged: () => void;
 };
 
-type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'amount' | 'root';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
@@ -50,15 +46,7 @@ const BudgetAmount = ({
   onBudgetChanged,
 }: BudgetAmountProps) => {
   const t = useTranslation();
-
-  const toErrorInfo = React.useCallback(
-    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
-      if (!err) return null;
-      if (typeof err === 'string') return { message: err };
-      return { message: t(err), info: err };
-    },
-    [t],
-  );
+  const toErrorInfo = React.useMemo(() => toErrorInfoFactory(t), [t]);
 
   const originalValues = {
     walletAddressUrl: walletAddress.id,

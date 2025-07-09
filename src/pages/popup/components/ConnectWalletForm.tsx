@@ -10,7 +10,12 @@ import {
   InputAmount,
   validateAmount,
 } from '@/pages/shared/components/InputAmount';
-import { cn, formatNumber } from '@/pages/shared/lib/utils';
+import {
+  cn,
+  toErrorInfoFactory,
+  formatNumber,
+  type ErrorInfo,
+} from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
@@ -35,7 +40,6 @@ interface Inputs {
 }
 
 type ConnectTransientState = DeepReadonly<PopupTransientState['connect']>;
-type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
@@ -69,6 +73,7 @@ export const ConnectWalletForm = ({
   onConnect = () => {},
 }: ConnectWalletFormProps) => {
   const t = useTranslation();
+  const toErrorInfo = React.useMemo(() => toErrorInfoFactory(t), [t]);
 
   const [walletAddressUrl, setWalletAddressUrl] = React.useState<
     Inputs['walletAddressUrl']
@@ -94,18 +99,6 @@ export const ConnectWalletForm = ({
     setAutoKeyShareFailed(false);
   }, [clearConnectState]);
 
-  const toErrorInfo = React.useCallback(
-    (
-      err?: string | DeepReadonly<ErrorWithKeyLike> | null,
-    ): ErrorInfo | null => {
-      if (!err) return null;
-      if (typeof err === 'string') return { message: err };
-      // @ts-expect-error readonly, it's ok
-      return { message: t(err), info: err };
-    },
-    [t],
-  );
-
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<ConnectWalletAddressInfo | null>(null);
 
@@ -126,10 +119,14 @@ export const ConnectWalletForm = ({
   const [isSubmitting, setIsSubmitting] = React.useState(
     state?.status?.startsWith('connecting') || false,
   );
+
   const handleAmountChange = React.useCallback(
-    (amountValue: string) => {
+    (amountValue: string, input?: HTMLInputElement) => {
       setErrors((prev) => ({ ...prev, amount: null }));
       setAmount(amountValue);
+      if (input && Number(amountValue) > 0) {
+        input.dataset.modified = '1';
+      }
       saveValue('amount', amountValue);
     },
     [saveValue],
@@ -148,9 +145,20 @@ export const ConnectWalletForm = ({
           walletInfo.defaultBudget,
           walletInfo.walletAddress.assetScale,
         );
-        handleAmountChange(defaultBudget);
-        document.querySelector<HTMLInputElement>('#connectAmount')!.value =
-          defaultBudget;
+        const input = document.querySelector<HTMLInputElement>(
+          'input#connectAmount',
+        )!;
+        if (
+          !input.dataset.modified ||
+          !input.value ||
+          input.ariaInvalid === 'true'
+        ) {
+          setErrors((prev) => ({ ...prev, amount: null }));
+          input.defaultValue = defaultBudget;
+          input.value = defaultBudget;
+          setAmount(defaultBudget);
+          saveValue('amount', defaultBudget);
+        }
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
@@ -162,7 +170,7 @@ export const ConnectWalletForm = ({
       }
       return true;
     },
-    [getWalletInfo, toErrorInfo, handleAmountChange],
+    [getWalletInfo, saveValue, toErrorInfo],
   );
 
   const handleWalletAddressUrlChange = React.useCallback(
@@ -234,6 +242,10 @@ export const ConnectWalletForm = ({
         // variable, so we get latest value via `walletAddress` variable.
       }
     }
+
+    const amountInput =
+      document.querySelector<HTMLInputElement>('#connectAmount')!;
+    const amount = amountInput.value;
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressInput);
     const errAmount = validateAmount(amount, walletAddressInfo!.walletAddress);
@@ -389,26 +401,15 @@ export const ConnectWalletForm = ({
           {t('connectWallet_labelGroup_amount')}
         </legend>
         <div className="flex items-center gap-6">
-          <InputAmount
-            id="connectAmount"
-            label={t('connectWallet_label_amount')}
-            labelHidden={true}
+          <AmountInput
             amount={amount}
-            className="max-w-48"
-            walletAddress={
-              walletAddressInfo?.walletAddress || {
-                assetCode: 'USD',
-                assetScale: 2,
-              }
-            }
-            errorMessage={errors.amount?.message}
-            errorHidden={true}
-            readOnly={isSubmitting}
+            isSubmitting={isSubmitting}
+            walletAddressInfo={walletAddressInfo}
+            onAmountChange={handleAmountChange}
+            error={errors.amount}
             onError={(err) => {
               setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
-            onChange={handleAmountChange}
-            placeholder={walletAddressInfo?.defaultBudget?.toString() || '5.00'}
           />
 
           <Switch
@@ -475,6 +476,48 @@ export const ConnectWalletForm = ({
     </form>
   );
 };
+
+interface AmountInputProps {
+  amount: string;
+  isSubmitting: boolean;
+  error: ErrorInfo | null;
+  walletAddressInfo: ConnectWalletAddressInfo | null;
+  onError: React.ComponentProps<typeof InputAmount>['onError'];
+  onAmountChange: React.ComponentProps<typeof InputAmount>['onChange'];
+}
+
+function AmountInput({
+  amount,
+  isSubmitting,
+  error,
+  walletAddressInfo,
+  onError,
+  onAmountChange,
+}: AmountInputProps) {
+  const t = useTranslation();
+
+  return (
+    <InputAmount
+      id="connectAmount"
+      label={t('connectWallet_label_amount')}
+      labelHidden={true}
+      amount={amount}
+      className="max-w-48"
+      walletAddress={
+        walletAddressInfo?.walletAddress || {
+          assetCode: 'USD',
+          assetScale: 2,
+        }
+      }
+      errorMessage={error?.message}
+      errorHidden={true}
+      readOnly={isSubmitting}
+      onError={onError}
+      onChange={onAmountChange}
+      placeholder={walletAddressInfo?.defaultBudget?.toString() || '5.00'}
+    />
+  );
+}
 
 const ManualKeyPairNeeded: React.FC<{
   error: { message: string; details: null | ErrorInfo; whyText: string };
