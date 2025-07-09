@@ -156,6 +156,7 @@ export class TabState {
   }
 
   clearSessionsByTabId(tabId: TabId) {
+    this.logger.trace('clearSessionsByTabId', tabId);
     this.currentIcon.delete(tabId);
     this.paymentManagers.destroy(tabId);
   }

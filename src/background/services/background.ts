@@ -306,6 +306,10 @@ export class Background {
               await this.tabEvents.onFocussedTab(getTab(sender));
               return;
 
+            case 'PAGE_HIDE':
+              await this.tabEvents.onPageHide(sender);
+              return;
+
             case 'START_MONETIZATION':
               await this.monetizationService.startPaymentSession(
                 message.payload,
