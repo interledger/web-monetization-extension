@@ -61,7 +61,7 @@ export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
   state,
-  walletAddressPlaceholder = 'https://ilp.interledger-test.dev/johndoe',
+  walletAddressPlaceholder = 'https://walletprovider.com/MyWallet',
   getWalletInfo,
   connectWallet,
   clearConnectState,
