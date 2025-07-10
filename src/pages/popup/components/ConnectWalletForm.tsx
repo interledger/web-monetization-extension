@@ -12,8 +12,8 @@ import {
 } from '@/pages/shared/components/InputAmount';
 import {
   cn,
-  toErrorInfoFactory,
   formatNumber,
+  toErrorInfoFactory,
   type ErrorInfo,
 } from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
