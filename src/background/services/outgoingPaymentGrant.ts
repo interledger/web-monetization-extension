@@ -299,7 +299,7 @@ export class OutgoingPaymentGrantService {
       reject(signal.reason);
     });
 
-    const tabID = await createTabIfNotExists(this.browser, existingTabId, url);
+    const tabID = await createTabIfNotExists(this.browser, url, existingTabId);
     onTabOpen(tabID);
 
     this.events.emit('request_popup_close');

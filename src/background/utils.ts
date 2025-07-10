@@ -169,7 +169,7 @@ export const getTab = (sender: Runtime.MessageSender): Tab => {
 
 export const redirectToWelcomeScreen = async (
   browser: Browser,
-  tabId: number,
+  tabId: number | undefined,
   result: GrantResult,
   intent: InteractionIntent,
   errorCode?: ErrorCode,
@@ -180,9 +180,7 @@ export const redirectToWelcomeScreen = async (
   url.searchParams.set('intent', intent);
   if (errorCode) url.searchParams.set('errorCode', errorCode);
 
-  await browser.tabs.update(tabId, {
-    url: url.toString(),
-  });
+  await createTabIfNotExists(browser, url.toString(), tabId);
 };
 
 export const closeTabsByFilter = async (
@@ -197,7 +195,7 @@ export const closeTabsByFilter = async (
 
 export const createTab = async (
   browser: Browser,
-  url?: string,
+  url: string,
 ): Promise<TabId> => {
   const tab = await browser.tabs.create({ url });
   return tab.id!;
@@ -205,8 +203,8 @@ export const createTab = async (
 
 export const createTabIfNotExists = async (
   browser: Browser,
+  url: string,
   tabId?: TabId,
-  url?: string,
 ): Promise<TabId> => {
   if (!tabId) return createTab(browser, url);
   try {

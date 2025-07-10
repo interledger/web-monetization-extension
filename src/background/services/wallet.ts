@@ -20,7 +20,6 @@ import {
   toAmount,
   onPopupOpen,
   closeTabsByFilter,
-  createTabIfNotExists,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -86,9 +85,7 @@ export class WalletService {
       const err = new ErrorWithKey('connectWallet_error_timeout');
       this.setConnectStateError(err);
 
-      void createTabIfNotExists(this.browser, tabId).then((tabId) =>
-        this.redirectOnTimeout(tabId, intent),
-      );
+      void this.redirectOnTimeout(intent, tabId);
       throw err;
     };
 
@@ -304,8 +301,7 @@ export class WalletService {
       );
     } catch (error) {
       if (isAbortSignalTimeout(error)) {
-        tabId = await createTabIfNotExists(this.browser, tabId);
-        await this.redirectOnTimeout(tabId, intent);
+        await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
       }
       throw error;
@@ -360,8 +356,7 @@ export class WalletService {
       );
     } catch (error) {
       if (isAbortSignalTimeout(error)) {
-        tabId = await createTabIfNotExists(this.browser, tabId);
-        await this.redirectOnTimeout(tabId, intent);
+        await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
       }
       throw error;
@@ -501,7 +496,7 @@ export class WalletService {
     await this.storage.setState({ key_revoked: false });
   }
 
-  private async redirectOnTimeout(tabId: TabId, intent: InteractionIntent) {
+  private async redirectOnTimeout(intent: InteractionIntent, tabId?: TabId) {
     await redirectToWelcomeScreen(
       this.browser,
       tabId,
