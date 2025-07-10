@@ -1,8 +1,8 @@
 import React from 'react';
 import { useLocation } from 'wouter';
+import { getResponseOrThrow } from '@/shared/messages';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { useMessage } from '@/popup/lib/context';
-import { getConnectWalletInfo } from '@/shared/helpers';
 import { usePopupState } from '@/popup/lib/store';
 import { ROUTES_PATH } from '@/popup/Popup';
 
@@ -30,7 +30,11 @@ export default () => {
       saveValue={(key, val) => {
         localStorage?.setItem(`connect.${key}`, val.toString());
       }}
-      getWalletInfo={getConnectWalletInfo}
+      getWalletInfo={(walletAddressUrl) =>
+        message
+          .send('GET_CONNECT_WALLET_ADDRESS_INFO', walletAddressUrl)
+          .then(getResponseOrThrow)
+      }
       connectWallet={(data) => message.send('CONNECT_WALLET', data)}
       onConnect={() => {
         // The popup closes due to redirects on connect, so we don't need to
