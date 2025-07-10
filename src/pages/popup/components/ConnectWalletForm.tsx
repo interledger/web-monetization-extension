@@ -145,17 +145,18 @@ export const ConnectWalletForm = ({
           walletInfo.defaultBudget,
           walletInfo.walletAddress.assetScale,
         );
-        const input = document.querySelector<HTMLInputElement>(
+        const inputEl = document.querySelector<HTMLInputElement>(
           'input#connectAmount',
-        )!;
+        );
         if (
-          !input.dataset.modified ||
-          !input.value ||
-          input.ariaInvalid === 'true'
+          inputEl &&
+          (!inputEl.dataset.modified ||
+            !inputEl.value ||
+            inputEl.ariaInvalid === 'true')
         ) {
           setErrors((prev) => ({ ...prev, amount: null }));
-          input.defaultValue = defaultBudget;
-          input.value = defaultBudget;
+          inputEl.defaultValue = defaultBudget;
+          inputEl.value = defaultBudget;
           setAmount(defaultBudget);
           saveValue('amount', defaultBudget);
         }
