@@ -4,9 +4,8 @@ import type {
   Tab,
   TabId,
   WalletAmount,
-  WindowId,
 } from '@/shared/types';
-import type { Browser, Runtime } from 'webextension-polyfill';
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 import { EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
@@ -186,25 +185,37 @@ export const redirectToWelcomeScreen = async (
   });
 };
 
-export const reuseOrCreateTab = async (
+export const closeTabsByFilter = async (
   browser: Browser,
-  windowId?: WindowId,
-  isTabReusable: (url: string, tabId: number) => boolean = () => false,
-): Promise<TabId> => {
-  const tabs = await browser.tabs.query({
-    ...(windowId ? { windowId } : { lastFocusedWindow: true }),
-  });
-  const reuseableTab = tabs.find(
-    (tab) => !!tab.url && !!tab.id && isTabReusable(tab.url, tab.id),
+  filter: (tab: Tabs.Tab) => boolean | undefined,
+) => {
+  const tabs = await browser.tabs.query({ lastFocusedWindow: true });
+  await Promise.all(
+    tabs.filter(filter).map((tab) => browser.tabs.remove(tab.id!)),
   );
-  if (reuseableTab?.id) {
-    await browser.tabs
-      .update(reuseableTab.id, { active: true })
-      .catch(() => {});
-    return reuseableTab.id;
+};
+
+export const createTab = async (
+  browser: Browser,
+  url?: string,
+): Promise<TabId> => {
+  const tab = await browser.tabs.create({ url });
+  return tab.id!;
+};
+
+export const createTabIfNotExists = async (
+  browser: Browser,
+  tabId?: TabId,
+  url?: string,
+): Promise<TabId> => {
+  if (!tabId) return createTab(browser, url);
+  try {
+    await browser.tabs.get(tabId);
+    if (url) await browser.tabs.update(tabId, { url });
+    return tabId;
+  } catch {
+    return createTab(browser, url);
   }
-  const newTab = await browser.tabs.create({});
-  return newTab.id!;
 };
 
 export const onPopupOpen = (

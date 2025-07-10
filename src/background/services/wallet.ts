@@ -11,14 +11,16 @@ import type {
   ReconnectWalletPayload,
   UpdateBudgetPayload,
 } from '@/shared/messages';
+import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import {
   InteractionIntent,
   ErrorCode,
   GrantResult,
   redirectToWelcomeScreen,
-  reuseOrCreateTab,
   toAmount,
   onPopupOpen,
+  closeTabsByFilter,
+  createTabIfNotExists,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -28,7 +30,7 @@ import { bytesToHex } from '@noble/hashes/utils';
 import type { Cradle } from '@/background/container';
 import type { TabId } from '@/shared/types';
 import type { WalletAddress } from '@interledger/open-payments';
-import type { Browser } from 'webextension-polyfill';
+import type { Browser, Tabs } from 'webextension-polyfill';
 
 export class WalletService {
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
@@ -38,7 +40,6 @@ export class WalletService {
   private browser: Cradle['browser'];
   private appName: Cradle['appName'];
   private browserName: Cradle['browserName'];
-  private windowState: Cradle['windowState'];
   private t: Cradle['t'];
 
   constructor({
@@ -49,7 +50,6 @@ export class WalletService {
     browser,
     appName,
     browserName,
-    windowState,
     t,
   }: Cradle) {
     Object.assign(this, {
@@ -60,7 +60,6 @@ export class WalletService {
       browser,
       appName,
       browserName,
-      windowState,
       t,
     });
   }
@@ -78,15 +77,28 @@ export class WalletService {
 
     await this.openPaymentsService.initClient(walletAddress.id);
 
-    const appUrl = this.browser.runtime.getURL(APP_URL);
+    const browser = this.browser;
+    const appUrl = browser.runtime.getURL(APP_URL);
     const intent = InteractionIntent.CONNECT;
 
     const onTimeoutAbort = (): never => {
       cleanupListeners();
       const err = new ErrorWithKey('connectWallet_error_timeout');
       this.setConnectStateError(err);
-      void this.redirectOnTimeout(tabId, intent);
+
+      void createTabIfNotExists(this.browser, tabId).then((tabId) =>
+        this.redirectOnTimeout(tabId, intent),
+      );
       throw err;
+    };
+
+    const closeTabFilter = (tab: Tabs.Tab) => {
+      const tabUrl = tab.url;
+      if (!tabUrl) return false;
+      return (
+        tabUrl.startsWith(appUrl) ||
+        tabUrl.startsWith(OPEN_PAYMENTS_REDIRECT_URL)
+      );
     };
 
     const walletAmount = toAmount({
@@ -94,7 +106,8 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
-    let tabId: TabId;
+
+    let tabId: TabId | undefined;
     let cleanupListeners: () => void = () => {};
     try {
       const grant =
@@ -103,19 +116,24 @@ export class WalletService {
           walletAmount,
           intent,
         );
-      tabId = await reuseOrCreateTab(
-        this.browser,
-        this.windowState.getCurrentWindowId(),
-        (url) => url.startsWith(appUrl),
-      );
+
+      // In Safari, connect process crashes with "tab closed" error if we reuse
+      // the tab. So, instead of reusing, close the app tab and open a new one -
+      // goal is to not have too many extension tabs for user. This is also
+      // better than re-using (`tabs.update`) as it gives more consistent user
+      // experience.
+      await closeTabsByFilter(browser, closeTabFilter);
+
       this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
-      cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
         grant,
         intent,
-        tabId,
+        (openedTabId) => {
+          tabId = openedTabId;
+          cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
+        },
       );
       cleanupListeners();
     } catch (error) {
@@ -136,29 +154,18 @@ export class WalletService {
           throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
         }
 
-        let appTabId: TabId | undefined;
-        tabId = await reuseOrCreateTab(
-          this.browser,
-          this.windowState.getCurrentWindowId(),
-          (url, tabId) => {
-            const isAppTab = url.startsWith(appUrl);
-            if (isAppTab) appTabId = tabId;
-            return this.browserName !== 'safari' && isAppTab;
-          },
-        );
-        if (appTabId && appTabId !== tabId) {
-          // In Safari, connect process crashes with "tab closed" error if we
-          // reuse the tab. So, instead of reusing, close the app tab and open a
-          // new one - goal is to not have too many extension tabs for user.
-          await this.browser.tabs.remove(appTabId);
-        }
-        cleanupListeners = highlightTabOnPopupOpen(this.browser, tabId);
         // add key to wallet and try again
         try {
           this.setConnectState(
             this.t('connectWalletKeyService_text_stepAddKey'),
           );
-          await this.addPublicKeyToWallet(walletAddress, tabId);
+
+          await closeTabsByFilter(browser, closeTabFilter);
+          await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
+            tabId = openedTabId;
+            cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
+          });
+
           const grant =
             await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
               walletAddress,
@@ -171,6 +178,11 @@ export class WalletService {
             walletAddress,
             grant,
             intent,
+            (openedTabId) => {
+              cleanupListeners();
+              tabId = openedTabId;
+              cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
+            },
             tabId,
           );
           cleanupListeners();
@@ -279,17 +291,20 @@ export class WalletService {
         walletAmount,
         intent,
       );
-    const tabId = await reuseOrCreateTab(this.browser);
+    let tabId: TabId | undefined;
     try {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
         grant,
         intent,
-        tabId,
+        (openedTabId) => {
+          tabId = openedTabId;
+        },
       );
     } catch (error) {
       if (isAbortSignalTimeout(error)) {
+        tabId = await createTabIfNotExists(this.browser, tabId);
         await this.redirectOnTimeout(tabId, intent);
         throw new ErrorWithKey('connectWallet_error_timeout');
       }
@@ -332,17 +347,20 @@ export class WalletService {
         walletAmount,
         intent,
       );
-    const tabId = await reuseOrCreateTab(this.browser);
+    let tabId: TabId | undefined;
     try {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
         grant,
         intent,
-        tabId,
+        (openedTabId) => {
+          tabId = openedTabId;
+        },
       );
     } catch (error) {
       if (isAbortSignalTimeout(error)) {
+        tabId = await createTabIfNotExists(this.browser, tabId);
         await this.redirectOnTimeout(tabId, intent);
         throw new ErrorWithKey('connectWallet_error_timeout');
       }
@@ -397,7 +415,7 @@ export class WalletService {
    */
   private async addPublicKeyToWallet(
     walletAddress: WalletAddress,
-    tabId: TabId,
+    onTabOpen: (tabId: TabId) => void,
   ) {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
@@ -407,8 +425,12 @@ export class WalletService {
       t: this.t,
     });
     this.events.emit('request_popup_close');
+    let tabId: TabId | undefined;
     try {
-      await keyAutoAdd.addPublicKeyToWallet(walletAddress, tabId);
+      await keyAutoAdd.addPublicKeyToWallet(walletAddress, (openedTabId) => {
+        tabId = openedTabId;
+        onTabOpen(openedTabId);
+      });
     } catch (error) {
       const isTabClosed = error.key === 'connectWallet_error_tabClosed';
       if (tabId && !isTabClosed) {
@@ -432,13 +454,15 @@ export class WalletService {
   }
 
   private async retryAddPublicKeyToWallet(walletAddress: WalletAddress) {
-    const tabId = await reuseOrCreateTab(this.browser);
+    let tabId: TabId | undefined;
     try {
-      await this.addPublicKeyToWallet(walletAddress, tabId);
+      await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
+        tabId = openedTabId;
+      });
       await this.outgoingPaymentGrantService.rotateToken();
       await redirectToWelcomeScreen(
         this.browser,
-        tabId,
+        tabId!,
         GrantResult.KEY_ADD_SUCCESS,
         InteractionIntent.RECONNECT,
       );
