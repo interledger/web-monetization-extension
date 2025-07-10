@@ -29,6 +29,13 @@ export type Response<TPayload = void> =
   | SuccessResponse<TPayload>
   | ErrorResponse;
 
+export function getResponseOrThrow<T>(res: Response<T>) {
+  if (res.success) {
+    return res.payload;
+  }
+  throw res.error ?? new Error(res.message);
+}
+
 type MessageMap = Record<string, { input: unknown; output: unknown }>;
 type MessagesWithInput<T extends MessageMap> = {
   [K in keyof T as T[K]['input'] extends never ? never : K]: T[K];
@@ -248,6 +255,10 @@ export type AppToBackgroundMessage = {
   GET_DATA_APP: {
     input: never;
     output: AppState;
+  };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: ConnectWalletAddressInfo;
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
   RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
