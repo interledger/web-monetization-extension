@@ -134,6 +134,8 @@ export class MonetizationService {
       this.canTryPayment(connected, state)
     ) {
       paymentManager.start();
+    } else {
+      paymentManager.pause('paused-by-user');
     }
   }
 
@@ -208,6 +210,7 @@ export class MonetizationService {
       !continuousPaymentsEnabled ||
       !this.canTryPayment(connected, state)
     ) {
+      paymentManager.pause('paused-by-user');
       return;
     }
 
@@ -267,7 +270,7 @@ export class MonetizationService {
     if (nowEnabled && enabled) {
       await this.resumePaymentSessionActiveTab();
     } else {
-      this.stopAllSessions();
+      this.stopAllSessions('toggle-continuous-payments');
     }
   }
 
@@ -281,7 +284,7 @@ export class MonetizationService {
     if (nowEnabled && continuousPaymentsEnabled) {
       await this.resumePaymentSessionActiveTab();
     } else {
-      this.stopAllSessions();
+      this.stopAllSessions('toggle-payments');
     }
   }
 
@@ -373,7 +376,7 @@ export class MonetizationService {
 
       for (const tabId of tabIds) {
         const paymentManager = this.tabState.paymentManagers.get(tabId);
-        await paymentManager?.setRate(rate);
+        paymentManager?.setRate(rate);
       }
     });
   }
@@ -405,9 +408,10 @@ export class MonetizationService {
     });
   }
 
-  private stopAllSessions() {
+  private stopAllSessions(reason?: string) {
     for (const paymentManager of this.tabState.paymentManagers.values()) {
-      paymentManager.stop();
+      paymentManager.pause(reason);
+      paymentManager.stop(reason);
     }
     this.logger.debug('All payment sessions stopped.');
   }

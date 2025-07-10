@@ -36,5 +36,11 @@
     "./.github/actions/*.cjs",
     "esbuild/**/*"
   ],
-  "exclude": ["dist", "dev", "src/safari"]
+  "exclude": [
+    "dist",
+    "dev",
+    "src/safari",
+    "tests/e2e/playwright-report",
+    "tests/e2e/test-results"
+  ]
 }

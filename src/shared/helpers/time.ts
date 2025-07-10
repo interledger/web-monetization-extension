@@ -3,6 +3,7 @@ import { isAfter } from 'date-fns/isAfter';
 import { isBefore } from 'date-fns/isBefore';
 import { parse, toSeconds } from 'iso8601-duration';
 import type { RepeatingInterval } from '../types';
+import type { Logger } from '../logger';
 
 export const sleep = (ms: number) =>
   new Promise<void>((r) => setTimeout(r, ms));
@@ -123,6 +124,7 @@ export class Timeout {
   constructor(
     private ms: number,
     private callback: () => void,
+    private logger?: Logger,
   ) {
     if (ms > 0) this.reset(ms);
   }
@@ -136,14 +138,20 @@ export class Timeout {
   }
 
   pause() {
-    if (this.#isPaused) return;
+    if (this.#isPaused) {
+      this.logger?.warn('Timeout.pause: is already paused');
+      // return;
+    }
     this.clear();
     this.#isPaused = true;
     this.#remaining = this.ms - (Date.now() - this.#startTime);
   }
 
   resume() {
-    if (!this.#isPaused) return;
+    if (!this.#isPaused) {
+      this.logger?.warn('Timeout.resume: was not paused');
+      // return;
+    }
     if (this.#remaining > 0) {
       this.timeout = setTimeout(() => {
         this.callback();
