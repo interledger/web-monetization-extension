@@ -36,7 +36,7 @@ export async function connectWallet(
   await loadKeysToExtension(background, keyInfo);
 
   const connectButton = await fillPopup(popup, i18n, params);
-  await connectButton.click();
+  void connectButton.click();
 
   const continueWaitMs = await getContinueWaitTime(
     context,
