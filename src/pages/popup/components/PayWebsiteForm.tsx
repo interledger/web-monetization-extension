@@ -2,28 +2,24 @@ import React from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
 import { FadeInOut } from '@/pages/shared/components/FadeInOut';
-import { roundWithPrecision, cn } from '@/pages/shared/lib/utils';
-import type { ErrorWithKeyLike } from '@/shared/helpers';
+import {
+  roundWithPrecision,
+  cn,
+  toErrorInfoFactory,
+  type ErrorInfo,
+} from '@/pages/shared/lib/utils';
 import { useMessage, useTranslation } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
 
-type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'amount' | 'pay';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
 export const PayWebsiteForm = () => {
   const t = useTranslation();
+  const toErrorInfo = React.useMemo(() => toErrorInfoFactory(t), [t]);
+
   const message = useMessage();
   const { walletAddress, tab } = usePopupState();
-
-  const toErrorInfo = React.useCallback(
-    (err?: string | ErrorWithKeyLike | null): ErrorInfo | null => {
-      if (!err) return null;
-      if (typeof err === 'string') return { message: err };
-      return { message: t(err), info: err };
-    },
-    [t],
-  );
 
   const [amount, setAmount] = React.useState('');
   const [errors, setErrors] = React.useState<Errors>({

@@ -1,5 +1,8 @@
 import { cx, type CxOptions } from 'class-variance-authority';
 import { twMerge } from 'tailwind-merge';
+import type { useTranslation } from './context';
+import type { DeepReadonly } from '@/shared/types';
+import type { ErrorWithKeyLike } from '@/shared/helpers';
 
 export const getCurrencySymbol = (assetCode: string): string => {
   if (!isISO4217Code(assetCode)) {
@@ -87,3 +90,16 @@ export function formatNumber(
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
 };
+
+export type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
+
+export function toErrorInfoFactory(t: ReturnType<typeof useTranslation>) {
+  return (
+    err?: string | DeepReadonly<ErrorWithKeyLike> | null,
+  ): ErrorInfo | null => {
+    if (!err) return null;
+    if (typeof err === 'string') return { message: err };
+    // @ts-expect-error readonly, it's ok
+    return { message: t(err), info: err };
+  };
+}
