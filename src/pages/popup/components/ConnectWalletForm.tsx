@@ -10,7 +10,12 @@ import {
   InputAmount,
   validateAmount,
 } from '@/pages/shared/components/InputAmount';
-import { cn, formatNumber } from '@/pages/shared/lib/utils';
+import {
+  cn,
+  formatNumber,
+  toErrorInfoFactory,
+  type ErrorInfo,
+} from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
@@ -35,7 +40,6 @@ interface Inputs {
 }
 
 type ConnectTransientState = DeepReadonly<PopupTransientState['connect']>;
-type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
@@ -69,6 +73,7 @@ export const ConnectWalletForm = ({
   onConnect = () => {},
 }: ConnectWalletFormProps) => {
   const t = useTranslation();
+  const toErrorInfo = React.useMemo(() => toErrorInfoFactory(t), [t]);
 
   const [walletAddressUrl, setWalletAddressUrl] = React.useState<
     Inputs['walletAddressUrl']
@@ -93,18 +98,6 @@ export const ConnectWalletForm = ({
     setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
     setAutoKeyShareFailed(false);
   }, [clearConnectState]);
-
-  const toErrorInfo = React.useCallback(
-    (
-      err?: string | DeepReadonly<ErrorWithKeyLike> | null,
-    ): ErrorInfo | null => {
-      if (!err) return null;
-      if (typeof err === 'string') return { message: err };
-      // @ts-expect-error readonly, it's ok
-      return { message: t(err), info: err };
-    },
-    [t],
-  );
 
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<ConnectWalletAddressInfo | null>(null);
