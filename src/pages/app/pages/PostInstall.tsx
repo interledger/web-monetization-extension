@@ -4,11 +4,8 @@ import {
   CaretDownIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import {
-  getBrowserName,
-  getConnectWalletInfo,
-  type BrowserName,
-} from '@/shared/helpers';
+import { getBrowserName, type BrowserName } from '@/shared/helpers';
+import { getResponseOrThrow } from '@/shared/messages';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { cn } from '@/pages/shared/lib/utils';
@@ -466,7 +463,11 @@ function StepConnectWallet({
         saveValue={(key, val) => {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
-        getWalletInfo={getConnectWalletInfo}
+        getWalletInfo={(walletAddressUrl) =>
+          message
+            .send('GET_CONNECT_WALLET_ADDRESS_INFO', walletAddressUrl)
+            .then(getResponseOrThrow)
+        }
         walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         clearConnectState={() => message.send('RESET_CONNECT_STATE')}
