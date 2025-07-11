@@ -6,7 +6,7 @@ import {
   type KeyInfo,
 } from '../fixtures/helpers';
 import { fillPopup, type Popup, type ConnectDetails } from '../pages/popup';
-import { getContinueWaitTime, waitForPage, waitForWelcomePage } from './common';
+import { getContinueWaitTime, waitForWelcomePage } from './common';
 import { revokeKey as revokeKeyApi } from '@/content/keyAutoAdd/lib/helpers/testWallet';
 
 export const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
@@ -44,9 +44,9 @@ export async function connectWallet(
     DEFAULT_CONTINUE_WAIT_MS,
   );
 
-  const page = await waitForPage(context, (url) => {
-    return url.includes('/grant-interactions');
-  });
+  const page = await context.waitForEvent('page', (page) =>
+    page.url().includes('/grant-interactions'),
+  );
   await completeGrant(page, continueWaitMs);
   await page.close();
   await popup.bringToFront();
