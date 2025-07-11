@@ -400,12 +400,14 @@ export class PaymentManager {
 
   resume() {
     const sessions = this.enabledSessions;
-    this.logger.debug(`Resuming ${sessions.length} sessions`);
+    this.logger.debug(`Resuming ${sessions.length} sessions`, this.#state);
     for (const session of sessions) {
       session.activate();
     }
+    if (this.#state === 'paused') {
+      this.#state = 'active';
+    }
     this.timer.resume();
-    this.#state = 'active';
   }
 
   stop(reason?: string) {

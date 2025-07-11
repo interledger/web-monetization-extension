@@ -238,7 +238,7 @@ export class PaymentSession {
     } catch {
       return false;
     }
-    return this.active && !this.invalid && !this.disabled;
+    return !this.invalid && !this.disabled;
   }
 
   disable() {
