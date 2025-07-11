@@ -143,7 +143,9 @@ export class Timeout {
   }
 
   resume() {
-    if (!this.#isPaused) return;
+    if (!this.#isPaused) {
+      throw new Error('Unexpected: Timeout was not paused, cannot resume');
+    }
     if (this.#remaining > 0) {
       this.timeout = setTimeout(() => {
         this.callback();

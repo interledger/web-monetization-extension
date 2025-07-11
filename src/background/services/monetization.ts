@@ -71,20 +71,10 @@ export class MonetizationService {
       throw new Error('Unexpected: payload is empty');
     }
     const {
-      state,
-      continuousPaymentsEnabled,
-      enabled,
       rateOfPay,
       connected,
       walletAddress: connectedWallet,
-    } = await this.storage.get([
-      'state',
-      'continuousPaymentsEnabled',
-      'enabled',
-      'connected',
-      'rateOfPay',
-      'walletAddress',
-    ]);
+    } = await this.storage.get(['connected', 'rateOfPay', 'walletAddress']);
 
     if (!rateOfPay || !connectedWallet) {
       this.logger.error(
@@ -126,15 +116,19 @@ export class MonetizationService {
       }),
     );
 
-    this.events.emit('monetization.state_update', tabId);
-
+    const { state, continuousPaymentsEnabled, enabled } =
+      await this.storage.get(['state', 'continuousPaymentsEnabled', 'enabled']);
     if (
       enabled &&
       continuousPaymentsEnabled &&
       this.canTryPayment(connected, state)
     ) {
       paymentManager.start();
+    } else {
+      paymentManager.pause('cannot-start-yet');
     }
+
+    this.events.emit('monetization.state_update', tabId);
   }
 
   async pausePaymentSessionsByTabId(tabId: number, reason?: string) {
@@ -169,8 +163,11 @@ export class MonetizationService {
       }
     }
 
-    if (pausedCount > 0 && paymentManager.payableSessions.length === 0) {
-      paymentManager?.pause('all-paused');
+    if (
+      pausedCount > 0 &&
+      !paymentManager.payableSessions.some((s) => s.active)
+    ) {
+      paymentManager.pause('all-paused');
     }
 
     this.events.emit('monetization.state_update', tabId);
@@ -208,6 +205,7 @@ export class MonetizationService {
       !continuousPaymentsEnabled ||
       !this.canTryPayment(connected, state)
     ) {
+      paymentManager.pause('paused-by-user');
       return;
     }
 
@@ -267,7 +265,7 @@ export class MonetizationService {
     if (nowEnabled && enabled) {
       await this.resumePaymentSessionActiveTab();
     } else {
-      this.stopAllSessions();
+      this.pauseAllSessions('toggle-continuous-payments');
     }
   }
 
@@ -281,7 +279,7 @@ export class MonetizationService {
     if (nowEnabled && continuousPaymentsEnabled) {
       await this.resumePaymentSessionActiveTab();
     } else {
-      this.stopAllSessions();
+      this.pauseAllSessions('toggle-payments');
     }
   }
 
@@ -373,7 +371,7 @@ export class MonetizationService {
 
       for (const tabId of tabIds) {
         const paymentManager = this.tabState.paymentManagers.get(tabId);
-        await paymentManager?.setRate(rate);
+        paymentManager?.setRate(rate);
       }
     });
   }
@@ -381,7 +379,7 @@ export class MonetizationService {
   private onKeyRevoked() {
     this.events.once('open_payments.key_revoked', async () => {
       this.logger.warn('Key revoked. Stopping all payment sessions.');
-      this.stopAllSessions();
+      this.pauseAllSessions();
       await this.storage.setState({ key_revoked: true });
       this.onKeyRevoked(); // setup listener again once all is done
     });
@@ -390,7 +388,7 @@ export class MonetizationService {
   private onOutOfFunds() {
     this.events.once('open_payments.out_of_funds', async () => {
       this.logger.warn('Out of funds. Stopping all payment sessions.');
-      this.stopAllSessions();
+      this.pauseAllSessions();
       await this.storage.setState({ out_of_funds: true });
       this.onOutOfFunds(); // setup listener again once all is done
     });
@@ -405,11 +403,11 @@ export class MonetizationService {
     });
   }
 
-  private stopAllSessions() {
+  private pauseAllSessions(reason?: string) {
     for (const paymentManager of this.tabState.paymentManagers.values()) {
-      paymentManager.stop();
+      paymentManager.pause(reason);
     }
-    this.logger.debug('All payment sessions stopped.');
+    this.logger.debug('All payment sessions paused.');
   }
 
   async getPopupData(tab: Pick<Tabs.Tab, 'id' | 'url'>): Promise<PopupStore> {
