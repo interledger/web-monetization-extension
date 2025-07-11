@@ -73,7 +73,10 @@ export class TabState {
   }
 
   isTabMonetized(tabId: TabId) {
-    return this.getEnabledSessions(tabId).length > 0;
+    return (
+      this.getEnabledSessions(tabId).length > 0 &&
+      this.getPayableSessions(tabId).length > 0
+    );
   }
 
   tabHasAllSessionsInvalid(tabId: TabId) {
