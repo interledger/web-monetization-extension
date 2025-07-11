@@ -244,12 +244,17 @@ export const ConnectWalletForm = ({
       }
     }
 
-    const amountInput =
-      document.querySelector<HTMLInputElement>('#connectAmount')!;
+    const walletInfo =
+      walletAddressInfo ??
+      (await getWalletInfo(toWalletAddressUrl(walletAddressUrl)));
+
+    const amountInput = document.querySelector<HTMLInputElement>(
+      'input#connectAmount',
+    )!;
     const amount = amountInput.value;
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressInput);
-    const errAmount = validateAmount(amount, walletAddressInfo!.walletAddress);
+    const errAmount = validateAmount(amount, walletInfo!.walletAddress);
     if (errAmount || errWalletAddressUrl) {
       setErrors((prev) => ({
         ...prev,
@@ -266,15 +271,13 @@ export const ConnectWalletForm = ({
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
-      const walletAddress =
-        walletAddressInfo ??
-        (await getWalletInfo(toWalletAddressUrl(walletAddressUrl)));
+
       setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
-        walletAddress: walletAddress.walletAddress,
+        walletAddress: walletInfo.walletAddress,
         amount,
-        rateOfPay: walletAddress.defaultRateOfPay,
-        maxRateOfPay: walletAddress.maxRateOfPay,
+        rateOfPay: walletInfo.defaultRateOfPay,
+        maxRateOfPay: walletInfo.maxRateOfPay,
         recurring,
         autoKeyAdd: !skipAutoKeyShare,
         autoKeyAddConsent: autoKeyAddConsent.current,
