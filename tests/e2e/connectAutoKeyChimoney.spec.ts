@@ -7,7 +7,7 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/chimoney';
-import { waitForPage, waitForWelcomePage } from './helpers/common';
+import { waitForWelcomePage } from './helpers/common';
 import { getStorage } from './fixtures/helpers';
 
 const TEST_CASES = [
@@ -101,8 +101,8 @@ for (const testCase of TEST_CASES) {
           : 'Switch to App Login';
 
       page = await test.step('shows login page', async () => {
-        const openedPage = await waitForPage(context, (url) =>
-          url.startsWith(walletUrl),
+        const openedPage = await context.waitForEvent('page', (page) =>
+          page.url().startsWith(walletUrl),
         );
         await openedPage.waitForURL((url) => url.href.startsWith(URLS.login));
         await expect(openedPage.locator('form')).toBeVisible();

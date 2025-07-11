@@ -6,8 +6,7 @@ import type {
 } from '@interledger/open-payments';
 import type { ConnectDetails } from '../pages/popup';
 import { spy, type SpyFn } from 'tinyspy';
-import { getWalletInformation, withResolvers } from '@/shared/helpers';
-import { NEW_TAB_PAGES } from '@/background/constants';
+import { getWalletInformation } from '@/shared/helpers';
 
 const OPEN_PAYMENTS_REDIRECT_URL = 'https://webmonetization.org/welcome';
 const PLAYGROUND_URL = 'https://webmonetization.org/play';
@@ -26,30 +25,6 @@ export async function waitForReconnectWelcomePage(page: Page) {
       url.href.startsWith(OPEN_PAYMENTS_REDIRECT_URL) &&
       url.searchParams.get('result') === 'key_add_success',
   );
-}
-
-/**
- * Some times, we open a new tab then update its URL.
- * Other times, we open tab with URL already set.
- * This handles both the scenarios.
- */
-export async function waitForPage(
-  context: BrowserContext,
-  isTargetPage: (url: string) => boolean,
-): Promise<Page> {
-  const { resolve, promise } = withResolvers<Page>();
-  context.on('page', async function onPage(page) {
-    const url = page.url();
-    if (isTargetPage(url)) {
-      context.off('page', onPage);
-      resolve(page);
-    } else if (NEW_TAB_PAGES.some((p) => url.startsWith(p))) {
-      await page.waitForURL((url) => isTargetPage(url.href));
-      context.off('page', onPage);
-      resolve(page);
-    }
-  });
-  return promise;
 }
 
 export async function getContinueWaitTime(

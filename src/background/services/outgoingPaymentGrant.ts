@@ -22,6 +22,7 @@ import {
   isNotFoundError,
 } from '@/background/services/openPayments';
 import {
+  createTabIfNotExists,
   ErrorCode,
   GrantResult,
   InteractionIntent,
@@ -132,15 +133,17 @@ export class OutgoingPaymentGrantService {
     walletAddress: WalletAddress,
     { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
     intent: InteractionIntent,
-    existingTabId: number,
+    onTabOpen: (tabId: TabId) => void,
+    existingTabId?: TabId,
     timeout = ACCEPT_GRANT_TIMEOUT,
   ): Promise<GrantDetails> {
     const signal = AbortSignal.timeout(timeout);
 
     const { interactRef, hash, tabId } = await this.getInteractionInfo(
       grant.interact.redirect,
-      existingTabId,
+      onTabOpen,
       signal,
+      existingTabId,
     );
 
     await this.verifyInteractionHash(
@@ -285,8 +288,9 @@ export class OutgoingPaymentGrantService {
 
   private async getInteractionInfo(
     url: string,
-    existingTabId: TabId,
+    onTabOpen: (tabId: TabId) => void,
     signal: AbortSignal,
+    existingTabId?: TabId,
   ): Promise<InteractionParams> {
     const { resolve, reject, promise } = withResolvers<InteractionParams>();
 
@@ -295,11 +299,9 @@ export class OutgoingPaymentGrantService {
       reject(signal.reason);
     });
 
-    await this.browser.tabs.update(existingTabId, { url });
-    if (!existingTabId) {
-      reject(new Error('Could not create/update tab'));
-      return promise;
-    }
+    const tabID = await createTabIfNotExists(this.browser, url, existingTabId);
+    onTabOpen(tabID);
+
     this.events.emit('request_popup_close');
 
     const removeListeners = () => {
@@ -308,14 +310,14 @@ export class OutgoingPaymentGrantService {
     };
 
     const tabCloseListener: TabRemovedCallback = (tabId) => {
-      if (tabId !== existingTabId) return;
+      if (tabId !== tabID) return;
 
       removeListeners();
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
 
     const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
-      if (tabId !== existingTabId) return;
+      if (tabId !== tabID) return;
       try {
         const tabUrl = new URL(changeInfo.url || '');
         const interactRef = tabUrl.searchParams.get('interact_ref');

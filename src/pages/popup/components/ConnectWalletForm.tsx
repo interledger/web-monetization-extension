@@ -319,6 +319,7 @@ export const ConnectWalletForm = ({
         onAccept={async () => {
           autoKeyAddConsent.current = true;
           setShowConsent(false);
+          await sleep(200);
           await handleSubmit();
         }}
         onDecline={() => {

@@ -12,7 +12,6 @@ import {
   getContinueWaitTime,
   getWalletInfoCached,
   setupPlayground,
-  waitForPage,
 } from './helpers/common';
 import { completeGrant, DEFAULT_CONTINUE_WAIT_MS } from './helpers/testWallet';
 import { transformBalance } from '@/shared/helpers';
@@ -186,8 +185,8 @@ for (const testCase of TEST_CASES) {
           DEFAULT_CONTINUE_WAIT_MS,
         );
         await submitButton.click();
-        const newPage = await waitForPage(context, (url) =>
-          url.includes('/grant-interactions'),
+        const newPage = await context.waitForEvent('page', (page) =>
+          page.url().includes('/grant-interactions'),
         );
         const continueWaitMs = await continueWaitMsPromise;
         await completeGrant(newPage, continueWaitMs);
