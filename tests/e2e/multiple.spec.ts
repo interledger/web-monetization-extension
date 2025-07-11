@@ -202,7 +202,7 @@ test.describe('should monetized site with multiple wallet address', () => {
 
       expect(
         monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
-        'monetization callback is called once for each wallet address',
+        'monetization callback is called twice for each wallet address',
       ).toEqual([...walletAddresses, ...walletAddresses].sort());
     });
 
