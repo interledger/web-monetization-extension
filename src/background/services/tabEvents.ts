@@ -93,9 +93,7 @@ export class TabEvents {
         this.tabState.clearSessionsByTabId(tabId); // for sanity
         this.tabState.clearOverpayingByTabId(tabId);
       } else {
-        // Treat this as page refresh, on non-Chrome browsers.
-        // Also see onPageHide below
-        this.tabState.clearSessionsByTabId(tabId); // for sanity
+        // see onPageHide below
       }
 
       void this.updateVisualIndicators(tab);
