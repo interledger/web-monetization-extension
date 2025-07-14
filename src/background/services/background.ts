@@ -246,9 +246,26 @@ export class Background {
               return success(undefined);
 
             case 'RECONNECT_WALLET': {
+              const lastActiveTab = await this.windowState.getCurrentTab();
               await this.walletService.reconnectWallet(message.payload);
-              await this.monetizationService.resumePaymentSessionActiveTab();
               await this.updateVisualIndicatorsForCurrentTab();
+              if (lastActiveTab?.id) {
+                const paymentManager = this.tabState.paymentManagers.get(
+                  lastActiveTab.id,
+                );
+                // Make sure sessions have minSendAmount which we might have
+                // failed to get as the key was lost.
+                if (paymentManager) {
+                  const sessions = paymentManager.sessions;
+                  await Promise.all(
+                    sessions.map((session) => session.findMinSendAmount(true)),
+                  );
+                  if (lastActiveTab.id === this.windowState.getCurrentTabId()) {
+                    paymentManager.resume();
+                  }
+                }
+                await this.tabEvents.updateVisualIndicators(lastActiveTab);
+              }
               return success(undefined);
             }
 

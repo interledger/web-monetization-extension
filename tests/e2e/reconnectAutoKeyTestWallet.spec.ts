@@ -24,6 +24,8 @@ test('Reconnect to test wallet with automatic key addition', async ({
   background,
   i18n,
 }) => {
+  test.slow(true, 'Long process');
+
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const revokeInfo = await test.step('connect wallet', async () => {
     const connectButton = await test.step('fill popup', async () => {
