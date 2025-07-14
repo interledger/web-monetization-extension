@@ -9,6 +9,7 @@ import {
   setDifference,
   Timeout,
   memoize,
+  moveToFront,
 } from '../helpers';
 
 describe('objectEquals', () => {
@@ -22,6 +23,47 @@ describe('objectEquals', () => {
   it('should return false if objects are not equal', () => {
     expect(objectEquals({ a: 1 }, { a: 2 })).toBe(false);
     expect(objectEquals({ a: 1 }, { b: 1 })).toBe(false);
+  });
+});
+
+describe('moveToFront', () => {
+  it('should move an existing item to the front of the array', () => {
+    const array = [1, 2, 3, 4];
+    moveToFront(array, 3);
+    expect(array).toEqual([3, 1, 2, 4]);
+  });
+
+  it('should not modify the array if the item is already at the front', () => {
+    const array = [1, 2, 3, 4];
+    moveToFront(array, 1);
+    expect(array).toEqual([1, 2, 3, 4]);
+  });
+
+  it('should not modify the array if the item does not exist', () => {
+    const array = [1, 2, 3, 4];
+    moveToFront(array, 5);
+    expect(array).toEqual([1, 2, 3, 4]);
+  });
+
+  it('should handle an empty array without errors', () => {
+    const array: number[] = [];
+    moveToFront(array, 1);
+    expect(array).toEqual([]);
+  });
+
+  it('should work with strings', () => {
+    const array = ['a', 'b', 'c', 'd'];
+    moveToFront(array, 'c');
+    expect(array).toEqual(['c', 'a', 'b', 'd']);
+  });
+
+  it('should work with objects using reference equality', () => {
+    const obj1 = { id: 1 };
+    const obj2 = { id: 2 };
+    const obj3 = { id: 3 };
+    const array = [obj1, obj2, obj3];
+    moveToFront(array, obj3);
+    expect(array).toEqual([obj3, obj1, obj2]);
   });
 });
 

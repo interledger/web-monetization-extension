@@ -6,6 +6,7 @@ import {
   getConnectWalletInfo,
   getWalletInformation,
   isErrorWithKey,
+  moveToFront,
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
@@ -248,24 +249,33 @@ export class Background {
             case 'RECONNECT_WALLET': {
               const lastActiveTab = await this.windowState.getCurrentTab();
               await this.walletService.reconnectWallet(message.payload);
-              await this.updateVisualIndicatorsForCurrentTab();
+
+              const mgr = this.tabState.paymentManagers;
+              // Make sure sessions have minSendAmount which we might have
+              // failed to get as the key was lost. Prioritize last active tab
+              // for this process.
+              const paymentManagers = [...mgr.values()];
               if (lastActiveTab?.id) {
-                const paymentManager = this.tabState.paymentManagers.get(
-                  lastActiveTab.id,
+                const lastActivePaymentManager = mgr.get(lastActiveTab.id);
+                if (lastActivePaymentManager) {
+                  moveToFront(paymentManagers, lastActivePaymentManager);
+                }
+              }
+              for (const paymentManager of paymentManagers) {
+                await Promise.all(
+                  paymentManager.sessions.map((s) => s.findMinSendAmount(true)),
                 );
-                // Make sure sessions have minSendAmount which we might have
-                // failed to get as the key was lost.
-                if (paymentManager) {
-                  const sessions = paymentManager.sessions;
-                  await Promise.all(
-                    sessions.map((session) => session.findMinSendAmount(true)),
-                  );
-                  if (lastActiveTab.id === this.windowState.getCurrentTabId()) {
-                    paymentManager.resume();
-                  }
+              }
+
+              if (lastActiveTab?.id) {
+                if (lastActiveTab.id === this.windowState.getCurrentTabId()) {
+                  mgr.get(lastActiveTab.id)?.resume();
                 }
                 await this.tabEvents.updateVisualIndicators(lastActiveTab);
+              } else {
+                await this.updateVisualIndicatorsForCurrentTab();
               }
+
               return success(undefined);
             }
 
