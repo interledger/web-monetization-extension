@@ -171,21 +171,6 @@ for (const testCase of TEST_CASES) {
       });
 
       await test.step('shows connect consent page', async () => {
-        // Chimoney asks for login before consent page additionally?
-        await page.waitForURL((url) => url.href.startsWith(URLS.login));
-        await expect(page.locator('form')).toBeVisible();
-        const url = page.url();
-        if (
-          (url.includes('/app') && testCase.type !== 'app') ||
-          (url.includes('/business') && testCase.type !== 'business')
-        ) {
-          await page.locator('a', { hasText: LOGIN_PAGE_LINK_TEXT }).click();
-          await expect(page.locator('form')).toBeVisible();
-        }
-        await page.waitForURL((url) => url.href.startsWith(URLS.login));
-
-        await login(page, { username, password });
-
         await waitForGrantConsentPage(page);
         await expect(
           page.getByRole('button', { name: 'Accept', exact: true }),
