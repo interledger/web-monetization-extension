@@ -9,13 +9,9 @@ The Web Monetization extension requires the following permissions for its basic 
 - To get the URL of the current tab for displaying and maintaining state to prevent overpaying a website
 
 <details>
-<summary>
+<summary>Why not <code>activeTab</code> permission instead?</summary>
 
-**Why not `activeTab` permission?**
-
-</summary>
-
-Because that'll require the user to click the extension icon every time they navigate to a new page to be able to send Web Monetization payments, essentially defeating the purpose of Web Monetization - passive continuous micro-payments.
+Because that'll require the user to click the extension icon every time they navigate to a new page to be able to send Web Monetization payments. This essentially defeats the purpose of Web Monetization - automatic passive continuous micro-payments.
 
 </details>
 
