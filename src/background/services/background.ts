@@ -1,4 +1,4 @@
-import type { Browser, Runtime } from 'webextension-polyfill';
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
@@ -249,33 +249,7 @@ export class Background {
             case 'RECONNECT_WALLET': {
               const lastActiveTab = await this.windowState.getCurrentTab();
               await this.walletService.reconnectWallet(message.payload);
-
-              const mgr = this.tabState.paymentManagers;
-              // Make sure sessions have minSendAmount which we might have
-              // failed to get as the key was lost. Prioritize last active tab
-              // for this process.
-              const paymentManagers = [...mgr.values()];
-              if (lastActiveTab?.id) {
-                const lastActivePaymentManager = mgr.get(lastActiveTab.id);
-                if (lastActivePaymentManager) {
-                  moveToFront(paymentManagers, lastActivePaymentManager);
-                }
-              }
-              for (const paymentManager of paymentManagers) {
-                await Promise.all(
-                  paymentManager.sessions.map((s) => s.findMinSendAmount(true)),
-                );
-              }
-
-              if (lastActiveTab?.id) {
-                if (lastActiveTab.id === this.windowState.getCurrentTabId()) {
-                  mgr.get(lastActiveTab.id)?.resume();
-                }
-                await this.tabEvents.updateVisualIndicators(lastActiveTab);
-              } else {
-                await this.updateVisualIndicatorsForCurrentTab();
-              }
-
+              await this.refreshAllPaymentSessions(lastActiveTab);
               return success(undefined);
             }
 
@@ -388,6 +362,38 @@ export class Background {
     const activeTab = await this.windowState.getCurrentTab();
     if (activeTab?.id) {
       void this.tabEvents.updateVisualIndicators(activeTab);
+    }
+  }
+
+  /**
+   * Make sure sessions have a fresh incoming payment URL and minSendAmount
+   * which we might have failed to get as the key was lost, or wallet
+   * re-connected etc.
+   *
+   * @param priorityTab Prioritize this tab for the reset/restart process.
+   */
+  private async refreshAllPaymentSessions(priorityTab?: Tabs.Tab) {
+    const paymentManagers = [...this.tabState.paymentManagers.values()];
+    if (priorityTab?.id) {
+      const priorityPM = this.tabState.paymentManagers.get(priorityTab.id);
+      if (priorityPM) {
+        moveToFront(paymentManagers, priorityPM);
+      }
+    }
+
+    for (const paymentManager of paymentManagers) {
+      await Promise.all(
+        paymentManager.sessions.map((s) => s.findMinSendAmount(true)),
+      );
+    }
+
+    if (priorityTab?.id) {
+      if (priorityTab.id === this.windowState.getCurrentTabId()) {
+        this.tabState.paymentManagers.get(priorityTab.id)?.resume();
+      }
+      await this.tabEvents.updateVisualIndicators(priorityTab);
+    } else {
+      await this.updateVisualIndicatorsForCurrentTab();
     }
   }
 
