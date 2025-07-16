@@ -29,6 +29,7 @@ export const test = base.extend<Fixtures>({
   context: [
     async ({ browserName, channel }, use, testInfo) => {
       const context = await loadContext({ browserName, channel }, testInfo);
+      await context.clock.install();
       await use(context);
       await context.close();
     },
