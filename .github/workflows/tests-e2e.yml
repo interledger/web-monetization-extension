@@ -13,8 +13,6 @@ jobs:
       matrix: ${{ steps.filter.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }} # TODO: remove me
       - name: Environment setup
         uses: ./.github/actions/setup
 
