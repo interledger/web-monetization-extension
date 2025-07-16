@@ -13,22 +13,28 @@
 module.exports = async ({ core, context }) => {
   if (context.eventName === 'pull_request') {
     const event = /** @type {PullRequest} */ (context.payload);
-    if (isAllowedAuthor(event.pull_request.author_association)) {
-      core.setOutput('matrix', getMatrix(['chromium']));
-      return;
+    if (!isAllowedAuthor(event.pull_request.author_association)) {
+      skip(core, 'The PR author is not allowed to run them.');
     }
-  } else if (context.eventName === 'pull_request_review') {
-    const event = /** @type {PullRequestReviewSubmitted} */ (context.payload);
-    if (
-      event.review.body === 'test-e2e' &&
-      isAllowedAuthor(event.review.author_association)
-    ) {
-      core.setOutput('matrix', getMatrix(['chromium', 'chrome', 'msedge']));
-      return;
-    }
+
+    const matrix = getMatrix(['chromium']);
+    core.setOutput('matrix', matrix);
+    core.info(`Running tests for ${matrix.map((m) => m.name).join(', ')}`);
   }
 
-  skip(core);
+  if (context.eventName === 'pull_request_review') {
+    const event = /** @type {PullRequestReviewSubmitted} */ (context.payload);
+    if (event.review.body !== 'test-e2e') {
+      skip(core, 'The review comment body is not `test-e2e`');
+    }
+    if (!isAllowedAuthor(event.review.author_association)) {
+      skip(core, 'The review author is not allowed to run them.');
+    }
+
+    const matrix = getMatrix(['chromium', 'chrome', 'msedge']);
+    core.setOutput('matrix', matrix);
+    core.info(`Running tests for ${matrix.map((m) => m.name).join(', ')}`);
+  }
 };
 
 /**
@@ -44,9 +50,11 @@ function isAllowedAuthor(authorAssociation) {
 
 /**
  * @param {import('github-script').AsyncFunctionArguments['core']} core
+ * @param {string} reason
  * @returns {never}
  */
-function skip(core) {
+function skip(core, reason) {
+  void core.summary.addQuote(`Skipping tests: ${reason}`).write();
   core.setOutput('matrix', getMatrix([]));
   process.exit(0);
 }
