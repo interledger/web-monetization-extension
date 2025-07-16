@@ -2,8 +2,7 @@ name: End-to-End Tests
 on:
   pull_request_review:
     types: [submitted]
-  pull_request:
-    branches: [main, 'v[0-9]+.x']
+  pull_request: {}
 
 jobs:
   filter:
