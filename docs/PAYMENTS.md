@@ -23,7 +23,7 @@ To make a payment with Open Payments, following steps are taken (presuming we've
 1. Find the `minSendAmount`:
    1. Find a possible amount for the receiving wallet using various heuristics (currency exchange rate, asset scales, asset codes etc.)
    2. Exponential probing: Try creating a quote with this amount until it doesn't fail with a "non-positive receive amount" error (i.e. the receiver has to receive at least one unit for a quote to succeed), increasing it in an exponential manner.
-      - If the OpenPayments request with a "non-positive receive amount" error, error and includes a `minSendAmount` in error details (this is a relatively recent OpenPayments feature), stop the process to find the minimum sendable amount her1.
+      - If the OpenPayments request with a "non-positive receive amount" error, error and includes a `minSendAmount` in error details (this is a relatively recent OpenPayments feature), stop the process to find the minimum sendable amount here.
    3. Binary search: Once a sendable amount is found, use binary search (between the sendable amount and previously attempted amount) to find the minimum sendable amount.
 1. Create outgoing payment:
    1. Call the create outgoing payment OpenPayments API to create a fix-send outgoing payment. Include the following details:
