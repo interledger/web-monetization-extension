@@ -27,7 +27,7 @@ To make a payment with Open Payments, following steps are taken (presuming we've
    3. Binary search: Once a sendable amount is found, use binary search (between the sendable amount and previously attempted amount) to find the minimum sendable amount.
 1. Create outgoing payment:
    1. Call the create outgoing payment OpenPayments API to create a fix-send outgoing payment. Include the following details:
-      - `accessToken`: The access token for the outgoing payment grant (i.e. the one we get from connecting the wallet). This token needs to be rotated once in a wIfIf the token is expired, try the payment again with a refreshed token.
+      - `accessToken`: The access token for the outgoing payment grant (i.e. the one we get from connecting the wallet). This token needs to be rotated once in a while: if the token is expired, retry the payment with a refreshed token.
       - `incomingPayment`: The incoming payment ID/URL we got in step 1.
       - `debitAmount`: The amount we want to send.
 
