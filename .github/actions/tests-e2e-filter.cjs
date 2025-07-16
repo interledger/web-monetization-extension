@@ -7,7 +7,6 @@
  */
 
 /**
- * Retrieves the manifest version from the built extension.
  * @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments
  */
 module.exports = async ({ core, context }) => {
