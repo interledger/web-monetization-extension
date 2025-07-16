@@ -20,6 +20,7 @@ module.exports = async ({ core }) => {
 
   manifest.version = version;
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+  await updateXCConfig(version);
   core.setOutput('version', version);
 };
 
@@ -46,4 +47,22 @@ function bumpVersion(existingVersion, type) {
     default:
       throw new Error(`Unknown bump type: ${type}`);
   }
+}
+
+/**
+ * @param {string} version
+ */
+async function updateXCConfig(version) {
+  const filePath = './src/safari/Web Monetization/Config.xcconfig';
+
+  const data = {
+    CURRENT_PROJECT_VERSION: version,
+  };
+
+  let config = await fs.readFile(filePath, 'utf8');
+  for (const [key, value] of Object.entries(data)) {
+    const re = new RegExp(`${key} = .*`);
+    config = config.replace(re, `${key} = ${value}`);
+  }
+  await fs.writeFile(filePath, config, 'utf8');
 }

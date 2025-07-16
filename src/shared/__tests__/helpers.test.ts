@@ -7,6 +7,9 @@ import {
   getNextOccurrence,
   toWalletAddressUrl,
   setDifference,
+  Timeout,
+  memoize,
+  moveToFront,
 } from '../helpers';
 
 describe('objectEquals', () => {
@@ -20,6 +23,47 @@ describe('objectEquals', () => {
   it('should return false if objects are not equal', () => {
     expect(objectEquals({ a: 1 }, { a: 2 })).toBe(false);
     expect(objectEquals({ a: 1 }, { b: 1 })).toBe(false);
+  });
+});
+
+describe('moveToFront', () => {
+  it('should move an existing item to the front of the array', () => {
+    const array = [1, 2, 3, 4];
+    moveToFront(array, 3);
+    expect(array).toEqual([3, 1, 2, 4]);
+  });
+
+  it('should not modify the array if the item is already at the front', () => {
+    const array = [1, 2, 3, 4];
+    moveToFront(array, 1);
+    expect(array).toEqual([1, 2, 3, 4]);
+  });
+
+  it('should not modify the array if the item does not exist', () => {
+    const array = [1, 2, 3, 4];
+    moveToFront(array, 5);
+    expect(array).toEqual([1, 2, 3, 4]);
+  });
+
+  it('should handle an empty array without errors', () => {
+    const array: number[] = [];
+    moveToFront(array, 1);
+    expect(array).toEqual([]);
+  });
+
+  it('should work with strings', () => {
+    const array = ['a', 'b', 'c', 'd'];
+    moveToFront(array, 'c');
+    expect(array).toEqual(['c', 'a', 'b', 'd']);
+  });
+
+  it('should work with objects using reference equality', () => {
+    const obj1 = { id: 1 };
+    const obj2 = { id: 2 };
+    const obj3 = { id: 3 };
+    const array = [obj1, obj2, obj3];
+    moveToFront(array, obj3);
+    expect(array).toEqual([obj3, obj1, obj2]);
   });
 });
 
@@ -160,8 +204,189 @@ describe('getNextOccurrence', () => {
 
 describe('toWalletAddressUrl', () => {
   it('converts from short form to long form', () => {
-    expect(toWalletAddressUrl('$wallet.com/bob')).toEqual(
+    expect(toWalletAddressUrl('$wallet.com/bob')).toBe(
       'https://wallet.com/bob',
     );
+    expect(toWalletAddressUrl('$wallet.com/bob/')).toBe(
+      'https://wallet.com/bob',
+    );
+    expect(toWalletAddressUrl('$sub.wallet.com/bob/')).toBe(
+      'https://sub.wallet.com/bob',
+    );
+    expect(toWalletAddressUrl('$wallet.com')).toBe(
+      'https://wallet.com/.well-known/pay',
+    );
+    expect(toWalletAddressUrl('$sub.wallet.com')).toBe(
+      'https://sub.wallet.com/.well-known/pay',
+    );
+    expect(toWalletAddressUrl('$wallet.com/')).toBe(
+      'https://wallet.com/.well-known/pay',
+    );
+  });
+
+  it('preserves https:// form as is', () => {
+    expect(toWalletAddressUrl('https://wallet.com/bob')).toBe(
+      'https://wallet.com/bob',
+    );
+    expect(toWalletAddressUrl('https://wallet.com')).toBe('https://wallet.com');
+  });
+});
+
+describe('Timeout', () => {
+  jest.useFakeTimers();
+
+  let callback: jest.Mock;
+  let timeout: Timeout;
+  beforeEach(() => {
+    callback = jest.fn();
+    timeout = new Timeout(1000, callback);
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    test;
+  });
+
+  it('should call the callback after the specified time', () => {
+    jest.advanceTimersByTime(1000);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reset the timeout', () => {
+    timeout.reset(2000);
+    // @ts-expect-error for testing it's ok to access private properties
+    expect(timeout.ms).toBe(2000);
+    jest.advanceTimersByTime(2000);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should pause the timeout', () => {
+    timeout.pause();
+    jest.advanceTimersByTime(1000);
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should resume the timeout', () => {
+    timeout.pause();
+    jest.advanceTimersByTime(500);
+    timeout.resume();
+    jest.advanceTimersByTime(500);
+    expect(callback).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(500);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should clear the timeout', () => {
+    timeout.clear();
+    jest.advanceTimersByTime(1000);
+    expect(callback).not.toHaveBeenCalled();
+  });
+});
+
+describe('memoize', () => {
+  jest.useFakeTimers();
+
+  type SuccessResponse = { data: string };
+  type MockFunction = () => Promise<SuccessResponse>;
+
+  const successResponse1: SuccessResponse = { data: 'success1' };
+  const successResponse2: SuccessResponse = { data: 'success2' };
+  const errorResponse = new Error('failure');
+
+  let mockFn: jest.MockedFunction<MockFunction>;
+  beforeEach(() => {
+    mockFn = jest.fn();
+  });
+
+  it('should cache the result of a successful promise with max-age mechanism', async () => {
+    mockFn.mockResolvedValueOnce(successResponse1);
+    mockFn.mockResolvedValueOnce(successResponse2);
+    const memoizedFn = memoize(mockFn, { maxAge: 1000, mechanism: 'max-age' });
+
+    const result1 = await memoizedFn();
+    const result2 = await memoizedFn();
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    expect(result1).toBe(successResponse1);
+    expect(result2).toBe(successResponse1);
+
+    jest.advanceTimersByTime(1001);
+    const result3 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result3).toBe(successResponse2);
+  });
+
+  it('should cache the result of a successful promise with stale-while-revalidate mechanism', async () => {
+    mockFn.mockResolvedValueOnce(successResponse1);
+    mockFn.mockResolvedValueOnce(successResponse2);
+    const memoizedFn = memoize(mockFn, {
+      maxAge: 1000,
+      mechanism: 'stale-while-revalidate',
+    });
+
+    const result1 = await memoizedFn();
+    const result2 = await memoizedFn();
+
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    expect(result1).toBe(successResponse1);
+    expect(result2).toBe(successResponse1);
+
+    jest.advanceTimersByTime(1001);
+    const result3 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result3).toBe(successResponse1);
+
+    jest.advanceTimersByTime(50);
+    const result4 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result4).toBe(successResponse2);
+  });
+
+  it('should reject if there is an error in first call with max-age mechanism', async () => {
+    mockFn.mockRejectedValueOnce(errorResponse);
+    mockFn.mockResolvedValueOnce(successResponse1);
+
+    const memoizedFn = memoize(mockFn, { maxAge: 1000, mechanism: 'max-age' });
+
+    await expect(memoizedFn).rejects.toBe(errorResponse);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    const result = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result).toBe(successResponse1);
+  });
+
+  it('should not return error response from previous call when using state-while-revalidate mechanism', async () => {
+    mockFn.mockRejectedValueOnce(errorResponse);
+    mockFn.mockResolvedValueOnce(successResponse1);
+    mockFn.mockRejectedValueOnce(errorResponse);
+    mockFn.mockResolvedValueOnce(successResponse2);
+
+    const memoizedFn = memoize(mockFn, {
+      maxAge: 1000,
+      mechanism: 'stale-while-revalidate',
+    });
+
+    await expect(memoizedFn).rejects.toBe(errorResponse);
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    const result1 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(result1).toBe(successResponse1);
+
+    jest.advanceTimersByTime(1001);
+
+    // even though 3rd call results in an error, reuse successful response from
+    // a previous call
+    const result2 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(3);
+    expect(mockFn.mock.results.at(-1)).toEqual(
+      expect.objectContaining(errorResponse),
+    );
+    expect(result2).toBe(successResponse1);
+
+    const result3 = await memoizedFn();
+    expect(mockFn).toHaveBeenCalledTimes(4);
+    expect(result3).toBe(successResponse2);
   });
 });

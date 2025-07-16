@@ -12,7 +12,6 @@ import {
   getContinueWaitTime,
   getWalletInfoCached,
   setupPlayground,
-  waitForPage,
 } from './helpers/common';
 import { completeGrant, DEFAULT_CONTINUE_WAIT_MS } from './helpers/testWallet';
 import { transformBalance } from '@/shared/helpers';
@@ -143,7 +142,7 @@ for (const testCase of TEST_CASES) {
         await expect(monetizationCallback).toHaveBeenCalledTimes(2);
         await popup.reload();
 
-        await popup.waitForTimeout(1_000); // wait for balance to update.- it's queued/throttled.
+        await popup.waitForTimeout(1000); // wait for balance to update.- it's queued/throttled.
         await settingsLink.click();
         await budgetTab.click();
 
@@ -186,8 +185,8 @@ for (const testCase of TEST_CASES) {
           DEFAULT_CONTINUE_WAIT_MS,
         );
         await submitButton.click();
-        const newPage = await waitForPage(context, (url) =>
-          url.includes('/grant-interactions'),
+        const newPage = await context.waitForEvent('page', (page) =>
+          page.url().includes('/grant-interactions'),
         );
         const continueWaitMs = await continueWaitMsPromise;
         await completeGrant(newPage, continueWaitMs);

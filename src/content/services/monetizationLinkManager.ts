@@ -26,6 +26,7 @@ export class MonetizationLinkManager {
   private documentObserver: MutationObserver;
   private monetizationLinkAttrObserver: MutationObserver;
   private id: string;
+  private _destroyed = false;
   // only entries corresponding to valid wallet addresses are here
   private monetizationLinks = new Map<
     HTMLLinkElement,
@@ -115,7 +116,7 @@ export class MonetizationLinkManager {
       'visibilitychange',
       this.onDocumentVisibilityChange,
     );
-    this.onFocus();
+    void this.onFocus();
     this.window.addEventListener('focus', this.onFocus);
     this.window.addEventListener('pagehide', this.onPageHide);
 
@@ -287,7 +288,7 @@ export class MonetizationLinkManager {
   }
 
   private async stopMonetization(
-    intent?: StopMonetizationPayloadEntry['intent'],
+    intent: StopMonetizationPayloadEntry['intent'],
   ) {
     const payload: StopMonetizationPayload = [
       ...this.monetizationLinks.values(),
@@ -338,7 +339,8 @@ export class MonetizationLinkManager {
     if (this.document.visibilityState === 'visible') {
       await this.resumeMonetization();
     } else {
-      await this.stopMonetization();
+      if (this._destroyed) return;
+      await this.stopMonetization('pause');
     }
   };
 
@@ -349,7 +351,16 @@ export class MonetizationLinkManager {
   };
 
   private onPageHide = async () => {
-    await this.stopMonetization('remove');
+    if (this._destroyed) return;
+    this._destroyed = true;
+
+    void this.stopMonetization('remove');
+
+    if (this.isTopFrame) {
+      this.window.removeEventListener('pagehide', this.onPageHide);
+      await this.message.send('PAGE_HIDE');
+    }
+    this.end();
   };
 
   private async onWholeDocumentObserved(records: MutationRecord[]) {
@@ -510,6 +521,7 @@ export class MonetizationLinkManager {
       return null;
     }
 
+    if (this.monetizationLinks.has(link)) return null;
     const linkInfo = {
       walletAddress,
       requestId: this.getRequestId(link),

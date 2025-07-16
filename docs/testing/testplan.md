@@ -90,7 +90,6 @@ This section lists examples of websites and Web Monetization compatible wallet a
 If you want to test the Web Monetization extension using real money, and you have a Fynbos US wallet connected to your extension, then you have two options:
 
 1. Visit and pay any of these monetized websites:
-
    - [jeremiahLee.com](https://jeremiahLee.com)
    - [lifebe.com.au](https://lifebe.com.au/)
    - [storytogo.ca/classroom](https://storytogo.ca/classroom/)
@@ -123,7 +122,6 @@ If you want to test the Web Monetization extension using real money, and you hav
 If you want to test the Web Monetization extension using real money, and you have a GateHub wallet connected to your extension, then you have two options:
 
 1. Visit and pay these monetized websites:
-
    - [storytogo.ca](https://storytogo.ca)
    - [roamancing.com](https://roamancing.com)
 

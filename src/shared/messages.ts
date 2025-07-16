@@ -3,7 +3,12 @@ import type {
   OutgoingPayment,
 } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
-import type { AmountValue, PopupTransientState, Storage } from '@/shared/types';
+import type {
+  AmountValue,
+  PopupTransientState,
+  Storage,
+  WalletInfo,
+} from '@/shared/types';
 import type { ErrorWithKeyLike } from '@/shared/helpers';
 import type { PopupState } from '@/popup/lib/store';
 import type { AppState } from '@/app/lib/store';
@@ -23,6 +28,13 @@ export interface ErrorResponse {
 export type Response<TPayload = void> =
   | SuccessResponse<TPayload>
   | ErrorResponse;
+
+export function getResponseOrThrow<T>(res: Response<T>) {
+  if (res.success) {
+    return res.payload;
+  }
+  throw res.error ?? new Error(res.message);
+}
 
 type MessageMap = Record<string, { input: unknown; output: unknown }>;
 type MessagesWithInput<T extends MessageMap> = {
@@ -90,9 +102,18 @@ export class MessageManager<TMessages extends MessageMap> {
 // #endregion
 
 // #region Popup ↦ BG
+export interface ConnectWalletAddressInfo {
+  walletAddress: WalletInfo;
+  defaultBudget: number;
+  defaultRateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
+}
+
 export interface ConnectWalletPayload {
-  walletAddressUrl: string;
+  walletAddress: WalletInfo;
   amount: string;
+  rateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
   recurring: boolean;
   autoKeyAdd: boolean;
   autoKeyAddConsent: boolean | null;
@@ -117,11 +138,11 @@ export interface PayWebsiteResponse {
 }
 
 export interface UpdateRateOfPayPayload {
-  rateOfPay: string;
+  rateOfPay: AmountValue;
 }
 
 export interface UpdateBudgetPayload {
-  walletAddressUrl: ConnectWalletPayload['walletAddressUrl'];
+  walletAddressUrl: string;
   amount: ConnectWalletPayload['amount'];
   recurring: ConnectWalletPayload['recurring'];
 }
@@ -130,6 +151,10 @@ export type PopupToBackgroundMessage = {
   GET_DATA_POPUP: {
     input: never;
     output: PopupState;
+  };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: ConnectWalletAddressInfo;
   };
   CONNECT_WALLET: {
     input: ConnectWalletPayload;
@@ -187,7 +212,7 @@ export type StartMonetizationPayload = StartMonetizationPayloadEntry[];
 
 export interface StopMonetizationPayloadEntry {
   requestId: string;
-  intent?: 'remove' | 'disable';
+  intent: 'remove' | 'disable' | 'pause';
 }
 export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
@@ -203,6 +228,10 @@ export type ContentToBackgroundMessage = {
     output: WalletAddress;
   };
   TAB_FOCUSED: {
+    input: never;
+    output: never;
+  };
+  PAGE_HIDE: {
     input: never;
     output: never;
   };
@@ -226,6 +255,10 @@ export type AppToBackgroundMessage = {
   GET_DATA_APP: {
     input: never;
     output: AppState;
+  };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: ConnectWalletAddressInfo;
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
   RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];

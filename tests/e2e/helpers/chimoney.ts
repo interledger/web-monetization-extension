@@ -5,7 +5,7 @@ import {
 } from '@/content/keyAutoAdd/lib/helpers/chimoney';
 
 export const URLS = {
-  login: `${process.env.CHIMONEY_WALLET_ORIGIN}/auth/signin`,
+  login: `${process.env.CHIMONEY_WALLET_ORIGIN}/auth/`,
   keyPage: `${process.env.CHIMONEY_WALLET_ORIGIN}/interledger`,
 };
 

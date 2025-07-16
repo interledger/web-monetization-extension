@@ -5,7 +5,7 @@ import { testDir, authFile } from './tests/e2e/fixtures/helpers';
 
 if (!process.env.CI) {
   const require = createRequire(import.meta.url);
-  require('dotenv').config({ path: path.join(testDir, '.env') });
+  require('dotenv').config({ path: path.join(testDir, '.env'), quiet: true });
 }
 
 export default defineConfig({
@@ -23,8 +23,9 @@ export default defineConfig({
   ],
   use: {
     trace: 'retain-on-failure',
-    actionTimeout: 8_000,
+    actionTimeout: 8000,
     navigationTimeout: 10_000,
+    userAgent: 'Web Monetization Extension E2E Tests Bot',
   },
 
   projects: [

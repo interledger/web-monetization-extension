@@ -4,11 +4,8 @@ import {
   CaretDownIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import {
-  getBrowserName,
-  getWalletInformation,
-  type BrowserName,
-} from '@/shared/helpers';
+import { getBrowserName, type BrowserName } from '@/shared/helpers';
+import { getResponseOrThrow } from '@/shared/messages';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { cn } from '@/pages/shared/lib/utils';
@@ -126,25 +123,42 @@ const WALLETS: Array<WalletOption> = [
   },
 ];
 
+const STEP_ID = [
+  'get_wallet',
+  'get_wallet_address',
+  'pin_to_toolbar',
+  'give_permissions',
+  'connect_wallet',
+] as const;
+type StepId = (typeof STEP_ID)[number];
+
 const Steps = () => {
   const browser = useBrowser();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
   const browserName = getBrowserName(browser, navigator.userAgent);
+  const hasAllHostsPermission = useHasAllHostsPermission();
 
   const [selectedWallet, setSelectedWallet] = React.useState<WalletOption>(
     WALLETS[0],
   );
-  const [isOpen, setIsOpen] = React.useState(0);
-  const onClick = React.useCallback((index: number, open: boolean) => {
-    setIsOpen((prev) => (!open ? index : prev + 1));
+  const [isOpen, setIsOpen] = React.useState<StepId>(STEP_ID[0]);
+  const onClick = React.useCallback((id: StepId, open: boolean) => {
+    setIsOpen((prev) => {
+      if (!open) {
+        return id;
+      }
+      const idx = STEP_ID.indexOf(prev);
+      return STEP_ID[idx + 1];
+    });
   }, []);
 
   return (
     <ol className="flex flex-col gap-4">
       <Step
+        id={STEP_ID[0]}
         index={0}
-        open={isOpen === 0}
+        open={isOpen === STEP_ID[0]}
         onClick={onClick}
         title={
           <React.Fragment>
@@ -198,8 +212,9 @@ const Steps = () => {
       </Step>
 
       <Step
+        id={STEP_ID[1]}
         index={1}
-        open={isOpen === 1}
+        open={isOpen === STEP_ID[1]}
         onClick={onClick}
         title={t('postInstall_text_stepWalletAddress_title')}
       >
@@ -211,8 +226,9 @@ const Steps = () => {
       </Step>
 
       <Step
+        id={STEP_ID[2]}
         index={2}
-        open={isOpen === 2}
+        open={isOpen === STEP_ID[2]}
         onClick={onClick}
         title={t('postInstall_text_stepPin_title')}
       >
@@ -226,6 +242,7 @@ const Steps = () => {
           src={imgSrc(browserName, {
             chrome: '/assets/images/pin-extension-chrome.png',
             firefox: '/assets/images/pin-extension-firefox.png',
+            safari: '/assets/images/pin-extension-safari.mp4',
             edge: '/assets/images/pin-extension-edge.png',
           })}
           className="mx-auto max-w-[90%]"
@@ -234,10 +251,39 @@ const Steps = () => {
         />
       </Step>
 
+      {/* Add this special step for Safari as without this permission beforehand, Safari requires pages being reloaded for extension to work. This can help with other browsers as well (conditioning on whether we've the permissions, instead of just the browserName), but let's do only for Safari for now. */}
+      {browserName === 'safari' && (
+        <Step
+          id={STEP_ID[3]}
+          index={3}
+          open={isOpen === STEP_ID[3]}
+          onClick={onClick}
+          title={t('postInstall_text_stepPermissions_title')}
+        >
+          <p>
+            {t('missingHostPermission_state_text')}{' '}
+            {hasAllHostsPermission ? (
+              <span className="text-secondary-dark">
+                {t('postInstall_text_stepPermissions_descComplete')}
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="block w-fit rounded-md bg-orange-100 px-2 py-1.5 mt-1 font-medium text-orange-800 hover:bg-orange-200 focus:bg-orange-200 focus:outline-none hover:shadow-md focus:shadow-md"
+                onClick={() => requestAllHostsPermission(browser)}
+              >
+                {t('postInstall_action_stepPermissions_grant')}
+              </button>
+            )}
+          </p>
+        </Step>
+      )}
+
       <Step
         isPrimaryButton={true}
-        index={3}
-        open={isOpen === 3}
+        id={STEP_ID[4]}
+        index={browserName === 'safari' ? 4 : 3}
+        open={isOpen === STEP_ID[4]}
         onClick={onClick}
         title={t('postInstall_action_submit')}
       >
@@ -253,6 +299,11 @@ function usePinnedStatus() {
 
   React.useEffect(() => {
     const check = async () => {
+      if (!('getUserSettings' in browser.action)) {
+        // https://bugs.webkit.org/show_bug.cgi?id=294444
+        setIsPinnedToToolbar(false);
+        return;
+      }
       const settings = await browser.action.getUserSettings();
       setIsPinnedToToolbar(settings.isOnToolbar ?? false);
     };
@@ -266,7 +317,35 @@ function usePinnedStatus() {
   return isPinnedToToolbar;
 }
 
+function useHasAllHostsPermission() {
+  const browser = useBrowser();
+  const [hasAllHostsPermission, setHasAllHostsPermission] =
+    React.useState(false);
+
+  React.useEffect(() => {
+    const check = async () => {
+      const hasPermissions = await browser.permissions.contains({
+        origins: browser.runtime.getManifest().host_permissions,
+      });
+      setHasAllHostsPermission(hasPermissions);
+    };
+
+    void check();
+    const timer = setInterval(check, 500);
+
+    return () => clearInterval(timer);
+  }, [browser]);
+
+  return hasAllHostsPermission;
+}
+
+function requestAllHostsPermission(browser: ReturnType<typeof useBrowser>) {
+  const origins = browser.runtime.getManifest().host_permissions!;
+  return browser.permissions.request({ origins });
+}
+
 function Step({
+  id,
   index,
   title,
   children,
@@ -274,10 +353,11 @@ function Step({
   open,
   isPrimaryButton = false,
 }: {
+  id: StepId;
   index: number;
   title: React.ReactNode;
   children: React.ReactNode;
-  onClick: (index: number, open: boolean) => void;
+  onClick: (id: StepId, open: boolean) => void;
   open: boolean;
   isPrimaryButton?: boolean;
 }) {
@@ -294,14 +374,14 @@ function Step({
             : 'bg-white text-weak hover:bg-slate-50',
         )}
       >
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Not needed here */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Not needed here */}
         <summary
           className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
           onClick={(ev) => {
             // onToggle gets fired when `open` is set (even from prop set on
             // mount). So, we use onClick to catch only user interaction.
             ev.preventDefault(); // parent will set `open` state.
-            onClick(index, open);
+            onClick(id, open);
           }}
         >
           <StepNumber number={index + 1} />
@@ -342,7 +422,9 @@ function StepNumber({ number }: { number: number }) {
 
 function StepConnectWallet({
   selectedWallet,
-}: { selectedWallet: WalletOption }) {
+}: {
+  selectedWallet: WalletOption;
+}) {
   const message = useMessage();
   const t = useTranslation();
   const {
@@ -381,7 +463,11 @@ function StepConnectWallet({
         saveValue={(key, val) => {
           localStorage?.setItem(`connect.${key}`, val.toString());
         }}
-        getWalletInfo={getWalletInformation}
+        getWalletInfo={(walletAddressUrl) =>
+          message
+            .send('GET_CONNECT_WALLET_ADDRESS_INFO', walletAddressUrl)
+            .then(getResponseOrThrow)
+        }
         walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
         connectWallet={(data) => message.send('CONNECT_WALLET', data)}
         clearConnectState={() => message.send('RESET_CONNECT_STATE')}

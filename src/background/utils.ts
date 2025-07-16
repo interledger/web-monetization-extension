@@ -4,13 +4,12 @@ import type {
   Tab,
   TabId,
   WalletAmount,
-  WindowId,
 } from '@/shared/types';
-import type { Browser, Runtime } from 'webextension-polyfill';
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 import { EXCHANGE_RATES_URL } from './config';
 import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
-import { notNullOrUndef } from '@/shared/helpers';
+import { memoize, notNullOrUndef } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 
 type OnConnectCallback = Parameters<
@@ -75,20 +74,23 @@ interface ExchangeRates {
   rates: Record<string, number>;
 }
 
-export const getExchangeRates = async (): Promise<ExchangeRates> => {
-  const response = await fetch(EXCHANGE_RATES_URL);
-  if (!response.ok) {
-    throw new Error(
-      `Could not fetch exchange rates. [Status code: ${response.status}]`,
-    );
-  }
-  const rates = await response.json();
-  if (!rates.base || !rates.rates) {
-    throw new Error('Invalid rates format');
-  }
+export const getExchangeRates = memoize(
+  async (): Promise<ExchangeRates> => {
+    const response = await fetch(EXCHANGE_RATES_URL);
+    if (!response.ok) {
+      throw new Error(
+        `Could not fetch exchange rates. [Status code: ${response.status}]`,
+      );
+    }
+    const rates = await response.json();
+    if (!rates.base || !rates.rates) {
+      throw new Error('Invalid rates format');
+    }
 
-  return rates;
-};
+    return rates;
+  },
+  { maxAge: 15 * 60 * 1000, mechanism: 'stale-while-revalidate' },
+);
 
 export const getExchangeRate = (
   rates: ExchangeRates,
@@ -121,12 +123,33 @@ export const convertWithExchangeRate = <T extends AmountValue | bigint>(
   const scaleDiff = from.assetScale - to.assetScale;
   const scaledExchangeRate = exchangeRate * 10 ** scaleDiff;
 
-  const converted = BigInt(Math.ceil(Number(amount) / scaledExchangeRate));
+  const converted = BigInt(Math.round(Number(amount) / scaledExchangeRate));
 
   return typeof amount === 'string'
     ? (converted.toString() as T)
     : (converted as T);
 };
+
+// https://interledger.github.io/web-monetization-budget-suggestions/v1/schema.json
+type BudgetRecommendationsDataSchema = {
+  [currency: string]: {
+    budget: { default: number; max: number };
+    hourly: { default: number; max: number };
+  };
+};
+
+export const getBudgetRecommendationsData = memoize(
+  async () => {
+    const { BUDGET_RECOMMENDATIONS_URL } = await import('@/background/config');
+    const response = await fetch(BUDGET_RECOMMENDATIONS_URL);
+    if (!response.ok) {
+      throw new Error('Failed to fetch budget recommendations data.');
+    }
+    const data: BudgetRecommendationsDataSchema = await response.json();
+    return data;
+  },
+  { maxAge: 30 * 60 * 1000, mechanism: 'stale-while-revalidate' },
+);
 
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source;
@@ -146,7 +169,7 @@ export const getTab = (sender: Runtime.MessageSender): Tab => {
 
 export const redirectToWelcomeScreen = async (
   browser: Browser,
-  tabId: number,
+  tabId: number | undefined,
   result: GrantResult,
   intent: InteractionIntent,
   errorCode?: ErrorCode,
@@ -157,30 +180,40 @@ export const redirectToWelcomeScreen = async (
   url.searchParams.set('intent', intent);
   if (errorCode) url.searchParams.set('errorCode', errorCode);
 
-  await browser.tabs.update(tabId, {
-    url: url.toString(),
-  });
+  await createTabIfNotExists(browser, url.toString(), tabId);
 };
 
-export const reuseOrCreateTab = async (
+export const closeTabsByFilter = async (
   browser: Browser,
-  windowId?: WindowId,
-  isTabReusable: (url: string, tabId: number) => boolean = () => false,
-): Promise<TabId> => {
-  const tabs = await browser.tabs.query({
-    ...(windowId ? { windowId } : { lastFocusedWindow: true }),
-  });
-  const reuseableTab = tabs.find(
-    (tab) => !!tab.url && !!tab.id && isTabReusable(tab.url, tab.id),
+  filter: (tab: Tabs.Tab) => boolean | undefined,
+) => {
+  const tabs = await browser.tabs.query({ lastFocusedWindow: true });
+  await Promise.all(
+    tabs.filter(filter).map((tab) => browser.tabs.remove(tab.id!)),
   );
-  if (reuseableTab?.id) {
-    await browser.tabs
-      .update(reuseableTab.id, { active: true })
-      .catch(() => {});
-    return reuseableTab.id;
+};
+
+export const createTab = async (
+  browser: Browser,
+  url: string,
+): Promise<TabId> => {
+  const tab = await browser.tabs.create({ url });
+  return tab.id!;
+};
+
+export const createTabIfNotExists = async (
+  browser: Browser,
+  url: string,
+  tabId?: TabId,
+): Promise<TabId> => {
+  if (!tabId) return createTab(browser, url);
+  try {
+    await browser.tabs.get(tabId);
+    if (url) await browser.tabs.update(tabId, { url });
+    return tabId;
+  } catch {
+    return createTab(browser, url);
   }
-  const newTab = await browser.tabs.create({});
-  return newTab.id!;
 };
 
 export const onPopupOpen = (

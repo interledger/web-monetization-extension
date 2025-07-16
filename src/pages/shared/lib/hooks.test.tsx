@@ -133,11 +133,11 @@ describe('useLocalStorage', () => {
     expect(localStorage.getItem('name')).not.toBeNull();
     const stored = JSON.parse(localStorage.getItem('name')!);
     expect(stored.value).toBe('John Wick');
-    expect(stored.expiresAt).toBeGreaterThanOrEqual(now + maxAge * 1_000);
+    expect(stored.expiresAt).toBeGreaterThanOrEqual(now + maxAge * 1000);
     expect(stored.expiresAt).toBeLessThan(defaultExpiresAt);
 
-    jest.setSystemTime(now + (maxAge + 1) * 1_000);
-    jest.advanceTimersByTime(now + (maxAge + 1) * 1_000);
+    jest.setSystemTime(now + (maxAge + 1) * 1000);
+    jest.advanceTimersByTime(now + (maxAge + 1) * 1000);
 
     unmount();
     const remounted = render(ui);

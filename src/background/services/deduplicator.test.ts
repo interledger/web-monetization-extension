@@ -133,9 +133,9 @@ describe('Deduplicator', () => {
         array: [1, 2, 3],
         obj: { key: 'arg1' },
       };
-      dedupedFn(dedupedFnArg1);
+      void dedupedFn(dedupedFnArg1);
       const dedupedFnArg2 = ['arg2'];
-      dedupedFn(dedupedFnArg2);
+      void dedupedFn(dedupedFnArg2);
       jest.runAllTimers();
 
       expect(fn).toHaveBeenCalledWith(dedupedFnArg1);

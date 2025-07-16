@@ -118,6 +118,7 @@ function InputAddon({
 }>) {
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: only need to handle click on prefix/suffix to trigger input focus
+    // biome-ignore lint/a11y/noStaticElementInteractions: only need to handle click on prefix/suffix to trigger input focus
     <div
       className={cn(
         'whitespace-nowrap table-cell align-middle select-none w-[1%]',

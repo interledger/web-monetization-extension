@@ -169,7 +169,7 @@
     "message": "Please enter a valid number for the amount."
   },
   "connectWallet_error_amountMinimum": {
-    "message": "An amount greater than $AMOUNT$ is required.",
+    "message": "A minimum amount of $AMOUNT$ is required.",
     "placeholders": {
       "AMOUNT": { "content": "$1", "example": "$2.05" }
     }
@@ -278,6 +278,15 @@
   },
   "postInstall_text_stepPin_descComplete": {
     "message": "You're all set."
+  },
+  "postInstall_text_stepPermissions_title": {
+    "message": "Permission to read all websites required"
+  },
+  "postInstall_action_stepPermissions_grant": {
+    "message": "Grant permission"
+  },
+  "postInstall_text_stepPermissions_descComplete": {
+    "message": "You've granted the necessary permissions!"
   },
   "postInstall_action_submit": {
     "message": "Connect your wallet"
