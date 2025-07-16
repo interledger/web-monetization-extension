@@ -2,13 +2,35 @@ name: End-to-End Tests
 on:
   pull_request_review:
     types: [submitted]
+  pull_request:
+    branches: [main, 'v[0-9]+.x']
 
 jobs:
+  filter:
+    name: Prepare
+    runs-on: ubuntu-22.04
+    outputs:
+      chromium: ${{ steps.filter.outputs.chromium }}
+      chrome: ${{ steps.filter.outputs.chrome }}
+      msedge: ${{ steps.filter.outputs.msedge }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }} # TODO: remove me
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Find tests to run
+        id: filter
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const script = require('./.github/actions/tests-e2e-filter.cjs')
+            await script({ github, context, core })
+
   test-e2e:
-    if: ${{
-      github.event.review.body == 'test-e2e' &&
-      contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
-      }}
+    needs: prepare
+    if: needs.filter.outputs[matrix.project] == 'true'
     strategy:
       fail-fast: false
       matrix:
