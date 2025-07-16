@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.filter.outputs.matrix }}
+      skip: ${{ steps.filter.outputs.skip }}
     steps:
       - uses: actions/checkout@v4
       - name: Environment setup
@@ -26,6 +27,7 @@ jobs:
 
   test-e2e:
     needs: filter
+    if: needs.filter.outputs.skip != 'true'
     strategy:
       fail-fast: false
       matrix:

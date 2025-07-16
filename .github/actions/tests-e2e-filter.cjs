@@ -54,6 +54,7 @@ function isAllowedAuthor(authorAssociation) {
  */
 async function skip(core, reason) {
   core.info('Skipping running E2E tests.');
+  core.setOutput('skip', true);
   core.setOutput('matrix', getMatrix([]));
   await core.summary.addQuote(`Skipping tests: ${reason}`).write();
   process.exit(0);
