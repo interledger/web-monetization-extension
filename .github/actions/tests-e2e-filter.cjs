@@ -14,7 +14,7 @@ module.exports = async ({ core, context }) => {
   if (context.eventName === 'pull_request') {
     const event = /** @type {PullRequest} */ (context.payload);
     if (isAllowedAuthor(event.pull_request.author_association)) {
-      core.setOutput('chromium', true);
+      core.setOutput('matrix', getMatrix(['chromium']));
       return;
     }
   } else if (context.eventName === 'pull_request_review') {
@@ -23,9 +23,7 @@ module.exports = async ({ core, context }) => {
       event.review.body === 'test-e2e' &&
       isAllowedAuthor(event.review.author_association)
     ) {
-      core.setOutput('chromium', true);
-      core.setOutput('chrome', true);
-      core.setOutput('msedge', true);
+      core.setOutput('matrix', getMatrix(['chromium', 'chrome', 'msedge']));
       return;
     }
   }
@@ -49,8 +47,33 @@ function isAllowedAuthor(authorAssociation) {
  * @returns {never}
  */
 function skip(core) {
-  core.setOutput('chromium', false);
-  core.setOutput('chrome', false);
-  core.setOutput('msedge', false);
+  core.setOutput('matrix', getMatrix([]));
   process.exit(0);
+}
+
+/**
+ * @typedef {'chromium' | 'chrome' | 'msedge'} Project
+ * @param {Project[]} projects
+ */
+function getMatrix(projects) {
+  return [
+    {
+      name: 'Chromium',
+      project: /** @type {Project} */ ('chromium'),
+      target: 'chrome',
+      'runs-on': 'ubuntu-22.04',
+    },
+    {
+      name: 'Chrome',
+      project: /** @type {Project} */ ('chrome'),
+      target: 'chrome',
+      'runs-on': 'ubuntu-22.04',
+    },
+    {
+      name: 'Edge',
+      project: /** @type {Project} */ ('msedge'),
+      target: 'chrome',
+      'runs-on': 'ubuntu-22.04',
+    },
+  ].filter((p) => projects.includes(p.project));
 }

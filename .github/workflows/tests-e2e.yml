@@ -10,9 +10,7 @@ jobs:
     name: Prepare
     runs-on: ubuntu-22.04
     outputs:
-      chromium: ${{ steps.filter.outputs.chromium }}
-      chrome: ${{ steps.filter.outputs.chrome }}
-      msedge: ${{ steps.filter.outputs.msedge }}
+      matrix: ${{ steps.filter.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,26 +31,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: Chromium
-            project: chromium
-            target: chrome
-            runs-on: ubuntu-22.04
-          - name: Chrome
-            project: chrome
-            target: chrome
-            runs-on: ubuntu-22.04
-          # - name: Firefox
-          #   project: firefox
-          #   target: firefox
-          #   runs-on: ubuntu-22.04
-          - name: Edge
-            project: msedge
-            target: chrome
-            runs-on: ubuntu-22.04
+        include: ${{ fromJson(needs.filter.outputs.matrix) }}
 
     timeout-minutes: 15
-    if: ${{ needs.filter.outputs[matrix.project] == 'true' }}
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.runs-on }}
     environment: test
