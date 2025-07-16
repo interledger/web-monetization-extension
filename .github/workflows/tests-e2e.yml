@@ -2,36 +2,39 @@ name: End-to-End Tests
 on:
   pull_request_review:
     types: [submitted]
+  pull_request:
+    branches: [main, 'v[0-9]+.x']
 
 jobs:
+  filter:
+    name: Prepare
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.filter.outputs.matrix }}
+      skip: ${{ steps.filter.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment setup
+        uses: ./.github/actions/setup
+
+      - name: Find tests to run
+        id: filter
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const script = require('./.github/actions/tests-e2e-filter.cjs')
+            await script({ github, context, core })
+
   test-e2e:
-    if: ${{
-      github.event.review.body == 'test-e2e' &&
-      contains(fromJson('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.review.author_association)
-      }}
+    needs: filter
+    if: needs.filter.outputs.skip != 'true'
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: Chromium
-            project: chromium
-            target: chrome
-            runs-on: ubuntu-22.04
-          - name: Chrome
-            project: chrome
-            target: chrome
-            runs-on: ubuntu-22.04
-          # - name: Firefox
-          #   project: firefox
-          #   target: firefox
-          #   runs-on: ubuntu-22.04
-          - name: Edge
-            project: msedge
-            target: chrome
-            runs-on: ubuntu-22.04
+        include: ${{ fromJson(needs.filter.outputs.matrix) }}
 
     timeout-minutes: 15
-    name: E2E Tests - ${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.runs-on }}
     environment: test
     steps:
