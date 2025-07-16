@@ -1,6 +1,6 @@
 # Install the Web Monetization Extension
 
-While you typically install the Web Monetization extension directly from your [browser's extension store](<(https://webmonetization.org/supporters/get-started/#install-the-extension)>), you might need to install a different build for development or testing. This guide explains how to temporarily install the extension from its source code or from pre-built ZIP files.
+While you typically install the Web Monetization extension directly from your [browser's extension store](https://webmonetization.org/supporters/get-started/#install-the-extension), you might need to install a different build for development or testing. This guide explains how to temporarily install the extension from its source code or from pre-built ZIP files.
 
 ## Install from Source
 
