@@ -20,6 +20,19 @@ export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
   return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort());
 }
 
+/**
+ * Move an item to the front of an array, if it exists in array.
+ * @warning This mutates the array instead of returning a new array.
+ */
+export function moveToFront<T>(arr: T[], item: T) {
+  const index = arr.indexOf(item);
+  if (index > 0) {
+    const item = arr[index];
+    arr.splice(index, 1);
+    arr.unshift(item);
+  }
+}
+
 export function isNotNull<T>(value: T | null): value is T {
   return value !== null;
 }

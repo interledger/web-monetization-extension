@@ -1,4 +1,4 @@
-import type { Browser, Runtime } from 'webextension-polyfill';
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
@@ -6,6 +6,7 @@ import {
   getConnectWalletInfo,
   getWalletInformation,
   isErrorWithKey,
+  moveToFront,
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
@@ -246,9 +247,9 @@ export class Background {
               return success(undefined);
 
             case 'RECONNECT_WALLET': {
+              const lastActiveTab = await this.windowState.getCurrentTab();
               await this.walletService.reconnectWallet(message.payload);
-              await this.monetizationService.resumePaymentSessionActiveTab();
-              await this.updateVisualIndicatorsForCurrentTab();
+              await this.refreshAllPaymentSessions(lastActiveTab);
               return success(undefined);
             }
 
@@ -361,6 +362,38 @@ export class Background {
     const activeTab = await this.windowState.getCurrentTab();
     if (activeTab?.id) {
       void this.tabEvents.updateVisualIndicators(activeTab);
+    }
+  }
+
+  /**
+   * Make sure sessions have a fresh incoming payment URL and minSendAmount
+   * which we might have failed to get as the key was lost, or wallet
+   * re-connected etc.
+   *
+   * @param priorityTab Prioritize this tab for the reset/restart process.
+   */
+  private async refreshAllPaymentSessions(priorityTab?: Tabs.Tab) {
+    const paymentManagers = [...this.tabState.paymentManagers.values()];
+    if (priorityTab?.id) {
+      const priorityPM = this.tabState.paymentManagers.get(priorityTab.id);
+      if (priorityPM) {
+        moveToFront(paymentManagers, priorityPM);
+      }
+    }
+
+    for (const paymentManager of paymentManagers) {
+      await Promise.all(
+        paymentManager.sessions.map((s) => s.findMinSendAmount(true)),
+      );
+    }
+
+    if (priorityTab?.id) {
+      if (priorityTab.id === this.windowState.getCurrentTabId()) {
+        this.tabState.paymentManagers.get(priorityTab.id)?.resume();
+      }
+      await this.tabEvents.updateVisualIndicators(priorityTab);
+    } else {
+      await this.updateVisualIndicatorsForCurrentTab();
     }
   }
 
