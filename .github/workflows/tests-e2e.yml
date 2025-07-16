@@ -27,7 +27,7 @@ jobs:
             await script({ github, context, core })
 
   test-e2e:
-    needs: prepare
+    needs: filter
     strategy:
       fail-fast: false
       matrix:
