@@ -162,6 +162,7 @@ const Steps = () => {
         onClick={onClick}
         title={
           <React.Fragment>
+            {/*  */}
             <a
               href="https://webmonetization.org/wallets/"
               target="_blank"
