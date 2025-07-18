@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -58,6 +58,9 @@
         "recommended": true,
         "noAwaitInLoop": "off", // TODO: turn on, too many cases
         "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "noConstantBinaryExpression": "error",
+        "useAdjacentGetterSetter": "error",
         "noImportCycles": "off", // TODO: enable some time, too many cases right now.
         "noNestedComponentDefinitions": "off", // TODO: turn on
         "noReactPropAssign": "error",
