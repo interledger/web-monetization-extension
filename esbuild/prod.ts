@@ -10,12 +10,12 @@ import type {
   WebExtensionManifest,
 } from './config';
 import { getPlugins } from './plugins';
-import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck';
 
 export const getProdOptions = ({
   outDir,
   target,
   channel,
+  typecheck,
 }: Omit<BuildArgs, 'dev'> & {
   outDir: string;
 }): BuildOptions => {
@@ -24,8 +24,13 @@ export const getProdOptions = ({
     metafile: true,
     minify: true,
     external: ['*.woff2'],
-    plugins: getPlugins({ outDir, dev: false, target, channel }).concat([
-      typecheckPlugin({ buildMode: 'readonly' }),
+    plugins: getPlugins({
+      outDir,
+      dev: false,
+      target,
+      channel,
+      typecheck,
+    }).concat([
       preservePolyfillClassNamesPlugin({ outDir }),
       zipPlugin({ outDir, target, channel }),
     ]),

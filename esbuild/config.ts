@@ -27,6 +27,7 @@ export type BuildArgs = {
   target: Target;
   channel: Channel;
   dev: boolean;
+  typecheck: boolean;
 };
 
 export const options: BuildOptions = {

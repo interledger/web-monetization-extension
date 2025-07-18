@@ -47,7 +47,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build
-        run: pnpm build ${{ matrix.target }} --channel=nightly
+        run: pnpm build ${{ matrix.target }} --channel=nightly --no-typecheck
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install chromium ${{ matrix.project }} --with-deps

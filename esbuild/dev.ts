@@ -2,12 +2,12 @@ import { readFile } from 'node:fs/promises';
 import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild';
 import { SERVE_PORTS, type BuildArgs, type Target } from './config';
 import { getPlugins } from './plugins';
-import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck';
 
 export const getDevOptions = ({
   outDir,
   target,
   channel,
+  typecheck,
 }: Omit<BuildArgs, 'dev'> & {
   outDir: string;
 }): BuildOptions => {
@@ -16,10 +16,13 @@ export const getDevOptions = ({
     metafile: false,
     minify: false,
     external: ['*.woff2'],
-    plugins: getPlugins({ outDir, dev: true, target, channel }).concat([
-      typecheckPlugin({ buildMode: 'readonly', watch: true }),
-      liveReloadPlugin({ target }),
-    ]),
+    plugins: getPlugins({
+      outDir,
+      dev: true,
+      target,
+      channel,
+      typecheck,
+    }).concat([liveReloadPlugin({ target })]),
     define: {
       NODE_ENV: JSON.stringify('development'),
       CONFIG_LOG_LEVEL: JSON.stringify('TRACE'),
