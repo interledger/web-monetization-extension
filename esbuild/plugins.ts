@@ -5,6 +5,7 @@ import type { Plugin as ESBuildPlugin } from 'esbuild';
 import { nodeBuiltin } from 'esbuild-node-builtin';
 import esbuildStylePlugin from 'esbuild-style-plugin';
 import { copy } from 'esbuild-plugin-copy';
+import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck';
 import tailwind from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 
@@ -22,6 +23,7 @@ export const getPlugins = ({
   target,
   channel,
   dev,
+  typecheck,
 }: BuildArgs & {
   outDir: string;
 }): ESBuildPlugin[] => {
@@ -39,7 +41,7 @@ export const getPlugins = ({
           path: require.resolve('crypto-browserify'),
         }));
       },
-    },
+    } satisfies ESBuildPlugin,
     ignorePackagePlugin([
       /@apidevtools[/|\\]json-schema-ref-parser/,
       /@interledger[/|\\]openapi/,
@@ -87,7 +89,8 @@ export const getPlugins = ({
     }),
     processManifestPlugin({ outDir, dev, target, channel }),
     safariSupportPlugin({ outDir, target }),
-  ];
+    typecheck ? typecheckPlugin({ buildMode: 'readonly', watch: dev }) : null,
+  ].filter((e) => e !== null);
 };
 
 // Based on https://github.com/Knowre-Dev/esbuild-plugin-ignore
@@ -116,7 +119,7 @@ function processManifestPlugin({
   outDir,
   target,
   channel,
-}: BuildArgs & { outDir: string }): ESBuildPlugin {
+}: Omit<BuildArgs, 'typecheck'> & { outDir: string }): ESBuildPlugin {
   return {
     name: 'process-manifest',
     setup(build) {
