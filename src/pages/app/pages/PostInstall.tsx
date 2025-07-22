@@ -108,7 +108,7 @@ const WALLETS: Array<WalletOption> = [
   {
     id: 'chimoney',
     name: 'Chimoney Wallet',
-    url: '', // empty URL to ignore it from listing
+    url: 'https://chimoney.com?ref=webmonetization-extension',
     logo: {
       src: '/assets/images/logos/chimoney-logo.svg',
       width: 300,
