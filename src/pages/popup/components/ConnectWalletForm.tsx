@@ -212,7 +212,7 @@ export const ConnectWalletForm = ({
       }
       // use as autocompleted value
       void handleWalletAddressUrlChange(value, input).then((ok) => {
-        resetState();
+        void resetState();
         if (ok) document.getElementById('connectAmount')?.focus();
       });
     },
@@ -309,7 +309,7 @@ export const ConnectWalletForm = ({
 
   React.useEffect(() => {
     if (defaultValues.walletAddressUrl) {
-      handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
+      void handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
     }
   }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
 
@@ -386,7 +386,7 @@ export const ConnectWalletForm = ({
             }
           }
           const ok = await handleWalletAddressUrlChange(value, input);
-          resetState();
+          void resetState();
           if (ok) document.getElementById('connectAmount')?.focus();
         }}
         onBlur={async (ev) => {
@@ -397,7 +397,7 @@ export const ConnectWalletForm = ({
             }
           }
           await handleWalletAddressUrlChange(value, ev.currentTarget);
-          resetState();
+          await resetState();
         }}
       />
 
