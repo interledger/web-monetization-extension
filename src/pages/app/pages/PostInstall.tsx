@@ -108,7 +108,7 @@ const WALLETS: Array<WalletOption> = [
   {
     id: 'chimoney',
     name: 'Chimoney Wallet',
-    url: 'https://chimoney.com?ref=webmonetization-extension',
+    url: 'https://chimoney.page.link/yJa2KQ3ZwTX1yLcn8?ref=webmonetization-extension',
     logo: {
       src: '/assets/images/logos/chimoney-logo.svg',
       width: 300,
