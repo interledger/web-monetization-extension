@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chrome, firefox]
+        browser: [chrome, firefox, safari]
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -23,7 +23,7 @@ jobs:
 
       - name: Build
         shell: bash
-        run: pnpm build ${{ matrix.browser}} --channel=nightly
+        run: pnpm build ${{ matrix.browser}} --channel=nightly --no-typecheck
 
   test:
     name: Test

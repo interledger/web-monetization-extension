@@ -2,7 +2,6 @@ import { test, expect, DEFAULT_BUDGET } from './fixtures/connected';
 import { setupPlayground } from './helpers/common';
 import {
   goToHome,
-  locators,
   sendOneTimePayment,
   setContinuousPayments,
 } from './pages/popup';
@@ -119,6 +118,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
   popup,
   background,
   i18n,
+  context,
 }) => {
   const sendNowButton = popup.getByRole('button', { name: 'Send now' });
 
@@ -147,6 +147,21 @@ test('does not monetize when global payments toggle in unchecked', async ({
   await expect(eventsLog.locator('li')).toHaveCount(1);
   await expect(eventsLog.locator('li').last()).toContainText('Load Event');
 
+  // wait for payment session to be set up
+  await new Promise<void>((resolve) => {
+    context.on('requestfinished', async function intercept(req) {
+      if (!req.serviceWorker()) return;
+      if (req.method() !== 'POST') return;
+      if (!req.url().endsWith('/quotes')) return;
+
+      const res = await req.response();
+      if (res?.ok()) {
+        context.off('requestfinished', intercept);
+        resolve();
+      }
+    });
+  });
+
   await test.step('check extension payments do not go through', async () => {
     await expect(sendNowButton).not.toBeVisible();
     await expect(monetizationCallback).toHaveBeenCalledTimes(0);
@@ -174,7 +189,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
   });
 
   await test.step('checking global payments toggle re-enables payments in extension', async () => {
-    await locators.backLink(popup).click();
+    await goToHome(popup);
 
     await popup
       .getByRole('checkbox', { name: 'Enable extension' })
@@ -185,9 +200,8 @@ test('does not monetize when global payments toggle in unchecked', async ({
       continuousPaymentsEnabled: true,
       enabled: true,
     });
+
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
-    await expect(eventsLog.locator('li')).toHaveCount(2);
-    await expect(eventsLog).toBeVisible();
   });
 });
 

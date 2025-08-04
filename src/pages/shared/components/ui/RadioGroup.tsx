@@ -33,12 +33,12 @@ export const Radio = ({
   }, [checked, divId]);
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: TODO
     <div
       id={divId}
       className="flex items-center"
       tabIndex={noSelected ? 0 : checked ? 0 : -1}
       aria-checked={checked}
-      // biome-ignore lint/a11y/useSemanticElements: <explanation>
       role="radio"
     >
       <input

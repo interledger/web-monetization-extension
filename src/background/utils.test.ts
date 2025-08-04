@@ -89,7 +89,7 @@ describe('convertWithExchangeRate', () => {
   const exchangeRates = {
     base: 'USD',
     rates: {
-      BTC: 96048.49, // very large rate
+      BTC: 96_048.49, // very large rate
       CAD: 0.7, // close rate, lower
       EUR: 1.04, // close rate, larger; common case
       GBP: 1.24,
@@ -97,7 +97,7 @@ describe('convertWithExchangeRate', () => {
       LTC: 117.04, // large-ish rate
       MXN: 0.0486, // common case
       RON: 0.21,
-      SHIB: 0.00001589, // very small rate
+      SHIB: 0.000_015_89, // very small rate
       USD: 1, // base, very common case
       ZAR: 0.05, // small rate; common case
     },

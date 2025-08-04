@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/chrome-manifest",
   "name": "Web Monetization",
-  "version": "0.8.0.0",
+  "version": "0.9.2.1",
   "manifest_version": 3,
   "minimum_chrome_version": "110.0",
   "description": "__MSG_appDescription__",
@@ -49,6 +49,9 @@
     "gecko": {
       "strict_min_version": "110.0",
       "id": "tech@interledger.com"
+    },
+    "safari": {
+      "strict_min_version": "16.4"
     }
   }
 }

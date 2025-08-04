@@ -73,7 +73,10 @@ export class TabState {
   }
 
   isTabMonetized(tabId: TabId) {
-    return this.getEnabledSessions(tabId).length > 0;
+    return (
+      this.getEnabledSessions(tabId).length > 0 &&
+      this.getPayableSessions(tabId).length > 0
+    );
   }
 
   tabHasAllSessionsInvalid(tabId: TabId) {
@@ -122,7 +125,11 @@ export class TabState {
       status = 'monetized';
     }
 
-    return { tabId: tab.id, url, status };
+    const tabId = tab.id;
+    const minSendAmount =
+      this.paymentManagers.get(tabId)?.minSendAmount.toString() ?? '0';
+
+    return { tabId, url, status, minSendAmount };
   }
 
   getIcon(tabId: TabId) {
@@ -152,6 +159,7 @@ export class TabState {
   }
 
   clearSessionsByTabId(tabId: TabId) {
+    this.logger.trace('clearSessionsByTabId', tabId);
     this.currentIcon.delete(tabId);
     this.paymentManagers.destroy(tabId);
   }

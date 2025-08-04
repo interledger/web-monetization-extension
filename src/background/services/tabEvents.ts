@@ -1,6 +1,6 @@
 import { isOkState, removeQueryParams } from '@/shared/helpers';
 import type { PopupTabInfo, Storage, TabId } from '@/shared/types';
-import type { Browser, Tabs } from 'webextension-polyfill';
+import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
 
 type IconPath = Record<number, string>;
@@ -92,6 +92,8 @@ export class TabEvents {
         // Navigating to new URL. Clear overpaying state if any.
         this.tabState.clearSessionsByTabId(tabId); // for sanity
         this.tabState.clearOverpayingByTabId(tabId);
+      } else {
+        // see onPageHide below
       }
 
       void this.updateVisualIndicators(tab);
@@ -125,6 +127,16 @@ export class TabEvents {
     const updated = this.windowState.setCurrentTabId(tab.windowId!, tab.id);
     if (!updated) return;
     await this.updateVisualIndicators(tab);
+  };
+
+  // In Chrome, we cannot rely on `onUpdatedTab` to detect page refresh, as
+  // `changeInfo.url` is unset during refreshes in Chrome. So, based on a
+  // message from content script (top-frame), we detect page unload to clear
+  // payment sessions/managers.
+  onPageHide = async (sender: Runtime.MessageSender) => {
+    const tabId = sender?.tab?.id;
+    if (!tabId) return; // Firefox doesn't have sender.tab after tab close
+    this.tabState.clearSessionsByTabId(tabId);
   };
 
   updateVisualIndicators = async (tab: Tabs.Tab) => {

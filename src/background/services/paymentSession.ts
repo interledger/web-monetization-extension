@@ -88,8 +88,11 @@ export class PaymentSession {
   #minSendAmount = 0n;
   #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
 
-  findMinSendAmount(): Promise<void> {
+  findMinSendAmount(force?: boolean): Promise<void> {
     this.#minSendAmountPromise ??= this._findMinSendAmount();
+    if (force) {
+      this.#minSendAmountPromise = this._findMinSendAmount(undefined, true);
+    }
     return this.#minSendAmountPromise;
   }
 
@@ -100,7 +103,10 @@ export class PaymentSession {
     return this.#minSendAmount;
   }
 
-  private async _findMinSendAmount(signal?: AbortSignal): Promise<void> {
+  private async _findMinSendAmount(
+    signal?: AbortSignal,
+    force?: boolean,
+  ): Promise<void> {
     let amountToSend = bigIntMax(this.#minSendAmount, MIN_SEND_AMOUNT);
     const senderAssetScale = this.sender.assetScale;
     const receiverAssetScale = this.receiver.assetScale;
@@ -142,7 +148,7 @@ export class PaymentSession {
 
     // This all will eventually get replaced by OpenPayments response update
     // that includes a min rate that we can directly use.
-    await this.setIncomingPaymentUrl();
+    await this.setIncomingPaymentUrl(force);
     const amountIter = getNextSendableAmount(
       senderAssetScale,
       receiverAssetScale,
@@ -238,7 +244,7 @@ export class PaymentSession {
     } catch {
       return false;
     }
-    return this.active && !this.invalid && !this.disabled;
+    return !this.invalid && !this.disabled;
   }
 
   disable() {
@@ -426,7 +432,7 @@ export class PaymentSession {
         amount: amount.toString(),
       });
 
-      this.sendMonetizationEvent({
+      void this.sendMonetizationEvent({
         amountSent: {
           currency: outgoingPayment.receiveAmount.assetCode,
           value: transformBalance(
@@ -535,7 +541,7 @@ export class PaymentSession {
         paymentPointer: this.receiver.id,
       };
 
-      this.sendMonetizationEvent(monetizationEventDetails);
+      void this.sendMonetizationEvent(monetizationEventDetails);
 
       this.tabState.saveLastPaymentDetails(this.tabId, this.tabUrl, {
         walletAddressId: this.receiver.id,

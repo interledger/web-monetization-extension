@@ -20,6 +20,19 @@ export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
   return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort());
 }
 
+/**
+ * Move an item to the front of an array, if it exists in array.
+ * @warning This mutates the array instead of returning a new array.
+ */
+export function moveToFront<T>(arr: T[], item: T) {
+  const index = arr.indexOf(item);
+  if (index > 0) {
+    const item = arr[index];
+    arr.splice(index, 1);
+    arr.unshift(item);
+  }
+}
+
 export function isNotNull<T>(value: T | null): value is T {
   return value !== null;
 }
@@ -86,7 +99,7 @@ export const isOkState = (state: Storage['state']) => {
   return Object.values(state).every((value) => value === false);
 };
 
-export type BrowserName = 'chrome' | 'edge' | 'firefox' | 'unknown';
+export type BrowserName = 'chrome' | 'edge' | 'firefox' | 'safari' | 'unknown';
 
 export const getBrowserName = (
   browser: Browser,
@@ -95,6 +108,9 @@ export const getBrowserName = (
   const url = browser.runtime.getURL('');
   if (url.startsWith('moz-extension://')) {
     return 'firefox';
+  }
+  if (url.startsWith('safari-web-extension://')) {
+    return 'safari';
   }
   if (url.startsWith('extension://')) {
     // works only in Playwright?
@@ -106,6 +122,9 @@ export const getBrowserName = (
       return 'edge';
     }
     return 'chrome';
+  }
+  if (userAgent.includes('Safari/')) {
+    return 'safari';
   }
 
   return 'unknown';

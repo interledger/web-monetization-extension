@@ -1,12 +1,20 @@
 import type { WalletAddress, JWKS } from '@interledger/open-payments';
+import type { ConnectWalletAddressInfo } from '@/shared/messages';
+import type { AmountValue } from '@/shared/types';
+import {
+  convertWithExchangeRate,
+  getBudgetRecommendationsData,
+  getExchangeRates,
+} from '@/background/utils';
 import type { WalletInfo } from '@/shared/types';
 import { ensureEnd } from './misc';
+import { transformBalance } from './currency';
 
 export function toWalletAddressUrl(s: string): string {
   if (s.startsWith('https://')) return s;
 
   const addr = s.replace(/^\$/, 'https://').replace(/\/$/, '');
-  if (/^https:\/\/.*\/[^\/].*$/.test(addr)) {
+  if (/^https:\/\/.*\/[^/].*$/.test(addr)) {
     return addr;
   }
   return `${addr}/.well-known/pay`;
@@ -51,6 +59,61 @@ export const getWalletInformation = async (
   }
 
   return { ...json, url: walletAddressUrl };
+};
+
+export const getConnectWalletBudgetInfo = async (
+  walletAddress: WalletAddress,
+): Promise<Omit<ConnectWalletAddressInfo, 'walletAddress'>> => {
+  const {
+    DEFAULT_BUDGET,
+    DEFAULT_RATE_OF_PAY,
+    MAX_RATE_OF_PAY,
+    DEFAULT_SCALE,
+  } = await import('@/background/config');
+  const { assetCode, assetScale } = walletAddress;
+
+  const budgetData = await getBudgetRecommendationsData().catch(
+    (): Awaited<ReturnType<typeof getBudgetRecommendationsData>> => ({}),
+  );
+  if (Object.hasOwn(budgetData, assetCode)) {
+    const { budget, hourly } = budgetData[assetCode];
+    const defaultRateOfPay = Number(hourly.default) * 10 ** assetScale;
+    const maxRateOfPay = Number(hourly.max) * 10 ** assetScale;
+    return {
+      defaultBudget: budget.default,
+      defaultRateOfPay: defaultRateOfPay.toFixed(0),
+      maxRateOfPay: maxRateOfPay.toFixed(0),
+    };
+  }
+
+  const exchangeRates = await getExchangeRates().catch(() => {
+    return { base: 'USD', rates: { [assetCode]: 1 } };
+  });
+  const convert = (amount: AmountValue): AmountValue => {
+    const src = { assetCode: 'USD', assetScale: DEFAULT_SCALE };
+    return convertWithExchangeRate(amount, src, walletAddress, exchangeRates);
+  };
+
+  const defaultBudget = convert(DEFAULT_BUDGET);
+  const defaultRateOfPay = convert(DEFAULT_RATE_OF_PAY);
+  const maxRateOfPay = convert(MAX_RATE_OF_PAY);
+  return {
+    defaultBudget: Number(transformBalance(defaultBudget, assetScale)),
+    defaultRateOfPay,
+    maxRateOfPay,
+  };
+};
+
+export const getConnectWalletInfo = async (
+  walletAddressUrl: string,
+): Promise<ConnectWalletAddressInfo> => {
+  const url = toWalletAddressUrl(walletAddressUrl);
+  const walletAddress = await getWalletInformation(url);
+  const budgetInfo = await getConnectWalletBudgetInfo(walletAddress);
+  return {
+    walletAddress: { ...walletAddress, url },
+    ...budgetInfo,
+  };
 };
 
 export const getJWKS = async (walletAddressUrl: string) => {

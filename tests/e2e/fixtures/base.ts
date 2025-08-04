@@ -29,10 +29,11 @@ export const test = base.extend<Fixtures>({
   context: [
     async ({ browserName, channel }, use, testInfo) => {
       const context = await loadContext({ browserName, channel }, testInfo);
+      await context.clock.install();
       await use(context);
       await context.close();
     },
-    { scope: 'test', timeout: 5_000 },
+    { scope: 'test', timeout: 5000 },
   ],
 
   // This is the background service worker in Chrome, and background script
@@ -43,7 +44,7 @@ export const test = base.extend<Fixtures>({
       const background = await getBackground(browserName, context);
       await use(background);
     },
-    { scope: 'test', timeout: 5_000 },
+    { scope: 'test', timeout: 5000 },
   ],
 
   i18n: [
@@ -61,7 +62,7 @@ export const test = base.extend<Fixtures>({
       await use(popup);
       await popup.close();
     },
-    { scope: 'test', timeout: 5_000 },
+    { scope: 'test', timeout: 5000 },
   ],
 
   page: async ({ context }, use) => {

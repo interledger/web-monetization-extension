@@ -61,6 +61,7 @@ const msg: MessageMocks = {
   START_MONETIZATION: jest.fn(),
   STOP_MONETIZATION: jest.fn(),
   TAB_FOCUSED: jest.fn(),
+  PAGE_HIDE: jest.fn(),
 };
 const messageMock = jest.spyOn(messageManager, 'send');
 // @ts-expect-error let it go
@@ -1194,12 +1195,14 @@ describe('document events', () => {
 
     linkManager.start();
     await nextTick();
+    expect(msg.PAGE_HIDE).not.toHaveBeenCalled();
 
     window.dispatchEvent(new window.Event('pagehide'));
 
     expect(msg.STOP_MONETIZATION).toHaveBeenCalledWith([
       { requestId: 'uuid-1', intent: 'remove' },
     ]);
+    expect(msg.PAGE_HIDE).toHaveBeenCalled();
   });
 
   test('passes back focus events', async () => {

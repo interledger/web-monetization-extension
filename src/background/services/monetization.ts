@@ -6,7 +6,6 @@ import type {
   StartMonetizationPayload,
   StopMonetizationPayload,
 } from '@/shared/messages';
-import { PaymentManager } from './paymentManager';
 import { getSender, getTabId } from '@/background/utils';
 import { OUTGOING_PAYMENT_POLLING_MAX_DURATION } from '@/background/config';
 import {
@@ -29,6 +28,8 @@ export class MonetizationService {
   private tabState: Cradle['tabState'];
   private windowState: Cradle['windowState'];
   private message: Cradle['message'];
+  private PaymentSession: Cradle['PaymentSession'];
+  private PaymentManager: Cradle['PaymentManager'];
 
   constructor({
     logger,
@@ -41,6 +42,8 @@ export class MonetizationService {
     tabState,
     windowState,
     message,
+    PaymentSession,
+    PaymentManager,
   }: Cradle) {
     Object.assign(this, {
       logger,
@@ -53,6 +56,8 @@ export class MonetizationService {
       tabState,
       windowState,
       message,
+      PaymentSession,
+      PaymentManager,
     });
 
     this.registerEventListeners();
@@ -66,20 +71,10 @@ export class MonetizationService {
       throw new Error('Unexpected: payload is empty');
     }
     const {
-      state,
-      continuousPaymentsEnabled,
-      enabled,
       rateOfPay,
       connected,
       walletAddress: connectedWallet,
-    } = await this.storage.get([
-      'state',
-      'continuousPaymentsEnabled',
-      'enabled',
-      'connected',
-      'rateOfPay',
-      'walletAddress',
-    ]);
+    } = await this.storage.get(['connected', 'rateOfPay', 'walletAddress']);
 
     if (!rateOfPay || !connectedWallet) {
       this.logger.error(
@@ -93,7 +88,7 @@ export class MonetizationService {
     let paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
       const url = removeQueryParams(this.tabState.url.get(tabId) || fullUrl!);
-      paymentManager = new PaymentManager(
+      paymentManager = new this.PaymentManager(
         tabId,
         url,
         connectedWallet,
@@ -109,6 +104,7 @@ export class MonetizationService {
           ),
           rootLogger: this.rootLogger,
           message: this.message,
+          PaymentSession: this.PaymentSession,
         },
       );
       this.tabState.paymentManagers.set(tabId, paymentManager);
@@ -120,15 +116,19 @@ export class MonetizationService {
       }),
     );
 
-    this.events.emit('monetization.state_update', tabId);
-
+    const { state, continuousPaymentsEnabled, enabled } =
+      await this.storage.get(['state', 'continuousPaymentsEnabled', 'enabled']);
     if (
       enabled &&
       continuousPaymentsEnabled &&
       this.canTryPayment(connected, state)
     ) {
       paymentManager.start();
+    } else {
+      paymentManager.pause('cannot-start-yet');
     }
+
+    this.events.emit('monetization.state_update', tabId);
   }
 
   async pausePaymentSessionsByTabId(tabId: number, reason?: string) {
@@ -144,32 +144,30 @@ export class MonetizationService {
     payload: StopMonetizationPayload,
     sender: Runtime.MessageSender,
   ) {
-    const { tabId, frameId } = getSender(sender);
+    const tabId = getTabId(sender);
     const paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
       this.logger.warn(`No payment manager found for tab ${tabId}.`);
       return;
     }
 
-    let removedCount = 0;
     let pausedCount = 0;
     for (const { requestId, intent } of payload) {
       if (intent === 'remove') {
-        paymentManager.removeSession(requestId, frameId);
-        removedCount++;
+        paymentManager.removeSession(requestId);
       } else if (intent === 'disable') {
-        paymentManager.disableSession(requestId, frameId);
+        paymentManager.disableSession(requestId);
       } else {
-        paymentManager.deactivateSession(requestId, frameId);
+        paymentManager.deactivateSession(requestId);
         pausedCount++;
       }
     }
 
-    if (pausedCount > 0 && paymentManager.payableSessions.length === 0) {
-      paymentManager?.pause('all-paused');
-    }
-    if (removedCount > 0 && paymentManager.size === 0) {
-      this.tabState.paymentManagers.destroy(tabId);
+    if (
+      pausedCount > 0 &&
+      !paymentManager.payableSessions.some((s) => s.active)
+    ) {
+      paymentManager.pause('all-paused');
     }
 
     this.events.emit('monetization.state_update', tabId);
@@ -207,6 +205,7 @@ export class MonetizationService {
       !continuousPaymentsEnabled ||
       !this.canTryPayment(connected, state)
     ) {
+      paymentManager.pause('paused-by-user');
       return;
     }
 
@@ -266,7 +265,7 @@ export class MonetizationService {
     if (nowEnabled && enabled) {
       await this.resumePaymentSessionActiveTab();
     } else {
-      this.stopAllSessions();
+      this.pauseAllSessions('toggle-continuous-payments');
     }
   }
 
@@ -280,7 +279,7 @@ export class MonetizationService {
     if (nowEnabled && continuousPaymentsEnabled) {
       await this.resumePaymentSessionActiveTab();
     } else {
-      this.stopAllSessions();
+      this.pauseAllSessions('toggle-payments');
     }
   }
 
@@ -372,7 +371,7 @@ export class MonetizationService {
 
       for (const tabId of tabIds) {
         const paymentManager = this.tabState.paymentManagers.get(tabId);
-        await paymentManager?.setRate(rate);
+        paymentManager?.setRate(rate);
       }
     });
   }
@@ -380,7 +379,7 @@ export class MonetizationService {
   private onKeyRevoked() {
     this.events.once('open_payments.key_revoked', async () => {
       this.logger.warn('Key revoked. Stopping all payment sessions.');
-      this.stopAllSessions();
+      this.pauseAllSessions();
       await this.storage.setState({ key_revoked: true });
       this.onKeyRevoked(); // setup listener again once all is done
     });
@@ -389,7 +388,7 @@ export class MonetizationService {
   private onOutOfFunds() {
     this.events.once('open_payments.out_of_funds', async () => {
       this.logger.warn('Out of funds. Stopping all payment sessions.');
-      this.stopAllSessions();
+      this.pauseAllSessions();
       await this.storage.setState({ out_of_funds: true });
       this.onOutOfFunds(); // setup listener again once all is done
     });
@@ -404,11 +403,11 @@ export class MonetizationService {
     });
   }
 
-  private stopAllSessions() {
+  private pauseAllSessions(reason?: string) {
     for (const paymentManager of this.tabState.paymentManagers.values()) {
-      paymentManager.stop();
+      paymentManager.pause(reason);
     }
-    this.logger.debug('All payment sessions stopped.');
+    this.logger.debug('All payment sessions paused.');
   }
 
   async getPopupData(tab: Pick<Tabs.Tab, 'id' | 'url'>): Promise<PopupStore> {

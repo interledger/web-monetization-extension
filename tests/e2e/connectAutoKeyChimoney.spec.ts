@@ -7,7 +7,7 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/chimoney';
-import { waitForPage, waitForWelcomePage } from './helpers/common';
+import { waitForWelcomePage } from './helpers/common';
 import { getStorage } from './fixtures/helpers';
 
 const TEST_CASES = [
@@ -101,8 +101,8 @@ for (const testCase of TEST_CASES) {
           : 'Switch to App Login';
 
       page = await test.step('shows login page', async () => {
-        const openedPage = await waitForPage(context, (url) =>
-          url.startsWith(walletUrl),
+        const openedPage = await context.waitForEvent('page', (page) =>
+          page.url().startsWith(walletUrl),
         );
         await openedPage.waitForURL((url) => url.href.startsWith(URLS.login));
         await expect(openedPage.locator('form')).toBeVisible();
@@ -171,21 +171,6 @@ for (const testCase of TEST_CASES) {
       });
 
       await test.step('shows connect consent page', async () => {
-        // Chimoney asks for login before consent page additionally?
-        await page.waitForURL((url) => url.href.startsWith(URLS.login));
-        await expect(page.locator('form')).toBeVisible();
-        const url = page.url();
-        if (
-          (url.includes('/app') && testCase.type !== 'app') ||
-          (url.includes('/business') && testCase.type !== 'business')
-        ) {
-          await page.locator('a', { hasText: LOGIN_PAGE_LINK_TEXT }).click();
-          await expect(page.locator('form')).toBeVisible();
-        }
-        await page.waitForURL((url) => url.href.startsWith(URLS.login));
-
-        await login(page, { username, password });
-
         await waitForGrantConsentPage(page);
         await expect(
           page.getByRole('button', { name: 'Accept', exact: true }),

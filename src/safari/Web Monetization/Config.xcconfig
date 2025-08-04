@@ -1,0 +1,8 @@
+//
+//  Config.xcconfig
+//  Web Monetization
+//
+//  Created by https://github.com/sidvishnoi on 04/07/25.
+//
+
+CURRENT_PROJECT_VERSION = 0.9.2.1

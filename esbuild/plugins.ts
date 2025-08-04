@@ -5,6 +5,7 @@ import type { Plugin as ESBuildPlugin } from 'esbuild';
 import { nodeBuiltin } from 'esbuild-node-builtin';
 import esbuildStylePlugin from 'esbuild-style-plugin';
 import { copy } from 'esbuild-plugin-copy';
+import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck';
 import tailwind from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
 
@@ -22,6 +23,7 @@ export const getPlugins = ({
   target,
   channel,
   dev,
+  typecheck,
 }: BuildArgs & {
   outDir: string;
 }): ESBuildPlugin[] => {
@@ -39,7 +41,7 @@ export const getPlugins = ({
           path: require.resolve('crypto-browserify'),
         }));
       },
-    },
+    } satisfies ESBuildPlugin,
     ignorePackagePlugin([
       /@apidevtools[/|\\]json-schema-ref-parser/,
       /@interledger[/|\\]openapi/,
@@ -79,9 +81,16 @@ export const getPlugins = ({
         },
       ],
       watch: dev,
+      globbyOptions: {
+        ignore: [target !== 'safari' ? '**/*safari*' : null].filter(
+          (e) => e !== null,
+        ),
+      },
     }),
     processManifestPlugin({ outDir, dev, target, channel }),
-  ];
+    safariSupportPlugin({ outDir, target }),
+    typecheck ? typecheckPlugin({ buildMode: 'readonly', watch: dev }) : null,
+  ].filter((e) => e !== null);
 };
 
 // Based on https://github.com/Knowre-Dev/esbuild-plugin-ignore
@@ -110,7 +119,7 @@ function processManifestPlugin({
   outDir,
   target,
   channel,
-}: BuildArgs & { outDir: string }): ESBuildPlugin {
+}: Omit<BuildArgs, 'typecheck'> & { outDir: string }): ESBuildPlugin {
   return {
     name: 'process-manifest',
     setup(build) {
@@ -149,7 +158,18 @@ function processManifestPlugin({
           json.background = {
             scripts: [json.background.service_worker!],
           };
+          json.browser_specific_settings = {
+            gecko: json.browser_specific_settings!.gecko,
+          };
           json.minimum_chrome_version = undefined;
+        } else if (target === 'safari') {
+          // https://developer.apple.com/forums/thread/758479?answerId=818592022#818592022
+          json.background = {
+            scripts: [json.background.service_worker!],
+          };
+          json.browser_specific_settings = {
+            safari: json.browser_specific_settings!.safari,
+          };
         } else {
           json.browser_specific_settings = undefined;
         }
@@ -169,6 +189,60 @@ function cleanPlugin(dirs: string[]): ESBuildPlugin {
           dirs.map((dir) => fs.rm(dir, { recursive: true, force: true })),
         );
       });
+    },
+  };
+}
+
+/**
+ * Copy generated extension files to Safari app's Shared Resources folder so we
+ * can build Safari extension with xcode.
+ *
+ * This plugin will work with dev/build scripts and support all the channels,
+ * without any manual intervention.
+ *
+ * Symlinking doesn't work.
+ */
+function safariSupportPlugin({
+  outDir,
+  target,
+}: Pick<BuildArgs, 'target'> & { outDir: string }): ESBuildPlugin {
+  const BASE_DIR = path.join(ROOT_DIR, 'src', 'safari', 'Web Monetization');
+  const DEST = path.join(BASE_DIR, 'Shared (Extension)', 'Resources');
+
+  // clean DEST (while preserving FILES_TO_KEEP)
+  async function cleanResourcesFolder() {
+    const FILES_TO_KEEP = ['.gitkeep'];
+    const KEEP_PATHS = FILES_TO_KEEP.map((p) => path.join(DEST, p));
+
+    const filesToKeep = await Promise.all(
+      KEEP_PATHS.map((file) => fs.readFile(file, 'utf8')),
+    );
+    await fs.rm(DEST, { recursive: true, force: true });
+    await fs.mkdir(DEST, { recursive: true });
+    await Promise.all(
+      filesToKeep.map((data, i) => fs.writeFile(KEEP_PATHS[i], data, 'utf8')),
+    );
+  }
+
+  // copy outDir to DEST
+  async function copyFiles() {
+    await fs.cp(outDir, DEST, {
+      preserveTimestamps: true,
+      recursive: true,
+      force: true,
+    });
+  }
+
+  async function handler() {
+    await cleanResourcesFolder();
+    await copyFiles();
+  }
+
+  return {
+    name: 'safari-support',
+    setup(build) {
+      if (target !== 'safari') return;
+      build.onEnd(handler);
     },
   };
 }

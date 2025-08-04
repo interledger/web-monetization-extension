@@ -40,31 +40,37 @@ pnpm i
 
 All commands are run from the root of the project, from a terminal:
 
-| Command                                 | Action                                                                                                                                                                                                                                                                                                                                                        |
-| :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm dev [target]`                     | Builds the extension for development, rebuilding on source code changes, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for a Chromium based browser. Output folder: `dev`.                                                                                                               |
-| `pnpm build [TARGET] --channel=CHANNEL` | Builds the extension for production usage, for a specified target (`chrome` or `firefox`) and channel (`nightly`, `preview` or `stable`). If the target is not specified the script will build the extension for all available targets. If the channel is not specified the script will build the extension for the `nightly` channel. Output folder: `dist`. |
-| `pnpm test`                             | Runs all test files using Jest.                                                                                                                                                                                                                                                                                                                               |
+- **`pnpm dev [TARGET]`**
+  - Builds the extension for **development**, with live reloading on code changes.
+    - `TARGET`: Specify `chrome` or `firefox` or `safari`. Defaults to `chrome` if not specified.
+  - **Output:** `dev/${TARGET}` folder.
 
-### Installing the extension from source, in Chromium based browsers (Chrome, Opera, Edge, Brave, Arc, Vivaldi)
+- **`pnpm build [TARGET] --channel=CHANNEL`**
+  - Creates a **production-ready build** of the extension.
+    - `TARGET`: Specify `chrome` or `firefox` or `safari`. Builds for all targets if not specified.
+    - `CHANNEL`: Choose `nightly`, `preview`, or `stable`. Defaults to `nightly` if not specified.
+  - **Output:** `dist/${TARGET}` folder. Also creates a `.zip` file in the `dist` folder.
 
-1. Build the extension with `pnpm build chrome`
-1. Open extensions page
-   In Chrome, click the three dots in the top-right corner. Look for the `Extensions` options and select `Manage extensions`.
-1. Enable developer mode
-   To enable `Developer mode`, use the switch at the top-right of the extensions page.
-1. Load the extension
-   After enabling `Developer mode`, new buttons should appear in the top-left corner. Click the `Load unpacked` one and choose the **folder** that contains the extension files (in the `dist` folder, look for the `chrome` one with the `manifest.json` file).
+Learn how to install the extension from source by reading the [installation instructions](./docs/INSTALL.md).
 
-### Installing the extension from source, in Firefox
+#### Additional commands
 
-1. Build the extension with `pnpm build firefox`
-1. Open Firefox's add-ons page
-   Open Firefox, click the three horizontal lines in the top-right corner, and choose `Add-ons and themes`.
-1. Navigate to the add-ons debugging page
-   In the add-ons page, click the gear icon and select "Debug Add-ons".
-1. Load the extension
-   Look for the `Temporary Extensions` section and expand its content. After expanding its content click on the `Load Temporary Add-on...` button and select the `manifest.json` file (in the `dist` folder, go in the `firefox` folder and select the manifest file).
+- **`pnpm test`**
+  - Runs jest for unit testing and integration testing.
+  - Use `pnpm test:watch` to run tests in watch mode.
+
+- **`pnpm test:e2e:chromium`**
+  - Runs all **end-to-end tests** using Chromium & Playwright.
+  - Add `--ui` to run in interactive UI mode.
+  - Read our [documentation on testing](./docs/TESTING.md) for details.
+
+- **`pnpm format`**
+  - Runs **Biome** and **Prettier** on the codebase to find formatting issues.
+  - Use `pnpm format:fix` to automatically fix some of the issues.
+
+- **`pnpm lint`**
+  - Runs **Biome** on the codebase to find linting issues.
+  - Use `pnpm lint:fix` to automatically fix some of the issues.
 
 ## Contributing
 

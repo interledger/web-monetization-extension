@@ -29,6 +29,13 @@ export type Response<TPayload = void> =
   | SuccessResponse<TPayload>
   | ErrorResponse;
 
+export function getResponseOrThrow<T>(res: Response<T>) {
+  if (res.success) {
+    return res.payload;
+  }
+  throw res.error ?? new Error(res.message);
+}
+
 type MessageMap = Record<string, { input: unknown; output: unknown }>;
 type MessagesWithInput<T extends MessageMap> = {
   [K in keyof T as T[K]['input'] extends never ? never : K]: T[K];
@@ -95,9 +102,18 @@ export class MessageManager<TMessages extends MessageMap> {
 // #endregion
 
 // #region Popup ↦ BG
+export interface ConnectWalletAddressInfo {
+  walletAddress: WalletInfo;
+  defaultBudget: number;
+  defaultRateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
+}
+
 export interface ConnectWalletPayload {
   walletAddress: WalletInfo;
   amount: string;
+  rateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
   recurring: boolean;
   autoKeyAdd: boolean;
   autoKeyAddConsent: boolean | null;
@@ -135,6 +151,10 @@ export type PopupToBackgroundMessage = {
   GET_DATA_POPUP: {
     input: never;
     output: PopupState;
+  };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: ConnectWalletAddressInfo;
   };
   CONNECT_WALLET: {
     input: ConnectWalletPayload;
@@ -211,6 +231,10 @@ export type ContentToBackgroundMessage = {
     input: never;
     output: never;
   };
+  PAGE_HIDE: {
+    input: never;
+    output: never;
+  };
   STOP_MONETIZATION: {
     input: StopMonetizationPayload;
     output: never;
@@ -231,6 +255,10 @@ export type AppToBackgroundMessage = {
   GET_DATA_APP: {
     input: never;
     output: AppState;
+  };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: ConnectWalletAddressInfo;
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
   RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
