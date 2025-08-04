@@ -12,6 +12,7 @@ import {
   type WorkerInfo,
   type Worker,
 } from '@playwright/test';
+import { format } from 'date-fns';
 import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
@@ -26,9 +27,8 @@ export const BUILD_DIR = DIST_DIR;
 // https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
 export const authFile = path.join(
   testDir,
-  'test-results',
   '.auth',
-  'rafiki-money.json',
+  `testnet-${format(new Date(), 'yyyyII')}.json`,
 );
 
 const FIREFOX_ADDON_UUID = crypto.randomUUID();
