@@ -2,7 +2,6 @@ import { test, expect } from './fixtures/base';
 import { withResolvers, getJWKS } from '@/shared/helpers';
 import { fillPopup } from './pages/popup';
 import { URLS, login, revokeKey } from './helpers/mmaon';
-import { waitForPage } from './helpers/common';
 import { getStorage } from './fixtures/helpers';
 
 test('Connect to MMAON wallet with automatic key addition when not logged-in to wallet', async ({
@@ -62,8 +61,8 @@ test('Connect to MMAON wallet with automatic key addition when not logged-in to 
   });
 
   page = await test.step('shows login page', async () => {
-    const openedPage = await waitForPage(context, (url) =>
-      url.startsWith(walletOrigin),
+    const openedPage = await context.waitForEvent('page', (page) =>
+      page.url().startsWith(walletOrigin),
     );
     await openedPage.waitForURL((url) => url.href.startsWith(URLS.loginFull));
     await login(openedPage, { username, password });
