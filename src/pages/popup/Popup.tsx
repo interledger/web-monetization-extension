@@ -41,20 +41,18 @@ const Routes = () => (
 
 export const Popup = () => {
   return (
-    <>
-      <BrowserContextProvider browser={browser}>
-        <MessageContextProvider>
-          <TranslationContextProvider>
-            <WaitForStateLoad>
-              <Router hook={useHashLocation}>
-                <MainLayout>
-                  <Routes />
-                </MainLayout>
-              </Router>
-            </WaitForStateLoad>
-          </TranslationContextProvider>
-        </MessageContextProvider>
-      </BrowserContextProvider>
-    </>
+    <BrowserContextProvider browser={browser}>
+      <MessageContextProvider>
+        <TranslationContextProvider>
+          <WaitForStateLoad>
+            <Router hook={useHashLocation}>
+              <MainLayout>
+                <Routes />
+              </MainLayout>
+            </Router>
+          </WaitForStateLoad>
+        </TranslationContextProvider>
+      </MessageContextProvider>
+    </BrowserContextProvider>
   );
 };

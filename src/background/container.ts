@@ -19,8 +19,10 @@ import {
   EventsService,
   Heartbeat,
   Deduplicator,
+  PaymentSession,
+  PaymentManager,
 } from './services';
-import { createLogger, type Logger } from '@/shared/logger';
+import { createLogger, type Logger, type RootLogger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
 import {
   getBrowserName,
@@ -39,6 +41,7 @@ import {
 
 export interface Cradle {
   logger: Logger;
+  rootLogger: RootLogger;
   browser: Browser;
   browserName: BrowserName;
   appName: string;
@@ -58,6 +61,8 @@ export interface Cradle {
   tabState: TabState;
   windowState: WindowState;
   heartbeat: Heartbeat;
+  PaymentSession: typeof PaymentSession;
+  PaymentManager: typeof PaymentManager;
 }
 
 export const configureContainer = () => {
@@ -69,6 +74,7 @@ export const configureContainer = () => {
 
   container.register({
     logger: asValue(logger),
+    rootLogger: asValue(logger),
     browser: asValue(browser),
     browserName: asValue(getBrowserName(browser, navigator.userAgent)),
     appName: asValue(browser.runtime.getManifest().name),
@@ -132,6 +138,8 @@ export const configureContainer = () => {
         logger: logger.getLogger('window-state'),
       })),
     heartbeat: asClass(Heartbeat).singleton(),
+    PaymentSession: asValue(PaymentSession),
+    PaymentManager: asValue(PaymentManager),
   });
 
   return container;

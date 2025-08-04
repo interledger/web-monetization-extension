@@ -116,20 +116,48 @@ export function debounceSync<T extends unknown[], R>(
 
 export class Timeout {
   private timeout: ReturnType<typeof setTimeout> | null = null;
+  #isPaused = false;
+  #remaining = 0;
+  #startTime = 0;
+
   constructor(
-    ms: number,
+    private ms: number,
     private callback: () => void,
   ) {
-    this.reset(ms);
+    if (ms > 0) this.reset(ms);
   }
 
   reset(ms: number) {
     this.clear();
+    this.ms = ms;
+    this.#isPaused = false;
+    this.#startTime = Date.now();
     this.timeout = setTimeout(this.callback, ms);
   }
 
+  pause() {
+    if (this.#isPaused) return;
+    this.clear();
+    this.#isPaused = true;
+    this.#remaining = this.ms - (Date.now() - this.#startTime);
+  }
+
+  resume() {
+    if (!this.#isPaused) {
+      throw new Error('Unexpected: Timeout was not paused, cannot resume');
+    }
+    if (this.#remaining > 0) {
+      this.timeout = setTimeout(() => {
+        this.callback();
+        this.reset(this.ms);
+      }, this.#remaining);
+    } else {
+      this.reset(this.ms);
+    }
+  }
+
   clear() {
-    if (this.timeout) {
+    if (this.timeout !== null) {
       clearTimeout(this.timeout);
       this.timeout = null;
     }

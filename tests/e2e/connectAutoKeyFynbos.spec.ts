@@ -1,11 +1,7 @@
 import { test, expect } from './fixtures/base';
 import { getJWKS, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
-import {
-  getContinueWaitTime,
-  waitForPage,
-  waitForWelcomePage,
-} from './helpers/common';
+import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
   KEYS_PAGE_URL,
@@ -57,7 +53,9 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
       `[data-testid="connect-wallet-auto-key-consent"]`,
     );
 
-    expect(popup.getByTestId('connect-wallet-auto-key-consent')).toBeVisible();
+    await expect(
+      popup.getByTestId('connect-wallet-auto-key-consent'),
+    ).toBeVisible();
     await popup
       .getByRole('button', {
         name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
@@ -66,8 +64,8 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   });
 
   page = await test.step('shows login page', async () => {
-    const openedPage = await waitForPage(context, (url) =>
-      url.startsWith(LOGIN_PAGE_URL),
+    const openedPage = await context.waitForEvent('page', (page) =>
+      page.url().startsWith(LOGIN_PAGE_URL),
     );
     await openedPage.getByLabel('Email').fill(username);
     await openedPage.getByLabel('Password').fill(password);
@@ -84,7 +82,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
 
   const keyNickName = await test.step('adds key to wallet', async () => {
     const { resolve, promise } = withResolvers<string>();
-    page.on('request', async function interceptApplicationName(req) {
+    page.on('request', function interceptApplicationName(req) {
       if (req.serviceWorker()) return;
       if (req.method() !== 'POST') return;
 
@@ -93,7 +91,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
         url.pathname.startsWith('/settings/keys/add-public') &&
         url.searchParams.get('_data') === 'routes/settings_.keys_.add-public'
       ) {
-        const applicationName = req.postDataJSON()?.applicationName;
+        const applicationName = req.postDataJSON()?.applicationName as string;
         resolve(applicationName);
         page.off('request', interceptApplicationName);
       }
@@ -113,7 +111,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
 
   await test.step('shows wallet consent page', async () => {
     await waitForGrantConsentPage(page);
-    expect(page.getByRole('button', { name: 'Approve' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Approve' })).toBeVisible();
   });
 
   await test.step('connects', async () => {
@@ -121,7 +119,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     await acceptGrant(page, continueWaitMs);
     await waitForWelcomePage(page);
 
-    expect(background).toHaveStorage({ connected: true });
+    await expect(background).toHaveStorage({ connected: true });
   });
 
   await test.step('cleanup: revoke keys', async () => {

@@ -127,22 +127,48 @@ Each service/component/file is named so that you can have a general idea of what
 
 Background script/service worker (it's service worker in Chrome, and script in Firefox at the moment, but there's no specific difference from our perspective) is the backend of our extension. It runs locally on the user's device, not on a remote server. The background script is composed of various services:
 
+```mermaid
+mindmap
+  root{{Background}}
+    Monetization
+      PaymentManager
+        PaymentStream
+          PaymentSession
+    (_messaging_)
+        SendToPopup
+        EventsService
+        TabEvents
+    (_state_)
+        TabState
+        WindowState
+        Storage
+    (_helpers_)
+        OpenPayments
+        HeartBeat
+    Wallet
+      KeyAutoAdd
+```
+
 - **`Background`**:
   - The "main" entry point for background.
   - Handles messages from popup and content scripts
   - Handles post-install & post-update events
   - Listens to many other "global" events and orchestrates other services to take action.
 - **`MonetizationService`**:
-  - The real orchestrator of payments
-  - Sets up `PaymentSession`s
+  - The real orchestrator of payments, for all tabs
+  - Sets up `PaymentManager`s
   - Handles messages from background/content-scripts/popup to maintain/update/control the payment sessions
-  - Handles events from different payment sessions
+- **`PaymentManager`**
+  - Manages payments for a tab
+  - Abstracts all monetization link elements in a page, manages payment sessions
+  - Keep track of what amount to send, which session to send to, and when to send
+- **`PaymentStream`**
+  - Contains sessions for link elements in a "frame" within the tab
+    (host website is main frame (id=0), rest are _iframes_)
 - **`PaymentSession`**:
-  - Abstraction over `OpenPaymentsService`
-  - Maintains payment sessions to keep a tab on payments (whether active or can become active)
-  - Trigger continuous payment streams or send one-time payments
-  - Publish events to a website where a payment was sent
-  - Keep track of what amount to send, and when to send.
+  - Abstraction over a monetization link element
+  - Calls OpenPayments APIs to make actual payments
+  - Publish events to a website when a payment was sent
 - **`OpenPaymentsService`**:
   - An abstraction over OpenPayments client
   - Preserves tokens, and manages a single client for all operations.
@@ -165,6 +191,9 @@ Background script/service worker (it's service worker in Chrome, and script in F
 - **`SendToPopup`**:
   - Send messages from the background to popup via `Runtime.Port`
   - Exists as we send messages to the popup often, and sending via a regular message channel would be noisy.
+- **`WalletService`**
+  - Handles wallet connection, budget updates, disconnecting and reconnecting wallet
+  - Uses `KeyAutoAddService` to add keys during connection
 - **`KeyAutoAddService`**:
   - Different wallets have different ways to upload public keys, and we don't want users to be scared by the complexity of "public keys"
   - This service complimented by its counterpart content scripts, takes control of the user's browser (after their consent) to add the key via reverse engineering how different wallets upload keys.

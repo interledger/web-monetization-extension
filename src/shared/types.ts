@@ -45,9 +45,10 @@ export interface WalletInfo extends WalletAddress {
    * The (normalized) wallet URL provided by user. Sometimes, wallets URLs have
    * redirects, and in those cases, we want to preserve what user has provided.
    *
-   * @since Available only if wallet connected after this feature was released.
+   * For wallets that were connected before this property was introduced, this
+   * will be same as {@linkcode WalletAddress.id}.
    */
-  url?: string;
+  url: string;
 }
 
 export type ExtensionState =
@@ -75,9 +76,8 @@ export interface Storage {
   /** Extension state */
   state: Partial<Record<ExtensionState, boolean>>;
 
-  rateOfPay?: string | undefined | null;
-  minRateOfPay?: string | undefined | null;
-  maxRateOfPay?: string | undefined | null;
+  rateOfPay?: AmountValue | undefined | null;
+  maxRateOfPay?: AmountValue | undefined | null;
 
   /** User wallet address information */
   walletAddress?: WalletInfo | undefined | null;
@@ -101,6 +101,7 @@ export type StorageKey = keyof Storage;
 export type PopupTabInfo = {
   tabId: TabId;
   url: string;
+  minSendAmount: AmountValue;
   status:
     | never // just added for code formatting
     /** Happy state */
@@ -167,3 +168,6 @@ export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type Tab = RequiredFields<Tabs.Tab, 'id' | 'url'>;
 export type TabId = NonNullable<Tabs.Tab['id']>;
 export type WindowId = NonNullable<Tabs.Tab['windowId']>;
+/** `0` represents the top-level frame, everything else is an _iframe_ */
+export type FrameId = number;
+export type SessionId = string;

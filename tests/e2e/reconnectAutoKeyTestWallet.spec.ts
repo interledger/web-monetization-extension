@@ -14,7 +14,6 @@ import {
   waitForWelcomePage,
   waitForReconnectWelcomePage,
   setupPlayground,
-  waitForPage,
 } from './helpers/common';
 import { disconnectWallet, fillPopup, goToHome } from './pages/popup';
 
@@ -25,6 +24,8 @@ test('Reconnect to test wallet with automatic key addition', async ({
   background,
   i18n,
 }) => {
+  test.slow(true, 'Long process');
+
   const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
   const revokeInfo = await test.step('connect wallet', async () => {
     const connectButton = await test.step('fill popup', async () => {
@@ -55,7 +56,9 @@ test('Reconnect to test wallet with automatic key addition', async ({
     );
 
     const revokeInfo = await test.step('adds key to wallet', async () => {
-      page = await waitForPage(context, (url) => url.startsWith(KEYS_PAGE_URL));
+      page = await context.waitForEvent('page', (page) =>
+        page.url().startsWith(KEYS_PAGE_URL),
+      );
 
       const { resolve, reject, promise } = withResolvers<{
         accountId: string;
@@ -136,15 +139,17 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await expect(reconnectButton).toBeVisible();
     await reconnectButton.click();
 
-    expect(popup.getByTestId('connect-wallet-auto-key-consent')).toBeVisible();
+    await expect(
+      popup.getByTestId('connect-wallet-auto-key-consent'),
+    ).toBeVisible();
     await popup
       .getByRole('button', {
         name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
       })
       .click();
 
-    const newPage = await waitForPage(context, (url) =>
-      url.startsWith(KEYS_PAGE_URL),
+    const newPage = await context.waitForEvent('page', (page) =>
+      page.url().startsWith(KEYS_PAGE_URL),
     );
 
     await waitForReconnectWelcomePage(newPage);

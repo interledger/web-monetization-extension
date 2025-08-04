@@ -1,0 +1,912 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1FF67DFE2E17ED8100E3792A /* Web Monetization Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1FF67DFD2E17ED8100E3792A /* Web Monetization Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1FF67E082E17ED8100E3792A /* Web Monetization Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1FF67E072E17ED8100E3792A /* Web Monetization Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1FF67DFF2E17ED8100E3792A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1FF67DC32E17ED7F00E3792A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1FF67DFC2E17ED8100E3792A;
+			remoteInfo = "Web Monetization Extension (iOS)";
+		};
+		1FF67E092E17ED8100E3792A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1FF67DC32E17ED7F00E3792A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1FF67E062E17ED8100E3792A;
+			remoteInfo = "Web Monetization Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1FF67E312E17ED8100E3792A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1FF67DFE2E17ED8100E3792A /* Web Monetization Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67E3B2E17ED8100E3792A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1FF67E082E17ED8100E3792A /* Web Monetization Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1FF67DDF2E17ED8100E3792A /* Web Monetization.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Web Monetization.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FF67DF12E17ED8100E3792A /* Web Monetization.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Web Monetization.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FF67DFD2E17ED8100E3792A /* Web Monetization Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Web Monetization Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FF67E072E17ED8100E3792A /* Web Monetization Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Web Monetization Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1FF685762E18113B00E3792A /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1FF67E2C2E17ED8100E3792A /* Exceptions for "Shared (App)" folder in "Web Monetization (iOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"/Localized: Resources/Main.html",
+				Assets.xcassets,
+				Resources/Style.css,
+				ViewController.swift,
+			);
+			target = 1FF67DDE2E17ED8100E3792A /* Web Monetization (iOS) */;
+		};
+		1FF67E302E17ED8100E3792A /* Exceptions for "iOS (Extension)" folder in "Web Monetization Extension (iOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1FF67DFC2E17ED8100E3792A /* Web Monetization Extension (iOS) */;
+		};
+		1FF67E352E17ED8100E3792A /* Exceptions for "iOS (App)" folder in "Web Monetization (iOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1FF67DDE2E17ED8100E3792A /* Web Monetization (iOS) */;
+		};
+		1FF67E362E17ED8100E3792A /* Exceptions for "Shared (App)" folder in "Web Monetization (macOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"/Localized: Resources/Main.html",
+				Assets.xcassets,
+				Resources/Icon.png,
+				Resources/Script.js,
+				Resources/Style.css,
+				ViewController.swift,
+			);
+			target = 1FF67DF02E17ED8100E3792A /* Web Monetization (macOS) */;
+		};
+		1FF67E3A2E17ED8100E3792A /* Exceptions for "macOS (Extension)" folder in "Web Monetization Extension (macOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1FF67E062E17ED8100E3792A /* Web Monetization Extension (macOS) */;
+		};
+		1FF67E3F2E17ED8100E3792A /* Exceptions for "Shared (Extension)" folder in "Web Monetization Extension (iOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/_locales,
+				Resources/assets,
+				Resources/background,
+				Resources/content,
+				Resources/manifest.json,
+				Resources/pages,
+				Resources/polyfill,
+				Resources/popup,
+				SafariWebExtensionHandler.swift,
+			);
+			target = 1FF67DFC2E17ED8100E3792A /* Web Monetization Extension (iOS) */;
+		};
+		1FF67E402E17ED8100E3792A /* Exceptions for "Shared (Extension)" folder in "Web Monetization Extension (macOS)" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Resources/_locales,
+				Resources/assets,
+				Resources/background,
+				Resources/content,
+				Resources/manifest.json,
+				Resources/pages,
+				Resources/polyfill,
+				Resources/popup,
+				SafariWebExtensionHandler.swift,
+			);
+			target = 1FF67E062E17ED8100E3792A /* Web Monetization Extension (macOS) */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1FF67DC72E17ED7F00E3792A /* Shared (App) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1FF67E2C2E17ED8100E3792A /* Exceptions for "Shared (App)" folder in "Web Monetization (iOS)" target */,
+				1FF67E362E17ED8100E3792A /* Exceptions for "Shared (App)" folder in "Web Monetization (macOS)" target */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		1FF67DD02E17ED8100E3792A /* Shared (Extension) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1FF67E3F2E17ED8100E3792A /* Exceptions for "Shared (Extension)" folder in "Web Monetization Extension (iOS)" target */,
+				1FF67E402E17ED8100E3792A /* Exceptions for "Shared (Extension)" folder in "Web Monetization Extension (macOS)" target */,
+			);
+			explicitFolders = (
+				Resources/_locales,
+				Resources/assets,
+				Resources/background,
+				Resources/content,
+				Resources/pages,
+				Resources/polyfill,
+				Resources/popup,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		1FF67DE12E17ED8100E3792A /* iOS (App) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1FF67E352E17ED8100E3792A /* Exceptions for "iOS (App)" folder in "Web Monetization (iOS)" target */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		1FF67DF22E17ED8100E3792A /* macOS (App) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		1FF67E012E17ED8100E3792A /* iOS (Extension) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1FF67E302E17ED8100E3792A /* Exceptions for "iOS (Extension)" folder in "Web Monetization Extension (iOS)" target */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		1FF67E0B2E17ED8100E3792A /* macOS (Extension) */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1FF67E3A2E17ED8100E3792A /* Exceptions for "macOS (Extension)" folder in "Web Monetization Extension (macOS)" target */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1FF67DDC2E17ED8100E3792A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67DEE2E17ED8100E3792A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67DFA2E17ED8100E3792A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67E042E17ED8100E3792A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1FF67DC22E17ED7F00E3792A = {
+			isa = PBXGroup;
+			children = (
+				1FF685762E18113B00E3792A /* Config.xcconfig */,
+				1FF67DC72E17ED7F00E3792A /* Shared (App) */,
+				1FF67DD02E17ED8100E3792A /* Shared (Extension) */,
+				1FF67DE12E17ED8100E3792A /* iOS (App) */,
+				1FF67DF22E17ED8100E3792A /* macOS (App) */,
+				1FF67E012E17ED8100E3792A /* iOS (Extension) */,
+				1FF67E0B2E17ED8100E3792A /* macOS (Extension) */,
+				1FF67DE02E17ED8100E3792A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1FF67DE02E17ED8100E3792A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1FF67DDF2E17ED8100E3792A /* Web Monetization.app */,
+				1FF67DF12E17ED8100E3792A /* Web Monetization.app */,
+				1FF67DFD2E17ED8100E3792A /* Web Monetization Extension.appex */,
+				1FF67E072E17ED8100E3792A /* Web Monetization Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1FF67DDE2E17ED8100E3792A /* Web Monetization (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1FF67E322E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization (iOS)" */;
+			buildPhases = (
+				1FF67DDB2E17ED8100E3792A /* Sources */,
+				1FF67DDC2E17ED8100E3792A /* Frameworks */,
+				1FF67DDD2E17ED8100E3792A /* Resources */,
+				1FF67E312E17ED8100E3792A /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1FF67E002E17ED8100E3792A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1FF67DE12E17ED8100E3792A /* iOS (App) */,
+			);
+			name = "Web Monetization (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "Web Monetization (iOS)";
+			productReference = 1FF67DDF2E17ED8100E3792A /* Web Monetization.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1FF67DF02E17ED8100E3792A /* Web Monetization (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1FF67E3C2E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization (macOS)" */;
+			buildPhases = (
+				1FF67DED2E17ED8100E3792A /* Sources */,
+				1FF67DEE2E17ED8100E3792A /* Frameworks */,
+				1FF67DEF2E17ED8100E3792A /* Resources */,
+				1FF67E3B2E17ED8100E3792A /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1FF67E0A2E17ED8100E3792A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1FF67DF22E17ED8100E3792A /* macOS (App) */,
+			);
+			name = "Web Monetization (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "Web Monetization (macOS)";
+			productReference = 1FF67DF12E17ED8100E3792A /* Web Monetization.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1FF67DFC2E17ED8100E3792A /* Web Monetization Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1FF67E2D2E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization Extension (iOS)" */;
+			buildPhases = (
+				1FF67DF92E17ED8100E3792A /* Sources */,
+				1FF67DFA2E17ED8100E3792A /* Frameworks */,
+				1FF67DFB2E17ED8100E3792A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1FF67E012E17ED8100E3792A /* iOS (Extension) */,
+			);
+			name = "Web Monetization Extension (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "Web Monetization Extension (iOS)";
+			productReference = 1FF67DFD2E17ED8100E3792A /* Web Monetization Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		1FF67E062E17ED8100E3792A /* Web Monetization Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1FF67E372E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization Extension (macOS)" */;
+			buildPhases = (
+				1FF67E032E17ED8100E3792A /* Sources */,
+				1FF67E042E17ED8100E3792A /* Frameworks */,
+				1FF67E052E17ED8100E3792A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1FF67E0B2E17ED8100E3792A /* macOS (Extension) */,
+			);
+			name = "Web Monetization Extension (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "Web Monetization Extension (macOS)";
+			productReference = 1FF67E072E17ED8100E3792A /* Web Monetization Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1FF67DC32E17ED7F00E3792A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					1FF67DDE2E17ED8100E3792A = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					1FF67DF02E17ED8100E3792A = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					1FF67DFC2E17ED8100E3792A = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					1FF67E062E17ED8100E3792A = {
+						CreatedOnToolsVersion = 16.4;
+					};
+				};
+			};
+			buildConfigurationList = 1FF67DC62E17ED7F00E3792A /* Build configuration list for PBXProject "Web Monetization" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1FF67DC22E17ED7F00E3792A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1FF67DE02E17ED8100E3792A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1FF67DDE2E17ED8100E3792A /* Web Monetization (iOS) */,
+				1FF67DF02E17ED8100E3792A /* Web Monetization (macOS) */,
+				1FF67DFC2E17ED8100E3792A /* Web Monetization Extension (iOS) */,
+				1FF67E062E17ED8100E3792A /* Web Monetization Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1FF67DDD2E17ED8100E3792A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67DEF2E17ED8100E3792A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67DFB2E17ED8100E3792A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67E052E17ED8100E3792A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1FF67DDB2E17ED8100E3792A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67DED2E17ED8100E3792A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67DF92E17ED8100E3792A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF67E032E17ED8100E3792A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1FF67E002E17ED8100E3792A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1FF67DFC2E17ED8100E3792A /* Web Monetization Extension (iOS) */;
+			targetProxy = 1FF67DFF2E17ED8100E3792A /* PBXContainerItemProxy */;
+		};
+		1FF67E0A2E17ED8100E3792A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1FF67E062E17ED8100E3792A /* Web Monetization Extension (macOS) */;
+			targetProxy = 1FF67E092E17ED8100E3792A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1FF67E2E2E17ED8100E3792A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization.Extension;
+				PRODUCT_NAME = "Web Monetization Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1FF67E2F2E17ED8100E3792A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization.Extension;
+				PRODUCT_NAME = "Web Monetization Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1FF67E332E17ED8100E3792A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization;
+				PRODUCT_NAME = "Web Monetization";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1FF67E342E17ED8100E3792A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization;
+				PRODUCT_NAME = "Web Monetization";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1FF67E382E17ED8100E3792A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/Web Monetization.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization.Extension;
+				PRODUCT_NAME = "Web Monetization Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1FF67E392E17ED8100E3792A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/Web Monetization.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization.Extension;
+				PRODUCT_NAME = "Web Monetization Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1FF67E3D2E17ED8100E3792A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/Web Monetization.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization;
+				PRODUCT_NAME = "Web Monetization";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1FF67E3E2E17ED8100E3792A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/Web Monetization.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Web Monetization";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = "$(CURRENT_PROJECT_VERSION)";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.interledger.WebMonetization;
+				PRODUCT_NAME = "Web Monetization";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1FF67E412E17ED8100E3792A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1FF685762E18113B00E3792A /* Config.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1FF67E422E17ED8100E3792A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1FF685762E18113B00E3792A /* Config.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1FF67DC62E17ED7F00E3792A /* Build configuration list for PBXProject "Web Monetization" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1FF67E412E17ED8100E3792A /* Debug */,
+				1FF67E422E17ED8100E3792A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1FF67E2D2E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1FF67E2E2E17ED8100E3792A /* Debug */,
+				1FF67E2F2E17ED8100E3792A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1FF67E322E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1FF67E332E17ED8100E3792A /* Debug */,
+				1FF67E342E17ED8100E3792A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1FF67E372E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1FF67E382E17ED8100E3792A /* Debug */,
+				1FF67E392E17ED8100E3792A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1FF67E3C2E17ED8100E3792A /* Build configuration list for PBXNativeTarget "Web Monetization (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1FF67E3D2E17ED8100E3792A /* Debug */,
+				1FF67E3E2E17ED8100E3792A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1FF67DC32E17ED7F00E3792A /* Project object */;
+}

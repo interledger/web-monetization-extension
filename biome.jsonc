@@ -1,12 +1,12 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true,
     "defaultBranch": "main"
   },
-  "files": { "ignoreUnknown": true, "ignore": [] },
+  "files": { "ignoreUnknown": true, "includes": ["**"] },
   "formatter": {
     "enabled": true,
     "useEditorconfig": true,
@@ -14,24 +14,69 @@
     "indentWidth": 2,
     "lineWidth": 80
   },
-  "organizeImports": { "enabled": false },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
+    "domains": {
+      "project": "all",
+      "react": "all",
+      "test": "all"
+    },
     "rules": {
       "recommended": true,
       "style": {
         "noUselessElse": "off", // TODO: turn on, too many cases
-        "noNonNullAssertion": "off" // TODO: turn on, too many cases
+        "noNonNullAssertion": "off", // TODO: turn on, too many cases
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error"
       },
       "suspicious": {
         "noConsole": "warn"
       },
       "correctness": {
         "noUnusedVariables": "warn",
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "useImportExtensions": "off"
       },
       "a11y": {
         "noSvgWithoutTitle": "off"
+      },
+      "nursery": {
+        "recommended": true,
+        "noAwaitInLoop": "off", // TODO: turn on, too many cases
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "noConstantBinaryExpression": "error",
+        "useAdjacentGetterSetter": "error",
+        "noImportCycles": "off", // TODO: enable some time, too many cases right now.
+        "noNestedComponentDefinitions": "off", // TODO: turn on
+        "noReactPropAssign": "error",
+        "noRestrictedElements": "error",
+        "noShadow": "off", // TODO: turn on, too many cases
+        "noTsIgnore": "error",
+        "noUnassignedVariables": "error",
+        "noUselessBackrefInRegex": "error",
+        "noUselessEscapeInString": "error",
+        "noUselessUndefined": "error",
+        "noUnknownAtRule": "off", // tailwind
+        "useExplicitType": "off", // TODO: check if we want to. way too many cases
+        "useNumericSeparators": "error",
+        "useSingleJsDocAsterisk": "error",
+        "useSortedClasses": "off", // TODO: turn on
+        "useSymbolDescription": "error"
       }
     }
   },
@@ -52,10 +97,10 @@
   },
   "overrides": [
     {
-      "include": [
-        "esbuild/*",
-        "scripts/*",
-        ".github/actions/*",
+      "includes": [
+        "esbuild/**/*",
+        "scripts/**/*",
+        ".github/actions/**/*",
         "src/content/debug.ts"
       ],
       "linter": {

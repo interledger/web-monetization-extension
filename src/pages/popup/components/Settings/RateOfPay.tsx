@@ -5,12 +5,13 @@ import { debounceAsync } from '@/shared/helpers';
 import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
 import { useMessage, useTranslation } from '@/popup/lib/context';
 import { dispatch, usePopupState, type PopupState } from '@/popup/lib/store';
+import type { AmountValue } from '@/shared/types';
 
 export const RateOfPayScreen = () => {
   const message = useMessage();
 
   const updateRateOfPay = React.useRef(
-    debounceAsync(async (rateOfPay: string) => {
+    debounceAsync(async (rateOfPay: AmountValue) => {
       const response = await message.send('UPDATE_RATE_OF_PAY', { rateOfPay });
       if (!response.success) {
         // TODO: Maybe reset to old state, but not while user is active (avoid
@@ -19,7 +20,7 @@ export const RateOfPayScreen = () => {
     }, 1000),
   );
 
-  const onRateChange = async (rateOfPay: string) => {
+  const onRateChange = async (rateOfPay: AmountValue) => {
     dispatch({ type: 'UPDATE_RATE_OF_PAY', data: { rateOfPay } });
     void updateRateOfPay.current(rateOfPay);
   };
@@ -38,24 +39,18 @@ export const RateOfPayScreen = () => {
 };
 
 interface Props {
-  onRateChange: (rate: string) => Promise<void>;
+  onRateChange: (rate: AmountValue) => Promise<void>;
   toggle: () => void | Promise<void>;
 }
 
 export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
-  const {
-    continuousPaymentsEnabled,
-    rateOfPay,
-    minRateOfPay,
-    maxRateOfPay,
-    walletAddress,
-  } = usePopupState();
+  const { continuousPaymentsEnabled, rateOfPay, maxRateOfPay, walletAddress } =
+    usePopupState();
   return (
     <div className="space-y-8">
       <RateOfPayInput
         onRateChange={onRateChange}
         rateOfPay={rateOfPay}
-        minRateOfPay={minRateOfPay}
         maxRateOfPay={maxRateOfPay}
         walletAddress={walletAddress}
         disabled={!continuousPaymentsEnabled}
@@ -86,7 +81,6 @@ type RateOfPayInputProps = {
   onRateChange: Props['onRateChange'];
   walletAddress: PopupState['walletAddress'];
   rateOfPay: PopupState['rateOfPay'];
-  minRateOfPay: PopupState['minRateOfPay'];
   maxRateOfPay: PopupState['maxRateOfPay'];
   disabled?: boolean;
 };
@@ -95,7 +89,6 @@ const RateOfPayInput = ({
   onRateChange,
   walletAddress,
   rateOfPay,
-  minRateOfPay,
   maxRateOfPay,
   disabled,
 }: RateOfPayInputProps) => {
@@ -113,25 +106,23 @@ const RateOfPayInput = ({
   );
 
   return (
-    <>
-      <InputAmount
-        id="rateOfPay"
-        className="max-w-56"
-        label="Rate of pay per hour"
-        walletAddress={walletAddress}
-        onChange={(value) => {
-          setErrorMessage('');
-          const rate = Number(value) * 10 ** walletAddress.assetScale;
-          onRateChange(rate.toString());
-        }}
-        onError={(error) => setErrorMessage(t(error))}
-        errorMessage={errorMessage}
-        min={Number(formatAmount(minRateOfPay))}
-        max={Number(formatAmount(maxRateOfPay))}
-        amount={formatAmount(rateOfPay)}
-        controls={true}
-        readOnly={disabled}
-      />
-    </>
+    <InputAmount
+      id="rateOfPay"
+      className="max-w-56"
+      label="Rate of pay per hour"
+      walletAddress={walletAddress}
+      onChange={(value) => {
+        setErrorMessage('');
+        const rate = Number(value) * 10 ** walletAddress.assetScale;
+        onRateChange(Math.round(rate).toString());
+      }}
+      onError={(error) => setErrorMessage(t(error))}
+      errorMessage={errorMessage}
+      min={1}
+      max={Number(formatAmount(maxRateOfPay))}
+      amount={formatAmount(rateOfPay)}
+      controls={true}
+      readOnly={disabled}
+    />
   );
 };

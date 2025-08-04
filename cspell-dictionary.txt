@@ -39,6 +39,10 @@ networkidle
 webextensions
 firefoxUserPrefs
 textbox
+appex
+pbxproj
+xcconfig
+xcscheme
 
 # packages and 3rd party tools/libraries
 awilix
@@ -54,6 +58,7 @@ msedge
 SVGOMG
 xvfb
 Titillium
+mindmap
 
 # user names
 raducristianpopa

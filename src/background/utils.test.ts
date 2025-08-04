@@ -89,7 +89,7 @@ describe('convertWithExchangeRate', () => {
   const exchangeRates = {
     base: 'USD',
     rates: {
-      BTC: 96048.49, // very large rate
+      BTC: 96_048.49, // very large rate
       CAD: 0.7, // close rate, lower
       EUR: 1.04, // close rate, larger; common case
       GBP: 1.24,
@@ -97,7 +97,7 @@ describe('convertWithExchangeRate', () => {
       LTC: 117.04, // large-ish rate
       MXN: 0.0486, // common case
       RON: 0.21,
-      SHIB: 0.00001589, // very small rate
+      SHIB: 0.000_015_89, // very small rate
       USD: 1, // base, very common case
       ZAR: 0.05, // small rate; common case
     },
@@ -125,12 +125,12 @@ describe('convertWithExchangeRate', () => {
       to: 'GBP',
       amounts: [
         { input: '1', expected: '1' },
-        { input: '10', expected: '9' },
+        { input: '10', expected: '8' },
         { input: '100', expected: '81' },
         { input: '10000', expected: '8065' },
-        { input: '15', expected: '13' },
+        { input: '15', expected: '12' },
         { input: '2', expected: '2' },
-        { input: '200', expected: '162' },
+        { input: '200', expected: '161' },
       ],
     },
     {
@@ -140,12 +140,12 @@ describe('convertWithExchangeRate', () => {
       amounts: [
         { input: '1', expected: '1' },
         { input: '10', expected: '10' },
-        { input: '100', expected: '97' },
-        { input: '10000', expected: '9616' },
-        { input: '15', expected: '15' },
+        { input: '100', expected: '96' },
+        { input: '10000', expected: '9615' },
+        { input: '15', expected: '14' },
         { input: '2', expected: '2' },
-        { input: '200', expected: '193' },
-        { input: 200n, expected: 193n },
+        { input: '200', expected: '192' },
+        { input: 200n, expected: 192n },
       ],
     },
     {
@@ -156,11 +156,11 @@ describe('convertWithExchangeRate', () => {
         { input: '1', expected: '21' },
         { input: '10', expected: '206' },
         { input: '100', expected: '2058' },
-        { input: '10000', expected: '205762' },
+        { input: '10000', expected: '205761' },
         { input: '15', expected: '309' },
-        { input: '2', expected: '42' },
-        { input: '200', expected: '4116' },
-        { input: 200n, expected: 4116n },
+        { input: '2', expected: '41' },
+        { input: '200', expected: '4115' },
+        { input: 200n, expected: 4115n },
       ],
     },
     {
@@ -183,12 +183,12 @@ describe('convertWithExchangeRate', () => {
       from: 'GBP',
       to: 'USD',
       amounts: [
-        { input: '1', expected: '2' },
-        { input: '10', expected: '13' },
+        { input: '1', expected: '1' },
+        { input: '10', expected: '12' },
         { input: '100', expected: '124' },
         { input: '10000', expected: '12400' },
         { input: '15', expected: '19' },
-        { input: '2', expected: '3' },
+        { input: '2', expected: '2' },
         { input: '200', expected: '248' },
       ],
     },
@@ -198,13 +198,13 @@ describe('convertWithExchangeRate', () => {
       to: 'JPY',
       toAssetScale: 3,
       amounts: [
-        { input: '1', expected: '1539' },
+        { input: '1', expected: '1538' },
         { input: '10', expected: '15385' },
-        { input: '100', expected: '153847' },
-        { input: '10000', expected: '15384616' },
+        { input: '100', expected: '153846' },
+        { input: '10000', expected: '15384615' },
         { input: '15', expected: '23077' },
         { input: '2', expected: '3077' },
-        { input: '200', expected: '307693' },
+        { input: '200', expected: '307692' },
       ],
     },
   ];

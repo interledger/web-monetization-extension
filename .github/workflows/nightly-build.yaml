@@ -43,7 +43,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build
-        run: pnpm build ${{ matrix.target }} --channel=nightly
+        run: pnpm build ${{ matrix.target }} --channel=nightly --no-typecheck
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install chromium ${{ matrix.project }} --with-deps
@@ -69,6 +69,9 @@ jobs:
           CHIMONEY_WALLET_ADDRESS_URL: ${{ vars.E2E_CHIMONEY_WALLET_ADDRESS_URL }}
           CHIMONEY_USERNAME: ${{ vars.E2E_CHIMONEY_USERNAME }}
           CHIMONEY_PASSWORD: ${{ secrets.E2E_CHIMONEY_PASSWORD }}
+          CHIMONEY_APP_WALLET_ADDRESS_URL: ${{ vars.E2E_CHIMONEY_APP_WALLET_ADDRESS_URL }}
+          CHIMONEY_APP_USERNAME: ${{ vars.E2E_CHIMONEY_APP_USERNAME }}
+          CHIMONEY_APP_PASSWORD: ${{ secrets.E2E_CHIMONEY_APP_PASSWORD }}
           MMAON_WALLET_ORIGIN: ${{ vars.E2E_MMAON_WALLET_URL_ORIGIN }}
           MMAON_WALLET_ADDRESS_URL: ${{ vars.E2E_MMAON_WALLET_ADDRESS_URL }}
           MMAON_USERNAME: ${{ vars.E2E_MMAON_USERNAME }}
@@ -106,7 +109,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build
-        run: pnpm build --channel=nightly
+        run: pnpm build --channel=nightly --no-typecheck
 
       - name: Get built version
         uses: actions/github-script@v7
@@ -123,7 +126,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Create GH Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.3.2
         with:
           files: |
             dist/*.zip

@@ -10,7 +10,12 @@ import {
   InputAmount,
   validateAmount,
 } from '@/pages/shared/components/InputAmount';
-import { cn } from '@/pages/shared/lib/utils';
+import {
+  cn,
+  formatNumber,
+  toErrorInfoFactory,
+  type ErrorInfo,
+} from '@/pages/shared/lib/utils';
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
@@ -20,8 +25,11 @@ import {
   toWalletAddressUrl,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
-import type { WalletAddress } from '@interledger/open-payments';
-import type { ConnectWalletPayload, Response } from '@/shared/messages';
+import type {
+  ConnectWalletPayload,
+  ConnectWalletAddressInfo,
+  Response,
+} from '@/shared/messages';
 import type { DeepReadonly, PopupTransientState } from '@/shared/types';
 
 interface Inputs {
@@ -32,7 +40,6 @@ interface Inputs {
 }
 
 type ConnectTransientState = DeepReadonly<PopupTransientState['connect']>;
-type ErrorInfo = { message: string; info?: ErrorWithKeyLike };
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
@@ -46,7 +53,9 @@ interface ConnectWalletFormProps {
   state?: ConnectTransientState;
   walletAddressPlaceholder?: string;
   saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
-  getWalletInfo: (walletAddressUrl: string) => Promise<WalletAddress>;
+  getWalletInfo: (
+    walletAddressUrl: string,
+  ) => Promise<ConnectWalletAddressInfo>;
   connectWallet: (data: ConnectWalletPayload) => Promise<Response>;
   clearConnectState: () => Promise<unknown>;
   onConnect?: () => void;
@@ -56,7 +65,7 @@ export const ConnectWalletForm = ({
   publicKey,
   defaultValues,
   state,
-  walletAddressPlaceholder = 'https://ilp.interledger-test.dev/johndoe',
+  walletAddressPlaceholder = 'https://walletprovider.com/MyWallet',
   getWalletInfo,
   connectWallet,
   clearConnectState,
@@ -64,6 +73,7 @@ export const ConnectWalletForm = ({
   onConnect = () => {},
 }: ConnectWalletFormProps) => {
   const t = useTranslation();
+  const toErrorInfo = React.useMemo(() => toErrorInfoFactory(t), [t]);
 
   const [walletAddressUrl, setWalletAddressUrl] = React.useState<
     Inputs['walletAddressUrl']
@@ -89,20 +99,8 @@ export const ConnectWalletForm = ({
     setAutoKeyShareFailed(false);
   }, [clearConnectState]);
 
-  const toErrorInfo = React.useCallback(
-    (
-      err?: string | DeepReadonly<ErrorWithKeyLike> | null,
-    ): ErrorInfo | null => {
-      if (!err) return null;
-      if (typeof err === 'string') return { message: err };
-      // @ts-expect-error readonly, it's ok
-      return { message: t(err), info: err };
-    },
-    [t],
-  );
-
   const [walletAddressInfo, setWalletAddressInfo] =
-    React.useState<WalletAddress | null>(null);
+    React.useState<ConnectWalletAddressInfo | null>(null);
 
   const [errors, setErrors] = React.useState<Errors>({
     walletAddressUrl: null,
@@ -122,6 +120,18 @@ export const ConnectWalletForm = ({
     state?.status?.startsWith('connecting') || false,
   );
 
+  const handleAmountChange = React.useCallback(
+    (amountValue: string, input?: HTMLInputElement) => {
+      setErrors((prev) => ({ ...prev, amount: null }));
+      setAmount(amountValue);
+      if (input && Number(amountValue) > 0) {
+        input.dataset.modified = '1';
+      }
+      saveValue('amount', amountValue);
+    },
+    [saveValue],
+  );
+
   const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<boolean> => {
       setErrors((prev) => ({ ...prev, walletAddressUrl: null }));
@@ -129,8 +139,27 @@ export const ConnectWalletForm = ({
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
-        const walletAddress = await getWalletInfo(url.toString());
-        setWalletAddressInfo(walletAddress);
+        const walletInfo = await getWalletInfo(url.toString());
+        setWalletAddressInfo(walletInfo);
+        const defaultBudget = formatNumber(
+          walletInfo.defaultBudget,
+          walletInfo.walletAddress.assetScale,
+        );
+        const inputEl = document.querySelector<HTMLInputElement>(
+          'input#connectAmount',
+        );
+        if (
+          inputEl &&
+          (!inputEl.dataset.modified ||
+            !inputEl.value ||
+            inputEl.ariaInvalid === 'true')
+        ) {
+          setErrors((prev) => ({ ...prev, amount: null }));
+          inputEl.defaultValue = defaultBudget;
+          inputEl.value = defaultBudget;
+          setAmount(defaultBudget);
+          saveValue('amount', defaultBudget);
+        }
       } catch (error) {
         setErrors((prev) => ({
           ...prev,
@@ -142,7 +171,7 @@ export const ConnectWalletForm = ({
       }
       return true;
     },
-    [getWalletInfo, toErrorInfo],
+    [getWalletInfo, saveValue, toErrorInfo],
   );
 
   const handleWalletAddressUrlChange = React.useCallback(
@@ -183,26 +212,17 @@ export const ConnectWalletForm = ({
       }
       // use as autocompleted value
       void handleWalletAddressUrlChange(value, input).then((ok) => {
-        resetState();
+        void resetState();
         if (ok) document.getElementById('connectAmount')?.focus();
       });
     },
     [handleWalletAddressUrlChange, resetState, walletAddressUrl],
   );
 
-  const handleAmountChange = React.useCallback(
-    (amountValue: string) => {
-      setErrors((prev) => ({ ...prev, amount: null }));
-      setAmount(amountValue);
-      saveValue('amount', amountValue);
-    },
-    [saveValue],
-  );
-
   const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
     ev?.preventDefault();
 
-    let walletAddress = walletAddressUrl;
+    let walletAddressInput = walletAddressUrl;
     if (ev) {
       // When submitting form using Enter key on wallet address input, we want
       // to ensure its current value is same as the value we've in React state
@@ -211,11 +231,11 @@ export const ConnectWalletForm = ({
       const form = ev.currentTarget;
       if (
         form.connectWalletAddressUrl &&
-        walletAddress !== form.connectWalletAddressUrl.value
+        walletAddressInput !== form.connectWalletAddressUrl.value
       ) {
-        walletAddress = form.connectWalletAddressUrl.value;
+        walletAddressInput = form.connectWalletAddressUrl.value;
         const ok = await handleWalletAddressUrlChange(
-          walletAddress,
+          walletAddressInput,
           form.connectWalletAddressUrl,
         );
         if (!ok) return;
@@ -224,8 +244,17 @@ export const ConnectWalletForm = ({
       }
     }
 
-    const errWalletAddressUrl = validateWalletAddressUrl(walletAddress);
-    const errAmount = validateAmount(amount, walletAddressInfo!);
+    const walletInfo =
+      walletAddressInfo ??
+      (await getWalletInfo(toWalletAddressUrl(walletAddressUrl)));
+
+    const amountInput = document.querySelector<HTMLInputElement>(
+      'input#connectAmount',
+    )!;
+    const amount = amountInput.value;
+
+    const errWalletAddressUrl = validateWalletAddressUrl(walletAddressInput);
+    const errAmount = validateAmount(amount, walletInfo!.walletAddress);
     if (errAmount || errWalletAddressUrl) {
       setErrors((prev) => ({
         ...prev,
@@ -242,10 +271,13 @@ export const ConnectWalletForm = ({
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
+
       setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
       const res = await connectWallet({
-        walletAddressUrl: toWalletAddressUrl(walletAddress),
+        walletAddress: walletInfo.walletAddress,
         amount,
+        rateOfPay: walletInfo.defaultRateOfPay,
+        maxRateOfPay: walletInfo.maxRateOfPay,
         recurring,
         autoKeyAdd: !skipAutoKeyShare,
         autoKeyAddConsent: autoKeyAddConsent.current,
@@ -277,17 +309,18 @@ export const ConnectWalletForm = ({
 
   React.useEffect(() => {
     if (defaultValues.walletAddressUrl) {
-      handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
+      void handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
     }
   }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
 
   if (showConsent) {
     return (
       <AutoKeyAddConsent
-        onAccept={() => {
+        onAccept={async () => {
           autoKeyAddConsent.current = true;
           setShowConsent(false);
-          handleSubmit();
+          await sleep(200);
+          await handleSubmit();
         }}
         onDecline={() => {
           const error = errorWithKey('connectWalletKeyService_error_noConsent');
@@ -353,7 +386,7 @@ export const ConnectWalletForm = ({
             }
           }
           const ok = await handleWalletAddressUrlChange(value, input);
-          resetState();
+          void resetState();
           if (ok) document.getElementById('connectAmount')?.focus();
         }}
         onBlur={async (ev) => {
@@ -364,7 +397,7 @@ export const ConnectWalletForm = ({
             }
           }
           await handleWalletAddressUrlChange(value, ev.currentTarget);
-          resetState();
+          await resetState();
         }}
       />
 
@@ -373,23 +406,15 @@ export const ConnectWalletForm = ({
           {t('connectWallet_labelGroup_amount')}
         </legend>
         <div className="flex items-center gap-6">
-          <InputAmount
-            id="connectAmount"
-            label={t('connectWallet_label_amount')}
-            labelHidden={true}
+          <AmountInput
             amount={amount}
-            className="max-w-48"
-            walletAddress={
-              walletAddressInfo || { assetCode: 'USD', assetScale: 2 }
-            }
-            errorMessage={errors.amount?.message}
-            errorHidden={true}
-            readOnly={isSubmitting}
+            isSubmitting={isSubmitting}
+            walletAddressInfo={walletAddressInfo}
+            onAmountChange={handleAmountChange}
+            error={errors.amount}
             onError={(err) => {
               setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
             }}
-            onChange={handleAmountChange}
-            placeholder="5.00"
           />
 
           <Switch
@@ -456,6 +481,48 @@ export const ConnectWalletForm = ({
     </form>
   );
 };
+
+interface AmountInputProps {
+  amount: string;
+  isSubmitting: boolean;
+  error: ErrorInfo | null;
+  walletAddressInfo: ConnectWalletAddressInfo | null;
+  onError: React.ComponentProps<typeof InputAmount>['onError'];
+  onAmountChange: React.ComponentProps<typeof InputAmount>['onChange'];
+}
+
+function AmountInput({
+  amount,
+  isSubmitting,
+  error,
+  walletAddressInfo,
+  onError,
+  onAmountChange,
+}: AmountInputProps) {
+  const t = useTranslation();
+
+  return (
+    <InputAmount
+      id="connectAmount"
+      label={t('connectWallet_label_amount')}
+      labelHidden={true}
+      amount={amount}
+      className="max-w-48"
+      walletAddress={
+        walletAddressInfo?.walletAddress || {
+          assetCode: 'USD',
+          assetScale: 2,
+        }
+      }
+      errorMessage={error?.message}
+      errorHidden={true}
+      readOnly={isSubmitting}
+      onError={onError}
+      onChange={onAmountChange}
+      placeholder={walletAddressInfo?.defaultBudget?.toString() || '5.00'}
+    />
+  );
+}
 
 const ManualKeyPairNeeded: React.FC<{
   error: { message: string; details: null | ErrorInfo; whyText: string };

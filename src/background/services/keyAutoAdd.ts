@@ -7,9 +7,9 @@ import {
   Timeout,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
+import { createTab } from '@/background/utils';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
-import type { WalletAddress } from '@interledger/open-payments';
-import type { TabId } from '@/shared/types';
+import type { TabId, WalletInfo } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
@@ -47,11 +47,10 @@ export class KeyAutoAddService {
   }
 
   async addPublicKeyToWallet(
-    walletAddress: WalletAddress,
-    existingTabId: TabId,
-    walletAddressUrl?: string,
+    walletAddress: WalletInfo,
+    onTabOpen: (tabId: TabId) => void,
   ) {
-    const keyAddUrl = walletAddressToProvider(walletAddress, walletAddressUrl);
+    const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
       const { publicKey, keyId } = await this.storage.get([
         'publicKey',
@@ -67,7 +66,7 @@ export class KeyAutoAddService {
           nickName: `${this.appName} Extension - ${this.browserName}`,
           keyAddUrl,
         },
-        existingTabId,
+        onTabOpen,
       );
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
@@ -81,16 +80,18 @@ export class KeyAutoAddService {
   private async process(
     url: string,
     payload: BeginPayload,
-    existingTabId: TabId,
+    onTabOpen: (tabId: TabId) => void,
   ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
-    await this.browser.tabs.update(existingTabId, { url });
 
     const BASE_TIMEOUT = 5 * 1000;
     const timeout = new Timeout(BASE_TIMEOUT, () => {
       removeListeners();
       reject(new ErrorWithKey('connectWallet_error_timeout'));
     });
+
+    const tabID = await createTab(this.browser, url);
+    onTabOpen(tabID);
 
     const removeListeners = () => {
       timeout.clear();
@@ -99,7 +100,7 @@ export class KeyAutoAddService {
     };
 
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
-      if (tabId !== existingTabId) return;
+      if (tabId !== tabID) return;
       removeListeners();
       reject(new ErrorWithKey('connectWallet_error_tabClosed'));
     };
@@ -107,7 +108,7 @@ export class KeyAutoAddService {
     const ports = new Set<Runtime.Port>();
     const onConnectListener: OnConnectCallback = (port) => {
       if (port.name !== CONNECTION_NAME) return;
-      if (port.sender?.tab && port.sender.tab.id !== existingTabId) return;
+      if (port.sender?.tab && port.sender.tab.id !== tabID) return;
       if (port.error) {
         removeListeners();
         reject(new Error(port.error.message));
@@ -199,12 +200,9 @@ export class KeyAutoAddService {
     }));
   }
 
-  static supports(
-    walletAddress: WalletAddress,
-    walletAddressUrl?: string,
-  ): boolean {
+  static supports(walletAddress: WalletInfo): boolean {
     try {
-      walletAddressToProvider(walletAddress, walletAddressUrl);
+      walletAddressToProvider(walletAddress);
       return true;
     } catch {
       return false;
@@ -235,7 +233,7 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
   },
   {
     id: 'keyAutoAdd/fynbos/sandbox',
-    matches: ['https://eu1.fynbos.dev/*'],
+    matches: ['https://sandbox.interledger.app/*'],
     js: ['content/keyAutoAdd/fynbos.js'],
     persistAcrossSessions: false,
   },
@@ -286,14 +284,11 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
   },
 ];
 
-function walletAddressToProvider(
-  walletAddress: WalletAddress,
-  walletAddressUrl?: string,
-): string {
-  if (walletAddressUrl) {
+function walletAddressToProvider(walletAddress: WalletInfo): string {
+  if (walletAddress.url) {
     // Some wallet URLs have redirects to other "managing wallets" and need some
     // special handling.
-    const { host } = new URL(walletAddressUrl);
+    const { host } = new URL(walletAddress.url);
     switch (host) {
       case 'ilp-staging.mmaon.com':
         return 'https://staging.mmaon.com/wallet/dashboard';
@@ -309,10 +304,10 @@ function walletAddressToProvider(
       return 'https://wallet.interledger-test.dev/settings/developer-keys';
     case 'ilp.interledger.cards':
       return 'https://wallet.interledger.cards/settings/developer-keys';
-    case 'eu1.fynbos.me':
-      return 'https://eu1.fynbos.dev/settings/keys';
+    case 'sandbox.ilp.link':
+      return 'https://sandbox.interledger.app/settings/keys';
     case 'fynbos.me':
-    case 'pay.interledger.app':
+    case 'ilp.link':
       return 'https://interledger.app/settings/keys';
     case 'ilp-sandbox.chimoney.com':
       return 'https://sandbox.chimoney.io/interledger';

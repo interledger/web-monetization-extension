@@ -1,11 +1,7 @@
 import { test, expect } from './fixtures/base';
 import { withResolvers, getJWKS } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
-import {
-  getContinueWaitTime,
-  waitForPage,
-  waitForWelcomePage,
-} from './helpers/common';
+import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
 import {
   acceptGrant,
   DEFAULT_CONTINUE_WAIT_MS,
@@ -85,7 +81,7 @@ for (const testCase of TEST_CASES) {
           `[data-testid="connect-wallet-auto-key-consent"]`,
         );
 
-        expect(
+        await expect(
           popup.getByTestId('connect-wallet-auto-key-consent'),
         ).toBeVisible();
         await popup
@@ -98,8 +94,8 @@ for (const testCase of TEST_CASES) {
       });
 
       page = await test.step('shows login page', async () => {
-        const openedPage = await waitForPage(context, (url) =>
-          url.startsWith(LOGIN_PAGE_URL),
+        const openedPage = await context.waitForEvent('page', (page) =>
+          page.url().startsWith(LOGIN_PAGE_URL),
         );
         await openedPage.getByLabel('E-mail').fill(username);
         await openedPage.getByLabel('Password').fill(password);
