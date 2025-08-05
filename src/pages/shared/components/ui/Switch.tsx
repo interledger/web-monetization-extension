@@ -1,6 +1,5 @@
 import { type VariantProps, cva } from 'class-variance-authority';
 import React from 'react';
-import { forwardRef } from 'react';
 
 import { cn } from '@/pages/shared/lib/utils';
 
@@ -35,17 +34,22 @@ const switchVariants = cva(
 
 export interface SwitchProps
   extends VariantProps<typeof switchVariants>,
-    React.HTMLAttributes<HTMLInputElement> {
+    Omit<React.ComponentPropsWithRef<'input'>, 'size'> {
   checked?: boolean;
   disabled?: boolean;
   label?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
-  { size, label, className, disabled = false, onChange = () => {}, ...props },
+export function Switch({
+  size,
+  label,
+  className,
+  disabled = false,
+  onChange = () => {},
   ref,
-) {
+  ...props
+}: SwitchProps) {
   return (
     <label className="flex items-center gap-x-4">
       <input
@@ -63,4 +67,4 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
       {label ? <span className="font-normal">{label}</span> : null}
     </label>
   );
-});
+}
