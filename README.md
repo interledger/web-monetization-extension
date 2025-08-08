@@ -4,75 +4,11 @@
 
 [![Nightly build](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml/badge.svg)](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml) [![Latest Nightly build](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Finterledger%2Fweb-monetization-extension%2Freleases%2Ftags%2Fnightly&query=%24.name&logo=github&label=Latest)](https://github.com/interledger/web-monetization-extension/releases/tag/nightly)
 
-The Web Monetization browser extension is an open source implementation of the Web Monetization draft specification - learn more [here](https://webmonetization.org/specification/). The extension is built with React and TypeScript.
-
-## Local Development Environment
-
-### Prerequisites
-
-- [NVM](https://github.com/nvm-sh/nvm) (Linux, macOS), [NVM Windows](https://github.com/coreybutler/nvm-windows) (Windows) - or another Node Version Manager
-
-## Setup
-
-### Environment Setup
-
-```sh
-# Install Node 20
-# For Linux/macOS
-nvm install lts/iron
-nvm use lts/iron
-
-# For Windows
-nvm install lts
-nvm use lts
-
-# Install correct version of pnpm using Corepack (Corepack comes with Node)
-corepack enable
-```
-
-To install dependencies, execute:
-
-```sh
-pnpm i
-```
-
-### Commands
-
-All commands are run from the root of the project, from a terminal:
-
-- **`pnpm dev [TARGET]`**
-  - Builds the extension for **development**, with live reloading on code changes.
-    - `TARGET`: Specify `chrome` or `firefox` or `safari`. Defaults to `chrome` if not specified.
-  - **Output:** `dev/${TARGET}` folder.
-
-- **`pnpm build [TARGET] --channel=CHANNEL`**
-  - Creates a **production-ready build** of the extension.
-    - `TARGET`: Specify `chrome` or `firefox` or `safari`. Builds for all targets if not specified.
-    - `CHANNEL`: Choose `nightly`, `preview`, or `stable`. Defaults to `nightly` if not specified.
-  - **Output:** `dist/${TARGET}` folder. Also creates a `.zip` file in the `dist` folder.
-
-Learn how to install the extension from source by reading the [installation instructions](./docs/INSTALL.md).
-
-#### Additional commands
-
-- **`pnpm test`**
-  - Runs jest for unit testing and integration testing.
-  - Use `pnpm test:watch` to run tests in watch mode.
-
-- **`pnpm test:e2e:chromium`**
-  - Runs all **end-to-end tests** using Chromium & Playwright.
-  - Add `--ui` to run in interactive UI mode.
-  - Read our [documentation on testing](./docs/TESTING.md) for details.
-
-- **`pnpm format`**
-  - Runs **Biome** and **Prettier** on the codebase to find formatting issues.
-  - Use `pnpm format:fix` to automatically fix some of the issues.
-
-- **`pnpm lint`**
-  - Runs **Biome** on the codebase to find linting issues.
-  - Use `pnpm lint:fix` to automatically fix some of the issues.
+The Web Monetization browser extension is an open source implementation of the [Web Monetization draft specification](https://webmonetization.org/specification/).
 
 ## Contributing
+
+Learn [how to build](./docs/BUILDING.md) the extension locally and [install](./docs/INSTALL.md) it in your browser.
 
 Read the [developer's guide](./docs/DEVELOP.md) to understand the codebase.
 
