@@ -7,7 +7,6 @@ import type {
   StopMonetizationPayload,
 } from '@/shared/messages';
 import { getSender, getTabId } from '@/background/utils';
-import { OUTGOING_PAYMENT_POLLING_MAX_DURATION } from '@/background/config';
 import {
   ErrorWithKey,
   isOkState,
@@ -313,11 +312,10 @@ export class MonetizationService {
       throw new ErrorWithKey('pay_error_notMonetized');
     }
 
-    const signal = AbortSignal.timeout(OUTGOING_PAYMENT_POLLING_MAX_DURATION); // can use other signals as well, such as popup closed etc.
     const amountToSend = BigInt(
       (Number(amount) * 10 ** walletAddress.assetScale).toFixed(0),
     );
-    const result = await paymentManager.pay(amountToSend, signal);
+    const result = await paymentManager.pay(amountToSend);
 
     const { sentAmount, debitAmount } = result.amounts;
     return {
