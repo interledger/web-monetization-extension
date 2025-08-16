@@ -27,8 +27,7 @@ import { isInvalidClientError } from '@/background/services/openPayments';
 import { APP_URL } from '@/background/constants';
 import { bytesToHex } from '@noble/hashes/utils';
 import type { Cradle } from '@/background/container';
-import type { TabId } from '@/shared/types';
-import type { WalletAddress } from '@interledger/open-payments';
+import type { TabId, WalletInfo } from '@/shared/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 
 export class WalletService {
@@ -409,7 +408,7 @@ export class WalletService {
    * through the wallet's dashboard.
    */
   private async addPublicKeyToWallet(
-    walletAddress: WalletAddress,
+    walletAddress: WalletInfo,
     onTabOpen: (tabId: TabId) => void,
   ) {
     const keyAutoAdd = new KeyAutoAddService({
@@ -448,7 +447,7 @@ export class WalletService {
     }
   }
 
-  private async retryAddPublicKeyToWallet(walletAddress: WalletAddress) {
+  private async retryAddPublicKeyToWallet(walletAddress: WalletInfo) {
     let tabId: TabId | undefined;
     try {
       await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
