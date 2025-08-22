@@ -54,6 +54,12 @@
   "keyRevoked_action_reconnectBtn": {
     "message": "Reconnect"
   },
+  "disconnectWallet_error_generic": {
+    "message": "We were unable to disconnect your wallet ($ERROR$).",
+    "placeholders": {
+      "ERROR": { "content": "$1", "example": "Internal server error" }
+    }
+  },
   "pay_action_pay": {
     "message": "Send now"
   },

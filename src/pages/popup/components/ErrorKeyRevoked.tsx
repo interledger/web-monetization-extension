@@ -11,7 +11,7 @@ import type { ReconnectWalletPayload, Response } from '@/shared/messages';
 
 interface Props {
   info: Pick<PopupStore, 'publicKey' | 'walletAddress'>;
-  disconnectWallet: () => Promise<Response>;
+  disconnectWallet: (force: boolean) => Promise<Response>;
   reconnectWallet: (data: ReconnectWalletPayload) => Promise<Response>;
   onReconnect?: () => void;
   onDisconnect?: () => void;
@@ -90,7 +90,7 @@ const MainScreen = ({
     setErrorMsg('');
     try {
       setIsLoading(true);
-      await disconnectWallet();
+      await disconnectWallet(true);
       onDisconnect?.();
     } catch (error) {
       setErrorMsg(error.message);

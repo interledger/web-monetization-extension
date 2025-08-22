@@ -32,7 +32,7 @@ export default () => {
       info={{ publicKey, walletAddress }}
       reconnectWallet={(data) => message.send('RECONNECT_WALLET', data)}
       onReconnect={onReconnect}
-      disconnectWallet={() => message.send('DISCONNECT_WALLET')}
+      disconnectWallet={(force) => message.send('DISCONNECT_WALLET', { force })}
       onDisconnect={onDisconnect}
     />
   );
