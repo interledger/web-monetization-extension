@@ -22,8 +22,8 @@ importers:
         specifier: ^2.3.0
         version: 2.3.0
       '@noble/hashes':
-        specifier: ^1.8.0
-        version: 1.8.0
+        specifier: ^2.0.0
+        version: 2.0.0
       '@radix-ui/react-tabs':
         specifier: ^1.1.12
         version: 1.1.12(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -824,9 +824,9 @@ packages:
   '@noble/ed25519@2.3.0':
     resolution: {integrity: sha512-M7dvXL2B92/M7dw9+gzuydL8qn/jiqNHaoR3Q+cb1q1GHV7uwE17WCyFMG+Y+TZb5izcaXk5TdJRrDUxHXL78A==}
 
-  '@noble/hashes@1.8.0':
-    resolution: {integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==}
-    engines: {node: ^14.21.3 || >=16}
+  '@noble/hashes@2.0.0':
+    resolution: {integrity: sha512-h8VUBlE8R42+XIDO229cgisD287im3kdY6nbNZJFjc6ZvKIXPYXe6Vc/t+kyjFdMFyt5JpapzTsEg8n63w5/lw==}
+    engines: {node: '>= 20.19.0'}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -4263,7 +4263,7 @@ snapshots:
 
   '@noble/ed25519@2.3.0': {}
 
-  '@noble/hashes@1.8.0': {}
+  '@noble/hashes@2.0.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
