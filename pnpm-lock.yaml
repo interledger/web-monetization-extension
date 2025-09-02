@@ -182,8 +182,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       tsx:
-        specifier: ^4.20.3
-        version: 4.20.3
+        specifier: ^4.20.5
+        version: 4.20.5
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
@@ -3328,8 +3328,8 @@ packages:
     resolution: {integrity: sha512-LxhtAkPDTkVCMQjt2h6eBVY28KCjikZqZfMcC15YBeNjkgUpdCfBu5HoiOTDu86v6smE8yOjyEktJ8hlbANHQA==}
     engines: {node: '>=0.6.x'}
 
-  tsx@4.20.3:
-    resolution: {integrity: sha512-qjbnuR9Tr+FJOMBqJCW5ehvIo/buZq7vH7qD7JziU98h6l3qGy0a/yPFjwO+y0/T7GFpNgNAvEcPPVfyT8rrPQ==}
+  tsx@4.20.5:
+    resolution: {integrity: sha512-+wKjMNU9w/EaQayHXb7WA7ZaHY6hN8WgfvHNQ3t1PnU91/7O8TcTnIhCDYTZwnt8JsO9IBqZ30Ln1r7pPF52Aw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -6630,7 +6630,7 @@ snapshots:
       preact: 10.25.4
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
-      tsx: 4.20.3
+      tsx: 4.20.5
     optionalDependencies:
       react-router: 7.2.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-router-dom: 7.2.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -6991,7 +6991,7 @@ snapshots:
 
   tsscmp@1.0.6: {}
 
-  tsx@4.20.3:
+  tsx@4.20.5:
     dependencies:
       esbuild: 0.25.8
       get-tsconfig: 4.7.5
