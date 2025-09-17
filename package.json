@@ -67,7 +67,7 @@
     "archiver": "^7.0.1",
     "autoprefixer": "^10.4.21",
     "dotenv": "^17.2.1",
-    "esbuild": "^0.25.8",
+    "esbuild": "^0.25.10",
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-style-plugin": "^1.6.3",
