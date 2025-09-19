@@ -80,6 +80,7 @@ export class WalletService {
       autoKeyAddConsent,
     } = params;
 
+    await this.generateKeys();
     await this.openPaymentsService.initClient(walletAddress.id);
 
     const browser = this.browser;
