@@ -13,14 +13,14 @@ The extension is built with React and TypeScript. We use a Node.js environment t
 ### Environment Setup
 
 ```sh
-# Install Node 20
+# Install Node version required by the project
 # For Linux/macOS
-nvm install lts/iron
-nvm use lts/iron
+nvm install
+nvm use
 
 # For Windows
-nvm install lts
-nvm use lts
+nvm install 24
+nvm use 24
 
 # Install correct version of pnpm using Corepack (Corepack comes with Node)
 corepack enable
