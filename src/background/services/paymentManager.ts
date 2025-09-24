@@ -8,7 +8,8 @@ import type { PaymentSession } from './paymentSession';
 import {
   MIN_PAYMENT_WAIT,
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
-} from '../config';
+  OUTGOING_PAYMENT_POLLING_MAX_DURATION,
+} from '@/background/config';
 import { bigIntMax } from '../utils';
 import {
   ErrorWithKey,
@@ -183,7 +184,7 @@ export class PaymentManager {
   // #endregion
 
   // #region One time payment
-  async pay(amount: bigint, signal?: AbortSignal) {
+  async pay(amount: bigint) {
     const payableSessions = this.payableSessions;
     if (!payableSessions.length) {
       throw new Error('No sessions to pay');
@@ -219,6 +220,7 @@ export class PaymentManager {
     );
 
     this.logger.debug('polling outgoing payments for completion');
+    const signal = AbortSignal.timeout(OUTGOING_PAYMENT_POLLING_MAX_DURATION); // can combined with other signals as well, such as popup closed etc.
     const result = await this.getPayStatus(
       outgoingPaymentResults,
       Array.from(distribution.keys()),

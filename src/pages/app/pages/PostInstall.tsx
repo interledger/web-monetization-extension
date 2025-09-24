@@ -87,7 +87,7 @@ const WALLETS: Array<WalletOption> = [
       width: 1500,
       height: 836,
     },
-    walletAddressPlaceholder: 'https://fynbos.me/my-wallet',
+    walletAddressPlaceholder: 'https://ilp.link/my-wallet',
   },
   {
     id: 'gatehub',
@@ -108,7 +108,7 @@ const WALLETS: Array<WalletOption> = [
   {
     id: 'chimoney',
     name: 'Chimoney Wallet',
-    url: '', // empty URL to ignore it from listing
+    url: 'https://chimoney.page.link/yJa2KQ3ZwTX1yLcn8?ref=webmonetization-extension',
     logo: {
       src: '/assets/images/logos/chimoney-logo.svg',
       width: 300,
@@ -162,6 +162,7 @@ const Steps = () => {
         onClick={onClick}
         title={
           <React.Fragment>
+            {/*  */}
             <a
               href="https://webmonetization.org/wallets/"
               target="_blank"

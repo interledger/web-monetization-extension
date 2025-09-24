@@ -22,28 +22,28 @@ jobs:
           - name: Chromium
             project: chromium
             target: chrome
-            runs-on: ubuntu-22.04
+            runs-on: ubuntu-24.04
           - name: Chrome
             project: chrome
             target: chrome
-            runs-on: ubuntu-22.04
+            runs-on: ubuntu-24.04
           - name: Edge
             project: msedge
             target: chrome
-            runs-on: ubuntu-22.04
+            runs-on: ubuntu-24.04
     timeout-minutes: 15
     name: E2E Tests - ${{ matrix.name }}
     runs-on: ${{ matrix.runs-on }}
     environment: test
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Environment setup
         uses: ./.github/actions/setup
 
       - name: Build
-        run: pnpm build ${{ matrix.target }} --channel=nightly
+        run: pnpm build ${{ matrix.target }} --channel=nightly --no-typecheck
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install chromium ${{ matrix.project }} --with-deps
@@ -99,13 +99,13 @@ jobs:
     if: ${{ always() }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Environment setup
         uses: ./.github/actions/setup
 
       - name: Build
-        run: pnpm build --channel=nightly
+        run: pnpm build --channel=nightly --no-typecheck
 
       - name: Get built version
         uses: actions/github-script@v7

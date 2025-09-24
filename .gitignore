@@ -45,6 +45,6 @@ src/safari/Web Monetization/Shared \(Extension\)/Resources/*
 
 # playwright
 /tests/e2e/test-results/
-/tests/e2e/test-results/.auth
+/tests/e2e/.auth
 /tests/e2e/playwright-report/
 /playwright/.cache/

@@ -1,5 +1,4 @@
 import React from 'react';
-import { forwardRef } from 'react';
 import { type VariantProps, cva } from 'class-variance-authority';
 
 import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
@@ -39,50 +38,46 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends VariantProps<typeof buttonVariants>,
-    React.ButtonHTMLAttributes<HTMLButtonElement> {
+    React.ComponentPropsWithRef<'button'> {
   loading?: boolean;
   loadingText?: string;
   /** Optional only when children are passed */
   'aria-label'?: string;
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  function Button(
-    {
-      variant,
-      size,
-      fullWidth,
-      loading = false,
-      loadingText,
-      className,
-      type = 'button',
-      children,
-      ...props
-    },
-    ref,
-  ) {
-    return (
-      <button
-        ref={ref}
-        type={type}
-        className={cn(
-          buttonVariants({ variant, size, fullWidth, loading }),
-          className,
-        )}
-        data-progress={loading.toString()}
-        disabled={props.disabled ?? loading ?? false}
-        aria-disabled={props.disabled ?? loading ?? false}
-        {...props}
-      >
-        {loading ? (
-          <>
-            <LoadingSpinner />
-            {loadingText}
-          </>
-        ) : (
-          children
-        )}
-      </button>
-    );
-  },
-);
+export function Button({
+  variant,
+  size,
+  fullWidth,
+  loading = false,
+  loadingText,
+  className,
+  type = 'button',
+  ref,
+  children,
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      ref={ref}
+      type={type}
+      className={cn(
+        buttonVariants({ variant, size, fullWidth, loading }),
+        className,
+      )}
+      data-progress={loading.toString()}
+      disabled={props.disabled ?? loading ?? false}
+      aria-disabled={props.disabled ?? loading ?? false}
+      {...props}
+    >
+      {loading ? (
+        <>
+          <LoadingSpinner />
+          {loadingText}
+        </>
+      ) : (
+        children
+      )}
+    </button>
+  );
+}

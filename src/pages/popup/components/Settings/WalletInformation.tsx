@@ -4,7 +4,8 @@ import { Input } from '@/pages/shared/components/ui/Input';
 import { Label } from '@/pages/shared/components/ui/Label';
 import { Code } from '@/pages/shared/components/ui/Code';
 import { Button } from '@/pages/shared/components/ui/Button';
-import { useMessage } from '@/popup/lib/context';
+import { toErrorInfoFactory } from '@/pages/shared/lib/utils';
+import { useMessage, useTranslation } from '@/popup/lib/context';
 import { ROUTES_PATH } from '@/popup/Popup';
 import { useLocation } from 'wouter';
 import type { PopupStore } from '@/shared/types';
@@ -18,9 +19,32 @@ export const WalletInformation = ({
   publicKey,
   walletAddress,
 }: WalletInformationProps) => {
+  const t = useTranslation();
   const message = useMessage();
   const [_location, navigate] = useLocation();
+  const [disconnectError, setDisconnectError] = React.useState<string>('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const toErrorInfo = toErrorInfoFactory(t);
+
+  const disconnectWallet = async (force = false) => {
+    setIsSubmitting(true);
+    setDisconnectError('');
+    try {
+      const res = await message.send('DISCONNECT_WALLET', { force });
+      if (!res.success) {
+        if (res.error) {
+          throw new Error(toErrorInfo(res.error)!.message);
+        }
+        throw new Error(res.message);
+      }
+      navigate(ROUTES_PATH.HOME);
+      window.location.reload();
+    } catch (error) {
+      setDisconnectError(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex h-full flex-col gap-8">
@@ -29,10 +53,7 @@ export const WalletInformation = ({
         className="space-y-4"
         onSubmit={async (ev) => {
           ev.preventDefault();
-          setIsSubmitting(true);
-          await message.send('DISCONNECT_WALLET');
-          navigate(ROUTES_PATH.HOME);
-          window.location.reload();
+          await disconnectWallet();
         }}
       >
         <Input
@@ -58,6 +79,19 @@ export const WalletInformation = ({
         >
           Disconnect
         </Button>
+
+        {disconnectError && (
+          <p className="text-sm text-error !mt-1">
+            {disconnectError}
+            <button
+              type="button"
+              onClick={() => disconnectWallet(true)}
+              className="ml-1 inline-block underline"
+            >
+              Force disconnect?
+            </button>
+          </p>
+        )}
       </form>
 
       <details className="border-t">

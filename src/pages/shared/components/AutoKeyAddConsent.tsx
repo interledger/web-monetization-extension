@@ -36,9 +36,15 @@ export const AutoKeyAddConsent = ({ onAccept, onDecline, intent }: Props) => {
         </a>
       </p>
 
-      <div className="space-y-2 pt-12 text-medium">
+      <div className="space-y-2 pt-12 text-medium text-left">
         <p>{t('connectWalletKeyService_text_consentP2')}</p>
-        <p>{t('connectWalletKeyService_text_consentP3')}</p>
+        <ul className="list-disc px-2 pb-4">
+          <li>{t('connectWalletKeyService_text_consentP3')}</li>
+          <li>{t('connectWalletKeyService_text_consentP4')}</li>
+        </ul>
+        <p className="text-center">
+          {t('connectWalletKeyService_text_consent_no_access_funds')}
+        </p>
       </div>
 
       <div className="mx-auto flex w-3/4 justify-around gap-4">
