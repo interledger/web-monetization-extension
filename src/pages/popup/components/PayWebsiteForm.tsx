@@ -85,6 +85,7 @@ export const PayWebsiteForm = () => {
         </FadeInOut>
       )}
 
+      {/** biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID */}
       <InputAmount
         id="payAmount"
         label={

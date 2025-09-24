@@ -116,6 +116,7 @@ export function AddFunds({
         disabled
       />
 
+      {/** biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID */}
       <InputAmount
         id="amount_outOfFunds"
         walletAddress={info}
