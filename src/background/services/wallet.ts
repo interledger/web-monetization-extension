@@ -28,7 +28,7 @@ import {
   isOpenPaymentsClientError,
 } from '@/background/services/openPayments';
 import { APP_URL } from '@/background/constants';
-import { bytesToHex } from '@noble/hashes/utils';
+import { bytesToHex } from '@noble/hashes/utils.js';
 import type { Cradle } from '@/background/container';
 import type { TabId } from '@/shared/types';
 import type { WalletAddress } from '@interledger/open-payments';
