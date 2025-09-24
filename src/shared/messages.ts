@@ -177,7 +177,7 @@ export type PopupToBackgroundMessage = {
     output: never;
   };
   DISCONNECT_WALLET: {
-    input: never;
+    input: { force: boolean };
     output: never;
   };
   TOGGLE_CONTINUOUS_PAYMENTS: {

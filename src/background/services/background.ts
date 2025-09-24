@@ -266,12 +266,12 @@ export class Background {
               return;
 
             case 'DISCONNECT_WALLET':
-              await this.walletService.disconnectWallet();
+              await this.walletService.disconnectWallet(message.payload.force);
               this.tabState.clearAllState('disconnect');
               await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
               await this.updateVisualIndicatorsForCurrentTab();
               this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
-              return;
+              return success(undefined);
 
             case 'TOGGLE_CONTINUOUS_PAYMENTS': {
               await this.monetizationService.toggleContinuousPayments();

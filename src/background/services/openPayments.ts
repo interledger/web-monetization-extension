@@ -212,7 +212,7 @@ export class OpenPaymentsService {
   }
 }
 
-const isOpenPaymentsClientError = (error: unknown) =>
+export const isOpenPaymentsClientError = (error: unknown) =>
   error instanceof OpenPaymentsClientError;
 
 export const isKeyRevokedError = (error: unknown) => {

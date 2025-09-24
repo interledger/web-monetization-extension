@@ -23,9 +23,12 @@ import {
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
-import { isInvalidClientError } from '@/background/services/openPayments';
+import {
+  isInvalidClientError,
+  isOpenPaymentsClientError,
+} from '@/background/services/openPayments';
 import { APP_URL } from '@/background/constants';
-import { bytesToHex } from '@noble/hashes/utils';
+import { bytesToHex } from '@noble/hashes/utils.js';
 import type { Cradle } from '@/background/container';
 import type { TabId, WalletInfo } from '@/shared/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
@@ -36,6 +39,7 @@ export class WalletService {
   private storage: Cradle['storage'];
   private events: Cradle['events'];
   private browser: Cradle['browser'];
+  private logger: Cradle['logger'];
   private appName: Cradle['appName'];
   private browserName: Cradle['browserName'];
   private t: Cradle['t'];
@@ -46,6 +50,7 @@ export class WalletService {
     storage,
     events,
     browser,
+    logger,
     appName,
     browserName,
     t,
@@ -56,6 +61,7 @@ export class WalletService {
       storage,
       events,
       browser,
+      logger,
       appName,
       browserName,
       t,
@@ -73,6 +79,7 @@ export class WalletService {
       autoKeyAddConsent,
     } = params;
 
+    await this.generateKeys();
     await this.openPaymentsService.initClient(walletAddress.id);
 
     const browser = this.browser;
@@ -244,7 +251,7 @@ export class WalletService {
     this.resetConnectState();
   }
 
-  async disconnectWallet() {
+  async disconnectWallet(force = false) {
     const { recurringGrant, oneTimeGrant } = await this.storage.get([
       'recurringGrant',
       'oneTimeGrant',
@@ -252,14 +259,33 @@ export class WalletService {
     if (!recurringGrant && !oneTimeGrant) {
       return;
     }
+
+    const handleError = (
+      err: unknown,
+      grantType: 'recurring' | 'oneTime',
+      force: boolean,
+    ) => {
+      this.logger.error(`Could not cancel ${grantType} grant`, { err });
+      if (force) return;
+
+      if (isOpenPaymentsClientError(err)) {
+        throw new ErrorWithKey('disconnectWallet_error_generic', [
+          err.status ? `HTTP ${err.status} - ${err.message}` : err.message,
+        ]);
+      }
+      throw err;
+    };
+
     if (recurringGrant) {
-      await this.outgoingPaymentGrantService.cancelGrant(
-        recurringGrant.continue,
-      );
+      await this.outgoingPaymentGrantService
+        .cancelGrant(recurringGrant.continue)
+        .catch((err) => handleError(err, 'recurring', force));
       this.outgoingPaymentGrantService.disableRecurringGrant();
     }
     if (oneTimeGrant) {
-      await this.outgoingPaymentGrantService.cancelGrant(oneTimeGrant.continue);
+      await this.outgoingPaymentGrantService
+        .cancelGrant(oneTimeGrant.continue)
+        .catch((err) => handleError(err, 'recurring', force));
       this.outgoingPaymentGrantService.disableOneTimeGrant();
     }
     await this.storage.clear();
