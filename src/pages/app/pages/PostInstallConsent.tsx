@@ -5,13 +5,7 @@ import { Button } from '@/pages/shared/components/ui/Button';
 
 export default () => {
   return (
-    <div
-      className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center"
-      style={{
-        backgroundImage: `url("/assets/images/bg-tile.svg")`,
-        backgroundSize: '40vmax',
-      }}
-    >
+    <div className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center">
       <div className="space-y-6 w-full max-w-screen-2xl flex-1 items-stretch p-3 sm:p-8 landscape:p-4">
         <Header />
         <Main />
@@ -40,8 +34,8 @@ const Main = () => {
   const _t = useTranslation();
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 rounded-lg border border-gray-200 bg-white shadow-md p-3 sm:p-8">
-      <div className="space-y-4">
+    <main className="mx-auto w-full max-w-3xl p-3 sm:p-8">
+      <div className="space-y-4 mb-48">
         <p>
           To get started, we want to be transparent about what data is shared
           and how it’s used.
@@ -163,14 +157,16 @@ function Permissions() {
 
 function AcceptForm() {
   return (
-    <form className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row md:gap-4">
+    <form className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4">
       <label className="flex gap-2 items-start">
         <input type="checkbox" required className="rounded-sm mt-1" />
         <span className="">
           I confirm that I understand and consent to this data usage.
         </span>
       </label>
-      <Button type="submit">Confirm and continue</Button>
+      <Button type="submit" className="w-full sm:w-auto">
+        Confirm and continue
+      </Button>
     </form>
   );
 }
