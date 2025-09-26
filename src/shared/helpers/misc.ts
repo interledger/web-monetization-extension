@@ -129,3 +129,10 @@ export const getBrowserName = (
 
   return 'unknown';
 };
+
+/** @see {@linkcode Storage['consent']} */
+export const CURRENT_DATA_CONSENT_VERSION: NonNullable<Storage['consent']> = 1;
+
+export function isConsentRequired(userConsentVersion: Storage['consent']) {
+  return userConsentVersion !== CURRENT_DATA_CONSENT_VERSION;
+}

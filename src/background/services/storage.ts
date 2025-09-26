@@ -7,9 +7,13 @@ import type {
   StorageKey,
   WalletAmount,
 } from '@/shared/types';
-import { objectEquals, ThrottleBatch } from '@/shared/helpers';
-import { bigIntMax, computeBalance } from '../utils';
-import type { Cradle } from '../container';
+import {
+  isConsentRequired,
+  objectEquals,
+  ThrottleBatch,
+} from '@/shared/helpers';
+import { bigIntMax, computeBalance } from '@/background/utils';
+import type { Cradle } from '@/background/container';
 
 const defaultStorage = {
   /**
@@ -20,6 +24,7 @@ const defaultStorage = {
    * existing installations.
    */
   version: 5,
+  consent: 0,
   state: {},
   connected: false,
   enabled: true,
@@ -76,8 +81,12 @@ export class StorageService {
   }
 
   async clear(): Promise<void> {
-    await this.set(defaultStorage);
-    this.currentState = { ...defaultStorage.state };
+    const preservedValues = await this.get(['consent']);
+    await this.set({ ...defaultStorage, ...preservedValues });
+    this.currentState = {
+      ...defaultStorage.state,
+      consent_required: isConsentRequired(preservedValues.consent),
+    };
   }
 
   /**

@@ -57,6 +57,8 @@ export type ExtensionState =
   | 'missing_host_permissions'
   /** The public key no longer exists or valid in connected wallet */
   | 'key_revoked'
+  /** The user needs to provide consent to data sharing */
+  | 'consent_required'
   /** The wallet is out of funds, cannot make payments */
   | 'out_of_funds';
 
@@ -66,6 +68,14 @@ export interface Storage {
    * Inspired by database upgrades in IndexedDB API.
    */
   version: number;
+
+  /**
+   * Data sharing consent.
+   * @note When this value in storage is smaller than the "current" consent
+   * version, the user needs to provide consent again (then update this value).
+   * @default undefined implies user has never provided consent.
+   */
+  consent?: number;
 
   /** If a wallet is connected or not */
   connected: boolean;
@@ -147,7 +157,7 @@ export type PopupStore = Omit<
   }>;
 };
 
-export type AppStore = Pick<Storage, 'publicKey' | 'connected'> & {
+export type AppStore = Pick<Storage, 'publicKey' | 'connected' | 'consent'> & {
   transientState: PopupTransientState;
 };
 

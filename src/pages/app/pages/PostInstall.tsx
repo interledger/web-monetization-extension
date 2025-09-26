@@ -1,16 +1,22 @@
 import React from 'react';
+import { Redirect } from 'wouter';
 import {
   ArrowBack,
   CaretDownIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import { getBrowserName, type BrowserName } from '@/shared/helpers';
+import {
+  getBrowserName,
+  isConsentRequired,
+  type BrowserName,
+} from '@/shared/helpers';
 import { getResponseOrThrow } from '@/shared/messages';
 import { useBrowser, useTranslation } from '@/app/lib/context';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { cn } from '@/pages/shared/lib/utils';
 import { useMessage } from '@/app/lib/context';
 import { useAppState } from '@/app/lib/store';
+import { ROUTES } from '../App';
 
 export default () => {
   return (
@@ -52,6 +58,12 @@ const Header = () => {
 
 const Main = () => {
   const t = useTranslation();
+  const { consent } = useAppState();
+
+  if (isConsentRequired(consent)) {
+    return <Redirect to={ROUTES.CONSENT} />;
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:p-8">
       <h2 className="rounded-sm bg-gray-100 p-2 text-center text-base font-medium sm:rounded-2xl sm:p-4 sm:text-lg">
