@@ -1,12 +1,12 @@
 import React from 'react';
 import { getBrowserName } from '@/shared/helpers';
-import { useBrowser, useTranslation } from '@/app/lib/context';
+import { useBrowser } from '@/app/lib/context';
 import { Button } from '@/pages/shared/components/ui/Button';
 
 export default () => {
   return (
-    <div className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center">
-      <div className="space-y-6 w-full max-w-screen-2xl flex-1 items-stretch p-3 sm:p-8 landscape:p-4">
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="space-y-6 w-full p-4 sm:p-8">
         <Header />
         <Main />
       </div>
@@ -15,12 +15,11 @@ export default () => {
 };
 
 const Header = () => {
-  const t = useTranslation();
   return (
     <header className="text-center">
       <img
         src="/assets/images/logo.svg"
-        className="mx-auto mb-4 w-20 text-center"
+        className="mx-auto md:mb-4 w-12 md:w-20 text-center"
         alt=""
       />
       <h1 className="text-2xl font-bold text-secondary-dark landscape:mb-2 landscape:text-3xl landscape:2xl:mb-3 landscape:2xl:text-4xl">
@@ -31,8 +30,6 @@ const Header = () => {
 };
 
 const Main = () => {
-  const _t = useTranslation();
-
   return (
     <main className="mx-auto w-full max-w-3xl p-3 sm:p-8">
       <div className="space-y-4 mb-48">
