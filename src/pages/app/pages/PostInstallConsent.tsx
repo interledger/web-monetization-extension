@@ -1,6 +1,7 @@
 import React from 'react';
 import { getBrowserName } from '@/shared/helpers';
 import { useBrowser, useTranslation } from '@/app/lib/context';
+import { Button } from '@/pages/shared/components/ui/Button';
 
 export default () => {
   return (
@@ -11,11 +12,9 @@ export default () => {
         backgroundSize: '40vmax',
       }}
     >
-      <div className="flex min-h-screen w-full max-w-screen-2xl flex-1 grid-cols-2 flex-col items-stretch gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
+      <div className="space-y-6 w-full max-w-screen-2xl flex-1 items-stretch p-3 sm:p-8 landscape:p-4">
         <Header />
-        <div className="flex items-center">
-          <Main />
-        </div>
+        <Main />
       </div>
     </div>
   );
@@ -24,19 +23,16 @@ export default () => {
 const Header = () => {
   const t = useTranslation();
   return (
-    <div className="text-center landscape:mt-[33vh]">
+    <header className="text-center">
       <img
         src="/assets/images/logo.svg"
-        className="mx-auto mb-4 w-16 text-center landscape:w-36 landscape:2xl:w-48"
+        className="mx-auto mb-4 w-20 text-center"
         alt=""
       />
-      <p className="text-xl font-bold text-secondary-dark landscape:mb-2 landscape:text-3xl landscape:2xl:mb-3 landscape:2xl:text-4xl">
-        {t('tagline_text_1')}
-      </p>
-      <p className="text-xl font-light text-secondary-dark landscape:text-3xl landscape:2xl:text-4xl">
-        {t('tagline_text_2')}
-      </p>
-    </div>
+      <h1 className="text-2xl font-bold text-secondary-dark landscape:mb-2 landscape:text-3xl landscape:2xl:mb-3 landscape:2xl:text-4xl">
+        Welcome to the Web Monetization Extension
+      </h1>
+    </header>
   );
 };
 
@@ -44,12 +40,8 @@ const Main = () => {
   const _t = useTranslation();
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:p-8">
-      <h2 className="rounded-sm bg-gray-100 p-2 text-center text-base font-semibold sm:rounded-2xl sm:p-4 sm:text-lg">
-        Welcome to the Web Monetization Extension
-      </h2>
-
-      <div className="space-y-4 bzg-white zp-4">
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 rounded-lg border border-gray-200 bg-white shadow-md p-3 sm:p-8">
+      <div className="space-y-4">
         <p>
           To get started, we want to be transparent about what data is shared
           and how it’s used.
@@ -63,7 +55,11 @@ const Main = () => {
         <DataNotShared />
         <Permissions />
       </div>
-    </div>
+
+      <div className="fixed bottom-0 inset-x-0 w-full bg-white p-4 flex justify-center shadow-2xl shadow-black">
+        <AcceptForm />
+      </div>
+    </main>
   );
 };
 
@@ -80,9 +76,9 @@ function DataShared() {
 
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold">Data Shared</h3>
-      <div>
-        <h4 className="font-medium">With your wallet provider</h4>
+      <h3 className="font-semibold text-xl text-alt">Data Shared</h3>
+      <div className="space-y-1">
+        <h4 className="font-medium text-lg">With your wallet provider</h4>
         <ul className="list-disc ml-4">
           <li>
             When you connect your wallet (if you choose automatic key addition):
@@ -96,44 +92,32 @@ function DataShared() {
           <li>You’ll always be asked for consent before any connection.</li>
           <li>
             Your IP address,{' '}
-            <span
-              className="underline decoration-dotted decoration-gray-400"
-              title="via the `Accept-Language` HTTP header"
-            >
+            <TooltipText title="via the `Accept-Language` HTTP header">
               language
-            </span>{' '}
+            </TooltipText>{' '}
             and{' '}
-            <span
-              className="underline decoration-dotted decoration-gray-400"
-              title="via the `User-Agent` HTTP header"
-            >
+            <TooltipText title="via the `User-Agent` HTTP header">
               browser version information
-            </span>{' '}
+            </TooltipText>{' '}
             when making automatic or manual payments.
           </li>
         </ul>
       </div>
 
-      <div>
-        <h4 className="font-medium">
+      <div className="space-y-1">
+        <h4 className="font-medium text-lg">
           With the wallets used on websites you visit that use Web Monetization:
         </h4>
         <ul className="list-disc ml-4">
           <li>
             Your IP address,{' '}
-            <span
-              className="underline decoration-dotted decoration-gray-400"
-              title="via the `Accept-Language` HTTP header"
-            >
+            <TooltipText title="via the `Accept-Language` HTTP header">
               language
-            </span>{' '}
+            </TooltipText>{' '}
             and{' '}
-            <span
-              className="underline decoration-dotted decoration-gray-400"
-              title="via the `User-Agent` HTTP header"
-            >
+            <TooltipText title="via the `User-Agent` HTTP header">
               browser version information
-            </span>{' '}
+            </TooltipText>{' '}
             .
           </li>
           <li>Your wallet address.</li>
@@ -146,7 +130,7 @@ function DataShared() {
 function DataNotShared() {
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold">What’s not shared</h3>
+      <h3 className="font-semibold text-xl text-alt">What’s not shared</h3>
       <ul className="list-disc ml-4">
         <li>
           Your wallet address, balance, or currency are not shared with websites
@@ -161,7 +145,7 @@ function DataNotShared() {
 function Permissions() {
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold">Extension Permissions</h3>
+      <h3 className="font-semibold text-xl text-alt">Extension Permissions</h3>
       <p>
         This extension requires certain{' '}
         <a
@@ -176,3 +160,29 @@ function Permissions() {
     </div>
   );
 }
+
+function AcceptForm() {
+  return (
+    <form className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row md:gap-4">
+      <label className="flex gap-2 items-start">
+        <input type="checkbox" required className="rounded-sm mt-1" />
+        <span className="">
+          I confirm that I understand and consent to this data usage.
+        </span>
+      </label>
+      <Button type="submit">Confirm and continue</Button>
+    </form>
+  );
+}
+
+const TooltipText = ({
+  title,
+  children,
+}: React.PropsWithChildren<{ title: string }>) => (
+  <span
+    className="underline decoration-dotted decoration-gray-400"
+    title={title}
+  >
+    {children}
+  </span>
+);
