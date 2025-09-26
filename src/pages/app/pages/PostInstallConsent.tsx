@@ -1,7 +1,12 @@
 import React from 'react';
-import { getBrowserName } from '@/shared/helpers';
-import { useBrowser } from '@/app/lib/context';
+import { Redirect } from 'wouter';
+import { getBrowserName, isConsentRequired } from '@/shared/helpers';
+import { getResponseOrThrow } from '@/shared/messages';
+import { useBrowser, useMessage } from '@/app/lib/context';
+import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
+import { InfoCircle } from '@/pages/shared/components/Icons';
+import { ROUTES } from '../App';
 
 export default () => {
   return (
@@ -153,8 +158,36 @@ function Permissions() {
 }
 
 function AcceptForm() {
+  const { connected, consent } = useAppState();
+  const message = useMessage();
+
+  const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
+    const res = await message.send('PROVIDE_CONSENT');
+    const data = getResponseOrThrow(res);
+    dispatch({ type: 'SET_CONSENT', data });
+  };
+
+  if (!isConsentRequired(consent)) {
+    if (!connected) {
+      return <Redirect to={ROUTES.DEFAULT} />;
+    }
+    return (
+      <div className="max-w-2xl flex gap-2" role="alert">
+        <InfoCircle className="size-6 flex-shrink-0" />
+        <p>
+          You have provided your consent to the above. Access the extension from
+          the browser toolbar.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <form className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4">
+    <form
+      className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4"
+      onSubmit={onSubmit}
+    >
       <label className="flex gap-2 items-start">
         <input type="checkbox" required className="rounded-sm mt-1" />
         <span className="">
