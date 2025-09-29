@@ -115,6 +115,7 @@ const BudgetAmount = ({
   return (
     <form className="space-y-2" onSubmit={onSubmit}>
       <div className="flex items-center gap-4">
+        {/** biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID */}
         <InputAmount
           id="budgetAmount"
           label="Budget amount"
@@ -202,6 +203,7 @@ const RemainingBalance = ({
   const amount = transformBalance(balance, walletAddress.assetScale);
   return (
     <div className="space-y-2">
+      {/** biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID */}
       <InputAmount
         id="remainingBalance"
         onChange={() => {}}
