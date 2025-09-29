@@ -87,15 +87,9 @@ function DataShared() {
           </li>
           <li>You’ll always be asked for consent before any connection.</li>
           <li>
-            Your IP address,{' '}
-            <TooltipText title="via the `Accept-Language` HTTP header">
-              language
-            </TooltipText>{' '}
-            and{' '}
-            <TooltipText title="via the `User-Agent` HTTP header">
-              browser version information
-            </TooltipText>{' '}
-            when making automatic or manual payments.
+            Your IP address, language and browser version information throughout
+            the course of using the extension.
+            <InformationTooltip text="Browsers send certain HTTP headers by default  each request that inform the servers about your language (`Accept-Language` header), browser version (`User-Agent` header) and more. Your IP address is also sent by default." />
           </li>
         </ul>
       </div>
@@ -106,15 +100,8 @@ function DataShared() {
         </h4>
         <ul className="list-disc ml-4">
           <li>
-            Your IP address,{' '}
-            <TooltipText title="via the `Accept-Language` HTTP header">
-              language
-            </TooltipText>{' '}
-            and{' '}
-            <TooltipText title="via the `User-Agent` HTTP header">
-              browser version information
-            </TooltipText>{' '}
-            .
+            Your IP address, language and browser version information.
+            <InformationTooltip text="Browsers send certain HTTP headers by default  each request that inform the servers about your language (`Accept-Language` header), browser version (`User-Agent` header) and more. Your IP address is also sent by default." />
           </li>
           <li>Your wallet address.</li>
         </ul>
@@ -201,14 +188,10 @@ function AcceptForm() {
   );
 }
 
-const TooltipText = ({
-  title,
-  children,
-}: React.PropsWithChildren<{ title: string }>) => (
-  <span
-    className="underline decoration-dotted decoration-gray-400"
-    title={title}
-  >
-    {children}
-  </span>
-);
+function InformationTooltip({ text }: { text: string }) {
+  return (
+    <span title={text}>
+      <InfoCircle className="inline-block h-5 w-5 ml-1 -mt-1 text-gray-500" />
+    </span>
+  );
+}
