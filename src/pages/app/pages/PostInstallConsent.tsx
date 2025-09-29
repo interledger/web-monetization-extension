@@ -2,7 +2,7 @@ import React from 'react';
 import { Redirect } from 'wouter';
 import { getBrowserName, isConsentRequired } from '@/shared/helpers';
 import { getResponseOrThrow } from '@/shared/messages';
-import { useBrowser, useMessage } from '@/app/lib/context';
+import { useBrowser, useMessage, useTranslation } from '@/app/lib/context';
 import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InfoCircle } from '@/pages/shared/components/Icons';
@@ -20,6 +20,7 @@ export default () => {
 };
 
 const Header = () => {
+  const t = useTranslation();
   return (
     <header className="text-center">
       <img
@@ -28,24 +29,19 @@ const Header = () => {
         alt=""
       />
       <h1 className="text-2xl font-bold text-secondary-dark landscape:mb-2 landscape:text-3xl landscape:2xl:mb-3 landscape:2xl:text-4xl">
-        Welcome to the Web Monetization Extension
+        {t('postInstallConsent_text_title')}
       </h1>
     </header>
   );
 };
 
 const Main = () => {
+  const t = useTranslation();
   return (
     <main className="mx-auto w-full max-w-3xl p-3 sm:p-8">
       <div className="space-y-4 mb-48">
-        <p>
-          To get started, we want to be transparent about what data is shared
-          and how it’s used.
-        </p>
-        <p>
-          By continuing, you give your consent to share the following
-          information:
-        </p>
+        <p>{t('postInstallConsent_text_header1')}</p>
+        <p>{t('postInstallConsent_text_header2')}</p>
 
         <DataShared />
         <DataNotShared />
@@ -60,6 +56,7 @@ const Main = () => {
 };
 
 function DataShared() {
+  const t = useTranslation();
   const browser = useBrowser();
 
   const browserName = getBrowserName(browser, navigator.userAgent);
@@ -72,12 +69,16 @@ function DataShared() {
 
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold text-xl text-alt">Data Shared</h3>
+      <h3 className="font-semibold text-xl text-alt">
+        {t('postInstallConsent_text_dataShared_title')}
+      </h3>
       <div className="space-y-1">
-        <h4 className="font-medium text-lg">With your wallet provider</h4>
+        <h4 className="font-medium text-lg">
+          {t('postInstallConsent_text_dataShared_yourWallet_title')}
+        </h4>
         <ul className="list-disc ml-4">
           <li>
-            When you connect your wallet (if you choose automatic key addition):
+            {t('postInstallConsent_text_dataShared_yourWallet_keyName')}
             <ul className="list-disc ml-4">
               <li>Browser name ({browserName})</li>
               <li>
@@ -85,25 +86,30 @@ function DataShared() {
               </li>
             </ul>
           </li>
-          <li>You’ll always be asked for consent before any connection.</li>
           <li>
-            Your IP address, language and browser version information throughout
-            the course of using the extension.
-            <InformationTooltip text="Browsers send certain HTTP headers by default  each request that inform the servers about your language (`Accept-Language` header), browser version (`User-Agent` header) and more. Your IP address is also sent by default." />
+            {t('postInstallConsent_text_dataShared_yourWallet_keyConsent')}
+          </li>
+          <li>
+            {t('postInstallConsent_text_dataShared_yourWallet_headers')}
+            <InformationTooltip
+              text={t('postInstallConsent_text_dataShared_headers')}
+            />
           </li>
         </ul>
       </div>
 
       <div className="space-y-1">
         <h4 className="font-medium text-lg">
-          With the wallets used on websites you visit that use Web Monetization:
+          {t('postInstallConsent_text_dataShared_websiteWallets_title')}
         </h4>
         <ul className="list-disc ml-4">
           <li>
-            Your IP address, language and browser version information.
-            <InformationTooltip text="Browsers send certain HTTP headers by default  each request that inform the servers about your language (`Accept-Language` header), browser version (`User-Agent` header) and more. Your IP address is also sent by default." />
+            {t('postInstallConsent_text_dataShared_websiteWallets_headers')}
+            <InformationTooltip
+              text={t('postInstallConsent_text_dataShared_headers')}
+            />
           </li>
-          <li>Your wallet address.</li>
+          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
         </ul>
       </div>
     </div>
@@ -111,33 +117,36 @@ function DataShared() {
 }
 
 function DataNotShared() {
+  const t = useTranslation();
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold text-xl text-alt">What’s not shared</h3>
+      <h3 className="font-semibold text-xl text-alt">
+        {t('postInstallConsent_text_dataNotShared_title')}
+      </h3>
       <ul className="list-disc ml-4">
-        <li>
-          Your wallet address, balance, or currency are not shared with websites
-          you visit.
-        </li>
-        <li>Your browsing history — it stays private in your browser.</li>
+        <li>{t('postInstallConsent_text_dataNotShared_walletDetails')}</li>
+        <li>{t('postInstallConsent_text_dataNotShared_browsingHistory')}</li>
       </ul>
     </div>
   );
 }
 
 function Permissions() {
+  const t = useTranslation();
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold text-xl text-alt">Extension Permissions</h3>
+      <h3 className="font-semibold text-xl text-alt">
+        {t('postInstallConsent_text_permissions_title')}
+      </h3>
       <p>
-        This extension requires certain{' '}
+        {t('postInstallConsent_text_permissions_text')}{' '}
         <a
           href="https://github.com/interledger/web-monetization-extension/blob/main/docs/PERMISSIONS.md"
           className="group pr-1 text-primary outline-current hover:underline"
           target="_blank"
           rel="noreferrer noopener"
         >
-          permissions for basic functionality.
+          {t('postInstallConsent_text_permissions_linkText')}
         </a>
       </p>
     </div>
@@ -145,6 +154,7 @@ function Permissions() {
 }
 
 function AcceptForm() {
+  const t = useTranslation();
   const { connected, consent } = useAppState();
   const message = useMessage();
 
@@ -162,10 +172,7 @@ function AcceptForm() {
     return (
       <div className="max-w-2xl flex gap-2" role="alert">
         <InfoCircle className="size-6 flex-shrink-0" />
-        <p>
-          You have provided your consent to the above. Access the extension from
-          the browser toolbar.
-        </p>
+        <p>{t('postInstallConsent_state_consentProvided')}</p>
       </div>
     );
   }
@@ -177,12 +184,10 @@ function AcceptForm() {
     >
       <label className="flex gap-2 items-start">
         <input type="checkbox" required className="rounded-sm mt-1" />
-        <span className="">
-          I confirm that I understand and consent to this data usage.
-        </span>
+        <span className="">{t('postInstallConsent_text_confirmation')}</span>
       </label>
       <Button type="submit" className="w-full sm:w-auto">
-        Confirm and continue
+        {t('postInstallConsent_action_confirm')}
       </Button>
     </form>
   );

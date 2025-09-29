@@ -308,5 +308,68 @@
   },
   "postInstall_text_wallet_connected_2": {
     "message": "Access the extension from the browser toolbar."
+  },
+  "postInstallConsent_text_title": {
+    "message": "Welcome to the Web Monetization Extension"
+  },
+  "postInstallConsent_text_header1": {
+    "message": "To get started, we want to be transparent about what data is shared and how it’s used."
+  },
+  "postInstallConsent_text_header2": {
+    "message": "By continuing, you give your consent to share the following information:"
+  },
+  "postInstallConsent_text_dataShared_title": {
+    "message": "Data Shared"
+  },
+  "postInstallConsent_text_dataShared_yourWallet_title": {
+    "message": "With your wallet provider"
+  },
+  "postInstallConsent_text_dataShared_yourWallet_keyName": {
+    "message": "When you connect your wallet, if you choose automatic key addition"
+  },
+  "postInstallConsent_text_dataShared_yourWallet_keyConsent": {
+    "message": "You’ll always be asked for consent before any connection."
+  },
+  "postInstallConsent_text_dataShared_yourWallet_headers": {
+    "message": "Your IP address, language and browser version information throughout the course of using the extension."
+  },
+  "postInstallConsent_text_dataShared_websiteWallets_title": {
+    "message": "With the wallets used on websites you visit that use Web Monetization:"
+  },
+  "postInstallConsent_text_dataShared_websiteWallets_headers": {
+    "message": "Your IP address, language and browser version information."
+  },
+  "postInstallConsent_text_dataShared_websiteWallets_wa": {
+    "message": "Your IP address, language and browser version information."
+  },
+  "postInstallConsent_text_dataShared_headers": {
+    "message": "Browsers send certain HTTP headers by default  each request that inform the servers about your language (`Accept-Language` header), browser version (`User-Agent` header) and more. Your IP address is also sent by default."
+  },
+  "postInstallConsent_text_dataNotShared_title": {
+    "message": "What’s not shared"
+  },
+  "postInstallConsent_text_dataNotShared_walletDetails": {
+    "message": "Your wallet address, balance, or currency are not shared with websites you visit."
+  },
+  "postInstallConsent_text_dataNotShared_browsingHistory": {
+    "message": "Your browsing history — it stays private in your browser."
+  },
+  "postInstallConsent_text_permissions_title": {
+    "message": "Extension Permissions"
+  },
+  "postInstallConsent_text_permissions_text": {
+    "message": "This extension requires certain"
+  },
+  "postInstallConsent_text_permissions_linkText": {
+    "message": "permissions for basic functionality"
+  },
+  "postInstallConsent_state_consentProvided": {
+    "message": "You have provided your consent to the above. Access the extension from the browser toolbar."
+  },
+  "postInstallConsent_text_confirmation": {
+    "message": "I confirm that I understand and consent to this data usage."
+  },
+  "postInstallConsent_action_confirm": {
+    "message": "Confirm and continue"
   }
 }
