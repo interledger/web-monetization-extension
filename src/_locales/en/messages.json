@@ -371,5 +371,17 @@
   },
   "postInstallConsent_action_confirm": {
     "message": "Confirm and continue"
+  },
+  "consentRequired_text_title": {
+    "message": "Consent Required: Data Collection & Transmission"
+  },
+  "consentRequired_text_subtitle": {
+    "message": "We want to be transparent about what data is shared and how it’s used."
+  },
+  "consentRequired_text_msg": {
+    "message": "To use the the Web Monetization Extension, we require your consent to our data collection & transmission policy."
+  },
+  "consentRequired_action_primary": {
+    "message": "View Policy"
   }
 }
