@@ -1,7 +1,7 @@
-import * as ed from '@noble/ed25519';
+import { keygenAsync } from '@noble/ed25519';
 
 export async function generateEd25519KeyPair() {
-  const keyPair = await ed.keygenAsync();
+  const keyPair = await keygenAsync();
   return { privateKey: keyPair.secretKey, publicKey: keyPair.publicKey };
 }
 

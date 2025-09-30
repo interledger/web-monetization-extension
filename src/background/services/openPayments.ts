@@ -4,7 +4,8 @@ import {
   createAuthenticatedClient,
   OpenPaymentsClientError,
 } from '@interledger/open-payments/dist/client';
-import * as ed from '@noble/ed25519';
+import { signAsync } from '@noble/ed25519';
+import { hexToBytes } from '@noble/hashes/utils.js';
 import type { Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
@@ -98,7 +99,7 @@ export class OpenPaymentsService {
       id: keyId,
       alg: 'ed25519',
       async sign(data: Uint8Array) {
-        return Buffer.from(await ed.signAsync(data, key));
+        return Buffer.from(await signAsync(data, key));
       },
     };
   }
@@ -162,7 +163,12 @@ export class OpenPaymentsService {
 
   async initClient(walletAddressUrl: string) {
     const { privateKey, keyId } = await this.getPrivateKeyInformation();
-
+    let privateKeyBytes = hexToBytes(privateKey);
+    if (privateKeyBytes.length === 48) {
+      // For keys generated before https://github.com/interledger/web-monetization-extension/pull/1192
+      // biome-ignore format: inline array looks cleaner
+      privateKeyBytes = privateKeyBytes.slice(16)
+    }
     this.client = await createAuthenticatedClient({
       validateResponses: false,
       requestTimeoutMs: 10_000,
@@ -185,7 +191,7 @@ export class OpenPaymentsService {
               ? JSON.stringify(await request.json())
               : undefined,
           },
-          privateKey: ed.etc.hexToBytes(privateKey),
+          privateKey: privateKeyBytes,
           keyId,
         });
 
