@@ -98,7 +98,7 @@ export class OpenPaymentsService {
       id: keyId,
       alg: 'ed25519',
       async sign(data: Uint8Array) {
-        return Buffer.from(await ed.signAsync(data, key.slice(16)));
+        return Buffer.from(await ed.signAsync(data, key));
       },
     };
   }
