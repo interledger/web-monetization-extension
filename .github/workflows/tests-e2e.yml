@@ -19,7 +19,7 @@ jobs:
 
       - name: Find tests to run
         id: filter
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const script = require('./.github/actions/tests-e2e-filter.cjs')
