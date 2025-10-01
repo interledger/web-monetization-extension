@@ -80,14 +80,9 @@ function DataShared() {
           <li>
             {t('postInstallConsent_text_dataShared_yourWallet_keyName')}
             <ul className="list-disc ml-4">
-              <li>Browser name ({browserName})</li>
-              <li>
-                Extension name {extensionName ? `(${extensionName})` : ''}
-              </li>
+              <li>Browser name: {browserName}</li>
+              <li>Extension name: {extensionName}</li>
             </ul>
-          </li>
-          <li>
-            {t('postInstallConsent_text_dataShared_yourWallet_keyConsent')}
           </li>
           <li>
             {t('postInstallConsent_text_dataShared_yourWallet_headers')}
@@ -96,6 +91,7 @@ function DataShared() {
             />
           </li>
         </ul>
+        <p>{t('postInstallConsent_text_dataShared_yourWallet_keyConsent')}</p>
       </div>
 
       <div className="space-y-1">

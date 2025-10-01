@@ -313,25 +313,25 @@
     "message": "Welcome to the Web Monetization Extension"
   },
   "postInstallConsent_text_header1": {
-    "message": "To get started, we want to be transparent about what data is shared and how it’s used."
+    "message": "We’re transparent about what data is shared and how it’s used."
   },
   "postInstallConsent_text_header2": {
-    "message": "By continuing, you give your consent to share the following information:"
+    "message": "By continuing, you consent to share the information below."
   },
   "postInstallConsent_text_dataShared_title": {
-    "message": "Data Shared"
+    "message": "What’s shared"
   },
   "postInstallConsent_text_dataShared_yourWallet_title": {
-    "message": "With your wallet provider"
+    "message": "With your wallet provider:"
   },
   "postInstallConsent_text_dataShared_yourWallet_keyName": {
-    "message": "When you connect your wallet, if you choose automatic key addition"
+    "message": " If you choose automatic key addition, the extension shares:"
   },
   "postInstallConsent_text_dataShared_yourWallet_keyConsent": {
-    "message": "You’ll always be asked for consent before any connection."
+    "message": "Note: You will always be asked for consent before any connection."
   },
   "postInstallConsent_text_dataShared_yourWallet_headers": {
-    "message": "Your IP address, language and browser version information throughout the course of using the extension."
+    "message": "Your IP address, language, and browser version while you use the extension."
   },
   "postInstallConsent_text_dataShared_websiteWallets_title": {
     "message": "With the wallets used on websites you visit that use Web Monetization:"
@@ -349,19 +349,19 @@
     "message": "What’s not shared"
   },
   "postInstallConsent_text_dataNotShared_walletDetails": {
-    "message": "Your wallet address, balance, or currency are not shared with websites you visit."
+    "message": "Your wallet address, balance, or currency, are never shared with websites you visit."
   },
   "postInstallConsent_text_dataNotShared_browsingHistory": {
-    "message": "Your browsing history — it stays private in your browser."
+    "message": "Your browsing history. It stays private in your browser."
   },
   "postInstallConsent_text_permissions_title": {
     "message": "Extension Permissions"
   },
   "postInstallConsent_text_permissions_text": {
-    "message": "This extension requires certain"
+    "message": "The extension needs basic permissions to work."
   },
   "postInstallConsent_text_permissions_linkText": {
-    "message": "permissions for basic functionality"
+    "message": "See details."
   },
   "postInstallConsent_state_consentProvided": {
     "message": "You have provided your consent to the above. Access the extension from the browser toolbar."
