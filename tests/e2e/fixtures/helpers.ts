@@ -255,6 +255,11 @@ export async function closePostInstallPage(
   );
   let page = context.pages().find((page) => page.url().startsWith(url));
   page ??= await context.waitForEvent('page', (p) => p.url().startsWith(url));
+
+  // Give data sharing consent at once, instead of providing in each test.
+  await page.getByRole('checkbox').click();
+  await page.getByRole('button').click();
+
   const promise = page.waitForEvent('close');
   await page.evaluate(() => window.close());
   await promise;

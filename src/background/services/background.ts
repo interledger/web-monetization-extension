@@ -7,6 +7,8 @@ import {
   getWalletInformation,
   isErrorWithKey,
   moveToFront,
+  CURRENT_DATA_CONSENT_VERSION,
+  isConsentRequired,
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
@@ -124,7 +126,12 @@ export class Background {
     }
     await this.storage.populate();
     await this.checkPermissions();
+    const { consent } = await this.storage.get(['consent']);
+    if (isConsentRequired(consent)) {
+      await this.storage.setState({ consent_required: true });
+    }
     await this.scheduleResetOutOfFundsState();
+    await this.updateVisualIndicatorsForCurrentTab().catch(() => {});
   }
 
   async scheduleResetOutOfFundsState() {
@@ -147,12 +154,14 @@ export class Background {
   }
 
   async getAppData(): Promise<AppStore> {
-    const { connected, publicKey } = await this.storage.get([
+    const { connected, publicKey, consent } = await this.storage.get([
       'connected',
       'publicKey',
+      'consent',
     ]);
 
     return {
+      consent,
       connected,
       publicKey,
       transientState: this.storage.getPopupTransientState(),
@@ -295,6 +304,10 @@ export class Background {
                 await this.monetizationService.pay(message.payload),
               );
 
+            case 'OPEN_APP':
+              await this.openAppPage(message.payload.path);
+              return success(undefined);
+
             // endregion
 
             // region Content
@@ -337,6 +350,13 @@ export class Background {
             // region App
             case 'GET_DATA_APP':
               return success(await this.getAppData());
+
+            case 'PROVIDE_CONSENT': {
+              await this.storage.set({ consent: CURRENT_DATA_CONSENT_VERSION });
+              await this.storage.setState({ consent_required: false });
+              return success(CURRENT_DATA_CONSENT_VERSION);
+            }
+
             // endregion
 
             default:
@@ -406,6 +426,9 @@ export class Background {
     this.events.on('storage.state_update', async ({ state, prevState }) => {
       this.sendToPopup.send('SET_STATE', { state, prevState });
       await this.updateVisualIndicatorsForCurrentTab();
+      if (state.consent_required) {
+        await this.openAppPage('/post-install/consent');
+      }
     });
 
     this.events.on('monetization.state_update', async (tabId) => {
@@ -446,6 +469,9 @@ export class Background {
           );
         }
       }
+      if (isConsentRequired(data.consent)) {
+        await this.storage.setState({ consent_required: true });
+      }
     });
   }
 
@@ -460,4 +486,20 @@ export class Background {
       this.logger.error(error);
     }
   };
+
+  async openAppPage(path: string) {
+    const appUrl = this.browser.runtime.getURL(APP_URL);
+
+    const allTabs = await this.browser.tabs.query({});
+    const appTab = allTabs.find((t) => t.url?.startsWith(appUrl));
+
+    const url = `${appUrl}#${path}`;
+    if (appTab?.id) {
+      await this.browser.tabs.update(appTab.id, { url });
+      await this.sendToPopup.send('CLOSE_POPUP', undefined);
+      return appTab;
+    } else {
+      return await this.browser.tabs.create({ url });
+    }
+  }
 }

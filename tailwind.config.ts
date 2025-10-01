@@ -22,6 +22,7 @@ module.exports = {
         primary: 'rgb(var(--text-primary) / <alpha-value>)',
         secondary: 'rgb(var(--text-secondary) / <alpha-value>)',
         'secondary-dark': 'rgb(var(--text-secondary-dark) / <alpha-value>)',
+        alt: 'rgb(var(--text-alt) / <alpha-value>)',
         weak: 'rgb(var(--text-weak) / <alpha-value>)',
         medium: 'rgb(var(--text-medium) / <alpha-value>)',
         strong: 'rgb(var(--text-strong) / <alpha-value>)',
