@@ -25,6 +25,9 @@ export const dispatch = async ({ type, data }: Actions) => {
     case 'SET_TRANSIENT_STATE':
       store.transientState = data;
       break;
+    case 'SET_CONSENT':
+      store.consent = data;
+      break;
     default:
       throw new Error('Unknown action');
   }
@@ -32,4 +35,5 @@ export const dispatch = async ({ type, data }: Actions) => {
 
 type Actions =
   | { type: 'SET_TRANSIENT_STATE'; data: PopupTransientState }
-  | { type: 'SET_DATA_APP'; data: Pick<Storage, 'connected' | 'publicKey'> };
+  | { type: 'SET_CONSENT'; data: NonNullable<AppStore['consent']> }
+  | { type: 'SET_DATA_APP'; data: Pick<AppStore, 'connected' | 'publicKey'> };
