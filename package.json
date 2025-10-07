@@ -84,7 +84,7 @@
     "tailwindcss": "^3.4.17",
     "tinyspy": "^4.0.4",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "pnpm": "^10.12.4",
