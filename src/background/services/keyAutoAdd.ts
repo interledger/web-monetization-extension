@@ -292,7 +292,7 @@ function walletAddressToProvider(walletAddress: WalletInfo): string {
     switch (host) {
       case 'ilp-staging.mmaon.com':
         return 'https://staging.mmaon.com/wallet/dashboard';
-      case 'ilp.mmaon.on':
+      case 'ilp.mmaon.com':
         return 'https://www.mmaon.com/wallet/dashboard';
       // case 'ilp.dev' is handled normally as ilp.interledger.cards below
     }
