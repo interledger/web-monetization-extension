@@ -9,8 +9,7 @@ import {
 } from '@/shared/helpers';
 import { createTab } from '@/background/utils';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
-import type { WalletAddress } from '@interledger/open-payments';
-import type { TabId } from '@/shared/types';
+import type { TabId, WalletInfo } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
@@ -48,7 +47,7 @@ export class KeyAutoAddService {
   }
 
   async addPublicKeyToWallet(
-    walletAddress: WalletAddress,
+    walletAddress: WalletInfo,
     onTabOpen: (tabId: TabId) => void,
   ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
@@ -201,7 +200,7 @@ export class KeyAutoAddService {
     }));
   }
 
-  static supports(walletAddress: WalletAddress): boolean {
+  static supports(walletAddress: WalletInfo): boolean {
     try {
       walletAddressToProvider(walletAddress);
       return true;
@@ -271,9 +270,34 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
     js: ['content/keyAutoAdd/gatehub.js'],
     persistAcrossSessions: false,
   },
+  {
+    id: 'keyAutoAdd/mmaon/sandbox',
+    matches: ['https://staging.mmaon.com/*'],
+    js: ['content/keyAutoAdd/mmaon.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/mmaon/prod',
+    matches: ['https://www.mmaon.com/*'],
+    js: ['content/keyAutoAdd/mmaon.js'],
+    persistAcrossSessions: false,
+  },
 ];
 
-function walletAddressToProvider(walletAddress: WalletAddress): string {
+function walletAddressToProvider(walletAddress: WalletInfo): string {
+  if (walletAddress.url) {
+    // Some wallet URLs have redirects to other "managing wallets" and need some
+    // special handling.
+    const { host } = new URL(walletAddress.url);
+    switch (host) {
+      case 'ilp-staging.mmaon.com':
+        return 'https://staging.mmaon.com/wallet/dashboard';
+      case 'ilp.mmaon.com':
+        return 'https://www.mmaon.com/wallet/dashboard';
+      // case 'ilp.dev' is handled normally as ilp.interledger.cards below
+    }
+  }
+
   const { host } = new URL(walletAddress.id);
   switch (host) {
     case 'ilp.interledger-test.dev':
@@ -293,7 +317,7 @@ function walletAddressToProvider(walletAddress: WalletAddress): string {
       return 'https://wallet.sandbox.gatehub.net/#/wallets/';
     case 'ilp.gatehub.net':
       return 'https://wallet.gatehub.net/#/wallets/';
-    default:
-      throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
   }
+
+  throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
 }
