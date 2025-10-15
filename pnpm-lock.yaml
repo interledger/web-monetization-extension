@@ -64,8 +64,8 @@ importers:
         specifier: ^2.6.0
         version: 2.6.0
       valtio:
-        specifier: ^2.1.7
-        version: 2.1.7(@types/react@19.1.13)(react@19.1.1)
+        specifier: ^2.1.8
+        version: 2.1.8(@types/react@19.1.13)(react@19.1.1)
       webextension-polyfill:
         specifier: ^0.12.0
         version: 0.12.0
@@ -3403,8 +3403,8 @@ packages:
     resolution: {integrity: sha512-/EH/sDgxU2eGxajKdwLCDmQ4FWq+kpi3uCmBGpw1xJtnAxEjlD8j8PEiGWpCIMIs3ciNAgH0d3TTJiUkYzyZjA==}
     engines: {node: '>=10.12.0'}
 
-  valtio@2.1.7:
-    resolution: {integrity: sha512-DwJhCDpujuQuKdJ2H84VbTjEJJteaSmqsuUltsfbfdbotVfNeTE4K/qc/Wi57I9x8/2ed4JNdjEna7O6PfavRg==}
+  valtio@2.1.8:
+    resolution: {integrity: sha512-fjTPbJyKEmfVBZUOh3V0OtMHoFUGr4+4XpejjxhNJE/IS2l8rDbyJuzi3w/fZWBDyk7BJOpG+lmvTK5iiVhXuQ==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -7066,7 +7066,7 @@ snapshots:
       '@types/istanbul-lib-coverage': 2.0.6
       convert-source-map: 2.0.0
 
-  valtio@2.1.7(@types/react@19.1.13)(react@19.1.1):
+  valtio@2.1.8(@types/react@19.1.13)(react@19.1.1):
     dependencies:
       proxy-compare: 3.0.1
     optionalDependencies:
