@@ -4,7 +4,8 @@ import { fillPopup } from './pages/popup';
 import { URLS, login, revokeKey } from './helpers/mmaon';
 import { getStorage } from './fixtures/helpers';
 
-test('Connect to MMAON wallet with automatic key addition when not logged-in to wallet', async ({
+// Skip: https://github.com/interledger/web-monetization-extension/issues/1050
+test.skip('Connect to MMAON wallet with automatic key addition when not logged-in to wallet', async ({
   page,
   popup,
   context,
