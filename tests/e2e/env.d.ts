@@ -57,6 +57,16 @@ interface TestEnvVars {
   /** Login password for Chimoney app wallet @secret */
   CHIMONEY_APP_PASSWORD: string | undefined;
 
+  // If either of following is not provided, relevant tests will be skipped.
+  /** MMAON wallet address (used for MMAON specific tests only) */
+  MMAON_WALLET_ADDRESS_URL: string | undefined;
+  /** MMAON wallet URL origin (without trailing /) */
+  MMAON_WALLET_ORIGIN: string | undefined;
+  /** Login email for MMAON wallet */
+  MMAON_USERNAME: string | undefined;
+  /** Login password for MMAON wallet @secret */
+  MMAON_PASSWORD: string | undefined;
+
   // If variables in following group are not provided, tests will not be run
   // for `interledger.cards` wallet. You must provide wallet addresses in at
   // least one format - interledger.cards & ilp.dev.

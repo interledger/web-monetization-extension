@@ -4,6 +4,7 @@ Fynbos
 Rafiki
 Chimoney
 GateHub
+MMAON
 
 SPSP
 webextension

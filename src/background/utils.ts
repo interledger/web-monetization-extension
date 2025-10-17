@@ -87,6 +87,11 @@ export const getExchangeRates = memoize(
       throw new Error('Invalid rates format');
     }
 
+    // MMAON rate is not listed at EXCHANGE_RATES_URL. Hardcode it here until
+    // it's either added to the list or we switch to the preferred solution:
+    // https://github.com/interledger/web-monetization-extension/issues/977
+    rates.rates.MMAON ??= 20; // 20 USD = 1 MMAON
+
     return rates;
   },
   { maxAge: 15 * 60 * 1000, mechanism: 'stale-while-revalidate' },
@@ -146,6 +151,14 @@ export const getBudgetRecommendationsData = memoize(
       throw new Error('Failed to fetch budget recommendations data.');
     }
     const data: BudgetRecommendationsDataSchema = await response.json();
+
+    // MMAON rate is not listed at BUDGET_RECOMMENDATIONS_URL. Hardcode it here
+    // until it's added to the db.
+    data.MMAON = {
+      budget: { default: 60, max: 100 },
+      hourly: { default: 20, max: 30 },
+    };
+
     return data;
   },
   { maxAge: 30 * 60 * 1000, mechanism: 'stale-while-revalidate' },
