@@ -34,14 +34,6 @@ export const getPlugins = ({
     // case. The JSPM crypto package is too large and not tree shakeable, so we
     // don't use it.
     nodeBuiltin({ exclude: ['crypto'] }),
-    {
-      name: 'crypto-for-extension',
-      setup(build) {
-        build.onResolve({ filter: /^crypto$/ }, () => ({
-          path: require.resolve('crypto-browserify'),
-        }));
-      },
-    } satisfies ESBuildPlugin,
     ignorePackagePlugin([
       /@apidevtools[/|\\]json-schema-ref-parser/,
       /@interledger[/|\\]openapi/,
