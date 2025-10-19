@@ -1,18 +1,8 @@
-import * as ed from '@noble/ed25519';
+import { keygenAsync } from '@noble/ed25519';
 
 export async function generateEd25519KeyPair() {
-  const rawPrivateKey = ed.utils.randomPrivateKey();
-  // PKCS#8 format (version + algorithm)
-  // Adding these values upfront solves the future import of the key using
-  // `crypto.subtle.importKey` once the WebCrypto API supports the Ed25519 algorithm.
-  // biome-ignore format: inline array looks cleaner
-  const privateKey = new Uint8Array([
-    48, 46, 2, 1, 0, 48, 5, 6, 3, 43, 101, 112, 4, 34, 4, 32,
-    ...rawPrivateKey,
-  ])
-  const publicKey = await ed.getPublicKeyAsync(rawPrivateKey);
-
-  return { privateKey, publicKey };
+  const keyPair = await keygenAsync();
+  return { privateKey: keyPair.secretKey, publicKey: keyPair.publicKey };
 }
 
 export function exportJWK(key: Uint8Array, kid: string) {

@@ -25,6 +25,9 @@ export default () => {
   if (state.out_of_funds) {
     return <Navigate to={ROUTES_PATH.OUT_OF_FUNDS} />;
   }
+  if (state.consent_required) {
+    return <Navigate to={ROUTES_PATH.CONSENT_REQUIRED} />;
+  }
   if (connected === false) {
     return <Navigate to={ROUTES_PATH.CONNECT_WALLET} />;
   }

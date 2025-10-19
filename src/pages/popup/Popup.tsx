@@ -17,6 +17,7 @@ export const ROUTES_PATH = {
   MISSING_HOST_PERMISSION: '/missing-host-permission',
   OUT_OF_FUNDS: '/out-of-funds',
   OUT_OF_FUNDS_ADD_FUNDS: '/out-of-funds/s/add-funds/:recurring?',
+  CONSENT_REQUIRED: '/consent-required',
   ERROR_KEY_REVOKED: '/error/key-revoked',
 } as const;
 
@@ -33,6 +34,7 @@ const Routes = () => (
     <Route path={P.ERROR_KEY_REVOKED} component={C.ErrorKeyRevoked} />
     <Route path={P.OUT_OF_FUNDS} component={C.OutOfFunds} />
     <Route path={P.OUT_OF_FUNDS_ADD_FUNDS} component={C.OutOfFundsAddFunds} />
+    <Route path={P.CONSENT_REQUIRED} component={C.ConsentRequired} />
 
     <Route path={P.SETTINGS} component={C.Settings} />
     <Route path={P.CONNECT_WALLET} component={C.ConnectWallet} />

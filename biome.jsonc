@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -41,42 +41,45 @@
         "useSingleVarDeclarator": "error",
         "noUnusedTemplateLiteral": "error",
         "useNumberNamespace": "error",
-        "noInferrableTypes": "error"
+        "noInferrableTypes": "error",
+        "useGroupedAccessorPairs": "error",
+        "useNumericSeparators": "error",
+        "useSymbolDescription": "error"
       },
       "suspicious": {
-        "noConsole": "warn"
+        "recommended": true,
+        "noConsole": "warn",
+        "noConstantBinaryExpressions": "error",
+        "noUnassignedVariables": "error",
+        "noUnknownAtRules": "off"
       },
       "correctness": {
         "noUnusedVariables": "warn",
         "noUnusedImports": "error",
-        "useImportExtensions": "off"
+        "useImportExtensions": "off",
+        "noNestedComponentDefinitions": "off",
+        "noReactPropAssignments": "error",
+        "noRestrictedElements": "error",
+        "useSingleJsDocAsterisk": "error",
+        "useJsonImportAttributes": "off",
+        "useUniqueElementIds": "info"
       },
       "a11y": {
         "noSvgWithoutTitle": "off"
       },
+      "performance": {
+        "recommended": true,
+        "noAwaitInLoops": "off" // TODO: turn on, too many cases
+      },
       "nursery": {
         "recommended": true,
-        "noAwaitInLoop": "off", // TODO: turn on, too many cases
         "noFloatingPromises": "error",
         "noMisusedPromises": "error",
-        "noConstantBinaryExpression": "error",
-        "useAdjacentGetterSetter": "error",
         "noImportCycles": "off", // TODO: enable some time, too many cases right now.
-        "noNestedComponentDefinitions": "off", // TODO: turn on
-        "noReactPropAssign": "error",
-        "noRestrictedElements": "error",
         "noShadow": "off", // TODO: turn on, too many cases
-        "noTsIgnore": "error",
-        "noUnassignedVariables": "error",
-        "noUselessBackrefInRegex": "error",
-        "noUselessEscapeInString": "error",
         "noUselessUndefined": "error",
-        "noUnknownAtRule": "off", // tailwind
         "useExplicitType": "off", // TODO: check if we want to. way too many cases
-        "useNumericSeparators": "error",
-        "useSingleJsDocAsterisk": "error",
-        "useSortedClasses": "off", // TODO: turn on
-        "useSymbolDescription": "error"
+        "useSortedClasses": "off" // TODO: turn on
       }
     }
   },

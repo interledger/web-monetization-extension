@@ -11,6 +11,7 @@ import * as PAGES from './pages/index';
 
 export const ROUTES = {
   DEFAULT: '/',
+  CONSENT: '/consent',
 } as const;
 
 const P = ROUTES;
@@ -18,6 +19,7 @@ const C = PAGES;
 const Routes = () => (
   <Switch>
     <Route path={P.DEFAULT} component={C.PostInstall} />
+    <Route path={P.CONSENT} component={C.Consent} />
   </Switch>
 );
 
