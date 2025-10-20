@@ -3,8 +3,8 @@ import {
   BrowserContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
+import browser from '@/shared/browser';
 import { MessageContextProvider, WaitForStateLoad } from '@/app/lib/context';
-import browser from 'webextension-polyfill';
 import { Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import * as PAGES from './pages/index';

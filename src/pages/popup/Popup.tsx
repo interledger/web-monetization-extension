@@ -5,9 +5,9 @@ import {
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
 import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
+import browser from '@/shared/browser';
 import { Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
-import browser from 'webextension-polyfill';
 import * as PAGES from './pages/index';
 
 export const ROUTES_PATH = {
