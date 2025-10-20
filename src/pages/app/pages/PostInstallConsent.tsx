@@ -62,9 +62,8 @@ function DataShared() {
   const browserName = getBrowserName(browser, navigator.userAgent);
   const [extensionName, setExtensionName] = React.useState('');
   React.useEffect(() => {
-    browser.management.getSelf().then((s) => {
-      setExtensionName(s.name);
-    });
+    const { name } = browser.runtime.getManifest();
+    setExtensionName(name);
   }, [browser]);
 
   return (
