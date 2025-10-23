@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Tag (vX.X.X-preview)'
+        description: 'Tag (vX.Y.Z-preview)'
         required: true
         type: string
 
