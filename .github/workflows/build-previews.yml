@@ -21,7 +21,7 @@ jobs:
         id: get-workflow-artifacts
         with:
           script: |
-            import script from './.github/actions/get-workflow-artifacts.ts'
+            const { default: script } = await import('./.github/actions/get-workflow-artifacts.ts')
             await script({ github, context, core })
 
       - name: Find comment
