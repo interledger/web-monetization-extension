@@ -28,7 +28,7 @@ export const createLogger = (level: log.LogLevelDesc = 'DEBUG') => {
   log.rebuild();
 
   // Provide a LOG_SERVER=http://127.0.0.1:8000 env var to enable remote
-  // logging. The remote logging server is run via `tsx scripts/log-server.ts`
+  // logging. The remote logging server is run via `node scripts/log-server.ts`
   //
   // Remote logging is excluded from bundle via treeshaking if the `LOG_SERVER`
   // env var is not provided.
