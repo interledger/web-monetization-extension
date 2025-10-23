@@ -13,9 +13,9 @@ import {
   SERVE_PORTS,
   type Target,
   TARGETS,
-} from '../esbuild/config.ts';
-import { getDevOptions } from '../esbuild/dev.ts';
-import { getProdOptions } from '../esbuild/prod.ts';
+} from '../esbuild/config';
+import { getDevOptions } from '../esbuild/dev';
+import { getProdOptions } from '../esbuild/prod';
 
 sade('build [target]', true)
   .option('--channel', `One of: ${CHANNELS.join(', ')}`, 'nightly')

@@ -26,15 +26,14 @@ export default async ({ github, context }: AsyncFunctionArguments) => {
       tag: versionTag,
     });
     throw new Error('Release already promoted to stable');
-  } catch (error: unknown) {
-    const err = error as { status?: number };
-    if (!err.status) {
+  } catch (error) {
+    if (!('status' in error) || typeof error.status !== 'number') {
       throw error;
     }
-    if (err.status === 404) {
+    if (error.status === 404) {
       // do nothing
     } else {
-      throw new Error(`Failed to check: HTTP ${err.status}`, {
+      throw new Error(`Failed to check: HTTP ${error.status}`, {
         cause: error,
       });
     }

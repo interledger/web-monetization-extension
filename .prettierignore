@@ -10,7 +10,6 @@ LICENSE
 
 *.tsx
 *.ts
-*.ts
 *.js
 *.json
 *.jsonc

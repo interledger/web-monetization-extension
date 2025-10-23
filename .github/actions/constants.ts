@@ -1,6 +1,5 @@
-type Browser = 'chrome' | 'firefox' | 'safari';
-
-const BROWSERS: Browser[] = ['chrome', 'firefox', 'safari'];
+const BROWSERS = ['chrome', 'firefox', 'safari'] as const;
+export type Browser = typeof BROWSERS[number];
 const COLORS = {
   green: '3fb950',
   red: 'd73a49',
@@ -13,4 +12,3 @@ const TEMPLATE_VARS = {
 } as const;
 
 export { BROWSERS, COLORS, TEMPLATE_VARS };
-export type { Browser };

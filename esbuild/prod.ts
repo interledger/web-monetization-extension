@@ -8,8 +8,8 @@ import type {
   Channel,
   Target,
   WebExtensionManifest,
-} from './config.ts';
-import { getPlugins } from './plugins.ts';
+} from './config';
+import { getPlugins } from './plugins';
 
 export const getProdOptions = ({
   outDir,

@@ -14,7 +14,7 @@ import {
   ROOT_DIR,
   type BuildArgs,
   type WebExtensionManifest,
-} from './config.ts';
+} from './config';
 
 const require = createRequire(import.meta.url);
 

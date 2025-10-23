@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild';
-import { SERVE_PORTS, type BuildArgs, type Target } from './config.ts';
-import { getPlugins } from './plugins.ts';
+import { SERVE_PORTS, type BuildArgs, type Target } from './config';
+import { getPlugins } from './plugins';
 
 export const getDevOptions = ({
   outDir,
