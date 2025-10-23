@@ -1,15 +1,15 @@
-// @ts-check
-const fs = require('node:fs/promises');
+import type { AsyncFunctionArguments } from 'github-script';
+import fs from 'node:fs/promises';
 
-/** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-module.exports = async ({ core }) => {
+type BumpType = 'build' | 'patch' | 'minor';
+
+export default async ({ core }: AsyncFunctionArguments) => {
   const manifestPath = './src/manifest.json';
   const manifestFile = await fs.readFile(manifestPath, 'utf8');
   const manifest = JSON.parse(manifestFile);
-  /**@type {string} */
-  const existingVersion = manifest.version;
+  const existingVersion: string = manifest.version;
 
-  const bumpType = /** @type {BumpType} */ (process.env.INPUT_VERSION);
+  const bumpType = process.env.INPUT_VERSION as BumpType;
   if (!bumpType) {
     throw new Error('Missing bump type');
   }
@@ -24,13 +24,10 @@ module.exports = async ({ core }) => {
   core.setOutput('version', version);
 };
 
-/**
- * @typedef {'build' | 'patch' | 'minor'} BumpType
- * @param {string} existingVersion
- * @param {BumpType} type
- * @return {[major: number, minor: number, patch: number, build: number]}
- */
-function bumpVersion(existingVersion, type) {
+function bumpVersion(
+  existingVersion: string,
+  type: BumpType,
+): [major: number, minor: number, patch: number, build: number] {
   const parts = existingVersion.split('.').map(Number);
   if (parts.length !== 4 || parts.some((e) => !Number.isSafeInteger(e))) {
     throw new Error('Existing version does not have right format');
@@ -49,10 +46,7 @@ function bumpVersion(existingVersion, type) {
   }
 }
 
-/**
- * @param {string} version
- */
-async function updateXCConfig(version) {
+async function updateXCConfig(version: string) {
   const filePath = './src/safari/Web Monetization/Config.xcconfig';
 
   const data = {

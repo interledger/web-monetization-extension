@@ -35,7 +35,7 @@ jobs:
           INPUT_VERSION: ${{ github.event.inputs.version }}
         with:
           script: |
-            const script = require('./.github/actions/bump-manifest-version.cjs')
+            import script from './.github/actions/bump-manifest-version.ts'
             await script({ github, context, core })
 
       - name: Format with Biome

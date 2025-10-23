@@ -9,7 +9,6 @@ coverage
 LICENSE
 
 *.tsx
-*.cjs
 *.ts
 *.js
 *.json
