@@ -22,7 +22,7 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const { default: script } = await import('./.github/actions/tests-e2e-filter.ts')
+            const { default: script } = await import('${{ github.workspace }}/.github/actions/tests-e2e-filter.ts')
             await script({ github, context, core })
 
   test-e2e:
