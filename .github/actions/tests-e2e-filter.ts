@@ -2,7 +2,8 @@ import type { AsyncFunctionArguments } from 'github-script';
 import type { components } from '@octokit/openapi-webhooks-types';
 
 type Schemas = components['schemas'];
-type PullRequestReviewSubmitted = Schemas['webhook-pull-request-review-submitted'];
+type PullRequestReviewSubmitted =
+  Schemas['webhook-pull-request-review-submitted'];
 type PullRequest = Schemas['webhook-pull-request-opened'];
 type AuthorAssociation = Schemas['author-association'];
 
@@ -43,7 +44,10 @@ function isAllowedAuthor(authorAssociation: AuthorAssociation): boolean {
   );
 }
 
-async function skip(core: AsyncFunctionArguments['core'], reason: string): Promise<never> {
+async function skip(
+  core: AsyncFunctionArguments['core'],
+  reason: string,
+): Promise<never> {
   core.info('Skipping running E2E tests.');
   core.setOutput('skip', true);
   core.setOutput('matrix', getMatrix([]));

@@ -2,7 +2,10 @@ import fs from 'node:fs/promises';
 import type { AsyncFunctionArguments } from 'github-script';
 import { COLORS, TEMPLATE_VARS, type Browser } from './constants';
 
-const ARTIFACTS_DATA: Record<Browser, { name: string; url: string; size: string }> = {
+const ARTIFACTS_DATA: Record<
+  Browser,
+  { name: string; url: string; size: string }
+> = {
   chrome: {
     name: 'Chrome',
     url: '',
