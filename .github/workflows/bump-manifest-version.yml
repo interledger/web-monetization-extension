@@ -6,10 +6,9 @@ on:
       version:
         description: 'Version to bump to'
         required: true
-        default: 'build'
+        default: 'patch'
         type: choice
         options:
-          - build
           - patch
           - minor
 
