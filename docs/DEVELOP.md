@@ -285,7 +285,7 @@ While not currently implemented, this could involve testing interactions between
 ### Debugging
 
 - **Browser Developer Tools:** Leverage the built-in debugging tools in Chrome or Firefox for inspecting the extension's behavior. In Chrome, you can "inspect service worker" from `chrome://extensions/` page. In Firefox, "Inspect" from `about:debugging#/runtime/this-firefox`. You can open popup as separate tab for some kinds of inspection, or Right-click extension icon and "Inspect popup".
-- **Small Services:** For isolated services, run them individually in Node.js using the `tsx` CLI to facilitate debugging.
+- **Small Services:** For isolated services, run them individually in Node.js using the `node` CLI to facilitate debugging.
 - **Test-First Approach:** Consider a test-first development approach where you write tests before implementing functionality, which can aid in catching issues early on.
 
 ## Feature Planning and Design
