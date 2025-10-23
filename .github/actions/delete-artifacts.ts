@@ -1,11 +1,10 @@
-// @ts-check
-const { BROWSERS } = require('./constants.cjs');
+import type { AsyncFunctionArguments } from 'github-script';
+import { BROWSERS, type Browser } from './constants';
 
-/**
- * @param {Pick<import('github-script').AsyncFunctionArguments, 'github' | 'context'>} AsyncFunctionArguments
- * @param {string} name
- */
-async function getBrowserArtifacts({ github, context }, name) {
+async function getBrowserArtifacts(
+  { github, context }: Pick<AsyncFunctionArguments, 'github' | 'context'>,
+  name: string,
+) {
   const result = await github.rest.actions.listArtifactsForRepo({
     owner: context.repo.owner,
     repo: context.repo.repo,
@@ -14,19 +13,17 @@ async function getBrowserArtifacts({ github, context }, name) {
   return result.data.artifacts;
 }
 
-/**
- * @param {Pick<import('github-script').AsyncFunctionArguments, 'github' | 'context'>} AsyncFunctionArguments
- * @param {number} prNumber
- */
-async function getPRArtifacts({ github, context }, prNumber) {
+async function getPRArtifacts(
+  { github, context }: Pick<AsyncFunctionArguments, 'github' | 'context'>,
+  prNumber: number,
+) {
   const data = await Promise.all(
-    BROWSERS.map((browser) =>
+    BROWSERS.map((browser: Browser) =>
       getBrowserArtifacts({ github, context }, `${prNumber}-${browser}`),
     ),
   );
 
-  /** @type {{id: number}[]} */
-  const artifacts = [];
+  const artifacts: { id: number }[] = [];
   for (let i = 0; i < data.length; i++) {
     // same as `artifacts.push(...data[i])` but it's a bit faster
     artifacts.push.apply(artifacts, data[i]);
@@ -34,15 +31,13 @@ async function getPRArtifacts({ github, context }, prNumber) {
   return artifacts;
 }
 
-/** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-module.exports = async ({ github, context, core }) => {
+export default async ({ github, context, core }: AsyncFunctionArguments) => {
   if (context.payload.action !== 'closed') {
     core.setFailed('This action only works on closed PRs.');
   }
 
   const { owner, repo } = context.repo;
-  /** @type {number} */
-  const prNumber = context.payload.number;
+  const prNumber: number = context.payload.number;
 
   const artifacts = await getPRArtifacts({ github, context }, prNumber);
 

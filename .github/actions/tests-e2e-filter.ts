@@ -1,17 +1,16 @@
-// @ts-check
+import type { AsyncFunctionArguments } from 'github-script';
+import type { components } from '@octokit/openapi-webhooks-types';
 
-/**
- * @typedef {import('@octokit/openapi-webhooks-types').components['schemas']} Schemas
- * @typedef {Schemas['webhook-pull-request-review-submitted']} PullRequestReviewSubmitted
- * @typedef {Schemas['webhook-pull-request-opened']} PullRequest
- */
+type Schemas = components['schemas'];
+type PullRequestReviewSubmitted = Schemas['webhook-pull-request-review-submitted'];
+type PullRequest = Schemas['webhook-pull-request-opened'];
+type AuthorAssociation = Schemas['author-association'];
 
-/**
- * @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments
- */
-module.exports = async ({ core, context }) => {
+type Project = 'chromium' | 'chrome' | 'msedge';
+
+export default async ({ core, context }: AsyncFunctionArguments) => {
   if (context.eventName === 'pull_request') {
-    const event = /** @type {PullRequest} */ (context.payload);
+    const event = context.payload as PullRequest;
     if (!isAllowedAuthor(event.pull_request.author_association)) {
       await skip(core, 'The PR author is not allowed to run them.');
     }
@@ -22,7 +21,7 @@ module.exports = async ({ core, context }) => {
   }
 
   if (context.eventName === 'pull_request_review') {
-    const event = /** @type {PullRequestReviewSubmitted} */ (context.payload);
+    const event = context.payload as PullRequestReviewSubmitted;
     if (event.review.body !== 'test-e2e') {
       await skip(core, 'The review comment body is not `test-e2e`');
     }
@@ -36,10 +35,7 @@ module.exports = async ({ core, context }) => {
   }
 };
 
-/**
- * @param {Schemas['author-association']} authorAssociation
- */
-function isAllowedAuthor(authorAssociation) {
+function isAllowedAuthor(authorAssociation: AuthorAssociation): boolean {
   return (
     authorAssociation === 'OWNER' ||
     authorAssociation === 'MEMBER' ||
@@ -47,12 +43,7 @@ function isAllowedAuthor(authorAssociation) {
   );
 }
 
-/**
- * @param {import('github-script').AsyncFunctionArguments['core']} core
- * @param {string} reason
- * @returns {Promise<never>}
- */
-async function skip(core, reason) {
+async function skip(core: AsyncFunctionArguments['core'], reason: string): Promise<never> {
   core.info('Skipping running E2E tests.');
   core.setOutput('skip', true);
   core.setOutput('matrix', getMatrix([]));
@@ -60,27 +51,23 @@ async function skip(core, reason) {
   process.exit(0);
 }
 
-/**
- * @typedef {'chromium' | 'chrome' | 'msedge'} Project
- * @param {Project[]} projects
- */
-function getMatrix(projects) {
+function getMatrix(projects: Project[]) {
   return [
     {
       name: 'Chromium',
-      project: /** @type {Project} */ ('chromium'),
+      project: 'chromium' as Project,
       target: 'chrome',
       'runs-on': 'ubuntu-24.04',
     },
     {
       name: 'Chrome',
-      project: /** @type {Project} */ ('chrome'),
+      project: 'chrome' as Project,
       target: 'chrome',
       'runs-on': 'ubuntu-24.04',
     },
     {
       name: 'Edge',
-      project: /** @type {Project} */ ('msedge'),
+      project: 'msedge' as Project,
       target: 'chrome',
       'runs-on': 'ubuntu-24.04',
     },

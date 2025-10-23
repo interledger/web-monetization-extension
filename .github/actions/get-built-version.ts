@@ -1,11 +1,10 @@
-// @ts-check
-const fs = require('node:fs/promises');
+import fs from 'node:fs/promises';
+import type { AsyncFunctionArguments } from 'github-script';
 
 /**
  * Retrieves the manifest version from the built extension.
- * @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments
  */
-module.exports = async ({ core }) => {
+export default async ({ core }: AsyncFunctionArguments) => {
   const manifest = await fs
     .readFile('./dist/chrome/manifest.json', 'utf8')
     .then(JSON.parse);

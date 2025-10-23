@@ -1,13 +1,8 @@
-// @ts-check
-const fs = require('node:fs/promises');
-const { COLORS, TEMPLATE_VARS } = require('./constants.cjs');
+import fs from 'node:fs/promises';
+import type { AsyncFunctionArguments } from 'github-script';
+import { COLORS, TEMPLATE_VARS, type Browser } from './constants';
 
-/**
- * @typedef {import('./constants.cjs').Browser} Browser
- */
-
-/** @type {Record<Browser, {name: string, url: string, size: string}>} */
-const ARTIFACTS_DATA = {
+const ARTIFACTS_DATA: Record<Browser, { name: string; url: string; size: string }> = {
   chrome: {
     name: 'Chrome',
     url: '',
@@ -25,13 +20,11 @@ const ARTIFACTS_DATA = {
   },
 };
 
-/**
- * @param {'failure' | 'success'} conclusion
- * @param {keyof typeof COLORS} badgeColor
- * @param {string} badgeLabel
- * @returns {string} HTML for badge image
- */
-function getBadge(conclusion, badgeColor, badgeLabel) {
+function getBadge(
+  conclusion: 'failure' | 'success',
+  badgeColor: keyof typeof COLORS,
+  badgeLabel: string,
+): string {
   const url = new URL(
     `/badge/${conclusion}-${COLORS[badgeColor]}`,
     'https://img.shields.io',
@@ -41,11 +34,7 @@ function getBadge(conclusion, badgeColor, badgeLabel) {
   return `<img src="${url}" alt="${badgeLabel}" />`;
 }
 
-/**
- * @param {number} bytes
- * @param {number} decimals
- */
-function formatBytes(bytes, decimals = 2) {
+function formatBytes(bytes: number, decimals = 2): string {
   if (!Number(bytes)) return '0B';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
@@ -54,8 +43,7 @@ function formatBytes(bytes, decimals = 2) {
   return `${Number.parseFloat((bytes / k ** i).toFixed(dm))}${sizes[i]}`;
 }
 
-/** @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments */
-module.exports = async ({ github, context, core }) => {
+export default async ({ github, context, core }: AsyncFunctionArguments) => {
   const { owner, repo } = context.repo;
   const baseUrl = context.payload.repository?.html_url;
   const suiteId = context.payload.workflow_run.check_suite_id;
@@ -69,8 +57,7 @@ module.exports = async ({ github, context, core }) => {
     'utf8',
   );
 
-  /** @type {string[]} */
-  const tableRows = [];
+  const tableRows: string[] = [];
 
   core.setOutput('conclusion', conclusion);
 
@@ -85,14 +72,14 @@ module.exports = async ({ github, context, core }) => {
   });
 
   for (const artifact of artifacts.data.artifacts) {
-    const key = /** @type {Browser} */ (artifact.name.split('-')[1]);
+    const key = artifact.name.split('-')[1] as Browser;
     ARTIFACTS_DATA[key].url =
       `${baseUrl}/suites/${suiteId}/artifacts/${artifact.id}`;
     ARTIFACTS_DATA[key].size = formatBytes(artifact.size_in_bytes);
   }
 
   for (const k of Object.keys(ARTIFACTS_DATA)) {
-    const { name, url, size } = ARTIFACTS_DATA[/** @type {Browser} */ (k)];
+    const { name, url, size } = ARTIFACTS_DATA[k as Browser];
     if (!url && !size) {
       const badge = getBadge('failure', 'red', name);
       tableRows.push(

@@ -38,7 +38,7 @@ jobs:
         id: version
         with:
           script: |
-            const script = require('./.github/actions/get-built-version.cjs')
+            import script from './.github/actions/get-built-version.ts'
             await script({ github, context, core })
 
       - name: Delete existing release # To keep the workflow idempotent.

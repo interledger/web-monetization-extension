@@ -1,11 +1,10 @@
-// @ts-check
+import type { AsyncFunctionArguments } from 'github-script';
 
 /**
  * 1. Validate input version.
  * 2. Check if given tag/release is already promoted to stable. If so, crash.
- * @param {import('github-script').AsyncFunctionArguments} AsyncFunctionArguments
  */
-module.exports = async ({ github, context }) => {
+export default async ({ github, context }: AsyncFunctionArguments) => {
   if (context.ref !== 'refs/heads/main') {
     throw new Error('This action only works on main branch');
   }
@@ -27,14 +26,15 @@ module.exports = async ({ github, context }) => {
       tag: versionTag,
     });
     throw new Error('Release already promoted to stable');
-  } catch (error) {
-    if (!error.status) {
+  } catch (error: unknown) {
+    const err = error as { status?: number };
+    if (!err.status) {
       throw error;
     }
-    if (error.status === 404) {
+    if (err.status === 404) {
       // do nothing
     } else {
-      throw new Error(`Failed to check: HTTP ${error.status}`, {
+      throw new Error(`Failed to check: HTTP ${err.status}`, {
         cause: error,
       });
     }
