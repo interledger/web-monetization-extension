@@ -9,13 +9,11 @@ A separate Nightly release channel will be available via GitHub releases (withou
 
 ## Extension versioning
 
-Web extensions do not follow SEMVER. The version string consists of 1 to 4 numbers separated by dots, for example, `1.2.3.4` (`major.minor.patch.build`). This is essentially SEMVER but with an additional build number, but does not support the alpha, beta or other suffixes.
+We follow SEMVER (Semantic Versioning) for our extension's versioning (`major.minor.patch`).
 
 ### Major version bump
 
-A major version bump (`2.0.0.0`) signifies the start of a block of product features.
-
-Before the extension is available first on the Stable channel, we only increase the build number (`2.0.0.x`) when publishing to the Preview channel. After that (during maintenance mode), we follow SEMVER (`2.x.y.0`).
+A major version bump (`2.0.0`) signifies the start of a block of product features.
 
 ### Minor version bump
 
@@ -25,13 +23,8 @@ New features and enhancements will be released under a minor version bump.
 
 Bug fixes, performance and small updates will be released under a patch version bump.
 
-### Build version bump
-
-The build version bump should only happen when starting the work on a new major version. Once a major version (e.g. `v1`) goes into maintenance mode, the extension major version is bumped to `2.0.0.0`. Until the new major version is made available on the Stable channel, only build number should be incremented.
-
-Multiple "build" version bumps can be made available in the Preview channel. e.g. we can have `2.0.0.1`, `2.0.0.2`, ..., `2.0.0.90` in the Preview channel before we make it available in the Stable channel.
-
-When the new major version is going to be available in the Stable channel, it will have the last published version as in the Preview channel (i.e. the first Stable channel build could be `2.0.0.90`, not necessarily `2.0.0` or `2.0.1`).
+> [!note]
+> Build version support was removed in [#1218](https://github.com/interledger/web-monetization-extension/issues/1218) due to incompatibility with Apple App Store (Safari).
 
 ## Nightly
 
@@ -60,7 +53,7 @@ Once a new development stage starts for a new major version and we start publish
 
 ### Release artifacts
 
-Artifacts follow the name `preview-{browser}-{version}.zip`, e.g. `preview-chrome-1.0.4.0.zip`, `preview-edge-2.0.0.12.zip`, `preview-firefox-2.1.1.0.zip`
+Artifacts follow the name `preview-{browser}-{version}.zip`, e.g. `preview-chrome-1.0.4.zip`, `preview-edge-2.0.1.zip`, `preview-firefox-2.1.1.zip`
 
 ## Release
 
@@ -70,7 +63,7 @@ Release promotions are triggered manually (via GitHub Actions).
 
 ### Release artifacts
 
-Artifacts follow the name `{browser}-{version}.zip`, e.g. `chrome-1.0.4.0.zip`, `edge-2.0.0.12.zip`, `firefox-2.1.1.0.zip`.
+Artifacts follow the name `{browser}-{version}.zip`, e.g. `chrome-1.0.4.zip`, `edge-2.0.12.zip`, `firefox-2.1.1.zip`.
 
 ---
 
@@ -86,9 +79,9 @@ When there's a commit that needs to be back-ported, the PR corresponding to that
 
 ---
 
-# Release Workflow
+## Release Workflow
 
-## Releasing to Preview channel
+### Releasing to Preview channel
 
 1. Visit ["Bump Manifest Version" manual dispatch workflow](https://github.com/interledger/web-monetization-extension/actions/workflows/bump-manifest-version.yml) and click the "Run workflow" button.
    - Choose the version bump - build, patch, or minor as described above.
@@ -102,11 +95,11 @@ When there's a commit that needs to be back-ported, the PR corresponding to that
 1. Extension will be released automatically (via ["Release for Preview Channel" workflow](https://github.com/interledger/web-monetization-extension/actions/workflows/release-preview.yml)) as the PR is merged.
    - If there's a temporary failure in the action run, re-run the workflow.
 
-## Releasing to Stable channel
+### Releasing to Stable channel
 
 To promote a Preview channel release to Stable:
 
 1. Run the ["Release Stable" manual-dispatch workflow](https://github.com/interledger/web-monetization-extension/actions/workflows/release-stable.yml).
-   - Specify the Preview version tag that should be promoted to Stable, e.g. `v1.2.3.5-preview`.
+   - Specify the Preview version tag that should be promoted to Stable, e.g. `v1.2.3-preview`.
    - Do not change the branch from "main".
 1. Extension will be released on as the workflow runs.
