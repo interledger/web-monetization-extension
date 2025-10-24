@@ -14,8 +14,8 @@ export default async ({ github, context }: AsyncFunctionArguments) => {
   if (!previewVersionTag) {
     throw new Error('Missing env.INPUT_VERSION');
   }
-  if (!previewVersionTag.match(/^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+-preview$/)) {
-    throw new Error('Input "version" must match vX.X.X.X-preview');
+  if (!previewVersionTag.match(/^v[0-9]+\.[0-9]+\.[0-9]+-preview$/)) {
+    throw new Error('Input "version" must match vX.Y.Z-preview');
   }
 
   const versionTag = previewVersionTag.replace('-preview', '');

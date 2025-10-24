@@ -1,7 +1,7 @@
 import type { AsyncFunctionArguments } from 'github-script';
 import fs from 'node:fs/promises';
 
-type BumpType = 'build' | 'patch' | 'minor';
+type BumpType = 'patch' | 'minor';
 
 export default async ({ core }: AsyncFunctionArguments) => {
   const manifestPath = './src/manifest.json';
@@ -27,20 +27,18 @@ export default async ({ core }: AsyncFunctionArguments) => {
 function bumpVersion(
   existingVersion: string,
   type: BumpType,
-): [major: number, minor: number, patch: number, build: number] {
+): [major: number, minor: number, patch: number] {
   const parts = existingVersion.split('.').map(Number);
-  if (parts.length !== 4 || parts.some((e) => !Number.isSafeInteger(e))) {
+  if (parts.length !== 3 || parts.some((e) => !Number.isSafeInteger(e))) {
     throw new Error('Existing version does not have right format');
   }
-  const [major, minor, patch, build] = parts;
+  const [major, minor, patch] = parts;
 
   switch (type) {
-    case 'build':
-      return [major, minor, patch, build + 1];
     case 'patch':
-      return [major, minor, patch + 1, 0];
+      return [major, minor, patch + 1];
     case 'minor':
-      return [major, minor + 1, 0, 0];
+      return [major, minor + 1, 0];
     default:
       throw new Error(`Unknown bump type: ${type}`);
   }
