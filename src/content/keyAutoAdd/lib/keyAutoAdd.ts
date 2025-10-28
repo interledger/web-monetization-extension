@@ -116,7 +116,7 @@ export class KeyAutoAdd {
     document.body.appendChild(iframe);
     iframe.addEventListener('load', () => {
       resolve();
-      sleep(500).then(() =>
+      void sleep(500).then(() =>
         this.postMessage('PROGRESS', { steps: this.steps }),
       );
     });

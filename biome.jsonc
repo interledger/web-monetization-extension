@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.1/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -42,6 +42,7 @@
         "noUnusedTemplateLiteral": "error",
         "useNumberNamespace": "error",
         "noInferrableTypes": "error",
+        "useComponentExportOnlyModules": "off",
         "useGroupedAccessorPairs": "error",
         "useNumericSeparators": "error",
         "useSymbolDescription": "error"
@@ -94,6 +95,9 @@
     "globals": ["chrome", "browser"]
   },
   "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
     "formatter": {
       "quoteStyle": "single"
     }
