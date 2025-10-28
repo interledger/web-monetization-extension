@@ -157,7 +157,7 @@ function AcceptForm() {
     ev.preventDefault();
     const res = await message.send('PROVIDE_CONSENT');
     const data = getResponseOrThrow(res);
-    dispatch({ type: 'SET_CONSENT', data });
+    await dispatch({ type: 'SET_CONSENT', data });
   };
 
   if (!isConsentRequired(consent)) {
