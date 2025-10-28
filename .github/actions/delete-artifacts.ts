@@ -1,5 +1,5 @@
 import type { AsyncFunctionArguments } from 'github-script';
-import { BROWSERS, type Browser } from './constants';
+import { BROWSERS, type Browser } from './constants.ts';
 
 async function getBrowserArtifacts(
   { github, context }: Pick<AsyncFunctionArguments, 'github' | 'context'>,
