@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import type { AsyncFunctionArguments } from 'github-script';
-import { COLORS, TEMPLATE_VARS, type Browser } from './constants';
+import { COLORS, TEMPLATE_VARS, type Browser } from './constants.ts';
 
 const ARTIFACTS_DATA: Record<
   Browser,
