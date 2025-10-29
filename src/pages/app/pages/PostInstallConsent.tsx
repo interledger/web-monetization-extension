@@ -1,8 +1,8 @@
 import React from 'react';
 import { Redirect } from 'wouter';
-import { getBrowserName, isConsentRequired } from '@/shared/helpers';
+import { isConsentRequired } from '@/shared/helpers';
 import { getResponseOrThrow } from '@/shared/messages';
-import { useBrowser, useMessage, useTranslation } from '@/app/lib/context';
+import { useMessage, useTranslation } from '@/app/lib/context';
 import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InfoCircle } from '@/pages/shared/components/Icons';
@@ -57,14 +57,6 @@ const Main = () => {
 
 function DataShared() {
   const t = useTranslation();
-  const browser = useBrowser();
-
-  const browserName = getBrowserName(browser, navigator.userAgent);
-  const [extensionName, setExtensionName] = React.useState('');
-  React.useEffect(() => {
-    const { name } = browser.runtime.getManifest();
-    setExtensionName(name);
-  }, [browser]);
 
   return (
     <div className="space-y-2">
@@ -76,13 +68,7 @@ function DataShared() {
           {t('postInstallConsent_text_dataShared_yourWallet_title')}
         </h4>
         <ul className="list-disc ml-4">
-          <li>
-            {t('postInstallConsent_text_dataShared_yourWallet_keyName')}
-            <ul className="list-disc ml-4">
-              <li>Browser name: {browserName}</li>
-              <li>Extension name: {extensionName}</li>
-            </ul>
-          </li>
+          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
           <li>
             {t('postInstallConsent_text_dataShared_yourWallet_headers')}
             <InformationTooltip
@@ -98,13 +84,13 @@ function DataShared() {
           {t('postInstallConsent_text_dataShared_websiteWallets_title')}
         </h4>
         <ul className="list-disc ml-4">
+          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
           <li>
             {t('postInstallConsent_text_dataShared_websiteWallets_headers')}
             <InformationTooltip
               text={t('postInstallConsent_text_dataShared_headers')}
             />
           </li>
-          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
         </ul>
       </div>
     </div>

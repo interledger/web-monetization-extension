@@ -40,8 +40,6 @@ export class WalletService {
   private events: Cradle['events'];
   private browser: Cradle['browser'];
   private logger: Cradle['logger'];
-  private appName: Cradle['appName'];
-  private browserName: Cradle['browserName'];
   private t: Cradle['t'];
 
   constructor({
@@ -51,8 +49,6 @@ export class WalletService {
     events,
     browser,
     logger,
-    appName,
-    browserName,
     t,
   }: Cradle) {
     Object.assign(this, {
@@ -62,8 +58,6 @@ export class WalletService {
       events,
       browser,
       logger,
-      appName,
-      browserName,
       t,
     });
   }
@@ -440,8 +434,6 @@ export class WalletService {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
       storage: this.storage,
-      appName: this.appName,
-      browserName: this.browserName,
       t: this.t,
     });
     this.events.emit('request_popup_close');
