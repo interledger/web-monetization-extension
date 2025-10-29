@@ -216,15 +216,9 @@
     "description": "Learn more about how this works"
   },
   "connectWalletKeyService_text_consentP2": {
-    "message": "By agreeing, you consent to us:"
+    "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key."
   },
   "connectWalletKeyService_text_consentP3": {
-    "message": "Automatically & securely adding a key to your wallet, and"
-  },
-  "connectWalletKeyService_text_consentP4": {
-    "message": "Sharing your browser and extension names with your wallet."
-  },
-  "connectWalletKeyService_text_consent_no_access_funds": {
     "message": "Please note, this process does not involve accessing or handling your funds."
   },
   "connectWalletKeyService_label_consentAccept": {
@@ -324,8 +318,8 @@
   "postInstallConsent_text_dataShared_yourWallet_title": {
     "message": "With your wallet provider:"
   },
-  "postInstallConsent_text_dataShared_yourWallet_keyName": {
-    "message": " If you choose automatic key addition, the extension shares:"
+  "postInstallConsent_text_dataShared_yourWallet_wa": {
+    "message": "Your wallet address."
   },
   "postInstallConsent_text_dataShared_yourWallet_keyConsent": {
     "message": "Note: You will always be asked for consent before any connection."
