@@ -233,7 +233,7 @@ export class OutgoingPaymentGrantService {
     const nonce = crypto.randomUUID();
     try {
       const grant = await this.openPaymentsService.client.grant.request(
-        { url: walletAddress.authServer },
+        { url: ensureEnd(walletAddress.authServer, '/') },
         {
           access_token: {
             access: [
