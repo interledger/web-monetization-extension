@@ -15,7 +15,7 @@ import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
 import { ACCEPT_GRANT_TIMEOUT } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
-import { ErrorWithKey, withResolvers } from '@/shared/helpers';
+import { ensureEnd, ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
   isInvalidClientError,
   isInvalidContinuationError,
@@ -357,17 +357,16 @@ export class OutgoingPaymentGrantService {
     intent: InteractionIntent,
     tabId: TabId,
   ) {
+    const computeHash = (authServer: string) =>
+      this.computeHash(clientNonce, interactionNonce, interactRef, authServer);
     try {
-      const grantEndpoint = `${new URL(authServer).origin}/`;
-      const data = new TextEncoder().encode(
-        `${clientNonce}\n${interactionNonce}\n${interactRef}\n${grantEndpoint}`,
+      if (hash === (await computeHash(authServer))) return;
+      // See https://github.com/interledger/web-monetization-extension/pull/1230
+      this.logger.warn(
+        'verifyInteractionHash failed with authServer without trailing slash',
       );
-
-      const digest = await crypto.subtle.digest('SHA-256', data);
-      const calculatedHash = btoa(
-        String.fromCharCode.apply(null, new Uint8Array(digest)),
-      );
-      if (calculatedHash !== hash) throw new Error('Invalid interaction hash');
+      if (hash === (await computeHash(ensureEnd(authServer, '/')))) return;
+      throw new Error('Invalid interaction hash');
     } catch (error) {
       await redirectToWelcomeScreen(
         this.browser,
@@ -379,6 +378,19 @@ export class OutgoingPaymentGrantService {
       throw error;
     }
   }
+
+  private computeHash = async (
+    clientNonce: string,
+    interactionNonce: string,
+    interactRef: string,
+    authServer: string,
+  ) => {
+    const data = new TextEncoder().encode(
+      `${clientNonce}\n${interactionNonce}\n${interactRef}\n${authServer}`,
+    );
+    const digest = await crypto.subtle.digest('SHA-256', data);
+    return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)));
+  };
 
   private async continueGrant(
     grant: PendingGrant,
