@@ -361,7 +361,9 @@ export class OutgoingPaymentGrantService {
       this.computeHash(clientNonce, interactionNonce, interactRef, authServer);
     try {
       if (hash === (await computeHash(authServer))) return;
-      this.logger.warn('verifyInteractionHash failed with authServer');
+      this.logger.warn(
+        'verifyInteractionHash failed with authServer without trailing slash',
+      );
       // Rafiki v2.0.0-beta used only origin part of authServer. But the entire
       // authServer URL is to be used for hash computation. Prior to multi
       // tenancy support in Rafiki, the authServer contained only the origin
