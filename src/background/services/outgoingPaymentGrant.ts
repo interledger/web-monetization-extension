@@ -233,7 +233,7 @@ export class OutgoingPaymentGrantService {
     const nonce = crypto.randomUUID();
     try {
       const grant = await this.openPaymentsService.client.grant.request(
-        { url: ensureEnd(walletAddress.authServer, '/') },
+        { url: walletAddress.authServer },
         {
           access_token: {
             access: [
@@ -361,6 +361,7 @@ export class OutgoingPaymentGrantService {
       this.computeHash(clientNonce, interactionNonce, interactRef, authServer);
     try {
       if (hash === (await computeHash(authServer))) return;
+      this.logger.warn('verifyInteractionHash failed with authServer');
       // Rafiki v2.0.0-beta used only origin part of authServer. But the entire
       // authServer URL is to be used for hash computation. Prior to multi
       // tenancy support in Rafiki, the authServer contained only the origin
@@ -368,7 +369,7 @@ export class OutgoingPaymentGrantService {
       //
       // When no wallet is using Rafiki v2.0.0-beta, we can remove the hash
       // computation check with only the origin.
-      if (hash === (await computeHash(new URL(authServer).origin))) return;
+      if (hash === (await computeHash(ensureEnd(authServer, '/')))) return;
       throw new Error('Invalid interaction hash');
     } catch (error) {
       await redirectToWelcomeScreen(
@@ -389,7 +390,7 @@ export class OutgoingPaymentGrantService {
     authServer: string,
   ) => {
     const data = new TextEncoder().encode(
-      `${clientNonce}\n${interactionNonce}\n${interactRef}\n${ensureEnd(authServer, '/')}`,
+      `${clientNonce}\n${interactionNonce}\n${interactRef}\n${authServer}`,
     );
     const digest = await crypto.subtle.digest('SHA-256', data);
     return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)));

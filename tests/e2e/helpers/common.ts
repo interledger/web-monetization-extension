@@ -42,7 +42,7 @@ export async function getContinueWaitTime(
       const authServer = new URL(walletInfo.authServer).href;
       context.on('requestfinished', async function intercept(req) {
         if (!req.serviceWorker()) return;
-        if (!new URL(req.url()).href.startsWith(authServer)) return;
+        if (!req.url().startsWith(authServer)) return;
 
         const res = await req.response();
         const json = await res?.json();
