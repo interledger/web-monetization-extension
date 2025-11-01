@@ -361,16 +361,10 @@ export class OutgoingPaymentGrantService {
       this.computeHash(clientNonce, interactionNonce, interactRef, authServer);
     try {
       if (hash === (await computeHash(authServer))) return;
+      // See https://github.com/interledger/web-monetization-extension/pull/1230
       this.logger.warn(
         'verifyInteractionHash failed with authServer without trailing slash',
       );
-      // Rafiki v2.0.0-beta used only origin part of authServer. But the entire
-      // authServer URL is to be used for hash computation. Prior to multi
-      // tenancy support in Rafiki, the authServer contained only the origin
-      // part.
-      //
-      // When no wallet is using Rafiki v2.0.0-beta, we can remove the hash
-      // computation check with only the origin.
       if (hash === (await computeHash(ensureEnd(authServer, '/')))) return;
       throw new Error('Invalid interaction hash');
     } catch (error) {
