@@ -93,7 +93,8 @@ const findWallet: Run<void> = async (
 
   const walletBelongsToUser = data.me.wallets.some((wallet) => {
     return wallet.ilpPaymentPointers.some(
-      ({ paymentPointerUrl }) => paymentPointerUrl === walletAddressUrl,
+      ({ paymentPointerUrl }) =>
+        paymentPointerUrl.toLowerCase() === walletAddressUrl.toLowerCase(),
     );
   });
   if (!walletBelongsToUser) {
