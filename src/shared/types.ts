@@ -1,9 +1,11 @@
 import type { WalletAddress } from '@interledger/open-payments';
 import type { Tabs } from 'webextension-polyfill';
 import type { ErrorWithKeyLike } from './helpers';
+import type { components as RSComponents } from '@interledger/open-payments/dist/openapi/generated/resource-server-types';
 
+export type AmountType = RSComponents['schemas']['amount'];
 /** Bigint amount, before transformation with assetScale */
-export type AmountValue = string;
+export type AmountValue = AmountType['value'];
 
 /** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
 export type RepeatingInterval = string;

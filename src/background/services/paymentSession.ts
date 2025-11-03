@@ -171,6 +171,18 @@ export class PaymentSession {
         if (isTokenExpiredError(e)) {
           await this.outgoingPaymentGrantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
+          if (e.details?.minSendAmount?.value) {
+            // Rafiki v1.2.0-beta and later include `minSendAmount` with error
+            const minSendAmount = e.details.minSendAmount;
+            amountToSend = BigInt(minSendAmount.value);
+            this.#minSendAmount = amountToSend;
+            this.#minSendAmountFound = true;
+            this.logger.debug(
+              'minSendAmount: via OP error response',
+              amountToSend,
+            );
+            return;
+          }
           prevAmountToSend = amountToSend;
           amountToSend = BigInt(amountIter.next().value);
         } else if (isInvalidReceiverError(e) || isInternalServerError(e)) {
