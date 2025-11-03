@@ -21,6 +21,7 @@ nums
 webmonetization
 jwks
 requestfinished
+TOTP
 
 # scripts and 3rd party terms
 nvmrc
