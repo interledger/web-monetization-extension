@@ -32,6 +32,10 @@ export const getDevOptions = ({
       CONFIG_LOG_SERVER_ENDPOINT: process.env.LOG_SERVER
         ? JSON.stringify(process.env.LOG_SERVER)
         : JSON.stringify(false),
+      CONFIG_POSTHOG_KEY: JSON.stringify(
+        'phc_VP5rqDVEXWsDanAWrr1BuvUoWu9f4HsSV020SPfLeGj',
+      ),
+      CONFIG_POSTHOG_HOST: JSON.stringify('https://us.i.posthog.com'),
     },
   };
 };

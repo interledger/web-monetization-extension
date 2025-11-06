@@ -11,10 +11,16 @@ import { useTranslation } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
 import { ROUTES_PATH } from '../Popup';
 import { Redirect as Navigate } from 'wouter';
+import { useTelemetry } from '@/pages/shared/lib/context';
 
 export default () => {
   const t = useTranslation();
+  const telemetry = useTelemetry();
   const { tab, enabled, state, connected } = usePopupState();
+
+  React.useEffect(() => {
+    telemetry.capture('$pageview', { state, connected });
+  }, [telemetry, state, connected]);
 
   if (state.missing_host_permissions) {
     return <Navigate to={ROUTES_PATH.MISSING_HOST_PERMISSION} />;

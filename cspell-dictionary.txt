@@ -5,6 +5,7 @@ Rafiki
 Chimoney
 GateHub
 MMAON
+PostHog
 
 SPSP
 webextension

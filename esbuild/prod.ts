@@ -41,6 +41,10 @@ export const getProdOptions = ({
         'https://webmonetization.org/welcome',
       ),
       CONFIG_LOG_SERVER_ENDPOINT: JSON.stringify(false),
+      CONFIG_POSTHOG_KEY: JSON.stringify(
+        'phc_A42pTzb0ySkVYmNBSSfsr3K8BOyyuhR7g8l8hUdd6cv',
+      ),
+      CONFIG_POSTHOG_HOST: JSON.stringify('https://eu.i.posthog.com'),
     },
   };
 };
