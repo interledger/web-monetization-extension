@@ -38,6 +38,8 @@ const Header = () => {
 
 const Main = () => {
   const t = useTranslation();
+  const telemetryConsentRef = React.useRef<HTMLInputElement>(null);
+
   return (
     <main className="mx-auto w-full max-w-3xl p-3 sm:p-8">
       <div className="space-y-4 mb-48">
@@ -46,12 +48,12 @@ const Main = () => {
 
         <DataShared />
         <DataNotShared />
-        <Telemetry />
+        <Telemetry ref={telemetryConsentRef} />
         <Permissions />
       </div>
 
       <div className="fixed bottom-0 inset-x-0 w-full bg-white p-4 flex justify-center shadow-2xl shadow-black">
-        <AcceptForm />
+        <AcceptForm telemetryConsentRef={telemetryConsentRef} />
       </div>
     </main>
   );
@@ -114,18 +116,15 @@ function DataNotShared() {
   );
 }
 
-function Telemetry() {
+function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
   const { consentTelemetry } = useAppState();
   const [isOptedIn, setIsOptedIn] = React.useState(
-    typeof consentTelemetry === 'undefined' ? true : consentTelemetry,
+    typeof consentTelemetry === 'undefined' || consentTelemetry,
   );
   return (
     <form>
       <h3 className="font-semibold text-xl text-alt">Telemetry</h3>
-      <p>
-        We collect anonymous usage data to help us improve the extension{' '}
-        {`${JSON.stringify({ consentTelemetry })}`}.
-      </p>
+      <p>We collect usage data to help us improve the extension.</p>
 
       <Switch
         label="Opt-in to telemetry"
@@ -133,6 +132,7 @@ function Telemetry() {
         name="consent-field-telemetry"
         checked={isOptedIn}
         onChange={(ev) => setIsOptedIn(ev.currentTarget.checked)}
+        ref={ref}
       />
     </form>
   );
@@ -160,10 +160,15 @@ function Permissions() {
   );
 }
 
-function AcceptForm() {
+function AcceptForm({
+  telemetryConsentRef,
+}: {
+  telemetryConsentRef: TelemetryConsentRef;
+}) {
   const t = useTranslation();
   const { connected, consent } = useAppState();
   const message = useMessage();
+  const hasChanges = useAcceptFormHasChanges(telemetryConsentRef);
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
@@ -180,12 +185,15 @@ function AcceptForm() {
     if (!connected) {
       return <Redirect to={ROUTES.DEFAULT} />;
     }
-    // return (
-    //   <div className="max-w-2xl flex gap-2" role="alert">
-    //     <InfoCircle className="size-6 flex-shrink-0" />
-    //     <p>{t('postInstallConsent_state_consentProvided')}</p>
-    //   </div>
-    // );
+
+    if (!hasChanges) {
+      return (
+        <div className="max-w-2xl flex gap-2" role="alert">
+          <InfoCircle className="size-6 flex-shrink-0" />
+          <p>{t('postInstallConsent_state_consentProvided')}</p>
+        </div>
+      );
+    }
   }
 
   return (
@@ -212,4 +220,41 @@ function InformationTooltip({ text }: { text: string }) {
       <InfoCircle className="inline-block h-5 w-5 ml-1 -mt-1 text-gray-500" />
     </span>
   );
+}
+
+type TelemetryConsentRef = React.RefObject<HTMLInputElement | null>;
+
+function useTelemetryConsentInput(
+  inputRef: TelemetryConsentRef,
+  initial?: boolean,
+) {
+  const [checked, setChecked] = React.useState(initial);
+
+  React.useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    setChecked(input.checked);
+
+    const observer = new MutationObserver(() => setChecked(input.checked));
+    observer.observe(input, { attributes: true });
+    return () => observer.disconnect();
+  }, [inputRef]);
+
+  return checked;
+}
+
+function useAcceptFormHasChanges(telemetryConsentRef: TelemetryConsentRef) {
+  const { consentTelemetry } = useAppState();
+
+  const [hasChanges, setHasChanges] = React.useState(false);
+  const telemetryConsentChecked = useTelemetryConsentInput(
+    telemetryConsentRef,
+    consentTelemetry,
+  );
+  React.useEffect(() => {
+    setHasChanges(() => telemetryConsentChecked !== consentTelemetry);
+  }, [consentTelemetry, telemetryConsentChecked]);
+
+  return hasChanges;
 }
