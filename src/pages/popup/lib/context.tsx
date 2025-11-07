@@ -5,7 +5,10 @@ import {
   type PopupToBackgroundMessage,
   type BackgroundToPopupMessage,
 } from '@/shared/messages';
-import { useBrowser } from '@/pages/shared/lib/context';
+import {
+  TelemetryContextProvider,
+  useBrowser,
+} from '@/pages/shared/lib/context';
 import { dispatch } from './store';
 
 export { useBrowser, useTranslation } from '@/pages/shared/lib/context';
@@ -13,13 +16,19 @@ export { useBrowser, useTranslation } from '@/pages/shared/lib/context';
 export function WaitForStateLoad({ children }: React.PropsWithChildren) {
   const message = useMessage();
   const [isLoading, setIsLoading] = React.useState(true);
+  const [telemetryConfig, setTelemetryConfig] = React.useState<{
+    uid: string;
+    isOptedIn?: boolean;
+  }>({ uid: '' });
 
   React.useEffect(() => {
     async function get() {
       const response = await message.send('GET_DATA_POPUP');
 
       if (response.success) {
-        dispatch({ type: 'SET_DATA_POPUP', data: response.payload });
+        const data = response.payload;
+        dispatch({ type: 'SET_DATA_POPUP', data });
+        setTelemetryConfig({ uid: data.uid, isOptedIn: data.consentTelemetry });
         setIsLoading(false);
       }
     }
@@ -31,7 +40,11 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
     return 'Loading';
   }
 
-  return <>{children}</>;
+  return (
+    <TelemetryContextProvider {...telemetryConfig}>
+      {children}
+    </TelemetryContextProvider>
+  );
 }
 
 const MessageContext = React.createContext<

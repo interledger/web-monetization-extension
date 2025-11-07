@@ -7,6 +7,7 @@ import {
   type ErrorWithKeyLike,
   type Translation,
 } from '@/shared/helpers';
+import type { Storage } from '@/shared/types';
 
 // #region Browser
 const BrowserContext = React.createContext<Browser>({} as Browser);
@@ -45,26 +46,50 @@ export const TranslationContextProvider = ({ children }: PropsWithChildren) => {
 // #endregion
 
 // #region Telemetry
-type Telemetry = Pick<PostHog, 'capture' | 'captureException'>;
+
+// Reduce dependency on full PostHog SDK as we only wish to use a few things.
+type Telemetry = {
+  capture: PostHog['capture'];
+  captureException: PostHog['captureException'];
+  optInOut: (isOptedIn: boolean) => void;
+};
+
 const mockTelemetry: Telemetry = {
   capture: () => void 0,
   captureException: () => void 0,
+  optInOut: () => {},
 };
 const TelemetryContext = React.createContext<Telemetry>(mockTelemetry);
 
 export const TelemetryContextProvider = ({
+  uid,
+  isOptedIn,
   children,
-}: React.PropsWithChildren) => {
+}: React.PropsWithChildren<{
+  uid: string;
+  isOptedIn?: Storage['consentTelemetry'];
+}>) => {
+  // While isOptedIn is undefined or false, we won't capture data.
+  const opt_out_capturing_by_default = isOptedIn !== true;
+
   const posthog = new PostHog().init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
-    disable_external_dependency_loading: true,
-    disable_session_recording: true,
-    disable_surveys: true,
-    capture_heatmaps: true,
-    capture_pageview: true,
+    opt_out_capturing_by_default,
     autocapture: true,
-    before_send: (event) => {
+    capture_pageview: true,
+    capture_heatmaps: true,
+    persistence: 'localStorage',
+    bootstrap: {
+      distinctID: uid,
+      // Prevent fetching feature flags.
+      featureFlags: {},
+      featureFlagPayloads: {},
+      // We don't identify users, so marks as identified to avoid API requests.
+      isIdentifiedID: true,
+    },
+    before_send(event) {
       if (!event) return null;
+      // We use hash-based routing, so ensure hashes are tracked.
       if (event.properties?.$current_url) {
         const parsed = new URL(event.properties.$current_url);
         if (parsed.hash) {
@@ -73,16 +98,28 @@ export const TelemetryContextProvider = ({
       }
       return event;
     },
-    persistence: 'localStorage',
-    bootstrap: {
-      distinctID: '9de05dc6-e256-4625-9115-2aed1c2c7e2f',
-    },
+    disable_external_dependency_loading: true,
+    disable_session_recording: true,
+    disable_surveys: true,
+    capture_performance: false,
+    // Prevent fetching flags and along with it, any remote config.
+    advanced_disable_flags: true,
   });
 
-  // posthog.consent.optInOut(false)
+  const telemetry: Telemetry = {
+    capture: posthog.capture.bind(posthog),
+    captureException: posthog.captureException.bind(posthog),
+    optInOut(isOptedIn) {
+      if (isOptedIn) {
+        posthog.opt_in_capturing();
+      } else {
+        posthog.opt_out_capturing();
+      }
+    },
+  };
 
   return (
-    <TelemetryContext.Provider value={posthog}>
+    <TelemetryContext.Provider value={telemetry}>
       {children}
     </TelemetryContext.Provider>
   );

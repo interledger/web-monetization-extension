@@ -3,7 +3,6 @@ import { MainLayout } from '@/popup/components/layout/MainLayout';
 import {
   BrowserContextProvider,
   TranslationContextProvider,
-  TelemetryContextProvider,
 } from '@/pages/shared/lib/context';
 import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
 import browser from '@/shared/browser';
@@ -48,13 +47,11 @@ export const Popup = () => {
       <MessageContextProvider>
         <TranslationContextProvider>
           <WaitForStateLoad>
-            <TelemetryContextProvider>
-              <Router hook={useHashLocation}>
-                <MainLayout>
-                  <Routes />
-                </MainLayout>
-              </Router>
-            </TelemetryContextProvider>
+            <Router hook={useHashLocation}>
+              <MainLayout>
+                <Routes />
+              </MainLayout>
+            </Router>
           </WaitForStateLoad>
         </TranslationContextProvider>
       </MessageContextProvider>

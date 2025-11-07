@@ -77,6 +77,17 @@ export interface Storage {
    */
   consent?: number;
 
+  /**
+   * Whether the user has provided consent to analytics and telemetry.
+   * @default undefined implies user has never provided consent.
+   */
+  consentTelemetry?: boolean;
+
+  /**
+   * Distinct ID, for analytics/telemetry. Set at install time.
+   */
+  uid: string;
+
   /** If a wallet is connected or not */
   connected: boolean;
   /** Whether the extension (actually any sort of payment) is enabled  */
@@ -157,7 +168,10 @@ export type PopupStore = Omit<
   }>;
 };
 
-export type AppStore = Pick<Storage, 'publicKey' | 'connected' | 'consent'> & {
+export type AppStore = Pick<
+  Storage,
+  'publicKey' | 'connected' | 'consent' | 'consentTelemetry'
+> & {
   transientState: PopupTransientState;
 };
 

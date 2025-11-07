@@ -30,6 +30,10 @@ export const dispatch = ({ type, data }: Actions) => {
       store.enabled = !store.enabled;
       return;
     }
+    case 'OPT_IN_OUT_TELEMETRY': {
+      store.consentTelemetry = data.isOptedIn;
+      break;
+    }
     case 'SET_CONNECTED':
       store.connected = data.connected;
       break;
@@ -55,6 +59,7 @@ export const dispatch = ({ type, data }: Actions) => {
 
 type Actions =
   | { type: 'SET_DATA_POPUP'; data: PopupState }
+  | { type: 'OPT_IN_OUT_TELEMETRY'; data: { isOptedIn: boolean } }
   | { type: 'TOGGLE_CONTINUOUS_PAYMENTS'; data?: never }
   | { type: 'TOGGLE_PAYMENTS'; data?: never }
   | { type: 'SET_CONNECTED'; data: { connected: boolean } }

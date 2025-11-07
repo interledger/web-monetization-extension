@@ -7,6 +7,7 @@ import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InfoCircle } from '@/pages/shared/components/Icons';
 import { ROUTES } from '../App';
+import { Switch } from '@/pages/shared/components/ui/Switch';
 
 export default () => {
   return (
@@ -45,6 +46,7 @@ const Main = () => {
 
         <DataShared />
         <DataNotShared />
+        <Telemetry />
         <Permissions />
       </div>
 
@@ -112,6 +114,30 @@ function DataNotShared() {
   );
 }
 
+function Telemetry() {
+  const { consentTelemetry } = useAppState();
+  const [isOptedIn, setIsOptedIn] = React.useState(
+    typeof consentTelemetry === 'undefined' ? true : consentTelemetry,
+  );
+  return (
+    <form>
+      <h3 className="font-semibold text-xl text-alt">Telemetry</h3>
+      <p>
+        We collect anonymous usage data to help us improve the extension{' '}
+        {`${JSON.stringify({ consentTelemetry })}`}.
+      </p>
+
+      <Switch
+        label="Opt-in to telemetry"
+        form="consent-form"
+        name="consent-field-telemetry"
+        checked={isOptedIn}
+        onChange={(ev) => setIsOptedIn(ev.currentTarget.checked)}
+      />
+    </form>
+  );
+}
+
 function Permissions() {
   const t = useTranslation();
   return (
@@ -141,27 +167,33 @@ function AcceptForm() {
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    const res = await message.send('PROVIDE_CONSENT');
+    const formData = new FormData(ev.currentTarget);
+    const telemetryConsentValue = formData.get('consent-field-telemetry');
+    const res = await message.send('PROVIDE_CONSENT', {
+      consentTelemetry: telemetryConsentValue === 'on',
+    });
     const data = getResponseOrThrow(res);
-    await dispatch({ type: 'SET_CONSENT', data });
+    dispatch({ type: 'SET_CONSENT', data });
   };
 
   if (!isConsentRequired(consent)) {
     if (!connected) {
       return <Redirect to={ROUTES.DEFAULT} />;
     }
-    return (
-      <div className="max-w-2xl flex gap-2" role="alert">
-        <InfoCircle className="size-6 flex-shrink-0" />
-        <p>{t('postInstallConsent_state_consentProvided')}</p>
-      </div>
-    );
+    // return (
+    //   <div className="max-w-2xl flex gap-2" role="alert">
+    //     <InfoCircle className="size-6 flex-shrink-0" />
+    //     <p>{t('postInstallConsent_state_consentProvided')}</p>
+    //   </div>
+    // );
   }
 
   return (
+    // biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID
     <form
-      className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4"
+      id="consent-form"
       onSubmit={onSubmit}
+      className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4"
     >
       <label className="flex gap-2 items-start">
         <input type="checkbox" required className="rounded-sm mt-1" />

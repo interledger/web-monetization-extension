@@ -154,14 +154,17 @@ export class Background {
   }
 
   async getAppData(): Promise<AppStore> {
-    const { connected, publicKey, consent } = await this.storage.get([
-      'connected',
-      'publicKey',
-      'consent',
-    ]);
+    const { connected, publicKey, consent, consentTelemetry } =
+      await this.storage.get([
+        'connected',
+        'publicKey',
+        'consent',
+        'consentTelemetry',
+      ]);
 
     return {
       consent,
+      consentTelemetry,
       connected,
       publicKey,
       transientState: this.storage.getPopupTransientState(),
@@ -304,6 +307,12 @@ export class Background {
                 await this.monetizationService.pay(message.payload),
               );
 
+            case 'OPT_IN_OUT_TELEMETRY': {
+              const { isOptedIn } = message.payload;
+              await this.storage.set({ consentTelemetry: isOptedIn });
+              return success(undefined);
+            }
+
             case 'OPEN_APP':
               await this.openAppPage(message.payload.path);
               return success(undefined);
@@ -352,9 +361,14 @@ export class Background {
               return success(await this.getAppData());
 
             case 'PROVIDE_CONSENT': {
-              await this.storage.set({ consent: CURRENT_DATA_CONSENT_VERSION });
+              const { consentTelemetry } = message.payload;
+              const data = {
+                consent: CURRENT_DATA_CONSENT_VERSION,
+                consentTelemetry,
+              };
+              await this.storage.set(data);
               await this.storage.setState({ consent_required: false });
-              return success(CURRENT_DATA_CONSENT_VERSION);
+              return success(data);
             }
 
             // endregion

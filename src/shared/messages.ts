@@ -200,6 +200,10 @@ export type PopupToBackgroundMessage = {
     input: { path: string; action?: string };
     output: never;
   };
+  OPT_IN_OUT_TELEMETRY: {
+    input: { isOptedIn: boolean };
+    output: never;
+  };
 };
 // #endregion
 
@@ -266,7 +270,12 @@ export type AppToBackgroundMessage = {
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
   RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
-  PROVIDE_CONSENT: { input: never; output: NonNullable<Storage['consent']> };
+  PROVIDE_CONSENT: {
+    input: { consentTelemetry: boolean };
+    output: Required<
+      NonNullable<Pick<Storage, 'consent' | 'consentTelemetry'>>
+    >;
+  };
 };
 // #endregion
 
