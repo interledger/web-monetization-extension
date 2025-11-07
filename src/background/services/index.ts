@@ -13,3 +13,4 @@ export { Deduplicator } from './deduplicator';
 export { Heartbeat } from './heartbeat';
 export { PaymentManager } from './paymentManager';
 export { PaymentSession } from './paymentSession';
+export { Telemetry } from './telemetry';

@@ -272,9 +272,7 @@ export type AppToBackgroundMessage = {
   RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
   PROVIDE_CONSENT: {
     input: { consentTelemetry: boolean };
-    output: Required<
-      NonNullable<Pick<Storage, 'consent' | 'consentTelemetry'>>
-    >;
+    output: NonNullable<Storage['consent']>;
   };
 };
 // #endregion

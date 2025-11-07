@@ -21,6 +21,7 @@ import {
   Deduplicator,
   PaymentSession,
   PaymentManager,
+  Telemetry,
 } from './services';
 import { createLogger, type Logger, type RootLogger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
@@ -61,6 +62,7 @@ export interface Cradle {
   tabState: TabState;
   windowState: WindowState;
   heartbeat: Heartbeat;
+  telemetry: Telemetry;
   PaymentSession: typeof PaymentSession;
   PaymentManager: typeof PaymentManager;
 }
@@ -136,6 +138,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('window-state'),
+      })),
+    telemetry: asClass(Telemetry)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('telemetry'),
       })),
     heartbeat: asClass(Heartbeat).singleton(),
     PaymentSession: asValue(PaymentSession),

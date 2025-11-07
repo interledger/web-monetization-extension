@@ -173,12 +173,12 @@ function AcceptForm({
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
     const formData = new FormData(ev.currentTarget);
-    const telemetryConsentValue = formData.get('consent-field-telemetry');
-    const res = await message.send('PROVIDE_CONSENT', {
-      consentTelemetry: telemetryConsentValue === 'on',
+    const consentTelemetry = formData.get('consent-field-telemetry') === 'on';
+    const res = await message.send('PROVIDE_CONSENT', { consentTelemetry });
+    dispatch({
+      type: 'SET_CONSENT',
+      data: { consent: getResponseOrThrow(res), consentTelemetry },
     });
-    const data = getResponseOrThrow(res);
-    dispatch({ type: 'SET_CONSENT', data });
   };
 
   if (!isConsentRequired(consent)) {

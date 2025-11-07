@@ -33,6 +33,7 @@ export class Background {
   private sendToApp: Cradle['sendToApp'];
   private events: Cradle['events'];
   private heartbeat: Cradle['heartbeat'];
+  private telemetry: Cradle['telemetry'];
 
   constructor({
     browser,
@@ -47,6 +48,7 @@ export class Background {
     sendToApp,
     events,
     heartbeat,
+    telemetry,
   }: Cradle) {
     Object.assign(this, {
       browser,
@@ -61,6 +63,7 @@ export class Background {
       logger,
       events,
       heartbeat,
+      telemetry,
     });
   }
 
@@ -71,6 +74,7 @@ export class Background {
     await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
+    void this.telemetry.start();
     this.bindPermissionsHandler();
     this.bindEventsHandler();
     this.bindTabHandlers();
@@ -309,7 +313,7 @@ export class Background {
 
             case 'OPT_IN_OUT_TELEMETRY': {
               const { isOptedIn } = message.payload;
-              await this.storage.set({ consentTelemetry: isOptedIn });
+              await this.telemetry.optInOut(isOptedIn);
               return success(undefined);
             }
 
@@ -362,13 +366,10 @@ export class Background {
 
             case 'PROVIDE_CONSENT': {
               const { consentTelemetry } = message.payload;
-              const data = {
-                consent: CURRENT_DATA_CONSENT_VERSION,
-                consentTelemetry,
-              };
-              await this.storage.set(data);
+              await this.storage.set({ consent: CURRENT_DATA_CONSENT_VERSION });
+              await this.telemetry.optInOut(consentTelemetry);
               await this.storage.setState({ consent_required: false });
-              return success(data);
+              return success(CURRENT_DATA_CONSENT_VERSION);
             }
 
             // endregion
