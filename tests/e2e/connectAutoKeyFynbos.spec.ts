@@ -1,7 +1,11 @@
 import { test, expect } from './fixtures/base';
 import { getJWKS, withResolvers } from '@/shared/helpers';
 import { disconnectWallet, fillPopup } from './pages/popup';
-import { getContinueWaitTime, waitForWelcomePage } from './helpers/common';
+import {
+  getContinueWaitTime,
+  waitForWelcomePage,
+  totpGenerator,
+} from './helpers/common';
 import {
   acceptGrant,
   KEYS_PAGE_URL,
@@ -21,8 +25,12 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   const username = process.env.FYNBOS_USERNAME!;
   const password = process.env.FYNBOS_PASSWORD!;
   const walletAddressUrl = process.env.FYNBOS_WALLET_ADDRESS_URL!;
+  const totpDetails = process.env.FYNBOS_TOTP_DETAILS!;
 
-  test.skip(!username || !password || !walletAddressUrl, 'Missing credentials');
+  test.skip(
+    !username || !password || !walletAddressUrl || !totpDetails,
+    'Missing credentials',
+  );
 
   const { keyId: kid } = await getStorage(background, ['keyId']);
 
@@ -70,6 +78,14 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     await openedPage.getByLabel('Email').fill(username);
     await openedPage.getByLabel('Password').fill(password);
     await openedPage.getByRole('button', { name: 'Log in' }).click();
+
+    await openedPage.waitForURL((url) =>
+      url.pathname.startsWith('/totp/challenge'),
+    );
+    const { otp } = await totpGenerator(totpDetails);
+    await openedPage.getByLabel('Authenticator Code').fill(otp);
+    await openedPage.getByRole('button', { name: 'Verify' }).click();
+
     await openedPage.waitForURL(KEYS_PAGE_URL);
     await expect(openedPage.locator('h1').first()).toHaveText('Keys');
 

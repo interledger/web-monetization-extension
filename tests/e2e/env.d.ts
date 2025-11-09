@@ -40,6 +40,11 @@ interface TestEnvVars {
   FYNBOS_USERNAME: string | undefined;
   /** Login password for Fynbos wallet @secret */
   FYNBOS_PASSWORD: string | undefined;
+  /**
+   * TOTP details for Fynbos wallet @secret
+   * Format: algorithm=SHA1&digits=6&issuer=DOMAIN&period=30&secret=RANDOM_STRING
+   */
+  FYNBOS_TOTP_DETAILS: string | undefined;
 
   // If either of following is not provided, relevant tests will be skipped.
   /** Chimoney wallet URL origin (without trailing /) */
