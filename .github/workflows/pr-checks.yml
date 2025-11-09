@@ -31,7 +31,7 @@ jobs:
         run: pnpm build ${{ matrix.browser }} --channel=nightly --no-typecheck
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
           path: dist/${{ matrix.browser }}/
