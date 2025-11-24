@@ -5,6 +5,7 @@ import type {
   OutgoingPayment,
 } from '@interledger/open-payments';
 import type { ConnectDetails } from '../pages/popup';
+import { TOTP, type TOTPAlgorithm, type TOTPEncoding } from 'totp-generator';
 import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
 
@@ -25,6 +26,44 @@ export async function waitForReconnectWelcomePage(page: Page) {
       url.href.startsWith(OPEN_PAYMENTS_REDIRECT_URL) &&
       url.searchParams.get('result') === 'key_add_success',
   );
+}
+
+/**
+ * @param detailsStr `algorithm=SHA1&digits=6&issuer=DOMAIN&period=30&secret=RANDOM_STRING`
+ */
+export function totpGenerator(totpDetailsString: string) {
+  const { secret, ...params } = parseTOTPDetails();
+  return TOTP.generate(secret, params);
+
+  function parseTOTPDetails() {
+    const params = Object.fromEntries(new URLSearchParams(totpDetailsString));
+    const { algorithm, digits, period, secret, encoding = 'hex' } = params;
+    if (!algorithm || !digits || !period || !secret) {
+      throw new Error('Invalid totp details');
+    }
+
+    const alg = algorithm.toUpperCase().replace(/([A-Z])(\d+)$/, '$1-$2');
+    if (
+      alg !== 'SHA-1' &&
+      alg !== 'SHA-256' &&
+      alg !== 'SHA-384' &&
+      alg !== 'SHA-512'
+    ) {
+      throw new Error(`Unsupported algorithm: ${alg}`);
+    }
+
+    if (encoding !== 'ascii' && encoding !== 'hex') {
+      throw new Error(`Unsupported encoding: ${encoding}`);
+    }
+
+    return {
+      secret,
+      algorithm: alg satisfies TOTPAlgorithm as TOTPAlgorithm,
+      digits: Number(digits),
+      period: Number(period),
+      encoding: encoding as TOTPEncoding,
+    };
+  }
 }
 
 export async function getContinueWaitTime(
