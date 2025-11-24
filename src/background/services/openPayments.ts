@@ -3,12 +3,13 @@ import {
   type AuthenticatedClient,
   createAuthenticatedClient,
   OpenPaymentsClientError,
-} from '@interledger/open-payments/dist/client';
+} from '@interledger/open-payments';
 import { signAsync } from '@noble/ed25519';
 import { hexToBytes } from '@noble/hashes/utils.js';
 import type { Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
 import { createContentDigestHeader } from 'httpbis-digest-headers';
+import type { AmountType } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 
 interface KeyInformation {
@@ -261,7 +262,11 @@ export const isTokenInactiveError = (error: OpenPaymentsClientError) => {
 };
 
 // happens during quoting only
-export const isNonPositiveAmountError = (error: unknown) => {
+export const isNonPositiveAmountError = (
+  error: unknown,
+): error is OpenPaymentsClientError & {
+  details?: { minSendAmount?: AmountType };
+} => {
   if (!isOpenPaymentsClientError(error)) return false;
   return (
     error.status === 400 &&
