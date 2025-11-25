@@ -23,7 +23,7 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 5,
+  version: 6,
   consent: 0,
   state: {},
   connected: false,
@@ -37,7 +37,7 @@ const defaultStorage = {
   oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
   maxRateOfPay: null,
-} satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>;
+} satisfies Omit<Storage, 'uid' | 'publicKey' | 'privateKey' | 'keyId'>;
 
 export class StorageService {
   private browser: Cradle['browser'];
@@ -97,6 +97,7 @@ export class StorageService {
 
     if (Object.keys(data).length === 0) {
       await this.set(defaultStorage);
+      await this.set({ uid: crypto.randomUUID() });
     }
   }
 
@@ -300,5 +301,11 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
       data.walletAddress.url = data.walletAddress.id;
     }
     return [data, ['minRateOfPay']];
+  },
+  6: (data) => {
+    if (!data.uid) {
+      data.uid = crypto.randomUUID();
+    }
+    return [data];
   },
 };

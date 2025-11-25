@@ -72,6 +72,11 @@ export interface Storage {
   version: number;
 
   /**
+   * Distinct ID, for analytics/telemetry. Set at install time.
+   */
+  uid: string;
+
+  /**
    * Data sharing consent.
    * @note When this value in storage is smaller than the "current" consent
    * version, the user needs to provide consent again (then update this value).
