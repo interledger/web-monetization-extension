@@ -26,7 +26,7 @@ jobs:
     name: Release
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           # We want to build extension using the code and dependencies as of
