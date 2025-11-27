@@ -172,7 +172,7 @@ export type PopupStore = Omit<
 
 export type AppStore = Pick<
   Storage,
-  'publicKey' | 'connected' | 'consent' | 'consentTelemetry'
+  'publicKey' | 'connected' | 'uid' | 'consent' | 'consentTelemetry'
 > & {
   transientState: PopupTransientState;
 };

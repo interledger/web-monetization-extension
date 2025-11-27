@@ -154,14 +154,19 @@ export class Background {
   }
 
   async getAppData(): Promise<AppStore> {
-    const { connected, publicKey, consent } = await this.storage.get([
-      'connected',
-      'publicKey',
-      'consent',
-    ]);
+    const { connected, publicKey, uid, consent, consentTelemetry } =
+      await this.storage.get([
+        'connected',
+        'publicKey',
+        'consent',
+        'uid',
+        'consentTelemetry',
+      ]);
 
     return {
+      uid,
       consent,
+      consentTelemetry,
       connected,
       publicKey,
       transientState: this.storage.getPopupTransientState(),
