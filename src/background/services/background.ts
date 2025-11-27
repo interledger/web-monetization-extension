@@ -33,6 +33,7 @@ export class Background {
   private sendToApp: Cradle['sendToApp'];
   private events: Cradle['events'];
   private heartbeat: Cradle['heartbeat'];
+  private telemetry: Cradle['telemetry'];
 
   constructor({
     browser,
@@ -47,6 +48,7 @@ export class Background {
     sendToApp,
     events,
     heartbeat,
+    telemetry,
   }: Cradle) {
     Object.assign(this, {
       browser,
@@ -61,6 +63,7 @@ export class Background {
       logger,
       events,
       heartbeat,
+      telemetry,
     });
   }
 
@@ -71,6 +74,7 @@ export class Background {
     await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
+    void this.telemetry.start();
     this.bindPermissionsHandler();
     this.bindEventsHandler();
     this.bindTabHandlers();
