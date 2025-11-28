@@ -63,7 +63,7 @@
         "noRestrictedElements": "error",
         "useSingleJsDocAsterisk": "error",
         "useJsonImportAttributes": "off",
-        "useUniqueElementIds": "off" // we prefer to use custom IDs in places
+        "useUniqueElementIds": "off" // we use custom IDs more often than generated ones
       },
       "a11y": {
         "noSvgWithoutTitle": "off"
