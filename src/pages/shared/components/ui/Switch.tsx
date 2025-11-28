@@ -83,7 +83,7 @@ export function SwitchButton({
   ...props
 }: SwitchButtonProps) {
   return (
-    <span>
+    <React.Fragment>
       <input
         // biome-ignore lint/a11y/useAriaPropsForRole: todo
         role="switch"
@@ -97,6 +97,6 @@ export function SwitchButton({
         className="peer absolute -translate-x-[100%] opacity-0"
       />
       <span className={cn(switchVariants({ size, disabled }))} />
-    </span>
+    </React.Fragment>
   );
 }
