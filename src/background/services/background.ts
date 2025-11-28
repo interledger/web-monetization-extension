@@ -12,7 +12,7 @@ import {
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getTab } from '@/background/utils';
+import { getTab, highlightTab } from '@/background/utils';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
 import type { AppStore } from '@/shared/types';
@@ -501,6 +501,7 @@ export class Background {
     if (appTab?.id) {
       await this.browser.tabs.update(appTab.id, { url });
       await this.sendToPopup.send('CLOSE_POPUP', undefined);
+      await highlightTab(this.browser, appTab.id);
       return appTab;
     } else {
       return await this.browser.tabs.create({ url });
