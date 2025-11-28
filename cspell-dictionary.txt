@@ -5,6 +5,7 @@ Rafiki
 Chimoney
 GateHub
 MMAON
+PostHog
 
 SPSP
 webextension
@@ -22,6 +23,8 @@ webmonetization
 jwks
 requestfinished
 TOTP
+autocapture
+pageleave
 
 # scripts and 3rd party terms
 nvmrc
