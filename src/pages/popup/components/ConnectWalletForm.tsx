@@ -351,7 +351,6 @@ export const ConnectWalletForm = ({
         <ErrorMessage error={errors.connect.message} className="my-0" />
       )}
 
-      {/** biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID */}
       <Input
         type="text"
         label={t('connectWallet_label_walletAddress')}
@@ -503,7 +502,6 @@ function AmountInput({
   const t = useTranslation();
 
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID
     <InputAmount
       id="connectAmount"
       label={t('connectWallet_label_amount')}

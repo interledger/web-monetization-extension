@@ -106,7 +106,6 @@ const RateOfPayInput = ({
   );
 
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID
     <InputAmount
       id="rateOfPay"
       className="max-w-56"
