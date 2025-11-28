@@ -32,14 +32,16 @@ type OnPortMessageListener = Parameters<
 export class KeyAutoAddService {
   private browser: Cradle['browser'];
   private storage: Cradle['storage'];
+  private telemetry: Cradle['telemetry'];
   private t: Cradle['t'];
 
   constructor({
     browser,
     storage,
+    telemetry,
     t,
-  }: Pick<Cradle, 'browser' | 'storage' | 't'>) {
-    Object.assign(this, { browser, storage, t });
+  }: Pick<Cradle, 'browser' | 'storage' | 'telemetry' | 't'>) {
+    Object.assign(this, { browser, storage, telemetry, t });
   }
 
   async addPublicKeyToWallet(
@@ -79,6 +81,7 @@ export class KeyAutoAddService {
     onTabOpen: (tabId: TabId) => void,
   ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
+    const start = Date.now();
 
     const BASE_TIMEOUT = 5 * 1000;
     const timeout = new Timeout(BASE_TIMEOUT, () => {
@@ -129,6 +132,9 @@ export class KeyAutoAddService {
     ) => {
       if (message.action === 'SUCCESS') {
         removeListeners();
+        this.telemetry.capture('key_auto_add_success', {
+          durationMs: Date.now() - start,
+        });
         resolve(message.payload);
       } else if (message.action === 'ERROR') {
         removeListeners();
