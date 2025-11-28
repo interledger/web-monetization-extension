@@ -40,6 +40,7 @@ export class WalletService {
   private storage: Cradle['storage'];
   private events: Cradle['events'];
   private browser: Cradle['browser'];
+  private telemetry: Cradle['telemetry'];
   private logger: Cradle['logger'];
   private t: Cradle['t'];
 
@@ -49,6 +50,7 @@ export class WalletService {
     storage,
     events,
     browser,
+    telemetry,
     logger,
     t,
   }: Cradle) {
@@ -58,6 +60,7 @@ export class WalletService {
       storage,
       events,
       browser,
+      telemetry,
       logger,
       t,
     });
@@ -435,6 +438,7 @@ export class WalletService {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
       storage: this.storage,
+      telemetry: this.telemetry,
       t: this.t,
     });
     this.events.emit('request_popup_close');
