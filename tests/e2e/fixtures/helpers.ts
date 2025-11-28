@@ -236,6 +236,7 @@ export async function getBackground(
     throw new Error('Could not find background page/worker');
   }
 
+  await optOutTelemetry(background);
   // Close the post-install page as we mostly test the scenarios where the
   // extension is already installed. Besides, it's not really relevant to tests,
   // unless we're specifically testing the post-install page or checking that
@@ -243,6 +244,17 @@ export async function getBackground(
   await closePostInstallPage(context, background);
 
   return background;
+}
+
+// We exclude events with given `uid` from PostHog.
+// Also set telemetry consent to false just in case.
+export async function optOutTelemetry(background: Background) {
+  await background.evaluate(() =>
+    chrome.storage.local.set({
+      uid: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+      consentTelemetry: false,
+    }),
+  );
 }
 
 export async function closePostInstallPage(
