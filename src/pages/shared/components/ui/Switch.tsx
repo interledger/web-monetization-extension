@@ -50,21 +50,43 @@ export function Switch({
   ref,
   ...props
 }: SwitchProps) {
+  const randomId = React.useId();
   return (
-    <label className="flex items-center gap-x-4">
+    <label className="flex items-center gap-x-4" htmlFor={props.id || randomId}>
+      <SwitchButton
+        id={props.id || randomId}
+        size={size}
+        disabled={disabled}
+        onChange={onChange}
+        {...props}
+      />
+      {label ? <span className="font-normal">{label}</span> : null}
+    </label>
+  );
+}
+
+export function SwitchButton({
+  id,
+  checked,
+  onChange,
+  disabled,
+  size,
+  ...props
+}: Omit<SwitchProps, 'className' | 'label'> & { id: string }) {
+  return (
+    <span>
       <input
         // biome-ignore lint/a11y/useAriaPropsForRole: todo
         role="switch"
-        ref={ref}
         type="checkbox"
-        checked={props.checked}
+        checked={checked}
         onChange={onChange}
         disabled={disabled}
+        id={id}
         {...props}
         className="peer absolute -translate-x-[100%] opacity-0"
       />
-      <div className={cn(switchVariants({ size, disabled }), className)} />
-      {label ? <span className="font-normal">{label}</span> : null}
-    </label>
+      <span className={cn(switchVariants({ size, disabled }))} />
+    </span>
   );
 }

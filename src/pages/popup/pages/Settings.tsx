@@ -4,6 +4,7 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { WalletInformation } from '@/popup/components/Settings/WalletInformation';
 import { BudgetScreen } from '@/popup/components/Settings/Budget';
 import { RateOfPayScreen } from '@/popup/components/Settings/RateOfPay';
+import { SettingsScreen } from '@/popup/components/Settings/Settings';
 import { cn } from '@/pages/shared/lib/utils';
 import { useLocalStorage } from '@/pages/shared/lib/hooks';
 import { usePopupState } from '@/popup/lib/store';
@@ -12,6 +13,7 @@ const TABS = [
   { id: 'wallet', title: 'Wallet' },
   { id: 'budget', title: 'Budget' },
   { id: 'wmRate', title: 'Rate' },
+  { id: 'otherSettings', title: 'Settings' },
 ];
 
 const isValidTabId = (id: string) => {
@@ -77,6 +79,10 @@ export default () => {
 
       <Tabs.TabsContent value={TABS[2].id} className="h-full">
         <RateOfPayScreen />
+      </Tabs.TabsContent>
+
+      <Tabs.TabsContent value={TABS[3].id} className="h-full">
+        <SettingsScreen />
       </Tabs.TabsContent>
     </Tabs.Root>
   );
