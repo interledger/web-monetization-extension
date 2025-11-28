@@ -4,14 +4,20 @@ import type { Cradle } from '@/background/container';
 
 export class Telemetry {
   private storage: Cradle['storage'];
+  private logger: Cradle['logger'];
   private posthog: PostHog;
 
-  constructor({ storage }: Cradle) {
-    Object.assign(this, { storage });
+  constructor({ storage, logger }: Cradle) {
+    Object.assign(this, { storage, logger });
     this.posthog = new PostHog();
   }
 
   async start() {
+    if (!POSTHOG_KEY) {
+      this.logger.warn('PostHog key not found. Telemetry will not be enabled.');
+      return;
+    }
+
     const { consentTelemetry, uid } = await this.storage.get([
       'consentTelemetry',
       'uid',
