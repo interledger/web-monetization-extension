@@ -35,34 +35,42 @@ const switchVariants = cva(
 export interface SwitchProps
   extends VariantProps<typeof switchVariants>,
     Omit<React.ComponentPropsWithRef<'input'>, 'size'> {
+  label: string;
   checked?: boolean;
   disabled?: boolean;
-  label?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function Switch({
-  size,
   label,
-  className,
-  disabled = false,
+  id,
+  checked = false,
   onChange = () => {},
   ref,
   ...props
 }: SwitchProps) {
   const randomId = React.useId();
   return (
-    <label className="flex items-center gap-x-4" htmlFor={props.id || randomId}>
+    <label className="flex items-center gap-x-4" htmlFor={id || randomId}>
       <SwitchButton
-        id={props.id || randomId}
-        size={size}
-        disabled={disabled}
+        id={id || randomId}
+        checked={checked}
         onChange={onChange}
+        ref={ref}
         {...props}
       />
-      {label ? <span className="font-normal">{label}</span> : null}
+      <span className="font-normal">{label}</span>
     </label>
   );
+}
+
+interface SwitchButtonProps
+  extends VariantProps<typeof switchVariants>,
+    Omit<React.ComponentPropsWithRef<'input'>, 'size'> {
+  id: string;
+  checked: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
 }
 
 export function SwitchButton({
@@ -71,22 +79,24 @@ export function SwitchButton({
   onChange,
   disabled,
   size,
+  ref,
   ...props
-}: Omit<SwitchProps, 'className' | 'label'> & { id: string }) {
+}: SwitchButtonProps) {
   return (
-    <span>
+    <React.Fragment>
       <input
         // biome-ignore lint/a11y/useAriaPropsForRole: todo
         role="switch"
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        disabled={disabled}
         id={id}
+        disabled={disabled ?? false}
+        ref={ref}
         {...props}
         className="peer absolute -translate-x-[100%] opacity-0"
       />
       <span className={cn(switchVariants({ size, disabled }))} />
-    </span>
+    </React.Fragment>
   );
 }

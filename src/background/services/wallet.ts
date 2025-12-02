@@ -20,6 +20,7 @@ import {
   toAmount,
   onPopupOpen,
   closeTabsByFilter,
+  highlightTab,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -553,13 +554,5 @@ export class WalletService {
 
 // on popup opened, let's highlight the tab if user has lost it
 const highlightTabOnPopupOpen = (browser: Browser, tabId: TabId) => {
-  return onPopupOpen(browser, async () => {
-    // Opera, Safari, Firefox Android don't support highlight API.
-    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/highlight#browser_compatibility
-    if (typeof browser.tabs.highlight === 'undefined') return;
-
-    // get latest tab index/windowId as that can change by the time of this call
-    const { index, windowId } = await browser.tabs.get(tabId);
-    await browser.tabs.highlight({ tabs: [index], windowId }).catch(() => {});
-  });
+  return onPopupOpen(browser, async () => highlightTab(browser, tabId));
 };
