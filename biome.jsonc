@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.1/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -63,7 +63,7 @@
         "noRestrictedElements": "error",
         "useSingleJsDocAsterisk": "error",
         "useJsonImportAttributes": "off",
-        "useUniqueElementIds": "info"
+        "useUniqueElementIds": "off" // we use custom IDs more often than generated ones
       },
       "a11y": {
         "noSvgWithoutTitle": "off"

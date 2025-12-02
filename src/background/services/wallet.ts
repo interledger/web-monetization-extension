@@ -20,6 +20,7 @@ import {
   toAmount,
   onPopupOpen,
   closeTabsByFilter,
+  highlightTab,
 } from '@/background/utils';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { generateEd25519KeyPair, exportJWK } from '@/shared/crypto';
@@ -39,6 +40,7 @@ export class WalletService {
   private storage: Cradle['storage'];
   private events: Cradle['events'];
   private browser: Cradle['browser'];
+  private telemetry: Cradle['telemetry'];
   private logger: Cradle['logger'];
   private t: Cradle['t'];
 
@@ -48,6 +50,7 @@ export class WalletService {
     storage,
     events,
     browser,
+    telemetry,
     logger,
     t,
   }: Cradle) {
@@ -57,6 +60,7 @@ export class WalletService {
       storage,
       events,
       browser,
+      telemetry,
       logger,
       t,
     });
@@ -434,6 +438,7 @@ export class WalletService {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
       storage: this.storage,
+      telemetry: this.telemetry,
       t: this.t,
     });
     this.events.emit('request_popup_close');
@@ -549,13 +554,5 @@ export class WalletService {
 
 // on popup opened, let's highlight the tab if user has lost it
 const highlightTabOnPopupOpen = (browser: Browser, tabId: TabId) => {
-  return onPopupOpen(browser, async () => {
-    // Opera, Safari, Firefox Android don't support highlight API.
-    // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/highlight#browser_compatibility
-    if (typeof browser.tabs.highlight === 'undefined') return;
-
-    // get latest tab index/windowId as that can change by the time of this call
-    const { index, windowId } = await browser.tabs.get(tabId);
-    await browser.tabs.highlight({ tabs: [index], windowId }).catch(() => {});
-  });
+  return onPopupOpen(browser, async () => highlightTab(browser, tabId));
 };

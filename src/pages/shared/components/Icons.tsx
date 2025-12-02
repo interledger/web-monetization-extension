@@ -1,4 +1,3 @@
-// biome-ignore-all lint/correctness/useUniqueElementIds: our IDs are unique here
 import React from 'react';
 
 export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {

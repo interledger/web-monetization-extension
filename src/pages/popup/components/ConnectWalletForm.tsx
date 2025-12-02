@@ -351,7 +351,6 @@ export const ConnectWalletForm = ({
         <ErrorMessage error={errors.connect.message} className="my-0" />
       )}
 
-      {/** biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID */}
       <Input
         type="text"
         label={t('connectWallet_label_walletAddress')}
@@ -421,8 +420,8 @@ export const ConnectWalletForm = ({
           <Switch
             size="small"
             label={t('connectWallet_label_recurring')}
-            defaultChecked={recurring}
             disabled={isSubmitting}
+            checked={recurring}
             onChange={(ev) => {
               const value = ev.currentTarget.checked;
               setRecurring(value);
@@ -503,7 +502,6 @@ function AmountInput({
   const t = useTranslation();
 
   return (
-    // biome-ignore lint/correctness/useUniqueElementIds: referenced as stable ID
     <InputAmount
       id="connectAmount"
       label={t('connectWallet_label_amount')}

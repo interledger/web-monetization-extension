@@ -46,6 +46,16 @@ export const getCurrentActiveTab = async (browser: Browser) => {
   return activeTabs[0];
 };
 
+export async function highlightTab(browser: Browser, tabId: Tab['id']) {
+  // Opera, Safari, Firefox Android don't support highlight API.
+  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/highlight#browser_compatibility
+  if (typeof browser.tabs.highlight === 'undefined') return;
+
+  // get latest tab index/windowId as that can change by the time of this call
+  const { index, windowId } = await browser.tabs.get(tabId);
+  await browser.tabs.highlight({ tabs: [index], windowId }).catch(() => {});
+}
+
 interface ToAmountParams {
   value: string;
   recurring: boolean;
