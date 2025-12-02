@@ -366,6 +366,18 @@
   "postInstallConsent_action_confirm": {
     "message": "Confirm and continue"
   },
+  "settings_dataCollection_title": {
+    "message": "Data Collection"
+  },
+  "settings_dataCollection_label": {
+    "message": "Data Collection"
+  },
+  "settings_dataCollection_text": {
+    "message": "The extension collects usage and analytics data (e.g., clicks, interactions) to improve the app and your experience."
+  },
+  "settings_dataCollection_text_learnMore": {
+    "message": "Read the full details in our"
+  },
   "consentRequired_text_title": {
     "message": "Consent Required: Data Collection & Transmission"
   },
