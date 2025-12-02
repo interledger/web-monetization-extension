@@ -356,7 +356,9 @@ export class Background {
               return success(await this.getAppData());
 
             case 'PROVIDE_CONSENT': {
+              const { consentTelemetry } = message.payload;
               await this.storage.set({ consent: CURRENT_DATA_CONSENT_VERSION });
+              await this.telemetry.optInOut(consentTelemetry);
               await this.storage.setState({ consent_required: false });
               return success(CURRENT_DATA_CONSENT_VERSION);
             }

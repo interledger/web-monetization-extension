@@ -342,6 +342,30 @@
   "postInstallConsent_text_dataNotShared_title": {
     "message": "What’s not shared"
   },
+  "postInstallConsent_text_dataCollection_title": {
+    "message": "Data Collection"
+  },
+  "postInstallConsent_text_dataCollection_desc": {
+    "message": "The extension collects usage and analytics data (e.g., clicks, interactions) to improve the app and your experience."
+  },
+  "postInstallConsent_text_dataCollection_text1": {
+    "message": "We use PostHog to collect usage and analytics data."
+  },
+  "postInstallConsent_text_dataCollection_text2": {
+    "message": "We assign each installation a unique ID, and associate your actions and interactions (events) with that ID."
+  },
+  "postInstallConsent_text_dataCollection_text3": {
+    "message": "We do not collect any personally identifiable information, such as your name or wallet address."
+  },
+  "postInstallConsent_text_dataCollection_text4": {
+    "message": "Your IP addresses is transmitted to calculate a rough geographic location, but it's immediately discarded afterwards and not stored."
+  },
+  "postInstallConsent_text_dataCollection_footer": {
+    "message": "You can change your preferences any time from the browser toolbar → Settings → Data Collection."
+  },
+  "postInstallConsent_label_dataCollection_optIn": {
+    "message": "Opt-in to usage data collection"
+  },
   "postInstallConsent_text_dataNotShared_walletDetails": {
     "message": "Your wallet address, balance, or currency, are never shared with websites you visit."
   },
