@@ -25,8 +25,7 @@ async function getPRArtifacts(
 
   const artifacts: { id: number }[] = [];
   for (let i = 0; i < data.length; i++) {
-    // same as `artifacts.push(...data[i])` but it's a bit faster
-    artifacts.push.apply(artifacts, data[i]);
+    artifacts.push(...data[i]);
   }
   return artifacts;
 }
