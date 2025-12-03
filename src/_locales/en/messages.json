@@ -369,7 +369,7 @@
   "consentRequired_text_title": {
     "message": "Consent Required: Data Collection & Transmission"
   },
-  "consentRequired_textUpdated_title": {
+  "consentRequired_text_titleUpdated": {
     "message": "Consent Required: Collection and usage of your data has been updated"
   },
   "consentRequired_text_subtitle": {

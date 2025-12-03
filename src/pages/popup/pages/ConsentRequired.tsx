@@ -16,7 +16,7 @@ export default () => {
         <WarningSign className="size-6 text-yellow-700 shrink-0 self-center" />
         <h3 className="text-base font-medium text-yellow-700">
           {isUpdated
-            ? t('consentRequired_textUpdated_title')
+            ? t('consentRequired_text_titleUpdated')
             : t('consentRequired_text_title')}
         </h3>
       </div>
