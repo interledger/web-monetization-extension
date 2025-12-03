@@ -304,7 +304,7 @@
     "message": "Access the extension from the browser toolbar."
   },
   "postInstallConsent_text_title": {
-    "message": "Welcome to the Web Monetization Extension"
+    "message": "Welcome to the Web Monetization extension"
   },
   "postInstallConsent_text_header1": {
     "message": "We’re transparent about what data is shared and how it’s used."
@@ -325,13 +325,13 @@
     "message": "Note: You will always be asked for consent before any connection."
   },
   "postInstallConsent_text_dataShared_yourWallet_headers": {
-    "message": "Your IP address, language, and browser version while you use the extension."
+    "message": "Your IP address, language, and browser version while you use the extension, which is automatically sent by your browser."
   },
   "postInstallConsent_text_dataShared_websiteWallets_title": {
     "message": "With the wallets used on websites you visit that use Web Monetization:"
   },
   "postInstallConsent_text_dataShared_websiteWallets_headers": {
-    "message": "Your IP address, language and browser version information."
+    "message": "Your IP address, language, and browser version information, which is automatically sent by your browser."
   },
   "postInstallConsent_text_dataShared_websiteWallets_wa": {
     "message": "Your wallet address."
@@ -340,10 +340,10 @@
     "message": "Browsers send certain HTTP headers by default  each request that inform the servers about your language (`Accept-Language` header), browser version (`User-Agent` header) and more. Your IP address is also sent by default."
   },
   "postInstallConsent_text_dataNotShared_title": {
-    "message": "What’s not shared"
+    "message": "What’s never shared"
   },
   "postInstallConsent_text_dataNotShared_walletDetails": {
-    "message": "Your wallet address, balance, or currency, are never shared with websites you visit."
+    "message": "Your wallet address, balance, or currency are never shared with websites you visit."
   },
   "postInstallConsent_text_dataNotShared_browsingHistory": {
     "message": "Your browsing history. It stays private in your browser."
