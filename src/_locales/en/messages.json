@@ -369,6 +369,9 @@
   "consentRequired_text_title": {
     "message": "Consent Required: Data Collection & Transmission"
   },
+  "consentRequired_text_titleUpdated": {
+    "message": "Consent Required: Collection and usage of your data has been updated"
+  },
   "consentRequired_text_subtitle": {
     "message": "We want to be transparent about what data is shared and how it’s used."
   },
@@ -376,6 +379,6 @@
     "message": "To use the the Web Monetization Extension, we require your consent to our data collection & transmission policy."
   },
   "consentRequired_action_primary": {
-    "message": "View Policy"
+    "message": "View data policy and consent"
   }
 }
