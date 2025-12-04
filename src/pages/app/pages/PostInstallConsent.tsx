@@ -137,7 +137,7 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
       <p>{t('postInstallConsent_text_dataCollection_desc')}</p>
 
       <div className="space-y-1">
-        <h4 className="font-medium">
+        <h4 className="font-medium text-lg">
           {t('postInstallConsent_text_dataCollection_yes_heading')}
         </h4>
         <ul className="list-disc ml-4">
@@ -153,7 +153,7 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
       </div>
 
       <div className="space-y-1">
-        <h4 className="font-medium">
+        <h4 className="font-medium text-lg">
           {t('postInstallConsent_text_dataCollection_no_heading')}
         </h4>
         <ul className="list-disc ml-4">
