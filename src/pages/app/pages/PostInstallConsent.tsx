@@ -122,6 +122,18 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
   const [isOptedIn, setIsOptedIn] = React.useState(
     typeof consentTelemetry === 'undefined' || consentTelemetry,
   );
+
+  const linkToPostHog = (
+    <a
+      href="https://posthog.com/"
+      className="pr-1 text-primary outline-current hover:underline"
+      target="_blank"
+      rel="noreferrer noopener"
+    >
+      PostHog
+    </a>
+  );
+
   return (
     <form className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
@@ -129,12 +141,31 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
       </h3>
       <p>{t('postInstallConsent_text_dataCollection_desc')}</p>
 
-      <ul className="list-disc ml-4">
-        <li>{t('postInstallConsent_text_dataCollection_text1')}</li>
-        <li>{t('postInstallConsent_text_dataCollection_text2')}</li>
-        <li>{t('postInstallConsent_text_dataCollection_text3')}</li>
-        <li>{t('postInstallConsent_text_dataCollection_text4')}</li>
-      </ul>
+      <div className="space-y-1">
+        <h4 className="font-medium">
+          {t('postInstallConsent_text_dataCollection_yes_heading')}
+        </h4>
+        <ul className="list-disc ml-4">
+          <li>
+            {replaceWithJSX(
+              t('postInstallConsent_text_dataCollection_yes_text1'),
+              /\bPostHog\b/,
+              linkToPostHog,
+            )}
+          </li>
+          <li>{t('postInstallConsent_text_dataCollection_yes_text2')}</li>
+        </ul>
+      </div>
+
+      <div className="space-y-1">
+        <h4 className="font-medium">
+          {t('postInstallConsent_text_dataCollection_no_heading')}
+        </h4>
+        <ul className="list-disc ml-4">
+          <li>{t('postInstallConsent_text_dataCollection_no_text1')}</li>
+          <li>{t('postInstallConsent_text_dataCollection_no_text2')}</li>
+        </ul>
+      </div>
 
       <Switch
         label={t('postInstallConsent_label_dataCollection_optIn')}
@@ -229,6 +260,17 @@ function InformationTooltip({ text }: { text: string }) {
       <InfoCircle className="inline-block h-5 w-5 ml-1 -mt-1 text-gray-500" />
     </span>
   );
+}
+
+function replaceWithJSX(
+  text: string,
+  pattern: RegExp,
+  replacement: React.ReactNode,
+) {
+  return text
+    .split(pattern)
+    .flatMap((item) => [item, replacement])
+    .slice(0, -1);
 }
 
 type TelemetryConsentRef = React.RefObject<HTMLInputElement | null>;

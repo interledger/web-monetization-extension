@@ -342,35 +342,41 @@
   "postInstallConsent_text_dataNotShared_title": {
     "message": "What’s not shared"
   },
-  "postInstallConsent_text_dataCollection_title": {
-    "message": "Data Collection"
-  },
-  "postInstallConsent_text_dataCollection_desc": {
-    "message": "The extension collects usage and analytics data (e.g., clicks, interactions) to improve the app and your experience."
-  },
-  "postInstallConsent_text_dataCollection_text1": {
-    "message": "We use PostHog to collect usage and analytics data."
-  },
-  "postInstallConsent_text_dataCollection_text2": {
-    "message": "We assign each installation a unique ID, and associate your actions and interactions (events) with that ID."
-  },
-  "postInstallConsent_text_dataCollection_text3": {
-    "message": "We do not collect any personally identifiable information, such as your name or wallet address."
-  },
-  "postInstallConsent_text_dataCollection_text4": {
-    "message": "Your IP addresses is transmitted to calculate a rough geographic location, but it's immediately discarded afterwards and not stored."
-  },
-  "postInstallConsent_text_dataCollection_footer": {
-    "message": "You can change your preferences any time from the browser toolbar → Settings → Data Collection."
-  },
-  "postInstallConsent_label_dataCollection_optIn": {
-    "message": "Opt-in to usage data collection"
-  },
   "postInstallConsent_text_dataNotShared_walletDetails": {
     "message": "Your wallet address, balance, or currency, are never shared with websites you visit."
   },
   "postInstallConsent_text_dataNotShared_browsingHistory": {
     "message": "Your browsing history. It stays private in your browser."
+  },
+  "postInstallConsent_text_dataCollection_title": {
+    "message": "Analytics"
+  },
+  "postInstallConsent_text_dataCollection_desc": {
+    "message": "The extension gathers anonymous data about how you use it (e.g., clicks, interactions) to help us improve the app and your overall experience."
+  },
+  "postInstallConsent_text_dataCollection_yes_heading": {
+    "message": "The Interledger Foundation:"
+  },
+  "postInstallConsent_text_dataCollection_yes_text1": {
+    "message": "Uses PostHog to collect usage and analytics data."
+  },
+  "postInstallConsent_text_dataCollection_yes_text2": {
+    "message": "Assigns each installation a unique ID, and associates your actions and interactions (events) with that ID."
+  },
+  "postInstallConsent_text_dataCollection_no_heading": {
+    "message": "We do not:"
+  },
+  "postInstallConsent_text_dataCollection_no_text1": {
+    "message": "Collect any personally identifiable information, such as your name or wallet address."
+  },
+  "postInstallConsent_text_dataCollection_no_text2": {
+    "message": "Store your IP address. It is only used to estimate your general location, and then it’s immediately discarded."
+  },
+  "postInstallConsent_label_dataCollection_optIn": {
+    "message": "Opt-in to usage data collection"
+  },
+  "postInstallConsent_text_dataCollection_footer": {
+    "message": "You can change your preferences any time by opening the extension through the browser toolbar → Settings → Data Collection."
   },
   "postInstallConsent_text_permissions_title": {
     "message": "Extension Permissions"
