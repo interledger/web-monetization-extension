@@ -107,6 +107,7 @@ export const TelemetryContextProvider = ({
   uid: string;
   isOptedIn?: Storage['consentTelemetry'];
 }>) => {
+  const browser = useBrowser();
   if (!POSTHOG_KEY) {
     // biome-ignore lint/suspicious/noConsole: It is always added in production builds, so it's safe. Warning here helps us debug better.
     console.warn('PostHog key not found. Telemetry will not be enabled.');
@@ -119,6 +120,8 @@ export const TelemetryContextProvider = ({
 
   // While isOptedIn is undefined or false, we won't capture data.
   const posthog = setupPosthog(uid, isOptedIn === true);
+  const { name, version, version_name } = browser.runtime.getManifest();
+  posthog.register({ app_name: name, version, version_name });
 
   const telemetry: Telemetry = {
     capture: posthog.capture.bind(posthog),

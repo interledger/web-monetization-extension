@@ -366,8 +366,23 @@
   "postInstallConsent_action_confirm": {
     "message": "Confirm and continue"
   },
+  "settings_dataCollection_title": {
+    "message": "Data Collection"
+  },
+  "settings_dataCollection_label": {
+    "message": "Usage data & analytics"
+  },
+  "settings_dataCollection_text": {
+    "message": "The extension gathers anonymous data about how you use it (e.g., clicks, interactions) to help us improve the app and your overall experience."
+  },
+  "settings_dataCollection_text_learnMore": {
+    "message": "Read the full details in our"
+  },
   "consentRequired_text_title": {
     "message": "Consent Required: Data Collection & Transmission"
+  },
+  "consentRequired_text_titleUpdated": {
+    "message": "Consent Required: Collection and usage of your data has been updated"
   },
   "consentRequired_text_subtitle": {
     "message": "We want to be transparent about what data is shared and how it’s used."
@@ -376,6 +391,6 @@
     "message": "To use the the Web Monetization Extension, we require your consent to our data collection & transmission policy."
   },
   "consentRequired_action_primary": {
-    "message": "View Policy"
+    "message": "View data policy and consent"
   }
 }
