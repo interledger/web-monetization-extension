@@ -169,6 +169,7 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
         checked={isOptedIn}
         onChange={(ev) => setIsOptedIn(ev.currentTarget.checked)}
         ref={ref}
+        size="small"
       />
 
       <p>{t('postInstallConsent_text_dataCollection_footer')}</p>
