@@ -5,7 +5,7 @@ import { getResponseOrThrow } from '@/shared/messages';
 import { useMessage, useTranslation } from '@/app/lib/context';
 import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
-import { Switch } from '@/pages/shared/components/ui/Switch';
+import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { InfoCircle } from '@/pages/shared/components/Icons';
 import { ROUTES } from '../App';
 
@@ -162,15 +162,21 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
         </ul>
       </div>
 
-      <Switch
-        label={t('postInstallConsent_label_dataCollection_optIn')}
-        form="consent-form"
-        name="consent-field-telemetry"
-        checked={isOptedIn}
-        onChange={(ev) => setIsOptedIn(ev.currentTarget.checked)}
-        ref={ref}
-        size="small"
-      />
+      <label
+        htmlFor="consent-field-telemetry"
+        className="my-6 font-medium text-lg flex items-center gap-4"
+      >
+        <span>{t('postInstallConsent_label_dataCollection_optIn')}</span>
+        <SwitchButton
+          form="consent-form"
+          id="consent-field-telemetry"
+          name="consent-field-telemetry"
+          checked={isOptedIn}
+          onChange={(ev) => setIsOptedIn(ev.currentTarget.checked)}
+          ref={ref}
+          size="small"
+        />
+      </label>
 
       <p>{t('postInstallConsent_text_dataCollection_footer')}</p>
     </form>
