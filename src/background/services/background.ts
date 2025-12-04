@@ -317,6 +317,12 @@ export class Background {
               await this.openAppPage(message.payload.path);
               return success(undefined);
 
+            case 'OPT_IN_OUT_TELEMETRY': {
+              const { isOptedIn } = message.payload;
+              await this.telemetry.optInOut(isOptedIn);
+              return success(undefined);
+            }
+
             // endregion
 
             // region Content
