@@ -40,11 +40,13 @@ const Main = () => {
   return (
     <main className="mx-auto w-full max-w-3xl p-3 sm:p-8">
       <div className="space-y-4 mb-48">
-        <p>{t('postInstallConsent_text_header1')}</p>
-        <p>{t('postInstallConsent_text_header2')}</p>
+        <div className="space-y-1">
+          <p>{t('postInstallConsent_text_header1')}</p>
+          <p>{t('postInstallConsent_text_header2')}</p>
+        </div>
 
         <DataShared />
-        <DataNotShared />
+        <DataSharedBrowser />
         <Permissions />
       </div>
 
@@ -67,15 +69,7 @@ function DataShared() {
         <h4 className="font-medium text-lg">
           {t('postInstallConsent_text_dataShared_yourWallet_title')}
         </h4>
-        <ul className="list-disc ml-4">
-          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
-          <li>
-            {t('postInstallConsent_text_dataShared_yourWallet_headers')}
-            <InformationTooltip
-              text={t('postInstallConsent_text_dataShared_headers')}
-            />
-          </li>
-        </ul>
+        <p>{t('postInstallConsent_text_dataShared_yourWallet_wa')}</p>
         <p>{t('postInstallConsent_text_dataShared_yourWallet_keyConsent')}</p>
       </div>
 
@@ -83,31 +77,32 @@ function DataShared() {
         <h4 className="font-medium text-lg">
           {t('postInstallConsent_text_dataShared_websiteWallets_title')}
         </h4>
-        <ul className="list-disc ml-4">
-          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
-          <li>
-            {t('postInstallConsent_text_dataShared_websiteWallets_headers')}
-            <InformationTooltip
-              text={t('postInstallConsent_text_dataShared_headers')}
-            />
-          </li>
-        </ul>
+        <p>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</p>
+      </div>
+
+      <div className="space-y-1">
+        <h4 className="font-medium text-lg">
+          {t('postInstallConsent_text_dataShared_websites_title')}
+        </h4>
+        <p>{t('postInstallConsent_text_dataShared_websites_text')}</p>
       </div>
     </div>
   );
 }
 
-function DataNotShared() {
+function DataSharedBrowser() {
   const t = useTranslation();
   return (
     <div className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
-        {t('postInstallConsent_text_dataNotShared_title')}
+        {t('postInstallConsent_text_dataShared_browser_title')}
       </h3>
-      <ul className="list-disc ml-4">
-        <li>{t('postInstallConsent_text_dataNotShared_walletDetails')}</li>
-        <li>{t('postInstallConsent_text_dataNotShared_browsingHistory')}</li>
-      </ul>
+      <p>
+        {t('postInstallConsent_text_dataShared_browser_text')}{' '}
+        <InformationTooltip
+          text={t('postInstallConsent_text_dataShared_headers')}
+        />
+      </p>
     </div>
   );
 }
