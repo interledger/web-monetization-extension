@@ -22,6 +22,7 @@ const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
 
 export class Background {
   private browser: Cradle['browser'];
+  private browserName: Cradle['browserName'];
   private walletService: Cradle['walletService'];
   private monetizationService: Cradle['monetizationService'];
   private storage: Cradle['storage'];
@@ -37,6 +38,7 @@ export class Background {
 
   constructor({
     browser,
+    browserName,
     walletService,
     monetizationService,
     storage,
@@ -52,6 +54,7 @@ export class Background {
   }: Cradle) {
     Object.assign(this, {
       browser,
+      browserName,
       walletService,
       monetizationService,
       storage,
@@ -499,6 +502,19 @@ export class Background {
       this.storage.setState({ missing_host_permissions: !hasPermissions });
     } catch (error) {
       this.logger.error(error);
+    }
+
+    if (this.browserName === 'firefox') {
+      try {
+        this.logger.debug('checking data_collection_permissions');
+        const hasPermissions = await this.browser.permissions.contains({
+          data_collection: ['technicalAndInteraction'],
+        });
+        this.logger.debug('has data_collection_permissions?', hasPermissions);
+        await this.telemetry.optInOut(hasPermissions);
+      } catch (error) {
+        this.logger.error(error);
+      }
     }
   };
 
