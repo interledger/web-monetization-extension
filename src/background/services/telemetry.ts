@@ -3,12 +3,13 @@ import { POSTHOG_HOST, POSTHOG_KEY } from '@/shared/defines';
 import type { Cradle } from '@/background/container';
 
 export class Telemetry {
+  private browser: Cradle['browser'];
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
   private posthog: PostHog;
 
-  constructor({ storage, logger }: Cradle) {
-    Object.assign(this, { storage, logger });
+  constructor({ browser, storage, logger }: Cradle) {
+    Object.assign(this, { browser, storage, logger });
     this.posthog = new PostHog();
   }
 
@@ -44,6 +45,9 @@ export class Telemetry {
       // Prevent fetching flags and along with it, any remote config.
       advanced_disable_flags: true,
     });
+
+    const { name, version, version_name } = this.browser.runtime.getManifest();
+    this.posthog.register({ app_name: name, version, version_name });
   }
 
   async optInOut(isOptedIn: boolean) {

@@ -158,14 +158,19 @@ export class Background {
   }
 
   async getAppData(): Promise<AppStore> {
-    const { connected, publicKey, consent } = await this.storage.get([
-      'connected',
-      'publicKey',
-      'consent',
-    ]);
+    const { connected, publicKey, uid, consent, consentTelemetry } =
+      await this.storage.get([
+        'connected',
+        'publicKey',
+        'consent',
+        'uid',
+        'consentTelemetry',
+      ]);
 
     return {
+      uid,
       consent,
+      consentTelemetry,
       connected,
       publicKey,
       transientState: this.storage.getPopupTransientState(),
@@ -311,6 +316,12 @@ export class Background {
             case 'OPEN_APP':
               await this.openAppPage(message.payload.path);
               return success(undefined);
+
+            case 'OPT_IN_OUT_TELEMETRY': {
+              const { isOptedIn } = message.payload;
+              await this.telemetry.optInOut(isOptedIn);
+              return success(undefined);
+            }
 
             // endregion
 

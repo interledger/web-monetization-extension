@@ -200,6 +200,10 @@ export type PopupToBackgroundMessage = {
     input: { path: string; action?: string };
     output: never;
   };
+  OPT_IN_OUT_TELEMETRY: {
+    input: { isOptedIn: boolean };
+    output: never;
+  };
 };
 // #endregion
 

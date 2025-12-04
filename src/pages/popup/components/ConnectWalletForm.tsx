@@ -420,8 +420,8 @@ export const ConnectWalletForm = ({
           <Switch
             size="small"
             label={t('connectWallet_label_recurring')}
-            defaultChecked={recurring}
             disabled={isSubmitting}
+            checked={recurring}
             onChange={(ev) => {
               const value = ev.currentTarget.checked;
               setRecurring(value);

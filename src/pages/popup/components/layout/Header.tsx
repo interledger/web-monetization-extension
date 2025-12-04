@@ -9,10 +9,11 @@ import { usePopupState } from '@/popup/lib/store';
 
 const NavigationButton = () => {
   const [pathname] = useLocation();
-  const { connected } = usePopupState();
+  const { connected, state } = usePopupState();
 
   return React.useMemo(() => {
     if (!connected) return null;
+    if (state.consent_required) return null;
 
     if (pathname.includes('/s/')) {
       return (
@@ -34,7 +35,7 @@ const NavigationButton = () => {
         </Link>
       </React.Fragment>
     );
-  }, [pathname, connected]);
+  }, [pathname, connected, state]);
 };
 
 export const Header = () => {
