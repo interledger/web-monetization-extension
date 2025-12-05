@@ -373,7 +373,7 @@
     "message": "Opt-in to usage data collection"
   },
   "postInstallConsent_text_dataCollection_footer": {
-    "message": "You can change your preferences any time by opening the extension through the browser toolbar → Settings → Data Collection."
+    "message": "This setting takes effect after you click Confirm and Continue. You can change your preferences any time by opening the extension through the browser toolbar → Settings → Data Collection."
   },
   "postInstallConsent_text_permissions_title": {
     "message": "Extension Permissions"
