@@ -9,7 +9,7 @@ import {
 import { dispatch, usePopupState } from '@/popup/lib/store';
 import { useMessage } from '@/popup/lib/context';
 import { getBrowserName } from '@/shared/helpers';
-import { Browser } from 'webextension-polyfill';
+import type { Browser } from '@/shared/browser';
 
 export function SettingsScreen() {
   return (
