@@ -229,9 +229,7 @@ function AcceptForm({
         const granted = await browser.permissions.request(permission);
         if (!granted) {
           consentTelemetry = false;
-          if (telemetryConsentRef.current) {
-            telemetryConsentRef.current.checked = false;
-          }
+          telemetryConsentRef.current?.click();
         }
       } else {
         await browser.permissions.remove(permission);
