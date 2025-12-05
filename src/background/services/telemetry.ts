@@ -57,6 +57,7 @@ export class Telemetry {
     } else {
       this.posthog.opt_out_capturing();
     }
+    this.logger.log(`Telemetry: ${isOptedIn ? 'Opted in' : 'Opted out'}`);
   }
 
   capture(...args: Parameters<PostHog['capture']>) {

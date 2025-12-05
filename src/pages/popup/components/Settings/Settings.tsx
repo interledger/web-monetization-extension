@@ -1,9 +1,15 @@
 import React from 'react';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { CaretDownIcon } from '@/pages/shared/components/Icons';
-import { useTelemetry, useTranslation } from '@/pages/shared/lib/context';
+import {
+  useBrowser,
+  useTelemetry,
+  useTranslation,
+} from '@/pages/shared/lib/context';
 import { dispatch, usePopupState } from '@/popup/lib/store';
 import { useMessage } from '@/popup/lib/context';
+import { getBrowserName } from '@/shared/helpers';
+import type { Browser } from '@/shared/browser';
 
 export function SettingsScreen() {
   return (
@@ -18,6 +24,8 @@ function DataCollectionSettings() {
   const message = useMessage();
   const { consentTelemetry = false } = usePopupState();
   const telemetry = useTelemetry();
+  const browser = useBrowser();
+  const browserName = getBrowserName(browser, navigator.userAgent);
 
   return (
     <details className="border p-4 rounded-md space-y-2 group" open>
@@ -39,6 +47,16 @@ function DataCollectionSettings() {
           checked={consentTelemetry}
           onChange={async (ev) => {
             const isOptedIn = ev.currentTarget.checked;
+            if (browserName === 'firefox') {
+              const ok = await handleFirefoxDataCollectionPermission(
+                isOptedIn,
+                browser,
+              );
+              if (!ok) {
+                ev.preventDefault();
+                return;
+              }
+            }
             await message.send('OPT_IN_OUT_TELEMETRY', { isOptedIn });
             dispatch({ type: 'OPT_IN_OUT_TELEMETRY', data: { isOptedIn } });
             telemetry.optInOut(isOptedIn);
@@ -61,4 +79,22 @@ function DataCollectionSettings() {
       </p>
     </details>
   );
+}
+
+async function handleFirefoxDataCollectionPermission(
+  isOptedIn: boolean,
+  browser: Browser,
+): Promise<boolean> {
+  const permission = {
+    data_collection: ['technicalAndInteraction' as const],
+  };
+  if (isOptedIn) {
+    const granted = await browser.permissions.request(permission);
+    if (!granted) {
+      return false;
+    }
+  } else {
+    await browser.permissions.remove(permission);
+  }
+  return true;
 }
