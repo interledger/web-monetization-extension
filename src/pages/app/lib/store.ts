@@ -25,9 +25,11 @@ export const dispatch = ({ type, data }: Actions) => {
     case 'SET_TRANSIENT_STATE':
       store.transientState = data;
       break;
-    case 'SET_CONSENT':
-      store.consent = data;
+    case 'SET_CONSENT': {
+      store.consent = data.consent;
+      store.consentTelemetry = data.consentTelemetry;
       break;
+    }
     default:
       throw new Error('Unknown action');
   }
@@ -35,5 +37,14 @@ export const dispatch = ({ type, data }: Actions) => {
 
 type Actions =
   | { type: 'SET_TRANSIENT_STATE'; data: PopupTransientState }
-  | { type: 'SET_CONSENT'; data: NonNullable<AppStore['consent']> }
-  | { type: 'SET_DATA_APP'; data: Pick<AppStore, 'connected' | 'publicKey'> };
+  | {
+      type: 'SET_CONSENT';
+      data: {
+        consent: NonNullable<AppStore['consent']>;
+        consentTelemetry: Required<NonNullable<AppStore['consentTelemetry']>>;
+      };
+    }
+  | {
+      type: 'SET_DATA_APP';
+      data: Pick<AppStore, 'connected' | 'publicKey' | 'consentTelemetry'>;
+    };
