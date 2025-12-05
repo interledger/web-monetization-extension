@@ -5,6 +5,7 @@ import { getResponseOrThrow } from '@/shared/messages';
 import { useMessage, useTranslation } from '@/app/lib/context';
 import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
+import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { InfoCircle } from '@/pages/shared/components/Icons';
 import { ROUTES } from '../App';
 
@@ -37,19 +38,24 @@ const Header = () => {
 
 const Main = () => {
   const t = useTranslation();
+  const telemetryConsentRef = React.useRef<HTMLInputElement>(null);
+
   return (
     <main className="mx-auto w-full max-w-3xl p-3 sm:p-8">
       <div className="space-y-4 mb-48">
-        <p>{t('postInstallConsent_text_header1')}</p>
-        <p>{t('postInstallConsent_text_header2')}</p>
+        <div className="space-y-1">
+          <p>{t('postInstallConsent_text_header1')}</p>
+          <p>{t('postInstallConsent_text_header2')}</p>
+        </div>
 
         <DataShared />
-        <DataNotShared />
+        <DataSharedBrowser />
+        <Telemetry ref={telemetryConsentRef} />
         <Permissions />
       </div>
 
       <div className="fixed bottom-0 inset-x-0 w-full bg-white p-4 flex justify-center shadow-2xl shadow-black">
-        <AcceptForm />
+        <AcceptForm telemetryConsentRef={telemetryConsentRef} />
       </div>
     </main>
   );
@@ -67,15 +73,7 @@ function DataShared() {
         <h4 className="font-medium text-lg">
           {t('postInstallConsent_text_dataShared_yourWallet_title')}
         </h4>
-        <ul className="list-disc ml-4">
-          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
-          <li>
-            {t('postInstallConsent_text_dataShared_yourWallet_headers')}
-            <InformationTooltip
-              text={t('postInstallConsent_text_dataShared_headers')}
-            />
-          </li>
-        </ul>
+        <p>{t('postInstallConsent_text_dataShared_yourWallet_wa')}</p>
         <p>{t('postInstallConsent_text_dataShared_yourWallet_keyConsent')}</p>
       </div>
 
@@ -83,32 +81,105 @@ function DataShared() {
         <h4 className="font-medium text-lg">
           {t('postInstallConsent_text_dataShared_websiteWallets_title')}
         </h4>
-        <ul className="list-disc ml-4">
-          <li>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</li>
-          <li>
-            {t('postInstallConsent_text_dataShared_websiteWallets_headers')}
-            <InformationTooltip
-              text={t('postInstallConsent_text_dataShared_headers')}
-            />
-          </li>
-        </ul>
+        <p>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</p>
+      </div>
+
+      <div className="space-y-1">
+        <h4 className="font-medium text-lg">
+          {t('postInstallConsent_text_dataShared_websites_title')}
+        </h4>
+        <p>{t('postInstallConsent_text_dataShared_websites_text')}</p>
       </div>
     </div>
   );
 }
 
-function DataNotShared() {
+function DataSharedBrowser() {
   const t = useTranslation();
   return (
     <div className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
-        {t('postInstallConsent_text_dataNotShared_title')}
+        {t('postInstallConsent_text_dataShared_browser_title')}
       </h3>
-      <ul className="list-disc ml-4">
-        <li>{t('postInstallConsent_text_dataNotShared_walletDetails')}</li>
-        <li>{t('postInstallConsent_text_dataNotShared_browsingHistory')}</li>
-      </ul>
+      <p>
+        {t('postInstallConsent_text_dataShared_browser_text')}{' '}
+        <InformationTooltip
+          text={t('postInstallConsent_text_dataShared_headers')}
+        />
+      </p>
     </div>
+  );
+}
+
+function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
+  const t = useTranslation();
+  const { consentTelemetry } = useAppState();
+  const [isOptedIn, setIsOptedIn] = React.useState(
+    typeof consentTelemetry === 'undefined' || consentTelemetry,
+  );
+
+  const linkToPostHog = (
+    <a
+      href="https://posthog.com/"
+      className="pr-1 text-primary outline-current hover:underline"
+      target="_blank"
+      rel="noreferrer noopener"
+    >
+      PostHog
+    </a>
+  );
+
+  return (
+    <form className="space-y-2">
+      <h3 className="font-semibold text-xl text-alt">
+        {t('postInstallConsent_text_dataCollection_title')}
+      </h3>
+      <p>{t('postInstallConsent_text_dataCollection_desc')}</p>
+
+      <div className="space-y-1">
+        <h4 className="font-medium text-lg">
+          {t('postInstallConsent_text_dataCollection_yes_heading')}
+        </h4>
+        <ul className="list-disc ml-4">
+          <li>
+            {replaceWithJSX(
+              t('postInstallConsent_text_dataCollection_yes_text1'),
+              /\bPostHog\b/,
+              linkToPostHog,
+            )}
+          </li>
+          <li>{t('postInstallConsent_text_dataCollection_yes_text2')}</li>
+        </ul>
+      </div>
+
+      <div className="space-y-1">
+        <h4 className="font-medium text-lg">
+          {t('postInstallConsent_text_dataCollection_no_heading')}
+        </h4>
+        <ul className="list-disc ml-4">
+          <li>{t('postInstallConsent_text_dataCollection_no_text1')}</li>
+          <li>{t('postInstallConsent_text_dataCollection_no_text2')}</li>
+        </ul>
+      </div>
+
+      <label
+        htmlFor="consent-field-telemetry"
+        className="my-6 font-medium text-lg flex items-center gap-4"
+      >
+        <span>{t('postInstallConsent_label_dataCollection_optIn')}</span>
+        <SwitchButton
+          form="consent-form"
+          id="consent-field-telemetry"
+          name="consent-field-telemetry"
+          checked={isOptedIn}
+          onChange={(ev) => setIsOptedIn(ev.currentTarget.checked)}
+          ref={ref}
+          size="small"
+        />
+      </label>
+
+      <p>{t('postInstallConsent_text_dataCollection_footer')}</p>
+    </form>
   );
 }
 
@@ -134,34 +205,45 @@ function Permissions() {
   );
 }
 
-function AcceptForm() {
+function AcceptForm({
+  telemetryConsentRef,
+}: {
+  telemetryConsentRef: TelemetryConsentRef;
+}) {
   const t = useTranslation();
   const { connected, consent } = useAppState();
   const message = useMessage();
+  const hasChanges = useAcceptFormHasChanges(telemetryConsentRef);
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
-    const res = await message.send('PROVIDE_CONSENT');
-    const data = getResponseOrThrow(res);
-    await dispatch({ type: 'SET_CONSENT', data });
+    const formData = new FormData(ev.currentTarget);
+    const consentTelemetry = formData.get('consent-field-telemetry') === 'on';
+    const res = await message.send('PROVIDE_CONSENT', { consentTelemetry });
+    const consent = getResponseOrThrow(res);
+    dispatch({ type: 'SET_CONSENT', data: { consent, consentTelemetry } });
   };
 
   if (!isConsentRequired(consent)) {
     if (!connected) {
       return <Redirect to={ROUTES.DEFAULT} />;
     }
-    return (
-      <div className="max-w-2xl flex gap-2" role="alert">
-        <InfoCircle className="size-6 flex-shrink-0" />
-        <p>{t('postInstallConsent_state_consentProvided')}</p>
-      </div>
-    );
+
+    if (!hasChanges) {
+      return (
+        <div className="max-w-2xl flex gap-2" role="alert">
+          <InfoCircle className="size-6 flex-shrink-0" />
+          <p>{t('postInstallConsent_state_consentProvided')}</p>
+        </div>
+      );
+    }
   }
 
   return (
     <form
-      className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4"
+      id="consent-form"
       onSubmit={onSubmit}
+      className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4"
     >
       <label className="flex gap-2 items-start">
         <input type="checkbox" required className="rounded-sm mt-1" />
@@ -180,4 +262,52 @@ function InformationTooltip({ text }: { text: string }) {
       <InfoCircle className="inline-block h-5 w-5 ml-1 -mt-1 text-gray-500" />
     </span>
   );
+}
+
+function replaceWithJSX(
+  text: string,
+  pattern: RegExp,
+  replacement: React.ReactNode,
+) {
+  return text
+    .split(pattern)
+    .flatMap((item) => [item, replacement])
+    .slice(0, -1);
+}
+
+type TelemetryConsentRef = React.RefObject<HTMLInputElement | null>;
+
+function useTelemetryConsentInput(
+  inputRef: TelemetryConsentRef,
+  initial?: boolean,
+) {
+  const [checked, setChecked] = React.useState(initial);
+
+  React.useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    setChecked(input.checked);
+
+    const observer = new MutationObserver(() => setChecked(input.checked));
+    observer.observe(input, { attributes: true });
+    return () => observer.disconnect();
+  }, [inputRef]);
+
+  return checked;
+}
+
+function useAcceptFormHasChanges(telemetryConsentRef: TelemetryConsentRef) {
+  const { consentTelemetry } = useAppState();
+
+  const [hasChanges, setHasChanges] = React.useState(false);
+  const telemetryConsentChecked = useTelemetryConsentInput(
+    telemetryConsentRef,
+    consentTelemetry,
+  );
+  React.useEffect(() => {
+    setHasChanges(() => telemetryConsentChecked !== consentTelemetry);
+  }, [consentTelemetry, telemetryConsentChecked]);
+
+  return hasChanges;
 }
