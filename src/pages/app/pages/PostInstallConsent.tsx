@@ -1,8 +1,8 @@
 import React from 'react';
 import { Redirect } from 'wouter';
-import { isConsentRequired } from '@/shared/helpers';
+import { getBrowserName, isConsentRequired } from '@/shared/helpers';
 import { getResponseOrThrow } from '@/shared/messages';
-import { useMessage, useTranslation } from '@/app/lib/context';
+import { useBrowser, useMessage, useTranslation } from '@/app/lib/context';
 import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
@@ -213,12 +213,30 @@ function AcceptForm({
   const t = useTranslation();
   const { connected, consent } = useAppState();
   const message = useMessage();
+  const browser = useBrowser();
   const hasChanges = useAcceptFormHasChanges(telemetryConsentRef);
+  const browserName = getBrowserName(browser, navigator.userAgent);
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
     const formData = new FormData(ev.currentTarget);
-    const consentTelemetry = formData.get('consent-field-telemetry') === 'on';
+    let consentTelemetry = formData.get('consent-field-telemetry') === 'on';
+    if (browserName === 'firefox') {
+      const permission = {
+        data_collection: ['technicalAndInteraction' as const],
+      };
+      if (consentTelemetry) {
+        const granted = await browser.permissions.request(permission);
+        if (!granted) {
+          consentTelemetry = false;
+          if (telemetryConsentRef.current) {
+            telemetryConsentRef.current.checked = false;
+          }
+        }
+      } else {
+        await browser.permissions.remove(permission);
+      }
+    }
     const res = await message.send('PROVIDE_CONSENT', { consentTelemetry });
     const consent = getResponseOrThrow(res);
     dispatch({ type: 'SET_CONSENT', data: { consent, consentTelemetry } });
