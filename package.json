@@ -2,7 +2,7 @@
   "name": "web-monetization-extension",
   "description": "Web Monetization is a browser API that allows the creation of a payment stream from the user agent to the website.",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
