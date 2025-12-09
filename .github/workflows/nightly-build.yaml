@@ -127,7 +127,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Create GH Release
-        uses: softprops/action-gh-release@v2.4.2
+        uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
             dist/*.zip
