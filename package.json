@@ -87,7 +87,7 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "pnpm": "^10.18.3",
+    "pnpm": "^10.28.0",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "^24.8.0"
@@ -103,5 +103,5 @@
     }
   },
   "type": "module",
-  "packageManager": "pnpm@10.27.0"
+  "packageManager": "pnpm@10.28.0"
 }
