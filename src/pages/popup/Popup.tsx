@@ -6,7 +6,7 @@ import {
 } from '@/pages/shared/lib/context';
 import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
 import browser from '@/shared/browser';
-import { Route, Router, Switch } from 'wouter';
+import { Route, Router, Switch, type AroundNavHandler } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import * as PAGES from './pages/index';
 
@@ -41,13 +41,22 @@ const Routes = () => (
   </Switch>
 );
 
+const aroundNav: AroundNavHandler = (navigate, to, options) => {
+  // In Firefox on Android, `window.close()` stops working if popup has a
+  // navigation history. We need `window.close()` to close the popup (when
+  // connecting wallet or other actions) to make sure sure user notices tabs
+  // opened by the extension.
+  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=1963122
+  navigate(to, { ...options, replace: true });
+};
+
 export const Popup = () => {
   return (
     <BrowserContextProvider browser={browser}>
       <MessageContextProvider>
         <TranslationContextProvider>
           <WaitForStateLoad>
-            <Router hook={useHashLocation}>
+            <Router hook={useHashLocation} aroundNav={aroundNav}>
               <MainLayout>
                 <Routes />
               </MainLayout>

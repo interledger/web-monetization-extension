@@ -15,7 +15,13 @@ module.exports = {
       width: {
         popup: 'var(--popup-width)',
       },
+      minWidth: {
+        popup: 'var(--popup-width)',
+      },
       height: {
+        popup: 'var(--popup-height)',
+      },
+      minHeight: {
         popup: 'var(--popup-height)',
       },
       textColor: {
