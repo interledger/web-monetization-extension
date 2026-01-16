@@ -61,7 +61,7 @@
     "@types/github-script": "github:actions/github-script#v8.0.0",
     "@types/jest": "^30.0.0",
     "@types/jsdom": "^27.0.0",
-    "@types/node": "^24.10.4",
+    "@types/node": "^24.10.9",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@types/webextension-polyfill": "^0.12.4",
