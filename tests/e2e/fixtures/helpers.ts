@@ -14,7 +14,7 @@ import {
 } from '@playwright/test';
 import { format } from 'date-fns';
 import { APP_URL } from '@/background/constants';
-import { DIST_DIR, ROOT_DIR } from '../../../esbuild/config';
+import { DIST_DIR, ROOT_DIR } from '../../../scripts/esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
 import type { Storage, StorageKey } from '../../../src/shared/types';
 
