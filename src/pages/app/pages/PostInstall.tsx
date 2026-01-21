@@ -21,13 +21,13 @@ import { ROUTES } from '../App';
 export default () => {
   return (
     <div
-      className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center"
+      className="flex min-h-screen flex-col items-center bg-fixed sm:overflow-hidden landscape:justify-center post-install bg-[#FCFCFD] sm:bg-transparent"
       style={{
-        backgroundImage: `url("/assets/images/bg-tile.svg")`,
-        backgroundSize: '40vmax',
+        backgroundImage: 'var(--background-image)',
+        backgroundSize: 'var(--background-image-size)',
       }}
     >
-      <div className="flex min-h-screen w-full max-w-screen-2xl flex-1 grid-cols-2 flex-col items-stretch gap-6 p-3 sm:p-8 landscape:grid landscape:p-4">
+      <div className="flex min-h-screen w-full max-w-screen-2xl flex-1 grid-cols-2 flex-col items-stretch gap-6 py-8 sm:p-8 landscape:grid landscape:p-4">
         <Header />
         <div className="flex items-center">
           <Main />
@@ -65,8 +65,8 @@ const Main = () => {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg border border-gray-200 bg-gray-50/75 p-3 shadow-md backdrop-blur-0 sm:p-8">
-      <h2 className="rounded-sm bg-gray-100 p-2 text-center text-base font-medium sm:rounded-2xl sm:p-4 sm:text-lg">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg sm:border border-gray-200 sm:bg-gray-50/75 p-3 sm:shadow-md backdrop-blur-0 sm:p-8">
+      <h2 className="rounded-2xl bg-gray-100 p-4 text-center text-lg font-medium">
         {t('postInstall_text_title')}
       </h2>
 
@@ -385,11 +385,12 @@ function Step({
           isPrimaryButton && !open
             ? 'bg-button-base text-white hover:bg-button-base-hover'
             : 'bg-white text-weak hover:bg-slate-50',
+          !isPrimaryButton && !open && 'bg-slate-50',
         )}
       >
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Not needed here */}
         <summary
-          className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none"
+          className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none font-medium sm:font-normal"
           onClick={(ev) => {
             // onToggle gets fired when `open` is set (even from prop set on
             // mount). So, we use onClick to catch only user interaction.
@@ -426,7 +427,7 @@ function Step({
 
 function StepNumber({ number }: { number: number }) {
   return (
-    <span className="inline-block shrink-0 rounded-lg bg-black/5 p-1 align-middle text-sm outline outline-1 outline-gray-800/10">
+    <span className="inline-block shrink-0 rounded-lg bg-black/5 p-1 align-middle text-sm outline outline-1 outline-gray-800/10 font-normal">
       <span className="sr-only">Step </span>
       {number}.
     </span>
@@ -460,7 +461,7 @@ function StepConnectWallet({
   }
 
   return (
-    <div className="h-popup mx-auto w-popup pt-4 overflow-hidden">
+    <div className="@container sm:h-popup mx-auto sm:w-popup pt-4 overflow-hidden">
       <ConnectWalletForm
         publicKey={publicKey}
         state={connectState}

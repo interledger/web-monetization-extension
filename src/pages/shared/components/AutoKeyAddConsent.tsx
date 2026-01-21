@@ -41,7 +41,7 @@ export const AutoKeyAddConsent = ({ onAccept, onDecline, intent }: Props) => {
         <p>{t('connectWalletKeyService_text_consentP3')}</p>
       </div>
 
-      <div className="mx-auto flex w-3/4 justify-around gap-4">
+      <div className="mx-auto flex flex-col @sm:flex-row @sm:w-3/4 justify-around gap-4">
         <Button onClick={onAccept}>
           {t('connectWalletKeyService_label_consentAccept')}
         </Button>

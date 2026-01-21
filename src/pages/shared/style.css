@@ -70,6 +70,8 @@
     /* Popup */
     --popup-width: 448px;
     --popup-height: 600px;
+
+    --bg-tile: url('/assets/images/bg-tile.svg');
   }
 
   body {

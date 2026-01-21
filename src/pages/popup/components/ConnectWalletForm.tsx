@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { Input } from '@/pages/shared/components/ui/Input';
-import { Switch } from '@/pages/shared/components/ui/Switch';
+import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { Code } from '@/pages/shared/components/ui/Code';
 import { ErrorMessage } from '@/pages/shared/components/ErrorMessage';
 import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
@@ -405,7 +405,7 @@ export const ConnectWalletForm = ({
         <legend className="flex items-center px-2 font-medium leading-6 text-medium">
           {t('connectWallet_labelGroup_amount')}
         </legend>
-        <div className="flex items-center gap-6">
+        <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
           <AmountInput
             amount={amount}
             isSubmitting={isSubmitting}
@@ -417,17 +417,25 @@ export const ConnectWalletForm = ({
             }}
           />
 
-          <Switch
-            size="small"
-            label={t('connectWallet_label_recurring')}
-            disabled={isSubmitting}
-            checked={recurring}
-            onChange={(ev) => {
-              const value = ev.currentTarget.checked;
-              setRecurring(value);
-              saveValue('recurring', value);
-            }}
-          />
+          <label
+            htmlFor="connectRecurring"
+            className="flex items-center gap-x-4 px-2"
+          >
+            <span className="font-medium text-medium @sm:font-normal flex-grow @sm:flex-grow-0 @sm:order-last">
+              {t('connectWallet_label_recurring')}
+            </span>
+            <SwitchButton
+              id="connectRecurring"
+              size="small"
+              disabled={isSubmitting}
+              checked={recurring}
+              onChange={(ev) => {
+                const value = ev.currentTarget.checked;
+                setRecurring(value);
+                saveValue('recurring', value);
+              }}
+            />
+          </label>
         </div>
 
         {errors.amount && (
@@ -507,7 +515,7 @@ function AmountInput({
       label={t('connectWallet_label_amount')}
       labelHidden={true}
       amount={amount}
-      className="max-w-48"
+      className="@sm:max-w-48"
       walletAddress={
         walletAddressInfo?.walletAddress || {
           assetCode: 'USD',
