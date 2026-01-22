@@ -89,7 +89,6 @@ The high-level project directory structure is as follows:
 .
 ├── .github/ # GitHub Workflows
 ├── docs/ # Repository documentation
-├── esbuild/ # Esbuild configuration
 ├── scripts/ # Script to build the extension (production, development)
 ├── src/ # Extension's source code
 │   ├── _locales/ # Files for multi-language support

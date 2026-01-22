@@ -34,8 +34,7 @@
     "./jest.setup.ts",
     "./scripts/**/*",
     "./tests/e2e/**/*",
-    "./.github/actions/*.ts",
-    "esbuild/**/*"
+    "./.github/actions/*.ts"
   ],
   "exclude": [
     "dist",

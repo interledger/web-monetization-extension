@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const TARGETS = ['chrome', 'firefox', 'safari'] as const;
 export const CHANNELS = ['nightly', 'preview', 'stable'] as const;
 
-export const ROOT_DIR = path.resolve(__dirname, '..');
+export const ROOT_DIR = path.resolve(__dirname, '..', '..');
 export const SRC_DIR = path.resolve(ROOT_DIR, 'src');
 export const DEV_DIR = path.resolve(ROOT_DIR, 'dev');
 export const DIST_DIR = path.resolve(ROOT_DIR, 'dist');
