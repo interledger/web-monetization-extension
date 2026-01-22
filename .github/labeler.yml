@@ -40,7 +40,6 @@
   - changed-files:
       - any-glob-to-any-file:
           - 'scripts/**/*'
-          - 'esbuild/**/*'
 
 'area: tests':
   - changed-files:
