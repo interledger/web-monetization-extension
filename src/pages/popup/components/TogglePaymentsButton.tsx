@@ -30,7 +30,7 @@ export const TogglePaymentsButton = () => {
         aria-label={title}
         className="sr-only"
       />
-      <Power className={'w-6'} />
+      <Power className={'w-6 touch:w-8'} />
     </label>
   );
 };

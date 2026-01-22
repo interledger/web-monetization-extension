@@ -65,6 +65,7 @@ export const options: BuildOptions = {
   legalComments: 'none',
   target: 'es2020',
   platform: 'browser',
+  external: ['*.woff2', '*.svg'],
   format: 'iife',
   write: true,
   logLevel: 'info',

@@ -15,7 +15,6 @@ export const getDevOptions = ({
     sourcemap: 'linked',
     metafile: false,
     minify: false,
-    external: ['*.woff2'],
     plugins: getPlugins({
       outDir,
       dev: true,

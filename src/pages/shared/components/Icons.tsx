@@ -22,8 +22,6 @@ export const Spinner = (props: React.SVGProps<SVGSVGElement>) => {
 export const ArrowBack = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
-      width="25"
-      height="25"
       viewBox="0 0 25 25"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -42,8 +40,6 @@ export const Settings = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="25"
-      height="25"
       viewBox="0 0 25 25"
       fill="none"
       {...props}
@@ -87,8 +83,6 @@ export const Power = (props: React.SVGProps<SVGSVGElement>) => {
 export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
-      width="24"
-      height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -121,8 +115,6 @@ export const DollarSign = (props: React.SVGProps<SVGSVGElement>) => {
 export const WarningSign = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
-      width="24"
-      height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -152,8 +144,6 @@ export const WarningSign = (props: React.SVGProps<SVGSVGElement>) => {
 export const ClipboardIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
-      width="24"
-      height="24"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
