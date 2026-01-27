@@ -52,7 +52,7 @@
     "@jgoz/esbuild-plugin-typecheck": "^4.0.4",
     "@jgoz/jest-esbuild": "^1.0.10",
     "@octokit/openapi-webhooks-types": "^12.1.0",
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.58.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.11",
     "@testing-library/jest-dom": "^6.9.1",
