@@ -239,164 +239,176 @@ export class Background {
   }
 
   bindMessageHandler() {
-    this.browser.runtime.onMessage.addListener(
-      async (message: ToBackgroundMessage, sender: Runtime.MessageSender) => {
-        this.logger.debug('Received message', message.action, message.payload);
-        try {
-          switch (message.action) {
-            // region Popup
-            case 'GET_DATA_POPUP':
-              return success(
-                await this.monetizationService.getPopupData(
-                  await this.windowState.getCurrentTab(),
-                ),
-              );
-
-            case 'GET_CONNECT_WALLET_ADDRESS_INFO':
-              return success(await getConnectWalletInfo(message.payload));
-
-            case 'CONNECT_WALLET': {
-              await this.walletService.connectWallet(message.payload);
-              if (message.payload?.recurring) {
-                await this.scheduleResetOutOfFundsState();
-              }
-              return success(undefined);
-            }
-
-            case 'RESET_CONNECT_STATE':
-              this.walletService.resetConnectState();
-              return success(undefined);
-
-            case 'RECONNECT_WALLET': {
-              const lastActiveTab = await this.windowState.getCurrentTab();
-              await this.walletService.reconnectWallet(message.payload);
-              await this.refreshAllPaymentSessions(lastActiveTab);
-              return success(undefined);
-            }
-
-            case 'UPDATE_BUDGET':
-              await this.walletService.updateBudget(message.payload);
-              return success(undefined);
-
-            case 'ADD_FUNDS':
-              await this.walletService.addFunds(message.payload);
-              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
-              if (message.payload.recurring) {
-                await this.scheduleResetOutOfFundsState();
-              }
-              return;
-
-            case 'DISCONNECT_WALLET':
-              await this.walletService.disconnectWallet(message.payload.force);
-              this.tabState.clearAllState('disconnect');
-              await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
-              await this.updateVisualIndicatorsForCurrentTab();
-              this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
-              return success(undefined);
-
-            case 'TOGGLE_CONTINUOUS_PAYMENTS': {
-              await this.monetizationService.toggleContinuousPayments();
-              await this.updateVisualIndicatorsForCurrentTab();
-              return;
-            }
-
-            case 'TOGGLE_PAYMENTS': {
-              await this.monetizationService.togglePayments();
-              await this.updateVisualIndicatorsForCurrentTab();
-              return;
-            }
-
-            case 'UPDATE_RATE_OF_PAY':
-              return success(
-                await this.storage.updateRate(message.payload.rateOfPay),
-              );
-
-            case 'PAY_WEBSITE':
-              return success(
-                await this.monetizationService.pay(message.payload),
-              );
-
-            case 'OPEN_APP':
-              await this.openAppPage(message.payload.path);
-              return success(undefined);
-
-            case 'OPT_IN_OUT_TELEMETRY': {
-              const { isOptedIn } = message.payload;
-              await this.telemetry.optInOut(isOptedIn);
-              return success(undefined);
-            }
-
-            // endregion
-
-            // region Content
-            case 'GET_WALLET_ADDRESS_INFO':
-              return success(
-                await getWalletInformation(message.payload.walletAddressUrl),
-              );
-
-            case 'TAB_FOCUSED':
-              await this.tabEvents.onFocussedTab(getTab(sender));
-              return;
-
-            case 'PAGE_HIDE':
-              await this.tabEvents.onPageHide(sender);
-              return;
-
-            case 'START_MONETIZATION':
-              await this.monetizationService.startPaymentSession(
-                message.payload,
-                sender,
-              );
-              return;
-
-            case 'STOP_MONETIZATION':
-              await this.monetizationService.stopPaymentSession(
-                message.payload,
-                sender,
-              );
-              return;
-
-            case 'RESUME_MONETIZATION':
-              await this.monetizationService.resumePaymentSession(
-                message.payload,
-                sender,
-              );
-              return;
-
-            // endregion
-
-            // region App
-            case 'GET_DATA_APP':
-              return success(await this.getAppData());
-
-            case 'PROVIDE_CONSENT': {
-              const { consentTelemetry } = message.payload;
-              await this.storage.set({ consent: CURRENT_DATA_CONSENT_VERSION });
-              await this.telemetry.optInOut(consentTelemetry);
-              await this.storage.setState({ consent_required: false });
-              return success(CURRENT_DATA_CONSENT_VERSION);
-            }
-
-            // endregion
-
-            default:
-              return;
-          }
-        } catch (e) {
-          if (isErrorWithKey(e)) {
-            this.logger.error(message.action, e);
-            return failure(errorWithKeyToJSON(e));
-          }
-          if (e instanceof OpenPaymentsClientError) {
-            this.logger.error(message.action, e.message, e.description);
-            return failure(e.description);
-          }
-          this.logger.error(message.action, e.message);
-          return failure(e.message);
-        }
-      },
-    );
+    this.browser.runtime.onMessage.addListener(this.onMessage);
   }
+
+  // TODO: type ReturnType based on message
+  onMessage = async (
+    message: ToBackgroundMessage,
+    sender: Runtime.MessageSender,
+  ) => {
+    this.logger.debug('Received message', message.action, message.payload);
+    try {
+      switch (message.action) {
+        // region Popup
+        case 'GET_DATA_POPUP': {
+          const currentTab = await this.windowState.getCurrentTab();
+          const data = await this.monetizationService.getPopupData(currentTab);
+          return success(data);
+        }
+
+        case 'GET_CONNECT_WALLET_ADDRESS_INFO': {
+          const connectWalletInfo = await getConnectWalletInfo(message.payload);
+          return success(connectWalletInfo);
+        }
+
+        case 'CONNECT_WALLET': {
+          await this.walletService.connectWallet(message.payload);
+          if (message.payload?.recurring) {
+            await this.scheduleResetOutOfFundsState();
+          }
+          return success(undefined);
+        }
+
+        case 'RESET_CONNECT_STATE': {
+          this.walletService.resetConnectState();
+          return success(undefined);
+        }
+
+        case 'RECONNECT_WALLET': {
+          const lastActiveTab = await this.windowState.getCurrentTab();
+          await this.walletService.reconnectWallet(message.payload);
+          await this.refreshAllPaymentSessions(lastActiveTab);
+          return success(undefined);
+        }
+
+        case 'UPDATE_BUDGET': {
+          await this.walletService.updateBudget(message.payload);
+          return success(undefined);
+        }
+
+        case 'ADD_FUNDS': {
+          await this.walletService.addFunds(message.payload);
+          await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
+          if (message.payload.recurring) {
+            await this.scheduleResetOutOfFundsState();
+          }
+          return;
+        }
+
+        case 'DISCONNECT_WALLET': {
+          await this.walletService.disconnectWallet(message.payload.force);
+          this.tabState.clearAllState('disconnect');
+          await this.browser.alarms.clear(ALARM_RESET_OUT_OF_FUNDS);
+          await this.updateVisualIndicatorsForCurrentTab();
+          this.sendToPopup.send('SET_STATE', { state: {}, prevState: {} });
+          return success(undefined);
+        }
+
+        case 'TOGGLE_CONTINUOUS_PAYMENTS': {
+          await this.monetizationService.toggleContinuousPayments();
+          await this.updateVisualIndicatorsForCurrentTab();
+          return;
+        }
+
+        case 'TOGGLE_PAYMENTS': {
+          await this.monetizationService.togglePayments();
+          await this.updateVisualIndicatorsForCurrentTab();
+          return;
+        }
+
+        case 'UPDATE_RATE_OF_PAY': {
+          await this.storage.updateRate(message.payload.rateOfPay);
+          return success(undefined);
+        }
+
+        case 'PAY_WEBSITE': {
+          const res = await this.monetizationService.pay(message.payload);
+          return success(res);
+        }
+
+        case 'OPEN_APP': {
+          await this.openAppPage(message.payload.path);
+          return success(undefined);
+        }
+
+        case 'OPT_IN_OUT_TELEMETRY': {
+          const { isOptedIn } = message.payload;
+          await this.telemetry.optInOut(isOptedIn);
+          return success(undefined);
+        }
+
+        // endregion
+
+        // region Content
+        case 'GET_WALLET_ADDRESS_INFO': {
+          const walletInfo = await getWalletInformation(
+            message.payload.walletAddressUrl,
+          );
+          return success(walletInfo);
+        }
+
+        case 'TAB_FOCUSED':
+          await this.tabEvents.onFocussedTab(getTab(sender));
+          return;
+
+        case 'PAGE_HIDE':
+          await this.tabEvents.onPageHide(sender);
+          return;
+
+        case 'START_MONETIZATION':
+          await this.monetizationService.startPaymentSession(
+            message.payload,
+            sender,
+          );
+          return;
+
+        case 'STOP_MONETIZATION':
+          await this.monetizationService.stopPaymentSession(
+            message.payload,
+            sender,
+          );
+          return;
+
+        case 'RESUME_MONETIZATION':
+          await this.monetizationService.resumePaymentSession(
+            message.payload,
+            sender,
+          );
+          return;
+
+        // endregion
+
+        // region App
+        case 'GET_DATA_APP':
+          return success(await this.getAppData());
+
+        case 'PROVIDE_CONSENT': {
+          const { consentTelemetry } = message.payload;
+          await this.storage.set({ consent: CURRENT_DATA_CONSENT_VERSION });
+          await this.telemetry.optInOut(consentTelemetry);
+          await this.storage.setState({ consent_required: false });
+          return success(CURRENT_DATA_CONSENT_VERSION);
+        }
+
+        // endregion
+
+        default:
+          return;
+      }
+    } catch (e) {
+      if (isErrorWithKey(e)) {
+        this.logger.error(message.action, e);
+        return failure(errorWithKeyToJSON(e));
+      }
+      if (e instanceof OpenPaymentsClientError) {
+        this.logger.error(message.action, e.message, e.description);
+        return failure(e.description);
+      }
+      this.logger.error(message.action, e.message);
+      return failure(e.message);
+    }
+  };
 
   private async updateVisualIndicatorsForCurrentTab() {
     const activeTab = await this.windowState.getCurrentTab();
