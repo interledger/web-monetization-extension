@@ -54,6 +54,35 @@ The UI might be slightly different for different browsers (Chrome, Opera, Edge, 
    1. In the **Developer** tab (in settings), click "**Add Temporary Extension...**"
    1. Locate and select the **folder** containing `manifest.json` (`dist/safari` for production builds, `dev/safari` for development builds).
 
+### Firefox on Android
+
+Detailed instructions are available at [Firefox Extension Workshop](https://extensionworkshop.com/documentation/develop/developing-extensions-for-firefox-for-android/).
+
+1. **Build the extension:** Run `pnpm build firefox` for a production build, or `pnpm dev firefox` for a development build.
+1. **Enable USB debugging on your Android device:**
+   This is usually found in **Settings > Developer options > USB debugging** ([docs](https://developer.android.com/studio/debug/dev-options)).
+1. **Enable USB debugging in Firefox Android:**
+   1. Open Firefox on your Android device, go to **Settings > Advanced**, and
+   1. Enable **Remote debugging via USB**.
+   1. You may need to restart Firefox after enabling this option.
+1. Connect your Android device to your computer via a USB cable..
+1. Install [`web-ext`](https://github.com/mozilla/web-ext) and [`adb`](https://developer.android.com/tools/releases/platform-tools).
+1. Find your Android device ID:
+   ```bash
+   $ adb devices
+   #  List of devices attached
+   #  001793554000841 device
+   #  ^YOUR_DEVICE_ID
+   ```
+1. Run `web-ext run` with the source being `dist/firefox` directory (for production builds) or `dev/firefox` directory (for development builds); and target as `firefox-android`.
+   ```bash
+   web-ext run -s /path/to/ext-with-manifest-file -t firefox-android --adb-device=YOUR_DEVICE_ID
+   # web-ext run -s ./dev/firefox/ -t firefox-android --adb-device=001793554000841
+   ```
+1. The extension should now be installed and running in Firefox Android.
+   - You can open `about:debugging` page on your computer's Firefox, and **Connect** to your Android device and inspect the extension.
+   - On your Android device, you can see the extension listed in under **Menu > Extensions**. You can access the extension's UI page from there.
+
 ## Install Pre-built Versions
 
 You can also install pre-built versions, such as [nightly builds](https://github.com/interledger/web-monetization-extension/releases/tag/nightly) or any .zip files from the [releases page](https://github.com/interledger/web-monetization-extension/releases). These are ready to use and don't require a development environment.
@@ -61,4 +90,4 @@ You can also install pre-built versions, such as [nightly builds](https://github
 The installation process is similar to installing from source, with one key difference:
 
 - Instead of selecting a `dist` or `dev` folder, you'll load the relevant `.zip` file.
-- For **Chromium-based browsers, you must first extract (unzip) the `.zip` file** before loading it using the **Load unpacked** option. For Firefox, you can select the `.zip` file directly.
+- For **Chromium-based browsers and Firefox on Android, you must first extract (unzip) the `.zip` file** before loading it using the **Load unpacked** option. For Firefox (desktop), you can select the `.zip` file directly.

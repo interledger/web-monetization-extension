@@ -54,6 +54,9 @@
       },
       "id": "tech@interledger.com"
     },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    },
     "safari": {
       "strict_min_version": "16.4"
     }

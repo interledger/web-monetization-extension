@@ -77,6 +77,7 @@ type WalletOption = {
   url: string;
   logo: { src: string; width: number; height: number };
   walletAddressScreenshot: { src: string; width: number; height: number };
+  walletAddressScreenshotMobile: { src: string }; // mobile screenshots have fixed width/height
   walletAddressPlaceholder: string;
 };
 
@@ -95,6 +96,9 @@ const WALLETS: Array<WalletOption> = [
       width: 1500,
       height: 836,
     },
+    walletAddressScreenshotMobile: {
+      src: '/assets/images/wallet-address-interledger.mobile.png',
+    },
     walletAddressPlaceholder: 'https://ilp.link/my-wallet',
   },
   {
@@ -111,6 +115,9 @@ const WALLETS: Array<WalletOption> = [
       width: 1829,
       height: 984,
     },
+    walletAddressScreenshotMobile: {
+      src: '/assets/images/wallet-address-gatehub.mobile.png',
+    },
     walletAddressPlaceholder: '$ilp.gatehub.net/150012570/usd',
   },
   {
@@ -126,6 +133,9 @@ const WALLETS: Array<WalletOption> = [
       src: '/assets/images/wallet-address-chimoney.png',
       width: 1500,
       height: 938,
+    },
+    walletAddressScreenshotMobile: {
+      src: '/assets/images/wallet-address-chimoney.mobile.png',
     },
     walletAddressPlaceholder: 'https://ilp.chimoney.com/37294745',
   },
@@ -162,6 +172,8 @@ const Steps = () => {
   }, []);
 
   const isSafari = browserInfo.name === 'safari';
+  const isFirefoxAndroid =
+    browserInfo.name === 'firefox' && browserInfo.platform.os === 'android';
 
   return (
     <ol className="flex flex-col gap-4">
@@ -229,38 +241,48 @@ const Steps = () => {
         onClick={onClick}
         title={t('postInstall_text_stepWalletAddress_title')}
       >
-        <img
-          {...selectedWallet.walletAddressScreenshot}
-          alt={`Screenshot of wallet address for ${selectedWallet.name}`}
-          className="mx-auto p-4 shadow-2xl"
-        />
+        <picture>
+          <source
+            media="(max-width: 40rem)"
+            srcSet={selectedWallet.walletAddressScreenshotMobile.src}
+            width={1125}
+            height={2496}
+          />
+          <img
+            {...selectedWallet.walletAddressScreenshot}
+            alt={`Screenshot of wallet address for ${selectedWallet.name}`}
+            className="mx-auto p-4 shadow-2xl sm:w-auto w-9/12"
+          />
+        </picture>
       </Step>
 
-      <Step
-        id={STEP_ID[2]}
-        index={2}
-        open={isOpen === STEP_ID[2]}
-        onClick={onClick}
-        title={t('postInstall_text_stepPin_title')}
-      >
-        <p>
-          {t('postInstall_text_stepPin_desc')}
-          {isPinnedToToolbar && (
-            <span> {t('postInstall_text_stepPin_descComplete')}</span>
-          )}
-        </p>
-        <img
-          src={imgSrc(browserInfo.name, {
-            chrome: '/assets/images/pin-extension-chrome.png',
-            firefox: '/assets/images/pin-extension-firefox.png',
-            safari: '/assets/images/pin-extension-safari.mp4',
-            edge: '/assets/images/pin-extension-edge.png',
-          })}
-          className="mx-auto max-w-[90%]"
-          style={{ maxHeight: 'max(35vh, 18rem)' }}
-          alt=""
-        />
-      </Step>
+      {!isFirefoxAndroid && (
+        <Step
+          id={STEP_ID[2]}
+          index={2}
+          open={isOpen === STEP_ID[2]}
+          onClick={onClick}
+          title={t('postInstall_text_stepPin_title')}
+        >
+          <p>
+            {t('postInstall_text_stepPin_desc')}
+            {isPinnedToToolbar && (
+              <span> {t('postInstall_text_stepPin_descComplete')}</span>
+            )}
+          </p>
+          <img
+            src={imgSrc(browserInfo.name, {
+              chrome: '/assets/images/pin-extension-chrome.png',
+              firefox: '/assets/images/pin-extension-firefox.png',
+              safari: '/assets/images/pin-extension-safari.mp4',
+              edge: '/assets/images/pin-extension-edge.png',
+            })}
+            className="mx-auto max-w-[90%]"
+            style={{ maxHeight: 'max(35vh, 18rem)' }}
+            alt=""
+          />
+        </Step>
+      )}
 
       {/* Add this special step for Safari as without this permission beforehand, Safari requires pages being reloaded for extension to work. This can help with other browsers as well (conditioning on whether we've the permissions, instead of just the browserName), but let's do only for Safari for now. */}
       {isSafari && (
@@ -293,7 +315,7 @@ const Steps = () => {
       <Step
         isPrimaryButton={true}
         id={STEP_ID[4]}
-        index={isSafari ? 4 : 3}
+        index={isSafari ? 4 : isFirefoxAndroid ? 2 : 3}
         open={isOpen === STEP_ID[4]}
         onClick={onClick}
         title={t('postInstall_action_submit')}
