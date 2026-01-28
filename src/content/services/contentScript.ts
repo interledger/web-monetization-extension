@@ -4,7 +4,6 @@ import { failure, success } from '@/shared/messages';
 
 export class ContentScript {
   private browser: Cradle['browser'];
-  private window: Cradle['window'];
   private logger: Cradle['logger'];
   private monetizationLinkManager: Cradle['monetizationLinkManager'];
   private frameManager: Cradle['frameManager'];
@@ -21,7 +20,6 @@ export class ContentScript {
   }: Cradle) {
     Object.assign(this, {
       browser,
-      window,
       logger,
       monetizationLinkManager,
       frameManager,
@@ -34,7 +32,6 @@ export class ContentScript {
   }
 
   async start() {
-    await this.injectPolyfill();
     if (this.isFirstLevelFrame) {
       this.logger.info('Content script started');
 
@@ -68,20 +65,5 @@ export class ContentScript {
         }
       },
     );
-  }
-
-  // TODO: When Firefox has good support for `world: MAIN`, inject this directly
-  // via manifest.json https://bugzilla.mozilla.org/show_bug.cgi?id=1736575 and
-  // remove this, along with injectPolyfill from background
-  // See: https://github.com/interledger/web-monetization-extension/issues/607
-  async injectPolyfill() {
-    const document = this.window.document;
-    const script = document.createElement('script');
-    script.src = this.browser.runtime.getURL('polyfill/polyfill.js');
-    await new Promise<void>((resolve) => {
-      script.addEventListener('load', () => resolve(), { once: true });
-      document.documentElement.appendChild(script);
-    });
-    script.remove();
   }
 }

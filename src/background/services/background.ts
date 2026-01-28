@@ -74,7 +74,6 @@ export class Background {
     this.logger.info('Background started');
     this.bindOnInstalled();
     this.bindMessageHandler();
-    await this.injectPolyfill();
     await this.onStart();
     this.heartbeat.start();
     void this.telemetry.start();
@@ -91,39 +90,6 @@ export class Background {
     await this.monetizationService
       .resumePaymentSessionActiveTab()
       .catch(() => {}); // if tabs not ready yet
-  }
-
-  // TODO: When Firefox 128 is old enough, inject directly via manifest.
-  // Also see: injectPolyfill in contentScript
-  // See: https://github.com/interledger/web-monetization-extension/issues/607
-  async injectPolyfill() {
-    try {
-      await this.browser.scripting.registerContentScripts([
-        {
-          world: 'MAIN',
-          id: 'polyfill',
-          allFrames: true,
-          js: ['polyfill/polyfill.js'],
-          matches: this.browser.runtime.getManifest().host_permissions,
-          runAt: 'document_start',
-          persistAcrossSessions: false,
-        },
-      ]);
-    } catch (error) {
-      if (/duplicate/i.test(error.message)) {
-        return;
-      }
-      // Firefox <128 will throw saying world: MAIN isn't supported. So, we'll
-      // inject via contentScript later. Injection via contentScript is slow,
-      // but apart from WM detection on page-load, everything else works fine.
-      if (!error.message.includes('world')) {
-        this.logger.error(
-          'Content script execution world `MAIN` not supported by your browser.\n' +
-            'Check https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/scripting/ExecutionWorld#browser_compatibility for browser compatibility.',
-          error,
-        );
-      }
-    }
   }
 
   async onStart() {
