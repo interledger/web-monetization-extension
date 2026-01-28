@@ -160,6 +160,7 @@ function processManifestPlugin({
           };
           json.browser_specific_settings = {
             gecko: json.browser_specific_settings!.gecko,
+            gecko_android: json.browser_specific_settings!.gecko_android,
           };
           json.minimum_chrome_version = undefined;
         } else if (target === 'safari') {

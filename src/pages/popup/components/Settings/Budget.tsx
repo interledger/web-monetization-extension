@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch } from '@/pages/shared/components/ui/Switch';
+import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
 import { ErrorMessage } from '@/pages/shared/components/ErrorMessage';
@@ -114,12 +114,12 @@ const BudgetAmount = ({
 
   return (
     <form className="space-y-2" onSubmit={onSubmit}>
-      <div className="flex items-center gap-4">
+      <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
         <InputAmount
           id="budgetAmount"
           label="Budget amount"
           walletAddress={walletAddress}
-          className="max-w-56"
+          className="@sm:max-w-48"
           amount={amount}
           onChange={(amount) => {
             setErrors((prev) => ({ ...prev, amount: null }));
@@ -134,15 +134,18 @@ const BudgetAmount = ({
           }}
           errorMessage={errors.amount?.message}
         />
-        <div>
-          <span
-            className="font-medium leading-6 text-medium"
-            aria-hidden="true"
-          >
-            &nbsp;
+
+        <label
+          htmlFor="budgetRecurring"
+          className="flex items-center gap-x-4 px-2 @sm:mt-7"
+        >
+          <span className="font-medium text-medium @sm:font-normal flex-grow @sm:flex-grow-0 @sm:order-last">
+            Monthly
           </span>
-          <Switch
-            label="Monthly"
+          <SwitchButton
+            id="budgetRecurring"
+            size="small"
+            disabled={isSubmitting}
             checked={recurring}
             onChange={(ev) => {
               const checked = ev.currentTarget.checked;
@@ -153,7 +156,7 @@ const BudgetAmount = ({
               }));
             }}
           />
-        </div>
+        </label>
       </div>
       {renewDate && (
         <p className="px-2 text-xs" data-testid="renew-date-msg">
@@ -173,7 +176,7 @@ const BudgetAmount = ({
         </p>
       )}
 
-      <div className="space-y-1">
+      <div className="space-y-1 pt-4">
         {errors.root?.message && <ErrorMessage error={errors.root.message} />}
 
         <Button
