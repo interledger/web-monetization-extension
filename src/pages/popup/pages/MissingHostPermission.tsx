@@ -1,12 +1,16 @@
 import React from 'react';
 import { WarningSign } from '@/pages/shared/components/Icons';
-import { useBrowser, useTranslation } from '@/popup/lib/context';
-import { getBrowserName } from '@/shared/helpers';
+import {
+  useBrowser,
+  useBrowserInfo,
+  useTranslation,
+} from '@/popup/lib/context';
 
 export default () => {
   const browser = useBrowser();
+  const browserInfo = useBrowserInfo();
   const t = useTranslation();
-  const browserName = getBrowserName(browser, navigator.userAgent);
+
   return (
     <div
       className="rounded-md bg-orange-50 p-4 text-sm"
@@ -31,7 +35,7 @@ export default () => {
           return browser.permissions.request({ origins }).finally(() => {
             // So we open popup with refreshed state, avoiding additional message passing.
             // Firefox closes popup automatically.
-            if (browserName === 'safari') {
+            if (browserInfo.name === 'safari') {
               // Safari won't allow closing popup, so reload instead
               window.location.reload();
             } else {

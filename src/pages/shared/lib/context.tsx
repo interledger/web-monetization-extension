@@ -1,9 +1,11 @@
 import React, { type PropsWithChildren } from 'react';
 import { PostHog } from 'posthog-js/dist/module.no-external';
 import { POSTHOG_KEY, POSTHOG_HOST } from '@/shared/defines';
-import type { Browser } from 'webextension-polyfill';
+import type { Browser, Runtime } from 'webextension-polyfill';
 import {
+  getBrowserName,
   tFactory,
+  type BrowserName,
   type ErrorWithKeyLike,
   type Translation,
 } from '@/shared/helpers';
@@ -22,6 +24,36 @@ export const BrowserContextProvider = ({
     <BrowserContext.Provider value={browser}>
       {children}
     </BrowserContext.Provider>
+  );
+};
+// #endregion
+
+// #region BrowserInfo
+type BrowserInfo = {
+  name: BrowserName;
+  ua: string;
+  platform: Partial<Runtime.PlatformInfo>;
+};
+
+const BrowserInfoContext = React.createContext({} as BrowserInfo);
+
+export const useBrowserInfo = () => React.useContext(BrowserInfoContext);
+
+export const BrowserInfoContextProvider = ({ children }: PropsWithChildren) => {
+  const browser = useBrowser();
+  const [platform, setPlatform] = React.useState<BrowserInfo['platform']>({});
+
+  const ua = navigator.userAgent;
+  const name = getBrowserName(browser, ua);
+
+  React.useEffect(() => {
+    browser.runtime.getPlatformInfo().then(setPlatform);
+  }, [browser]);
+
+  return (
+    <BrowserInfoContext.Provider value={{ name, ua, platform }}>
+      {children}
+    </BrowserInfoContext.Provider>
   );
 };
 // #endregion

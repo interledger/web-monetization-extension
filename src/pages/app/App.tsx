@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   BrowserContextProvider,
+  BrowserInfoContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
 import browser from '@/shared/browser';
@@ -28,11 +29,13 @@ export const App = () => {
     <BrowserContextProvider browser={browser}>
       <TranslationContextProvider>
         <MessageContextProvider>
-          <WaitForStateLoad>
-            <Router hook={useHashLocation} base="/post-install">
-              <Routes />
-            </Router>
-          </WaitForStateLoad>
+          <BrowserInfoContextProvider>
+            <WaitForStateLoad>
+              <Router hook={useHashLocation} base="/post-install">
+                <Routes />
+              </Router>
+            </WaitForStateLoad>
+          </BrowserInfoContextProvider>
         </MessageContextProvider>
       </TranslationContextProvider>
     </BrowserContextProvider>

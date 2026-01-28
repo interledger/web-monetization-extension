@@ -11,7 +11,11 @@ import {
 } from '@/pages/shared/lib/context';
 import { dispatch } from './store';
 
-export { useBrowser, useTranslation } from '@/pages/shared/lib/context';
+export {
+  useBrowser,
+  useBrowserInfo,
+  useTranslation,
+} from '@/pages/shared/lib/context';
 
 export function WaitForStateLoad({ children }: React.PropsWithChildren) {
   const message = useMessage();
