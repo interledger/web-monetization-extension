@@ -2,6 +2,7 @@ import React from 'react';
 import { MainLayout } from '@/popup/components/layout/MainLayout';
 import {
   BrowserContextProvider,
+  BrowserInfoContextProvider,
   TranslationContextProvider,
 } from '@/pages/shared/lib/context';
 import { MessageContextProvider, WaitForStateLoad } from '@/popup/lib/context';
@@ -46,13 +47,15 @@ export const Popup = () => {
     <BrowserContextProvider browser={browser}>
       <MessageContextProvider>
         <TranslationContextProvider>
-          <WaitForStateLoad>
-            <Router hook={useHashLocation}>
-              <MainLayout>
-                <Routes />
-              </MainLayout>
-            </Router>
-          </WaitForStateLoad>
+          <BrowserInfoContextProvider>
+            <WaitForStateLoad>
+              <Router hook={useHashLocation}>
+                <MainLayout>
+                  <Routes />
+                </MainLayout>
+              </Router>
+            </WaitForStateLoad>
+          </BrowserInfoContextProvider>
         </TranslationContextProvider>
       </MessageContextProvider>
     </BrowserContextProvider>

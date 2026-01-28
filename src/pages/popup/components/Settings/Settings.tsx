@@ -3,12 +3,12 @@ import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { CaretDownIcon } from '@/pages/shared/components/Icons';
 import {
   useBrowser,
+  useBrowserInfo,
   useTelemetry,
   useTranslation,
 } from '@/pages/shared/lib/context';
 import { dispatch, usePopupState } from '@/popup/lib/store';
 import { useMessage } from '@/popup/lib/context';
-import { getBrowserName } from '@/shared/helpers';
 import type { Browser } from '@/shared/browser';
 
 export function SettingsScreen() {
@@ -25,7 +25,7 @@ function DataCollectionSettings() {
   const { consentTelemetry = false } = usePopupState();
   const telemetry = useTelemetry();
   const browser = useBrowser();
-  const browserName = getBrowserName(browser, navigator.userAgent);
+  const browserInfo = useBrowserInfo();
 
   return (
     <details className="border p-4 rounded-md space-y-2 group" open>
@@ -47,7 +47,7 @@ function DataCollectionSettings() {
           checked={consentTelemetry}
           onChange={async (ev) => {
             const isOptedIn = ev.currentTarget.checked;
-            if (browserName === 'firefox') {
+            if (browserInfo.name === 'firefox') {
               const ok = await handleFirefoxDataCollectionPermission(
                 isOptedIn,
                 browser,

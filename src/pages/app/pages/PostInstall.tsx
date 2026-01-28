@@ -5,13 +5,9 @@ import {
   CaretDownIcon,
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
-import {
-  getBrowserName,
-  isConsentRequired,
-  type BrowserName,
-} from '@/shared/helpers';
+import { isConsentRequired, type BrowserName } from '@/shared/helpers';
 import { getResponseOrThrow } from '@/shared/messages';
-import { useBrowser, useTranslation } from '@/app/lib/context';
+import { useBrowser, useBrowserInfo, useTranslation } from '@/app/lib/context';
 import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
 import { cn } from '@/pages/shared/lib/utils';
 import { useMessage } from '@/app/lib/context';
@@ -146,9 +142,9 @@ type StepId = (typeof STEP_ID)[number];
 
 const Steps = () => {
   const browser = useBrowser();
+  const browserInfo = useBrowserInfo();
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
-  const browserName = getBrowserName(browser, navigator.userAgent);
   const hasAllHostsPermission = useHasAllHostsPermission();
 
   const [selectedWallet, setSelectedWallet] = React.useState<WalletOption>(
@@ -164,6 +160,8 @@ const Steps = () => {
       return STEP_ID[idx + 1];
     });
   }, []);
+
+  const isSafari = browserInfo.name === 'safari';
 
   return (
     <ol className="flex flex-col gap-4">
@@ -252,7 +250,7 @@ const Steps = () => {
           )}
         </p>
         <img
-          src={imgSrc(browserName, {
+          src={imgSrc(browserInfo.name, {
             chrome: '/assets/images/pin-extension-chrome.png',
             firefox: '/assets/images/pin-extension-firefox.png',
             safari: '/assets/images/pin-extension-safari.mp4',
@@ -265,7 +263,7 @@ const Steps = () => {
       </Step>
 
       {/* Add this special step for Safari as without this permission beforehand, Safari requires pages being reloaded for extension to work. This can help with other browsers as well (conditioning on whether we've the permissions, instead of just the browserName), but let's do only for Safari for now. */}
-      {browserName === 'safari' && (
+      {isSafari && (
         <Step
           id={STEP_ID[3]}
           index={3}
@@ -295,7 +293,7 @@ const Steps = () => {
       <Step
         isPrimaryButton={true}
         id={STEP_ID[4]}
-        index={browserName === 'safari' ? 4 : 3}
+        index={isSafari ? 4 : 3}
         open={isOpen === STEP_ID[4]}
         onClick={onClick}
         title={t('postInstall_action_submit')}

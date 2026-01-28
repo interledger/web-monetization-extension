@@ -1,8 +1,13 @@
 import React from 'react';
 import { Redirect } from 'wouter';
-import { getBrowserName, isConsentRequired } from '@/shared/helpers';
+import { isConsentRequired } from '@/shared/helpers';
 import { getResponseOrThrow } from '@/shared/messages';
-import { useBrowser, useMessage, useTranslation } from '@/app/lib/context';
+import {
+  useBrowser,
+  useBrowserInfo,
+  useMessage,
+  useTranslation,
+} from '@/app/lib/context';
 import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
@@ -214,14 +219,14 @@ function AcceptForm({
   const { connected, consent } = useAppState();
   const message = useMessage();
   const browser = useBrowser();
+  const browserInfo = useBrowserInfo();
   const hasChanges = useAcceptFormHasChanges(telemetryConsentRef);
-  const browserName = getBrowserName(browser, navigator.userAgent);
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
     const formData = new FormData(ev.currentTarget);
     let consentTelemetry = formData.get('consent-field-telemetry') === 'on';
-    if (browserName === 'firefox') {
+    if (browserInfo.name === 'firefox') {
       const permission = {
         data_collection: ['technicalAndInteraction' as const],
       };
