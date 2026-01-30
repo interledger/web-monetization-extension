@@ -93,9 +93,14 @@ export class Background {
   }
 
   async onStart() {
-    const activeWindow = await this.browser.windows.getLastFocused();
-    if (activeWindow.id) {
-      this.windowState.setCurrentWindowId(activeWindow.id);
+    if (this.browser.windows) {
+      const activeWindow = await this.browser.windows.getLastFocused();
+      if (activeWindow.id) {
+        this.windowState.setCurrentWindowId(activeWindow.id);
+      }
+    } else {
+      this.logger.warn('windows API not available');
+      this.windowState.setCurrentWindowId(1);
     }
     await this.storage.populate();
     await this.checkPermissions();
@@ -147,6 +152,11 @@ export class Background {
   }
 
   bindWindowHandlers() {
+    if (!this.browser.windows) {
+      this.logger.warn('windows API not available, skipping window handlers');
+      return;
+    }
+
     this.browser.windows.onCreated.addListener(
       this.windowState.onWindowCreated,
     );

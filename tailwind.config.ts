@@ -1,5 +1,7 @@
 import type { Config } from 'tailwindcss';
+import plugin from 'tailwindcss/plugin';
 import forms from '@tailwindcss/forms';
+import containerQueries from '@tailwindcss/container-queries';
 import { fontFamily } from 'tailwindcss/defaultTheme';
 
 module.exports = {
@@ -15,7 +17,13 @@ module.exports = {
       width: {
         popup: 'var(--popup-width)',
       },
+      minWidth: {
+        popup: 'var(--popup-width)',
+      },
       height: {
+        popup: 'var(--popup-height)',
+      },
+      minHeight: {
         popup: 'var(--popup-height)',
       },
       textColor: {
@@ -53,5 +61,11 @@ module.exports = {
       },
     },
   },
-  plugins: [forms],
+  plugins: [
+    forms,
+    containerQueries,
+    plugin(({ addVariant }) => {
+      addVariant('touch', '@media (pointer: coarse)');
+    }),
+  ],
 } satisfies Config;

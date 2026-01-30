@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch } from '@/pages/shared/components/ui/Switch';
+import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
 import { debounceAsync } from '@/shared/helpers';
 import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
@@ -57,12 +57,21 @@ export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
       />
 
       <div className="space-y-2">
-        <Switch
-          checked={continuousPaymentsEnabled}
-          onChange={toggle}
-          label="Continuous payment"
-          data-testid="continuous-payments-toggle"
-        />
+        <label
+          htmlFor="continuous-payments-toggle"
+          className="flex items-center gap-x-4 px-2 @sm:mt-7"
+        >
+          <span className="font-medium text-medium @sm:font-normal flex-grow @sm:flex-grow-0 @sm:order-last">
+            Continuous payment
+          </span>
+          <SwitchButton
+            id="continuous-payments-toggle"
+            data-testid="continuous-payments-toggle"
+            size="small"
+            checked={continuousPaymentsEnabled}
+            onChange={toggle}
+          />
+        </label>
 
         {!continuousPaymentsEnabled ? (
           <p className="text-weak">
@@ -108,7 +117,7 @@ const RateOfPayInput = ({
   return (
     <InputAmount
       id="rateOfPay"
-      className="max-w-56"
+      className="@sm:max-w-48"
       label="Rate of pay per hour"
       walletAddress={walletAddress}
       onChange={(value) => {

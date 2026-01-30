@@ -38,10 +38,12 @@ export enum ErrorCode {
 }
 
 export const getCurrentActiveTab = async (browser: Browser) => {
-  const window = await browser.windows.getLastFocused();
+  const window = browser.windows
+    ? await browser.windows.getLastFocused()
+    : null;
   const activeTabs = await browser.tabs.query({
     active: true,
-    windowId: window.id,
+    windowId: window?.id,
   });
   return activeTabs[0];
 };
