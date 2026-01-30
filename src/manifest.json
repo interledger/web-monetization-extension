@@ -17,6 +17,13 @@
       "js": ["content/content.js"],
       "run_at": "document_start",
       "all_frames": true
+    },
+    {
+      "matches": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+      "js": ["polyfill/polyfill.js"],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
     }
   ],
   "background": {
@@ -29,11 +36,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "polyfill/*",
-        "pages/progress-connect/*",
-        "assets/fonts/**/*"
-      ],
+      "resources": ["pages/progress-connect/*", "assets/fonts/**/*"],
       "matches": ["<all_urls>"]
     }
   ],
@@ -47,7 +50,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "strict_min_version": "110.0",
+      "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["financialAndPaymentInfo"],
         "optional": ["technicalAndInteraction"]
