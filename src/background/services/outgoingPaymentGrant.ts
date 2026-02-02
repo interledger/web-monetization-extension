@@ -5,7 +5,7 @@ import type {
   WalletAmount,
 } from '@/shared/types';
 import {
-  isFinalizedGrant,
+  isFinalizedGrantWithAccessToken,
   isPendingGrant,
   type Grant,
   type PendingGrant,
@@ -163,7 +163,7 @@ export class OutgoingPaymentGrantService {
       intent,
       tabId,
     );
-    if (!isFinalizedGrant(continuation)) {
+    if (!isFinalizedGrantWithAccessToken(continuation)) {
       throw new Error(
         'Expected finalized grant. Received non-finalized grant.',
       );
@@ -429,8 +429,8 @@ export class OutgoingPaymentGrantService {
       type: recurring ? 'recurring' : 'one-time',
       amount: amount as Required<WalletAmount>,
       accessToken: {
-        value: continuation.access_token.value,
-        manageUrl: continuation.access_token.manage,
+        value: continuation.access_token!.value,
+        manageUrl: continuation.access_token!.manage,
       },
       continue: {
         accessToken: continuation.continue.access_token.value,

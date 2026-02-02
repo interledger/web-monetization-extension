@@ -333,6 +333,9 @@ export class PaymentSession {
         'Expected non-interactive grant. Received pending grant.',
       );
     }
+    if (!incomingPaymentGrant.access_token) {
+      throw new Error('Incoming payment grant did not include access token.');
+    }
 
     const incomingPayment =
       await this.openPaymentsService.client.incomingPayment.create(
