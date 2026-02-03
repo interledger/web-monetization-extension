@@ -63,17 +63,5 @@ function getMatrix(projects: Project[]) {
       target: 'chrome',
       'runs-on': 'ubuntu-24.04',
     },
-    {
-      name: 'Chrome',
-      project: 'chrome' as Project,
-      target: 'chrome',
-      'runs-on': 'ubuntu-24.04',
-    },
-    {
-      name: 'Edge',
-      project: 'msedge' as Project,
-      target: 'chrome',
-      'runs-on': 'ubuntu-24.04',
-    },
   ].filter((p) => projects.includes(p.project));
 }
