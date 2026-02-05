@@ -6,7 +6,7 @@ Run `pnpm test` to run unit tests locally. These tests are run automatically on 
 
 ## End-to-end Tests
 
-To run end-to-end tests, run `pnpm test:e2e` in terminal. To run tests with Chrome only, run `pnpm test:e2e:chrome`.
+To run end-to-end tests, run `pnpm test:e2e` in terminal. To run tests with Chrome only, run `pnpm test:e2e:chromium`.
 
 Make sure you run `pnpm build chrome` before running tests.
 

@@ -20,8 +20,6 @@
     "test:watch": "jest --watch",
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium",
-    "test:e2e:chrome": "playwright test --project=chrome",
-    "test:e2e:msedge": "playwright test --project=msedge",
     "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
     "test:ci": "jest --reporters=default --reporters=github-actions"
   },
