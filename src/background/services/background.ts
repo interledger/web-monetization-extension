@@ -1,4 +1,5 @@
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
+import { BUILD_TARGET } from '@/shared/defines';
 import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
@@ -12,10 +13,10 @@ import {
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getTab, highlightTab } from '@/background/utils';
+import { getTab, highlightTab, isSecureContext } from '@/background/utils';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
-import type { AppStore } from '@/shared/types';
+import type { AppStore, Tab } from '@/shared/types';
 
 type AlarmCallback = Parameters<Browser['alarms']['onAlarm']['addListener']>[0];
 const ALARM_RESET_OUT_OF_FUNDS = 'reset-out-of-funds';
@@ -477,10 +478,39 @@ export class Background {
           );
         }
       }
+      await this.notifyWebsitesExtensionInstall();
       if (isConsentRequired(data.consent)) {
         await this.storage.setState({ consent_required: true });
       }
     });
+  }
+
+  /**
+   * Firefox, Safari inject script to existing tabs on install.
+   *
+   * For others (mainly Chromium based ones) inject the polyfill manually so
+   * websites can detect extension installation (AKA, WM now supported).
+   */
+  private async notifyWebsitesExtensionInstall() {
+    if (BUILD_TARGET === 'firefox' || BUILD_TARGET === 'safari') {
+      return;
+    }
+
+    const allTabs = await this.browser.tabs.query({});
+    const tabs = allTabs.filter((t) => t.id && t.url && isSecureContext(t.url));
+    const injectPolyfill = (tab: Tab) => {
+      return this.browser.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['polyfill/polyfill.js'],
+        world: 'MAIN',
+        injectImmediately: true,
+      });
+    };
+    const result = await Promise.allSettled(tabs.map(injectPolyfill));
+    const injectedCount = result.filter((r) => r.status === 'fulfilled').length;
+    this.logger.log(
+      `injected polyfill to ${injectedCount}/${tabs.length} existing tabs`,
+    );
   }
 
   checkPermissions = async () => {

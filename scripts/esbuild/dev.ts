@@ -24,6 +24,7 @@ export const getDevOptions = ({
     }).concat([liveReloadPlugin({ target })]),
     define: {
       NODE_ENV: JSON.stringify('development'),
+      VAR_BUILD_TARGET: JSON.stringify(target),
       CONFIG_LOG_LEVEL: JSON.stringify('TRACE'),
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
         'https://webmonetization.org/welcome',
