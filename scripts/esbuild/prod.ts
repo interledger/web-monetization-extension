@@ -35,6 +35,7 @@ export const getProdOptions = ({
     ]),
     define: {
       NODE_ENV: JSON.stringify('production'),
+      VAR_BUILD_TARGET: JSON.stringify(target),
       CONFIG_LOG_LEVEL: JSON.stringify('WARN'),
       CONFIG_OPEN_PAYMENTS_REDIRECT_URL: JSON.stringify(
         'https://webmonetization.org/welcome',

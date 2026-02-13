@@ -5,10 +5,12 @@ declare const CONFIG_LOG_SERVER_ENDPOINT: string | false;
 declare const CONFIG_OPEN_PAYMENTS_REDIRECT_URL: string;
 declare const CONFIG_POSTHOG_KEY: string;
 declare const CONFIG_POSTHOG_HOST: string;
+declare const VAR_BUILD_TARGET: 'chrome' | 'firefox' | 'safari';
 
 export const LOG_LEVEL = CONFIG_LOG_LEVEL;
 export const LOG_SERVER_ENDPOINT = CONFIG_LOG_SERVER_ENDPOINT;
 export const OPEN_PAYMENTS_REDIRECT_URL = CONFIG_OPEN_PAYMENTS_REDIRECT_URL;
+export const BUILD_TARGET = VAR_BUILD_TARGET;
 
 export const POSTHOG_KEY = CONFIG_POSTHOG_KEY;
 export const POSTHOG_HOST = CONFIG_POSTHOG_HOST;
