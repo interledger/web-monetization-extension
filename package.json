@@ -28,7 +28,7 @@
     "@noble/ed25519": "^3.0.0",
     "@noble/hashes": "^2.0.1",
     "@radix-ui/react-tabs": "^1.1.13",
-    "awilix": "^12.1.1",
+    "awilix": "^13.0.0",
     "class-variance-authority": "^0.7.1",
     "crypto-browserify": "^3.12.1",
     "date-fns": "^4.1.0",

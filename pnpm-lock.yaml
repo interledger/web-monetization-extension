@@ -29,8 +29,8 @@ importers:
         specifier: ^1.1.13
         version: 1.1.13(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       awilix:
-        specifier: ^12.1.1
-        version: 12.1.1
+        specifier: ^13.0.0
+        version: 13.0.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1859,8 +1859,8 @@ packages:
     peerDependencies:
       postcss: ^8.1.0
 
-  awilix@12.1.1:
-    resolution: {integrity: sha512-A93ak7Ypot8YlkfulCBL4GCkZozuwdfwOJs+4l8+svJYCfXKuokLxWe/usTiatN1dlPOdT5HO0MBpNNTzZSWug==}
+  awilix@13.0.0:
+    resolution: {integrity: sha512-kVpYTF+hFM3KD1EeMZvdRBbhY2UufBk1DAony89CeywsNGn8IaofSK4h9rnm8FehnptYk6iY8eVDlRNRHB4vdg==}
     engines: {node: '>=16.3.0'}
 
   b4a@1.6.6:
@@ -5508,7 +5508,7 @@ snapshots:
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
 
-  awilix@12.1.1:
+  awilix@13.0.0:
     dependencies:
       fast-glob: 3.3.3
 
