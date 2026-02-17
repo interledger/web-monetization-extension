@@ -15,6 +15,7 @@ export {
   useBrowser,
   useBrowserInfo,
   useTranslation,
+  useTelemetry,
 } from '@/pages/shared/lib/context';
 
 export function WaitForStateLoad({ children }: React.PropsWithChildren) {
@@ -22,8 +23,9 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
   const [isLoading, setIsLoading] = React.useState(true);
   const [telemetryConfig, setTelemetryConfig] = React.useState<{
     uid: string;
+    continuousPaymentsEnabled: boolean;
     isOptedIn?: boolean;
-  }>({ uid: '' });
+  }>({ uid: '', continuousPaymentsEnabled: false });
 
   React.useEffect(() => {
     async function get() {
@@ -32,7 +34,11 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
       if (response.success) {
         const data = response.payload;
         dispatch({ type: 'SET_DATA_POPUP', data });
-        setTelemetryConfig({ uid: data.uid, isOptedIn: data.consentTelemetry });
+        setTelemetryConfig({
+          uid: data.uid,
+          isOptedIn: data.consentTelemetry,
+          continuousPaymentsEnabled: data.continuousPaymentsEnabled,
+        });
         setIsLoading(false);
       }
     }

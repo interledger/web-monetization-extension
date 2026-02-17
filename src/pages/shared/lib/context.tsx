@@ -84,12 +84,16 @@ type Telemetry = {
   capture: PostHog['capture'];
   captureException: PostHog['captureException'];
   optInOut: (isOptedIn: boolean) => void;
+  register: (
+    properties: Parameters<PostHog['register']>[0],
+  ) => ReturnType<PostHog['register']>;
 };
 
 const mockTelemetry: Telemetry = {
   capture: () => void 0,
   captureException: () => void 0,
   optInOut: () => {},
+  register: () => void 0,
 };
 const TelemetryContext = React.createContext<Telemetry>(mockTelemetry);
 
@@ -133,10 +137,12 @@ const setupPosthog = (distinctId: string, isOptedIn: boolean) => {
 
 export const TelemetryContextProvider = ({
   uid,
+  continuousPaymentsEnabled,
   isOptedIn,
   children,
 }: React.PropsWithChildren<{
   uid: string;
+  continuousPaymentsEnabled?: Storage['continuousPaymentsEnabled'];
   isOptedIn?: Storage['consentTelemetry'];
 }>) => {
   const browser = useBrowser();
@@ -153,7 +159,12 @@ export const TelemetryContextProvider = ({
   // While isOptedIn is undefined or false, we won't capture data.
   const posthog = setupPosthog(uid, isOptedIn === true);
   const { name, version, version_name } = browser.runtime.getManifest();
-  posthog.register({ app_name: name, version, version_name });
+  posthog.register({
+    app_name: name,
+    version,
+    version_name,
+    continuousPaymentsEnabled,
+  });
 
   const telemetry: Telemetry = {
     capture: posthog.capture.bind(posthog),
@@ -164,6 +175,9 @@ export const TelemetryContextProvider = ({
       } else {
         posthog.opt_out_capturing();
       }
+    },
+    register(properties) {
+      return posthog.register(properties);
     },
   };
 

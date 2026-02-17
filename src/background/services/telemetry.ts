@@ -19,10 +19,12 @@ export class Telemetry {
       return;
     }
 
-    const { consentTelemetry, uid } = await this.storage.get([
-      'consentTelemetry',
-      'uid',
-    ]);
+    const { consentTelemetry, uid, continuousPaymentsEnabled } =
+      await this.storage.get([
+        'consentTelemetry',
+        'uid',
+        'continuousPaymentsEnabled',
+      ]);
     // While consentTelemetry is undefined or false, we won't capture data.
     const opt_out_capturing_by_default = consentTelemetry !== true;
     this.posthog.init(POSTHOG_KEY, {
@@ -47,7 +49,12 @@ export class Telemetry {
     });
 
     const { name, version, version_name } = this.browser.runtime.getManifest();
-    this.posthog.register({ app_name: name, version, version_name });
+    this.posthog.register({
+      app_name: name,
+      version,
+      version_name,
+      continuousPaymentsEnabled,
+    });
   }
 
   async optInOut(isOptedIn: boolean) {
@@ -66,5 +73,9 @@ export class Telemetry {
 
   captureException(...args: Parameters<PostHog['captureException']>) {
     this.posthog.captureException(...args);
+  }
+
+  register(properties: Parameters<PostHog['register']>[0]) {
+    this.posthog.register(properties);
   }
 }
