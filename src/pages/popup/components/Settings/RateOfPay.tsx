@@ -18,6 +18,7 @@ export const RateOfPayScreen = () => {
         // TODO: Maybe reset to old state, but not while user is active (avoid
         // sluggishness in UI)
       }
+      telemetry.capture('rate_of_pay_change');
     }, 1000),
   );
 

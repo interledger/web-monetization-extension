@@ -182,7 +182,7 @@ export type PopupToBackgroundMessage = {
   };
   TOGGLE_CONTINUOUS_PAYMENTS: {
     input: never;
-    output: never;
+    output: boolean; // returns whether enabled
   };
   TOGGLE_PAYMENTS: {
     input: never;
