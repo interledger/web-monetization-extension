@@ -283,9 +283,10 @@ export class Background {
         }
 
         case 'TOGGLE_CONTINUOUS_PAYMENTS': {
-          await this.monetizationService.toggleContinuousPayments();
+          const nowEnabled =
+            await this.monetizationService.toggleContinuousPayments();
           await this.updateVisualIndicatorsForCurrentTab();
-          return;
+          return success(nowEnabled);
         }
 
         case 'TOGGLE_PAYMENTS': {
