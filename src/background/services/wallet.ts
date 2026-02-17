@@ -67,6 +67,7 @@ export class WalletService {
   }
 
   async connectWallet(params: ConnectWalletPayload) {
+    const startTime = Date.now();
     const {
       walletAddress,
       rateOfPay,
@@ -211,6 +212,10 @@ export class WalletService {
       connected: true,
     });
     this.resetConnectState();
+    this.telemetry.capture('connect_wallet_success', {
+      recurringEnabled: recurring,
+      duration: Date.now() - startTime,
+    });
   }
 
   async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {

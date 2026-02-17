@@ -240,11 +240,21 @@ export class Background {
         }
 
         case 'CONNECT_WALLET': {
-          await this.walletService.connectWallet(message.payload);
-          if (message.payload?.recurring) {
-            await this.scheduleResetOutOfFundsState();
+          const now = Date.now();
+          try {
+            await this.walletService.connectWallet(message.payload);
+            if (message.payload?.recurring) {
+              await this.scheduleResetOutOfFundsState();
+            }
+            return success(undefined);
+          } catch (error) {
+            this.telemetry.capture('connect_wallet_error', {
+              recurringEnabled: message.payload.recurring,
+              duration: Date.now() - now,
+              error: JSON.parse(JSON.stringify(error)),
+            });
+            throw error;
           }
-          return success(undefined);
         }
 
         case 'RESET_CONNECT_STATE': {
