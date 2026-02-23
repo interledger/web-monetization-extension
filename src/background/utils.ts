@@ -8,7 +8,11 @@ import type {
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 import { EXCHANGE_RATES_URL } from './config';
-import { INTERNAL_PAGE_URL_PROTOCOLS, NEW_TAB_PAGES } from './constants';
+import {
+  APP_URL,
+  INTERNAL_PAGE_URL_PROTOCOLS,
+  NEW_TAB_PAGES,
+} from './constants';
 import { memoize, notNullOrUndef } from '@/shared/helpers';
 import type { WalletAddress } from '@interledger/open-payments';
 
@@ -191,6 +195,47 @@ export const getTabId = (sender: Runtime.MessageSender): number => {
 export const getTab = (sender: Runtime.MessageSender): Tab => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab') as Tab;
 };
+
+export function getAppUrl(
+  pathname: string,
+  baseUrl: string,
+  params?: URLSearchParams,
+) {
+  const url = new URL(baseUrl);
+  url.hash = pathname;
+  if (params) {
+    for (const [key, value] of params.entries()) {
+      url.searchParams.set(key, value);
+    }
+  }
+  return url.href;
+}
+
+export async function openAppPage(
+  browser: Browser,
+  pathname: string,
+  options: { tabId?: TabId; params?: URLSearchParams } = {},
+) {
+  const appUrl = browser.runtime.getURL(APP_URL);
+  const url = getAppUrl(pathname, appUrl, options.params);
+
+  let appTab: Tabs.Tab | undefined;
+  if (options.tabId) {
+    appTab = await browser.tabs.get(options.tabId).catch(() => undefined);
+  }
+  if (!appTab?.id) {
+    const allTabs = await browser.tabs.query({});
+    appTab = allTabs.find((t) => t.url?.startsWith(appUrl));
+  }
+
+  if (appTab?.id) {
+    await browser.tabs.update(appTab.id, { url });
+    await highlightTab(browser, appTab.id);
+    return appTab;
+  } else {
+    return await browser.tabs.create({ url });
+  }
+}
 
 export const redirectToWelcomeScreen = async (
   browser: Browser,
