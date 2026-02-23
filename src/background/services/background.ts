@@ -438,6 +438,7 @@ export class Background {
       await this.updateVisualIndicatorsForCurrentTab();
       if (state.consent_required) {
         await openAppPage(this.browser, '/post-install/consent');
+        await this.sendToPopup.send('CLOSE_POPUP', undefined);
       }
     });
 
