@@ -31,6 +31,9 @@ export const RateOfPayScreen = () => {
     message.send('TOGGLE_CONTINUOUS_PAYMENTS');
     dispatch({ type: 'TOGGLE_CONTINUOUS_PAYMENTS' });
     telemetry.register({ continuousPaymentsEnabled });
+    telemetry.capture('toggle_continuous_payments', {
+      enabled: continuousPaymentsEnabled,
+    });
   };
 
   return (
