@@ -3,12 +3,13 @@ import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
 import { debounceAsync } from '@/shared/helpers';
 import { formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
-import { useMessage, useTranslation } from '@/popup/lib/context';
+import { useMessage, useTelemetry, useTranslation } from '@/popup/lib/context';
 import { dispatch, usePopupState, type PopupState } from '@/popup/lib/store';
 import type { AmountValue } from '@/shared/types';
 
 export const RateOfPayScreen = () => {
   const message = useMessage();
+  const telemetry = useTelemetry();
 
   const updateRateOfPay = React.useRef(
     debounceAsync(async (rateOfPay: AmountValue) => {
@@ -25,9 +26,10 @@ export const RateOfPayScreen = () => {
     void updateRateOfPay.current(rateOfPay);
   };
 
-  const toggleContinuousPayments = () => {
+  const toggleContinuousPayments = (continuousPaymentsEnabled: boolean) => {
     message.send('TOGGLE_CONTINUOUS_PAYMENTS');
     dispatch({ type: 'TOGGLE_CONTINUOUS_PAYMENTS' });
+    telemetry.register({ continuousPaymentsEnabled });
   };
 
   return (
@@ -40,7 +42,7 @@ export const RateOfPayScreen = () => {
 
 interface Props {
   onRateChange: (rate: AmountValue) => Promise<void>;
-  toggle: () => void | Promise<void>;
+  toggle: (nowEnabled: boolean) => void | Promise<void>;
 }
 
 export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
@@ -69,7 +71,7 @@ export const RateOfPayComponent = ({ onRateChange, toggle }: Props) => {
             data-testid="continuous-payments-toggle"
             size="small"
             checked={continuousPaymentsEnabled}
-            onChange={toggle}
+            onChange={(e) => toggle(e.currentTarget.checked)}
           />
         </label>
 

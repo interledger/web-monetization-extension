@@ -27,6 +27,7 @@ export class MonetizationService {
   private tabState: Cradle['tabState'];
   private windowState: Cradle['windowState'];
   private message: Cradle['message'];
+  private telemetry: Cradle['telemetry'];
   private PaymentSession: Cradle['PaymentSession'];
   private PaymentManager: Cradle['PaymentManager'];
 
@@ -41,6 +42,7 @@ export class MonetizationService {
     tabState,
     windowState,
     message,
+    telemetry,
     PaymentSession,
     PaymentManager,
   }: Cradle) {
@@ -55,6 +57,7 @@ export class MonetizationService {
       tabState,
       windowState,
       message,
+      telemetry,
       PaymentSession,
       PaymentManager,
     });
@@ -266,6 +269,7 @@ export class MonetizationService {
     } else {
       this.pauseAllSessions('toggle-continuous-payments');
     }
+    this.telemetry.register({ continuousPaymentsEnabled: nowEnabled });
   }
 
   async togglePayments() {
