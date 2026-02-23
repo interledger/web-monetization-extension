@@ -11,8 +11,9 @@ import { useHashLocation } from 'wouter/use-hash-location';
 import * as PAGES from './pages/index';
 
 export const ROUTES = {
-  DEFAULT: '/',
-  CONSENT: '/consent',
+  DEFAULT: '/post-install',
+  CONSENT: '/post-install/consent',
+  POST_CONNECT: '/post-connect',
 } as const;
 
 const P = ROUTES;
@@ -21,6 +22,7 @@ const Routes = () => (
   <Switch>
     <Route path={P.DEFAULT} component={C.PostInstall} />
     <Route path={P.CONSENT} component={C.Consent} />
+    <Route path={P.POST_CONNECT} component={C.PostConnect} />
   </Switch>
 );
 
@@ -31,7 +33,7 @@ export const App = () => {
         <MessageContextProvider>
           <BrowserInfoContextProvider>
             <WaitForStateLoad>
-              <Router hook={useHashLocation} base="/post-install">
+              <Router hook={useHashLocation}>
                 <Routes />
               </Router>
             </WaitForStateLoad>

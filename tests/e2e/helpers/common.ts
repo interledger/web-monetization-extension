@@ -9,23 +9,17 @@ import { TOTP, type TOTPAlgorithm, type TOTPEncoding } from 'totp-generator';
 import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
 
-const OPEN_PAYMENTS_REDIRECT_URL = 'https://webmonetization.org/welcome';
 const PLAYGROUND_URL = 'https://webmonetization.org/play';
 
 export async function waitForWelcomePage(page: Page) {
   await page.waitForURL(
     (url) =>
-      url.href.startsWith(OPEN_PAYMENTS_REDIRECT_URL) &&
-      url.searchParams.get('result') === 'grant_success',
+      url.pathname === '/pages/app/index.html' && url.hash === '#/post-connect',
   );
 }
 
 export async function waitForReconnectWelcomePage(page: Page) {
-  await page.waitForURL(
-    (url) =>
-      url.href.startsWith(OPEN_PAYMENTS_REDIRECT_URL) &&
-      url.searchParams.get('result') === 'key_add_success',
-  );
+  return waitForWelcomePage(page);
 }
 
 /**

@@ -13,7 +13,7 @@ import {
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getTab, highlightTab, isSecureContext } from '@/background/utils';
+import { getTab, isSecureContext, openAppPage } from '@/background/utils';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
 import type { AppStore, Tab } from '@/shared/types';
@@ -305,7 +305,8 @@ export class Background {
         }
 
         case 'OPEN_APP': {
-          await this.openAppPage(message.payload.path);
+          await openAppPage(this.browser, message.payload.path);
+          await this.sendToPopup.send('CLOSE_POPUP', undefined);
           return success(undefined);
         }
 
@@ -436,7 +437,7 @@ export class Background {
       this.sendToPopup.send('SET_STATE', { state, prevState });
       await this.updateVisualIndicatorsForCurrentTab();
       if (state.consent_required) {
-        await this.openAppPage('/post-install/consent');
+        await openAppPage(this.browser, '/post-install/consent');
       }
     });
 
@@ -537,21 +538,4 @@ export class Background {
       }
     }
   };
-
-  async openAppPage(path: string) {
-    const appUrl = this.browser.runtime.getURL(APP_URL);
-
-    const allTabs = await this.browser.tabs.query({});
-    const appTab = allTabs.find((t) => t.url?.startsWith(appUrl));
-
-    const url = `${appUrl}#${path}`;
-    if (appTab?.id) {
-      await this.browser.tabs.update(appTab.id, { url });
-      await this.sendToPopup.send('CLOSE_POPUP', undefined);
-      await highlightTab(this.browser, appTab.id);
-      return appTab;
-    } else {
-      return await this.browser.tabs.create({ url });
-    }
-  }
 }
