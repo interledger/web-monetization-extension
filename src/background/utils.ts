@@ -244,13 +244,11 @@ export const redirectToWelcomeScreen = async (
   intent: InteractionIntent,
   errorCode?: ErrorCode,
 ): Promise<void> => {
-  const { OPEN_PAYMENTS_REDIRECT_URL } = await import('@/shared/defines');
-  const url = new URL(OPEN_PAYMENTS_REDIRECT_URL);
-  url.searchParams.set('result', result);
-  url.searchParams.set('intent', intent);
-  if (errorCode) url.searchParams.set('errorCode', errorCode);
-
-  await createTabIfNotExists(browser, url.toString(), tabId);
+  const params = new URLSearchParams();
+  params.set('result', result);
+  params.set('intent', intent);
+  if (errorCode) params.set('errorCode', errorCode);
+  await openAppPage(browser, '/post-connect', { params, tabId });
 };
 
 export const closeTabsByFilter = async (
