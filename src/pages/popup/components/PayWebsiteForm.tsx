@@ -8,7 +8,7 @@ import {
   toErrorInfoFactory,
   type ErrorInfo,
 } from '@/pages/shared/lib/utils';
-import { useMessage, useTranslation } from '@/popup/lib/context';
+import { useMessage, useTelemetry, useTranslation } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
 
 type ErrorsParams = 'amount' | 'pay';
@@ -16,6 +16,7 @@ type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
 export const PayWebsiteForm = () => {
   const t = useTranslation();
+  const telemetry = useTelemetry();
   const toErrorInfo = React.useMemo(() => toErrorInfoFactory(t), [t]);
 
   const message = useMessage();
@@ -42,6 +43,8 @@ export const PayWebsiteForm = () => {
 
     setIsSubmitting(true);
 
+    telemetry.capture('one_time_pay');
+    const now = Date.now();
     const response = await message.send('PAY_WEBSITE', { amount });
 
     if (!response.success) {
@@ -55,6 +58,13 @@ export const PayWebsiteForm = () => {
       setPayStatus({ type, message: t('pay_state_success') });
       form.current?.reset();
     }
+    telemetry.capture('one_time_pay', {
+      success: response.success,
+      duration: Date.now() - now,
+      error: response.success
+        ? undefined
+        : response.error?.key || response.message,
+    });
     setIsSubmitting(false);
   };
 
