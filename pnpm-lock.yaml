@@ -108,8 +108,8 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0
       '@types/chrome':
-        specifier: ^0.1.36
-        version: 0.1.36
+        specifier: ^0.1.37
+        version: 0.1.37
       '@types/github-script':
         specifier: github:actions/github-script#v8.0.0
         version: '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/ed597411d8f924073f98dfc5c65a23a2325f34cd'
@@ -1557,8 +1557,8 @@ packages:
   '@types/chrome@0.0.114':
     resolution: {integrity: sha512-i7qRr74IrxHtbnrZSKUuP5Uvd5EOKwlwJq/yp7+yTPihOXnPhNQO4Z5bqb1XTnrjdbUKEJicaVVbhcgtRijmLA==}
 
-  '@types/chrome@0.1.36':
-    resolution: {integrity: sha512-BvHbuyGttYXnGt5Gpwa4769KIinKHY1iLjlAPrrMBS2GI9m/XNMPtdsq0NgQalyuUdxvlMN/0OyGw0shFVIoUQ==}
+  '@types/chrome@0.1.37':
+    resolution: {integrity: sha512-IJE4ceuDO7lrEuua7Pow47zwNcI8E6qqkowRP7aFPaZ0lrjxh6y836OPqqkIZeTX64FTogbw+4RNH0+QrweCTQ==}
 
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
@@ -5244,7 +5244,7 @@ snapshots:
       '@types/filesystem': 0.0.35
       '@types/har-format': 1.2.15
 
-  '@types/chrome@0.1.36':
+  '@types/chrome@0.1.37':
     dependencies:
       '@types/filesystem': 0.0.35
       '@types/har-format': 1.2.15
