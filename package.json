@@ -46,7 +46,7 @@
     "wouter": "^3.9.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.0",
+    "@biomejs/biome": "2.4.4",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.4",
     "@jgoz/jest-esbuild": "^1.0.10",
     "@octokit/openapi-webhooks-types": "^12.1.0",
