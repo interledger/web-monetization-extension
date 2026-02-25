@@ -4,6 +4,7 @@ import {
   errorWithKeyToJSON,
   type ErrorWithKeyLike,
   isAbortSignalTimeout,
+  isKeyAddedToWallet,
 } from '@/shared/helpers';
 import type {
   AddFundsPayload,
@@ -79,11 +80,29 @@ export class WalletService {
     } = params;
 
     await this.generateKeys();
+    const { keyId } = await this.storage.get(['keyId']);
     await this.openPaymentsService.initClient(walletAddress.id);
 
     const browser = this.browser;
     const appUrl = browser.runtime.getURL(APP_URL);
     const intent = InteractionIntent.CONNECT;
+
+    const isKeyAdded = await isKeyAddedToWallet(walletAddress.id, keyId);
+    const shouldAutoAddKey = !isKeyAdded && !!autoKeyAddConsent;
+    if (!isKeyAdded) {
+      if (!autoKeyAdd) {
+        throw new ErrorWithKey('connectWallet_error_invalidClient');
+      }
+      if (!KeyAutoAddService.supports(walletAddress)) {
+        throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+      }
+      if (!autoKeyAddConsent) {
+        throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
+      }
+    }
+
+    let tabId: TabId | undefined;
+    let cleanupListeners: () => void = () => {};
 
     const onTimeoutAbort = (): never => {
       cleanupListeners();
@@ -103,14 +122,30 @@ export class WalletService {
       );
     };
 
+    if (shouldAutoAddKey) {
+      try {
+        this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
+        await closeTabsByFilter(browser, closeTabFilter);
+        await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
+          tabId = openedTabId;
+          cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
+        });
+      } catch (error) {
+        cleanupListeners();
+        if (isAbortSignalTimeout(error)) {
+          onTimeoutAbort();
+        }
+        this.setConnectStateError(error);
+        throw error;
+      }
+    }
+
     const walletAmount = toAmount({
       value: amount,
       recurring,
       assetScale: walletAddress.assetScale,
     });
 
-    let tabId: TabId | undefined;
-    let cleanupListeners: () => void = () => {};
     try {
       const grant =
         await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
@@ -136,73 +171,16 @@ export class WalletService {
           tabId = openedTabId;
           cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
         },
+        tabId,
       );
       cleanupListeners();
     } catch (error) {
       cleanupListeners();
-      if (
-        isErrorWithKey(error) &&
-        error.key === 'connectWallet_error_invalidClient' &&
-        autoKeyAdd
-      ) {
-        if (!KeyAutoAddService.supports(walletAddress)) {
-          this.setConnectStateError(error);
-          throw new ErrorWithKey(
-            'connectWalletKeyService_error_notImplemented',
-          );
-        }
-        if (!autoKeyAddConsent) {
-          this.setConnectStateError(error);
-          throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
-        }
-
-        // add key to wallet and try again
-        try {
-          this.setConnectState(
-            this.t('connectWalletKeyService_text_stepAddKey'),
-          );
-
-          await closeTabsByFilter(browser, closeTabFilter);
-          await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
-            tabId = openedTabId;
-            cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
-          });
-
-          const grant =
-            await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
-              walletAddress,
-              walletAmount,
-              intent,
-            );
-          this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
-          await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
-            walletAmount,
-            walletAddress,
-            grant,
-            intent,
-            (openedTabId) => {
-              cleanupListeners();
-              tabId = openedTabId;
-              cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
-            },
-            tabId,
-          );
-          cleanupListeners();
-        } catch (error) {
-          if (isAbortSignalTimeout(error)) {
-            onTimeoutAbort();
-          }
-          cleanupListeners();
-          this.setConnectStateError(error);
-          throw error;
-        }
-      } else if (isAbortSignalTimeout(error)) {
+      if (isAbortSignalTimeout(error)) {
         onTimeoutAbort();
-      } else {
-        cleanupListeners();
-        this.setConnectStateError(error);
-        throw error;
       }
+      this.setConnectStateError(error);
+      throw error;
     }
 
     await this.storage.set({
