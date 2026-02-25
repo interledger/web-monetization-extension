@@ -88,7 +88,7 @@ export const ConnectWalletForm = ({
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
     isAutoKeyAddFailed(state),
   );
-  const [keyAddNeeded, setKeyAddNeeded] = React.useState(false);
+  const [keyAddNeeded, setKeyAddNeeded] = React.useState(true);
   const [showConsent, setShowConsent] = React.useState(false);
   const autoKeyAddConsent = React.useRef<boolean>(
     defaultValues.autoKeyAddConsent || false,
@@ -98,7 +98,7 @@ export const ConnectWalletForm = ({
     await clearConnectState();
     setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
     setAutoKeyShareFailed(false);
-    setKeyAddNeeded(false);
+    setKeyAddNeeded(true);
   }, [clearConnectState]);
 
   const [walletAddressInfo, setWalletAddressInfo] =
@@ -180,7 +180,7 @@ export const ConnectWalletForm = ({
   const handleWalletAddressUrlChange = React.useCallback(
     async (value: string, _input?: HTMLInputElement) => {
       setWalletAddressInfo(null);
-      setKeyAddNeeded(false);
+      setKeyAddNeeded(true);
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
