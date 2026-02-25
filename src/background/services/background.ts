@@ -235,7 +235,12 @@ export class Background {
         }
 
         case 'GET_CONNECT_WALLET_ADDRESS_INFO': {
-          const connectWalletInfo = await getConnectWalletInfo(message.payload);
+          await this.walletService.generateKeys();
+          const { keyId } = await this.storage.get(['keyId']);
+          const connectWalletInfo = await getConnectWalletInfo(
+            message.payload,
+            keyId,
+          );
           return success(connectWalletInfo);
         }
 

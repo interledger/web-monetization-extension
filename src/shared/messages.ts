@@ -107,6 +107,7 @@ export interface ConnectWalletAddressInfo {
   defaultBudget: number;
   defaultRateOfPay: AmountValue;
   maxRateOfPay: AmountValue;
+  isKeyAdded: boolean;
 }
 
 export interface ConnectWalletPayload {
