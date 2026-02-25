@@ -88,6 +88,7 @@ export const ConnectWalletForm = ({
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
     isAutoKeyAddFailed(state),
   );
+  const [keyAddNeeded, setKeyAddNeeded] = React.useState(true);
   const [showConsent, setShowConsent] = React.useState(false);
   const autoKeyAddConsent = React.useRef<boolean>(
     defaultValues.autoKeyAddConsent || false,
@@ -97,6 +98,7 @@ export const ConnectWalletForm = ({
     await clearConnectState();
     setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
     setAutoKeyShareFailed(false);
+    setKeyAddNeeded(true);
   }, [clearConnectState]);
 
   const [walletAddressInfo, setWalletAddressInfo] =
@@ -141,6 +143,7 @@ export const ConnectWalletForm = ({
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
         const walletInfo = await getWalletInfo(url.toString());
         setWalletAddressInfo(walletInfo);
+        setKeyAddNeeded(!walletInfo.isKeyAdded);
         const defaultBudget = formatNumber(
           walletInfo.defaultBudget,
           walletInfo.walletAddress.assetScale,
@@ -177,6 +180,7 @@ export const ConnectWalletForm = ({
   const handleWalletAddressUrlChange = React.useCallback(
     async (value: string, _input?: HTMLInputElement) => {
       setWalletAddressInfo(null);
+      setKeyAddNeeded(true);
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
@@ -266,7 +270,7 @@ export const ConnectWalletForm = ({
 
     try {
       setIsSubmitting(true);
-      let skipAutoKeyShare = autoKeyShareFailed;
+      let skipAutoKeyShare = autoKeyShareFailed || !keyAddNeeded;
       if (errors.keyPair) {
         skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
@@ -443,7 +447,7 @@ export const ConnectWalletForm = ({
         )}
       </fieldset>
 
-      {(errors.keyPair || autoKeyShareFailed) && (
+      {(errors.keyPair || autoKeyShareFailed) && keyAddNeeded && (
         <ManualKeyPairNeeded
           error={{
             message: t('connectWallet_error_failedAutoKeyAdd'),

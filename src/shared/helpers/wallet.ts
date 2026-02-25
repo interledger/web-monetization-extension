@@ -63,7 +63,7 @@ export const getWalletInformation = async (
 
 export const getConnectWalletBudgetInfo = async (
   walletAddress: WalletAddress,
-): Promise<Omit<ConnectWalletAddressInfo, 'walletAddress'>> => {
+): Promise<Omit<ConnectWalletAddressInfo, 'walletAddress' | 'isKeyAdded'>> => {
   const {
     DEFAULT_BUDGET,
     DEFAULT_RATE_OF_PAY,
@@ -106,15 +106,28 @@ export const getConnectWalletBudgetInfo = async (
 
 export const getConnectWalletInfo = async (
   walletAddressUrl: string,
+  kid: string,
 ): Promise<ConnectWalletAddressInfo> => {
   const url = toWalletAddressUrl(walletAddressUrl);
   const walletAddress = await getWalletInformation(url);
-  const budgetInfo = await getConnectWalletBudgetInfo(walletAddress);
+  const [budgetInfo, isKeyAdded] = await Promise.all([
+    getConnectWalletBudgetInfo(walletAddress),
+    isKeyAddedToWallet(walletAddress.id, kid),
+  ]);
   return {
     walletAddress: { ...walletAddress, url },
+    isKeyAdded,
     ...budgetInfo,
   };
 };
+
+export async function isKeyAddedToWallet(
+  walletAddressId: string,
+  kid: string,
+): Promise<boolean> {
+  const jwks = await getJWKS(walletAddressId);
+  return jwks.keys.some((key) => key.kid === kid);
+}
 
 export const getJWKS = async (walletAddressUrl: string) => {
   const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
