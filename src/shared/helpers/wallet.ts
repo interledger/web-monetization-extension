@@ -63,7 +63,12 @@ export const getWalletInformation = async (
 
 export const getConnectWalletBudgetInfo = async (
   walletAddress: WalletAddress,
-): Promise<Omit<ConnectWalletAddressInfo, 'walletAddress' | 'isKeyAdded'>> => {
+): Promise<
+  Omit<
+    ConnectWalletAddressInfo,
+    'walletAddress' | 'isKeyAdded' | 'isKeyAutoAddSupported'
+  >
+> => {
   const {
     DEFAULT_BUDGET,
     DEFAULT_RATE_OF_PAY,
@@ -101,23 +106,6 @@ export const getConnectWalletBudgetInfo = async (
     defaultBudget: Number(transformBalance(defaultBudget, assetScale)),
     defaultRateOfPay,
     maxRateOfPay,
-  };
-};
-
-export const getConnectWalletInfo = async (
-  walletAddressUrl: string,
-  kid: string,
-): Promise<ConnectWalletAddressInfo> => {
-  const url = toWalletAddressUrl(walletAddressUrl);
-  const walletAddress = await getWalletInformation(url);
-  const [budgetInfo, isKeyAdded] = await Promise.all([
-    getConnectWalletBudgetInfo(walletAddress),
-    isKeyAddedToWallet(walletAddress.id, kid),
-  ]);
-  return {
-    walletAddress: { ...walletAddress, url },
-    isKeyAdded,
-    ...budgetInfo,
   };
 };
 

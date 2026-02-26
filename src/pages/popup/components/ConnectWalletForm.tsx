@@ -108,11 +108,19 @@ export const ConnectWalletForm = ({
     walletAddressUrl: null,
     amount: null,
     keyPair:
-      state?.status === 'error:key'
+      state?.status === 'error:key' ||
+      (state?.status === 'error' &&
+        typeof state.error === 'object' &&
+        state.error?.key === 'connectWallet_error_invalidClient')
         ? toErrorInfo(deepClone(state.error))
         : null,
     connect:
-      state?.status === 'error' ? toErrorInfo(deepClone(state.error)) : null,
+      state?.status === 'error' &&
+      (typeof state.error === 'object'
+        ? state.error.key !== 'connectWallet_error_invalidClient'
+        : true)
+        ? toErrorInfo(deepClone(state.error))
+        : null,
   });
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
@@ -252,6 +260,15 @@ export const ConnectWalletForm = ({
       walletAddressInfo ??
       (await getWalletInfo(toWalletAddressUrl(walletAddressUrl)));
 
+    if (
+      !walletInfo.isKeyAdded &&
+      !autoKeyAddConsent.current &&
+      walletInfo.isKeyAutoAddSupported
+    ) {
+      setShowConsent(true);
+      return;
+    }
+
     const amountInput = document.querySelector<HTMLInputElement>(
       'input#connectAmount',
     )!;
@@ -270,9 +287,7 @@ export const ConnectWalletForm = ({
 
     try {
       setIsSubmitting(true);
-      let skipAutoKeyShare = autoKeyShareFailed || !keyAddNeeded;
       if (errors.keyPair) {
-        skipAutoKeyShare = true;
         setAutoKeyShareFailed(true);
       }
 
@@ -283,19 +298,17 @@ export const ConnectWalletForm = ({
         rateOfPay: walletInfo.defaultRateOfPay,
         maxRateOfPay: walletInfo.maxRateOfPay,
         recurring,
-        autoKeyAdd: !skipAutoKeyShare,
-        autoKeyAddConsent: autoKeyAddConsent.current,
+        autoKeyAdd: autoKeyAddConsent.current,
       });
       if (res.success) {
         onConnect();
       } else {
         if (isErrorWithKey(res.error)) {
           const error = res.error;
-          if (error.key.startsWith('connectWalletKeyService_error_')) {
-            if (error.key === 'connectWalletKeyService_error_noConsent') {
-              setShowConsent(true);
-              return;
-            }
+          if (
+            error.key.startsWith('connectWalletKeyService_error_') ||
+            error.key === 'connectWallet_error_invalidClient'
+          ) {
             setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
           } else {
             setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
@@ -316,6 +329,12 @@ export const ConnectWalletForm = ({
       void handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
     }
   }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
+
+  const showManualKeyCopy =
+    (errors.keyPair ||
+      autoKeyShareFailed ||
+      walletAddressInfo?.isKeyAutoAddSupported === false) &&
+    keyAddNeeded;
 
   if (showConsent) {
     return (
@@ -447,7 +466,7 @@ export const ConnectWalletForm = ({
         )}
       </fieldset>
 
-      {(errors.keyPair || autoKeyShareFailed) && keyAddNeeded && (
+      {showManualKeyCopy && (
         <ManualKeyPairNeeded
           error={{
             message: t('connectWallet_error_failedAutoKeyAdd'),
