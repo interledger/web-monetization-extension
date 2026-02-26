@@ -5,9 +5,6 @@ import {
   type ErrorWithKeyLike,
   isAbortSignalTimeout,
   isKeyAddedToWallet,
-  toWalletAddressUrl,
-  getWalletInformation,
-  getConnectWalletBudgetInfo,
 } from '@/shared/helpers';
 import type {
   AddFundsPayload,
