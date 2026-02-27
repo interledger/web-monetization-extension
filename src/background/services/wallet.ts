@@ -84,6 +84,7 @@ export class WalletService {
     return {
       walletAddress: { ...walletAddress, url },
       isKeyAdded,
+      isKeyAutoAddSupported: KeyAutoAddService.supports(walletAddress),
       ...budgetInfo,
     };
   }
@@ -97,7 +98,6 @@ export class WalletService {
       amount,
       recurring,
       autoKeyAdd,
-      autoKeyAddConsent,
     } = params;
 
     await this.generateKeys();
@@ -109,16 +109,12 @@ export class WalletService {
     const intent = InteractionIntent.CONNECT;
 
     const isKeyAdded = await isKeyAddedToWallet(walletAddress.id, keyId);
-    const shouldAutoAddKey = !isKeyAdded && !!autoKeyAddConsent;
     if (!isKeyAdded) {
       if (!autoKeyAdd) {
         throw new ErrorWithKey('connectWallet_error_invalidClient');
       }
       if (!KeyAutoAddService.supports(walletAddress)) {
         throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
-      }
-      if (!autoKeyAddConsent) {
-        throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
       }
     }
 
@@ -143,7 +139,7 @@ export class WalletService {
       );
     };
 
-    if (shouldAutoAddKey) {
+    if (!isKeyAdded && autoKeyAdd) {
       try {
         this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
         await closeTabsByFilter(browser, closeTabFilter);

@@ -63,7 +63,12 @@ export const getWalletInformation = async (
 
 export const getConnectWalletBudgetInfo = async (
   walletAddress: WalletAddress,
-): Promise<Omit<ConnectWalletAddressInfo, 'walletAddress' | 'isKeyAdded'>> => {
+): Promise<
+  Omit<
+    ConnectWalletAddressInfo,
+    'walletAddress' | 'isKeyAdded' | 'isKeyAutoAddSupported'
+  >
+> => {
   const {
     DEFAULT_BUDGET,
     DEFAULT_RATE_OF_PAY,

@@ -107,6 +107,7 @@ export interface ConnectWalletAddressInfo {
   defaultBudget: number;
   defaultRateOfPay: AmountValue;
   maxRateOfPay: AmountValue;
+  isKeyAutoAddSupported: boolean;
   isKeyAdded: boolean;
 }
 
@@ -117,7 +118,6 @@ export interface ConnectWalletPayload {
   maxRateOfPay: AmountValue;
   recurring: boolean;
   autoKeyAdd: boolean;
-  autoKeyAddConsent: boolean | null;
 }
 
 export interface ReconnectWalletPayload {
