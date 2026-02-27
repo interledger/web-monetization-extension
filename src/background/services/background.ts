@@ -4,7 +4,6 @@ import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import {
   errorWithKeyToJSON,
   getNextOccurrence,
-  getConnectWalletInfo,
   getWalletInformation,
   isErrorWithKey,
   moveToFront,
@@ -236,11 +235,8 @@ export class Background {
 
         case 'GET_CONNECT_WALLET_ADDRESS_INFO': {
           await this.walletService.generateKeys();
-          const { keyId } = await this.storage.get(['keyId']);
-          const connectWalletInfo = await getConnectWalletInfo(
-            message.payload,
-            keyId,
-          );
+          const connectWalletInfo =
+            await this.walletService.getConnectWalletInfo(message.payload);
           return success(connectWalletInfo);
         }
 
