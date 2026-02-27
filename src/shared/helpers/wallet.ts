@@ -104,23 +104,6 @@ export const getConnectWalletBudgetInfo = async (
   };
 };
 
-export const getConnectWalletInfo = async (
-  walletAddressUrl: string,
-  kid: string,
-): Promise<ConnectWalletAddressInfo> => {
-  const url = toWalletAddressUrl(walletAddressUrl);
-  const walletAddress = await getWalletInformation(url);
-  const [budgetInfo, isKeyAdded] = await Promise.all([
-    getConnectWalletBudgetInfo(walletAddress),
-    isKeyAddedToWallet(walletAddress.id, kid),
-  ]);
-  return {
-    walletAddress: { ...walletAddress, url },
-    isKeyAdded,
-    ...budgetInfo,
-  };
-};
-
 export async function isKeyAddedToWallet(
   walletAddressId: string,
   kid: string,
