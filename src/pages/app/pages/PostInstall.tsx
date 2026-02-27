@@ -156,6 +156,7 @@ const Steps = () => {
   const t = useTranslation();
   const isPinnedToToolbar = usePinnedStatus();
   const hasAllHostsPermission = useHasAllHostsPermission();
+  const focusConnect = history.state?.focusConnect === true;
 
   const [selectedWallet, setSelectedWallet] = React.useState<WalletOption>(
     WALLETS[0],
@@ -170,6 +171,16 @@ const Steps = () => {
       return STEP_ID[idx + 1];
     });
   }, []);
+
+  React.useEffect(() => {
+    if (focusConnect) {
+      const id = STEP_ID[4];
+      setIsOpen(id);
+      requestAnimationFrame(() => {
+        document.getElementById(`step-${id}`)?.scrollIntoView();
+      });
+    }
+  }, [focusConnect]);
 
   const isSafari = browserInfo.name === 'safari';
   const isFirefoxAndroid =
@@ -319,6 +330,7 @@ const Steps = () => {
         open={isOpen === STEP_ID[4]}
         onClick={onClick}
         title={t('postInstall_action_submit')}
+        highlighted={focusConnect}
       >
         <StepConnectWallet selectedWallet={selectedWallet} />
       </Step>
@@ -385,6 +397,7 @@ function Step({
   onClick,
   open,
   isPrimaryButton = false,
+  highlighted = false,
 }: {
   id: StepId;
   index: number;
@@ -393,10 +406,11 @@ function Step({
   onClick: (id: StepId, open: boolean) => void;
   open: boolean;
   isPrimaryButton?: boolean;
+  highlighted?: boolean;
 }) {
   const iconDefaultClass = 'size-5 shrink-0 rounded-full p-1';
   return (
-    <li>
+    <li id={`step-${id}`}>
       <details
         open={open}
         className={cn(
@@ -406,6 +420,7 @@ function Step({
             ? 'bg-button-base text-white hover:bg-button-base-hover'
             : 'bg-white text-weak hover:bg-slate-50',
           !isPrimaryButton && !open && 'bg-slate-50',
+          highlighted && open && 'ring-1 ring-button-base',
         )}
       >
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Not needed here */}
