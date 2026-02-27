@@ -5,6 +5,9 @@ import {
   type ErrorWithKeyLike,
   isAbortSignalTimeout,
   isKeyAddedToWallet,
+  toWalletAddressUrl,
+  getWalletInformation,
+  getConnectWalletBudgetInfo,
 } from '@/shared/helpers';
 import type {
   AddFundsPayload,
@@ -66,6 +69,23 @@ export class WalletService {
       logger,
       t,
     });
+  }
+
+  async getConnectWalletInfo(
+    walletAddressUrl: string,
+  ): Promise<ConnectWalletAddressInfo> {
+    const url = toWalletAddressUrl(walletAddressUrl);
+    const walletAddress = await getWalletInformation(url);
+    const { keyId } = await this.storage.get(['keyId']);
+    const [budgetInfo, isKeyAdded] = await Promise.all([
+      getConnectWalletBudgetInfo(walletAddress),
+      isKeyAddedToWallet(walletAddress.id, keyId),
+    ]);
+    return {
+      walletAddress: { ...walletAddress, url },
+      isKeyAdded,
+      ...budgetInfo,
+    };
   }
 
   async connectWallet(params: ConnectWalletPayload) {
