@@ -30,7 +30,7 @@ import type {
   ConnectWalletAddressInfo,
   Response,
 } from '@/shared/messages';
-import type { DeepReadonly, PopupTransientState } from '@/shared/types';
+import type { DeepReadonly, TransientState } from '@/shared/types';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -39,7 +39,7 @@ interface Inputs {
   autoKeyAddConsent: boolean;
 }
 
-type ConnectTransientState = DeepReadonly<PopupTransientState['connect']>;
+type ConnectTransientState = DeepReadonly<TransientState['connect']>;
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
@@ -86,7 +86,7 @@ export const ConnectWalletForm = ({
   );
 
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
-    isAutoKeyAddFailed(state),
+    state?.type === 'failure' && state.code === 'key_add_failed',
   );
   const [showConsent, setShowConsent] = React.useState(false);
   const autoKeyAddConsent = React.useRef<boolean>(
@@ -106,18 +106,18 @@ export const ConnectWalletForm = ({
     walletAddressUrl: null,
     amount: null,
     keyPair:
-      state?.status === 'error:key'
-        ? toErrorInfo(deepClone(state.error))
+      state?.type === 'failure' && state.code === 'key_add_failed'
+        ? toErrorInfo(deepClone(state.details))
         : null,
     connect:
-      state?.status === 'error' ? toErrorInfo(deepClone(state.error)) : null,
+      state?.type === 'failure' ? toErrorInfo(deepClone(state.details)) : null,
   });
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
     amount: false,
   });
   const [isSubmitting, setIsSubmitting] = React.useState(
-    state?.status?.startsWith('connecting') || false,
+    state?.type === 'progress',
   );
 
   const handleAmountChange = React.useCallback(
@@ -443,7 +443,9 @@ export const ConnectWalletForm = ({
         )}
       </fieldset>
 
-      {(errors.keyPair || autoKeyShareFailed) && (
+      {(errors.keyPair ||
+        autoKeyShareFailed ||
+        (walletAddressInfo && !walletAddressInfo.isKeyAdditionSupported)) && (
         <ManualKeyPairNeeded
           error={{
             message: t('connectWallet_error_failedAutoKeyAdd'),
@@ -478,8 +480,10 @@ export const ConnectWalletForm = ({
           }
           loading={isSubmitting}
           loadingText={
-            state?.status === 'connecting' || state?.status === 'connecting:key'
-              ? state.currentStep
+            state?.type === 'progress'
+              ? typeof state.currentStep === 'string'
+                ? state.currentStep
+                : t(state.currentStep.key, state.currentStep.substitutions)
               : undefined
           }
         >
@@ -583,22 +587,6 @@ const ManualKeyPairNeeded: React.FC<{
     </div>
   );
 };
-
-function isAutoKeyAddFailed(state: ConnectTransientState) {
-  if (state?.status === 'error') {
-    return (
-      isErrorWithKey(state.error) &&
-      state.error.key !== 'connectWallet_error_tabClosed' &&
-      state.error.key !== 'connectWallet_error_timeout'
-    );
-  } else if (state?.status === 'error:key') {
-    return (
-      isErrorWithKey(state.error) &&
-      state.error.key.startsWith('connectWalletKeyService_error_')
-    );
-  }
-  return false;
-}
 
 function canRetryAutoKeyAdd(err?: ErrorInfo['info']) {
   if (!err) return false;

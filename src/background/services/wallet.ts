@@ -1,9 +1,8 @@
 import {
-  isErrorWithKey,
   ErrorWithKey,
-  errorWithKeyToJSON,
-  type ErrorWithKeyLike,
   isAbortSignalTimeout,
+  isErrorWithKey,
+  type I18nInfo,
 } from '@/shared/helpers';
 import type {
   AddFundsPayload,
@@ -31,7 +30,7 @@ import {
 import { APP_URL } from '@/background/constants';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import type { Cradle } from '@/background/container';
-import type { TabId, WalletInfo } from '@/shared/types';
+import type { ConnectWalletStatus, TabId, WalletInfo } from '@/shared/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 
 export class WalletService {
@@ -88,7 +87,10 @@ export class WalletService {
     const onTimeoutAbort = (): never => {
       cleanupListeners();
       const err = new ErrorWithKey('connectWallet_error_timeout');
-      this.setConnectStateError(err);
+      this.setConnectStateError('connect', {
+        code: 'timeout',
+        retryPossible: 'auto',
+      });
 
       void this.redirectOnTimeout(intent, tabId);
       throw err;
@@ -126,7 +128,10 @@ export class WalletService {
       // experience.
       await closeTabsByFilter(browser, closeTabFilter);
 
-      this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
+      this.setConnectState('connect', {
+        key: 'connectWallet_text_stepAcceptGrant',
+        substitutions: [],
+      });
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
         walletAddress,
@@ -146,21 +151,36 @@ export class WalletService {
         autoKeyAdd
       ) {
         if (!KeyAutoAddService.supports(walletAddress)) {
-          this.setConnectStateError(error);
+          this.setConnectStateError('connect', {
+            code: 'key_add_failed',
+            retryPossible: 'manual',
+            details: {
+              key: 'connectWalletKeyService_error_notImplemented',
+              substitutions: [],
+            },
+          });
           throw new ErrorWithKey(
             'connectWalletKeyService_error_notImplemented',
           );
         }
         if (!autoKeyAddConsent) {
-          this.setConnectStateError(error);
+          this.setConnectStateError('connect', {
+            code: 'key_add_failed',
+            retryPossible: 'manual',
+            details: {
+              key: 'connectWalletKeyService_error_noConsent',
+              substitutions: [],
+            },
+          });
           throw new ErrorWithKey('connectWalletKeyService_error_noConsent');
         }
 
         // add key to wallet and try again
         try {
-          this.setConnectState(
-            this.t('connectWalletKeyService_text_stepAddKey'),
-          );
+          this.setConnectState('connect', {
+            key: 'connectWalletKeyService_text_stepAddKey',
+            substitutions: [],
+          });
 
           await closeTabsByFilter(browser, closeTabFilter);
           await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
@@ -174,7 +194,10 @@ export class WalletService {
               walletAmount,
               intent,
             );
-          this.setConnectState(this.t('connectWallet_text_stepAcceptGrant'));
+          this.setConnectState('connect', {
+            key: 'connectWallet_text_stepAcceptGrant',
+            substitutions: [],
+          });
           await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
             walletAmount,
             walletAddress,
@@ -193,14 +216,14 @@ export class WalletService {
             onTimeoutAbort();
           }
           cleanupListeners();
-          this.setConnectStateError(error);
+          this.setConnectStateError('connect', error);
           throw error;
         }
       } else if (isAbortSignalTimeout(error)) {
         onTimeoutAbort();
       } else {
         cleanupListeners();
-        this.setConnectStateError(error);
+        this.setConnectStateError('connect', error);
         throw error;
       }
     }
@@ -231,13 +254,13 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
-    this.setConnectState('Reconnecting wallet');
+    this.setConnectState('reconnect', 'Reconnecting wallet');
 
     try {
       await this.validateReconnect();
     } catch (error) {
       if (!isInvalidClientError(error?.cause)) {
-        this.setConnectStateError(error);
+        this.setConnectStateError('reconnect', error);
         throw error;
       }
 
@@ -246,7 +269,7 @@ export class WalletService {
         await this.retryAddPublicKeyToWallet(walletAddress);
         await this.storage.setState({ key_revoked: false });
       } catch (error) {
-        this.setConnectStateError(error);
+        this.setConnectStateError('reconnect', error);
         throw error;
       }
     }
@@ -537,22 +560,29 @@ export class WalletService {
     this.storage.setPopupTransientState('connect', () => null);
   }
 
-  private setConnectState(currentStep: string) {
+  private setConnectState(
+    intent: ConnectWalletStatus['intent'],
+    currentStep: string | I18nInfo,
+  ) {
     this.storage.setPopupTransientState('connect', () => ({
-      status: 'connecting',
+      type: 'progress',
+      intent,
       currentStep,
     }));
   }
 
-  private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
-    this.storage.setPopupTransientState('connect', (state) => {
-      if (state?.status === 'error:key') {
-        return state;
-      }
-      return {
-        status: 'error',
-        error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
-      };
+  private setConnectStateError(
+    intent: ConnectWalletStatus['intent'],
+    error: Omit<
+      Extract<ConnectWalletStatus, { type: 'failure' }>,
+      'type' | 'intent'
+    >,
+  ) {
+    this.storage.setPopupTransientState('connect', (_state) => {
+      // if (state?.status === 'error:key') {
+      //   return state;
+      // }
+      return { type: 'failure', intent, ...error };
     });
   }
 }

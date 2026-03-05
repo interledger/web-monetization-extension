@@ -1,14 +1,10 @@
-import type {
-  AppStore,
-  DeepNonNullable,
-  PopupTransientState,
-} from '@/shared/types';
+import type { AppStore, DeepNonNullable, TransientState } from '@/shared/types';
 import { proxy, useSnapshot } from 'valtio';
 
 export type AppState = Required<DeepNonNullable<AppStore>>;
 
 export const store = proxy<AppState>({
-  transientState: {} as PopupTransientState,
+  transientState: {} as TransientState,
 } as AppState);
 
 // easier access to the store via this hook
@@ -36,7 +32,7 @@ export const dispatch = ({ type, data }: Actions) => {
 };
 
 type Actions =
-  | { type: 'SET_TRANSIENT_STATE'; data: PopupTransientState }
+  | { type: 'SET_TRANSIENT_STATE'; data: TransientState }
   | {
       type: 'SET_CONSENT';
       data: {

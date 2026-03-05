@@ -8,6 +8,12 @@ export type ErrorKeys = Extract<
   `${string}_${'error' | 'warn'}_${string}`
 >;
 
+export interface I18nInfo {
+  key: TranslationKeys;
+  // Could be empty, but required for checking if an object follows this interface
+  substitutions: string[];
+}
+
 /**
  * Error object with key and substitutions based on `_locales/[lang]/messages.json`
  */
@@ -66,7 +72,7 @@ export function tFactory(browser: Pick<Browser, 'i18n'>) {
    */
   function t<T extends TranslationKeys>(
     key: T,
-    substitutions?: string[],
+    substitutions?: string[] | readonly string[],
   ): string;
   function t<T extends ErrorKeys>(err: ErrorWithKeyLike<T>): string;
   function t(key: string | ErrorWithKeyLike, substitutions?: string[]): string {

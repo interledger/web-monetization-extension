@@ -9,6 +9,7 @@ import {
 import type { WalletInfo } from '@/shared/types';
 import { ensureEnd } from './misc';
 import { transformBalance } from './currency';
+import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 
 export function toWalletAddressUrl(s: string): string {
   if (s.startsWith('https://')) return s;
@@ -62,7 +63,7 @@ export const getWalletInformation = async (
 };
 
 export const getConnectWalletBudgetInfo = async (
-  walletAddress: WalletAddress,
+  walletAddress: WalletInfo,
 ): Promise<Omit<ConnectWalletAddressInfo, 'walletAddress'>> => {
   const {
     DEFAULT_BUDGET,
@@ -71,6 +72,7 @@ export const getConnectWalletBudgetInfo = async (
     DEFAULT_SCALE,
   } = await import('@/background/config');
   const { assetCode, assetScale } = walletAddress;
+  const isKeyAdditionSupported = KeyAutoAddService.supports(walletAddress);
 
   const budgetData = await getBudgetRecommendationsData().catch(
     (): Awaited<ReturnType<typeof getBudgetRecommendationsData>> => ({}),
@@ -83,6 +85,7 @@ export const getConnectWalletBudgetInfo = async (
       defaultBudget: budget.default,
       defaultRateOfPay: defaultRateOfPay.toFixed(0),
       maxRateOfPay: maxRateOfPay.toFixed(0),
+      isKeyAdditionSupported,
     };
   }
 
@@ -101,6 +104,7 @@ export const getConnectWalletBudgetInfo = async (
     defaultBudget: Number(transformBalance(defaultBudget, assetScale)),
     defaultRateOfPay,
     maxRateOfPay,
+    isKeyAdditionSupported,
   };
 };
 
