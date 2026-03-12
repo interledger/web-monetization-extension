@@ -19,6 +19,7 @@ import {
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
+  ErrorWithKey,
   errorWithKey,
   isErrorWithKey,
   sleep,
@@ -30,7 +31,11 @@ import type {
   ConnectWalletAddressInfo,
   Response,
 } from '@/shared/messages';
-import type { DeepReadonly, TransientState } from '@/shared/types';
+import type {
+  ConnectWalletStatus,
+  DeepReadonly,
+  TransientState,
+} from '@/shared/types';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -86,7 +91,7 @@ export const ConnectWalletForm = ({
   );
 
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
-    isAutoKeyAddFailed(state),
+    state?.type === 'failure' && state.code === 'key_add_failed',
   );
   const [keyAddNeeded, setKeyAddNeeded] = React.useState(true);
   const [showConsent, setShowConsent] = React.useState(false);
@@ -107,27 +112,39 @@ export const ConnectWalletForm = ({
   const [errors, setErrors] = React.useState<Errors>({
     walletAddressUrl: null,
     amount: null,
-    keyPair:
-      state?.status === 'error:key' ||
-      (state?.status === 'error' &&
-        typeof state.error === 'object' &&
-        state.error?.key === 'connectWallet_error_invalidClient')
-        ? toErrorInfo(deepClone(state.error))
-        : null,
-    connect:
-      state?.status === 'error' &&
-      (typeof state.error === 'object'
-        ? state.error.key !== 'connectWallet_error_invalidClient'
-        : true)
-        ? toErrorInfo(deepClone(state.error))
-        : null,
+    keyPair: null,
+    connect: null,
   });
+
+  React.useEffect(() => {
+    if (state?.type === 'failure' && state.code === 'key_add_failed') {
+      setErrors((prev) => ({
+        ...prev,
+        keyPair: toErrorInfo(mapErrorFailure(state)),
+      }));
+    }
+
+    if (state?.type === 'failure' && state.code !== 'key_add_failed') {
+      setErrors((prev) => ({
+        ...prev,
+        connect: toErrorInfo(mapErrorFailure(state)),
+      }));
+    }
+
+    if (state?.type === 'cancel') {
+      setErrors((prev) => ({
+        ...prev,
+        connect: toErrorInfo(mapErrorCancel(state)),
+      }));
+    }
+  }, [state, toErrorInfo]);
+
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
     amount: false,
   });
   const [isSubmitting, setIsSubmitting] = React.useState(
-    state?.status?.startsWith('connecting') || false,
+    state?.type === 'progress',
   );
 
   const handleAmountChange = React.useCallback(
@@ -305,13 +322,17 @@ export const ConnectWalletForm = ({
       } else {
         if (isErrorWithKey(res.error)) {
           const error = res.error;
-          if (
-            error.key.startsWith('connectWalletKeyService_error_') ||
-            error.key === 'connectWallet_error_invalidClient'
-          ) {
-            setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
+          if (error.key.startsWith('connectWalletKeyService_error_')) {
+            if (error.key === 'connectWalletKeyService_error_noConsent') {
+              setShowConsent(true);
+              return;
+            }
+            // setErrors((prev) => ({
+            //   ...prev,
+            //   keyPair: toErrorInfo(mapErrorFailure(state)),
+            // }));
           } else {
-            setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
+            // setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
           }
         } else {
           throw new Error(res.message);
@@ -369,6 +390,9 @@ export const ConnectWalletForm = ({
           {t('connectWallet_text_desc')}
         </p>
       </div>
+
+      <pre>{JSON.stringify(deepClone(state), null, 2)}</pre>
+      <pre>{JSON.stringify(errors.keyPair, null, 2)}</pre>
 
       {errors.connect && (
         <ErrorMessage error={errors.connect.message} className="my-0" />
@@ -501,8 +525,10 @@ export const ConnectWalletForm = ({
           }
           loading={isSubmitting}
           loadingText={
-            state?.status === 'connecting' || state?.status === 'connecting:key'
-              ? state.currentStep
+            state?.type === 'progress'
+              ? typeof state.currentStep === 'string'
+                ? state.currentStep
+                : t(state.currentStep.key, state.currentStep.substitutions)
               : undefined
           }
         >
@@ -607,20 +633,55 @@ const ManualKeyPairNeeded: React.FC<{
   );
 };
 
-function isAutoKeyAddFailed(state: ConnectTransientState) {
-  if (state?.status === 'error') {
-    return (
-      isErrorWithKey(state.error) &&
-      state.error.key !== 'connectWallet_error_tabClosed' &&
-      state.error.key !== 'connectWallet_error_timeout'
-    );
-  } else if (state?.status === 'error:key') {
-    return (
-      isErrorWithKey(state.error) &&
-      state.error.key.startsWith('connectWalletKeyService_error_')
-    );
+function mapErrorFailure(
+  state: DeepReadonly<Extract<ConnectWalletStatus, { type: 'failure' }>>,
+): ErrorWithKeyLike {
+  switch (state.code) {
+    case 'grant_continuation_failed':
+    case 'grant_hash_failed':
+    case 'grant_invalid':
+      // TODO: better error message for grant continuation failure
+      return new ErrorWithKey('connectWallet_error_invalidClient');
+    case 'timeout':
+      return new ErrorWithKey('connectWallet_error_timeout');
+    case 'key_add_failed': {
+      console.log(deepClone(state.details), isErrorWithKey(state.details));
+      if (isErrorWithKey(state.details)) {
+        switch (state.details.key) {
+          case 'connectWalletKeyService_error_noConsent':
+          case 'connectWalletKeyService_error_accountNotFound':
+          case 'connectWalletKeyService_error_timeoutLogin':
+          case 'connectWalletKeyService_error_failed':
+          case 'connectWalletKeyService_error_notImplemented':
+            return deepClone(state.details);
+          default:
+            return new ErrorWithKey(
+              'connectWalletKeyService_error_failed',
+              deepClone(state.details.substitutions || []),
+              deepClone(state.details),
+            );
+        }
+      } else {
+        return new ErrorWithKey('connectWalletKeyService_error_failed');
+      }
+    }
+    default:
+      // TODO: better error message
+      return new ErrorWithKey('connectWallet_error_invalidClient');
   }
-  return false;
+}
+
+function mapErrorCancel(
+  state: Extract<ConnectWalletStatus, { type: 'cancel' }>,
+): ErrorWithKeyLike {
+  switch (state.code) {
+    case 'grant_rejected':
+      return new ErrorWithKey('connectWallet_error_grantRejected');
+    case 'tab_closed':
+      return new ErrorWithKey('connectWallet_error_tabClosed');
+    default:
+      return new ErrorWithKey('connectWallet_error_grantRejected'); // TODO: better error for unknown cancel reason
+  }
 }
 
 function canRetryAutoKeyAdd(err?: ErrorInfo['info']) {
