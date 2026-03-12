@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import type {
   AmountValue,
-  PopupTransientState,
+  TransientState,
   Storage,
   TabId,
 } from '@/shared/types';
@@ -16,7 +16,7 @@ interface BackgroundEvents {
     state: Storage['state'];
     prevState: Storage['state'];
   };
-  'storage.popup_transient_state_update': PopupTransientState;
+  'storage.transient_state_update': TransientState;
   'storage.balance_update': Record<
     'recurring' | 'oneTime' | 'total',
     AmountValue

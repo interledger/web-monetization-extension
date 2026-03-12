@@ -529,18 +529,18 @@ export class WalletService {
   }
 
   public resetConnectState() {
-    this.storage.setPopupTransientState('connect', () => null);
+    this.storage.setTransientState('connect', () => null);
   }
 
   private setConnectState(currentStep: string) {
-    this.storage.setPopupTransientState('connect', () => ({
+    this.storage.setTransientState('connect', () => ({
       status: 'connecting',
       currentStep,
     }));
   }
 
   private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
-    this.storage.setPopupTransientState('connect', (state) => {
+    this.storage.setTransientState('connect', (state) => {
       if (state?.status === 'error:key') {
         return state;
       }
