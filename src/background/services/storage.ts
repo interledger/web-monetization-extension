@@ -223,8 +223,6 @@ export class StorageService {
   }
 
   getTransientState(): TransientState {
-    console.log('keyAutoAdd', this.transientState);
-
     return this.transientState;
   }
 }

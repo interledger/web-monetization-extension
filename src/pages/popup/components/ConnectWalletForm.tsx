@@ -645,7 +645,6 @@ function mapErrorFailure(
     case 'timeout':
       return new ErrorWithKey('connectWallet_error_timeout');
     case 'key_add_failed': {
-      console.log(deepClone(state.details), isErrorWithKey(state.details));
       if (isErrorWithKey(state.details)) {
         switch (state.details.key) {
           case 'connectWalletKeyService_error_noConsent':

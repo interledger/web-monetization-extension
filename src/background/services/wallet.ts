@@ -577,12 +577,12 @@ export class WalletService {
   }
 
   private setConnectStateErrorConnectFailure(error: Error | ErrorWithKey) {
-    const set = (
-      details: Omit<
-        Extract<ConnectWalletStatus, { type: 'failure' | 'cancel' }>,
-        'intent'
-      >,
-    ) => {
+    type FailureOrCancelStatus = Extract<
+      ConnectWalletStatus,
+      { type: 'failure' | 'cancel' }
+    >;
+    const set = (details: Omit<FailureOrCancelStatus, 'intent'>) => {
+      // @ts-expect-error TODO
       this.storage.setTransientState('connect', (state) => {
         if (state?.type === 'failure') return state;
         return { intent: 'connect', ...details };
