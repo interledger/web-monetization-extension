@@ -147,7 +147,7 @@ export class Background {
       consentTelemetry,
       connected,
       publicKey,
-      transientState: this.storage.getPopupTransientState(),
+      transientState: this.storage.getTransientState(),
     };
   }
 
@@ -459,7 +459,7 @@ export class Background {
       void this.tabEvents.updateVisualIndicators(tab);
     });
 
-    this.events.on('storage.popup_transient_state_update', (state) => {
+    this.events.on('storage.transient_state_update', (state) => {
       this.sendToPopup.send('SET_TRANSIENT_STATE', state);
       this.sendToApp.send('SET_TRANSIENT_STATE', state);
     });

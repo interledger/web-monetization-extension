@@ -5,7 +5,7 @@ import type {
 import type { Browser } from 'webextension-polyfill';
 import type {
   AmountValue,
-  PopupTransientState,
+  TransientState,
   Storage,
   WalletInfo,
 } from '@/shared/types';
@@ -334,7 +334,7 @@ export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>;
   SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
-  SET_TRANSIENT_STATE: PopupTransientState;
+  SET_TRANSIENT_STATE: TransientState;
   CLOSE_POPUP: undefined;
 }
 
@@ -350,7 +350,7 @@ export type BackgroundToPopupMessage = {
 export const BACKGROUND_TO_APP_CONNECTION_NAME = 'app';
 
 export interface BackgroundToAppMessagesMap {
-  SET_TRANSIENT_STATE: PopupTransientState;
+  SET_TRANSIENT_STATE: TransientState;
 }
 
 export type BackgroundToAppMessage = {

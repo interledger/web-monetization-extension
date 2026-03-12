@@ -189,14 +189,14 @@ export class KeyAutoAddService {
   }
 
   private setConnectState(currentStep: string) {
-    this.storage.setPopupTransientState('connect', () => ({
+    this.storage.setTransientState('connect', () => ({
       status: 'connecting:key',
       currentStep,
     }));
   }
 
   private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
-    this.storage.setPopupTransientState('connect', () => ({
+    this.storage.setTransientState('connect', () => ({
       status: 'error:key',
       error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
     }));

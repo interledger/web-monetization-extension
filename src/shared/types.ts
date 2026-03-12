@@ -145,7 +145,7 @@ export type PopupTabInfo = {
     | never; // just added for code formatting
 };
 
-export type PopupTransientState = Partial<{
+export type TransientState = Partial<{
   connect:
     | null
     | { status: 'connecting' | 'connecting:key'; currentStep: string }
@@ -163,7 +163,7 @@ export type PopupStore = Omit<
 > & {
   balance: AmountValue;
   tab: PopupTabInfo;
-  transientState: PopupTransientState;
+  transientState: TransientState;
   grants?: Partial<{
     oneTime: OneTimeGrant['amount'];
     recurring: RecurringGrant['amount'];
@@ -174,7 +174,7 @@ export type AppStore = Pick<
   Storage,
   'publicKey' | 'connected' | 'uid' | 'consent' | 'consentTelemetry'
 > & {
-  transientState: PopupTransientState;
+  transientState: TransientState;
 };
 
 export type DeepNonNullable<T> = {

@@ -2,7 +2,7 @@ import type {
   AmountValue,
   ExtensionState,
   GrantDetails,
-  PopupTransientState,
+  TransientState,
   Storage,
   StorageKey,
   WalletAmount,
@@ -48,7 +48,7 @@ export class StorageService {
   // used as an optimization/cache
   private currentState: Storage['state'] | null = null;
 
-  private popupTransientState: PopupTransientState = {};
+  private transientState: TransientState = {};
 
   constructor({ browser, events }: Cradle) {
     Object.assign(this, { browser, events });
@@ -211,19 +211,19 @@ export class StorageService {
     this.events.emit('storage.rate_of_pay_update', { rate });
   }
 
-  setPopupTransientState<T extends keyof PopupTransientState>(
+  setTransientState<T extends keyof TransientState>(
     id: T,
-    update: (prev?: PopupTransientState[T]) => PopupTransientState[T],
+    update: (prev?: TransientState[T]) => TransientState[T],
   ) {
-    const newState = update(this.popupTransientState[id]);
-    this.popupTransientState[id] = newState;
+    const newState = update(this.transientState[id]);
+    this.transientState[id] = newState;
 
-    const state = this.getPopupTransientState();
-    this.events.emit('storage.popup_transient_state_update', state);
+    const state = this.getTransientState();
+    this.events.emit('storage.transient_state_update', state);
   }
 
-  getPopupTransientState(): PopupTransientState {
-    return this.popupTransientState;
+  getTransientState(): TransientState {
+    return this.transientState;
   }
 }
 

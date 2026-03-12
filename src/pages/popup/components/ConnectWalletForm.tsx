@@ -30,7 +30,7 @@ import type {
   ConnectWalletAddressInfo,
   Response,
 } from '@/shared/messages';
-import type { DeepReadonly, PopupTransientState } from '@/shared/types';
+import type { DeepReadonly, TransientState } from '@/shared/types';
 
 interface Inputs {
   walletAddressUrl: string;
@@ -39,7 +39,7 @@ interface Inputs {
   autoKeyAddConsent: boolean;
 }
 
-type ConnectTransientState = DeepReadonly<PopupTransientState['connect']>;
+type ConnectTransientState = DeepReadonly<TransientState['connect']>;
 type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
