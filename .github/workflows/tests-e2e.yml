@@ -94,7 +94,7 @@ jobs:
           zip -r -P ${{ secrets.E2E_PLAYWRIGHT_REPORT_PASSWORD }} ../playwright-report.zip *
 
       - name: Upload report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report-${{ matrix.project }}
