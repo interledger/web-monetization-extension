@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.6/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -52,6 +52,7 @@
         "recommended": true,
         "noConsole": "warn",
         "noConstantBinaryExpressions": "error",
+        "noSkippedTests": "info",
         "noUnassignedVariables": "error",
         "noUnknownAtRules": "off",
         "noImportCycles": "off"
