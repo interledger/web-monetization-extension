@@ -205,6 +205,15 @@
   "connectWallet_error_timeout": {
     "message": "Connecting to wallet took too long. Please try again."
   },
+  "connectWallet_error_hashFailed": {
+    "message": "Connection failed. Please try again."
+  },
+  "connectWallet_error_continuationFailed": {
+    "message": "Connection failed. Please try again."
+  },
+  "connectWallet_error_grantInvalid": {
+    "message": "Connection failed. Please try again."
+  },
   "connectWalletKeyService_text_consentP1": {
     "message": "We will automatically connect with your wallet provider."
   },

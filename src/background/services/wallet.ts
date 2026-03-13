@@ -183,7 +183,6 @@ export class WalletService {
         walletAmount,
         walletAddress,
         grant,
-        intent,
         (openedTabId) => {
           tabId = openedTabId;
           cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
@@ -195,11 +194,19 @@ export class WalletService {
       cleanupListeners();
       if (isAbortSignalTimeout(error)) {
         onTimeoutAbort();
+      } else if (isErrorWithKey(error)) {
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       this.setConnectStateError(error);
       throw error;
     }
 
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_SUCCESS,
+      intent,
+    );
     await this.storage.set({
       walletAddress,
       rateOfPay,
@@ -317,7 +324,6 @@ export class WalletService {
         walletAmount,
         walletAddress,
         grant,
-        intent,
         (openedTabId) => {
           tabId = openedTabId;
         },
@@ -326,11 +332,20 @@ export class WalletService {
       if (isAbortSignalTimeout(error)) {
         await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
+      } else if (isErrorWithKey(error)) {
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       throw error;
     }
 
     await this.storage.setState({ out_of_funds: false });
+
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_SUCCESS,
+      intent,
+    );
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
@@ -372,7 +387,6 @@ export class WalletService {
         walletAmount,
         walletAddress,
         grant,
-        intent,
         (openedTabId) => {
           tabId = openedTabId;
         },
@@ -381,9 +395,18 @@ export class WalletService {
       if (isAbortSignalTimeout(error)) {
         await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
+      } else if (isErrorWithKey(error)) {
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       throw error;
     }
+
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_SUCCESS,
+      intent,
+    );
 
     // Revoke all existing grants.
     // Note: Clear storage only if new grant type is not same as previous grant
@@ -461,7 +484,7 @@ export class WalletService {
             : ErrorCode.KEY_ADD_FAILED,
         );
       }
-      if (error instanceof ErrorWithKey) {
+      if (isErrorWithKey(error)) {
         throw error;
       } else {
         // TODO: check if need to handle errors here
@@ -525,6 +548,30 @@ export class WalletService {
       GrantResult.GRANT_ERROR,
       intent,
       ErrorCode.TIMEOUT,
+    );
+  }
+
+  private async handleGrantCompletionError(
+    error: ErrorWithKeyLike,
+    intent: InteractionIntent,
+    tabId: TabId,
+  ) {
+    if (error.key === 'connectWallet_error_tabClosed') {
+      return;
+    }
+
+    let code: ErrorCode | undefined;
+    if (error.key === 'connectWallet_error_hashFailed') {
+      code = ErrorCode.HASH_FAILED;
+    } else if (error.key === 'connectWallet_error_continuationFailed') {
+      code = ErrorCode.CONTINUATION_FAILED;
+    }
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_ERROR,
+      intent,
+      code,
     );
   }
 
