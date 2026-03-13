@@ -7,6 +7,7 @@ import {
   isErrorWithKey,
   isKeyAddedToWallet,
   toWalletAddressUrl,
+  type ErrorWithKeyLike,
   type I18nInfo,
 } from '@/shared/helpers';
 import type {
@@ -217,18 +218,9 @@ export class WalletService {
       } else {
         cleanupListeners();
         this.setConnectStateErrorConnectFailure(error);
-        const code =
-          error.key === 'connectWallet_error_hashFailed'
-            ? ErrorCode.HASH_FAILED
-            : ErrorCode.CONTINUATION_FAILED;
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.GRANT_ERROR,
-          intent,
-          code,
-        );
-        throw error;
+        if (isErrorWithKey(error)) {
+          await this.handleGrantCompletionError(error, intent, tabId!);
+        }
       }
     }
 
@@ -369,6 +361,8 @@ export class WalletService {
       if (isAbortSignalTimeout(error)) {
         await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
+      } else if (isErrorWithKey(error)) {
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       throw error;
     }
@@ -431,6 +425,8 @@ export class WalletService {
       if (isAbortSignalTimeout(error)) {
         await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
+      } else if (isErrorWithKey(error)) {
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       throw error;
     }
@@ -583,6 +579,30 @@ export class WalletService {
       GrantResult.GRANT_ERROR,
       intent,
       ErrorCode.TIMEOUT,
+    );
+  }
+
+  private async handleGrantCompletionError(
+    error: ErrorWithKeyLike,
+    intent: InteractionIntent,
+    tabId: TabId,
+  ) {
+    if (error.key === 'connectWallet_error_tabClosed') {
+      return;
+    }
+
+    let code: ErrorCode | undefined;
+    if (error.key === 'connectWallet_error_hashFailed') {
+      code = ErrorCode.HASH_FAILED;
+    } else if (error.key === 'connectWallet_error_continuationFailed') {
+      code = ErrorCode.CONTINUATION_FAILED;
+    }
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_ERROR,
+      intent,
+      code,
     );
   }
 
