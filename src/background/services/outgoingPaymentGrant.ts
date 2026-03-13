@@ -21,13 +21,7 @@ import {
   isInvalidContinuationError,
   isNotFoundError,
 } from '@/background/services/openPayments';
-import {
-  createTabIfNotExists,
-  ErrorCode,
-  GrantResult,
-  InteractionIntent,
-  redirectToWelcomeScreen,
-} from '@/background/utils';
+import { createTabIfNotExists, InteractionIntent } from '@/background/utils';
 
 interface InteractionParams {
   interactRef: string;
@@ -132,14 +126,13 @@ export class OutgoingPaymentGrantService {
     walletAmount: WalletAmount,
     walletAddress: WalletAddress,
     { grant, nonce }: Awaited<ReturnType<this['createOutgoingPaymentGrant']>>,
-    intent: InteractionIntent,
     onTabOpen: (tabId: TabId) => void,
     existingTabId?: TabId,
     timeout = ACCEPT_GRANT_TIMEOUT,
   ): Promise<GrantDetails> {
     const signal = AbortSignal.timeout(timeout);
 
-    const { interactRef, hash, tabId } = await this.getInteractionInfo(
+    const { interactRef, hash } = await this.getInteractionInfo(
       grant.interact.redirect,
       onTabOpen,
       signal,
@@ -152,17 +145,10 @@ export class OutgoingPaymentGrantService {
       interactRef,
       hash,
       walletAddress.authServer,
-      intent,
-      tabId,
     );
     signal.throwIfAborted();
 
-    const continuation = await this.continueGrant(
-      grant,
-      interactRef,
-      intent,
-      tabId,
-    );
+    const continuation = await this.continueGrant(grant, interactRef);
     if (!isFinalizedGrantWithAccessToken(continuation)) {
       throw new Error(
         'Expected finalized grant. Received non-finalized grant.',
@@ -172,13 +158,6 @@ export class OutgoingPaymentGrantService {
 
     this.grant = this.buildGrantDetails(continuation, walletAmount);
     await this.persistGrantDetails(this.grant);
-
-    await redirectToWelcomeScreen(
-      this.browser,
-      tabId,
-      GrantResult.GRANT_SUCCESS,
-      intent,
-    );
 
     return this.grant;
   }
@@ -336,6 +315,8 @@ export class OutgoingPaymentGrantService {
           resolve({ interactRef, hash, tabId });
         } else if (result === 'grant_rejected') {
           reject(new ErrorWithKey('connectWallet_error_grantRejected'));
+        } else if (result === 'grant_invalid') {
+          reject(new ErrorWithKey('connectWallet_error_grantInvalid'));
         }
       } catch {
         /* do nothing */
@@ -354,29 +335,17 @@ export class OutgoingPaymentGrantService {
     interactRef: string,
     hash: string,
     authServer: string,
-    intent: InteractionIntent,
-    tabId: TabId,
   ) {
     const computeHash = (authServer: string) =>
       this.computeHash(clientNonce, interactionNonce, interactRef, authServer);
-    try {
-      if (hash === (await computeHash(authServer))) return;
-      // See https://github.com/interledger/web-monetization-extension/pull/1230
-      this.logger.warn(
-        'verifyInteractionHash failed with authServer without trailing slash',
-      );
-      if (hash === (await computeHash(ensureEnd(authServer, '/')))) return;
-      throw new Error('Invalid interaction hash');
-    } catch (error) {
-      await redirectToWelcomeScreen(
-        this.browser,
-        tabId,
-        GrantResult.GRANT_ERROR,
-        intent,
-        ErrorCode.HASH_FAILED,
-      );
-      throw error;
-    }
+
+    if (hash === (await computeHash(authServer))) return;
+    // See https://github.com/interledger/web-monetization-extension/pull/1230
+    this.logger.warn(
+      'verifyInteractionHash failed with authServer without trailing slash',
+    );
+    if (hash === (await computeHash(ensureEnd(authServer, '/')))) return;
+    throw new ErrorWithKey('connectWallet_error_hashFailed');
   }
 
   private computeHash = async (
@@ -392,12 +361,7 @@ export class OutgoingPaymentGrantService {
     return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)));
   };
 
-  private async continueGrant(
-    grant: PendingGrant,
-    interactRef: string,
-    intent: InteractionIntent,
-    tabId: TabId,
-  ) {
+  private async continueGrant(grant: PendingGrant, interactRef: string) {
     try {
       const continuation = await this.openPaymentsService.client.grant.continue(
         {
@@ -409,14 +373,10 @@ export class OutgoingPaymentGrantService {
 
       return continuation;
     } catch (error) {
-      await redirectToWelcomeScreen(
-        this.browser,
-        tabId,
-        GrantResult.GRANT_ERROR,
-        intent,
-        ErrorCode.CONTINUATION_FAILED,
-      );
-      throw error;
+      this.logger.error('connectWallet_error_continuationFailed', {
+        cause: error,
+      });
+      throw new ErrorWithKey('connectWallet_error_continuationFailed');
     }
   }
 
