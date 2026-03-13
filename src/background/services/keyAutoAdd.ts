@@ -10,7 +10,7 @@ import {
 } from '@/shared/helpers';
 import { createTab } from '@/background/utils';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
-import type { ConnectWalletStatus, TabId, WalletInfo } from '@/shared/types';
+import type { WalletStatus, TabId, WalletInfo } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
@@ -48,7 +48,7 @@ export class KeyAutoAddService {
   async addPublicKeyToWallet(
     walletAddress: WalletInfo,
     onTabOpen: (tabId: TabId) => void,
-    intent: ConnectWalletStatus['intent'] = 'connect',
+    intent: WalletStatus['intent'] = 'connect',
   ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
@@ -82,7 +82,7 @@ export class KeyAutoAddService {
     url: string,
     payload: BeginPayload,
     onTabOpen: (tabId: TabId) => void,
-    intent: ConnectWalletStatus['intent'] = 'connect',
+    intent: WalletStatus['intent'] = 'connect',
   ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
     const start = Date.now();
@@ -193,7 +193,7 @@ export class KeyAutoAddService {
   }
 
   private setTransientStateProgress(
-    intent: ConnectWalletStatus['intent'],
+    intent: WalletStatus['intent'],
     currentStep: I18nInfo | string,
   ) {
     this.storage.setTransientState('connect', () => ({
@@ -204,7 +204,7 @@ export class KeyAutoAddService {
   }
 
   private setTransientStateError(
-    intent: ConnectWalletStatus['intent'],
+    intent: WalletStatus['intent'],
     err: ErrorWithKeyLike | { message: string },
   ) {
     this.storage.setTransientState('connect', () => ({

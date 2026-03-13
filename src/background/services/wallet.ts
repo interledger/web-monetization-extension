@@ -38,8 +38,8 @@ import { APP_URL } from '@/background/constants';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import type { Cradle } from '@/background/container';
 import type {
-  ConnectStatusFailure,
-  ConnectWalletStatus,
+  WalletStatusFailure,
+  WalletStatus,
   TabId,
   WalletInfo,
 } from '@/shared/types';
@@ -621,7 +621,7 @@ export class WalletService {
   }
 
   private setConnectStateProgress(
-    intent: ConnectWalletStatus['intent'],
+    intent: WalletStatus['intent'],
     currentStep: string | I18nInfo,
   ) {
     this.storage.setTransientState('connect', () => ({
@@ -632,7 +632,7 @@ export class WalletService {
   }
 
   private setConnectStateError(
-    details: Extract<ConnectWalletStatus, { type: 'failure' | 'cancel' }>,
+    details: Extract<WalletStatus, { type: 'failure' | 'cancel' }>,
   ) {
     this.storage.setTransientState('connect', (state) => {
       if (state?.type === 'failure') return state;
@@ -642,9 +642,9 @@ export class WalletService {
 
   private setConnectStateErrorError(
     error: Error | ErrorWithKey,
-    intent: ConnectStatusFailure['intent'],
+    intent: WalletStatusFailure['intent'],
   ) {
-    const setFail = (data: Omit<ConnectStatusFailure, 'intent' | 'type'>) => {
+    const setFail = (data: Omit<WalletStatusFailure, 'intent' | 'type'>) => {
       this.storage.setTransientState('connect', (state) => {
         if (state?.type === 'failure') return state;
         return { type: 'failure', intent, ...data };
@@ -675,7 +675,7 @@ export class WalletService {
       }));
     }
 
-    let code: ConnectStatusFailure['code'] = 'unknown';
+    let code: WalletStatusFailure['code'] = 'unknown';
     if (error.key === 'connectWallet_error_hashFailed') {
       code = 'grant_hash_failed';
     } else if (error.key === 'connectWallet_error_continuationFailed') {

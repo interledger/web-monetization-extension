@@ -32,7 +32,7 @@ import type {
   Response,
 } from '@/shared/messages';
 import type {
-  ConnectWalletStatus,
+  WalletStatus,
   DeepReadonly,
   TransientState,
 } from '@/shared/types';
@@ -608,7 +608,7 @@ const ManualKeyPairNeeded: React.FC<{
 };
 
 function mapErrorFailure(
-  state: DeepReadonly<Extract<ConnectWalletStatus, { type: 'failure' }>>,
+  state: DeepReadonly<Extract<WalletStatus, { type: 'failure' }>>,
 ): ErrorWithKeyLike {
   switch (state.code) {
     case 'grant_continuation_failed':
@@ -646,7 +646,7 @@ function mapErrorFailure(
 }
 
 function mapErrorCancel(
-  state: Extract<ConnectWalletStatus, { type: 'cancel' }>,
+  state: Extract<WalletStatus, { type: 'cancel' }>,
 ): ErrorWithKeyLike {
   switch (state.code) {
     case 'grant_rejected':

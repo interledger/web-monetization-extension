@@ -145,21 +145,21 @@ export type PopupTabInfo = {
     | never; // just added for code formatting
 };
 
-interface BaseConnectResult {
+interface WalletStatusBase {
   intent: 'connect' | 'reconnect' | 'add_funds' | 'update_budget';
   type: 'success' | 'failure' | 'cancel' | 'progress';
 }
 
-interface ConnectStatusSuccess extends BaseConnectResult {
+interface WalletStatusSuccess extends WalletStatusBase {
   type: 'success';
 }
 
-interface ConnectStatusProgress extends BaseConnectResult {
+interface WalletStatusProgress extends WalletStatusBase {
   type: 'progress';
   currentStep: string | I18nInfo;
 }
 
-export interface ConnectStatusFailure extends BaseConnectResult {
+export interface WalletStatusFailure extends WalletStatusBase {
   type: 'failure';
   code:
     | 'grant_continuation_failed'
@@ -177,20 +177,20 @@ export interface ConnectStatusFailure extends BaseConnectResult {
   details?: ErrorWithKeyLike | { message: string };
 }
 
-interface ConnectStatusCancel extends BaseConnectResult {
+interface WalletStatusCancel extends WalletStatusBase {
   type: 'cancel';
   code: 'tab_closed' | 'grant_rejected';
   retryPossible: 'auto';
 }
 
-export type ConnectWalletStatus =
-  | ConnectStatusSuccess
-  | ConnectStatusFailure
-  | ConnectStatusCancel
-  | ConnectStatusProgress;
+export type WalletStatus =
+  | WalletStatusSuccess
+  | WalletStatusFailure
+  | WalletStatusCancel
+  | WalletStatusProgress;
 
 export type TransientState = Partial<{
-  connect: null | ConnectWalletStatus;
+  connect: null | WalletStatus;
 }>;
 
 export type PopupStore = Omit<
