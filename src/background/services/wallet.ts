@@ -195,19 +195,7 @@ export class WalletService {
       if (isAbortSignalTimeout(error)) {
         onTimeoutAbort();
       } else if (isErrorWithKey(error)) {
-        let code: ErrorCode | undefined;
-        if (error.key === 'connectWallet_error_hashFailed') {
-          code = ErrorCode.HASH_FAILED;
-        } else if (error.key === 'connectWallet_error_continuationFailed') {
-          code = ErrorCode.CONTINUATION_FAILED;
-        }
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.GRANT_ERROR,
-          intent,
-          code,
-        );
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       this.setConnectStateError(error);
       throw error;
@@ -345,19 +333,7 @@ export class WalletService {
         await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
       } else if (isErrorWithKey(error)) {
-        let code: ErrorCode | undefined;
-        if (error.key === 'connectWallet_error_hashFailed') {
-          code = ErrorCode.HASH_FAILED;
-        } else if (error.key === 'connectWallet_error_continuationFailed') {
-          code = ErrorCode.CONTINUATION_FAILED;
-        }
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.GRANT_ERROR,
-          intent,
-          code,
-        );
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       throw error;
     }
@@ -420,19 +396,7 @@ export class WalletService {
         await this.redirectOnTimeout(intent, tabId);
         throw new ErrorWithKey('connectWallet_error_timeout');
       } else if (isErrorWithKey(error)) {
-        let code: ErrorCode | undefined;
-        if (error.key === 'connectWallet_error_hashFailed') {
-          code = ErrorCode.HASH_FAILED;
-        } else if (error.key === 'connectWallet_error_continuationFailed') {
-          code = ErrorCode.CONTINUATION_FAILED;
-        }
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.GRANT_ERROR,
-          intent,
-          code,
-        );
+        await this.handleGrantCompletionError(error, intent, tabId!);
       }
       throw error;
     }
@@ -584,6 +548,30 @@ export class WalletService {
       GrantResult.GRANT_ERROR,
       intent,
       ErrorCode.TIMEOUT,
+    );
+  }
+
+  private async handleGrantCompletionError(
+    error: ErrorWithKeyLike,
+    intent: InteractionIntent,
+    tabId: TabId,
+  ) {
+    if (error.key === 'connectWallet_error_tabClosed') {
+      return;
+    }
+
+    let code: ErrorCode | undefined;
+    if (error.key === 'connectWallet_error_hashFailed') {
+      code = ErrorCode.HASH_FAILED;
+    } else if (error.key === 'connectWallet_error_continuationFailed') {
+      code = ErrorCode.CONTINUATION_FAILED;
+    }
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_ERROR,
+      intent,
+      code,
     );
   }
 
