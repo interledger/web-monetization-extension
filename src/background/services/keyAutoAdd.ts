@@ -6,10 +6,11 @@ import {
   withResolvers,
   Timeout,
   type ErrorWithKeyLike,
+  type I18nInfo,
 } from '@/shared/helpers';
 import { createTab } from '@/background/utils';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
-import type { TabId, WalletInfo } from '@/shared/types';
+import type { WalletStatus, TabId, WalletInfo } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type {
   BeginPayload,
@@ -47,6 +48,7 @@ export class KeyAutoAddService {
   async addPublicKeyToWallet(
     walletAddress: WalletInfo,
     onTabOpen: (tabId: TabId) => void,
+    intent: WalletStatus['intent'] = 'connect',
   ) {
     const keyAddUrl = walletAddressToProvider(walletAddress);
     try {
@@ -54,7 +56,10 @@ export class KeyAutoAddService {
         'publicKey',
         'keyId',
       ]);
-      this.setConnectState(this.t('connectWalletKeyService_text_stepAddKey'));
+      this.setTransientStateProgress(intent, {
+        key: 'connectWalletKeyService_text_stepAddKey',
+        substitutions: [],
+      });
       await this.process(
         keyAddUrl,
         {
@@ -68,9 +73,7 @@ export class KeyAutoAddService {
       );
       await this.validate(walletAddress.id, keyId);
     } catch (error) {
-      if (!error.key || !error.key.startsWith('connectWallet_error_')) {
-        this.setConnectStateError(error);
-      }
+      this.setTransientStateError(intent, error);
       throw error;
     }
   }
@@ -79,6 +82,7 @@ export class KeyAutoAddService {
     url: string,
     payload: BeginPayload,
     onTabOpen: (tabId: TabId) => void,
+    intent: WalletStatus['intent'] = 'connect',
   ): Promise<unknown> {
     const { resolve, reject, promise } = withResolvers();
     const start = Date.now();
@@ -157,7 +161,7 @@ export class KeyAutoAddService {
         timeout.reset(Math.max(timeoutMs, BASE_TIMEOUT));
         const currentStep = this.getCurrentStep(steps);
         if (currentStep) {
-          this.setConnectState(currentStep.name);
+          this.setTransientStateProgress(intent, currentStep.name);
         }
         for (const p of ports) {
           if (p !== port) p.postMessage(message);
@@ -188,17 +192,29 @@ export class KeyAutoAddService {
     }
   }
 
-  private setConnectState(currentStep: string) {
+  private setTransientStateProgress(
+    intent: WalletStatus['intent'],
+    currentStep: I18nInfo | string,
+  ) {
     this.storage.setTransientState('connect', () => ({
-      status: 'connecting:key',
+      intent,
+      type: 'progress',
       currentStep,
     }));
   }
 
-  private setConnectStateError(err: ErrorWithKeyLike | { message: string }) {
+  private setTransientStateError(
+    intent: WalletStatus['intent'],
+    err: ErrorWithKeyLike | { message: string },
+  ) {
     this.storage.setTransientState('connect', () => ({
-      status: 'error:key',
-      error: isErrorWithKey(err) ? errorWithKeyToJSON(err) : err.message,
+      intent,
+      type: 'failure',
+      code: 'key_add_failed',
+      retryPossible: 'auto',
+      details: isErrorWithKey(err)
+        ? errorWithKeyToJSON(err)
+        : { message: err.message },
     }));
   }
 

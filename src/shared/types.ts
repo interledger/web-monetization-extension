@@ -190,10 +190,7 @@ export type WalletStatus =
   | WalletStatusProgress;
 
 export type TransientState = Partial<{
-  connect:
-    | null
-    | { status: 'connecting' | 'connecting:key'; currentStep: string }
-    | { status: 'error' | 'error:key'; error: string | ErrorWithKeyLike };
+  connect: null | WalletStatus;
 }>;
 
 export type PopupStore = Omit<
