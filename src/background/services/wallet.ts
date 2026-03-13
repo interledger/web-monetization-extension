@@ -222,7 +222,7 @@ export class WalletService {
         onTimeoutAbort();
       } else {
         cleanupListeners();
-        this.setConnectStateErrorConnectFailure(error);
+        this.setConnectStateErrorError(error, 'connect');
         if (isErrorWithKey(error)) {
           await this.redirectOnGrantError(error, intent, tabId!);
         }
@@ -640,20 +640,23 @@ export class WalletService {
     });
   }
 
-  private setConnectStateErrorConnectFailure(error: Error | ErrorWithKey) {
+  private setConnectStateErrorError(
+    error: Error | ErrorWithKey,
+    intent: ConnectStatusFailure['intent'],
+  ) {
     const setFail = (data: Omit<ConnectStatusFailure, 'intent' | 'type'>) => {
       this.storage.setTransientState('connect', (state) => {
         if (state?.type === 'failure') return state;
-        return { type: 'failure', intent: 'connect', ...data };
+        return { type: 'failure', intent, ...data };
       });
     };
 
     if (!isErrorWithKey(error)) {
-      this.logger.log('setConnectStateErrorConnectFailure', { error });
+      this.logger.log('setConnectStateErrorError', { error });
       return setFail({
         code: 'grant_invalid',
         retryPossible: 'auto',
-        details: error, // TODO: ensure right format
+        details: { message: error.message },
       });
     }
 
@@ -663,7 +666,7 @@ export class WalletService {
     ) {
       return this.storage.setTransientState('connect', () => ({
         type: 'cancel',
-        intent: 'connect',
+        intent,
         code:
           error.key === 'connectWallet_error_tabClosed'
             ? 'tab_closed'
