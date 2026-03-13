@@ -147,7 +147,7 @@ export class WalletService {
 
     if (!isKeyAdded && autoKeyAdd) {
       try {
-        this.setConnectState('connect', {
+        this.setConnectStateProgress('connect', {
           key: 'connectWalletKeyService_text_stepAddKey',
           substitutions: [],
         });
@@ -195,7 +195,7 @@ export class WalletService {
       // experience.
       await closeTabsByFilter(browser, closeTabFilter);
 
-      this.setConnectState('connect', {
+      this.setConnectStateProgress('connect', {
         key: 'connectWallet_text_stepAcceptGrant',
         substitutions: [],
       });
@@ -203,7 +203,6 @@ export class WalletService {
         walletAmount,
         walletAddress,
         grant,
-        intent,
         (openedTabId) => {
           tabId = openedTabId;
           cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
@@ -218,10 +217,31 @@ export class WalletService {
       } else {
         cleanupListeners();
         this.setConnectStateErrorConnectFailure(error);
+        const code =
+          error.key === 'connectWallet_error_hashFailed'
+            ? ErrorCode.HASH_FAILED
+            : ErrorCode.CONTINUATION_FAILED;
+        await redirectToWelcomeScreen(
+          this.browser,
+          tabId,
+          GrantResult.GRANT_ERROR,
+          intent,
+          code,
+        );
         throw error;
       }
     }
 
+    this.storage.setTransientState('connect', () => ({
+      intent: 'connect',
+      type: 'success',
+    }));
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_SUCCESS,
+      intent,
+    );
     await this.storage.set({
       walletAddress,
       rateOfPay,
@@ -248,7 +268,7 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
-    this.setConnectState('reconnect', 'Reconnecting wallet');
+    this.setConnectStateProgress('reconnect', 'Reconnecting wallet');
 
     try {
       await this.validateReconnect();
@@ -341,7 +361,6 @@ export class WalletService {
         walletAmount,
         walletAddress,
         grant,
-        intent,
         (openedTabId) => {
           tabId = openedTabId;
         },
@@ -355,6 +374,14 @@ export class WalletService {
     }
 
     await this.storage.setState({ out_of_funds: false });
+
+    // TODO: set transient state success as well
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_SUCCESS,
+      intent,
+    );
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
@@ -396,7 +423,6 @@ export class WalletService {
         walletAmount,
         walletAddress,
         grant,
-        intent,
         (openedTabId) => {
           tabId = openedTabId;
         },
@@ -408,6 +434,14 @@ export class WalletService {
       }
       throw error;
     }
+
+    // TODO: set transient state success as well
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId,
+      GrantResult.GRANT_SUCCESS,
+      intent,
+    );
 
     // Revoke all existing grants.
     // Note: Clear storage only if new grant type is not same as previous grant
@@ -556,7 +590,7 @@ export class WalletService {
     this.storage.setTransientState('connect', () => null);
   }
 
-  private setConnectState(
+  private setConnectStateProgress(
     intent: ConnectWalletStatus['intent'],
     currentStep: string | I18nInfo,
   ) {
@@ -577,10 +611,10 @@ export class WalletService {
   }
 
   private setConnectStateErrorConnectFailure(error: Error | ErrorWithKey) {
-    type FailureOrCancelStatus = Extract<
-      ConnectWalletStatus,
-      { type: 'failure' | 'cancel' }
-    >;
+    type FailureStatus = Extract<ConnectWalletStatus, { type: 'failure' }>;
+    type CancelStatus = Extract<ConnectWalletStatus, { type: 'cancel' }>;
+    type FailureOrCancelStatus = FailureStatus | CancelStatus;
+
     const set = (details: Omit<FailureOrCancelStatus, 'intent'>) => {
       // @ts-expect-error TODO
       this.storage.setTransientState('connect', (state) => {
@@ -590,6 +624,7 @@ export class WalletService {
     };
 
     if (!isErrorWithKey(error)) {
+      // console.log('setConnectStateErrorConnectFailure', { error }, false);
       set({
         type: 'failure',
         code: 'grant_invalid',
@@ -610,11 +645,20 @@ export class WalletService {
           : 'grant_rejected';
       set({ type: 'cancel', code, retryPossible: 'auto' });
     } else {
+      // console.log('setConnectStateErrorConnectFailure', { error }, true);
+      let code: FailureStatus['code'] = 'unknown';
+      if (error.key === 'connectWallet_error_hashFailed') {
+        code = 'grant_hash_failed';
+      } else if (error.key === 'connectWallet_error_continuationFailed') {
+        code = 'grant_continuation_failed';
+      } else if (error.key === 'connectWallet_error_grantInvalid') {
+        code = 'grant_invalid';
+      }
       set({
         type: 'failure',
-        // @ts-expect-error todo
-        code: error.key,
+        code,
         retryPossible: 'auto',
+        // @ts-expect-error TODO
         details: errorWithKeyToJSON(error),
       });
     }

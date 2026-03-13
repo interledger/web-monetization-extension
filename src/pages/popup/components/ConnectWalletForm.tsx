@@ -320,23 +320,8 @@ export const ConnectWalletForm = ({
       if (res.success) {
         onConnect();
       } else {
-        if (isErrorWithKey(res.error)) {
-          const error = res.error;
-          if (error.key.startsWith('connectWalletKeyService_error_')) {
-            if (error.key === 'connectWalletKeyService_error_noConsent') {
-              setShowConsent(true);
-              return;
-            }
-            // setErrors((prev) => ({
-            //   ...prev,
-            //   keyPair: toErrorInfo(mapErrorFailure(state)),
-            // }));
-          } else {
-            // setErrors((prev) => ({ ...prev, connect: toErrorInfo(error) }));
-          }
-        } else {
-          throw new Error(res.message);
-        }
+        if (!isErrorWithKey(res.error)) throw new Error(res.message);
+        // Otherwise, errors are handled by `state` + `useEffect`
       }
     } catch (error) {
       setErrors((prev) => ({ ...prev, connect: toErrorInfo(error.message) }));
@@ -392,7 +377,6 @@ export const ConnectWalletForm = ({
       </div>
 
       <pre>{JSON.stringify(deepClone(state), null, 2)}</pre>
-      <pre>{JSON.stringify(errors.keyPair, null, 2)}</pre>
 
       {errors.connect && (
         <ErrorMessage error={errors.connect.message} className="my-0" />
@@ -638,10 +622,11 @@ function mapErrorFailure(
 ): ErrorWithKeyLike {
   switch (state.code) {
     case 'grant_continuation_failed':
+      return new ErrorWithKey('connectWallet_error_continuationFailed');
     case 'grant_hash_failed':
+      return new ErrorWithKey('connectWallet_error_hashFailed');
     case 'grant_invalid':
-      // TODO: better error message for grant continuation failure
-      return new ErrorWithKey('connectWallet_error_invalidClient');
+      return new ErrorWithKey('connectWallet_error_grantInvalid');
     case 'timeout':
       return new ErrorWithKey('connectWallet_error_timeout');
     case 'key_add_failed': {
