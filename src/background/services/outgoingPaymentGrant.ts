@@ -21,7 +21,7 @@ import {
   isInvalidContinuationError,
   isNotFoundError,
 } from '@/background/services/openPayments';
-import { createTabIfNotExists, InteractionIntent } from '@/background/utils';
+import { createTabIfNotExists } from '@/background/utils';
 
 interface InteractionParams {
   interactRef: string;
@@ -41,7 +41,6 @@ export class OutgoingPaymentGrantService {
   private openPaymentsService: Cradle['openPaymentsService'];
   private events: Cradle['events'];
   private browser: Cradle['browser'];
-  private t: Cradle['t'];
 
   private token: AccessToken;
   private grantDetails: GrantDetails | null;
@@ -57,7 +56,6 @@ export class OutgoingPaymentGrantService {
     openPaymentsService,
     events,
     browser,
-    t,
   }: Cradle) {
     Object.assign(this, {
       storage,
@@ -66,7 +64,6 @@ export class OutgoingPaymentGrantService {
       events,
       openPaymentsService,
       browser,
-      t,
     });
 
     void this.initialize();
@@ -207,7 +204,6 @@ export class OutgoingPaymentGrantService {
   async createOutgoingPaymentGrant(
     walletAddress: WalletAddress,
     amount: WalletAmount,
-    intent: InteractionIntent,
   ) {
     const nonce = crypto.randomUUID();
     try {
