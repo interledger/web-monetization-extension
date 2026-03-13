@@ -118,24 +118,16 @@ export const ConnectWalletForm = ({
 
   React.useEffect(() => {
     if (state?.type === 'failure' && state.code === 'key_add_failed') {
-      setErrors((prev) => ({
-        ...prev,
-        keyPair: toErrorInfo(mapErrorFailure(state)),
-      }));
+      const errInfo = toErrorInfo(mapErrorFailure(state));
+      setErrors((prev) => ({ ...prev, keyPair: errInfo }));
     }
-
     if (state?.type === 'failure' && state.code !== 'key_add_failed') {
-      setErrors((prev) => ({
-        ...prev,
-        connect: toErrorInfo(mapErrorFailure(state)),
-      }));
+      const errInfo = toErrorInfo(mapErrorFailure(state));
+      setErrors((prev) => ({ ...prev, connect: errInfo }));
     }
-
     if (state?.type === 'cancel') {
-      setErrors((prev) => ({
-        ...prev,
-        connect: toErrorInfo(mapErrorCancel(state)),
-      }));
+      const errInfo = toErrorInfo(mapErrorCancel(state));
+      setErrors((prev) => ({ ...prev, connect: errInfo }));
     }
   }, [state, toErrorInfo]);
 

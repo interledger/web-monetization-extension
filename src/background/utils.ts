@@ -23,6 +23,7 @@ type OnConnectCallback = Parameters<
 export enum GrantResult {
   GRANT_SUCCESS = 'grant_success',
   GRANT_ERROR = 'grant_error',
+  GRANT_REJECTED = 'grant_rejected',
   KEY_ADD_SUCCESS = 'key_add_success',
   KEY_ADD_ERROR = 'key_add_error',
 }

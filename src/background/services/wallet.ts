@@ -226,6 +226,7 @@ export class WalletService {
         if (isErrorWithKey(error)) {
           await this.redirectOnGrantError(error, intent, tabId!);
         }
+        throw error;
       }
     }
 
@@ -588,6 +589,14 @@ export class WalletService {
   ) {
     if (error.key === 'connectWallet_error_tabClosed') {
       return;
+    }
+    if (error.key === 'connectWallet_error_grantRejected') {
+      return await redirectToWelcomeScreen(
+        this.browser,
+        tabId,
+        GrantResult.GRANT_REJECTED,
+        intent,
+      );
     }
 
     let code: ErrorCode | undefined;
