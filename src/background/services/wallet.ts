@@ -37,7 +37,12 @@ import {
 import { APP_URL } from '@/background/constants';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import type { Cradle } from '@/background/container';
-import type { ConnectWalletStatus, TabId, WalletInfo } from '@/shared/types';
+import type {
+  ConnectStatusFailure,
+  ConnectWalletStatus,
+  TabId,
+  WalletInfo,
+} from '@/shared/types';
 import type { Browser, Tabs } from 'webextension-polyfill';
 
 export class WalletService {
@@ -130,7 +135,7 @@ export class WalletService {
         type: 'failure',
         code: 'timeout',
         retryPossible: 'auto',
-        details: err,
+        details: errorWithKeyToJSON(err),
       });
 
       void this.redirectOnTimeout(intent, tabId);
@@ -641,57 +646,51 @@ export class WalletService {
   }
 
   private setConnectStateErrorConnectFailure(error: Error | ErrorWithKey) {
-    type FailureStatus = Extract<ConnectWalletStatus, { type: 'failure' }>;
-    type CancelStatus = Extract<ConnectWalletStatus, { type: 'cancel' }>;
-    type FailureOrCancelStatus = FailureStatus | CancelStatus;
-
-    const set = (details: Omit<FailureOrCancelStatus, 'intent'>) => {
-      // @ts-expect-error TODO
+    const setFail = (data: Omit<ConnectStatusFailure, 'intent' | 'type'>) => {
       this.storage.setTransientState('connect', (state) => {
         if (state?.type === 'failure') return state;
-        return { intent: 'connect', ...details };
+        return { type: 'failure', intent: 'connect', ...data };
       });
     };
 
     if (!isErrorWithKey(error)) {
       // console.log('setConnectStateErrorConnectFailure', { error }, false);
-      set({
-        type: 'failure',
+      return setFail({
         code: 'grant_invalid',
         retryPossible: 'auto',
-        // @ts-expect-error TODO
-        details: error,
+        details: error, // TODO: ensure right format
       });
-      return;
     }
 
     if (
       error.key === 'connectWallet_error_grantRejected' ||
       error.key === 'connectWallet_error_tabClosed'
     ) {
-      const code =
-        error.key === 'connectWallet_error_tabClosed'
-          ? 'tab_closed'
-          : 'grant_rejected';
-      set({ type: 'cancel', code, retryPossible: 'auto' });
-    } else {
-      // console.log('setConnectStateErrorConnectFailure', { error }, true);
-      let code: FailureStatus['code'] = 'unknown';
-      if (error.key === 'connectWallet_error_hashFailed') {
-        code = 'grant_hash_failed';
-      } else if (error.key === 'connectWallet_error_continuationFailed') {
-        code = 'grant_continuation_failed';
-      } else if (error.key === 'connectWallet_error_grantInvalid') {
-        code = 'grant_invalid';
-      }
-      set({
-        type: 'failure',
-        code,
+      return this.storage.setTransientState('connect', () => ({
+        type: 'cancel',
+        intent: 'connect',
+        code:
+          error.key === 'connectWallet_error_tabClosed'
+            ? 'tab_closed'
+            : 'grant_rejected',
         retryPossible: 'auto',
-        // @ts-expect-error TODO
-        details: errorWithKeyToJSON(error),
-      });
+      }));
     }
+
+    // console.log('setConnectStateErrorConnectFailure', { error }, true);
+    let code: ConnectStatusFailure['code'] = 'unknown';
+    if (error.key === 'connectWallet_error_hashFailed') {
+      code = 'grant_hash_failed';
+    } else if (error.key === 'connectWallet_error_continuationFailed') {
+      code = 'grant_continuation_failed';
+    } else if (error.key === 'connectWallet_error_grantInvalid') {
+      code = 'grant_invalid';
+    }
+    setFail({
+      code,
+      retryPossible: 'auto',
+      details: errorWithKeyToJSON(error),
+    });
   }
 }
 

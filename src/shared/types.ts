@@ -159,7 +159,7 @@ interface ConnectStatusProgress extends BaseConnectResult {
   currentStep: string | I18nInfo;
 }
 
-interface ConnectStatusFailure extends BaseConnectResult {
+export interface ConnectStatusFailure extends BaseConnectResult {
   type: 'failure';
   code:
     | 'grant_continuation_failed'
