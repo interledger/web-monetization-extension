@@ -283,6 +283,10 @@ export class WalletService {
     }
 
     this.resetConnectState();
+    this.storage.setTransientState('connect', () => ({
+      intent: 'reconnect',
+      type: 'success',
+    }));
   }
 
   async disconnectWallet(force = false) {
@@ -369,7 +373,10 @@ export class WalletService {
 
     await this.storage.setState({ out_of_funds: false });
 
-    // TODO: set transient state success as well
+    this.storage.setTransientState('connect', () => ({
+      intent: 'add_funds',
+      type: 'success',
+    }));
     await redirectToWelcomeScreen(
       this.browser,
       tabId,
@@ -431,7 +438,10 @@ export class WalletService {
       throw error;
     }
 
-    // TODO: set transient state success as well
+    this.storage.setTransientState('connect', () => ({
+      intent,
+      type: 'success',
+    }));
     await redirectToWelcomeScreen(
       this.browser,
       tabId,
