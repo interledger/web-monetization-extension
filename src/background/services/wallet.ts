@@ -566,7 +566,7 @@ export class WalletService {
       await this.outgoingPaymentGrantService.rotateToken();
     } catch (error) {
       if (isInvalidClientError(error)) {
-        throw new ErrorWithKey('connectWallet_error_invalidClient');
+        throw new Error('connectWallet_error_invalidClient', { cause: error });
       }
       throw error;
     }
