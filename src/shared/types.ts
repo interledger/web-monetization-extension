@@ -1,6 +1,6 @@
 import type { WalletAddress } from '@interledger/open-payments';
 import type { Tabs } from 'webextension-polyfill';
-import type { ErrorWithKeyLike } from './helpers';
+import type { ErrorWithKeyLike, I18nInfo } from './helpers';
 import type { components as RSComponents } from '@interledger/open-payments/dist/openapi/generated/resource-server-types';
 
 export type AmountType = RSComponents['schemas']['amount'];
@@ -144,6 +144,50 @@ export type PopupTabInfo = {
     | 'all_sessions_invalid'
     | never; // just added for code formatting
 };
+
+interface WalletStatusBase {
+  intent: 'connect' | 'reconnect' | 'add_funds' | 'update_budget';
+  type: 'success' | 'failure' | 'cancel' | 'progress';
+}
+
+interface WalletStatusSuccess extends WalletStatusBase {
+  type: 'success';
+}
+
+interface WalletStatusProgress extends WalletStatusBase {
+  type: 'progress';
+  currentStep: string | I18nInfo;
+}
+
+export interface WalletStatusFailure extends WalletStatusBase {
+  type: 'failure';
+  code:
+    | 'grant_continuation_failed'
+    | 'grant_hash_failed'
+    | 'grant_invalid'
+    | 'key_add_failed'
+    | 'timeout'
+    | 'unknown';
+  /**
+   * - `auto`: can try to connect automatically (like timeout, bad login, server errors etc.)
+   * - `manual`: ask user to connect manually, might need some edit to params (budget too high etc.)
+   * - `false`/`undefined`: cannot retry
+   */
+  retryPossible: 'auto' | 'manual' | false;
+  details?: ErrorWithKeyLike | { message: string };
+}
+
+interface WalletStatusCancel extends WalletStatusBase {
+  type: 'cancel';
+  code: 'tab_closed' | 'grant_rejected';
+  retryPossible: 'auto';
+}
+
+export type WalletStatus =
+  | WalletStatusSuccess
+  | WalletStatusFailure
+  | WalletStatusCancel
+  | WalletStatusProgress;
 
 export type TransientState = Partial<{
   connect:
