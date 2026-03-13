@@ -649,7 +649,7 @@ export class WalletService {
     };
 
     if (!isErrorWithKey(error)) {
-      // console.log('setConnectStateErrorConnectFailure', { error }, false);
+      this.logger.log('setConnectStateErrorConnectFailure', { error });
       return setFail({
         code: 'grant_invalid',
         retryPossible: 'auto',
@@ -672,7 +672,6 @@ export class WalletService {
       }));
     }
 
-    // console.log('setConnectStateErrorConnectFailure', { error }, true);
     let code: ConnectStatusFailure['code'] = 'unknown';
     if (error.key === 'connectWallet_error_hashFailed') {
       code = 'grant_hash_failed';

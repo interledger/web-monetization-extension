@@ -368,8 +368,6 @@ export const ConnectWalletForm = ({
         </p>
       </div>
 
-      <pre>{JSON.stringify(deepClone(state), null, 2)}</pre>
-
       {errors.connect && (
         <ErrorMessage error={errors.connect.message} className="my-0" />
       )}
