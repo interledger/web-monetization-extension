@@ -554,8 +554,7 @@ export class WalletService {
       }
 
       if (isInvalidClientError(error)) {
-        const msg = this.t('connectWallet_error_invalidClient');
-        throw new Error(msg, { cause: error });
+        throw new ErrorWithKey('connectWallet_error_invalidClient');
       }
       throw error;
     }
@@ -566,8 +565,7 @@ export class WalletService {
       await this.outgoingPaymentGrantService.rotateToken();
     } catch (error) {
       if (isInvalidClientError(error)) {
-        const msg = this.t('connectWallet_error_invalidClient');
-        throw new Error(msg, { cause: error });
+        throw new ErrorWithKey('connectWallet_error_invalidClient');
       }
       throw error;
     }

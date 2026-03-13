@@ -255,11 +255,7 @@ export class OutgoingPaymentGrantService {
       return { grant, nonce };
     } catch (error) {
       if (isInvalidClientError(error)) {
-        if (intent !== InteractionIntent.FUNDS) {
-          throw new ErrorWithKey('connectWallet_error_invalidClient');
-        }
-        const msg = this.t('connectWallet_error_invalidClient');
-        throw new Error(msg, { cause: error });
+        throw new ErrorWithKey('connectWallet_error_invalidClient');
       }
       throw error;
     }
