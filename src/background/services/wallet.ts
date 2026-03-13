@@ -191,7 +191,6 @@ export class WalletService {
         await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
           walletAddress,
           walletAmount,
-          intent,
         );
 
       // In Safari, connect process crashes with "tab closed" error if we reuse
@@ -350,7 +349,6 @@ export class WalletService {
       await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
         walletAddress,
         walletAmount,
-        intent,
       );
     let tabId: TabId | undefined;
     try {
@@ -413,7 +411,6 @@ export class WalletService {
       await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
         walletAddress,
         walletAmount,
-        intent,
       );
     let tabId: TabId | undefined;
     try {
