@@ -21,7 +21,11 @@ import {
   isInvalidContinuationError,
   isNotFoundError,
 } from '@/background/services/openPayments';
-import { createTabIfNotExists } from '@/background/utils';
+import {
+  createTabIfNotExists,
+  WalletStatusCancelError,
+  WalletStatusFailureError,
+} from '@/background/utils';
 
 interface InteractionParams {
   interactRef: string;
@@ -284,7 +288,7 @@ export class OutgoingPaymentGrantService {
       if (tabId !== tabID) return;
 
       removeListeners();
-      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
+      reject(new WalletStatusCancelError('tab_closed'));
     };
 
     const getInteractionInfo: TabUpdateCallback = async (tabId, changeInfo) => {
@@ -306,9 +310,9 @@ export class OutgoingPaymentGrantService {
         if (interactRef && hash) {
           resolve({ interactRef, hash, tabId });
         } else if (result === 'grant_rejected') {
-          reject(new ErrorWithKey('connectWallet_error_grantRejected'));
+          reject(new WalletStatusCancelError('grant_rejected'));
         } else if (result === 'grant_invalid') {
-          reject(new ErrorWithKey('connectWallet_error_grantInvalid'));
+          reject(new WalletStatusFailureError('grant_invalid'));
         }
       } catch {
         /* do nothing */
@@ -337,7 +341,7 @@ export class OutgoingPaymentGrantService {
       'verifyInteractionHash failed with authServer without trailing slash',
     );
     if (hash === (await computeHash(ensureEnd(authServer, '/')))) return;
-    throw new ErrorWithKey('connectWallet_error_hashFailed');
+    throw new WalletStatusFailureError('grant_hash_failed');
   }
 
   private computeHash = async (
@@ -365,10 +369,11 @@ export class OutgoingPaymentGrantService {
 
       return continuation;
     } catch (error) {
-      this.logger.error('connectWallet_error_continuationFailed', {
-        cause: error,
+      const err = new WalletStatusFailureError('grant_continuation_failed', {
+        details: error,
       });
-      throw new ErrorWithKey('connectWallet_error_continuationFailed');
+      this.logger.error(err);
+      throw err;
     }
   }
 

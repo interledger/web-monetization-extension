@@ -4,6 +4,8 @@ import type {
   Tab,
   TabId,
   WalletAmount,
+  WalletStatusCancel,
+  WalletStatusFailure,
 } from '@/shared/types';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
@@ -35,11 +37,31 @@ export enum InteractionIntent {
   UPDATE_BUDGET = 'update_budget',
 }
 
+/** @deprecated Used only for URL params on post-connect screen */
 export enum ErrorCode {
   CONTINUATION_FAILED = 'continuation_failed',
   HASH_FAILED = 'hash_failed',
   KEY_ADD_FAILED = 'key_add_failed',
   TIMEOUT = 'timeout',
+  GRANT_INVALID = 'grant_invalid',
+  UNKNOWN = 'unknown',
+}
+
+export class WalletStatusFailureError extends Error {
+  public readonly details: WalletStatusFailure['details'];
+  constructor(
+    public readonly code: WalletStatusFailure['code'],
+    details?: Pick<WalletStatusFailure, 'details'>,
+  ) {
+    super(code, { cause: details?.details });
+    this.details = details?.details;
+  }
+}
+
+export class WalletStatusCancelError extends Error {
+  constructor(public readonly code: WalletStatusCancel['code']) {
+    super(code);
+  }
 }
 
 export const getCurrentActiveTab = async (browser: Browser) => {
