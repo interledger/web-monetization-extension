@@ -456,33 +456,9 @@ export class WalletService {
       t: this.t,
     });
     this.events.emit('request_popup_close');
-    let tabId: TabId | undefined;
-    try {
-      await keyAutoAdd.addPublicKeyToWallet(walletAddress, (openedTabId) => {
-        tabId = openedTabId;
-        onTabOpen(openedTabId);
-      });
-    } catch (error) {
-      const isTabClosed =
-        error instanceof WalletStatusCancelError && error.code === 'tab_closed';
-      if (tabId && !isTabClosed) {
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.GRANT_ERROR,
-          InteractionIntent.CONNECT,
-          error.key === 'connectWallet_error_timeout'
-            ? ErrorCode.TIMEOUT
-            : ErrorCode.KEY_ADD_FAILED,
-        );
-      }
-      if (isErrorWithKey(error)) {
-        throw error;
-      } else {
-        // TODO: check if need to handle errors here
-        throw new Error(error.message, { cause: error });
-      }
-    }
+    await keyAutoAdd.addPublicKeyToWallet(walletAddress, (openedTabId) => {
+      onTabOpen(openedTabId);
+    });
   }
 
   private async retryAddPublicKeyToWallet(walletAddress: WalletInfo) {
@@ -502,14 +478,10 @@ export class WalletService {
       const isTabClosed =
         error instanceof WalletStatusCancelError && error.code === 'tab_closed';
       if (tabId && !isTabClosed) {
-        await redirectToWelcomeScreen(
-          this.browser,
-          tabId,
-          GrantResult.KEY_ADD_ERROR,
+        await this.redirectOnGrantError(
+          error,
           InteractionIntent.RECONNECT,
-          error.key === 'connectWallet_error_timeout'
-            ? ErrorCode.TIMEOUT
-            : ErrorCode.KEY_ADD_FAILED,
+          tabId,
         );
       }
 
