@@ -1,14 +1,26 @@
 import { cva } from 'class-variance-authority';
 import React from 'react';
-import { useSearchParams } from 'wouter';
 import { navigate } from 'wouter/use-hash-location';
+import { useMessage, useTranslation } from '@/app/lib/context';
+import { useAppState } from '@/app/lib/store';
+import type {
+  WalletStatus,
+  WalletStatusCancel,
+  WalletStatusFailure,
+} from '@/shared/types';
 
 export default function PostConnect() {
-  const [searchParams] = useSearchParams();
-  const params = mapStatusToMessage(searchParams);
+  const t = useTranslation();
+  const message = useMessage();
+  const { transientState } = useAppState();
 
+  if (!transientState.connect || transientState.connect.type === 'progress') {
+    return <p>Nothing to see here</p>;
+  }
+
+  const params = mapStatusToMessage(transientState.connect as WalletStatus, t);
   if (!params) {
-    return <p>Invalid URL parameters</p>;
+    return <p>No mapping from status to messages!!</p>;
   }
 
   return (
@@ -36,10 +48,14 @@ export default function PostConnect() {
         <p className="text-lg">{params.info}</p>
 
         <div className="flex flex-col gap-3">
-          {params.retryPossible === 'auto' && (
+          {params.retryPossible === 'auto' && params.retryMessage && (
             <button
               type="button"
               className={ButtonVariants({ variant: 'solid' })}
+              onClick={() => {
+                const { action, payload } = params.retryMessage!;
+                return message.send(action, payload);
+              }}
             >
               Try again
             </button>
@@ -57,8 +73,7 @@ export default function PostConnect() {
                 variant: params.retryPossible === 'auto' ? 'outline' : 'solid',
               })}
             >
-              {/* Change the wallet address or budget amount */}
-              Try again
+              Change the wallet address or budget amount
             </a>
           )}
         </div>
@@ -82,10 +97,17 @@ const ButtonVariants = cva(
 // Most of following will be removed soon as we look into better message passing
 // instead of being limited by URL parameters.
 function mapStatusToMessage(
-  searchParams: URLSearchParams,
+  status: WalletStatus,
+  t: ReturnType<typeof useTranslation>,
 ): MessageParams | null {
+  if (status.type === 'progress') {
+    throw new Error('Invalid state to show on this page');
+  }
+
+  type Intent = WalletStatus['intent'];
+
   const DEFAULT_ERROR_MESSAGE = (intent: Intent) => {
-    if (intent === 'funds') {
+    if (intent === 'add_funds') {
       return 'Something went wrong. Please try adding funds again.';
     }
     if (intent === 'update_budget') {
@@ -95,11 +117,12 @@ function mapStatusToMessage(
   };
   const CLOSE_TAB_MESSAGE = 'You may safely close this tab.';
 
-  type ErrorCode = keyof typeof ERROR_MESSAGES;
-
-  const ERROR_MESSAGES = {
-    continuation_failed(intent: Intent): string {
-      if (intent === 'funds') {
+  const ERROR_MESSAGES: Record<
+    WalletStatusFailure['code'],
+    (intent: Intent) => string
+  > = {
+    grant_continuation_failed(intent: Intent): string {
+      if (intent === 'add_funds') {
         return 'An error occurred. Please try adding funds again.';
       }
       if (intent === 'update_budget') {
@@ -107,20 +130,56 @@ function mapStatusToMessage(
       }
       return 'An error occurred. Please try reconnecting the wallet.';
     },
-    hash_failed(intent: Intent): string {
-      if (intent === 'funds') {
+    grant_hash_failed(intent: Intent): string {
+      if (intent === 'add_funds') {
         return 'An error occurred. Please try adding funds again.';
       }
       if (intent === 'update_budget') {
         return 'An error occurred. Please try updating your budget again.';
       }
       return 'An error occurred. Please try reconnecting the wallet.';
+    },
+    key_add_failed(): string {
+      return 'Something went wrong with your request. Please try reconnecting your wallet.';
+    },
+    grant_invalid(intent: Intent): string {
+      if (intent === 'add_funds') {
+        return 'Something went wrong with your request. Please try adding funds again.';
+      }
+      if (intent === 'update_budget') {
+        return 'Something went wrong with your request. Please try updating your budget again.';
+      }
+      return 'Something went wrong with your request. Please try reconnecting your wallet.';
+    },
+    timeout(_intent: Intent): string {
+      return t('connectWallet_error_timeout');
+    },
+    unknown(_intent: Intent): string {
+      return t('connectWallet_error_grantInvalid'); // TODO
+    },
+  };
+
+  const CANCEL_MESSAGES: Record<
+    WalletStatusCancel['code'],
+    (intent: Intent) => string
+  > = {
+    grant_rejected(intent) {
+      if (intent === 'add_funds') {
+        return 'No funds were added.';
+      }
+      if (intent === 'update_budget') {
+        return 'Your budget was not updated.';
+      }
+      return 'Your request was successfully rejected.';
+    },
+    tab_closed() {
+      return 'The tab was closed.';
     },
   };
 
   const MESSAGES = {
     grant_success(intent: Intent): string {
-      if (intent === 'funds') {
+      if (intent === 'add_funds') {
         return 'You have successfully added more funds.';
       }
       if (intent === 'update_budget') {
@@ -132,7 +191,7 @@ function mapStatusToMessage(
       return 'Your wallet is now successfully reconnected to the extension.';
     },
     grant_rejected(intent: Intent): string {
-      if (intent === 'funds') {
+      if (intent === 'add_funds') {
         return 'No funds were added.';
       }
       if (intent === 'update_budget') {
@@ -140,98 +199,48 @@ function mapStatusToMessage(
       }
       return 'Your request was successfully rejected.';
     },
-    key_add_error(): string {
-      return 'Something went wrong with your request. Please try reconnecting your wallet.';
-    },
-    grant_invalid(intent: Intent): string {
-      if (intent === 'funds') {
-        return 'Something went wrong with your request. Please try adding funds again.';
-      }
-      if (intent === 'update_budget') {
-        return 'Something went wrong with your request. Please try updating your budget again.';
-      }
-      return 'Something went wrong with your request. Please try reconnecting your wallet.';
-    },
   };
 
-  const result = searchParams.get('result') as SuccessParam;
-  const errorCode = searchParams.get('errorCode') as ErrorCode;
-  const intent = (searchParams.get('intent') ?? 'connect') as Intent;
+  if (status.type === 'success') {
+    return {
+      heading: 'Success',
+      info: MESSAGES.grant_success(status.intent),
+      image: getImage('success'),
+      retryPossible: false,
+      intent: status.intent,
+    };
+  }
+
+  if (status.type === 'cancel') {
+    return {
+      heading: CANCEL_MESSAGES[status.code](status.intent),
+      info: CLOSE_TAB_MESSAGE,
+      image: getImage('warning'),
+      intent: status.intent,
+      retryPossible: status.intent === 'connect' ? status.retryPossible : false,
+      retryMessage: status.retryMessage,
+    };
+  }
+
+  return {
+    heading: ERROR_MESSAGES[status.code](status.intent),
+    info: status.code,
+    image: getImage('error'),
+    intent: status.intent,
+    retryPossible: status.retryPossible,
+    retryMessage: status.retryMessage,
+  };
 
   function getImage(type: 'success' | 'error' | 'warning') {
     return { src: `/assets/images/icons/${type}.svg`, alt: type };
   }
-
-  switch (result) {
-    case 'grant_success':
-      return {
-        image: getImage('success'),
-        heading: MESSAGES[result](intent),
-        info: CLOSE_TAB_MESSAGE,
-        intent,
-        retryPossible: false,
-      };
-    case 'key_add_success':
-      return {
-        image: getImage('success'),
-        heading: MESSAGES[result](),
-        info: CLOSE_TAB_MESSAGE,
-        intent,
-        retryPossible: false,
-      };
-    case 'grant_rejected':
-      return {
-        image: getImage('warning'),
-        heading: MESSAGES[result](intent),
-        info: CLOSE_TAB_MESSAGE,
-        intent,
-        retryPossible: 'manual',
-      };
-    case 'key_add_error':
-      return {
-        image: getImage('error'),
-        heading: MESSAGES[result](),
-        info: CLOSE_TAB_MESSAGE,
-        intent,
-        retryPossible: 'manual',
-      };
-    case 'grant_invalid':
-      return {
-        image: getImage('error'),
-        heading: MESSAGES[result](intent),
-        info: CLOSE_TAB_MESSAGE,
-        intent,
-        retryPossible: 'manual',
-      };
-    case 'grant_error':
-      return {
-        image: getImage('error'),
-        heading: ERROR_MESSAGES[errorCode]
-          ? ERROR_MESSAGES[errorCode](intent)
-          : DEFAULT_ERROR_MESSAGE(intent),
-        info: CLOSE_TAB_MESSAGE,
-        intent,
-        retryPossible: 'manual',
-      };
-    default:
-      return null;
-  }
 }
-
-type SuccessParam =
-  | 'grant_success'
-  | 'grant_error'
-  | 'grant_rejected'
-  | 'grant_invalid'
-  | 'key_add_success'
-  | 'key_add_error';
-
-type Intent = 'connect' | 'reconnect' | 'funds' | 'update_budget';
 
 type MessageParams = {
   image: { src: string; alt: string };
   heading: string;
   info: string;
-  intent: Intent;
+  intent: WalletStatus['intent'];
   retryPossible: false | 'auto' | 'manual';
+  retryMessage?: (WalletStatusCancel | WalletStatusFailure)['retryMessage'];
 };

@@ -2,6 +2,7 @@ import type { WalletAddress } from '@interledger/open-payments';
 import type { Tabs } from 'webextension-polyfill';
 import type { ErrorWithKeyLike, I18nInfo } from './helpers';
 import type { components as RSComponents } from '@interledger/open-payments/dist/openapi/generated/resource-server-types';
+import type { AppToBackgroundMessage } from './messages';
 
 export type AmountType = RSComponents['schemas']['amount'];
 /** Bigint amount, before transformation with assetScale */
@@ -159,6 +160,18 @@ interface WalletStatusProgress extends WalletStatusBase {
   currentStep: string | I18nInfo;
 }
 
+type WalletStatusRetryMessageAction =
+  | 'CONNECT_WALLET'
+  | 'RECONNECT_WALLET'
+  | 'ADD_FUNDS'
+  | 'UPDATE_BUDGET';
+export type WalletStatusRetryMessage = {
+  [K in WalletStatusRetryMessageAction]: {
+    action: K;
+    payload: AppToBackgroundMessage[K]['input'];
+  };
+}[WalletStatusRetryMessageAction];
+
 export interface WalletStatusFailure extends WalletStatusBase {
   type: 'failure';
   code:
@@ -174,6 +187,12 @@ export interface WalletStatusFailure extends WalletStatusBase {
    * - `false`/`undefined`: cannot retry
    */
   retryPossible: 'auto' | 'manual' | false;
+  /**
+   * Can be sent back to the background for retry.
+   * @note Only set when {@linkcode WalletStatusFailure.retryPossible} is
+   * `auto`.
+   */
+  retryMessage?: WalletStatusRetryMessage;
   details?: ErrorWithKeyLike | { message: string };
 }
 
@@ -181,6 +200,10 @@ export interface WalletStatusCancel extends WalletStatusBase {
   type: 'cancel';
   code: 'tab_closed' | 'grant_rejected';
   retryPossible: 'auto';
+  /**
+   * Can be sent back to the background for retry.
+   */
+  retryMessage: WalletStatusRetryMessage;
 }
 
 export type WalletStatus =

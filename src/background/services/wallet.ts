@@ -42,6 +42,7 @@ import type { Cradle } from '@/background/container';
 import type {
   WalletStatusFailure,
   WalletStatus,
+  WalletStatusRetryMessage,
   TabId,
   WalletInfo,
 } from '@/shared/types';
@@ -128,15 +129,7 @@ export class WalletService {
 
     let tabId: TabId | undefined;
     let cleanupListeners: () => void = () => {};
-
-    const closeTabFilter = (tab: Tabs.Tab) => {
-      const tabUrl = tab.url;
-      if (!tabUrl) return false;
-      return (
-        tabUrl.startsWith(appUrl) ||
-        tabUrl.startsWith(OPEN_PAYMENTS_REDIRECT_URL)
-      );
-    };
+    const closeTabFilter = getCloseTabFilter(appUrl);
 
     if (!isKeyAdded && autoKeyAdd) {
       try {
@@ -151,7 +144,10 @@ export class WalletService {
         });
       } catch (error) {
         cleanupListeners();
-        const err = this.setConnectStateError(error, 'connect');
+        const err = this.setConnectStateError(error, 'connect', {
+          action: 'CONNECT_WALLET',
+          payload: params,
+        });
         await this.redirectOnGrantError(err || error, intent, tabId!);
         throw err || error;
       }
@@ -194,7 +190,10 @@ export class WalletService {
       cleanupListeners();
     } catch (error) {
       cleanupListeners();
-      const err = this.setConnectStateError(error, 'connect');
+      const err = this.setConnectStateError(error, 'connect', {
+        action: 'CONNECT_WALLET',
+        payload: params,
+      });
       await this.redirectOnGrantError(err || error, intent, tabId!);
       throw err || error;
     }
@@ -217,10 +216,14 @@ export class WalletService {
     });
   }
 
-  async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
+  async reconnectWallet(payload: ReconnectWalletPayload) {
+    const { autoKeyAddConsent } = payload;
     if (!autoKeyAddConsent) {
       await this.validateReconnect().catch((error) => {
-        this.setConnectStateError(error?.cause || error, 'reconnect');
+        this.setConnectStateError(error?.cause || error, 'reconnect', {
+          action: 'RECONNECT_WALLET',
+          payload,
+        });
         throw error;
       });
       return;
@@ -239,7 +242,10 @@ export class WalletService {
       await this.validateReconnect();
     } catch (error) {
       if (!isInvalidClientError(error?.cause)) {
-        this.setConnectStateError(new Error(error.message), 'reconnect');
+        this.setConnectStateError(new Error(error.message), 'reconnect', {
+          action: 'RECONNECT_WALLET',
+          payload,
+        });
         throw error;
       }
     }
@@ -262,7 +268,10 @@ export class WalletService {
 
       await this.storage.setState({ key_revoked: false });
     } catch (error) {
-      this.setConnectStateError(error, 'reconnect');
+      this.setConnectStateError(error, 'reconnect', {
+        action: 'RECONNECT_WALLET',
+        payload,
+      });
       const isTabClosed =
         error instanceof WalletStatusCancelError && error.code === 'tab_closed';
 
@@ -324,7 +333,8 @@ export class WalletService {
     await this.storage.clear();
   }
 
-  async addFunds({ amount, recurring }: AddFundsPayload) {
+  async addFunds(payload: AddFundsPayload) {
+    const { amount, recurring } = payload;
     const { walletAddress, ...grants } = await this.storage.get([
       'walletAddress',
       'oneTimeGrant',
@@ -356,7 +366,10 @@ export class WalletService {
         },
       );
     } catch (error) {
-      const err = this.setConnectStateError(error, 'add_funds');
+      const err = this.setConnectStateError(error, 'add_funds', {
+        action: 'ADD_FUNDS',
+        payload,
+      });
       await this.redirectOnGrantError(err || error, intent, tabId!);
       throw err || error;
     }
@@ -381,7 +394,8 @@ export class WalletService {
     }
   }
 
-  async updateBudget({ amount, recurring }: UpdateBudgetPayload) {
+  async updateBudget(payload: UpdateBudgetPayload) {
+    const { amount, recurring } = payload;
     const { walletAddress, ...existingGrants } = await this.storage.get([
       'walletAddress',
       'oneTimeGrant',
@@ -403,6 +417,7 @@ export class WalletService {
         walletAmount,
       );
     let tabId: TabId | undefined;
+    // if ()
     try {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
         walletAmount,
@@ -413,7 +428,10 @@ export class WalletService {
         },
       );
     } catch (error) {
-      const err = this.setConnectStateError(error, 'update_budget');
+      const err = this.setConnectStateError(error, 'update_budget', {
+        action: 'UPDATE_BUDGET',
+        payload,
+      });
       await this.redirectOnGrantError(err || error, intent, tabId!);
       throw err || error;
     }
@@ -583,11 +601,12 @@ export class WalletService {
       | DOMException
       | Error,
     intent: WalletStatusFailure['intent'],
+    retryMessage: WalletStatusRetryMessage,
   ) {
     const setFail = (data: Omit<WalletStatusFailure, 'intent' | 'type'>) => {
       this.storage.setTransientState('connect', (state) => {
         if (state?.type === 'failure') return state;
-        return { type: 'failure', intent, ...data };
+        return { type: 'failure', retryMessage: retryMessage, intent, ...data };
       });
     };
 
@@ -605,6 +624,7 @@ export class WalletService {
         intent,
         code: error.code,
         retryPossible: 'auto',
+        retryMessage,
       }));
     }
 
@@ -632,6 +652,16 @@ export class WalletService {
         : { message: error.message },
     });
   }
+}
+
+function getCloseTabFilter(appUrl: string) {
+  return (tab: Tabs.Tab) => {
+    const tabUrl = tab.url;
+    if (!tabUrl) return false;
+    return (
+      tabUrl.startsWith(appUrl) || tabUrl.startsWith(OPEN_PAYMENTS_REDIRECT_URL)
+    );
+  };
 }
 
 // on popup opened, let's highlight the tab if user has lost it
