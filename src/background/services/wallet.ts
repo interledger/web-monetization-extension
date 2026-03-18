@@ -151,7 +151,7 @@ export class WalletService {
         });
       } catch (error) {
         cleanupListeners();
-        const err = this.setConnectStateErrorError(error, 'connect');
+        const err = this.setConnectStateError(error, 'connect');
         await this.redirectOnGrantError(err || error, intent, tabId!);
         throw err || error;
       }
@@ -194,7 +194,7 @@ export class WalletService {
       cleanupListeners();
     } catch (error) {
       cleanupListeners();
-      const err = this.setConnectStateErrorError(error, 'connect');
+      const err = this.setConnectStateError(error, 'connect');
       await this.redirectOnGrantError(err || error, intent, tabId!);
       throw err || error;
     }
@@ -219,7 +219,10 @@ export class WalletService {
 
   async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
     if (!autoKeyAddConsent) {
-      await this.validateReconnect();
+      await this.validateReconnect().catch((error) => {
+        this.setConnectStateError(error?.cause || error, 'reconnect');
+        throw error;
+      });
       return;
     }
 
@@ -230,33 +233,55 @@ export class WalletService {
     if (!KeyAutoAddService.supports(walletAddress)) {
       throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
     }
-    this.setConnectStateProgress('reconnect', 'Reconnecting wallet');
 
+    this.setConnectStateProgress('reconnect', 'Reconnecting wallet');
     try {
       await this.validateReconnect();
     } catch (error) {
       if (!isInvalidClientError(error?.cause)) {
-        // @ts-expect-error TODO
-        this.setConnectStateError('reconnect', error);
-        throw error;
-      }
-
-      try {
-        // add key to wallet and try again
-        await this.retryAddPublicKeyToWallet(walletAddress);
-        await this.storage.setState({ key_revoked: false });
-      } catch (error) {
-        // @ts-expect-error TODO
-        this.setConnectStateError('reconnect', error);
+        this.setConnectStateError(new Error(error.message), 'reconnect');
         throw error;
       }
     }
 
+    // add key to wallet and try again
+    let tabId: TabId | undefined;
+    try {
+      await this.addPublicKeyToWallet(
+        walletAddress,
+        (openedTabId) => (tabId = openedTabId),
+        'reconnect',
+      );
+      await this.outgoingPaymentGrantService.rotateToken();
+      await redirectToWelcomeScreen(
+        this.browser,
+        tabId!,
+        GrantResult.KEY_ADD_SUCCESS,
+        InteractionIntent.RECONNECT,
+      );
+
+      await this.storage.setState({ key_revoked: false });
+    } catch (error) {
+      this.setConnectStateError(error, 'reconnect');
+      const isTabClosed =
+        error instanceof WalletStatusCancelError && error.code === 'tab_closed';
+
+      if (tabId && !isTabClosed) {
+        await this.redirectOnGrantError(
+          error,
+          InteractionIntent.RECONNECT,
+          tabId,
+        );
+      }
+
+      if (isInvalidClientError(error)) {
+        throw new ErrorWithKey('connectWallet_error_invalidClient');
+      }
+      throw error;
+    }
+
     this.resetConnectState();
-    this.storage.setTransientState('connect', () => ({
-      intent: 'reconnect',
-      type: 'success',
-    }));
+    this.storage.setTransientState('connect', () => null);
   }
 
   async disconnectWallet(force = false) {
@@ -331,7 +356,7 @@ export class WalletService {
         },
       );
     } catch (error) {
-      const err = this.setConnectStateErrorError(error, 'add_funds');
+      const err = this.setConnectStateError(error, 'add_funds');
       await this.redirectOnGrantError(err || error, intent, tabId!);
       throw err || error;
     }
@@ -388,7 +413,7 @@ export class WalletService {
         },
       );
     } catch (error) {
-      const err = this.setConnectStateErrorError(error, 'update_budget');
+      const err = this.setConnectStateError(error, 'update_budget');
       await this.redirectOnGrantError(err || error, intent, tabId!);
       throw err || error;
     }
@@ -448,6 +473,7 @@ export class WalletService {
   private async addPublicKeyToWallet(
     walletAddress: WalletInfo,
     onTabOpen: (tabId: TabId) => void,
+    intent: WalletStatus['intent'] = 'connect',
   ) {
     const keyAutoAdd = new KeyAutoAddService({
       browser: this.browser,
@@ -456,40 +482,11 @@ export class WalletService {
       t: this.t,
     });
     this.events.emit('request_popup_close');
-    await keyAutoAdd.addPublicKeyToWallet(walletAddress, (openedTabId) => {
-      onTabOpen(openedTabId);
-    });
-  }
-
-  private async retryAddPublicKeyToWallet(walletAddress: WalletInfo) {
-    let tabId: TabId | undefined;
-    try {
-      await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
-        tabId = openedTabId;
-      });
-      await this.outgoingPaymentGrantService.rotateToken();
-      await redirectToWelcomeScreen(
-        this.browser,
-        tabId!,
-        GrantResult.KEY_ADD_SUCCESS,
-        InteractionIntent.RECONNECT,
-      );
-    } catch (error) {
-      const isTabClosed =
-        error instanceof WalletStatusCancelError && error.code === 'tab_closed';
-      if (tabId && !isTabClosed) {
-        await this.redirectOnGrantError(
-          error,
-          InteractionIntent.RECONNECT,
-          tabId,
-        );
-      }
-
-      if (isInvalidClientError(error)) {
-        throw new ErrorWithKey('connectWallet_error_invalidClient');
-      }
-      throw error;
-    }
+    await keyAutoAdd.addPublicKeyToWallet(
+      walletAddress,
+      (openedTabId) => onTabOpen(openedTabId),
+      intent,
+    );
   }
 
   private async validateReconnect() {
@@ -579,15 +576,6 @@ export class WalletService {
   }
 
   private setConnectStateError(
-    details: Extract<WalletStatus, { type: 'failure' | 'cancel' }>,
-  ) {
-    this.storage.setTransientState('connect', (state) => {
-      if (state?.type === 'failure') return state;
-      return details;
-    });
-  }
-
-  private setConnectStateErrorError(
     error:
       | WalletStatusFailureError
       | WalletStatusCancelError

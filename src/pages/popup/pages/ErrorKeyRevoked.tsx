@@ -30,6 +30,7 @@ export default () => {
   return (
     <ErrorKeyRevoked
       info={{ publicKey, walletAddress }}
+      clearTransientState={() => message.send('RESET_CONNECT_STATE').then()}
       reconnectWallet={(data) => message.send('RECONNECT_WALLET', data)}
       onReconnect={onReconnect}
       disconnectWallet={(force) => message.send('DISCONNECT_WALLET', { force })}
