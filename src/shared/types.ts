@@ -177,7 +177,7 @@ export interface WalletStatusFailure extends WalletStatusBase {
   details?: ErrorWithKeyLike | { message: string };
 }
 
-interface WalletStatusCancel extends WalletStatusBase {
+export interface WalletStatusCancel extends WalletStatusBase {
   type: 'cancel';
   code: 'tab_closed' | 'grant_rejected';
   retryPossible: 'auto';

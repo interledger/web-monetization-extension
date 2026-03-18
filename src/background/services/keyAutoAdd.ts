@@ -8,7 +8,11 @@ import {
   type ErrorWithKeyLike,
   type I18nInfo,
 } from '@/shared/helpers';
-import { createTab } from '@/background/utils';
+import {
+  createTab,
+  WalletStatusCancelError,
+  WalletStatusFailureError,
+} from '@/background/utils';
 import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
 import type { WalletStatus, TabId, WalletInfo } from '@/shared/types';
 import type { Cradle } from '@/background/container';
@@ -90,7 +94,7 @@ export class KeyAutoAddService {
     const BASE_TIMEOUT = 5 * 1000;
     const timeout = new Timeout(BASE_TIMEOUT, () => {
       removeListeners();
-      reject(new ErrorWithKey('connectWallet_error_timeout'));
+      reject(new WalletStatusFailureError('timeout'));
     });
 
     const tabID = await createTab(this.browser, url);
@@ -105,7 +109,7 @@ export class KeyAutoAddService {
     const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
       if (tabId !== tabID) return;
       removeListeners();
-      reject(new ErrorWithKey('connectWallet_error_tabClosed'));
+      reject(new WalletStatusCancelError('tab_closed'));
     };
 
     const ports = new Set<Runtime.Port>();

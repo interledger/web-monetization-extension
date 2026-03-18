@@ -611,30 +611,21 @@ function mapErrorFailure(
   state: DeepReadonly<Extract<WalletStatus, { type: 'failure' }>>,
 ): ErrorWithKeyLike {
   switch (state.code) {
+    case 'timeout':
+      return new ErrorWithKey('connectWallet_error_timeout');
     case 'grant_continuation_failed':
       return new ErrorWithKey('connectWallet_error_continuationFailed');
     case 'grant_hash_failed':
       return new ErrorWithKey('connectWallet_error_hashFailed');
     case 'grant_invalid':
       return new ErrorWithKey('connectWallet_error_grantInvalid');
-    case 'timeout':
-      return new ErrorWithKey('connectWallet_error_timeout');
     case 'key_add_failed': {
       if (isErrorWithKey(state.details)) {
-        switch (state.details.key) {
-          case 'connectWalletKeyService_error_noConsent':
-          case 'connectWalletKeyService_error_accountNotFound':
-          case 'connectWalletKeyService_error_timeoutLogin':
-          case 'connectWalletKeyService_error_failed':
-          case 'connectWalletKeyService_error_notImplemented':
-            return deepClone(state.details);
-          default:
-            return new ErrorWithKey(
-              'connectWalletKeyService_error_failed',
-              deepClone(state.details.substitutions || []),
-              deepClone(state.details),
-            );
-        }
+        return new ErrorWithKey(
+          'connectWalletKeyService_error_failed',
+          deepClone(state.details.substitutions || []),
+          deepClone(state.details),
+        );
       } else {
         return new ErrorWithKey('connectWalletKeyService_error_failed');
       }

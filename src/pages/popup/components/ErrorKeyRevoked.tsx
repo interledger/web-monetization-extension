@@ -1,4 +1,6 @@
 import React from 'react';
+import { deepClone } from 'valtio/utils';
+import { isErrorWithKey } from '@/shared/helpers';
 import { AutoKeyAddConsent } from '@/pages/shared/components/AutoKeyAddConsent';
 import { WarningSign } from '@/pages/shared/components/Icons';
 import { Button } from '@/pages/shared/components/ui/Button';
@@ -6,6 +8,8 @@ import { Code } from '@/pages/shared/components/ui/Code';
 import { FadeInOut } from '@/pages/shared/components/FadeInOut';
 import { useTranslation } from '@/pages/shared/lib/context';
 import { useLocalStorage } from '@/pages/shared/lib/hooks';
+import { toErrorInfoFactory } from '@/pages/shared/lib/utils';
+import { usePopupState } from '@/popup/lib/store';
 import type { PopupStore } from '@/shared/types';
 import type { ReconnectWalletPayload, Response } from '@/shared/messages';
 
@@ -13,6 +17,7 @@ interface Props {
   info: Pick<PopupStore, 'publicKey' | 'walletAddress'>;
   disconnectWallet: (force: boolean) => Promise<Response>;
   reconnectWallet: (data: ReconnectWalletPayload) => Promise<Response>;
+  clearTransientState: () => Promise<void>;
   onReconnect?: () => void;
   onDisconnect?: () => void;
 }
@@ -23,6 +28,7 @@ export const ErrorKeyRevoked = ({
   info,
   disconnectWallet,
   reconnectWallet,
+  clearTransientState,
   onReconnect,
   onDisconnect,
 }: Props) => {
@@ -31,6 +37,15 @@ export const ErrorKeyRevoked = ({
     'main',
     { maxAge: 2 * 60 },
   );
+  const { transientState } = usePopupState();
+
+  React.useEffect(() => {
+    const state = transientState.connect;
+    if (!state || state.intent !== 'reconnect') return;
+    if (state.type === 'failure' || state.type === 'cancel') {
+      setScreen('main');
+    }
+  }, [transientState.connect, setScreen]);
 
   if (screen === 'main') {
     return (
@@ -38,6 +53,7 @@ export const ErrorKeyRevoked = ({
         disconnectWallet={disconnectWallet}
         onDisconnect={onDisconnect}
         setScreen={setScreen}
+        clearTransientState={clearTransientState}
       />
     );
   } else if (screen === 'consent-reconnect') {
@@ -73,18 +89,39 @@ export const ErrorKeyRevoked = ({
 
 interface MainScreenProps {
   disconnectWallet: Props['disconnectWallet'];
+  clearTransientState: Props['clearTransientState'];
   onDisconnect?: Props['onDisconnect'];
   setScreen: (screen: Screen) => void;
 }
 
 const MainScreen = ({
   disconnectWallet,
+  clearTransientState,
   onDisconnect,
   setScreen,
 }: MainScreenProps) => {
   const t = useTranslation();
+  const { transientState } = usePopupState();
+  const toErrorInfo = toErrorInfoFactory(t);
+
   const [errorMsg, setErrorMsg] = React.useState('');
   const [loading, setIsLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const state = transientState.connect;
+    if (!state || state.intent !== 'reconnect') return;
+    if (state.type === 'failure') {
+      let msg = 'Unknown error';
+      if (isErrorWithKey(state.details)) {
+        const errInfo = toErrorInfo(deepClone(state.details));
+        if (errInfo) msg = errInfo.message;
+      }
+      setErrorMsg(msg);
+    } else if (state.type === 'cancel' && state.code === 'tab_closed') {
+      const msg = t('connectWallet_error_tabClosed');
+      setErrorMsg(msg);
+    }
+  }, [transientState.connect, toErrorInfo, t]);
 
   const requestDisconnect = async () => {
     setErrorMsg('');
@@ -119,7 +156,12 @@ const MainScreen = ({
         <Button onClick={() => requestDisconnect()} loading={loading}>
           {t('keyRevoked_action_disconnect')}
         </Button>
-        <Button onClick={() => setScreen('consent-reconnect')}>
+        <Button
+          onClick={async () => {
+            await clearTransientState();
+            setScreen('consent-reconnect');
+          }}
+        >
           {t('keyRevoked_action_reconnect')}
         </Button>
       </form>
@@ -141,11 +183,26 @@ const ManualReconnectScreen = ({
   type Errors = Record<'root', null | { message: string }>;
 
   const t = useTranslation();
+  const { transientState } = usePopupState();
+  const toErrorInfo = toErrorInfoFactory(t);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errors, setErrors] = React.useState<Errors>({
     root: null,
   });
+
+  React.useEffect(() => {
+    const state = transientState.connect;
+    if (!state || state.intent !== 'reconnect') return;
+    if (state.type !== 'failure') return;
+
+    let message = 'Unknown error';
+    if (isErrorWithKey(state.details)) {
+      const errInfo = toErrorInfo(state.details);
+      if (errInfo) message = errInfo.message;
+    }
+    setErrors({ root: { message } });
+  }, [transientState?.connect, toErrorInfo]);
 
   const requestManualReconnect = async () => {
     setErrors({ root: null });
@@ -155,7 +212,7 @@ const ManualReconnectScreen = ({
       if (res.success) {
         onReconnect?.();
       } else {
-        setErrors({ root: { message: res.message } });
+        // errors handled by useEffect
       }
     } catch (error) {
       setErrors({ root: { message: error.message } });
