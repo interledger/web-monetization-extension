@@ -3,25 +3,8 @@ import { proxy, useSnapshot } from 'valtio';
 
 export type AppState = Required<DeepNonNullable<AppStore>>;
 
-const transientState = {
-  connect: {
-    type: 'failure',
-    code: 'grant_invalid',
-    intent: 'update_budget',
-    retryPossible: 'auto',
-    retryMessage: {
-      action: 'UPDATE_BUDGET',
-      payload: {
-        amount: '8.40',
-        recurring: true,
-        walletAddressUrl: 'https://ilp.interledger-test.dev/sid',
-      },
-    },
-  },
-} as TransientState;
-
 export const store = proxy<AppState>({
-  transientState: transientState as TransientState,
+  transientState: {} as TransientState,
 } as AppState);
 
 // easier access to the store via this hook
@@ -34,10 +17,9 @@ export const dispatch = ({ type, data }: Actions) => {
         // @ts-expect-error we know TypeScript
         store[key] = data[key];
       }
-      store.transientState = transientState;
       break;
     case 'SET_TRANSIENT_STATE':
-      store.transientState = transientState;
+      store.transientState = data;
       break;
     case 'SET_CONSENT': {
       store.consent = data.consent;

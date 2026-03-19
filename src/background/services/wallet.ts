@@ -209,7 +209,6 @@ export class WalletService {
       maxRateOfPay,
       connected: true,
     });
-    this.resetConnectState();
     this.telemetry.capture('connect_wallet_success', {
       recurringEnabled: recurring,
       duration: Date.now() - startTime,
@@ -259,13 +258,6 @@ export class WalletService {
         'reconnect',
       );
       await this.outgoingPaymentGrantService.rotateToken();
-      await redirectToWelcomeScreen(
-        this.browser,
-        tabId!,
-        GrantResult.KEY_ADD_SUCCESS,
-        InteractionIntent.RECONNECT,
-      );
-
       await this.storage.setState({ key_revoked: false });
     } catch (error) {
       this.setConnectStateError(error, 'reconnect', {
@@ -289,8 +281,16 @@ export class WalletService {
       throw error;
     }
 
-    this.resetConnectState();
-    this.storage.setTransientState('connect', () => null);
+    this.storage.setTransientState('connect', () => ({
+      type: 'success',
+      intent: 'reconnect',
+    }));
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId!,
+      GrantResult.KEY_ADD_SUCCESS,
+      InteractionIntent.RECONNECT,
+    );
   }
 
   async disconnectWallet(force = false) {
@@ -605,8 +605,8 @@ export class WalletService {
   ) {
     const setFail = (data: Omit<WalletStatusFailure, 'intent' | 'type'>) => {
       this.storage.setTransientState('connect', (state) => {
-        if (state?.type === 'failure') return state;
-        return { type: 'failure', retryMessage: retryMessage, intent, ...data };
+        if (state?.type === 'failure') return { retryMessage, ...state };
+        return { type: 'failure', retryMessage, intent, ...data };
       });
     };
 
