@@ -181,7 +181,7 @@ export class WalletService {
     } catch (error) {
       cleanupListeners();
       const err = this.setConnectStateError(error, 'connect');
-      await this.redirectOnGrantError(err || error, tabId!);
+      await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
 
@@ -336,7 +336,7 @@ export class WalletService {
       );
     } catch (error) {
       const err = this.setConnectStateError(error, 'add_funds');
-      await this.redirectOnGrantError(err || error, tabId!);
+      await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
 
@@ -394,7 +394,7 @@ export class WalletService {
       );
     } catch (error) {
       const err = this.setConnectStateError(error, 'update_budget');
-      await this.redirectOnGrantError(err || error, tabId!);
+      await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
 
