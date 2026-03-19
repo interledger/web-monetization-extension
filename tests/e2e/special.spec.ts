@@ -1,6 +1,10 @@
 import { spy } from 'tinyspy';
 import { test, expect } from './fixtures/connected';
-import { getLastCallArg, setupPlayground } from './helpers/common';
+import {
+  getLastCallArg,
+  playgroundUrl,
+  setupPlayground,
+} from './helpers/common';
 import { goToHome, setContinuousPayments } from './pages/popup';
 
 test('iframe add/remove does not de-monetize main page', async ({
@@ -119,7 +123,7 @@ test('keep site monetized on back-forward buttons', async ({ page, popup }) => {
   const notMonetizedMsg = popup.getByTestId('not-monetized-message');
 
   // TODO: use URLs from a local server with more-controlled fixtures
-  const URL_A = 'https://sidvishnoi.com/test/wm/';
+  const URL_A = playgroundUrl(process.env.TEST_WALLET_ADDRESS_URL);
   const URL_B = 'https://example.com/';
 
   await page.goto(URL_A);
