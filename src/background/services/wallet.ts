@@ -200,7 +200,6 @@ export class WalletService {
       maxRateOfPay,
       connected: true,
     });
-    this.resetConnectState();
     this.telemetry.capture('connect_wallet_success', {
       recurringEnabled: recurring,
       duration: Date.now() - startTime,
@@ -244,13 +243,6 @@ export class WalletService {
         'reconnect',
       );
       await this.outgoingPaymentGrantService.rotateToken();
-      await redirectToWelcomeScreen(
-        this.browser,
-        tabId!,
-        GrantResult.KEY_ADD_SUCCESS,
-        InteractionIntent.RECONNECT,
-      );
-
       await this.storage.setState({ key_revoked: false });
     } catch (error) {
       this.setConnectStateError(error, 'reconnect');
@@ -271,8 +263,16 @@ export class WalletService {
       throw error;
     }
 
-    this.resetConnectState();
-    this.storage.setTransientState('connect', () => null);
+    this.storage.setTransientState('connect', () => ({
+      type: 'success',
+      intent: 'reconnect',
+    }));
+    await redirectToWelcomeScreen(
+      this.browser,
+      tabId!,
+      GrantResult.KEY_ADD_SUCCESS,
+      InteractionIntent.RECONNECT,
+    );
   }
 
   async disconnectWallet(force = false) {
