@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority';
 import React from 'react';
 import { navigate } from 'wouter/use-hash-location';
 import { isErrorWithKey } from '@/shared/helpers';
-import { useTranslation } from '@/app/lib/context';
+import { useMessage, useTranslation } from '@/app/lib/context';
 import { useAppState } from '@/app/lib/store';
 import type {
   WalletStatus,
@@ -12,6 +12,7 @@ import type {
 
 export default function PostConnect() {
   const t = useTranslation();
+  const message = useMessage();
   const { transientState } = useAppState();
 
   if (!transientState.connect || transientState.connect.type === 'progress') {
@@ -52,6 +53,10 @@ export default function PostConnect() {
             <button
               type="button"
               className={ButtonVariants({ variant: 'solid' })}
+              onClick={() => {
+                const { action, payload } = params.retryMessage!;
+                return message.send(action, payload);
+              }}
             >
               Try again
             </button>

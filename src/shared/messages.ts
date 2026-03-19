@@ -271,6 +271,9 @@ export type AppToBackgroundMessage = {
   };
   CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
   RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
+  RECONNECT_WALLET: PopupToBackgroundMessage['RECONNECT_WALLET'];
+  ADD_FUNDS: PopupToBackgroundMessage['ADD_FUNDS'];
+  UPDATE_BUDGET: PopupToBackgroundMessage['UPDATE_BUDGET'];
   PROVIDE_CONSENT: {
     input: { consentTelemetry: boolean };
     output: NonNullable<Storage['consent']>;

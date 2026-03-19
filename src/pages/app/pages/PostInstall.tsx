@@ -499,6 +499,7 @@ function StepConnectWallet({
     <div className="@container sm:h-popup mx-auto sm:w-popup pt-4 overflow-hidden">
       <ConnectWalletForm
         publicKey={publicKey}
+        // @ts-expect-error we know, it's complicated
         state={connectState}
         defaultValues={{
           recurring:
