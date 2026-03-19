@@ -114,7 +114,6 @@ export class WalletService {
     await this.openPaymentsService.initClient(walletAddress.id);
 
     const browser = this.browser;
-    const appUrl = browser.runtime.getURL(APP_URL);
     const intent = InteractionIntent.CONNECT;
 
     const isKeyAdded = await isKeyAddedToWallet(walletAddress.id, keyId);
@@ -129,15 +128,13 @@ export class WalletService {
 
     let tabId: TabId | undefined;
     let cleanupListeners: () => void = () => {};
-    const closeTabFilter = getCloseTabFilter(appUrl);
-
     if (!isKeyAdded && autoKeyAdd) {
       try {
         this.setConnectStateProgress('connect', {
           key: 'connectWalletKeyService_text_stepAddKey',
           substitutions: [],
         });
-        await closeTabsByFilter(browser, closeTabFilter);
+        await closeAppTabs(this.browser);
         await this.addPublicKeyToWallet(walletAddress, (openedTabId) => {
           tabId = openedTabId;
           cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
@@ -171,7 +168,7 @@ export class WalletService {
       // goal is to not have too many extension tabs for user. This is also
       // better than re-using (`tabs.update`) as it gives more consistent user
       // experience.
-      await closeTabsByFilter(browser, closeTabFilter);
+      await closeAppTabs(this.browser);
 
       this.setConnectStateProgress('connect', {
         key: 'connectWallet_text_stepAcceptGrant',
@@ -249,6 +246,7 @@ export class WalletService {
       }
     }
 
+    await closeAppTabs(this.browser);
     // add key to wallet and try again
     let tabId: TabId | undefined;
     try {
@@ -355,6 +353,7 @@ export class WalletService {
         walletAddress,
         walletAmount,
       );
+    await closeAppTabs(this.browser);
     let tabId: TabId | undefined;
     try {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
@@ -416,6 +415,7 @@ export class WalletService {
         walletAddress,
         walletAmount,
       );
+    await closeAppTabs(this.browser);
     let tabId: TabId | undefined;
     // if ()
     try {
@@ -654,14 +654,16 @@ export class WalletService {
   }
 }
 
-function getCloseTabFilter(appUrl: string) {
-  return (tab: Tabs.Tab) => {
+async function closeAppTabs(browser: Browser) {
+  const appUrl = browser.runtime.getURL(APP_URL);
+  const filter = (tab: Tabs.Tab) => {
     const tabUrl = tab.url;
     if (!tabUrl) return false;
     return (
       tabUrl.startsWith(appUrl) || tabUrl.startsWith(OPEN_PAYMENTS_REDIRECT_URL)
     );
   };
+  await closeTabsByFilter(browser, filter);
 }
 
 // on popup opened, let's highlight the tab if user has lost it
