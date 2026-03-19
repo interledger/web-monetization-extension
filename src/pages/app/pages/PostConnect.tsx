@@ -92,14 +92,14 @@ const ButtonVariants = cva(
 
 function mapStatusToMessage(
   status: WalletStatus,
-  t: ReturnType<typeof useTranslation>,
+  t: Localizer,
 ): MessageParams | null {
   if (status.type === 'progress') {
     throw new Error('Invalid state to show on this page');
   }
 
   if (status.type === 'success') {
-    const { heading, info } = mapSuccessMessage(status);
+    const { heading, info } = mapSuccessMessage(status, t);
     return {
       heading,
       info,
@@ -111,7 +111,7 @@ function mapStatusToMessage(
 
   if (status.type === 'cancel') {
     if (status.code === 'tab_closed') return null;
-    const { heading, info } = mapCancelMessage(status);
+    const { heading, info } = mapCancelMessage(status, t);
     return {
       heading,
       info,
@@ -135,23 +135,24 @@ function mapStatusToMessage(
 
 function mapSuccessMessage(
   status: Extract<WalletStatus, { type: 'success' }>,
+  t: Localizer,
 ): MessageContent {
   const SUCCESS_MSGS: Record<WalletStatus['intent'], MessageContent> = {
     connect: {
-      heading: 'Wallet Connected!',
-      info: 'You’re all set to start using the extension.',
+      heading: t('postConnect_connect_success_title'),
+      info: t('postConnect_connect_success_msg'),
     },
     add_funds: {
-      heading: 'Funds Added',
-      info: 'Funds were successfully added to your budget.',
+      heading: t('postConnect_addFunds_success_title'),
+      info: t('postConnect_addFunds_success_msg'),
     },
     update_budget: {
-      heading: 'Budget Updated',
-      info: 'Your new spending limits are now active.',
+      heading: t('postConnect_updateBudget_success_title'),
+      info: t('postConnect_updateBudget_success_msg'),
     },
     reconnect: {
-      heading: 'Reconnected!',
-      info: 'Your wallet is reconnected.',
+      heading: t('postConnect_reconnect_success_title'),
+      info: t('postConnect_reconnect_success_msg'),
     },
   };
   return SUCCESS_MSGS[status.intent];
@@ -159,6 +160,7 @@ function mapSuccessMessage(
 
 function mapCancelMessage(
   status: Extract<WalletStatus, { type: 'cancel' }>,
+  t: Localizer,
 ): MessageContent {
   if (status.code === 'tab_closed') {
     throw new Error('Unexpected status code');
@@ -170,26 +172,26 @@ function mapCancelMessage(
   > = {
     connect: {
       grant_rejected: {
-        heading: 'Connection cancelled',
-        info: 'Wallet connection was cancelled. Please accept the request next time.',
+        heading: t('postConnect_connect_cancel_grantRejected_title'),
+        info: t('postConnect_connect_cancel_grantRejected_msg'),
       },
     },
     add_funds: {
       grant_rejected: {
-        heading: 'Fund addition cancelled',
-        info: 'No funds were added to your budget.',
+        heading: t('postConnect_addFunds_cancel_grantRejected_title'),
+        info: t('postConnect_addFunds_cancel_grantRejected_msg'),
       },
     },
     update_budget: {
       grant_rejected: {
-        heading: 'Budget update cancelled',
-        info: 'Your budget settings were not changed.',
+        heading: t('postConnect_updateBudget_cancel_grantRejected_title'),
+        info: t('postConnect_updateBudget_cancel_grantRejected_msg'),
       },
     },
     reconnect: {
       grant_rejected: {
-        heading: 'Wallet reconnection cancelled',
-        info: 'We couldn’t verify your wallet.',
+        heading: t('postConnect_reconnect_cancel_grantRejected_title'),
+        info: t('postConnect_reconnect_cancel_grantRejected_msg'),
       },
     },
   };
@@ -198,7 +200,7 @@ function mapCancelMessage(
 
 function mapFailureMessage(
   status: Extract<WalletStatus, { type: 'failure' }>,
-  t: ReturnType<typeof useTranslation>,
+  t: Localizer,
 ): MessageContent {
   const FAILURE_MSGS: Record<
     WalletStatus['intent'],
@@ -210,8 +212,8 @@ function mapFailureMessage(
     connect(code, details) {
       if (code === 'timeout') {
         return {
-          heading: 'Wallet connection timed-out',
-          info: 'We couldn’t connect to your wallet provider, as it took longer than expected. Please check your connection and try again.',
+          heading: t('postConnect_connect_failure_timeout_title'),
+          info: t('postConnect_connect_failure_timeout_msg'),
         };
       }
       if (code === 'key_add_failed') {
@@ -219,32 +221,32 @@ function mapFailureMessage(
           ? t(details.key, [...details.substitutions])
           : details?.message;
         return {
-          heading: 'Key addition failed',
-          info:
-            'We couldn’t add the public key to your wallet.' +
-            (infoPlus ? `\n${infoPlus}` : ''),
+          heading: t('postConnect_connect_failure_keyAdd_title'),
+          info: t('postConnect_connect_failure_keyAdd_msg', [
+            infoPlus ? `\n${infoPlus}` : '',
+          ]),
         };
       }
       return {
-        heading: 'Wallet connection failed',
-        info: 'Something went wrong while connecting. Please try again.',
+        heading: t('postConnect_connect_failure_other_title'),
+        info: t('postConnect_connect_failure_other_msg'),
       };
     },
     add_funds(code, details) {
       if (code === 'timeout') {
         return {
-          heading: 'Funds addition timed-out',
-          info: 'We couldn’t add funds to your wallet, as it took longer than expected. Please check your connection and try again.',
+          heading: t('postConnect_addFunds_failure_timeout_title'),
+          info: t('postConnect_addFunds_failure_timeout_msg'),
         };
       }
       const infoPlus = isErrorWithKey(details)
         ? t(details.key, [...details.substitutions])
         : details?.message;
       return {
-        heading: 'Funds addition failed',
-        info:
-          'Something went wrong while adding funds. Please try again.' +
-          (infoPlus ? `\n${infoPlus}` : ''),
+        heading: t('postConnect_addFunds_failure_other_title'),
+        info: t('postConnect_addFunds_failure_other_msg', [
+          infoPlus ? `\n${infoPlus}` : '',
+        ]),
       };
     },
     reconnect(code, details) {
@@ -253,32 +255,32 @@ function mapFailureMessage(
           ? t(details.key, [...details.substitutions])
           : details?.message;
         return {
-          heading: 'Wallet reconnection failed',
-          info:
-            'We couldn’t add the public key to your wallet.' +
-            (infoPlus ? `\n${infoPlus}` : ''),
+          heading: t('postConnect_reconnect_failure_keyAdd_title'),
+          info: t('postConnect_reconnect_failure_keyAdd_msg', [
+            infoPlus ? `\n${infoPlus}` : '',
+          ]),
         };
       }
       return {
-        heading: 'Wallet reconnection failed',
-        info: 'We couldn’t verify your wallet. Please ensure the public key is added to your wallet.',
+        heading: t('postConnect_reconnect_failure_other_title'),
+        info: t('postConnect_reconnect_failure_other_msg'),
       };
     },
     update_budget(code, details) {
       if (code === 'timeout') {
         return {
-          heading: 'Timed-out',
-          info: 'We couldn’t update your budget, as it took longer than expected. Please check your connection and try again.',
+          heading: t('postConnect_updateBudget_failure_timeout_title'),
+          info: t('postConnect_updateBudget_failure_timeout_msg'),
         };
       }
       const infoPlus = isErrorWithKey(details)
         ? t(details.key, details.substitutions)
         : details?.message;
       return {
-        heading: 'Budget update failed',
-        info:
-          'Something went wrong while updating your budget. Please try again.' +
-          (infoPlus ? `\n${infoPlus}` : ''),
+        heading: t('postConnect_updateBudget_failure_other_title'),
+        info: t('postConnect_updateBudget_failure_other_msg', [
+          infoPlus ? `\n${infoPlus}` : '',
+        ]),
       };
     },
   };
@@ -288,6 +290,8 @@ function mapFailureMessage(
 function getImage(type: 'success' | 'warning' | 'error') {
   return { src: `/assets/images/icons/${type}.svg`, alt: type };
 }
+
+type Localizer = ReturnType<typeof useTranslation>;
 
 type MessageContent = { heading: string; info: string };
 
