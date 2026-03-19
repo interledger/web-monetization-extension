@@ -9,7 +9,7 @@ import { TOTP, type TOTPAlgorithm, type TOTPEncoding } from 'totp-generator';
 import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
 
-const PLAYGROUND_URL = 'https://webmonetization.org/play';
+const PLAYGROUND_URL = 'https://webmonetization.org/play/';
 
 export async function waitForWelcomePage(page: Page) {
   await page.waitForURL(
