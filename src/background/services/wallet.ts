@@ -19,7 +19,7 @@ import type {
 } from '@/shared/messages';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import {
-  redirectToWelcomeScreen,
+  redirectToPostConnect,
   toAmount,
   onPopupOpen,
   closeTabsByFilter,
@@ -482,7 +482,7 @@ export class WalletService {
   }
 
   private async redirectOnSuccess(tabId?: TabId) {
-    await redirectToWelcomeScreen(this.browser, tabId);
+    await redirectToPostConnect(this.browser, tabId);
   }
 
   private async redirectOnGrantError(error: Error, tabId?: TabId) {
@@ -491,7 +491,7 @@ export class WalletService {
         return;
       }
     }
-    await redirectToWelcomeScreen(this.browser, tabId);
+    await redirectToPostConnect(this.browser, tabId);
   }
 
   public resetConnectState() {

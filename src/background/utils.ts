@@ -235,7 +235,7 @@ export async function openAppPage(
   }
 }
 
-export async function redirectToWelcomeScreen(
+export async function redirectToPostConnect(
   browser: Browser,
   tabId?: TabId,
 ): Promise<void> {
