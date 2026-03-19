@@ -174,6 +174,7 @@ export interface WalletStatusFailure extends WalletStatusBase {
    * - `false`/`undefined`: cannot retry
    */
   retryPossible: 'auto' | 'manual' | false;
+  retryMessage?: object;
   details?: ErrorWithKeyLike | { message: string };
 }
 
@@ -181,6 +182,7 @@ export interface WalletStatusCancel extends WalletStatusBase {
   type: 'cancel';
   code: 'tab_closed' | 'grant_rejected';
   retryPossible: 'auto';
+  retryMessage?: object;
 }
 
 export type WalletStatus =
