@@ -22,31 +22,6 @@ type OnConnectCallback = Parameters<
   Browser['runtime']['onConnect']['addListener']
 >[0];
 
-export enum GrantResult {
-  GRANT_SUCCESS = 'grant_success',
-  GRANT_ERROR = 'grant_error',
-  GRANT_REJECTED = 'grant_rejected',
-  KEY_ADD_SUCCESS = 'key_add_success',
-  KEY_ADD_ERROR = 'key_add_error',
-}
-
-export enum InteractionIntent {
-  CONNECT = 'connect',
-  RECONNECT = 'reconnect',
-  FUNDS = 'funds',
-  UPDATE_BUDGET = 'update_budget',
-}
-
-/** @deprecated Used only for URL params on post-connect screen */
-export enum ErrorCode {
-  CONTINUATION_FAILED = 'continuation_failed',
-  HASH_FAILED = 'hash_failed',
-  KEY_ADD_FAILED = 'key_add_failed',
-  TIMEOUT = 'timeout',
-  GRANT_INVALID = 'grant_invalid',
-  UNKNOWN = 'unknown',
-}
-
 export class WalletStatusFailureError extends Error {
   public readonly details: WalletStatusFailure['details'];
   constructor(
@@ -260,19 +235,12 @@ export async function openAppPage(
   }
 }
 
-export const redirectToWelcomeScreen = async (
+export async function redirectToPostConnect(
   browser: Browser,
-  tabId: number | undefined,
-  result: GrantResult,
-  intent: InteractionIntent,
-  errorCode?: ErrorCode,
-): Promise<void> => {
-  const params = new URLSearchParams();
-  params.set('result', result);
-  params.set('intent', intent);
-  if (errorCode) params.set('errorCode', errorCode);
-  await openAppPage(browser, '/post-connect', { params, tabId });
-};
+  tabId?: TabId,
+): Promise<void> {
+  await openAppPage(browser, '/post-connect', { tabId });
+}
 
 export const closeTabsByFilter = async (
   browser: Browser,

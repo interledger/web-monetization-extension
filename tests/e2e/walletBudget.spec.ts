@@ -190,9 +190,7 @@ for (const testCase of TEST_CASES) {
         );
         const continueWaitMs = await continueWaitMsPromise;
         await completeGrant(newPage, continueWaitMs);
-        await expect(newPage).toHaveURL(
-          (url) => url.searchParams.get('intent') === 'update_budget',
-        );
+        await expect(newPage).toHaveURL((url) => url.hash === '#/post-connect');
         await newPage.close();
 
         const newGrants = await getStorage(background, [

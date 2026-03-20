@@ -19,10 +19,7 @@ import type {
 } from '@/shared/messages';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import {
-  InteractionIntent,
-  ErrorCode,
-  GrantResult,
-  redirectToWelcomeScreen,
+  redirectToPostConnect,
   toAmount,
   onPopupOpen,
   closeTabsByFilter,
@@ -114,7 +111,6 @@ export class WalletService {
     await this.openPaymentsService.initClient(walletAddress.id);
 
     const browser = this.browser;
-    const intent = InteractionIntent.CONNECT;
 
     const isKeyAdded = await isKeyAddedToWallet(walletAddress.id, keyId);
     if (!isKeyAdded) {
@@ -146,7 +142,7 @@ export class WalletService {
           action: 'CONNECT_WALLET',
           payload: params,
         });
-        await this.redirectOnGrantError(err || error, intent, tabId!);
+        await this.redirectOnGrantError(err || error, tabId);
         throw err || error;
       }
     }
@@ -192,7 +188,7 @@ export class WalletService {
         action: 'CONNECT_WALLET',
         payload: params,
       });
-      await this.redirectOnGrantError(err || error, intent, tabId!);
+      await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
 
@@ -200,7 +196,7 @@ export class WalletService {
       intent: 'connect',
       type: 'success',
     }));
-    await this.redirectOnSuccess(intent, tabId);
+    await this.redirectOnSuccess(tabId);
     await this.storage.set({
       walletAddress,
       rateOfPay,
@@ -267,11 +263,7 @@ export class WalletService {
         error instanceof WalletStatusCancelError && error.code === 'tab_closed';
 
       if (tabId && !isTabClosed) {
-        await this.redirectOnGrantError(
-          error,
-          InteractionIntent.RECONNECT,
-          tabId,
-        );
+        await this.redirectOnGrantError(error, tabId);
       }
 
       if (isInvalidClientError(error)) {
@@ -284,12 +276,7 @@ export class WalletService {
       type: 'success',
       intent: 'reconnect',
     }));
-    await redirectToWelcomeScreen(
-      this.browser,
-      tabId!,
-      GrantResult.KEY_ADD_SUCCESS,
-      InteractionIntent.RECONNECT,
-    );
+    await this.redirectOnSuccess(tabId);
   }
 
   async disconnectWallet(force = false) {
@@ -348,7 +335,7 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
-    const intent = InteractionIntent.FUNDS;
+
     const grant =
       await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
         walletAddress,
@@ -370,7 +357,7 @@ export class WalletService {
         action: 'ADD_FUNDS',
         payload,
       });
-      await this.redirectOnGrantError(err || error, intent, tabId!);
+      await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
 
@@ -380,7 +367,7 @@ export class WalletService {
       intent: 'add_funds',
       type: 'success',
     }));
-    await this.redirectOnSuccess(intent, tabId);
+    await this.redirectOnSuccess(tabId);
 
     // cancel existing grants of same type, if any
     if (grants.oneTimeGrant && !recurring) {
@@ -410,7 +397,7 @@ export class WalletService {
       recurring,
       assetScale: walletAddress.assetScale,
     });
-    const intent = InteractionIntent.UPDATE_BUDGET;
+
     const grant =
       await this.outgoingPaymentGrantService.createOutgoingPaymentGrant(
         walletAddress,
@@ -432,15 +419,15 @@ export class WalletService {
         action: 'UPDATE_BUDGET',
         payload,
       });
-      await this.redirectOnGrantError(err || error, intent, tabId!);
+      await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
 
     this.storage.setTransientState('connect', () => ({
-      intent,
+      intent: 'update_budget',
       type: 'success',
     }));
-    await this.redirectOnSuccess(intent, tabId);
+    await this.redirectOnSuccess(tabId);
 
     // Revoke all existing grants.
     // Note: Clear storage only if new grant type is not same as previous grant
@@ -519,63 +506,17 @@ export class WalletService {
     await this.storage.setState({ key_revoked: false });
   }
 
-  private async redirectOnSuccess(intent: InteractionIntent, tabId?: TabId) {
-    await redirectToWelcomeScreen(
-      this.browser,
-      tabId,
-      GrantResult.GRANT_SUCCESS,
-      intent,
-    );
+  private async redirectOnSuccess(tabId?: TabId) {
+    await redirectToPostConnect(this.browser, tabId);
   }
 
-  private async redirectOnGrantError(
-    error: WalletStatusFailureError | WalletStatusCancelError | Error,
-    intent: InteractionIntent,
-    tabId: TabId,
-  ) {
-    if (error instanceof WalletStatusFailureError) {
-      const ERROR_CODE_MAP: Record<
-        WalletStatusFailureError['code'],
-        ErrorCode
-      > = {
-        grant_hash_failed: ErrorCode.HASH_FAILED,
-        grant_continuation_failed: ErrorCode.CONTINUATION_FAILED,
-        timeout: ErrorCode.TIMEOUT,
-        key_add_failed: ErrorCode.KEY_ADD_FAILED,
-        grant_invalid: ErrorCode.GRANT_INVALID,
-        unknown: ErrorCode.UNKNOWN,
-      };
-      await redirectToWelcomeScreen(
-        this.browser,
-        tabId,
-        GrantResult.GRANT_ERROR,
-        intent,
-        ERROR_CODE_MAP[error.code],
-      );
-      return;
-    }
-
+  private async redirectOnGrantError(error: Error, tabId?: TabId) {
     if (error instanceof WalletStatusCancelError) {
       if (error.code === 'tab_closed') {
         return;
       }
-
-      await redirectToWelcomeScreen(
-        this.browser,
-        tabId,
-        GrantResult.GRANT_REJECTED,
-        intent,
-      );
-      return;
     }
-
-    await redirectToWelcomeScreen(
-      this.browser,
-      tabId,
-      GrantResult.GRANT_ERROR,
-      intent,
-      ErrorCode.UNKNOWN,
-    );
+    await redirectToPostConnect(this.browser, tabId);
   }
 
   public resetConnectState() {
