@@ -512,7 +512,7 @@
     "message": "Wallet reconnection failed"
   },
   "postConnect_reconnect_failure_other_msg": {
-    "message": "We couldn’t verify your wallet. Please ensure the public key is added to your wallet."
+    "message": "We couldn’t verify your wallet. Please try again, or manually copy the public key and add it to your digital wallet account."
   },
 
   "settings_dataCollection_title": {
