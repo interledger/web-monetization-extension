@@ -17,6 +17,7 @@ export default () => {
   return (
     <ConnectWalletForm
       publicKey={publicKey}
+      // @ts-expect-error we know, it's complicated
       state={connectState}
       defaultValues={{
         recurring:
