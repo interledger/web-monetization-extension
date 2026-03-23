@@ -1,5 +1,6 @@
-import { cva } from 'class-variance-authority';
 import React from 'react';
+import { deepClone } from 'valtio/utils';
+import { cva } from 'class-variance-authority';
 import { navigate } from 'wouter/use-hash-location';
 import { isErrorWithKey } from '@/shared/helpers';
 import { useMessage, useTranslation } from '@/app/lib/context';
@@ -123,7 +124,7 @@ function mapStatusToMessage(
       image: getImage('warning'),
       intent: status.intent,
       retryPossible: status.retryPossible,
-      retryMessage: status.retryMessage,
+      retryMessage: deepClone(status.retryMessage),
     };
   }
 
@@ -134,7 +135,7 @@ function mapStatusToMessage(
     image: getImage('error'),
     intent: status.intent,
     retryPossible: status.retryPossible,
-    retryMessage: status.retryMessage,
+    retryMessage: deepClone(status.retryMessage),
   };
 }
 
