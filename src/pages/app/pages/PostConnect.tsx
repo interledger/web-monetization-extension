@@ -165,6 +165,9 @@ function mapCancelMessage(
   if (status.code === 'tab_closed') {
     throw new Error('Unexpected status code');
   }
+  if (status.code === 'grant_rejected' && status.intent === 'reconnect') {
+    throw new Error('Unexpected status code + intent');
+  }
 
   const CANCEL_MSGS: Record<
     WalletStatus['intent'],
@@ -189,10 +192,9 @@ function mapCancelMessage(
       },
     },
     reconnect: {
-      grant_rejected: {
-        heading: t('postConnect_reconnect_cancel_grantRejected_title'),
-        info: t('postConnect_reconnect_cancel_grantRejected_msg'),
-      },
+      // Reconnect doesn't involve grants, so can't be rejected for this reason
+      // (impossible case). Empty strings added here for consistency.
+      grant_rejected: { heading: '', info: '' },
     },
   };
   return CANCEL_MSGS[status.intent][status.code];
