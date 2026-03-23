@@ -39,6 +39,7 @@ import type { Cradle } from '@/background/container';
 import type {
   WalletStatusFailure,
   WalletStatus,
+  WalletStatusRetryMessage,
   TabId,
   WalletInfo,
 } from '@/shared/types';
@@ -137,7 +138,10 @@ export class WalletService {
         });
       } catch (error) {
         cleanupListeners();
-        const err = this.setConnectStateError(error, 'connect');
+        const err = this.setConnectStateError(error, 'connect', {
+          action: 'CONNECT_WALLET',
+          payload: params,
+        });
         await this.redirectOnGrantError(err || error, tabId);
         throw err || error;
       }
@@ -180,7 +184,10 @@ export class WalletService {
       cleanupListeners();
     } catch (error) {
       cleanupListeners();
-      const err = this.setConnectStateError(error, 'connect');
+      const err = this.setConnectStateError(error, 'connect', {
+        action: 'CONNECT_WALLET',
+        payload: params,
+      });
       await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
@@ -202,10 +209,14 @@ export class WalletService {
     });
   }
 
-  async reconnectWallet({ autoKeyAddConsent }: ReconnectWalletPayload) {
+  async reconnectWallet(payload: ReconnectWalletPayload) {
+    const { autoKeyAddConsent } = payload;
     if (!autoKeyAddConsent) {
       await this.validateReconnect().catch((error) => {
-        this.setConnectStateError(error?.cause || error, 'reconnect');
+        this.setConnectStateError(error?.cause || error, 'reconnect', {
+          action: 'RECONNECT_WALLET',
+          payload,
+        });
         throw error;
       });
       return;
@@ -224,7 +235,10 @@ export class WalletService {
       await this.validateReconnect();
     } catch (error) {
       if (!isInvalidClientError(error?.cause)) {
-        this.setConnectStateError(new Error(error.message), 'reconnect');
+        this.setConnectStateError(new Error(error.message), 'reconnect', {
+          action: 'RECONNECT_WALLET',
+          payload,
+        });
         throw error;
       }
     }
@@ -241,7 +255,10 @@ export class WalletService {
       await this.outgoingPaymentGrantService.rotateToken();
       await this.storage.setState({ key_revoked: false });
     } catch (error) {
-      this.setConnectStateError(error, 'reconnect');
+      this.setConnectStateError(error, 'reconnect', {
+        action: 'RECONNECT_WALLET',
+        payload,
+      });
       const isTabClosed =
         error instanceof WalletStatusCancelError && error.code === 'tab_closed';
 
@@ -302,7 +319,8 @@ export class WalletService {
     await this.storage.clear();
   }
 
-  async addFunds({ amount, recurring }: AddFundsPayload) {
+  async addFunds(payload: AddFundsPayload) {
+    const { amount, recurring } = payload;
     const { walletAddress, ...grants } = await this.storage.get([
       'walletAddress',
       'oneTimeGrant',
@@ -335,7 +353,10 @@ export class WalletService {
         },
       );
     } catch (error) {
-      const err = this.setConnectStateError(error, 'add_funds');
+      const err = this.setConnectStateError(error, 'add_funds', {
+        action: 'ADD_FUNDS',
+        payload,
+      });
       await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
@@ -360,7 +381,8 @@ export class WalletService {
     }
   }
 
-  async updateBudget({ amount, recurring }: UpdateBudgetPayload) {
+  async updateBudget(payload: UpdateBudgetPayload) {
+    const { amount, recurring } = payload;
     const { walletAddress, ...existingGrants } = await this.storage.get([
       'walletAddress',
       'oneTimeGrant',
@@ -393,7 +415,10 @@ export class WalletService {
         },
       );
     } catch (error) {
-      const err = this.setConnectStateError(error, 'update_budget');
+      const err = this.setConnectStateError(error, 'update_budget', {
+        action: 'UPDATE_BUDGET',
+        payload,
+      });
       await this.redirectOnGrantError(err || error, tabId);
       throw err || error;
     }
@@ -517,11 +542,12 @@ export class WalletService {
       | DOMException
       | Error,
     intent: WalletStatusFailure['intent'],
+    retryMessage: WalletStatusRetryMessage,
   ) {
     const setFail = (data: Omit<WalletStatusFailure, 'intent' | 'type'>) => {
       this.storage.setTransientState('connect', (state) => {
-        if (state?.type === 'failure') return state;
-        return { type: 'failure', intent, ...data };
+        if (state?.type === 'failure') return { retryMessage, ...state };
+        return { type: 'failure', retryMessage, intent, ...data };
       });
     };
 
@@ -539,6 +565,7 @@ export class WalletService {
         intent,
         code: error.code,
         retryPossible: 'auto',
+        retryMessage,
       }));
     }
 
