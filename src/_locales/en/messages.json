@@ -402,6 +402,119 @@
   "postInstallConsent_action_confirm": {
     "message": "Confirm and continue"
   },
+  "postConnect_connect_success_title": {
+    "message": "Wallet Connected!"
+  },
+  "postConnect_connect_success_msg": {
+    "message": "You’re all set to start using the extension."
+  },
+  "postConnect_addFunds_success_title": {
+    "message": "Funds Added"
+  },
+  "postConnect_addFunds_success_msg": {
+    "message": "Funds were successfully added to your budget."
+  },
+  "postConnect_updateBudget_success_title": {
+    "message": "Budget Updated"
+  },
+  "postConnect_updateBudget_success_msg": {
+    "message": "Your new spending limits are now active."
+  },
+  "postConnect_reconnect_success_title": {
+    "message": "Reconnected!"
+  },
+  "postConnect_reconnect_success_msg": {
+    "message": "Your wallet is reconnected."
+  },
+
+  "postConnect_connect_cancel_grantRejected_title": {
+    "message": "Connection cancelled"
+  },
+  "postConnect_connect_cancel_grantRejected_msg": {
+    "message": "Wallet connection was cancelled. Please try again and follow the prompts to complete connection."
+  },
+  "postConnect_addFunds_cancel_grantRejected_title": {
+    "message": "Fund addition cancelled"
+  },
+  "postConnect_addFunds_cancel_grantRejected_msg": {
+    "message": "No funds were added to your budget."
+  },
+  "postConnect_updateBudget_cancel_grantRejected_title": {
+    "message": "Budget update cancelled"
+  },
+  "postConnect_updateBudget_cancel_grantRejected_msg": {
+    "message": "Your budget settings were not changed."
+  },
+
+  "postConnect_connect_failure_timeout_title": {
+    "message": "Wallet connection timed-out"
+  },
+  "postConnect_connect_failure_timeout_msg": {
+    "message": "The connection to your wallet provider timed out. Please check your connection and try again."
+  },
+  "postConnect_addFunds_failure_timeout_title": {
+    "message": "Funds addition timed-out"
+  },
+  "postConnect_addFunds_failure_timeout_msg": {
+    "message": "Adding funds to your budget timed out. Please check your connection and try again."
+  },
+  "postConnect_updateBudget_failure_timeout_title": {
+    "message": "Budget update timed-out"
+  },
+  "postConnect_updateBudget_failure_timeout_msg": {
+    "message": "Updating your budget timed out. Please check your connection and try again."
+  },
+
+  "postConnect_connect_failure_keyAdd_title": {
+    "message": "Key addition failed"
+  },
+  "postConnect_connect_failure_keyAdd_msg": {
+    "message": "We couldn’t add the public key to your wallet.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+  "postConnect_reconnect_failure_keyAdd_title": {
+    "message": "Wallet reconnection failed"
+  },
+  "postConnect_reconnect_failure_keyAdd_msg": {
+    "message": "We couldn’t add the public key to your wallet.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+
+  "postConnect_connect_failure_other_title": {
+    "message": "Wallet connection failed"
+  },
+  "postConnect_connect_failure_other_msg": {
+    "message": "Something went wrong while connecting. Please try again."
+  },
+  "postConnect_addFunds_failure_other_title": {
+    "message": "Funds addition failed"
+  },
+  "postConnect_addFunds_failure_other_msg": {
+    "message": "Something went wrong while adding funds. Please try again.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+  "postConnect_updateBudget_failure_other_title": {
+    "message": "Budget update failed"
+  },
+  "postConnect_updateBudget_failure_other_msg": {
+    "message": "Something went wrong while updating your budget. Please try again.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+  "postConnect_reconnect_failure_other_title": {
+    "message": "Wallet reconnection failed"
+  },
+  "postConnect_reconnect_failure_other_msg": {
+    "message": "We couldn’t verify your wallet. Please try again, or manually copy the public key and add it to your digital wallet account."
+  },
+
   "settings_dataCollection_title": {
     "message": "Data Collection"
   },
