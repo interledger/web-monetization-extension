@@ -28,9 +28,7 @@ export class TabState {
   public readonly paymentManagers = new PaymentManagers();
 
   constructor({ logger }: Cradle) {
-    Object.assign(this, {
-      logger,
-    });
+    this.logger = logger;
   }
 
   getLastPaymentDetails(tabId: TabId, url: string): Readonly<State> | null {

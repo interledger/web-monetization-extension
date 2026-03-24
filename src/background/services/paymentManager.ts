@@ -50,7 +50,9 @@ export class PaymentManager {
     hourlyRate: AmountValue,
     private deps: Cradle,
   ) {
-    Object.assign(this, this.deps);
+    this.rootLogger = this.deps.rootLogger;
+    this.logger = this.deps.logger;
+
     this.createStreamIfNotExists(0); // ensure frameId=0 is first in iteration (priority)
     this.timer = new Timeout(0, this.checkAndPayContinuously);
     this.setRate(hourlyRate);

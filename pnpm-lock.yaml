@@ -82,10 +82,10 @@ importers:
         version: 2.4.6
       '@jgoz/esbuild-plugin-typecheck':
         specifier: ^4.0.4
-        version: 4.0.4(esbuild@0.27.3)(typescript@5.9.3)
+        version: 4.0.4(esbuild@0.27.3)(typescript@6.0.2)
       '@jgoz/jest-esbuild':
         specifier: ^1.0.10
-        version: 1.0.10(@babel/core@7.27.4)(esbuild@0.27.3)(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)))
+        version: 1.0.10(@babel/core@7.27.4)(esbuild@0.27.3)(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)))
       '@octokit/openapi-webhooks-types':
         specifier: ^12.1.0
         version: 12.1.0
@@ -94,10 +94,10 @@ importers:
         version: 1.58.2
       '@tailwindcss/container-queries':
         specifier: ^0.1.1
-        version: 0.1.1(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)))
+        version: 0.1.1(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)))
       '@tailwindcss/forms':
         specifier: ^0.5.11
-        version: 0.5.11(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)))
+        version: 0.5.11(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)))
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -151,10 +151,10 @@ importers:
         version: 1.6.3
       jest:
         specifier: ^30.3.0
-        version: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+        version: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       jest-chrome:
         specifier: ^0.8.0
-        version: 0.8.0(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)))
+        version: 0.8.0(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)))
       jest-environment-jsdom:
         specifier: ^30.3.0
         version: 30.3.0
@@ -181,7 +181,7 @@ importers:
         version: 1.8.1
       tailwindcss:
         specifier: ^3.4.19
-        version: 3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+        version: 3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       tinyspy:
         specifier: ^4.0.4
         version: 4.0.4
@@ -189,8 +189,8 @@ importers:
         specifier: 2.0.1
         version: 2.0.1
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.2
+        version: 6.0.2
 
 packages:
 
@@ -3664,8 +3664,8 @@ packages:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
     engines: {node: '>= 0.6'}
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.2:
+    resolution: {integrity: sha512-bGdAIrZ0wiGDo5l8c++HWtbaNCWTS4UTv7RaTH/ThVIgjkveJt83m74bBHMJkuCbslY8ixgLBVZJIOiQlQTjfQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -4435,7 +4435,7 @@ snapshots:
       jest-util: 30.3.0
       slash: 3.0.0
 
-  '@jest/core@30.3.0(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))':
+  '@jest/core@30.3.0(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))':
     dependencies:
       '@jest/console': 30.3.0
       '@jest/pattern': 30.0.1
@@ -4450,7 +4450,7 @@ snapshots:
       exit-x: 0.2.2
       graceful-fs: 4.2.11
       jest-changed-files: 30.3.0
-      jest-config: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      jest-config: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       jest-haste-map: 30.3.0
       jest-message-util: 30.3.0
       jest-regex-util: 30.0.1
@@ -4627,17 +4627,17 @@ snapshots:
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
-  '@jgoz/esbuild-plugin-typecheck@4.0.4(esbuild@0.27.3)(typescript@5.9.3)':
+  '@jgoz/esbuild-plugin-typecheck@4.0.4(esbuild@0.27.3)(typescript@6.0.2)':
     dependencies:
       esbuild: 0.27.3
-      typescript: 5.9.3
+      typescript: 6.0.2
 
-  '@jgoz/jest-esbuild@1.0.10(@babel/core@7.27.4)(esbuild@0.27.3)(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)))':
+  '@jgoz/jest-esbuild@1.0.10(@babel/core@7.27.4)(esbuild@0.27.3)(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)))':
     dependencies:
       '@babel/core': 7.27.4
       babel-plugin-jest-hoist: 29.6.3
       esbuild: 0.27.3
-      jest: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      jest: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       jest-util: 29.7.0
 
   '@jridgewell/gen-mapping@0.3.5':
@@ -5081,14 +5081,14 @@ snapshots:
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@tailwindcss/container-queries@0.1.1(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)))':
+  '@tailwindcss/container-queries@0.1.1(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)))':
     dependencies:
-      tailwindcss: 3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      tailwindcss: 3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
 
-  '@tailwindcss/forms@0.5.11(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)))':
+  '@tailwindcss/forms@0.5.11(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)))':
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      tailwindcss: 3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
 
   '@testing-library/dom@10.1.0':
     dependencies:
@@ -6292,10 +6292,10 @@ snapshots:
       jest-util: 30.3.0
       p-limit: 3.1.0
 
-  jest-chrome@0.8.0(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))):
+  jest-chrome@0.8.0(jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))):
     dependencies:
       '@types/chrome': 0.0.114
-      jest: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      jest: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
 
   jest-circus@30.3.0:
     dependencies:
@@ -6323,15 +6323,15 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)):
+  jest-cli@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)):
     dependencies:
-      '@jest/core': 30.3.0(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      '@jest/core': 30.3.0(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       '@jest/test-result': 30.3.0
       '@jest/types': 30.3.0
       chalk: 4.1.2
       exit-x: 0.2.2
       import-local: 3.2.0
-      jest-config: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      jest-config: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       jest-util: 30.3.0
       jest-validate: 30.3.0
       yargs: 17.7.2
@@ -6342,7 +6342,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)):
+  jest-config@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)):
     dependencies:
       '@babel/core': 7.27.4
       '@jest/get-type': 30.1.0
@@ -6369,7 +6369,7 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       '@types/node': 24.12.0
-      ts-node: 10.9.2(@types/node@24.12.0)(typescript@5.9.3)
+      ts-node: 10.9.2(@types/node@24.12.0)(typescript@6.0.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -6612,12 +6612,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)):
+  jest@30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)):
     dependencies:
-      '@jest/core': 30.3.0(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      '@jest/core': 30.3.0(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       '@jest/types': 30.3.0
       import-local: 3.2.0
-      jest-cli: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      jest-cli: 30.3.0(@types/node@24.12.0)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -7054,13 +7054,13 @@ snapshots:
       camelcase-css: 2.0.1
       postcss: 8.5.8
 
-  postcss-load-config@4.0.2(postcss@8.5.8)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)):
+  postcss-load-config@4.0.2(postcss@8.5.8)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)):
     dependencies:
       lilconfig: 3.1.3
       yaml: 2.4.0
     optionalDependencies:
       postcss: 8.5.8
-      ts-node: 10.9.2(@types/node@24.12.0)(typescript@5.9.3)
+      ts-node: 10.9.2(@types/node@24.12.0)(typescript@6.0.2)
 
   postcss-modules-extract-imports@3.1.0(postcss@8.5.8):
     dependencies:
@@ -7472,7 +7472,7 @@ snapshots:
 
   tailwind-merge@2.6.1: {}
 
-  tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3)):
+  tailwindcss@3.4.19(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2)):
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -7491,7 +7491,7 @@ snapshots:
       postcss: 8.5.8
       postcss-import: 15.1.0(postcss@8.5.8)
       postcss-js: 4.0.1(postcss@8.5.8)
-      postcss-load-config: 4.0.2(postcss@8.5.8)(ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3))
+      postcss-load-config: 4.0.2(postcss@8.5.8)(ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2))
       postcss-nested: 6.2.0(postcss@8.5.8)
       postcss-selector-parser: 6.1.2
       resolve: 1.22.8
@@ -7573,7 +7573,7 @@ snapshots:
 
   ts-log@2.2.5: {}
 
-  ts-node@10.9.2(@types/node@24.12.0)(typescript@5.9.3):
+  ts-node@10.9.2(@types/node@24.12.0)(typescript@6.0.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
@@ -7587,7 +7587,7 @@ snapshots:
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.9.3
+      typescript: 6.0.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
     optional: true
@@ -7608,7 +7608,7 @@ snapshots:
       media-typer: 0.3.0
       mime-types: 2.1.35
 
-  typescript@5.9.3: {}
+  typescript@6.0.2: {}
 
   undici-types@6.19.8: {}
 

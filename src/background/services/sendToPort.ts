@@ -12,7 +12,8 @@ export class SendToPort<Message extends BackgroundToPortMessagesMap> {
     browser,
     connectionName,
   }: Cradle & { connectionName: string }) {
-    Object.assign(this, { browser, connectionName });
+    this.browser = browser;
+    this.connectionName = connectionName;
   }
 
   start() {

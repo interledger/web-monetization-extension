@@ -79,7 +79,13 @@ export class PaymentSession {
     private sender: WalletAddress,
     private deps: Cradle,
   ) {
-    Object.assign(this, this.deps);
+    this.storage = this.deps.storage;
+    this.openPaymentsService = this.deps.openPaymentsService;
+    this.outgoingPaymentGrantService = this.deps.outgoingPaymentGrantService;
+    this.events = this.deps.events;
+    this.tabState = this.deps.tabState;
+    this.logger = this.deps.logger;
+    this.message = this.deps.message;
   }
 
   // We keep setting #minSendAmount to non-zero values as we probe. Instead of

@@ -20,7 +20,8 @@ export class WindowState {
   private tabs = new Map<WindowId, Set<TabId>>();
 
   constructor({ browser, message }: Cradle) {
-    Object.assign(this, { browser, message });
+    this.browser = browser;
+    this.message = message;
   }
 
   setCurrentWindowId(windowId: WindowId) {

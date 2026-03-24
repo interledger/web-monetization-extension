@@ -4,7 +4,7 @@ export class Heartbeat {
   private browser: Cradle['browser'];
 
   constructor({ browser }: Cradle) {
-    Object.assign(this, { browser });
+    this.browser = browser;
   }
 
   start() {

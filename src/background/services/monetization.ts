@@ -19,7 +19,6 @@ import type { Cradle } from '@/background/container';
 export class MonetizationService {
   private logger: Cradle['logger'];
   private rootLogger: Cradle['rootLogger'];
-  // private t: Cradle['t'];
   private openPaymentsService: Cradle['openPaymentsService'];
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private storage: Cradle['storage'];
@@ -34,7 +33,6 @@ export class MonetizationService {
   constructor({
     logger,
     rootLogger,
-    t,
     openPaymentsService,
     outgoingPaymentGrantService,
     storage,
@@ -46,21 +44,18 @@ export class MonetizationService {
     PaymentSession,
     PaymentManager,
   }: Cradle) {
-    Object.assign(this, {
-      logger,
-      rootLogger,
-      t,
-      openPaymentsService,
-      outgoingPaymentGrantService,
-      storage,
-      events,
-      tabState,
-      windowState,
-      message,
-      telemetry,
-      PaymentSession,
-      PaymentManager,
-    });
+    this.logger = logger;
+    this.rootLogger = rootLogger;
+    this.openPaymentsService = openPaymentsService;
+    this.outgoingPaymentGrantService = outgoingPaymentGrantService;
+    this.storage = storage;
+    this.events = events;
+    this.tabState = tabState;
+    this.windowState = windowState;
+    this.message = message;
+    this.telemetry = telemetry;
+    this.PaymentSession = PaymentSession;
+    this.PaymentManager = PaymentManager;
 
     this.registerEventListeners();
   }

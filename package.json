@@ -83,7 +83,7 @@
     "tailwindcss": "^3.4.19",
     "tinyspy": "^4.0.4",
     "totp-generator": "2.0.1",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   },
   "engines": {
     "pnpm": "^10.18.3",

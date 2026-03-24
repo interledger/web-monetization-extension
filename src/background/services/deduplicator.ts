@@ -18,7 +18,7 @@ export class Deduplicator {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
 
   constructor({ logger }: Pick<Cradle, 'logger'>) {
-    Object.assign(this, { logger });
+    this.logger = logger;
   }
 
   dedupe<T>(

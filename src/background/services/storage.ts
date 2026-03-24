@@ -51,7 +51,8 @@ export class StorageService {
   private transientState: TransientState = {};
 
   constructor({ browser, events }: Cradle) {
-    Object.assign(this, { browser, events });
+    this.browser = browser;
+    this.events = events;
 
     this.setSpentAmountRecurring = new ThrottleBatch(
       (amount) => this.setSpentAmount('recurring', amount),

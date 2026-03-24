@@ -18,12 +18,10 @@ export class ContentScript {
     monetizationLinkManager,
     frameManager,
   }: Cradle) {
-    Object.assign(this, {
-      browser,
-      logger,
-      monetizationLinkManager,
-      frameManager,
-    });
+    this.browser = browser;
+    this.logger = logger;
+    this.monetizationLinkManager = monetizationLinkManager;
+    this.frameManager = frameManager;
 
     this.isTopFrame = window === window.top;
     this.isFirstLevelFrame = window.parent === window.top;

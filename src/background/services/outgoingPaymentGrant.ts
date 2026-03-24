@@ -61,14 +61,12 @@ export class OutgoingPaymentGrantService {
     events,
     browser,
   }: Cradle) {
-    Object.assign(this, {
-      storage,
-      logger,
-      deduplicator,
-      events,
-      openPaymentsService,
-      browser,
-    });
+    this.storage = storage;
+    this.logger = logger;
+    this.deduplicator = deduplicator;
+    this.events = events;
+    this.openPaymentsService = openPaymentsService;
+    this.browser = browser;
 
     void this.initialize();
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
