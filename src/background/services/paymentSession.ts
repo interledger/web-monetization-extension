@@ -197,6 +197,10 @@ export class PaymentSession {
           });
           break;
         } else {
+          this.markInvalid();
+          this.events.emit('open_payments.invalid_receiver', {
+            tabId: this.tabId,
+          });
           throw e;
         }
       }
