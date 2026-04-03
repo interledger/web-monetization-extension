@@ -705,10 +705,6 @@ export function calculateInterval(hourlyRate: bigint): Interval {
   //   interval.period += period;
   // }
 
-  if (period > MIN_PAYMENT_WAIT) {
-    return { units: 1n, period: Math.ceil(period) };
-  }
-
   const units = Math.ceil(MIN_PAYMENT_WAIT / period);
   return { units: BigInt(units), period: Math.ceil(units * period) };
 }
