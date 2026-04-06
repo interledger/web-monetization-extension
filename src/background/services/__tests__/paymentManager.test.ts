@@ -1,4 +1,54 @@
-import { distributeAmount } from '../paymentManager';
+import { distributeAmount, calculateInterval } from '../paymentManager';
+
+describe('continuous payments / calculateInterval', () => {
+  test('handles general rate - $0.60/hr', () => {
+    const result = calculateInterval(60n);
+    expect(result.units).toBe(1n);
+    expect(result.period).toBe(60_000);
+  });
+
+  test('handles slow-ish rate - $1.50/hr', () => {
+    const result = calculateInterval(150n);
+    expect(result.units).toBe(1n);
+    expect(result.period).toBe(24_000);
+  });
+
+  test('handles very slow rate - $0.01/hr', () => {
+    const result = calculateInterval(1n);
+    expect(result.units).toBe(1n);
+    expect(result.period).toBe(3_600_000);
+  });
+
+  test('handles exact floor rate - $1.80/hr', () => {
+    const result = calculateInterval(180n);
+    expect(result.units).toBe(1n);
+    expect(result.period).toBe(20_000);
+  });
+
+  test('scales up for fast rates - $18/hr', () => {
+    const result = calculateInterval(1800n);
+    expect(result.units).toBe(1n);
+    expect(result.period).toBe(2000);
+  });
+
+  test('scales up and adjusts period for very fast rates - $36/hr', () => {
+    const result = calculateInterval(3600n);
+    expect(result.units).toBe(2n);
+    expect(result.period).toBe(2000);
+  });
+
+  test('maintains precision with weird decimals - $1.70/hr', () => {
+    const result = calculateInterval(170n);
+    expect(result.units).toBe(1n);
+    expect(result.period).toBe(21_177);
+  });
+
+  test('handles extreme rates - $10,000/hr', () => {
+    const result = calculateInterval(10_00_000n);
+    expect(result.units).toBe(556n);
+    expect(result.period).toBe(2002);
+  });
+});
 
 describe('one time payments / distributeAmount', () => {
   class PaymentSession {
