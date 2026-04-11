@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@interledger/open-payments": "^7.4.0",
-    "@noble/ed25519": "^3.0.0",
+    "@noble/ed25519": "^3.1.0",
     "@noble/hashes": "^2.0.1",
     "@radix-ui/react-tabs": "^1.1.13",
     "awilix": "^13.0.3",
