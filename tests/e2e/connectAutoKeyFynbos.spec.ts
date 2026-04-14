@@ -13,7 +13,10 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/fynbos';
-import { decodeReactRouterData } from '@/content/keyAutoAdd/lib/helpers/fynbos';
+import {
+  decodeReactRouterData,
+  type RemixData,
+} from '@/content/keyAutoAdd/lib/helpers/fynbos';
 import { getStorage } from './fixtures/helpers';
 
 test('Connect to Fynbos with automatic key addition when not logged-in to wallet', async ({
@@ -137,25 +140,26 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
   });
 
   await test.step('cleanup: revoke keys', async () => {
+    type KeysData = {
+      keys: {
+        id: string;
+        applicationName: string;
+        publicKeyFingerprint: string;
+      }[];
+    };
+    type KeysRouteData = { 'routes/settings.keys': { data: KeysData } };
+
     const keyIds = await test.step('get keys to revoke', async () => {
       await page.goto(KEYS_PAGE_URL);
-      const data = await page.evaluate(async () => {
+      const rawData: RemixData = await page.evaluate(async () => {
         const res = await fetch('/settings/keys.data', {
           credentials: 'include',
         });
-        type KeysData = {
-          keys: {
-            id: string;
-            applicationName: string;
-            publicKeyFingerprint: string;
-          }[];
-        };
-        type KeysRouteData = { 'routes/settings.keys': { data: KeysData } };
-        const data = decodeReactRouterData<KeysRouteData>(await res.json());
-        return data['routes/settings.keys'].data;
+        return await res.json();
       });
 
-      return data.keys
+      const data = decodeReactRouterData<KeysRouteData>(rawData);
+      return data['routes/settings.keys'].data.keys
         .filter((e) => e.applicationName === keyNickName)
         .map((e) => e.id);
     });
