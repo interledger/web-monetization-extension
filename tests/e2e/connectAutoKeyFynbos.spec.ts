@@ -13,6 +13,7 @@ import {
   revokeKey,
   waitForGrantConsentPage,
 } from './helpers/fynbos';
+import { decodeReactRouterData } from '@/content/keyAutoAdd/lib/helpers/fynbos';
 import { getStorage } from './fixtures/helpers';
 
 test('Connect to Fynbos with automatic key addition when not logged-in to wallet', async ({
@@ -103,10 +104,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
       if (req.method() !== 'POST') return;
 
       const url = new URL(req.url());
-      if (
-        url.pathname.startsWith('/settings/keys/add-public') &&
-        url.searchParams.get('_data') === 'routes/settings_.keys_.add-public'
-      ) {
+      if (url.pathname.startsWith('/settings/keys/add-public.data')) {
         const applicationName = req.postDataJSON()?.applicationName as string;
         resolve(applicationName);
         page.off('request', interceptApplicationName);
@@ -142,18 +140,19 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     const keyIds = await test.step('get keys to revoke', async () => {
       await page.goto(KEYS_PAGE_URL);
       const data = await page.evaluate(async () => {
-        const res = await fetch(
-          `/settings/keys?_data=${encodeURIComponent('routes/settings.keys')}`,
-          { credentials: 'include' },
-        );
-        const data = await res.json();
-        return data as {
+        const res = await fetch('/settings/keys.data', {
+          credentials: 'include',
+        });
+        type KeysData = {
           keys: {
             id: string;
             applicationName: string;
             publicKeyFingerprint: string;
           }[];
         };
+        type KeysRouteData = { 'routes/settings.keys': { data: KeysData } };
+        const data = decodeReactRouterData<KeysRouteData>(await res.json());
+        return data['routes/settings.keys'].data;
       });
 
       return data.keys
