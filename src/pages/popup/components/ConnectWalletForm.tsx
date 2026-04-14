@@ -564,7 +564,7 @@ const ManualKeyPairNeeded: React.FC<{
   publicKey: string;
 }> = ({ error, hideError, text, learnMoreText, publicKey, retry }) => {
   const ErrorDetails = () => {
-    if (!error || !error.details) return null;
+    if (!error?.details) return null;
     return (
       <details className="group inline-block">
         <summary className="cursor-pointer list-none underline decoration-dotted group-open:sr-only">

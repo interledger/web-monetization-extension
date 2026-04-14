@@ -101,6 +101,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
   // @ts-expect-error: we're defining this now
   window.MonetizationEvent = MonetizationEvent;
 
+  // @ts-expect-error: very internal
   window.addEventListener(
     '__wm_ext_monetization',
     (event: CustomEvent<MonetizationEventPayload['details']>) => {
@@ -115,6 +116,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     { capture: true },
   );
 
+  // @ts-expect-error: very internal
   window.addEventListener(
     '__wm_ext_onmonetization_attr_change',
     (event: CustomEvent<{ attribute?: string }>) => {
@@ -123,7 +125,8 @@ import type { MonetizationEventPayload } from '@/shared/messages';
       const { attribute } = event.detail;
       // @ts-expect-error: we're defining this now
       event.target.onmonetization = attribute
-        ? new Function(attribute).bind(event.target)
+        ? // biome-ignore lint/nursery/noImpliedEval: that's the way here
+          new Function(attribute).bind(event.target)
         : null;
     },
     { capture: true },
