@@ -307,7 +307,7 @@ export async function loadKeysToExtension(
     'publicKey',
     'keyId',
   ]);
-  if (!res || !res.keyId || !res.privateKey || !res.publicKey) {
+  if (!res?.keyId || !res.privateKey || !res.publicKey) {
     throw new Error('Could not load keys to extension');
   }
 }

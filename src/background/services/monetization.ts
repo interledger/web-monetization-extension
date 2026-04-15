@@ -128,14 +128,12 @@ export class MonetizationService {
       continuousPaymentsEnabled &&
       this.canTryPayment(connected, state);
 
+    await Promise.all(paymentSessionPromises);
     if (canStart && paymentManager.payableSessions.length) {
       paymentManager.start();
     } else {
       paymentManager.pause('cannot-start-yet');
     }
-
-    await Promise.all(paymentSessionPromises);
-    if (canStart) paymentManager.start();
     this.events.emit('monetization.state_update', tabId);
   }
 
@@ -294,7 +292,7 @@ export class MonetizationService {
 
   async pay({ amount }: PayWebsitePayload): Promise<PayWebsiteResponse> {
     const tab = await this.windowState.getCurrentTab();
-    if (!tab || !tab.id) {
+    if (!tab?.id) {
       throw new Error('Unexpected error: could not find active tab.');
     }
 
