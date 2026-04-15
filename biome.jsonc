@@ -12,6 +12,7 @@
     "useEditorconfig": true,
     "indentStyle": "space",
     "indentWidth": 2,
+    "lineEnding": "auto",
     "lineWidth": 80
   },
   "assist": {
