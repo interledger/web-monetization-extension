@@ -128,14 +128,12 @@ export class MonetizationService {
       continuousPaymentsEnabled &&
       this.canTryPayment(connected, state);
 
+    await Promise.all(paymentSessionPromises);
     if (canStart && paymentManager.payableSessions.length) {
       paymentManager.start();
     } else {
       paymentManager.pause('cannot-start-yet');
     }
-
-    await Promise.all(paymentSessionPromises);
-    if (canStart) paymentManager.start();
     this.events.emit('monetization.state_update', tabId);
   }
 
