@@ -91,6 +91,7 @@ export class PaymentSession {
   findMinSendAmount(force?: boolean): Promise<void> {
     this.#minSendAmountPromise ??= this._findMinSendAmount();
     if (force) {
+      this.isInvalid = false;
       this.#minSendAmountPromise = this._findMinSendAmount(undefined, true);
     }
     return this.#minSendAmountPromise;
