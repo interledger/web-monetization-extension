@@ -294,7 +294,7 @@ export class MonetizationService {
 
   async pay({ amount }: PayWebsitePayload): Promise<PayWebsiteResponse> {
     const tab = await this.windowState.getCurrentTab();
-    if (!tab || !tab.id) {
+    if (!tab?.id) {
       throw new Error('Unexpected error: could not find active tab.');
     }
 
