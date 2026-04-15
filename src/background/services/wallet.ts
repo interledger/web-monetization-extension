@@ -276,7 +276,7 @@ export class WalletService {
       type: 'success',
       intent: 'reconnect',
     }));
-    await this.redirectOnSuccess(tabId);
+    return () => this.redirectOnSuccess(tabId);
   }
 
   async disconnectWallet(force = false) {

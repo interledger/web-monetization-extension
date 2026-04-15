@@ -264,9 +264,16 @@ export class Background {
         }
 
         case 'RECONNECT_WALLET': {
+          const { payload } = message;
           const lastActiveTab = await this.windowState.getCurrentTab();
-          await this.walletService.reconnectWallet(message.payload);
+          const onDone = await this.walletService.reconnectWallet(payload);
           await this.refreshAllPaymentSessions(lastActiveTab);
+          await onDone?.();
+          if (lastActiveTab) {
+            await this.tabEvents.updateVisualIndicators(lastActiveTab);
+          } else {
+            await this.updateVisualIndicatorsForCurrentTab();
+          }
           return success(undefined);
         }
 
@@ -427,15 +434,6 @@ export class Background {
       await Promise.all(
         paymentManager.sessions.map((s) => s.findMinSendAmount(true)),
       );
-    }
-
-    if (priorityTab?.id) {
-      if (priorityTab.id === this.windowState.getCurrentTabId()) {
-        this.tabState.paymentManagers.get(priorityTab.id)?.resume();
-      }
-      await this.tabEvents.updateVisualIndicators(priorityTab);
-    } else {
-      await this.updateVisualIndicatorsForCurrentTab();
     }
   }
 
