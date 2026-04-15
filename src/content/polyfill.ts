@@ -101,7 +101,6 @@ import type { MonetizationEventPayload } from '@/shared/messages';
   // @ts-expect-error: we're defining this now
   window.MonetizationEvent = MonetizationEvent;
 
-  // @ts-expect-error: very internal
   window.addEventListener(
     '__wm_ext_monetization',
     (event: CustomEvent<MonetizationEventPayload['details']>) => {
@@ -116,7 +115,6 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     { capture: true },
   );
 
-  // @ts-expect-error: very internal
   window.addEventListener(
     '__wm_ext_onmonetization_attr_change',
     (event: CustomEvent<{ attribute?: string }>) => {
