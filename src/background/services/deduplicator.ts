@@ -1,6 +1,7 @@
 import type { Cradle } from '../container';
 
-type AsyncFn<T> = (...args: unknown[]) => Promise<T>;
+// biome-ignore lint/suspicious/noExplicitAny: as intended
+type AsyncFn<T> = (...args: any[]) => Promise<T>;
 
 interface CacheEntry<T> {
   promise: Promise<T>;
@@ -18,7 +19,7 @@ export class Deduplicator {
   private cache: Map<string, CacheEntry<unknown>> = new Map();
 
   constructor({ logger }: Pick<Cradle, 'logger'>) {
-    Object.assign(this, { logger });
+    this.logger = logger;
   }
 
   dedupe<T>(

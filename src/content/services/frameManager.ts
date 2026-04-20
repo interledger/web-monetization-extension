@@ -22,12 +22,10 @@ export class FrameManager {
   >();
 
   constructor({ window, document, logger, message }: Cradle) {
-    Object.assign(this, {
-      window,
-      document,
-      logger,
-      message,
-    });
+    this.window = window;
+    this.document = document;
+    this.logger = logger;
+    this.message = message;
 
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records),

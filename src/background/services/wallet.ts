@@ -65,16 +65,14 @@ export class WalletService {
     logger,
     t,
   }: Cradle) {
-    Object.assign(this, {
-      outgoingPaymentGrantService,
-      openPaymentsService,
-      storage,
-      events,
-      browser,
-      telemetry,
-      logger,
-      t,
-    });
+    this.outgoingPaymentGrantService = outgoingPaymentGrantService;
+    this.openPaymentsService = openPaymentsService;
+    this.storage = storage;
+    this.events = events;
+    this.browser = browser;
+    this.telemetry = telemetry;
+    this.logger = logger;
+    this.t = t;
   }
 
   async getConnectWalletInfo(

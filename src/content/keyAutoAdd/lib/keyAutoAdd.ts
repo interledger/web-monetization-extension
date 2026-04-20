@@ -25,8 +25,9 @@ export type { StepRun } from './types';
 export const LOGIN_WAIT_TIMEOUT = 10 * 60 * 1000;
 
 export class KeyAutoAdd {
+  // @ts-expect-error initialized in `init()`
   private port: Runtime.Port;
-  private ui: HTMLIFrameElement;
+  private ui: HTMLIFrameElement | null = null;
 
   private stepsInput: Map<string, Step>;
   private steps: StepWithStatus[];
@@ -44,13 +45,12 @@ export class KeyAutoAdd {
   init() {
     this.port = browser.runtime.connect({ name: CONNECTION_NAME });
 
-    this.port.onMessage.addListener(
-      (message: BackgroundToKeyAutoAddMessage) => {
-        if (message.action === 'BEGIN') {
-          void this.runAll(message.payload);
-        }
-      },
-    );
+    this.port.onMessage.addListener((msg: unknown) => {
+      const message = msg as BackgroundToKeyAutoAddMessage;
+      if (message.action === 'BEGIN') {
+        void this.runAll(message.payload);
+      }
+    });
   }
 
   private setNotificationSize(size: 'notification' | 'fullscreen' | 'hidden') {
@@ -89,17 +89,19 @@ export class KeyAutoAdd {
       };
     }
 
-    this.ui.style.cssText = '';
-    Object.assign(this.ui.style, defaultStyles);
-    Object.assign(this.ui.style, styles);
+    const ui = this.ui!;
+
+    ui.style.cssText = '';
+    Object.assign(ui.style, defaultStyles);
+    Object.assign(ui.style, styles);
 
     const iframeUrl = new URL(
       browser.runtime.getURL('pages/progress-connect/index.html'),
     );
     const params = new URLSearchParams({ mode: size });
     iframeUrl.hash = `?${params.toString()}`;
-    if (this.ui.src !== iframeUrl.href && size !== 'hidden') {
-      this.ui.src = iframeUrl.href;
+    if (ui.src !== iframeUrl.href && size !== 'hidden') {
+      ui.src = iframeUrl.href;
     }
   }
 

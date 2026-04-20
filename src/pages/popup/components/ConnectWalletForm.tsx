@@ -502,7 +502,7 @@ export const ConnectWalletForm = ({
             state?.type === 'progress'
               ? typeof state.currentStep === 'string'
                 ? state.currentStep
-                : t(state.currentStep.key, state.currentStep.substitutions)
+                : t(state.currentStep.key, [...state.currentStep.substitutions])
               : undefined
           }
         >

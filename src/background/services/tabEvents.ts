@@ -70,16 +70,14 @@ export class TabEvents {
     appName,
     browserName,
   }: Cradle) {
-    Object.assign(this, {
-      storage,
-      tabState,
-      windowState,
-      sendToPopup,
-      t,
-      browser,
-      appName,
-      browserName,
-    });
+    this.storage = storage;
+    this.tabState = tabState;
+    this.windowState = windowState;
+    this.sendToPopup = sendToPopup;
+    this.t = t;
+    this.browser = browser;
+    this.appName = appName;
+    this.browserName = browserName;
   }
 
   onUpdatedTab: CallbackTab<'onUpdated'> = (tabId, changeInfo, tab) => {

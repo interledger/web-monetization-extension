@@ -4,6 +4,7 @@ import type { BackgroundToPortMessagesMap } from '@/shared/messages';
 
 export class SendToPort<Message extends BackgroundToPortMessagesMap> {
   private browser: Cradle['browser'];
+  // @ts-expect-error set in `start()`
   private port: Runtime.Port;
   private isConnected = false;
   private connectionName: string;
@@ -12,7 +13,8 @@ export class SendToPort<Message extends BackgroundToPortMessagesMap> {
     browser,
     connectionName,
   }: Cradle & { connectionName: string }) {
-    Object.assign(this, { browser, connectionName });
+    this.browser = browser;
+    this.connectionName = connectionName;
   }
 
   start() {

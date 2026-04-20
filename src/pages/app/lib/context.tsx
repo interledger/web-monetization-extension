@@ -65,7 +65,8 @@ export const MessageContextProvider = ({
 
   React.useEffect(() => {
     const port = browser.runtime.connect({ name: CONNECTION_NAME });
-    port.onMessage.addListener((message: BackgroundToAppMessage) => {
+    port.onMessage.addListener((msg: unknown) => {
+      const message = msg as BackgroundToAppMessage;
       switch (message.type) {
         case 'SET_TRANSIENT_STATE':
           return dispatch(message);

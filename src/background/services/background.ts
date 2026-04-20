@@ -52,22 +52,20 @@ export class Background {
     heartbeat,
     telemetry,
   }: Cradle) {
-    Object.assign(this, {
-      browser,
-      browserName,
-      walletService,
-      monetizationService,
-      storage,
-      sendToPopup,
-      sendToApp,
-      tabState,
-      tabEvents,
-      windowState,
-      logger,
-      events,
-      heartbeat,
-      telemetry,
-    });
+    this.browser = browser;
+    this.browserName = browserName;
+    this.walletService = walletService;
+    this.monetizationService = monetizationService;
+    this.storage = storage;
+    this.sendToPopup = sendToPopup;
+    this.sendToApp = sendToApp;
+    this.tabState = tabState;
+    this.tabEvents = tabEvents;
+    this.windowState = windowState;
+    this.logger = logger;
+    this.events = events;
+    this.heartbeat = heartbeat;
+    this.telemetry = telemetry;
   }
 
   async start() {
@@ -219,10 +217,8 @@ export class Background {
   }
 
   // TODO: type ReturnType based on message
-  onMessage = async (
-    message: ToBackgroundMessage,
-    sender: Runtime.MessageSender,
-  ) => {
+  onMessage = async (msg: unknown, sender: Runtime.MessageSender) => {
+    const message = msg as ToBackgroundMessage;
     this.logger.debug('Received message', message.action, message.payload);
     try {
       switch (message.action) {
@@ -511,7 +507,9 @@ export class Background {
     }
 
     const allTabs = await this.browser.tabs.query({});
-    const tabs = allTabs.filter((t) => t.id && t.url && isSecureContext(t.url));
+    const tabs = allTabs.filter(
+      (t) => t.id && t.url && isSecureContext(t.url),
+    ) as Tab[];
     const injectPolyfill = (tab: Tab) => {
       return this.browser.scripting.executeScript({
         target: { tabId: tab.id },

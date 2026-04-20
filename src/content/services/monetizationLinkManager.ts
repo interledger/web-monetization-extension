@@ -38,13 +38,12 @@ export class MonetizationLinkManager {
   >();
 
   constructor({ document, logger, message, global }: Cradle) {
-    Object.assign(this, {
-      global,
-      document,
-      logger,
-      message,
-      window: global.window,
-    });
+    this.global = global;
+    this.document = document;
+    this.logger = logger;
+    this.message = message;
+    this.window = global.window;
+
     const { MutationObserver, crypto, window } = this.global;
 
     this.id = crypto.randomUUID();

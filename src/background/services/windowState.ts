@@ -11,6 +11,7 @@ export class WindowState {
   private browser: Cradle['browser'];
   private message: Cradle['message'];
 
+  // @ts-expect-error set by `setCurrentWindowId()` at extension start
   private currentWindowId: WindowId;
   private currentTab = new Map<WindowId, TabId>();
   /**
@@ -20,7 +21,8 @@ export class WindowState {
   private tabs = new Map<WindowId, Set<TabId>>();
 
   constructor({ browser, message }: Cradle) {
-    Object.assign(this, { browser, message });
+    this.browser = browser;
+    this.message = message;
   }
 
   setCurrentWindowId(windowId: WindowId) {

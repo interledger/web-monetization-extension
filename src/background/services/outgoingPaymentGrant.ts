@@ -46,8 +46,9 @@ export class OutgoingPaymentGrantService {
   private events: Cradle['events'];
   private browser: Cradle['browser'];
 
+  // @ts-expect-error defined by `initialize()`, which gets called in constructor
   private token: AccessToken;
-  private grantDetails: GrantDetails | null;
+  private grantDetails: GrantDetails | null = null;
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false };
 
@@ -61,14 +62,12 @@ export class OutgoingPaymentGrantService {
     events,
     browser,
   }: Cradle) {
-    Object.assign(this, {
-      storage,
-      logger,
-      deduplicator,
-      events,
-      openPaymentsService,
-      browser,
-    });
+    this.storage = storage;
+    this.logger = logger;
+    this.deduplicator = deduplicator;
+    this.events = events;
+    this.openPaymentsService = openPaymentsService;
+    this.browser = browser;
 
     void this.initialize();
     this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
@@ -354,7 +353,9 @@ export class OutgoingPaymentGrantService {
       `${clientNonce}\n${interactionNonce}\n${interactRef}\n${authServer}`,
     );
     const digest = await crypto.subtle.digest('SHA-256', data);
-    return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)));
+    // @ts-expect-error TODO
+    const digestStr = String.fromCharCode.apply(null, new Uint8Array(digest));
+    return btoa(digestStr);
   };
 
   private async continueGrant(grant: PendingGrant, interactRef: string) {

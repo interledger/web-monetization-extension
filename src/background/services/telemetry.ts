@@ -9,7 +9,9 @@ export class Telemetry {
   private posthog: PostHog;
 
   constructor({ browser, storage, logger }: Cradle) {
-    Object.assign(this, { browser, storage, logger });
+    this.browser = browser;
+    this.storage = storage;
+    this.logger = logger;
     this.posthog = new PostHog();
   }
 

@@ -72,7 +72,7 @@ export function tFactory(browser: Pick<Browser, 'i18n'>) {
    */
   function t<T extends TranslationKeys>(
     key: T,
-    substitutions?: string[] | readonly string[],
+    substitutions?: string[],
   ): string;
   function t<T extends ErrorKeys>(err: ErrorWithKeyLike<T>): string;
   function t(key: string | ErrorWithKeyLike, substitutions?: string[]): string {

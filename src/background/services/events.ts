@@ -61,6 +61,7 @@ export class EventsService extends EventEmitter {
    * @deprecated
    */
   removeListener(): this {
+    // @ts-expect-error
     // biome-ignore lint/complexity/noArguments: it's cleaner and simpler
     return super.removeListener.apply(this, arguments);
   }

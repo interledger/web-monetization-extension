@@ -86,7 +86,7 @@ function remoteLogger(log: log.RootLogger, endpoint: string) {
     try {
       throw new Error();
     } catch (trace) {
-      return trace.stack;
+      return (trace as Error).stack!;
     }
   }
 

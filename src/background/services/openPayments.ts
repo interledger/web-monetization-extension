@@ -44,14 +44,13 @@ export class OpenPaymentsService {
   private storage: Cradle['storage'];
 
   constructor({ browser, storage }: Cradle) {
-    Object.assign(this, {
-      browser,
-      storage,
-    });
+    this.browser = browser;
+    this.storage = storage;
 
     void this.initialize();
   }
 
+  // @ts-expect-error defined by `initialize()`
   public client: AuthenticatedClient;
 
   private async initialize() {
