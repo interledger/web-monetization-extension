@@ -125,7 +125,8 @@ import type { MonetizationEventPayload } from '@/shared/messages';
       const { attribute } = event.detail;
       // @ts-expect-error: we're defining this now
       event.target.onmonetization = attribute
-        ? new Function(attribute).bind(event.target)
+        ? // biome-ignore lint/nursery/noImpliedEval: that's the way here
+          new Function(attribute).bind(event.target)
         : null;
     },
     { capture: true },

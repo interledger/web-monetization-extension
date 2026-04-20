@@ -97,6 +97,7 @@ export class PaymentSession {
   findMinSendAmount(force?: boolean): Promise<void> {
     this.#minSendAmountPromise ??= this._findMinSendAmount();
     if (force) {
+      this.isInvalid = false;
       this.#minSendAmountPromise = this._findMinSendAmount(undefined, true);
     }
     return this.#minSendAmountPromise;
@@ -203,6 +204,10 @@ export class PaymentSession {
           });
           break;
         } else {
+          this.markInvalid();
+          this.events.emit('open_payments.invalid_receiver', {
+            tabId: this.tabId,
+          });
           throw e;
         }
       }

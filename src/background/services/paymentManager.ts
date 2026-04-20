@@ -32,10 +32,10 @@ type Cradle = Pick<
   | 'PaymentSession'
 >;
 
-/** Payable amount to increase by {@linkcode Interval.units} every {@linkcode Interval.duration}ms. */
-type Interval = { units: bigint; duration: number };
+/** Payable amount to increase by {@linkcode Interval.units} every {@linkcode Interval.period}ms. */
+type Interval = { units: bigint; period: number };
 
-const MS_IN_HOUR = 3600;
+const MS_IN_HOUR = 60 * 60 * 1000;
 
 export class PaymentManager {
   private rootLogger: Cradle['rootLogger'];
@@ -339,22 +339,14 @@ export class PaymentManager {
 
   setRate(hourlyRate: AmountValue) {
     this.hourlyRate = BigInt(hourlyRate);
-    const secondsPerUnit = MS_IN_HOUR / Number(this.hourlyRate);
-    const duration = Math.ceil(secondsPerUnit * 1000);
-    // The math below is equivalent to:
-    // interval = { units: 1n, duration };
-    // while (interval.duration < MIN_PAYMENT_WAIT) {
-    //   interval.units += 1n;
-    //   interval.duration += duration;
-    // }
-    const units = BigInt(Math.ceil(MIN_PAYMENT_WAIT / duration));
-    this.interval = { units, duration: Number(units) * duration };
+    this.interval = calculateInterval(this.hourlyRate);
+
     // TODO: Optimization opportunity above: see if we can set interval based on
     // some minSendAmount (HCF of all minSendAmount?). i.e. we will increment
     // amount by minSendAmount unit to make the interval longer.
 
     if (this.#state === 'active') {
-      this.timer.reset(this.interval.duration);
+      this.timer.reset(this.interval.period);
     }
   }
 
@@ -393,7 +385,7 @@ export class PaymentManager {
     this.pendingAmount -= amount;
 
     this.checkAndPayContinuously();
-    this.timer.reset(this.interval.duration);
+    this.timer.reset(this.interval.period);
   }
 
   pause(reason?: string) {
@@ -432,7 +424,7 @@ export class PaymentManager {
     }
 
     const elapsed = Date.now() - lastPaymentInfo.ts.valueOf();
-    const waitTime = this.interval.duration - elapsed;
+    const waitTime = this.interval.period - elapsed;
     if (waitTime > 0) {
       this.logger.log('[overpaying] Preventing overpaying:', {
         ...lastPaymentInfo,
@@ -465,7 +457,7 @@ export class PaymentManager {
     }
 
     this.pendingAmount += this.interval.units;
-    this.timer.reset(this.interval.duration); // as if setInterval
+    this.timer.reset(this.interval.period); // as if setInterval
 
     const session = this.peekSessionToPay();
     if (!session) {
@@ -703,4 +695,18 @@ class PeekAbleIterator<T> implements Iterator<T, never, never> {
   [Symbol.iterator]() {
     return this;
   }
+}
+
+export function calculateInterval(hourlyRate: bigint): Interval {
+  const period = MS_IN_HOUR / Number(hourlyRate);
+
+  // The math below is equivalent to:
+  // interval: Interval = { units: 1n, period };
+  // while (interval.period < MIN_PAYMENT_WAIT) {
+  //   interval.units += 1n;
+  //   interval.period += period;
+  // }
+
+  const units = Math.ceil(MIN_PAYMENT_WAIT / period);
+  return { units: BigInt(units), period: Math.ceil(units * period) };
 }

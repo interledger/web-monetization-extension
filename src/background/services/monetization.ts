@@ -107,24 +107,28 @@ export class MonetizationService {
       this.tabState.paymentManagers.set(tabId, paymentManager);
     }
 
-    await Promise.all(
-      payload.map(({ requestId, walletAddress: receiver }) => {
+    const paymentSessionPromises = payload.map(
+      ({ requestId, walletAddress: receiver }) => {
         return paymentManager.addSession(frameId, requestId, receiver, true);
-      }),
+      },
     );
+
+    await Promise.any(paymentSessionPromises);
+    this.events.emit('monetization.state_update', tabId);
 
     const { state, continuousPaymentsEnabled, enabled } =
       await this.storage.get(['state', 'continuousPaymentsEnabled', 'enabled']);
-    if (
+    const canStart =
       enabled &&
       continuousPaymentsEnabled &&
-      this.canTryPayment(connected, state)
-    ) {
+      this.canTryPayment(connected, state);
+
+    await Promise.all(paymentSessionPromises);
+    if (canStart && paymentManager.payableSessions.length) {
       paymentManager.start();
     } else {
       paymentManager.pause('cannot-start-yet');
     }
-
     this.events.emit('monetization.state_update', tabId);
   }
 
@@ -283,7 +287,7 @@ export class MonetizationService {
 
   async pay({ amount }: PayWebsitePayload): Promise<PayWebsiteResponse> {
     const tab = await this.windowState.getCurrentTab();
-    if (!tab || !tab.id) {
+    if (!tab?.id) {
       throw new Error('Unexpected error: could not find active tab.');
     }
 
