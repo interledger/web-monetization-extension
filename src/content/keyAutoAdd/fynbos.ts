@@ -6,14 +6,11 @@ import {
   type StepRun as Run,
 } from './lib/keyAutoAdd';
 import { isTimedOut, waitForURL } from './lib/helpers';
-// #region: Steps
+import { decodeReactRouterData, type RemixData } from './lib/helpers/fynbos';
 
-type IndexRouteResponse = {
-  isUser: boolean;
-  walletInfo: {
-    walletID: string;
-    url: string;
-  };
+// #region: Steps
+type IndexRouteData = {
+  'routes/_index': { data: { walletInfo: { url: string } } };
 };
 
 const waitForLogin: Run<void> = async (
@@ -45,7 +42,7 @@ const findWallet: Run<void> = async (
   { setNotificationSize },
 ) => {
   setNotificationSize('fullscreen');
-  const url = `/?_data=${encodeURIComponent('routes/_index')}`;
+  const url = '/_root.data';
   const res = await fetch(url, {
     headers: { accept: 'application/json' },
     credentials: 'include',
@@ -55,14 +52,16 @@ const findWallet: Run<void> = async (
   if (!res.ok) {
     throw new Error(`Failed to get wallet details (${res.statusText})`);
   }
-  const data: IndexRouteResponse = await res.json();
-  if (data?.walletInfo?.url !== walletAddressUrl) {
+  const rawData: RemixData = await res.json();
+
+  const data = decodeReactRouterData<IndexRouteData>(rawData);
+  if (data?.['routes/_index']?.data?.walletInfo?.url !== walletAddressUrl) {
     throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
   }
 };
 
 const addKey: Run<void> = async ({ nickName, publicKey }) => {
-  const url = `/settings/keys/add-public?_data=${encodeURIComponent('routes/settings_.keys_.add-public')}`;
+  const url = '/settings/keys/add-public.data';
   const csrfToken = await getCSRFToken(url);
 
   const res = await fetch(url, {
