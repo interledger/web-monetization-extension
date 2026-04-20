@@ -67,8 +67,8 @@ export class PaymentSession {
   private countInvalidReceiver = 0;
   private isDisabled = false;
   private isStopped = false;
-  private incomingPaymentUrl: string;
-  private incomingPaymentExpiresAt: number;
+  private incomingPaymentUrl = '';
+  private incomingPaymentExpiresAt = -1;
 
   constructor(
     public readonly receiver: WalletAddress,
@@ -92,6 +92,7 @@ export class PaymentSession {
   // checking #minSendAmount > 0, use this boolean to know if probing completed.
   #minSendAmountFound = false;
   #minSendAmount = 0n;
+  // @ts-expect-error set in `findMinSendAmount()` (and as first thing before use)
   #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
 
   findMinSendAmount(force?: boolean): Promise<void> {

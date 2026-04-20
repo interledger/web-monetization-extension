@@ -40,28 +40,27 @@ export class ContentScript {
   }
 
   bindMessageHandler() {
-    this.browser.runtime.onMessage.addListener(
-      async (message: ToContentMessage) => {
-        try {
-          switch (message.action) {
-            case 'MONETIZATION_EVENT':
-              this.monetizationLinkManager.dispatchMonetizationEvent(
-                message.payload,
-              );
-              return;
-            case 'IS_TAB_IN_VIEW':
-              return success(document.visibilityState === 'visible');
-            case 'REQUEST_RESUME_MONETIZATION':
-              await this.monetizationLinkManager.resumeMonetization();
-              return;
-            default:
-              return;
-          }
-        } catch (e) {
-          this.logger.error(message.action, e.message);
-          return failure(e.message);
+    this.browser.runtime.onMessage.addListener(async (msg: unknown) => {
+      const message = msg as ToContentMessage;
+      try {
+        switch (message.action) {
+          case 'MONETIZATION_EVENT':
+            this.monetizationLinkManager.dispatchMonetizationEvent(
+              message.payload,
+            );
+            return;
+          case 'IS_TAB_IN_VIEW':
+            return success(document.visibilityState === 'visible');
+          case 'REQUEST_RESUME_MONETIZATION':
+            await this.monetizationLinkManager.resumeMonetization();
+            return;
+          default:
+            return;
         }
-      },
-    );
+      } catch (e) {
+        this.logger.error(message.action, e.message);
+        return failure(e.message);
+      }
+    });
   }
 }

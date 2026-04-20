@@ -11,6 +11,7 @@ export class WindowState {
   private browser: Cradle['browser'];
   private message: Cradle['message'];
 
+  // @ts-expect-error set by `setCurrentWindowId()` at extension start
   private currentWindowId: WindowId;
   private currentTab = new Map<WindowId, TabId>();
   /**

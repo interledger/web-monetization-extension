@@ -331,11 +331,13 @@ export class PaymentManager {
 
   // #region Streaming payments
   #state: 'stopped' | 'active' | 'paused' = 'stopped';
+  // @ts-expect-error defined by `setRate()`, which gets called in constructor
   private hourlyRate: bigint;
+  // @ts-expect-error defined by `setRate()`, which gets called in constructor
   private interval: Interval;
   private timer: Timeout;
   private pendingAmount = 0n;
-  #iter: PeekAbleIterator<PaymentSession>;
+  #iter: PeekAbleIterator<PaymentSession> | null = null;
 
   setRate(hourlyRate: AmountValue) {
     this.hourlyRate = BigInt(hourlyRate);
@@ -508,7 +510,6 @@ export class PaymentManager {
   ): Generator<PaymentSession, never, never> {
     while (true) {
       if (!self.payableSessions.length) {
-        // @ts-expect-error It's simpler this way
         this.#iter = null;
         throw new Error('No sessions!!');
       }

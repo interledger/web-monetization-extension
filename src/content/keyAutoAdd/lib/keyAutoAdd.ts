@@ -25,6 +25,7 @@ export type { StepRun } from './types';
 export const LOGIN_WAIT_TIMEOUT = 10 * 60 * 1000;
 
 export class KeyAutoAdd {
+  // @ts-expect-error initialized in `init()`
   private port: Runtime.Port;
   private ui: HTMLIFrameElement | null = null;
 
@@ -44,13 +45,12 @@ export class KeyAutoAdd {
   init() {
     this.port = browser.runtime.connect({ name: CONNECTION_NAME });
 
-    this.port.onMessage.addListener(
-      (message: BackgroundToKeyAutoAddMessage) => {
-        if (message.action === 'BEGIN') {
-          void this.runAll(message.payload);
-        }
-      },
-    );
+    this.port.onMessage.addListener((msg: unknown) => {
+      const message = msg as BackgroundToKeyAutoAddMessage;
+      if (message.action === 'BEGIN') {
+        void this.runAll(message.payload);
+      }
+    });
   }
 
   private setNotificationSize(size: 'notification' | 'fullscreen' | 'hidden') {

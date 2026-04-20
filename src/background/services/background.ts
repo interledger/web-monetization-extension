@@ -217,10 +217,8 @@ export class Background {
   }
 
   // TODO: type ReturnType based on message
-  onMessage = async (
-    message: ToBackgroundMessage,
-    sender: Runtime.MessageSender,
-  ) => {
+  onMessage = async (msg: unknown, sender: Runtime.MessageSender) => {
+    const message = msg as ToBackgroundMessage;
     this.logger.debug('Received message', message.action, message.payload);
     try {
       switch (message.action) {

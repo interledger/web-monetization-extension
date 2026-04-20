@@ -50,6 +50,7 @@ export class OpenPaymentsService {
     void this.initialize();
   }
 
+  // @ts-expect-error defined by `initialize()`
   public client: AuthenticatedClient;
 
   private async initialize() {

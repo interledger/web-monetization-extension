@@ -35,9 +35,8 @@ export const StateContextProvider = ({ children }: React.PropsWithChildren) => {
   });
 
   React.useEffect(() => {
-    const onMessage: OnPortMessageListener = (
-      message: KeyAutoAddToBackgroundMessage,
-    ) => {
+    const onMessage: OnPortMessageListener = (msg: unknown) => {
+      const message = msg as KeyAutoAddToBackgroundMessage;
       if (message.action === 'PROGRESS') {
         const { steps } = message.payload;
         const currentStep = getCurrentStep(steps);

@@ -71,7 +71,8 @@ export const MessageContextProvider = ({
 
   React.useEffect(() => {
     const port = browser.runtime.connect({ name: CONNECTION_NAME });
-    port.onMessage.addListener((message: BackgroundToPopupMessage) => {
+    port.onMessage.addListener((msg) => {
+      const message = msg as BackgroundToPopupMessage;
       switch (message.type) {
         case 'SET_BALANCE':
         case 'SET_STATE':

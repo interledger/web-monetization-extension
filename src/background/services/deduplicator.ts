@@ -1,6 +1,7 @@
 import type { Cradle } from '../container';
 
-type AsyncFn<T> = (...args: unknown[]) => Promise<T>;
+// biome-ignore lint/suspicious/noExplicitAny: as intended
+type AsyncFn<T> = (...args: any[]) => Promise<T>;
 
 interface CacheEntry<T> {
   promise: Promise<T>;

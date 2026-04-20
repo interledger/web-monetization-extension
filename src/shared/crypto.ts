@@ -6,6 +6,7 @@ export async function generateEd25519KeyPair() {
 }
 
 export function exportJWK(key: Uint8Array, kid: string) {
+  // @ts-expect-error TODO
   const string = String.fromCharCode.apply(null, key);
 
   const base64 = btoa(string);

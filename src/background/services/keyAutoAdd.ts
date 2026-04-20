@@ -137,10 +137,8 @@ export class KeyAutoAddService {
       });
     };
 
-    const onMessageListener: OnPortMessageListener = (
-      message: KeyAutoAddToBackgroundMessage,
-      port,
-    ) => {
+    const onMessageListener: OnPortMessageListener = (msg: unknown, port) => {
+      const message = msg as KeyAutoAddToBackgroundMessage;
       if (message.action === 'SUCCESS') {
         removeListeners();
         this.telemetry.capture('key_auto_add_success', {
