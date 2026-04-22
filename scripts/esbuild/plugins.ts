@@ -38,7 +38,7 @@ export const getPlugins = ({
       name: 'crypto-for-extension',
       setup(build) {
         build.onResolve({ filter: /^crypto$/ }, () => ({
-          path: require.resolve('crypto-browserify'),
+          path: require.resolve('./polyfill/lite-crypto.ts'),
         }));
       },
     } satisfies ESBuildPlugin,
