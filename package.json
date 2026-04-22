@@ -30,7 +30,6 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "awilix": "^13.0.3",
     "class-variance-authority": "^0.7.1",
-    "crypto-browserify": "^3.12.1",
     "date-fns": "^4.1.0",
     "http-message-signatures": "^1.0.4",
     "httpbis-digest-headers": "^1.0.0",
