@@ -6,10 +6,10 @@ import {
 } from './lib/keyAutoAdd';
 import { isTimedOut, waitForURL } from './lib/helpers';
 import {
+  getActiveWallet,
   gql,
   GraphQlError,
   graphQlRequest,
-  walletAddressUrlToId,
 } from './lib/helpers/gatehub';
 import type { JWK } from '@interledger/open-payments';
 
@@ -64,12 +64,18 @@ const findWallet: Run<void> = async (
   { setNotificationSize },
 ) => {
   setNotificationSize('fullscreen');
+  const activeWallet = getActiveWallet();
+  if (!activeWallet) {
+    throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
+      'No active wallet found',
+    ]);
+  }
 
   const data = await graphQlRequest<GetUserPaymentPointersResponse>({
     operationName: 'GetUserPaymentPointers',
     variables: {
-      address: walletAddressUrlToId(walletAddressUrl),
-      walletType: 'Hosted',
+      address: activeWallet.address,
+      walletType: activeWallet.walletType,
     },
     query: gql`
       query GetUserPaymentPointers($address: String!, $walletType: WalletType) {
