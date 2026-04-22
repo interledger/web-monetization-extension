@@ -30,6 +30,30 @@ export const walletAddressUrlToId = (url: string) => {
   return pathname.match(/\/(\d+)/)![1];
 };
 
+export function getActiveWallet() {
+  let activeWallet: Record<string, unknown> | null = null;
+  try {
+    activeWallet = JSON.parse(
+      window.localStorage.getItem('activeWallet') || 'null',
+    );
+  } catch {}
+
+  if (
+    typeof activeWallet === 'object' &&
+    activeWallet &&
+    typeof activeWallet.address === 'string' &&
+    activeWallet.address &&
+    activeWallet.walletType === 'Hosted'
+  ) {
+    return {
+      address: activeWallet.address,
+      walletType: activeWallet.walletType,
+    };
+  }
+
+  return null;
+}
+
 // For syntax highlighting
 export const gql = String.raw;
 
