@@ -1,8 +1,12 @@
-import type { WalletAddress } from '@interledger/open-payments/dist/types';
+import type { WalletAddress } from '@interledger/open-payments';
 import type { Tabs } from 'webextension-polyfill';
+import type { ErrorWithKeyLike, I18nInfo } from './helpers';
+import type { components as RSComponents } from '@interledger/open-payments/dist/openapi/generated/resource-server-types';
+import type { AppToBackgroundMessage } from './messages';
 
+export type AmountType = RSComponents['schemas']['amount'];
 /** Bigint amount, before transformation with assetScale */
-export type AmountValue = string;
+export type AmountValue = AmountType['value'];
 
 /** https://en.wikipedia.org/wiki/ISO_8601#Repeating_intervals */
 export type RepeatingInterval = string;
@@ -39,12 +43,25 @@ export interface RecurringGrant extends GrantDetailsBase {
 }
 export type GrantDetails = OneTimeGrant | RecurringGrant;
 
+export interface WalletInfo extends WalletAddress {
+  /**
+   * The (normalized) wallet URL provided by user. Sometimes, wallets URLs have
+   * redirects, and in those cases, we want to preserve what user has provided.
+   *
+   * For wallets that were connected before this property was introduced, this
+   * will be same as {@linkcode WalletAddress.id}.
+   */
+  url: string;
+}
+
 export type ExtensionState =
   | never // just added for code formatting
   /** Extension can't inject scripts and fetch resources from all hosts */
   | 'missing_host_permissions'
   /** The public key no longer exists or valid in connected wallet */
   | 'key_revoked'
+  /** The user needs to provide consent to data sharing */
+  | 'consent_required'
   /** The wallet is out of funds, cannot make payments */
   | 'out_of_funds';
 
@@ -55,19 +72,39 @@ export interface Storage {
    */
   version: number;
 
-  /** If web monetization is enabled */
-  enabled: boolean;
+  /**
+   * Distinct ID, for analytics/telemetry. Set at install time.
+   */
+  uid: string;
+
+  /**
+   * Data sharing consent.
+   * @note When this value in storage is smaller than the "current" consent
+   * version, the user needs to provide consent again (then update this value).
+   * @default undefined implies user has never provided consent.
+   */
+  consent?: number;
+
+  /**
+   * Whether the user has provided consent to analytics and telemetry.
+   * @default undefined implies user has never provided consent.
+   */
+  consentTelemetry?: boolean;
+
   /** If a wallet is connected or not */
   connected: boolean;
+  /** Whether the extension (actually any sort of payment) is enabled  */
+  enabled: boolean;
+  /** If web monetization is enabled */
+  continuousPaymentsEnabled: boolean;
   /** Extension state */
   state: Partial<Record<ExtensionState, boolean>>;
 
-  rateOfPay?: string | undefined | null;
-  minRateOfPay?: string | undefined | null;
-  maxRateOfPay?: string | undefined | null;
+  rateOfPay?: AmountValue | undefined | null;
+  maxRateOfPay?: AmountValue | undefined | null;
 
   /** User wallet address information */
-  walletAddress?: WalletAddress | undefined | null;
+  walletAddress?: WalletInfo | undefined | null;
 
   recurringGrant?: RecurringGrant | undefined | null;
   recurringGrantSpentAmount?: AmountValue | undefined | null;
@@ -85,6 +122,100 @@ export interface Storage {
 }
 export type StorageKey = keyof Storage;
 
+export type PopupTabInfo = {
+  tabId: TabId;
+  url: string;
+  minSendAmount: AmountValue;
+  status:
+    | never // just added for code formatting
+    /** Happy state */
+    | 'monetized'
+    /** No monetization links or all links disabled */
+    | 'no_monetization_links'
+    /** New tab */
+    | 'new_tab'
+    /** Browser internal pages */
+    | 'internal_page'
+    /** Not https:// */
+    | 'unsupported_scheme'
+    /**
+     * All wallet addresses belong to wallets that are not peered with the
+     * connected wallet, or cannot receive payments for some other reason.
+     */
+    | 'all_sessions_invalid'
+    | never; // just added for code formatting
+};
+
+interface WalletStatusBase {
+  intent: 'connect' | 'reconnect' | 'add_funds' | 'update_budget';
+  type: 'success' | 'failure' | 'cancel' | 'progress';
+}
+
+interface WalletStatusSuccess extends WalletStatusBase {
+  type: 'success';
+}
+
+interface WalletStatusProgress extends WalletStatusBase {
+  type: 'progress';
+  currentStep: string | I18nInfo;
+}
+
+type WalletStatusRetryMessageAction =
+  | 'CONNECT_WALLET'
+  | 'RECONNECT_WALLET'
+  | 'ADD_FUNDS'
+  | 'UPDATE_BUDGET';
+export type WalletStatusRetryMessage = {
+  [K in WalletStatusRetryMessageAction]: {
+    action: K;
+    payload: AppToBackgroundMessage[K]['input'];
+  };
+}[WalletStatusRetryMessageAction];
+
+export interface WalletStatusFailure extends WalletStatusBase {
+  type: 'failure';
+  code:
+    | 'grant_continuation_failed'
+    | 'grant_hash_failed'
+    | 'grant_invalid'
+    | 'key_add_failed'
+    | 'timeout'
+    | 'unknown';
+  /**
+   * - `auto`: can try to connect automatically (like timeout, bad login, server errors etc.)
+   * - `manual`: ask user to connect manually, might need some edit to params (budget too high etc.)
+   * - `false`/`undefined`: cannot retry
+   */
+  retryPossible: 'auto' | 'manual' | false;
+  /**
+   * Can be sent back to the background for retry.
+   * @note Only set when {@linkcode WalletStatusFailure.retryPossible} is
+   * `auto`.
+   */
+  retryMessage?: WalletStatusRetryMessage;
+  details?: ErrorWithKeyLike | { message: string };
+}
+
+export interface WalletStatusCancel extends WalletStatusBase {
+  type: 'cancel';
+  code: 'tab_closed' | 'grant_rejected';
+  retryPossible: 'auto';
+  /**
+   * Can be sent back to the background for retry.
+   */
+  retryMessage: WalletStatusRetryMessage;
+}
+
+export type WalletStatus =
+  | WalletStatusSuccess
+  | WalletStatusFailure
+  | WalletStatusCancel
+  | WalletStatusProgress;
+
+export type TransientState = Partial<{
+  connect: null | WalletStatus;
+}>;
+
 export type PopupStore = Omit<
   Storage,
   | 'version'
@@ -95,17 +226,38 @@ export type PopupStore = Omit<
   | 'oneTimeGrant'
 > & {
   balance: AmountValue;
-  isSiteMonetized: boolean;
-  url: string | undefined;
+  tab: PopupTabInfo;
+  transientState: TransientState;
   grants?: Partial<{
     oneTime: OneTimeGrant['amount'];
     recurring: RecurringGrant['amount'];
   }>;
-  hasAllSessionsInvalid: boolean;
+};
+
+export type AppStore = Pick<
+  Storage,
+  'publicKey' | 'connected' | 'uid' | 'consent' | 'consentTelemetry'
+> & {
+  transientState: TransientState;
 };
 
 export type DeepNonNullable<T> = {
   [P in keyof T]?: NonNullable<T[P]>;
 };
 
+export type DeepReadonly<T> = {
+  readonly [P in keyof T]: DeepReadonly<T[P]>;
+};
+
+export type DeepPartial<T> = T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
+export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
+
+export type Tab = RequiredFields<Tabs.Tab, 'id' | 'url'>;
 export type TabId = NonNullable<Tabs.Tab['id']>;
+export type WindowId = NonNullable<Tabs.Tab['windowId']>;
+/** `0` represents the top-level frame, everything else is an _iframe_ */
+export type FrameId = number;
+export type SessionId = string;

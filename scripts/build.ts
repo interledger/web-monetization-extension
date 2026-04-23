@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 // cSpell:ignore metafile,iife,outdir,servedir
 
 import sade from 'sade';
@@ -6,29 +5,43 @@ import path from 'node:path';
 import fs from 'node:fs';
 import esbuild from 'esbuild';
 import {
-  BuildArgs,
+  type BuildArgs,
   CHANNELS,
   DEV_DIR,
   DIST_DIR,
   options,
   SERVE_PORTS,
-  Target,
+  type Target,
   TARGETS,
-} from '../esbuild/config';
-import { getDevOptions } from '../esbuild/dev';
-import { getProdOptions } from '../esbuild/prod';
+} from './esbuild/config.ts';
+import { getDevOptions } from './esbuild/dev.ts';
+import { getProdOptions } from './esbuild/prod.ts';
 
 sade('build [target]', true)
   .option('--channel', `One of: ${CHANNELS.join(', ')}`, 'nightly')
   .option('--dev', 'Dev-mode (watch, live-reload)', false)
+  .option('--typecheck', 'Typecheck code (can --no-typecheck in CI)', true)
   .example('chrome --channel=nightly')
   .example('firefox --channel=stable')
-  .describe(['`target` should be one of ' + TARGETS.join(', ')])
+  .describe([`\`target\` should be one of ${TARGETS.join(', ')}`])
   .action(async (target: Target, opts: BuildArgs) => {
     const options = { ...opts, target };
+    if (!CHANNELS.includes(options.channel)) {
+      console.warn(`Invalid --channel. Must be one of ${CHANNELS.join(', ')}`);
+      process.exit(1);
+    }
+
     if (!options.target && !options.dev) {
       console.log(`Building all targets with channel: ${options.channel}`);
-      return Promise.all(TARGETS.map((t) => build({ ...options, target: t })));
+      return Promise.all(
+        TARGETS.map((t, i) =>
+          build({
+            ...options,
+            typecheck: i === 0 && opts.typecheck,
+            target: t,
+          }),
+        ),
+      );
     }
 
     // Default to chrome in dev build
@@ -37,11 +50,7 @@ sade('build [target]', true)
     }
 
     if (!TARGETS.includes(options.target)) {
-      console.warn('Invalid --target. Must be one of ' + TARGETS.join(', '));
-      process.exit(1);
-    }
-    if (!CHANNELS.includes(options.channel)) {
-      console.warn('Invalid --channel. Must be one of ' + CHANNELS.join(', '));
+      console.warn(`Invalid --target. Must be one of ${TARGETS.join(', ')}`);
       process.exit(1);
     }
 
@@ -52,11 +61,11 @@ sade('build [target]', true)
   })
   .parse(process.argv);
 
-async function build({ target, channel }: BuildArgs) {
+async function build({ target, channel, typecheck }: BuildArgs) {
   const OUTPUT_DIR = path.join(DIST_DIR, target);
   const result = await esbuild.build({
     ...options,
-    ...getProdOptions({ outDir: OUTPUT_DIR, target, channel }),
+    ...getProdOptions({ outDir: OUTPUT_DIR, target, channel, typecheck }),
     outdir: OUTPUT_DIR,
   });
 
@@ -68,11 +77,11 @@ async function build({ target, channel }: BuildArgs) {
   }
 }
 
-async function buildWatch({ target, channel }: BuildArgs) {
+async function buildWatch({ target, channel, typecheck }: BuildArgs) {
   const OUTPUT_DIR = path.join(DEV_DIR, target);
   const ctx = await esbuild.context({
     ...options,
-    ...getDevOptions({ outDir: OUTPUT_DIR, target, channel }),
+    ...getDevOptions({ outDir: OUTPUT_DIR, target, channel, typecheck }),
     outdir: OUTPUT_DIR,
   });
 

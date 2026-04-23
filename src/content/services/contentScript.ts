@@ -1,12 +1,11 @@
 import type { ToContentMessage } from '@/shared/messages';
-import { failure } from '@/shared/helpers';
 import type { Cradle } from '@/content/container';
+import { failure, success } from '@/shared/messages';
 
 export class ContentScript {
   private browser: Cradle['browser'];
-  private window: Cradle['window'];
   private logger: Cradle['logger'];
-  private monetizationTagManager: Cradle['monetizationTagManager'];
+  private monetizationLinkManager: Cradle['monetizationLinkManager'];
   private frameManager: Cradle['frameManager'];
 
   private isFirstLevelFrame: boolean;
@@ -16,16 +15,13 @@ export class ContentScript {
     browser,
     window,
     logger,
-    monetizationTagManager,
+    monetizationLinkManager,
     frameManager,
   }: Cradle) {
-    Object.assign(this, {
-      browser,
-      window,
-      logger,
-      monetizationTagManager,
-      frameManager,
-    });
+    this.browser = browser;
+    this.logger = logger;
+    this.monetizationLinkManager = monetizationLinkManager;
+    this.frameManager = frameManager;
 
     this.isTopFrame = window === window.top;
     this.isFirstLevelFrame = window.parent === window.top;
@@ -34,53 +30,37 @@ export class ContentScript {
   }
 
   async start() {
-    await this.injectPolyfill();
     if (this.isFirstLevelFrame) {
       this.logger.info('Content script started');
 
       if (this.isTopFrame) this.frameManager.start();
 
-      this.monetizationTagManager.start();
+      this.monetizationLinkManager.start();
     }
   }
 
   bindMessageHandler() {
-    this.browser.runtime.onMessage.addListener(
-      async (message: ToContentMessage) => {
-        try {
-          switch (message.action) {
-            case 'MONETIZATION_EVENT':
-              this.monetizationTagManager.dispatchMonetizationEvent(
-                message.payload,
-              );
-              return;
-
-            case 'EMIT_TOGGLE_WM':
-              this.monetizationTagManager.toggleWM(message.payload);
-
-              return;
-
-            default:
-              return;
-          }
-        } catch (e) {
-          this.logger.error(message.action, e.message);
-          return failure(e.message);
+    this.browser.runtime.onMessage.addListener(async (msg: unknown) => {
+      const message = msg as ToContentMessage;
+      try {
+        switch (message.action) {
+          case 'MONETIZATION_EVENT':
+            this.monetizationLinkManager.dispatchMonetizationEvent(
+              message.payload,
+            );
+            return;
+          case 'IS_TAB_IN_VIEW':
+            return success(document.visibilityState === 'visible');
+          case 'REQUEST_RESUME_MONETIZATION':
+            await this.monetizationLinkManager.resumeMonetization();
+            return;
+          default:
+            return;
         }
-      },
-    );
-  }
-
-  // TODO: When Firefox has good support for `world: MAIN`, inject this directly
-  // via manifest.json https://bugzilla.mozilla.org/show_bug.cgi?id=1736575
-  async injectPolyfill() {
-    const document = this.window.document;
-    const script = document.createElement('script');
-    script.src = this.browser.runtime.getURL('polyfill/polyfill.js');
-    await new Promise<void>((resolve) => {
-      script.addEventListener('load', () => resolve(), { once: true });
-      document.documentElement.appendChild(script);
+      } catch (e) {
+        this.logger.error(message.action, e.message);
+        return failure(e.message);
+      }
     });
-    script.remove();
   }
 }

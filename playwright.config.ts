@@ -1,0 +1,67 @@
+import path from 'node:path';
+import { loadEnvFile } from 'node:process';
+import { defineConfig } from '@playwright/test';
+import { testDir, authFile } from './tests/e2e/fixtures/helpers';
+
+if (!process.env.CI) {
+  loadEnvFile(path.join(testDir, '.env'));
+}
+
+export default defineConfig({
+  testDir,
+  outputDir: path.join(testDir, 'test-results'),
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  reporter: [
+    ['list'],
+    [
+      'html',
+      { open: 'never', outputFolder: path.join(testDir, 'playwright-report') },
+    ],
+  ],
+  use: {
+    trace: 'retain-on-failure',
+    actionTimeout: 8000,
+    navigationTimeout: 10_000,
+    userAgent: 'Web Monetization Extension E2E Tests Bot',
+  },
+
+  projects: [
+    {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+
+    {
+      name: 'chromium',
+      use: {
+        browserName: 'chromium',
+        channel: 'chromium',
+        storageState: authFile,
+      },
+      dependencies: ['setup'],
+    },
+
+    // Firefox+Playwright doesn't work well enough at the moment.
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'], storageState: authFile },
+    //   dependencies: ['setup'],
+    // },
+
+    // Safari is surely a no-go for now
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'], storageState: authFile },
+    //   dependencies: ['setup'],
+    // },
+  ],
+
+  /* Run your local dev server before starting the tests */
+  // webServer: {
+  //   command: 'npm run start',
+  //   url: 'http://127.0.0.1:3000',
+  //   reuseExistingServer: !process.env.CI,
+  // },
+});

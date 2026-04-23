@@ -2,13 +2,18 @@ import type {
   AmountValue,
   ExtensionState,
   GrantDetails,
+  TransientState,
   Storage,
   StorageKey,
   WalletAmount,
 } from '@/shared/types';
-import { bigIntMax, objectEquals, ThrottleBatch } from '@/shared/helpers';
-import { computeBalance } from '../utils';
-import type { Cradle } from '../container';
+import {
+  isConsentRequired,
+  objectEquals,
+  ThrottleBatch,
+} from '@/shared/helpers';
+import { bigIntMax, computeBalance } from '@/background/utils';
+import type { Cradle } from '@/background/container';
 
 const defaultStorage = {
   /**
@@ -18,10 +23,12 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 3,
+  version: 6,
+  consent: 0,
   state: {},
   connected: false,
   enabled: true,
+  continuousPaymentsEnabled: true,
   exceptionList: {},
   walletAddress: null,
   recurringGrant: null,
@@ -29,9 +36,8 @@ const defaultStorage = {
   oneTimeGrant: null,
   oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
-  minRateOfPay: null,
   maxRateOfPay: null,
-} satisfies Omit<Storage, 'publicKey' | 'privateKey' | 'keyId'>;
+} satisfies Omit<Storage, 'uid' | 'publicKey' | 'privateKey' | 'keyId'>;
 
 export class StorageService {
   private browser: Cradle['browser'];
@@ -42,8 +48,11 @@ export class StorageService {
   // used as an optimization/cache
   private currentState: Storage['state'] | null = null;
 
+  private transientState: TransientState = {};
+
   constructor({ browser, events }: Cradle) {
-    Object.assign(this, { browser, events });
+    this.browser = browser;
+    this.events = events;
 
     this.setSpentAmountRecurring = new ThrottleBatch(
       (amount) => this.setSpentAmount('recurring', amount),
@@ -64,15 +73,21 @@ export class StorageService {
     return data as { [Key in TKey[][number]]: Storage[Key] };
   }
 
-  async set<TKey extends StorageKey>(data: {
-    [K in TKey]: Storage[TKey];
-  }): Promise<void> {
+  async set<TKey extends StorageKey>(
+    data: {
+      [K in TKey]: Storage[TKey];
+    },
+  ): Promise<void> {
     await this.browser.storage.local.set(data);
   }
 
   async clear(): Promise<void> {
-    await this.set(defaultStorage);
-    this.currentState = { ...defaultStorage.state };
+    const preservedValues = await this.get(['consent']);
+    await this.set({ ...defaultStorage, ...preservedValues });
+    this.currentState = {
+      ...defaultStorage.state,
+      consent_required: isConsentRequired(preservedValues.consent),
+    };
   }
 
   /**
@@ -83,6 +98,7 @@ export class StorageService {
 
     if (Object.keys(data).length === 0) {
       await this.set(defaultStorage);
+      await this.set({ uid: crypto.randomUUID() });
     }
   }
 
@@ -110,12 +126,6 @@ export class StorageService {
       await storage.remove(deleteKeys);
     }
     return data as unknown as Storage;
-  }
-
-  async getWMState(): Promise<boolean> {
-    const { enabled } = await this.get(['enabled']);
-
-    return enabled;
   }
 
   async keyPairExists(): Promise<boolean> {
@@ -201,14 +211,30 @@ export class StorageService {
     await this.set({ rateOfPay: rate });
     this.events.emit('storage.rate_of_pay_update', { rate });
   }
+
+  setTransientState<T extends keyof TransientState>(
+    id: T,
+    update: (prev?: TransientState[T]) => TransientState[T],
+  ) {
+    const newState = update(this.transientState[id]);
+    this.transientState[id] = newState;
+
+    const state = this.getTransientState();
+    this.events.emit('storage.transient_state_update', state);
+  }
+
+  getTransientState(): TransientState {
+    return this.transientState;
+  }
 }
 
 /**
  * @param existingData Existing data from previous version.
  */
-type Migration = (
-  existingData: Record<string, any>,
-) => [data: Record<string, any>, deleteKeys?: string[]];
+
+// biome-ignore lint/suspicious/noExplicitAny: our code defines shape of data
+type Data = Record<string, any>;
+type Migration = (existingData: Data) => [data: Data, deleteKeys?: string[]];
 
 // There was never a migration to reach 1.
 //
@@ -264,6 +290,23 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
         ? { [data.state as ExtensionState]: true }
         : {};
     data.state = newState satisfies Storage['state'];
+    return [data];
+  },
+  4: (data) => {
+    data.continuousPaymentsEnabled = data.enabled;
+    data.enabled = true;
+    return [data];
+  },
+  5: (data) => {
+    if (data.walletAddress && !data.walletAddress.url) {
+      data.walletAddress.url = data.walletAddress.id;
+    }
+    return [data, ['minRateOfPay']];
+  },
+  6: (data) => {
+    if (!data.uid) {
+      data.uid = crypto.randomUUID();
+    }
     return [data];
   },
 };

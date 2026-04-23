@@ -1,104 +1,18 @@
 <h1 align="center">Web Monetization Extension</h1>
 
-![Github Actions CI](https://github.com/interledger/web-monetization-extension/actions/workflows/sanity.yml/badge.svg?branch=main)
-[![Prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
+[![Chrome](https://img.shields.io/chrome-web-store/v/oiabcfomehhigdepbbclppomkhlknpii.svg?label=Chrome&logo=googlechrome&color=orange)](https://chromewebstore.google.com/detail/web-monetization/oiabcfomehhigdepbbclppomkhlknpii) [![Firefox](https://img.shields.io/amo/v/web-monetization-extension?label=Firefox&logo=firefoxbrowser&color=orange)](https://addons.mozilla.org/en-US/firefox/addon/web-monetization-extension/) [![Safari](https://img.shields.io/itunes/v/6754325288?logo=safari&label=Safari&color=orange)](https://apps.apple.com/app/web-monetization/id6754325288) [![Edge](https://img.shields.io/badge/dynamic/json?label=Edge&prefix=v&query=$.version&url=https://microsoftedge.microsoft.com/addons/getproductdetailsbycrxid/imjgemgmeoioefpmfefmffbboogighjl&color=orange)](https://microsoftedge.microsoft.com/addons/detail/web-monetization/imjgemgmeoioefpmfefmffbboogighjl) [![GitHub](https://img.shields.io/github/v/release/interledger/web-monetization-extension?sort=semver&filter=v*&display_name=release&label=GitHub&logo=github&color=orange)](https://github.com/interledger/web-monetization-extension/releases/latest)
 
-The Web Monetization browser extension is an open source implementation of the Web Monetization draft specification - learn more [here](https://webmonetization.org/specification/). The extension is built with React and TypeScript.
+[![Nightly build](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml/badge.svg)](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml) [![Latest Nightly build](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Finterledger%2Fweb-monetization-extension%2Freleases%2Ftags%2Fnightly&query=%24.name&logo=github&label=Latest)](https://github.com/interledger/web-monetization-extension/releases/tag/nightly)
 
-## Local Development Environment
-
-### Prerequisites
-
-- [NVM](https://github.com/nvm-sh/nvm) (Linux, macOS), [NVM Windows](https://github.com/coreybutler/nvm-windows) (Windows) - or another Node Version Manager
-
-## Setup
-
-### Environment Setup
-
-```sh
-# Install Node 20
-# For Linux/macOS
-nvm install lts/iron
-nvm use lts/iron
-
-# For Windows
-nvm install lts
-nvm use lts
-
-# Install correct version of pnpm using Corepack (Corepack comes with Node)
-corepack enable
-```
-
-To install dependencies, execute:
-
-```sh
-pnpm i
-```
-
-### Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                                 | Action                                                                                                                                                                                                                                                                                                                                                        |
-| :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm dev [target]`                     | Builds the extension for development, rebuilding on source code changes, for a specified target (`chrome` or `firefox`). If the target is not specified the script will build the extension for a Chromium based browser. Output folder: `dev`.                                                                                                               |
-| `pnpm build [TARGET] --channel=CHANNEL` | Builds the extension for production usage, for a specified target (`chrome` or `firefox`) and channel (`nightly`, `preview` or `stable`). If the target is not specified the script will build the extension for all available targets. If the channel is not specified the script will build the extension for the `nightly` channel. Output folder: `dist`. |
-| `pnpm test`                             | Runs all test files using Jest.                                                                                                                                                                                                                                                                                                                               |
-
-### Installing the extension from source, in Chromium based browsers (Chrome, Opera, Edge, Brave, Arc, Vivaldi)
-
-1. <b>Build the extension with `pnpm build chrome`</b>
-
-1. <b>Open extensions page</b><br/>
-   In Chrome, click the three dots in the top-right corner. Look for the `Extensions` options and select `Manage extensions`.
-
-1. <b>Enable developer mode</b><br/>
-   To enable `Developer mode`, use the switch at the top-right of the extensions page.
-
-1. <b>Load the extension</b><br/>
-   After enabling `Developer mode`, new buttons should appear in the top-left corner. Click the `Load unpacked` one and choose the <b>folder</b> that contains the extension files (in the `dist` folder, look for the `chrome` one with the `manifest.json` file).
-
-### Installing the extension from source, in Firefox
-
-1. <b>Build the extension with `pnpm build firefox`</b>
-
-1. <b>Open Firefox's add-ons page</b><br/>
-   Open Firefox, click the three horizontal lines in the top-right corner, and choose `Add-ons and themes`.
-
-1. <b>Navigate to the add-ons debugging page</b><br/>
-   In the add-ons page, click the gear icon and select "Debug Add-ons".
-
-1. <b>Load the extension</b><br/>
-   Look for the `Temporary Extensions` section and expand its content. After expanding its content click on the `Load Temporary Add-on...` button and select the `manifest.json` file (in the `dist` folder, go in the `firefox` folder and select the manifest file).
-
-### Project structure
-
-Inside this project, you'll see the following folders and files:
-
-```
-.
-├── .github/ # GitHub Workflows
-├── docs/ # Repository documentation
-├── esbuild/ # Esbuild configuration
-├── scripts/ # Script to build the extension (production, development)
-├── src/ # Extension's source code
-│   ├── _locales/ # Files for multi-lang support
-│   ├── assets/ # Images for the extension (icon, etc.)
-│   ├── background/ # Source code for the background script/service worker
-│   ├── content/ # Source  code for the content script
-│   ├── popup/ # Source code for the popup UI
-│   ├── shared/ # Shared utilities
-│   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
-├── jest.config.ts
-├── jest.setup.ts
-├── package.json
-├── tailwind.config.ts
-└── tsconfig.json
-```
+The Web Monetization browser extension is an open source implementation of the [Web Monetization draft specification](https://webmonetization.org/specification/).
 
 ## Contributing
 
-Please read the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
+Learn [how to build](./docs/BUILDING.md) the extension locally and [install](./docs/INSTALL.md) it in your browser.
+
+Read the [developer's guide](./docs/DEVELOP.md) to understand the codebase.
+
+Please familiarize yourself with the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
 
 ## Roadmap
 

@@ -1,16 +1,64 @@
-import type { AmountValue, GrantDetails, WalletAmount } from '@/shared/types';
+import type {
+  AmountValue,
+  GrantDetails,
+  Tab,
+  TabId,
+  WalletAmount,
+  WalletStatusCancel,
+  WalletStatusFailure,
+} from '@/shared/types';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
-import { DEFAULT_SCALE, EXCHANGE_RATES_URL } from './config';
-import { notNullOrUndef } from '@/shared/helpers';
+import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
+import { EXCHANGE_RATES_URL } from './config';
+import {
+  APP_URL,
+  INTERNAL_PAGE_URL_PROTOCOLS,
+  NEW_TAB_PAGES,
+} from './constants';
+import { memoize, notNullOrUndef } from '@/shared/helpers';
+import type { WalletAddress } from '@interledger/open-payments';
+
+type OnConnectCallback = Parameters<
+  Browser['runtime']['onConnect']['addListener']
+>[0];
+
+export class WalletStatusFailureError extends Error {
+  public readonly details: WalletStatusFailure['details'];
+  constructor(
+    public readonly code: WalletStatusFailure['code'],
+    details?: Pick<WalletStatusFailure, 'details'>,
+  ) {
+    super(code, { cause: details?.details });
+    this.details = details?.details;
+  }
+}
+
+export class WalletStatusCancelError extends Error {
+  constructor(public readonly code: WalletStatusCancel['code']) {
+    super(code);
+  }
+}
 
 export const getCurrentActiveTab = async (browser: Browser) => {
-  const window = await browser.windows.getLastFocused();
+  const window = browser.windows
+    ? await browser.windows.getLastFocused()
+    : null;
   const activeTabs = await browser.tabs.query({
     active: true,
-    windowId: window.id,
+    windowId: window?.id,
   });
   return activeTabs[0];
 };
+
+export async function highlightTab(browser: Browser, tabId: Tab['id']) {
+  // Opera, Safari, Firefox Android don't support highlight API.
+  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/highlight#browser_compatibility
+  if (typeof browser.tabs.highlight === 'undefined') return;
+
+  // get latest tab index/windowId as that can change by the time of this call
+  const { index, windowId } = await browser.tabs.get(tabId);
+  await browser.tabs.highlight({ tabs: [index], windowId }).catch(() => {});
+}
 
 interface ToAmountParams {
   value: string;
@@ -26,63 +74,222 @@ export const toAmount = ({
   const interval = `R/${new Date().toISOString()}/P1M`;
 
   return {
-    value: Math.floor(parseFloat(value) * 10 ** assetScale).toString(),
+    value: Math.floor(Number.parseFloat(value) * 10 ** assetScale).toString(),
     ...(recurring ? { interval } : {}),
   };
 };
 
-export const OPEN_PAYMENTS_ERRORS: Record<string, string> = {
-  'invalid client':
-    'Please make sure that you uploaded the public key for your desired wallet address.',
-};
-
-export interface GetRateOfPayParams {
-  rate: string;
-  exchangeRate: number;
-  assetScale: number;
+export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
+  return BigInt(a) > BigInt(b) ? a : b;
 }
-
-export const getRateOfPay = ({
-  rate,
-  exchangeRate,
-  assetScale,
-}: GetRateOfPayParams) => {
-  const scaleDiff = assetScale - DEFAULT_SCALE;
-
-  if (exchangeRate < 0.8 || exchangeRate > 1.5) {
-    const scaledExchangeRate = (1 / exchangeRate) * 10 ** scaleDiff;
-    return BigInt(Math.round(Number(rate) * scaledExchangeRate)).toString();
-  }
-
-  return (Number(rate) * 10 ** scaleDiff).toString();
-};
 
 interface ExchangeRates {
   base: string;
   rates: Record<string, number>;
 }
 
-export const getExchangeRates = async (): Promise<ExchangeRates> => {
-  const response = await fetch(EXCHANGE_RATES_URL);
-  if (!response.ok) {
-    throw new Error(
-      `Could not fetch exchange rates. [Status code: ${response.status}]`,
-    );
-  }
-  const rates = await response.json();
-  if (!rates.base || !rates.rates) {
-    throw new Error('Invalid rates format');
+export const getExchangeRates = memoize(
+  async (): Promise<ExchangeRates> => {
+    const response = await fetch(EXCHANGE_RATES_URL);
+    if (!response.ok) {
+      throw new Error(
+        `Could not fetch exchange rates. [Status code: ${response.status}]`,
+      );
+    }
+    const rates = await response.json();
+    if (!rates.base || !rates.rates) {
+      throw new Error('Invalid rates format');
+    }
+
+    // MMAON rate is not listed at EXCHANGE_RATES_URL. Hardcode it here until
+    // it's either added to the list or we switch to the preferred solution:
+    // https://github.com/interledger/web-monetization-extension/issues/977
+    rates.rates.MMAON ??= 20; // 20 USD = 1 MMAON
+
+    return rates;
+  },
+  { maxAge: 15 * 60 * 1000, mechanism: 'stale-while-revalidate' },
+);
+
+export const getExchangeRate = (
+  rates: ExchangeRates,
+  forAssetCode: string,
+  fromAssetCode = 'USD',
+) => {
+  if (!Number.isFinite(rates.rates[forAssetCode])) {
+    throw new Error(`Exchange rate for ${forAssetCode} not found.`);
   }
 
-  return rates;
+  if (rates.base === fromAssetCode) {
+    return rates.rates[forAssetCode];
+  }
+
+  return rates.rates[forAssetCode] / rates.rates[fromAssetCode];
 };
+
+export const convertWithExchangeRate = <T extends AmountValue | bigint>(
+  amount: T,
+  from: Pick<WalletAddress, 'assetScale' | 'assetCode'>,
+  to: Pick<WalletAddress, 'assetScale' | 'assetCode'>,
+  exchangeRates: ExchangeRates,
+): T => {
+  const exchangeRate = getExchangeRate(
+    exchangeRates,
+    to.assetCode,
+    from.assetCode,
+  );
+
+  const scaleDiff = from.assetScale - to.assetScale;
+  const scaledExchangeRate = exchangeRate * 10 ** scaleDiff;
+
+  const converted = BigInt(Math.round(Number(amount) / scaledExchangeRate));
+
+  return typeof amount === 'string'
+    ? (converted.toString() as T)
+    : (converted as T);
+};
+
+// https://interledger.github.io/web-monetization-budget-suggestions/v1/schema.json
+type BudgetRecommendationsDataSchema = {
+  [currency: string]: {
+    budget: { default: number; max: number };
+    hourly: { default: number; max: number };
+  };
+};
+
+export const getBudgetRecommendationsData = memoize(
+  async () => {
+    const { BUDGET_RECOMMENDATIONS_URL } = await import('@/background/config');
+    const response = await fetch(BUDGET_RECOMMENDATIONS_URL);
+    if (!response.ok) {
+      throw new Error('Failed to fetch budget recommendations data.');
+    }
+    const data: BudgetRecommendationsDataSchema = await response.json();
+
+    // MMAON rate is not listed at BUDGET_RECOMMENDATIONS_URL. Hardcode it here
+    // until it's added to the db.
+    data.MMAON = {
+      budget: { default: 60, max: 100 },
+      hourly: { default: 20, max: 30 },
+    };
+
+    return data;
+  },
+  { maxAge: 30 * 60 * 1000, mechanism: 'stale-while-revalidate' },
+);
+
+export function convert(value: bigint, source: number, target: number) {
+  const scaleDiff = target - source;
+  if (scaleDiff > 0) {
+    return value * BigInt(10 ** scaleDiff);
+  }
+  return value / BigInt(10 ** -scaleDiff);
+}
 
 export const getTabId = (sender: Runtime.MessageSender): number => {
   return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab').id, 'tab.id');
 };
 
-export const getTab = (sender: Runtime.MessageSender): Tabs.Tab => {
-  return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab');
+export const getTab = (sender: Runtime.MessageSender): Tab => {
+  return notNullOrUndef(notNullOrUndef(sender.tab, 'sender.tab'), 'tab') as Tab;
+};
+
+export function getAppUrl(
+  pathname: string,
+  baseUrl: string,
+  params?: URLSearchParams,
+) {
+  const url = new URL(baseUrl);
+  url.hash = pathname;
+  if (params) {
+    for (const [key, value] of params.entries()) {
+      url.searchParams.set(key, value);
+    }
+  }
+  return url.href;
+}
+
+export async function openAppPage(
+  browser: Browser,
+  pathname: string,
+  options: { tabId?: TabId; params?: URLSearchParams } = {},
+) {
+  const appUrl = browser.runtime.getURL(APP_URL);
+  const url = getAppUrl(pathname, appUrl, options.params);
+
+  let appTab: Tabs.Tab | undefined;
+  if (options.tabId) {
+    appTab = await browser.tabs.get(options.tabId).catch(() => undefined);
+  }
+  if (!appTab?.id) {
+    const allTabs = await browser.tabs.query({});
+    appTab = allTabs.find((t) => t.url?.startsWith(appUrl));
+  }
+
+  if (appTab?.id) {
+    await browser.tabs.update(appTab.id, { url });
+    await highlightTab(browser, appTab.id);
+    return appTab;
+  } else {
+    return await browser.tabs.create({ url });
+  }
+}
+
+export async function redirectToPostConnect(
+  browser: Browser,
+  tabId?: TabId,
+): Promise<void> {
+  await openAppPage(browser, '/post-connect', { tabId });
+}
+
+export const closeTabsByFilter = async (
+  browser: Browser,
+  filter: (tab: Tabs.Tab) => boolean | undefined,
+) => {
+  const tabs = await browser.tabs.query({ lastFocusedWindow: true });
+  await Promise.all(
+    tabs.filter(filter).map((tab) => browser.tabs.remove(tab.id!)),
+  );
+};
+
+export const createTab = async (
+  browser: Browser,
+  url: string,
+): Promise<TabId> => {
+  const tab = await browser.tabs.create({ url });
+  return tab.id!;
+};
+
+export const createTabIfNotExists = async (
+  browser: Browser,
+  url: string,
+  tabId?: TabId,
+): Promise<TabId> => {
+  if (!tabId) return createTab(browser, url);
+  try {
+    await browser.tabs.get(tabId);
+    if (url) await browser.tabs.update(tabId, { url });
+    return tabId;
+  } catch {
+    return createTab(browser, url);
+  }
+};
+
+export const onPopupOpen = (
+  browser: Browser,
+  callback: () => Promise<void>,
+) => {
+  const listener: OnConnectCallback = (port) => {
+    if (port.name !== BACKGROUND_TO_POPUP_CONNECTION_NAME) return;
+    if (port.error) return;
+
+    void callback();
+  };
+
+  browser.runtime.onConnect.addListener(listener);
+  return () => {
+    browser.runtime.onConnect.removeListener(listener);
+  };
 };
 
 export const getSender = (sender: Runtime.MessageSender) => {
@@ -91,6 +298,26 @@ export const getSender = (sender: Runtime.MessageSender) => {
 
   return { tabId, frameId, url: sender.url };
 };
+
+export const isBrowserInternalPage = (url: URL) => {
+  return INTERNAL_PAGE_URL_PROTOCOLS.has(url.protocol);
+};
+
+export const isBrowserNewTabPage = (url: URL) => {
+  return NEW_TAB_PAGES.some((e) => url.href.startsWith(e));
+};
+
+export function isSecureContext(url: string | URL) {
+  const { hostname, protocol } = new URL(url);
+  if (protocol === 'https:') return true;
+  return (
+    hostname === 'localhost' ||
+    // Let localhost be localhost
+    hostname.endsWith('.localhost') ||
+    // even though it's 127.0.0.0/8, 127.0.0.1 should be ok as most common case
+    hostname === '127.0.0.1'
+  );
+}
 
 export const computeRate = (rate: string, sessionsCount: number): AmountValue =>
   (BigInt(rate) / BigInt(sessionsCount)).toString();
@@ -110,7 +337,7 @@ export function computeBalance(
 export function* getNextSendableAmount(
   senderAssetScale: number,
   receiverAssetScale: number,
-  amount: bigint = 0n,
+  amount = 0n,
 ): Generator<AmountValue, never, never> {
   const EXPONENTIAL_INCREASE = 0.5;
 
@@ -126,6 +353,7 @@ export function* getNextSendableAmount(
 
   let exp = 0;
   while (true) {
+    // biome-ignore lint/style/noParameterAssign: it's ok
     amount += base * BigInt(Math.floor(Math.exp(exp)));
     yield amount.toString();
     exp += EXPONENTIAL_INCREASE;

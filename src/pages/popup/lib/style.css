@@ -1,0 +1,10 @@
+.home {
+  --background-image: var(--bg-tile);
+}
+
+/* hide bg image on mobile */
+@media (max-width: 640px) {
+  .home {
+    --background-image: none;
+  }
+}

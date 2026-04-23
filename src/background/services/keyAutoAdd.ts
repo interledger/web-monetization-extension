@@ -1,0 +1,346 @@
+import {
+  ErrorWithKey,
+  errorWithKeyToJSON,
+  getJWKS,
+  isErrorWithKey,
+  withResolvers,
+  Timeout,
+  type ErrorWithKeyLike,
+  type I18nInfo,
+} from '@/shared/helpers';
+import {
+  createTab,
+  WalletStatusCancelError,
+  WalletStatusFailureError,
+} from '@/background/utils';
+import type { Browser, Runtime, Scripting } from 'webextension-polyfill';
+import type { WalletStatus, TabId, WalletInfo } from '@/shared/types';
+import type { Cradle } from '@/background/container';
+import type {
+  BeginPayload,
+  KeyAutoAddToBackgroundMessage,
+  StepWithStatus,
+} from '@/content/keyAutoAdd/lib/types';
+
+export const CONNECTION_NAME = 'key-auto-add';
+
+type OnTabRemovedCallback = Parameters<
+  Browser['tabs']['onRemoved']['addListener']
+>[0];
+type OnConnectCallback = Parameters<
+  Browser['runtime']['onConnect']['addListener']
+>[0];
+type OnPortMessageListener = Parameters<
+  Runtime.Port['onMessage']['addListener']
+>[0];
+
+export class KeyAutoAddService {
+  private browser: Cradle['browser'];
+  private storage: Cradle['storage'];
+  private telemetry: Cradle['telemetry'];
+  private t: Cradle['t'];
+
+  constructor({
+    browser,
+    storage,
+    telemetry,
+    t,
+  }: Pick<Cradle, 'browser' | 'storage' | 'telemetry' | 't'>) {
+    this.browser = browser;
+    this.storage = storage;
+    this.telemetry = telemetry;
+    this.t = t;
+  }
+
+  async addPublicKeyToWallet(
+    walletAddress: WalletInfo,
+    onTabOpen: (tabId: TabId) => void,
+    intent: WalletStatus['intent'] = 'connect',
+  ) {
+    const keyAddUrl = walletAddressToProvider(walletAddress);
+    try {
+      const { publicKey, keyId } = await this.storage.get([
+        'publicKey',
+        'keyId',
+      ]);
+      this.setTransientStateProgress(intent, {
+        key: 'connectWalletKeyService_text_stepAddKey',
+        substitutions: [],
+      });
+      await this.process(
+        keyAddUrl,
+        {
+          publicKey,
+          keyId,
+          walletAddressUrl: walletAddress.id,
+          nickName: 'Web Monetization',
+          keyAddUrl,
+        },
+        onTabOpen,
+      );
+      await this.validate(walletAddress.id, keyId);
+    } catch (error) {
+      this.setTransientStateError(intent, error);
+      throw error;
+    }
+  }
+
+  private async process(
+    url: string,
+    payload: BeginPayload,
+    onTabOpen: (tabId: TabId) => void,
+    intent: WalletStatus['intent'] = 'connect',
+  ): Promise<unknown> {
+    const { resolve, reject, promise } = withResolvers();
+    const start = Date.now();
+
+    const BASE_TIMEOUT = 5 * 1000;
+    const timeout = new Timeout(BASE_TIMEOUT, () => {
+      removeListeners();
+      reject(new WalletStatusFailureError('timeout'));
+    });
+
+    const tabID = await createTab(this.browser, url);
+    onTabOpen(tabID);
+
+    const removeListeners = () => {
+      timeout.clear();
+      this.browser.tabs.onRemoved.removeListener(onTabCloseListener);
+      this.browser.runtime.onConnect.removeListener(onConnectListener);
+    };
+
+    const onTabCloseListener: OnTabRemovedCallback = (tabId) => {
+      if (tabId !== tabID) return;
+      removeListeners();
+      reject(new WalletStatusCancelError('tab_closed'));
+    };
+
+    const ports = new Set<Runtime.Port>();
+    const onConnectListener: OnConnectCallback = (port) => {
+      if (port.name !== CONNECTION_NAME) return;
+      if (port.sender?.tab && port.sender.tab.id !== tabID) return;
+      if (port.error) {
+        removeListeners();
+        reject(new Error(port.error.message));
+        return;
+      }
+      ports.add(port);
+
+      port.postMessage({ action: 'BEGIN', payload });
+
+      port.onMessage.addListener(onMessageListener);
+
+      port.onDisconnect.addListener(() => {
+        ports.delete(port);
+        // wait for connect again so we can send message again if not connected,
+        // and not errored already (e.g. page refreshed)
+      });
+    };
+
+    const onMessageListener: OnPortMessageListener = (msg: unknown, port) => {
+      const message = msg as KeyAutoAddToBackgroundMessage;
+      if (message.action === 'SUCCESS') {
+        removeListeners();
+        this.telemetry.capture('key_auto_add_success', {
+          durationMs: Date.now() - start,
+        });
+        resolve(message.payload);
+      } else if (message.action === 'ERROR') {
+        removeListeners();
+        const { stepName, details: err } = message.payload;
+        reject(
+          new ErrorWithKey(
+            'connectWalletKeyService_error_failed',
+            [
+              stepName,
+              isErrorWithKey(err.error) ? this.t(err.error) : err.message,
+            ],
+            isErrorWithKey(err.error) ? err.error : undefined,
+          ),
+        );
+      } else if (message.action === 'PROGRESS') {
+        const steps = message.payload.steps;
+        const timeoutMs = steps
+          .filter(({ status }) => status === 'pending' || status === 'active')
+          .reduce((acc, { maxDuration }) => acc + maxDuration, 0);
+        timeout.reset(Math.max(timeoutMs, BASE_TIMEOUT));
+        const currentStep = this.getCurrentStep(steps);
+        if (currentStep) {
+          this.setTransientStateProgress(intent, currentStep.name);
+        }
+        for (const p of ports) {
+          if (p !== port) p.postMessage(message);
+        }
+      } else {
+        removeListeners();
+        reject(new Error(`Unexpected message: ${JSON.stringify(message)}`));
+      }
+    };
+
+    this.browser.tabs.onRemoved.addListener(onTabCloseListener);
+    this.browser.runtime.onConnect.addListener(onConnectListener);
+
+    return promise;
+  }
+
+  private getCurrentStep(steps: Readonly<StepWithStatus[]>) {
+    return steps
+      .slice()
+      .reverse()
+      .find((step) => step.status !== 'pending');
+  }
+
+  private async validate(walletAddressUrl: string, keyId: string) {
+    const jwks = await getJWKS(walletAddressUrl);
+    if (!jwks.keys.find((key) => key.kid === keyId)) {
+      throw new Error('Key not found in jwks');
+    }
+  }
+
+  private setTransientStateProgress(
+    intent: WalletStatus['intent'],
+    currentStep: I18nInfo | string,
+  ) {
+    this.storage.setTransientState('connect', () => ({
+      intent,
+      type: 'progress',
+      currentStep,
+    }));
+  }
+
+  private setTransientStateError(
+    intent: WalletStatus['intent'],
+    err: ErrorWithKeyLike | { message: string },
+  ) {
+    this.storage.setTransientState('connect', () => ({
+      intent,
+      type: 'failure',
+      code: 'key_add_failed',
+      retryPossible: 'auto',
+      details: isErrorWithKey(err)
+        ? errorWithKeyToJSON(err)
+        : { message: err.message },
+    }));
+  }
+
+  static supports(walletAddress: WalletInfo): boolean {
+    try {
+      walletAddressToProvider(walletAddress);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  static async registerContentScripts({ browser }: Pick<Cradle, 'browser'>) {
+    const { scripting } = browser;
+    const existingScripts = await scripting.getRegisteredContentScripts();
+    const existingScriptIds = new Set(existingScripts.map((s) => s.id));
+    const scripts = CONTENT_SCRIPTS.filter((s) => !existingScriptIds.has(s.id));
+    await scripting.registerContentScripts(scripts);
+  }
+}
+
+const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
+  {
+    id: 'keyAutoAdd/testWallet/test',
+    matches: ['https://wallet.interledger-test.dev/*'],
+    js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/testWallet/cards',
+    matches: ['https://wallet.interledger.cards/*'],
+    js: ['content/keyAutoAdd/testWallet.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/fynbos/sandbox',
+    matches: ['https://sandbox.interledger.app/*'],
+    js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/fynbos/prod',
+    matches: ['https://interledger.app/*'],
+    js: ['content/keyAutoAdd/fynbos.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/chimoney/sandbox',
+    matches: ['https://sandbox.chimoney.io/*'],
+    js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/chimoney/prod',
+    matches: ['https://dash.chimoney.io/*'],
+    js: ['content/keyAutoAdd/chimoney.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/gatehub/sandbox',
+    matches: [
+      'https://wallet.sandbox.gatehub.net/*',
+      'https://signin.sandbox.gatehub.net/*',
+    ],
+    js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/gatehub/prod',
+    matches: ['https://wallet.gatehub.net/*', 'https://signin.gatehub.net/*'],
+    js: ['content/keyAutoAdd/gatehub.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/mmaon/sandbox',
+    matches: ['https://staging.mmaon.com/*'],
+    js: ['content/keyAutoAdd/mmaon.js'],
+    persistAcrossSessions: false,
+  },
+  {
+    id: 'keyAutoAdd/mmaon/prod',
+    matches: ['https://www.mmaon.com/*'],
+    js: ['content/keyAutoAdd/mmaon.js'],
+    persistAcrossSessions: false,
+  },
+];
+
+function walletAddressToProvider(walletAddress: WalletInfo): string {
+  if (walletAddress.url) {
+    // Some wallet URLs have redirects to other "managing wallets" and need some
+    // special handling.
+    const { host } = new URL(walletAddress.url);
+    switch (host) {
+      case 'ilp-staging.mmaon.com':
+        return 'https://staging.mmaon.com/wallet/dashboard';
+      case 'ilp.mmaon.com':
+        return 'https://www.mmaon.com/wallet/dashboard';
+      // case 'ilp.dev' is handled normally as ilp.interledger.cards below
+    }
+  }
+
+  const { host } = new URL(walletAddress.id);
+  switch (host) {
+    case 'ilp.interledger-test.dev':
+      return 'https://wallet.interledger-test.dev/settings/developer-keys';
+    case 'ilp.interledger.cards':
+      return 'https://wallet.interledger.cards/settings/developer-keys';
+    case 'sandbox.ilp.link':
+      return 'https://sandbox.interledger.app/settings/keys';
+    case 'fynbos.me':
+    case 'ilp.link':
+      return 'https://interledger.app/settings/keys';
+    case 'ilp-sandbox.chimoney.com':
+      return 'https://sandbox.chimoney.io/interledger';
+    case 'ilp.chimoney.com':
+      return 'https://dash.chimoney.io/interledger';
+    case 'ilp.sandbox.gatehub.net':
+      return 'https://wallet.sandbox.gatehub.net/#/wallets/';
+    case 'ilp.gatehub.net':
+      return 'https://wallet.gatehub.net/#/wallets/';
+  }
+
+  throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+}

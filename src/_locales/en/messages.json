@@ -1,7 +1,4 @@
 {
-  "appName": {
-    "message": "Web Monetization Extension"
-  },
   "appDescription": {
     "message": "Support content you love. Pay as you browse!"
   },
@@ -14,17 +11,39 @@
   "icon_state_actionRequired": {
     "message": "Action Required!"
   },
-  "missingHostPermission_state_text": {
-    "message": "Permission to access your data for all websites is required to use Web Monetization."
+  "tagline_text_1": {
+    "message": "Support content you love"
   },
-  "siteNotMonetized_state_text": {
+  "tagline_text_2": {
+    "message": "Pay as you browse"
+  },
+  "missingHostPermission_state_text": {
+    "message": "Permission to access your data on all websites is required to use Web Monetization."
+  },
+  "notMonetized_text_allInvalid": {
+    "message": "This page cannot receive payments from your wallet at this time. Please check back later.",
+    "description": "We cannot send money (probable cause: un-peered wallets)"
+  },
+  "notMonetized_text_noLinks": {
     "message": "This website is not monetized."
   },
+  "notMonetized_text_newTab": {
+    "message": "The extension does not support empty tabs."
+  },
+  "notMonetized_text_internalPage": {
+    "message": "The extension cannot access the browser's internal pages."
+  },
+  "notMonetized_text_unsupportedScheme": {
+    "message": "Web Monetization only works with websites using https://."
+  },
+  "app_text_disabled": {
+    "message": "The extension is disabled. Click the power icon above to enable the extension and continue making payments."
+  },
   "keyRevoked_error_title": {
-    "message": "Unauthorized access to wallet"
+    "message": "Unauthorized access to the wallet."
   },
   "keyRevoked_error_text": {
-    "message": "It appears that the key has been revoked from your wallet. Authenticate wallet by adding the key again, or disconnect."
+    "message": "It appears the key has been revoked from your wallet. Please authenticate by adding the key again, or disconnect."
   },
   "keyRevoked_action_disconnect": {
     "message": "Yes, let me disconnect my wallet"
@@ -35,21 +54,43 @@
   "keyRevoked_action_reconnectBtn": {
     "message": "Reconnect"
   },
+  "disconnectWallet_error_generic": {
+    "message": "We were unable to disconnect your wallet ($ERROR$).",
+    "placeholders": {
+      "ERROR": { "content": "$1", "example": "Internal server error" }
+    }
+  },
+  "pay_action_pay": {
+    "message": "Send now"
+  },
   "pay_error_notEnoughFunds": {
-    "message": "Not enough funds to facilitate payment."
+    "message": "Insufficient funds to complete the payment."
+  },
+  "pay_error_outgoingPaymentFailed": {
+    "message": "We were unable to process this transaction. Please try again!"
+  },
+  "pay_warn_outgoingPaymentPollingIncomplete": {
+    "message": "It looks like this is taking long. Check your wallet later to ensure the payment went through.",
+    "description": "We were polling for completion, but it's not finished yet - could mean it'll never succeed or it'll take a long time to settle."
+  },
+  "pay_error_general": {
+    "message": "We were unable to process this transaction. Please try again!"
   },
   "pay_error_invalidReceivers": {
-    "message": "At the moment, you can not pay this website.",
+    "message": "This page cannot receive payments from your wallet at this time. Please check back later.",
     "description": "We cannot send money (probable cause: un-peered wallets)"
   },
   "pay_error_notMonetized": {
     "message": "This website is not monetized."
   },
+  "pay_state_success": {
+    "message": "Thank you for your support!"
+  },
   "outOfFunds_error_title": {
     "message": "Out of funds"
   },
   "outOfFunds_error_text": {
-    "message": "Funds have been depleted. You can no longer make payments."
+    "message": "Funds are depleted. You can no longer make payments."
   },
   "outOfFunds_error_textHint": {
     "message": "Please add funds."
@@ -77,7 +118,7 @@
     "message": "Enter the amount to add from the wallet."
   },
   "outOfFundsAddFunds_label_amountDescriptionRecurring": {
-    "message": "Enter the amount to add from the wallet. This amount will renew automatically every month (next: $NEXT_RENEW_DATE$).",
+    "message": "Enter the amount to add from your wallet. This amount will renew automatically each month (next: $NEXT_RENEW_DATE$).",
     "placeholders": {
       "NEXT_RENEW_DATE": { "content": "$1", "example": "Aug 22, 2024" }
     }
@@ -88,10 +129,417 @@
   "outOfFundsAddFunds_action_addRecurring": {
     "message": "Add funds"
   },
-  "connectWallet_error_invalidClient": {
-    "message": "Failed to connect. Please make sure you have added the public key to the correct wallet address."
+  "connectWallet_text_title": {
+    "message": "Let's get you set up!"
   },
-  "allInvalidLinks_state_text": {
-    "message": "At the moment, you can not pay this website."
+  "connectWallet_text_desc": {
+    "message": "Just a few quick steps to connect the extension to your wallet"
+  },
+  "connectWallet_label_walletAddress": {
+    "message": "Enter your wallet address/payment pointer"
+  },
+  "connectWallet_labelGroup_amount": {
+    "message": "Enter the amount to allocate from your wallet"
+  },
+  "connectWallet_label_amount": {
+    "message": "Amount"
+  },
+  "connectWallet_label_recurring": {
+    "message": "Renew monthly"
+  },
+  "connectWallet_label_publicKey": {
+    "message": "Please copy this key, paste it manually into your wallet, and then connect."
+  },
+  "connectWallet_text_publicKeyLearnMore": {
+    "message": "Learn more."
+  },
+  "connectWallet_action_connect": {
+    "message": "Connect"
+  },
+  "connectWallet_text_stepAcceptGrant": {
+    "message": "Waiting for your approval"
+  },
+  "connectWallet_error_urlRequired": {
+    "message": "The wallet address is required."
+  },
+  "connectWallet_error_urlInvalidUrl": {
+    "message": "Invalid wallet address URL."
+  },
+  "connectWallet_error_urlInvalidNotHttps": {
+    "message": "The wallet address must be a valid https:// URL or a payment pointer."
+  },
+  "connectWallet_error_amountRequired": {
+    "message": "The amount is required."
+  },
+  "connectWallet_error_amountInvalidNumber": {
+    "message": "Please enter a valid number for the amount."
+  },
+  "connectWallet_error_amountMinimum": {
+    "message": "A minimum amount of $AMOUNT$ is required.",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
+    }
+  },
+  "connectWallet_error_amountMaximum": {
+    "message": "Amount must be under $AMOUNT$.",
+    "placeholders": {
+      "AMOUNT": { "content": "$1", "example": "$2.05" }
+    }
+  },
+  "connectWallet_error_failedAutoKeyAdd": {
+    "message": "Unable to automatically connect to your wallet."
+  },
+  "connectWallet_error_failedAutoKeyAddWhy": {
+    "message": "Why?",
+    "description": "Click here to see the reason why automatic key addition failed."
+  },
+  "connectWallet_error_invalidClient": {
+    "message": "Connection failed. Please ensure the key is added to the correct wallet."
+  },
+  "connectWallet_error_tabClosed": {
+    "message": "Wallet connection cancelled. The tab was closed before completion."
+  },
+  "connectWallet_error_grantRejected": {
+    "message": "Wallet connection cancelled. The request was not authorized."
+  },
+  "connectWallet_error_timeout": {
+    "message": "Connecting to wallet took too long. Please try again."
+  },
+  "connectWallet_error_hashFailed": {
+    "message": "Connection failed. Please try again."
+  },
+  "connectWallet_error_continuationFailed": {
+    "message": "Connection failed. Please try again."
+  },
+  "connectWallet_error_grantInvalid": {
+    "message": "Connection failed. Please try again."
+  },
+  "connectWalletKeyService_text_consentP1": {
+    "message": "We will automatically connect with your wallet provider."
+  },
+  "reconnectWalletKeyService_text_consentP1": {
+    "message": "We will automatically reconnect with your wallet provider."
+  },
+  "connectWalletKeyService_text_consentLearnMore": {
+    "message": "Learn more",
+    "description": "Learn more about how this works"
+  },
+  "connectWalletKeyService_text_consentP2": {
+    "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key."
+  },
+  "connectWalletKeyService_text_consentP3": {
+    "message": "Please note, this process does not involve accessing or handling your funds."
+  },
+  "connectWalletKeyService_label_consentAccept": {
+    "message": "Agree"
+  },
+  "connectWalletKeyService_label_consentDecline": {
+    "message": "Decline"
+  },
+  "connectWalletKeyService_text_stepAddKey": {
+    "message": "Adding public key to wallet"
+  },
+  "connectWalletKeyService_text_stepWaitingLogin": {
+    "message": "Waiting for you to login"
+  },
+  "connectWalletKeyService_text_stepFindingWallet": {
+    "message": "Finding wallet"
+  },
+  "connectWalletKeyService_text_stepAddingKey": {
+    "message": "Adding key"
+  },
+  "connectWalletKeyService_error_notImplemented": {
+    "message": "Automatic key addition is not yet implemented for the selected wallet provider."
+  },
+  "connectWalletKeyService_error_noConsent": {
+    "message": "You declined consent for automatic key addition."
+  },
+  "connectWalletKeyService_error_failed": {
+    "message": "Automatic key addition failed at step “$STEP_ID$” with message “$MESSAGE$”.",
+    "placeholders": {
+      "STEP_ID": { "content": "$1", "example": "Doing something" },
+      "MESSAGE": { "content": "$2", "example": "Could not do something" }
+    }
+  },
+  "connectWalletKeyService_error_timeoutLogin": {
+    "message": "The login attempt has timed out."
+  },
+  "connectWalletKeyService_error_skipAlreadyLoggedIn": {
+    "message": "You are already logged in."
+  },
+  "connectWalletKeyService_error_accountNotFound": {
+    "message": "Failed to find an account for the provided wallet address. Are you logged into a different account?"
+  },
+  "postInstall_text_title": {
+    "message": "Let's get you started with Web Monetization!"
+  },
+  "postInstall_text_stepGetWallet_title": {
+    "message": "Get a wallet compatible with Web Monetization"
+  },
+  "postInstall_text_stepGetWallet_desc": {
+    "message": "If you don’t already have a Web Monetization-compatible wallet, please set one up, then return here to complete the setup."
+  },
+  "postInstall_text_stepGetWallet_comingSoon": {
+    "message": "More wallets will be added soon…"
+  },
+  "postInstall_text_stepWalletAddress_title": {
+    "message": "Find your wallet address or payment pointer"
+  },
+  "postInstall_text_stepPin_title": {
+    "message": "Pin extension to the browser toolbar"
+  },
+  "postInstall_text_stepPin_desc": {
+    "message": "Pin the Web Monetization Extension for easier access."
+  },
+  "postInstall_text_stepPin_descComplete": {
+    "message": "You're all set."
+  },
+  "postInstall_text_stepPermissions_title": {
+    "message": "Permission to read all websites required"
+  },
+  "postInstall_action_stepPermissions_grant": {
+    "message": "Grant permission"
+  },
+  "postInstall_text_stepPermissions_descComplete": {
+    "message": "You've granted the necessary permissions!"
+  },
+  "postInstall_action_submit": {
+    "message": "Connect your wallet"
+  },
+  "postInstall_text_wallet_connected_1": {
+    "message": "You've already connected your wallet."
+  },
+  "postInstall_text_wallet_connected_2": {
+    "message": "Access the extension from the browser toolbar."
+  },
+  "postInstallConsent_text_title": {
+    "message": "Welcome to the Web Monetization extension"
+  },
+  "postInstallConsent_text_header1": {
+    "message": "We’re transparent about what data is shared and how it’s used."
+  },
+  "postInstallConsent_text_header2": {
+    "message": "By continuing, you consent to share the information below."
+  },
+  "postInstallConsent_text_dataShared_title": {
+    "message": "What’s shared by the extension"
+  },
+  "postInstallConsent_text_dataShared_yourWallet_title": {
+    "message": "With your wallet provider:"
+  },
+  "postInstallConsent_text_dataShared_yourWallet_wa": {
+    "message": "Your wallet address."
+  },
+  "postInstallConsent_text_dataShared_yourWallet_keyConsent": {
+    "message": "Note: You will always be asked for consent before any connection."
+  },
+  "postInstallConsent_text_dataShared_websiteWallets_title": {
+    "message": "With the website’s wallet provider:"
+  },
+  "postInstallConsent_text_dataShared_websiteWallets_wa": {
+    "message": "Your wallet address."
+  },
+  "postInstallConsent_text_dataShared_websites_title": {
+    "message": "With the websites you visit:"
+  },
+  "postInstallConsent_text_dataShared_websites_text": {
+    "message": "Nothing. The extension never shares your wallet address, balance, or currency with the websites you visit. Your browsing history remains private in your browser."
+  },
+  "postInstallConsent_text_dataShared_browser_title": {
+    "message": "What’s shared by your browser"
+  },
+  "postInstallConsent_text_dataShared_browser_text": {
+    "message": "Your IP address, language, and browser version are shared with your wallet provider and the website’s wallet provider while you use the extension."
+  },
+  "postInstallConsent_text_dataShared_headers": {
+    "message": "Browsers send certain HTTP headers by default with each request that inform the servers about your language (`Accept-Language` header), browser version (`User-Agent` header) and more. Your IP address is also sent by default."
+  },
+  "postInstallConsent_text_dataCollection_title": {
+    "message": "Analytics"
+  },
+  "postInstallConsent_text_dataCollection_desc": {
+    "message": "The extension gathers anonymous data about how you use it (e.g., clicks, interactions) to help us improve the app and your overall experience."
+  },
+  "postInstallConsent_text_dataCollection_yes_heading": {
+    "message": "The Interledger Foundation:"
+  },
+  "postInstallConsent_text_dataCollection_yes_text1": {
+    "message": "Uses PostHog to collect usage and analytics data."
+  },
+  "postInstallConsent_text_dataCollection_yes_text2": {
+    "message": "Assigns each installation a unique ID, and associates your actions and interactions (events) with that ID."
+  },
+  "postInstallConsent_text_dataCollection_no_heading": {
+    "message": "We do not:"
+  },
+  "postInstallConsent_text_dataCollection_no_text1": {
+    "message": "Collect any personally identifiable information, such as your name or wallet address."
+  },
+  "postInstallConsent_text_dataCollection_no_text2": {
+    "message": "Store your IP address. It is only used to estimate your general location, and then it’s immediately discarded."
+  },
+  "postInstallConsent_label_dataCollection_optIn": {
+    "message": "Opt-in to usage data collection"
+  },
+  "postInstallConsent_text_dataCollection_footer": {
+    "message": "This setting takes effect after you click Confirm and Continue. You can change your preferences any time by opening the extension through the browser toolbar → Settings → Data Collection."
+  },
+  "postInstallConsent_text_permissions_title": {
+    "message": "Extension Permissions"
+  },
+  "postInstallConsent_text_permissions_text": {
+    "message": "The extension needs basic permissions to work."
+  },
+  "postInstallConsent_text_permissions_linkText": {
+    "message": "See details."
+  },
+  "postInstallConsent_state_consentProvided": {
+    "message": "You have provided your consent to the above. Access the extension from the browser toolbar."
+  },
+  "postInstallConsent_text_confirmation": {
+    "message": "I confirm that I understand and consent to this data usage."
+  },
+  "postInstallConsent_action_confirm": {
+    "message": "Confirm and continue"
+  },
+  "postConnect_connect_success_title": {
+    "message": "Wallet Connected!"
+  },
+  "postConnect_connect_success_msg": {
+    "message": "You’re all set to start using the extension."
+  },
+  "postConnect_addFunds_success_title": {
+    "message": "Funds Added"
+  },
+  "postConnect_addFunds_success_msg": {
+    "message": "Funds were successfully added to your budget."
+  },
+  "postConnect_updateBudget_success_title": {
+    "message": "Budget Updated"
+  },
+  "postConnect_updateBudget_success_msg": {
+    "message": "Your new spending limits are now active."
+  },
+  "postConnect_reconnect_success_title": {
+    "message": "Reconnected!"
+  },
+  "postConnect_reconnect_success_msg": {
+    "message": "Your wallet is reconnected."
+  },
+
+  "postConnect_connect_cancel_grantRejected_title": {
+    "message": "Connection cancelled"
+  },
+  "postConnect_connect_cancel_grantRejected_msg": {
+    "message": "Wallet connection was cancelled. Please try again and follow the prompts to complete connection."
+  },
+  "postConnect_addFunds_cancel_grantRejected_title": {
+    "message": "Fund addition cancelled"
+  },
+  "postConnect_addFunds_cancel_grantRejected_msg": {
+    "message": "No funds were added to your budget."
+  },
+  "postConnect_updateBudget_cancel_grantRejected_title": {
+    "message": "Budget update cancelled"
+  },
+  "postConnect_updateBudget_cancel_grantRejected_msg": {
+    "message": "Your budget settings were not changed."
+  },
+
+  "postConnect_connect_failure_timeout_title": {
+    "message": "Wallet connection timed-out"
+  },
+  "postConnect_connect_failure_timeout_msg": {
+    "message": "The connection to your wallet provider timed out. Please check your connection and try again."
+  },
+  "postConnect_addFunds_failure_timeout_title": {
+    "message": "Funds addition timed-out"
+  },
+  "postConnect_addFunds_failure_timeout_msg": {
+    "message": "Adding funds to your budget timed out. Please check your connection and try again."
+  },
+  "postConnect_updateBudget_failure_timeout_title": {
+    "message": "Budget update timed-out"
+  },
+  "postConnect_updateBudget_failure_timeout_msg": {
+    "message": "Updating your budget timed out. Please check your connection and try again."
+  },
+
+  "postConnect_connect_failure_keyAdd_title": {
+    "message": "Key addition failed"
+  },
+  "postConnect_connect_failure_keyAdd_msg": {
+    "message": "We couldn’t add the public key to your wallet.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+  "postConnect_reconnect_failure_keyAdd_title": {
+    "message": "Wallet reconnection failed"
+  },
+  "postConnect_reconnect_failure_keyAdd_msg": {
+    "message": "We couldn’t add the public key to your wallet.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+
+  "postConnect_connect_failure_other_title": {
+    "message": "Wallet connection failed"
+  },
+  "postConnect_connect_failure_other_msg": {
+    "message": "Something went wrong while connecting. Please try again."
+  },
+  "postConnect_addFunds_failure_other_title": {
+    "message": "Funds addition failed"
+  },
+  "postConnect_addFunds_failure_other_msg": {
+    "message": "Something went wrong while adding funds. Please try again.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+  "postConnect_updateBudget_failure_other_title": {
+    "message": "Budget update failed"
+  },
+  "postConnect_updateBudget_failure_other_msg": {
+    "message": "Something went wrong while updating your budget. Please try again.$DETAILS$",
+    "placeholders": {
+      "DETAILS": { "content": "$1", "example": "Additional optional details" }
+    }
+  },
+  "postConnect_reconnect_failure_other_title": {
+    "message": "Wallet reconnection failed"
+  },
+  "postConnect_reconnect_failure_other_msg": {
+    "message": "We couldn’t verify your wallet. Please try again, or manually copy the public key and add it to your digital wallet account."
+  },
+
+  "settings_dataCollection_title": {
+    "message": "Data Collection"
+  },
+  "settings_dataCollection_label": {
+    "message": "Usage data & analytics"
+  },
+  "settings_dataCollection_text": {
+    "message": "The extension gathers anonymous data about how you use it (e.g., clicks, interactions) to help us improve the app and your overall experience."
+  },
+  "settings_dataCollection_text_learnMore": {
+    "message": "Read the full details in our"
+  },
+  "consentRequired_text_title": {
+    "message": "Consent Required: Data Collection & Transmission"
+  },
+  "consentRequired_text_titleUpdated": {
+    "message": "Consent Required: Collection and usage of your data has been updated"
+  },
+  "consentRequired_text_subtitle": {
+    "message": "We want to be transparent about what data is shared and how it’s used."
+  },
+  "consentRequired_text_msg": {
+    "message": "To use the the Web Monetization Extension, we require your consent to our data collection & transmission policy."
+  },
+  "consentRequired_action_primary": {
+    "message": "View data policy and consent"
   }
 }

@@ -1,10 +1,16 @@
 export { OpenPaymentsService } from './openPayments';
 export { StorageService } from './storage';
 export { MonetizationService } from './monetization';
+export { OutgoingPaymentGrantService } from './outgoingPaymentGrant';
+export { WalletService } from './wallet';
 export { Background } from './background';
 export { TabEvents } from './tabEvents';
 export { TabState } from './tabState';
-export { SendToPopup } from './sendToPopup';
+export { WindowState } from './windowState';
+export { SendToPort } from './sendToPort';
 export { EventsService } from './events';
 export { Deduplicator } from './deduplicator';
 export { Heartbeat } from './heartbeat';
+export { PaymentManager } from './paymentManager';
+export { PaymentSession } from './paymentSession';
+export { Telemetry } from './telemetry';

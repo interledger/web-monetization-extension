@@ -1,0 +1,139 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "files": { "ignoreUnknown": true, "includes": ["**"] },
+  "formatter": {
+    "enabled": true,
+    "useEditorconfig": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "auto",
+    "lineWidth": 80
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "domains": {
+      "project": "all",
+      "types": "all",
+      "react": "all",
+      "test": "all"
+    },
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noUselessElse": "off", // TODO: turn on, too many cases
+        "noNonNullAssertion": "off", // TODO: turn on, too many cases
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "useComponentExportOnlyModules": "off",
+        "useGroupedAccessorPairs": "error",
+        "useNumericSeparators": "error",
+        "useSymbolDescription": "error"
+      },
+      "suspicious": {
+        "recommended": true,
+        "noConsole": "warn",
+        "noConstantBinaryExpressions": "error",
+        "noSkippedTests": "info",
+        "noUnassignedVariables": "error",
+        "noUnknownAtRules": "off",
+        "noImportCycles": "off"
+      },
+      "correctness": {
+        "noUnusedVariables": "warn",
+        "noUnusedImports": "error",
+        "useImportExtensions": "off",
+        "noNestedComponentDefinitions": "off",
+        "noReactPropAssignments": "error",
+        "noRestrictedElements": "error",
+        "noUnresolvedImports": "off", // TODO: some bug is there; false positives
+        "useSingleJsDocAsterisk": "error",
+        "useJsonImportAttributes": "off",
+        "useUniqueElementIds": "off" // we use custom IDs more often than generated ones
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "off"
+      },
+      "performance": {
+        "recommended": true,
+        "noAwaitInLoops": "off" // TODO: turn on, too many cases
+      },
+      "nursery": {
+        "recommended": true,
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error",
+        "noShadow": "off", // TODO: turn on, too many cases
+        "useExplicitType": "off", // TODO: check if we want to. way too many cases
+        "useSortedClasses": "off" // TODO: turn on
+      },
+      "complexity": {
+        "noUselessUndefined": "error"
+      }
+    }
+  },
+  "javascript": {
+    "jsxRuntime": "reactClassic",
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "trailingCommas": "all",
+      "semicolons": "always",
+      "quoteStyle": "single"
+    },
+    "globals": ["chrome", "browser"]
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    },
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  },
+  "html": {
+    "formatter": {
+      "enabled": true,
+      "selfCloseVoidElements": "never"
+    },
+    "linter": {
+      "enabled": true
+    },
+    "parser": {
+      "interpolation": false
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "scripts/**/*",
+        ".github/actions/**/*",
+        "src/content/debug.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
+}

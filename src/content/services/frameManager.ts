@@ -1,10 +1,12 @@
-import { ContentToContentAction } from '../messages';
-import type {
-  ResumeMonetizationPayload,
-  StartMonetizationPayload,
-  StopMonetizationPayload,
-} from '@/shared/messages';
+import type { ContentToContentMessage } from '../messages';
+import type { StopMonetizationPayload } from '@/shared/messages';
 import type { Cradle } from '@/content/container';
+
+const HANDLED_MESSAGES: ContentToContentMessage['message'][] = [
+  'INITIALIZE_IFRAME',
+  'IS_MONETIZATION_ALLOWED_ON_START',
+  'IS_MONETIZATION_ALLOWED_ON_RESUME',
+];
 
 export class FrameManager {
   private window: Cradle['window'];
@@ -20,12 +22,10 @@ export class FrameManager {
   >();
 
   constructor({ window, document, logger, message }: Cradle) {
-    Object.assign(this, {
-      window,
-      document,
-      logger,
-      message,
-    });
+    this.window = window;
+    this.document = document;
+    this.logger = logger;
+    this.message = message;
 
     this.documentObserver = new MutationObserver((records) =>
       this.onWholeDocumentObserved(records),
@@ -38,7 +38,7 @@ export class FrameManager {
 
   private findIframe(sourceWindow: Window): HTMLIFrameElement | null {
     const iframes = this.frames.keys();
-    let frame;
+    let frame: IteratorResult<HTMLIFrameElement>;
 
     do {
       frame = iframes.next();
@@ -82,7 +82,7 @@ export class FrameManager {
         await this.onAddedFrame(target);
         handledTags.add(target);
       } else if (hasTarget && !typeSpecified) {
-        this.onRemovedFrame(target);
+        void this.onRemovedFrame(target);
         handledTags.add(target);
       } else if (!hasTarget && !typeSpecified) {
         // ignore these changes
@@ -103,7 +103,7 @@ export class FrameManager {
 
     const frameDetails = this.frames.get(frame);
 
-    const stopMonetizationTags: StopMonetizationPayload[] =
+    const stopMonetizationTags: StopMonetizationPayload =
       frameDetails?.requestIds.map((requestId) => ({
         requestId,
         intent: 'remove',
@@ -118,13 +118,17 @@ export class FrameManager {
   private onWholeDocumentObserved(records: MutationRecord[]) {
     for (const record of records) {
       if (record.type === 'childList') {
-        record.removedNodes.forEach((node) => this.check('removed', node));
+        for (const node of record.removedNodes) {
+          void this.check('removed', node);
+        }
       }
     }
 
     for (const record of records) {
       if (record.type === 'childList') {
-        record.addedNodes.forEach((node) => this.check('added', node));
+        for (const node of record.addedNodes) {
+          void this.check('added', node);
+        }
       }
     }
   }
@@ -135,7 +139,7 @@ export class FrameManager {
         this.observeFrameAllowAttrs(node);
         await this.onAddedFrame(node);
       } else if (op === 'removed' && this.frames.has(node)) {
-        this.onRemovedFrame(node);
+        await this.onRemovedFrame(node);
       }
     }
   }
@@ -164,14 +168,10 @@ export class FrameManager {
     const frames: NodeListOf<HTMLIFrameElement> =
       this.document.querySelectorAll('iframe');
 
-    frames.forEach(async (frame) => {
-      try {
-        this.observeFrameAllowAttrs(frame);
-        await this.onAddedFrame(frame);
-      } catch (e) {
-        this.logger.error(e);
-      }
-    });
+    for (const frame of frames) {
+      this.observeFrameAllowAttrs(frame);
+      void this.onAddedFrame(frame).catch((e) => this.logger.error(e));
+    }
 
     this.observeDocumentForFrames();
   }
@@ -179,18 +179,13 @@ export class FrameManager {
   private bindMessageHandler() {
     this.window.addEventListener(
       'message',
-      (event: any) => {
+      (event: MessageEvent<ContentToContentMessage>) => {
         const { message, payload, id } = event.data;
-        if (
-          ![
-            ContentToContentAction.INITIALIZE_IFRAME,
-            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START,
-            ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME,
-          ].includes(message)
-        ) {
+        if (!HANDLED_MESSAGES.includes(message)) {
           return;
         }
-        const frame = this.findIframe(event.source);
+        const eventSource = event.source as Window;
+        const frame = this.findIframe(eventSource);
         if (!frame) {
           event.stopPropagation();
           return;
@@ -199,7 +194,7 @@ export class FrameManager {
         if (event.origin === this.window.location.href) return;
 
         switch (message) {
-          case ContentToContentAction.INITIALIZE_IFRAME:
+          case 'INITIALIZE_IFRAME':
             event.stopPropagation();
             this.frames.set(frame, {
               frameId: id,
@@ -207,42 +202,30 @@ export class FrameManager {
             });
             return;
 
-          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_START:
+          case 'IS_MONETIZATION_ALLOWED_ON_START':
             event.stopPropagation();
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: payload.map(
-                  (p: StartMonetizationPayload) => p.requestId,
-                ),
+                requestIds: payload.map((p) => p.requestId),
               });
-              event.source.postMessage(
-                {
-                  message: ContentToContentAction.START_MONETIZATION,
-                  id,
-                  payload,
-                },
+              eventSource.postMessage(
+                { message: 'START_MONETIZATION', id, payload },
                 '*',
               );
             }
 
             return;
 
-          case ContentToContentAction.IS_MONETIZATION_ALLOWED_ON_RESUME:
+          case 'IS_MONETIZATION_ALLOWED_ON_RESUME':
             event.stopPropagation();
             if (frame.allow === 'monetization') {
               this.frames.set(frame, {
                 frameId: id,
-                requestIds: payload.map(
-                  (p: ResumeMonetizationPayload) => p.requestId,
-                ),
+                requestIds: payload.map((p) => p.requestId),
               });
-              event.source.postMessage(
-                {
-                  message: ContentToContentAction.RESUME_MONETIZATION,
-                  id,
-                  payload,
-                },
+              eventSource.postMessage(
+                { message: 'RESUME_MONETIZATION', id, payload },
                 '*',
               );
             }

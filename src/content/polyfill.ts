@@ -1,5 +1,10 @@
 import type { MonetizationEventPayload } from '@/shared/messages';
-(function () {
+(() => {
+  if (document.createElement('link').relList.supports('monetization')) {
+    // already patched
+    return;
+  }
+
   const handlers = new WeakMap();
   const attributes: PropertyDescriptor & ThisType<EventTarget> = {
     enumerable: true,
@@ -26,7 +31,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
         this.addEventListener('monetization', val);
         handlers.set(this, val);
       } else {
-        throw new Error('val must be a function, got ' + typeof val);
+        throw new Error(`val must be a function, got ${typeof val}`);
       }
     },
   };
@@ -82,8 +87,9 @@ import type { MonetizationEventPayload } from '@/shared/messages';
 
     get detail() {
       if (!eventDetailDeprecationEmitted) {
-        const msg = `MonetizationEvent.detail is deprecated. Access attributes directly instead.`;
-        // eslint-disable-next-line no-console
+        const msg =
+          'MonetizationEvent.detail is deprecated. Access attributes directly instead.';
+        // biome-ignore lint/suspicious/noConsole: warning meant for website devs
         console.warn(msg);
         eventDetailDeprecationEmitted = true;
       }
@@ -95,6 +101,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
   // @ts-expect-error: we're defining this now
   window.MonetizationEvent = MonetizationEvent;
 
+  // @ts-expect-error: we're defining this now
   window.addEventListener(
     '__wm_ext_monetization',
     (event: CustomEvent<MonetizationEventPayload['details']>) => {
@@ -109,6 +116,7 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     { capture: true },
   );
 
+  // @ts-expect-error: we're defining this now
   window.addEventListener(
     '__wm_ext_onmonetization_attr_change',
     (event: CustomEvent<{ attribute?: string }>) => {
@@ -117,7 +125,8 @@ import type { MonetizationEventPayload } from '@/shared/messages';
       const { attribute } = event.detail;
       // @ts-expect-error: we're defining this now
       event.target.onmonetization = attribute
-        ? new Function(attribute).bind(event.target)
+        ? // biome-ignore lint/nursery/noImpliedEval: that's the way here
+          new Function(attribute).bind(event.target)
         : null;
     },
     { capture: true },

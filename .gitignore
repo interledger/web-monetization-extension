@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+build/
 temp
 preview
 dev
@@ -17,8 +18,8 @@ dist-firefox-v2
 public/manifest.json
 *.local
 coverage
+.env
 .husky
-.vscode
 
 # Editor directories and files
 .vscode/*
@@ -30,3 +31,20 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# XCode for the Safari extension
+xcuserdata/
+*.xccheckout
+*.pbxuser
+*~.nib
+*.lock
+*.swp
+.Trashes
+src/safari/Web Monetization/Shared \(Extension\)/Resources/*
+!src/safari/Web Monetization/Shared \(Extension\)/Resources/.gitkeep
+
+# playwright
+/tests/e2e/test-results/
+/tests/e2e/.auth
+/tests/e2e/playwright-report/
+/playwright/.cache/

@@ -3,8 +3,15 @@ import type {
   OutgoingPayment,
 } from '@interledger/open-payments';
 import type { Browser } from 'webextension-polyfill';
-import type { AmountValue, Storage } from '@/shared/types';
-import type { PopupState } from '@/popup/lib/context';
+import type {
+  AmountValue,
+  TransientState,
+  Storage,
+  WalletInfo,
+} from '@/shared/types';
+import type { ErrorWithKeyLike } from '@/shared/helpers';
+import type { PopupState } from '@/popup/lib/store';
+import type { AppState } from '@/app/lib/store';
 
 // #region MessageManager
 export interface SuccessResponse<TPayload = void> {
@@ -15,11 +22,19 @@ export interface SuccessResponse<TPayload = void> {
 export interface ErrorResponse {
   success: false;
   message: string;
+  error?: ErrorWithKeyLike;
 }
 
 export type Response<TPayload = void> =
   | SuccessResponse<TPayload>
   | ErrorResponse;
+
+export function getResponseOrThrow<T>(res: Response<T>) {
+  if (res.success) {
+    return res.payload;
+  }
+  throw res.error ?? new Error(res.message);
+}
 
 type MessageMap = Record<string, { input: unknown; output: unknown }>;
 type MessagesWithInput<T extends MessageMap> = {
@@ -54,7 +69,7 @@ export class MessageManager<TMessages extends MessageMap> {
 
   async sendToTab<T extends keyof TMessages>(
     tabId: number,
-    frameId: number,
+    frameId: number | undefined,
     action: T,
     payload: TMessages[T]['input'],
   ): Promise<
@@ -87,10 +102,26 @@ export class MessageManager<TMessages extends MessageMap> {
 // #endregion
 
 // #region Popup ↦ BG
+export interface ConnectWalletAddressInfo {
+  walletAddress: WalletInfo;
+  defaultBudget: number;
+  defaultRateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
+  isKeyAutoAddSupported: boolean;
+  isKeyAdded: boolean;
+}
+
 export interface ConnectWalletPayload {
-  walletAddressUrl: string;
+  walletAddress: WalletInfo;
   amount: string;
+  rateOfPay: AmountValue;
+  maxRateOfPay: AmountValue;
   recurring: boolean;
+  autoKeyAdd: boolean;
+}
+
+export interface ReconnectWalletPayload {
+  autoKeyAddConsent: boolean;
 }
 
 export interface AddFundsPayload {
@@ -102,21 +133,44 @@ export interface PayWebsitePayload {
   amount: string;
 }
 
+export interface PayWebsiteResponse {
+  type: 'full' | 'partial';
+  sentAmount: string;
+}
+
 export interface UpdateRateOfPayPayload {
-  rateOfPay: string;
+  rateOfPay: AmountValue;
+}
+
+export interface UpdateBudgetPayload {
+  walletAddressUrl: string;
+  amount: ConnectWalletPayload['amount'];
+  recurring: ConnectWalletPayload['recurring'];
 }
 
 export type PopupToBackgroundMessage = {
-  GET_CONTEXT_DATA: {
+  GET_DATA_POPUP: {
     input: never;
     output: PopupState;
   };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: ConnectWalletAddressInfo;
+  };
   CONNECT_WALLET: {
     input: ConnectWalletPayload;
-    output: never;
+    output: undefined;
+  };
+  RESET_CONNECT_STATE: {
+    input: never;
+    output: undefined;
+  };
+  UPDATE_BUDGET: {
+    input: UpdateBudgetPayload;
+    output: undefined;
   };
   RECONNECT_WALLET: {
-    input: never;
+    input: ReconnectWalletPayload;
     output: never;
   };
   ADD_FUNDS: {
@@ -124,74 +178,113 @@ export type PopupToBackgroundMessage = {
     output: never;
   };
   DISCONNECT_WALLET: {
-    input: never;
+    input: { force: boolean };
     output: never;
   };
-  TOGGLE_WM: {
+  TOGGLE_CONTINUOUS_PAYMENTS: {
+    input: never;
+    output: boolean; // returns whether enabled
+  };
+  TOGGLE_PAYMENTS: {
     input: never;
     output: never;
   };
   PAY_WEBSITE: {
     input: PayWebsitePayload;
-    output: never;
+    output: PayWebsiteResponse;
   };
   UPDATE_RATE_OF_PAY: {
     input: UpdateRateOfPayPayload;
+    output: never;
+  };
+  OPEN_APP: {
+    input: { path: string; action?: string };
+    output: never;
+  };
+  OPT_IN_OUT_TELEMETRY: {
+    input: { isOptedIn: boolean };
     output: never;
   };
 };
 // #endregion
 
 // #region Content ↦ BG
-export interface CheckWalletAddressUrlPayload {
+export interface GetWalletAddressInfoPayload {
   walletAddressUrl: string;
 }
 
-export interface StartMonetizationPayload {
+export interface StartMonetizationPayloadEntry {
   walletAddress: WalletAddress;
   requestId: string;
 }
+export type StartMonetizationPayload = StartMonetizationPayloadEntry[];
 
-export interface StopMonetizationPayload {
+export interface StopMonetizationPayloadEntry {
   requestId: string;
-  intent?: 'remove' | 'disable';
+  intent: 'remove' | 'disable' | 'pause';
 }
+export type StopMonetizationPayload = StopMonetizationPayloadEntry[];
 
-export interface ResumeMonetizationPayload {
-  requestId: string;
-}
+export type ResumeMonetizationPayload = StartMonetizationPayload;
 
 export interface IsTabMonetizedPayload {
   value: boolean;
 }
 
 export type ContentToBackgroundMessage = {
-  CHECK_WALLET_ADDRESS_URL: {
-    input: CheckWalletAddressUrlPayload;
+  GET_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload;
     output: WalletAddress;
   };
+  TAB_FOCUSED: {
+    input: never;
+    output: never;
+  };
+  PAGE_HIDE: {
+    input: never;
+    output: never;
+  };
   STOP_MONETIZATION: {
-    input: StopMonetizationPayload[];
+    input: StopMonetizationPayload;
     output: never;
   };
   START_MONETIZATION: {
-    input: StartMonetizationPayload[];
+    input: StartMonetizationPayload;
     output: never;
   };
   RESUME_MONETIZATION: {
-    input: ResumeMonetizationPayload[];
+    input: ResumeMonetizationPayload;
     output: never;
   };
-  IS_WM_ENABLED: {
+};
+// #endregion
+
+// #region App ↦ BG
+export type AppToBackgroundMessage = {
+  GET_DATA_APP: {
     input: never;
-    output: boolean;
+    output: AppState;
+  };
+  GET_CONNECT_WALLET_ADDRESS_INFO: {
+    input: GetWalletAddressInfoPayload['walletAddressUrl'];
+    output: ConnectWalletAddressInfo;
+  };
+  CONNECT_WALLET: PopupToBackgroundMessage['CONNECT_WALLET'];
+  RESET_CONNECT_STATE: PopupToBackgroundMessage['RESET_CONNECT_STATE'];
+  RECONNECT_WALLET: PopupToBackgroundMessage['RECONNECT_WALLET'];
+  ADD_FUNDS: PopupToBackgroundMessage['ADD_FUNDS'];
+  UPDATE_BUDGET: PopupToBackgroundMessage['UPDATE_BUDGET'];
+  PROVIDE_CONSENT: {
+    input: { consentTelemetry: boolean };
+    output: NonNullable<Storage['consent']>;
   };
 };
 // #endregion
 
 // #region To BG
 type ToBackgroundMessageMap = PopupToBackgroundMessage &
-  ContentToBackgroundMessage;
+  ContentToBackgroundMessage &
+  AppToBackgroundMessage;
 
 export type ToBackgroundMessage = {
   [K in keyof ToBackgroundMessageMap]: {
@@ -213,18 +306,18 @@ export interface MonetizationEventPayload {
   details: MonetizationEventDetails;
 }
 
-export interface EmitToggleWMPayload {
-  enabled: boolean;
-}
-
 export type BackgroundToContentMessage = {
   MONETIZATION_EVENT: {
     input: MonetizationEventPayload;
     output: never;
   };
-  EMIT_TOGGLE_WM: {
-    input: EmitToggleWMPayload;
-    output: never;
+  IS_TAB_IN_VIEW: {
+    input: undefined;
+    output: boolean;
+  };
+  REQUEST_RESUME_MONETIZATION: {
+    input: null;
+    output: undefined;
   };
 };
 
@@ -242,9 +335,10 @@ export const BACKGROUND_TO_POPUP_CONNECTION_NAME = 'popup';
 // These methods are fire-and-forget, nothing is returned.
 export interface BackgroundToPopupMessagesMap {
   SET_BALANCE: Record<'recurring' | 'oneTime' | 'total', AmountValue>;
-  SET_IS_MONETIZED: boolean;
+  SET_TAB_DATA: PopupState['tab'];
   SET_STATE: { state: Storage['state']; prevState: Storage['state'] };
-  SET_ALL_SESSIONS_INVALID: boolean;
+  SET_TRANSIENT_STATE: TransientState;
+  CLOSE_POPUP: undefined;
 }
 
 export type BackgroundToPopupMessage = {
@@ -254,3 +348,38 @@ export type BackgroundToPopupMessage = {
   };
 }[keyof BackgroundToPopupMessagesMap];
 // #endregion
+
+// #region BG ↦ App
+export const BACKGROUND_TO_APP_CONNECTION_NAME = 'app';
+
+export interface BackgroundToAppMessagesMap {
+  SET_TRANSIENT_STATE: TransientState;
+}
+
+export type BackgroundToAppMessage = {
+  [K in keyof BackgroundToAppMessagesMap]: {
+    type: K;
+    data: BackgroundToAppMessagesMap[K];
+  };
+}[keyof BackgroundToAppMessagesMap];
+// #endregion
+
+// #region From BG
+export type BackgroundToPortMessagesMap =
+  | BackgroundToPopupMessagesMap
+  | BackgroundToAppMessagesMap;
+// #endregion
+
+export const success = <TPayload = undefined>(
+  payload: TPayload,
+): SuccessResponse<TPayload> => ({
+  success: true,
+  payload,
+});
+
+export const failure = (message: string | ErrorWithKeyLike) => ({
+  success: false as const,
+  ...(typeof message === 'string'
+    ? { message }
+    : { error: message, message: message.key }),
+});

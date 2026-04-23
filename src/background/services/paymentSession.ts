@@ -1,92 +1,126 @@
 import {
   isPendingGrant,
+  OpenPaymentsClientError,
   type IncomingPayment,
-  type OutgoingPayment,
+  type OutgoingPaymentWithSpentAmounts as OutgoingPayment,
   type WalletAddress,
-} from '@interledger/open-payments/dist/types';
-import { bigIntMax, convert } from '@/shared/helpers';
-import { transformBalance } from '@/popup/lib/utils';
+} from '@interledger/open-payments';
+import { ErrorWithKey, sleep, transformBalance } from '@/shared/helpers';
 import {
+  isInternalServerError,
   isInvalidReceiverError,
   isKeyRevokedError,
+  isMissingGrantPermissionsError,
   isNonPositiveAmountError,
   isOutOfBalanceError,
   isTokenExpiredError,
-} from './openPayments';
-import { getNextSendableAmount } from '@/background/utils';
-import type { EventsService, OpenPaymentsService, TabState } from '.';
+} from '@/background/services/openPayments';
+import {
+  bigIntMax,
+  convert,
+  convertWithExchangeRate,
+  getExchangeRates,
+  getNextSendableAmount,
+} from '@/background/utils';
 import type {
-  BackgroundToContentMessage,
-  MessageManager,
   MonetizationEventDetails,
   MonetizationEventPayload,
 } from '@/shared/messages';
 import type { AmountValue } from '@/shared/types';
-import type { Logger } from '@/shared/logger';
+import type { Cradle as Cradle_ } from '@/background/container';
+import {
+  OUTGOING_PAYMENT_POLLING_INITIAL_DELAY,
+  OUTGOING_PAYMENT_POLLING_INTERVAL,
+} from '@/background/config';
 
-const HOUR_MS = 3600 * 1000;
 const MIN_SEND_AMOUNT = 1n; // 1 unit
 const MAX_INVALID_RECEIVER_ATTEMPTS = 2;
 
-type PaymentSessionSource = 'tab-change' | 'request-id-reused' | 'new-link';
 type IncomingPaymentSource = 'one-time' | 'continuous';
+interface CreateOutgoingPaymentParams {
+  walletAddress: WalletAddress;
+  incomingPaymentId: IncomingPayment['id'];
+  amount: AmountValue;
+}
+type Cradle = Pick<
+  Cradle_,
+  | 'storage'
+  | 'openPaymentsService'
+  | 'outgoingPaymentGrantService'
+  | 'events'
+  | 'tabState'
+  | 'logger'
+  | 'message'
+>;
 
 export class PaymentSession {
-  private rate: string;
-  private active: boolean = false;
-  /** Invalid receiver (providers not peered or other reasons) */
-  private isInvalid: boolean = false;
-  private countInvalidReceiver: number = 0;
-  private isDisabled: boolean = false;
-  private incomingPaymentUrl: string;
-  private incomingPaymentExpiresAt: number;
-  private amount: string;
-  private intervalInMs: number;
-  private probingId: number;
-  private shouldRetryImmediately: boolean = false;
+  private storage: Cradle['storage'];
+  private openPaymentsService: Cradle['openPaymentsService'];
+  private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
+  private events: Cradle['events'];
+  private tabState: Cradle['tabState'];
+  private logger: Cradle['logger'];
+  private message: Cradle['message'];
 
-  private interval: ReturnType<typeof setInterval> | null = null;
-  private timeout: ReturnType<typeof setTimeout> | null = null;
+  /** Invalid receiver (providers not peered or other reasons) */
+  private isInvalid = false;
+  private countInvalidReceiver = 0;
+  private isDisabled = false;
+  private isStopped = false;
+  private incomingPaymentUrl = '';
+  private incomingPaymentExpiresAt = -1;
 
   constructor(
-    private receiver: WalletAddress,
+    public readonly receiver: WalletAddress,
+    public readonly id: string,
+    public readonly tabId: number,
+    public readonly frameId: number,
+    public readonly tabUrl: string,
     private sender: WalletAddress,
-    private requestId: string,
-    private tabId: number,
-    private frameId: number,
-    private openPaymentsService: OpenPaymentsService,
-    private events: EventsService,
-    private tabState: TabState,
-    private url: string,
-    private logger: Logger,
-    private message: MessageManager<BackgroundToContentMessage>,
-  ) {}
+    private deps: Cradle,
+  ) {
+    this.storage = this.deps.storage;
+    this.openPaymentsService = this.deps.openPaymentsService;
+    this.outgoingPaymentGrantService = this.deps.outgoingPaymentGrantService;
+    this.events = this.deps.events;
+    this.tabState = this.deps.tabState;
+    this.logger = this.deps.logger;
+    this.message = this.deps.message;
+  }
 
-  async adjustAmount(rate: AmountValue): Promise<void> {
-    this.probingId = Date.now();
-    const localProbingId = this.probingId;
-    this.rate = rate;
+  // We keep setting #minSendAmount to non-zero values as we probe. Instead of
+  // checking #minSendAmount > 0, use this boolean to know if probing completed.
+  #minSendAmountFound = false;
+  #minSendAmount = 0n;
+  // @ts-expect-error set in `findMinSendAmount()` (and as first thing before use)
+  #minSendAmountPromise: ReturnType<typeof this._findMinSendAmount>;
 
-    // The amount that needs to be sent every second.
-    // In senders asset scale already.
-    let amountToSend = BigInt(this.rate) / 3600n;
+  findMinSendAmount(force?: boolean): Promise<void> {
+    this.#minSendAmountPromise ??= this._findMinSendAmount();
+    if (force) {
+      this.isInvalid = false;
+      this.#minSendAmountPromise = this._findMinSendAmount(undefined, true);
+    }
+    return this.#minSendAmountPromise;
+  }
+
+  get minSendAmount(): bigint {
+    if (!this.#minSendAmountFound) {
+      throw new Error('minSendAmount not figured out yet');
+    }
+    return this.#minSendAmount;
+  }
+
+  private async _findMinSendAmount(
+    signal?: AbortSignal,
+    force?: boolean,
+  ): Promise<void> {
+    let amountToSend = bigIntMax(this.#minSendAmount, MIN_SEND_AMOUNT);
     const senderAssetScale = this.sender.assetScale;
     const receiverAssetScale = this.receiver.assetScale;
     const isCrossCurrency = this.sender.assetCode !== this.receiver.assetCode;
 
     if (!isCrossCurrency) {
-      if (amountToSend <= MIN_SEND_AMOUNT) {
-        // We need to add another unit when using a debit amount, since
-        // @interledger/pay subtracts one unit.
-        if (senderAssetScale <= receiverAssetScale) {
-          amountToSend = MIN_SEND_AMOUNT + 1n;
-        } else if (senderAssetScale > receiverAssetScale) {
-          // If the sender scale is greater than the receiver scale, the unit
-          // issue will not be present.
-          amountToSend = MIN_SEND_AMOUNT;
-        }
-      }
-
       // If the sender can facilitate the rate, but the amount can not be
       // represented in the receiver's scale we need to send the minimum amount
       // for the receiver (1 unit, but in the sender's asset scale)
@@ -107,9 +141,22 @@ export class PaymentSession {
       }
     }
 
+    if (isCrossCurrency) {
+      try {
+        const exchangeRates = await getExchangeRates();
+        amountToSend = convertWithExchangeRate(
+          amountToSend,
+          this.receiver,
+          this.sender,
+          exchangeRates,
+        );
+        this.logger.debug('minSendAmount: via exchangeRate', amountToSend);
+      } catch {}
+    }
+
     // This all will eventually get replaced by OpenPayments response update
     // that includes a min rate that we can directly use.
-    await this.setIncomingPaymentUrl();
+    await this.setIncomingPaymentUrl(force);
     const amountIter = getNextSendableAmount(
       senderAssetScale,
       receiverAssetScale,
@@ -117,40 +164,90 @@ export class PaymentSession {
     );
 
     amountToSend = BigInt(amountIter.next().value);
+    let prevAmountToSend = amountToSend;
     while (true) {
-      if (this.probingId !== localProbingId) {
-        // In future we can throw `new AbortError()`
-        throw new DOMException('Aborting existing probing', 'AbortError');
-      }
+      signal?.throwIfAborted();
+      this.#minSendAmount = amountToSend;
       try {
-        await this.openPaymentsService.probeDebitAmount(
+        await this.createPaymentQuote(
           amountToSend.toString(),
           this.incomingPaymentUrl,
           this.sender,
         );
-        this.setAmount(amountToSend);
         break;
       } catch (e) {
         if (isTokenExpiredError(e)) {
-          await this.openPaymentsService.rotateToken();
+          await this.outgoingPaymentGrantService.rotateToken();
         } else if (isNonPositiveAmountError(e)) {
+          if (e.details?.minSendAmount?.value) {
+            // Rafiki v1.2.0-beta and later include `minSendAmount` with error
+            const minSendAmount = e.details.minSendAmount;
+            amountToSend = BigInt(minSendAmount.value);
+            this.#minSendAmount = amountToSend;
+            this.#minSendAmountFound = true;
+            this.logger.debug(
+              'minSendAmount: via OP error response',
+              amountToSend,
+            );
+            return;
+          }
+          prevAmountToSend = amountToSend;
           amountToSend = BigInt(amountIter.next().value);
-          continue;
-        } else if (isInvalidReceiverError(e)) {
+        } else if (isInvalidReceiverError(e) || isInternalServerError(e)) {
+          // Treat InternalServerError same as invalid receiver due to
+          // https://github.com/interledger/rafiki/issues/3093
+          //
+          // It is also sensible to mark the session invalid in case server is
+          // having issues.
           this.markInvalid();
           this.events.emit('open_payments.invalid_receiver', {
             tabId: this.tabId,
           });
           break;
         } else {
+          this.markInvalid();
+          this.events.emit('open_payments.invalid_receiver', {
+            tabId: this.tabId,
+          });
           throw e;
         }
       }
     }
-  }
 
-  get id() {
-    return this.requestId;
+    if (prevAmountToSend === amountToSend) {
+      this.#minSendAmountFound = true;
+      return;
+    }
+
+    // Once we've found a sendable amount with exponential probing above, ensure
+    // it's the minimum.
+    let left = prevAmountToSend;
+    let right = amountToSend;
+    while (left < right && !this.#minSendAmountFound) {
+      signal?.throwIfAborted();
+      const mid = (left + right) / 2n;
+      try {
+        // this.logger.log('minSendAmount: binary search', { left, right, mid });
+        await this.createPaymentQuote(
+          mid.toString(),
+          this.incomingPaymentUrl,
+          this.sender,
+        );
+        this.#minSendAmount = mid;
+        right = mid - 1n;
+      } catch (e) {
+        if (isTokenExpiredError(e)) {
+          await this.outgoingPaymentGrantService.rotateToken();
+        } else if (isNonPositiveAmountError(e)) {
+          left = mid + 1n;
+        } else {
+          // it won't be invalidReceiver or any other now, so just throw
+          throw e;
+        }
+      }
+    }
+    this.#minSendAmountFound = true;
+    // this.logger.log('minSendAmount: binary search gave us', this.minSendAmount);
   }
 
   get disabled() {
@@ -161,135 +258,46 @@ export class PaymentSession {
     return this.isInvalid;
   }
 
-  disable() {
-    this.isDisabled = true;
-    this.stop();
+  get active() {
+    return !this.isStopped;
   }
 
-  /**
-   * there's no enable() as we replace the sessions with new ones when
-   * resume/start or removal of disabled attribute at the moment.
-   * @deprecated
-   */
+  get isUsable() {
+    try {
+      void this.minSendAmount;
+    } catch {
+      return false;
+    }
+    return !this.invalid && !this.disabled;
+  }
+
+  disable() {
+    this.isDisabled = true;
+  }
+
   enable() {
-    throw new Error('Method not implemented.');
+    this.isDisabled = false;
+  }
+
+  activate() {
+    this.isStopped = false;
+  }
+
+  deactivate() {
+    this.isStopped = true;
   }
 
   private markInvalid() {
     this.isInvalid = true;
-    this.stop();
   }
 
-  stop() {
-    this.active = false;
-    this.clearTimers();
-  }
-
-  resume() {
-    this.start('tab-change');
-  }
-
-  private clearTimers() {
-    if (this.interval) {
-      this.debug(`Clearing interval=${this.timeout}`);
-      clearInterval(this.interval);
-      this.interval = null;
-    }
-    if (this.timeout) {
-      this.debug(`Clearing timeout=${this.timeout}`);
-      clearTimeout(this.timeout);
-      this.timeout = null;
-    }
-  }
-
-  private debug(message: string) {
-    this.logger.debug(
-      `[PAYMENT SESSION] requestId=${this.requestId}; receiver=${this.receiver.id}\n\n`,
-      `   ${message}`,
-    );
-  }
-
-  async start(source: PaymentSessionSource) {
-    this.debug(
-      `Attempting to start; source=${source} active=${this.active} disabled=${this.isDisabled} isInvalid=${this.isInvalid}`,
-    );
-    if (this.active || this.isDisabled || this.isInvalid) return;
-    this.debug(`Session started; source=${source}`);
-    this.active = true;
-
-    await this.setIncomingPaymentUrl();
-
-    const { waitTime, monetizationEvent } = this.tabState.getOverpayingDetails(
-      this.tabId,
-      this.url,
-      this.receiver.id,
-    );
-
-    this.debug(`Overpaying: waitTime=${waitTime}`);
-
-    if (monetizationEvent && source !== 'tab-change') {
-      this.sendMonetizationEvent({
-        requestId: this.requestId,
-        details: monetizationEvent,
-      });
-    }
-
-    // Uncomment this after we perform the Rafiki test and remove the leftover
-    // code below.
-    //
-    // if (this.canContinuePayment) {
-    //   this.timeout = setTimeout(() => {
-    //     void this.payContinuous()
-    //
-    //     this.interval = setInterval(() => {
-    //       if (!this.canContinuePayment) {
-    //           this.clearTimers()
-    //           return
-    //       }
-    //       void this.payContinuous()
-    //     }, this.intervalInMs)
-    //   }, waitTime)
-    // }
-
-    // Leftover
-    const continuePayment = () => {
-      if (!this.canContinuePayment) return;
-      // alternatively (leftover) after we perform the Rafiki test, we can just
-      // skip the `.then()` here and call setTimeout recursively immediately
-      void this.payContinuous().then(() => {
-        this.timeout = setTimeout(
-          () => {
-            continuePayment();
-          },
-          this.shouldRetryImmediately ? 0 : this.intervalInMs,
-        );
-      });
-    };
-
-    if (this.canContinuePayment) {
-      this.timeout = setTimeout(async () => {
-        await this.payContinuous();
-        this.timeout = setTimeout(
-          () => {
-            continuePayment();
-          },
-          this.shouldRetryImmediately ? 0 : this.intervalInMs,
-        );
-      }, waitTime);
-    }
-  }
-
-  private async sendMonetizationEvent(payload: MonetizationEventPayload) {
+  async sendMonetizationEvent(payload: MonetizationEventPayload['details']) {
     await this.message.sendToTab(
       this.tabId,
       this.frameId,
       'MONETIZATION_EVENT',
-      payload,
+      { requestId: this.id, details: payload },
     );
-  }
-
-  private get canContinuePayment() {
-    return this.active && !this.isDisabled && !this.isInvalid;
   }
 
   private async setIncomingPaymentUrl(reset?: boolean) {
@@ -315,7 +323,7 @@ export class PaymentSession {
     ).toISOString();
 
     const incomingPaymentGrant =
-      await this.openPaymentsService.client!.grant.request(
+      await this.openPaymentsService.client.grant.request(
         {
           url: this.receiver.authServer,
         },
@@ -337,9 +345,12 @@ export class PaymentSession {
         'Expected non-interactive grant. Received pending grant.',
       );
     }
+    if (!incomingPaymentGrant.access_token) {
+      throw new Error('Incoming payment grant did not include access token.');
+    }
 
     const incomingPayment =
-      await this.openPaymentsService.client!.incomingPayment.create(
+      await this.openPaymentsService.client.incomingPayment.create(
         {
           url: this.receiver.resourceServer,
           accessToken: incomingPaymentGrant.access_token.value,
@@ -360,7 +371,7 @@ export class PaymentSession {
     }
 
     // Revoke grant to avoid leaving users with unused, dangling grants.
-    await this.openPaymentsService.client!.grant.cancel({
+    await this.openPaymentsService.client.grant.cancel({
       url: incomingPaymentGrant.continue.uri,
       accessToken: incomingPaymentGrant.continue.access_token.value,
     });
@@ -368,7 +379,66 @@ export class PaymentSession {
     return incomingPayment;
   }
 
-  async pay(amount: number) {
+  private async createOutgoingPayment({
+    walletAddress,
+    amount,
+    incomingPaymentId,
+  }: CreateOutgoingPaymentParams): Promise<OutgoingPayment> {
+    const { client } = this.openPaymentsService;
+    const outgoingPayment = await client.outgoingPayment.create(
+      {
+        accessToken: this.outgoingPaymentGrantService.accessToken,
+        url: walletAddress.resourceServer,
+      },
+      {
+        incomingPayment: incomingPaymentId,
+        walletAddress: walletAddress.id,
+        debitAmount: {
+          value: amount,
+          assetCode: walletAddress.assetCode,
+          assetScale: walletAddress.assetScale,
+        },
+        metadata: {
+          source: 'Web Monetization',
+        },
+      },
+    );
+
+    if (outgoingPayment.grantSpentDebitAmount) {
+      this.storage.updateSpentAmount(
+        this.outgoingPaymentGrantService.grantType,
+        outgoingPayment.grantSpentDebitAmount.value,
+      );
+    }
+    await this.storage.setState({ out_of_funds: false });
+
+    return outgoingPayment;
+  }
+
+  private async createPaymentQuote(
+    amount: AmountValue,
+    incomingPayment: IncomingPayment['id'],
+    sender: WalletAddress,
+  ): Promise<void> {
+    await this.openPaymentsService.client.quote.create(
+      {
+        url: sender.resourceServer,
+        accessToken: this.outgoingPaymentGrantService.accessToken,
+      },
+      {
+        method: 'ilp',
+        receiver: incomingPayment,
+        walletAddress: sender.id,
+        debitAmount: {
+          value: amount,
+          assetCode: sender.assetCode,
+          assetScale: sender.assetScale,
+        },
+      },
+    );
+  }
+
+  async payOneTime(amount: bigint): Promise<OutgoingPayment> {
     if (this.isDisabled) {
       throw new Error('Attempted to send a payment to a disabled session.');
     }
@@ -377,66 +447,114 @@ export class PaymentSession {
       (error) => {
         if (isKeyRevokedError(error)) {
           this.events.emit('open_payments.key_revoked');
-          return;
         }
         throw error;
       },
     );
-    if (!incomingPayment) return;
-
-    let outgoingPayment: OutgoingPayment | undefined;
 
     try {
-      outgoingPayment = await this.openPaymentsService.createOutgoingPayment({
+      const outgoingPayment = await this.createOutgoingPayment({
         walletAddress: this.sender,
         incomingPaymentId: incomingPayment.id,
-        amount: (amount * 10 ** this.sender.assetScale).toFixed(0),
+        amount: amount.toString(),
       });
+
+      void this.sendMonetizationEvent({
+        amountSent: {
+          currency: outgoingPayment.receiveAmount.assetCode,
+          value: transformBalance(
+            outgoingPayment.receiveAmount.value,
+            outgoingPayment.receiveAmount.assetScale,
+          ),
+        },
+        incomingPayment: outgoingPayment.receiver,
+        paymentPointer: this.receiver.id,
+      });
+
+      return outgoingPayment;
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
+        throw e;
       } else if (isTokenExpiredError(e)) {
-        await this.openPaymentsService.rotateToken();
+        await this.outgoingPaymentGrantService.rotateToken();
+        return await this.payOneTime(amount); // retry
       } else {
         throw e;
       }
-    } finally {
-      if (outgoingPayment) {
-        const { receiveAmount, receiver: incomingPayment } = outgoingPayment;
+    }
+  }
 
-        this.sendMonetizationEvent({
-          requestId: this.requestId,
-          details: {
-            amountSent: {
-              currency: receiveAmount.assetCode,
-              value: transformBalance(
-                receiveAmount.value,
-                receiveAmount.assetScale,
-              ),
-            },
-            incomingPayment,
-            paymentPointer: this.receiver.id,
-          },
+  async *pollOutgoingPayment(
+    outgoingPaymentId: OutgoingPayment['id'],
+    {
+      signal,
+      maxAttempts = 10,
+    }: Partial<{ signal: AbortSignal; maxAttempts: number }> = {},
+  ): AsyncGenerator<OutgoingPayment, OutgoingPayment, void> {
+    let attempt = 0;
+    await sleep(OUTGOING_PAYMENT_POLLING_INITIAL_DELAY);
+    while (++attempt <= maxAttempts) {
+      try {
+        signal?.throwIfAborted();
+        const { client } = this.openPaymentsService;
+        const outgoingPayment = await client.outgoingPayment.get({
+          url: outgoingPaymentId,
+          accessToken: this.outgoingPaymentGrantService.accessToken,
         });
+        yield outgoingPayment;
+        if (
+          outgoingPayment.failed &&
+          outgoingPayment.sentAmount.value === '0'
+        ) {
+          throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
+        }
+        if (
+          outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
+        ) {
+          return outgoingPayment; // completed
+        }
+        signal?.throwIfAborted();
+        await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);
+      } catch (error) {
+        if (
+          isTokenExpiredError(error) ||
+          isMissingGrantPermissionsError(error)
+        ) {
+          // TODO: We can remove the token `actions` check once we've proper RS
+          // errors in place. Then we can handle insufficient grant error
+          // separately clearly.
+          const token = await this.outgoingPaymentGrantService.rotateToken();
+          const hasReadAccess = token.access_token.access.find(
+            (e) => e.type === 'outgoing-payment' && e.actions.includes('read'),
+          );
+          if (!hasReadAccess) {
+            throw new OpenPaymentsClientError('InsufficientGrant', {
+              description: error.description,
+            });
+          }
+        } else {
+          throw error;
+        }
       }
     }
 
-    return outgoingPayment?.debitAmount;
+    throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
   }
 
-  private setAmount(amount: bigint): void {
-    this.amount = amount.toString();
-    this.intervalInMs = Number((amount * BigInt(HOUR_MS)) / BigInt(this.rate));
-  }
-
-  private async payContinuous() {
+  /**
+   * @returns `true` if payment made successfully, `false` if failed with a
+   * retry-able error and `null` otherwise
+   * @throws on unhandled errors
+   */
+  async pay(amount: bigint): Promise<boolean | null> {
     try {
-      const outgoingPayment =
-        await this.openPaymentsService.createOutgoingPayment({
-          walletAddress: this.sender,
-          incomingPaymentId: this.incomingPaymentUrl,
-          amount: this.amount,
-        });
+      // this.logger.debug(`Paying ${amount} to ${this.receiver.id}`);
+      const outgoingPayment = await this.createOutgoingPayment({
+        walletAddress: this.sender,
+        incomingPaymentId: this.incomingPaymentUrl,
+        amount: amount.toString(),
+      });
       const { receiveAmount, receiver: incomingPayment } = outgoingPayment;
       const monetizationEventDetails: MonetizationEventDetails = {
         amountSent: {
@@ -450,37 +568,33 @@ export class PaymentSession {
         paymentPointer: this.receiver.id,
       };
 
-      this.sendMonetizationEvent({
-        requestId: this.requestId,
-        details: monetizationEventDetails,
+      void this.sendMonetizationEvent(monetizationEventDetails);
+
+      this.tabState.saveLastPaymentDetails(this.tabId, this.tabUrl, {
+        walletAddressId: this.receiver.id,
+        monetizationEvent: monetizationEventDetails,
       });
 
-      // TO DO: find a better source of truth for deciding if overpaying is applicable
-      if (this.intervalInMs > 1000) {
-        this.tabState.saveOverpaying(this.tabId, this.url, {
-          walletAddressId: this.receiver.id,
-          monetizationEvent: monetizationEventDetails,
-          intervalInMs: this.intervalInMs,
-        });
-      }
-      this.shouldRetryImmediately = false;
+      return true;
     } catch (e) {
       if (isKeyRevokedError(e)) {
         this.events.emit('open_payments.key_revoked');
+        return null;
       } else if (isTokenExpiredError(e)) {
-        await this.openPaymentsService.rotateToken();
-        this.shouldRetryImmediately = true;
+        await this.outgoingPaymentGrantService.rotateToken();
+        return false;
       } else if (isOutOfBalanceError(e)) {
-        const switched = await this.openPaymentsService.switchGrant();
+        const switched = await this.outgoingPaymentGrantService.switchGrant();
         if (switched === null) {
           this.events.emit('open_payments.out_of_funds');
+          return null;
         } else {
-          this.shouldRetryImmediately = true;
+          return false;
         }
       } else if (isInvalidReceiverError(e)) {
         if (Date.now() >= this.incomingPaymentExpiresAt) {
           await this.setIncomingPaymentUrl(true);
-          this.shouldRetryImmediately = true;
+          return false;
         } else {
           ++this.countInvalidReceiver;
           if (
@@ -491,13 +605,29 @@ export class PaymentSession {
             this.events.emit('open_payments.invalid_receiver', {
               tabId: this.tabId,
             });
+            return null;
           } else {
-            this.shouldRetryImmediately = true;
+            return false;
           }
         }
       } else {
         throw e;
       }
     }
+  }
+
+  /**
+   * Retry the continuos payment once on a retry-able error.
+   * @throws never
+   */
+  async payWithRetry(amount: bigint) {
+    let paid: boolean | null = false;
+    try {
+      paid = await this.pay(amount);
+      if (paid === false) paid = await this.pay(amount);
+    } catch (error) {
+      this.logger.error(error);
+    }
+    return paid === true;
   }
 }

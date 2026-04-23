@@ -3,34 +3,44 @@
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
-    "baseUrl": "./src",
     "esModuleInterop": true,
     "module": "ES2022",
     "target": "ES2022",
-    "allowJs": true,
+    "allowImportingTsExtensions": true,
+    "useUnknownInCatchVariables": false,
     "jsx": "react",
     "sourceMap": true,
     "skipLibCheck": true,
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true,
-    "allowUmdGlobalAccess": true,
     "resolveJsonModule": true,
+    "noUnusedLocals": true,
     "noEmit": true,
     "paths": {
-      "@/shared/*": ["./shared/*"],
-      "@/popup/*": ["./popup/*"],
-      "@/background/*": ["./background/*"],
-      "@/content/*": ["./content/*"],
-      "@/assets/*": ["./assets/*"]
-    }
+      "@/shared/*": ["./src/shared/*"],
+      "@/popup/*": ["./src/pages/popup/*"],
+      "@/app/*": ["./src/pages/app/*"],
+      "@/pages/*": ["./src/pages/*"],
+      "@/background/*": ["./src/background/*"],
+      "@/content/*": ["./src/content/*"],
+      "@/assets/*": ["./src/assets/*"]
+    },
+    "types": ["node"],
+    "lib": ["DOM", "ES2022"]
   },
   "include": [
     "./src/**/*",
     "./jest.config.ts",
     "./jest.setup.ts",
     "./scripts/**/*",
-    "./.github/actions/*.cjs",
-    "esbuild/**/*"
+    "./tests/e2e/**/*",
+    "./.github/actions/*.ts"
   ],
-  "exclude": ["dist", "dev"]
+  "exclude": [
+    "dist",
+    "dev",
+    "src/safari",
+    "tests/e2e/playwright-report",
+    "tests/e2e/test-results"
+  ]
 }

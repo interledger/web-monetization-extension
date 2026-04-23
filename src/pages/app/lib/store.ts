@@ -1,0 +1,46 @@
+import type { AppStore, DeepNonNullable, TransientState } from '@/shared/types';
+import { proxy, useSnapshot } from 'valtio';
+
+export type AppState = Required<DeepNonNullable<AppStore>>;
+
+export const store = proxy<AppState>({
+  transientState: {} as TransientState,
+} as AppState);
+
+// easier access to the store via this hook
+export const useAppState = () => useSnapshot(store);
+
+export const dispatch = ({ type, data }: Actions) => {
+  switch (type) {
+    case 'SET_DATA_APP':
+      for (const key of Object.keys(data) as Array<keyof AppState>) {
+        // @ts-expect-error we know TypeScript
+        store[key] = data[key];
+      }
+      break;
+    case 'SET_TRANSIENT_STATE':
+      store.transientState = data;
+      break;
+    case 'SET_CONSENT': {
+      store.consent = data.consent;
+      store.consentTelemetry = data.consentTelemetry;
+      break;
+    }
+    default:
+      throw new Error('Unknown action');
+  }
+};
+
+type Actions =
+  | { type: 'SET_TRANSIENT_STATE'; data: TransientState }
+  | {
+      type: 'SET_CONSENT';
+      data: {
+        consent: NonNullable<AppStore['consent']>;
+        consentTelemetry: Required<NonNullable<AppStore['consentTelemetry']>>;
+      };
+    }
+  | {
+      type: 'SET_DATA_APP';
+      data: Pick<AppStore, 'connected' | 'publicKey' | 'consentTelemetry'>;
+    };

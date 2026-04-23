@@ -1,0 +1,11 @@
+.post-install {
+  --background-image: var(--bg-tile);
+  --background-image-size: 40vmax;
+}
+
+/* hide bg image on mobile */
+@media (max-width: 640px) {
+  .post-install {
+    --background-image: none;
+  }
+}

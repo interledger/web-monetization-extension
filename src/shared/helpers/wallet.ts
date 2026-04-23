@@ -1,0 +1,125 @@
+import type { WalletAddress, JWKS } from '@interledger/open-payments';
+import type { ConnectWalletAddressInfo } from '@/shared/messages';
+import type { AmountValue } from '@/shared/types';
+import {
+  convertWithExchangeRate,
+  getBudgetRecommendationsData,
+  getExchangeRates,
+} from '@/background/utils';
+import type { WalletInfo } from '@/shared/types';
+import { ensureEnd } from './misc';
+import { transformBalance } from './currency';
+
+export function toWalletAddressUrl(s: string): string {
+  if (s.startsWith('https://')) return s;
+
+  const addr = s.replace(/^\$/, 'https://').replace(/\/$/, '');
+  if (/^https:\/\/.*\/[^/].*$/.test(addr)) {
+    return addr;
+  }
+  return `${addr}/.well-known/pay`;
+}
+
+const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {
+  return !!(
+    o.id &&
+    typeof o.id === 'string' &&
+    o.assetScale &&
+    typeof o.assetScale === 'number' &&
+    o.assetCode &&
+    typeof o.assetCode === 'string' &&
+    o.authServer &&
+    typeof o.authServer === 'string' &&
+    o.resourceServer &&
+    typeof o.resourceServer === 'string'
+  );
+};
+
+export const getWalletInformation = async (
+  walletAddressUrl: string,
+): Promise<WalletInfo> => {
+  const response = await fetch(walletAddressUrl, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('This wallet address does not exist.');
+    }
+    throw new Error('Failed to fetch wallet address.');
+  }
+
+  const msgInvalidWalletAddress = 'Provided URL is not a valid wallet address.';
+  const json = await response.json().catch((error) => {
+    throw new Error(msgInvalidWalletAddress, { cause: error });
+  });
+  if (!isWalletAddress(json)) {
+    throw new Error(msgInvalidWalletAddress);
+  }
+
+  return { ...json, url: walletAddressUrl };
+};
+
+export const getConnectWalletBudgetInfo = async (
+  walletAddress: WalletAddress,
+): Promise<
+  Omit<
+    ConnectWalletAddressInfo,
+    'walletAddress' | 'isKeyAdded' | 'isKeyAutoAddSupported'
+  >
+> => {
+  const {
+    DEFAULT_BUDGET,
+    DEFAULT_RATE_OF_PAY,
+    MAX_RATE_OF_PAY,
+    DEFAULT_SCALE,
+  } = await import('@/background/config');
+  const { assetCode, assetScale } = walletAddress;
+
+  const budgetData = await getBudgetRecommendationsData().catch(
+    (): Awaited<ReturnType<typeof getBudgetRecommendationsData>> => ({}),
+  );
+  if (Object.hasOwn(budgetData, assetCode)) {
+    const { budget, hourly } = budgetData[assetCode];
+    const defaultRateOfPay = Number(hourly.default) * 10 ** assetScale;
+    const maxRateOfPay = Number(hourly.max) * 10 ** assetScale;
+    return {
+      defaultBudget: budget.default,
+      defaultRateOfPay: defaultRateOfPay.toFixed(0),
+      maxRateOfPay: maxRateOfPay.toFixed(0),
+    };
+  }
+
+  const exchangeRates = await getExchangeRates().catch(() => {
+    return { base: 'USD', rates: { [assetCode]: 1 } };
+  });
+  const convert = (amount: AmountValue): AmountValue => {
+    const src = { assetCode: 'USD', assetScale: DEFAULT_SCALE };
+    return convertWithExchangeRate(amount, src, walletAddress, exchangeRates);
+  };
+
+  const defaultBudget = convert(DEFAULT_BUDGET);
+  const defaultRateOfPay = convert(DEFAULT_RATE_OF_PAY);
+  const maxRateOfPay = convert(MAX_RATE_OF_PAY);
+  return {
+    defaultBudget: Number(transformBalance(defaultBudget, assetScale)),
+    defaultRateOfPay,
+    maxRateOfPay,
+  };
+};
+
+export async function isKeyAddedToWallet(
+  walletAddressId: string,
+  kid: string,
+): Promise<boolean> {
+  const jwks = await getJWKS(walletAddressId);
+  return jwks.keys.some((key) => key.kid === kid);
+}
+
+export const getJWKS = async (walletAddressUrl: string) => {
+  const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
+  const res = await fetch(jwksUrl.href);
+  const json = await res.json();
+  return json as JWKS;
+};
