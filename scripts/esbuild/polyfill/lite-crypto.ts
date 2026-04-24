@@ -8,14 +8,10 @@ class Hash {
 
   constructor(algorithm: string) {
     const algo = algorithm.toLowerCase().replace(/-/g, '');
-    switch (algo) {
-      case 'sha512':
-        this.instance = sha512.create();
-        break;
-      default:
-        throw new Error(
-          `Algorithm ${algorithm} is not supported in sync mode.`,
-        );
+    if (algo === 'sha512') {
+      this.instance = sha512.create();
+    } else {
+      throw new Error(`lite-crypto: ${algorithm} is not implemented.`);
     }
   }
 
