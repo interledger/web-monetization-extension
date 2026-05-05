@@ -64,8 +64,8 @@ importers:
         specifier: ^2.6.1
         version: 2.6.1
       valtio:
-        specifier: ^2.3.1
-        version: 2.3.1(@types/react@19.2.14)(react@19.2.5)
+        specifier: ^2.3.2
+        version: 2.3.2(@types/react@19.2.14)(react@19.2.5)
       webextension-polyfill:
         specifier: ^0.12.0
         version: 0.12.0
@@ -3602,10 +3602,12 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:
@@ -3615,8 +3617,8 @@ packages:
     resolution: {integrity: sha512-/EH/sDgxU2eGxajKdwLCDmQ4FWq+kpi3uCmBGpw1xJtnAxEjlD8j8PEiGWpCIMIs3ciNAgH0d3TTJiUkYzyZjA==}
     engines: {node: '>=10.12.0'}
 
-  valtio@2.3.1:
-    resolution: {integrity: sha512-ZsOaOEn0U9IJ96cAj3CZ3GjwpN3EJdjsi1PT4PREuB+Pcqfsczu16isT5DT1UrmHbk4PtLjk8kwNEHuR2CX56w==}
+  valtio@2.3.2:
+    resolution: {integrity: sha512-YXhWQei9IN/ZDce9rhL3trCq9+vVq8M1gWmKVdP3YSZ2gxsmmNWVbxXwf9yG6ffu/dAvAD91nevg8xirGr4Dhg==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=18.0.0'
@@ -7367,7 +7369,7 @@ snapshots:
       '@types/istanbul-lib-coverage': 2.0.6
       convert-source-map: 2.0.0
 
-  valtio@2.3.1(@types/react@19.2.14)(react@19.2.5):
+  valtio@2.3.2(@types/react@19.2.14)(react@19.2.5):
     dependencies:
       proxy-compare: 3.0.1
     optionalDependencies:
