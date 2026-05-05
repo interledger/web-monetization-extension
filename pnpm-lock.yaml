@@ -37,8 +37,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       http-message-signatures:
-        specifier: ^1.0.4
-        version: 1.0.4
+        specifier: ^1.0.5
+        version: 1.0.5
       httpbis-digest-headers:
         specifier: ^1.0.0
         version: 1.0.0
@@ -2397,8 +2397,8 @@ packages:
   http-message-signatures@0.1.2:
     resolution: {integrity: sha512-gjJYDgFBy+xnlAs2G0gIWpiorCv9Xi7pIlOnnd91zHAK7BtkLxonmm/JAtd5e6CakOuW03IwEuJzj2YMy8lfWQ==}
 
-  http-message-signatures@1.0.4:
-    resolution: {integrity: sha512-gavCQWnxHFg0BVlKs6CmYK7hNSH1o0x0mHTC68yBAHYOYuTVXPv52mEE7QuT5TenfiagTdOa/zPJzen4lEX7Rg==}
+  http-message-signatures@1.0.5:
+    resolution: {integrity: sha512-3eO+JHsgVI1ilIzqdh8GdeLkEnpdqM8CIX+Q2gsMAqJZasj/TPKAHciuXYW87zySvPM3yudEG9sDMUhVFqkhTg==}
 
   http-proxy-agent@7.0.2:
     resolution: {integrity: sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==}
@@ -3602,10 +3602,12 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   v8-compile-cache-lib@3.0.1:
@@ -4266,7 +4268,7 @@ snapshots:
 
   '@interledger/http-signature-utils@2.0.3':
     dependencies:
-      http-message-signatures: 1.0.4
+      http-message-signatures: 1.0.5
       httpbis-digest-headers: 1.0.0
       jose: 4.15.4
       uuid: 9.0.1
@@ -5907,7 +5909,7 @@ snapshots:
 
   http-message-signatures@0.1.2: {}
 
-  http-message-signatures@1.0.4:
+  http-message-signatures@1.0.5:
     dependencies:
       structured-headers: 1.0.1
 

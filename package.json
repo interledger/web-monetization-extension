@@ -31,7 +31,7 @@
     "awilix": "^13.0.3",
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.1.0",
-    "http-message-signatures": "^1.0.4",
+    "http-message-signatures": "^1.0.5",
     "httpbis-digest-headers": "^1.0.0",
     "iso8601-duration": "^2.1.3",
     "loglevel": "^1.9.2",
