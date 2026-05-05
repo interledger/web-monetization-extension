@@ -19,7 +19,7 @@ jobs:
 
       - name: Find tests to run
         id: filter
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { default: script } = await import('${{ github.workspace }}/.github/actions/tests-e2e-filter.ts')
