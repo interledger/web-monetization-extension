@@ -47,22 +47,6 @@ interface TestEnvVars {
   FYNBOS_TOTP_DETAILS: string | undefined;
 
   // If either of following is not provided, relevant tests will be skipped.
-  /** Chimoney wallet URL origin (without trailing /) */
-  CHIMONEY_WALLET_ORIGIN: string | undefined;
-  /** Chimoney wallet address (used for Chimoney specific tests only) */
-  CHIMONEY_WALLET_ADDRESS_URL: string | undefined;
-  /** Login email for Chimoney wallet */
-  CHIMONEY_USERNAME: string | undefined;
-  /** Login password for Chimoney wallet @secret */
-  CHIMONEY_PASSWORD: string | undefined;
-  /** Chimoney App wallet address (used for Chimoney App specific tests only) */
-  CHIMONEY_APP_WALLET_ADDRESS_URL: string | undefined;
-  /** Login email for Chimoney app wallet */
-  CHIMONEY_APP_USERNAME: string | undefined;
-  /** Login password for Chimoney app wallet @secret */
-  CHIMONEY_APP_PASSWORD: string | undefined;
-
-  // If either of following is not provided, relevant tests will be skipped.
   /** MMAON wallet address (used for MMAON specific tests only) */
   MMAON_WALLET_ADDRESS_URL: string | undefined;
   /** MMAON wallet URL origin (without trailing /) */

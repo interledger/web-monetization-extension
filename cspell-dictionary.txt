@@ -2,7 +2,6 @@
 Interledger
 Fynbos
 Rafiki
-Chimoney
 GateHub
 MMAON
 PostHog
