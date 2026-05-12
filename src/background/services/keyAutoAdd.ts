@@ -267,18 +267,6 @@ const CONTENT_SCRIPTS: Scripting.RegisteredContentScript[] = [
     persistAcrossSessions: false,
   },
   {
-    id: 'keyAutoAdd/chimoney/sandbox',
-    matches: ['https://sandbox.chimoney.io/*'],
-    js: ['content/keyAutoAdd/chimoney.js'],
-    persistAcrossSessions: false,
-  },
-  {
-    id: 'keyAutoAdd/chimoney/prod',
-    matches: ['https://dash.chimoney.io/*'],
-    js: ['content/keyAutoAdd/chimoney.js'],
-    persistAcrossSessions: false,
-  },
-  {
     id: 'keyAutoAdd/gatehub/sandbox',
     matches: [
       'https://wallet.sandbox.gatehub.net/*',
@@ -332,10 +320,6 @@ function walletAddressToProvider(walletAddress: WalletInfo): string {
     case 'fynbos.me':
     case 'ilp.link':
       return 'https://interledger.app/settings/keys';
-    case 'ilp-sandbox.chimoney.com':
-      return 'https://sandbox.chimoney.io/interledger';
-    case 'ilp.chimoney.com':
-      return 'https://dash.chimoney.io/interledger';
     case 'ilp.sandbox.gatehub.net':
       return 'https://wallet.sandbox.gatehub.net/#/wallets/';
     case 'ilp.gatehub.net':
