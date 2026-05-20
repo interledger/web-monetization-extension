@@ -49,14 +49,7 @@ export async function getUserWallets() {
         }
       }
     `,
-  }).catch((error) => {
-    if (error instanceof GraphQlError) {
-      throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
-        error.message,
-      ]);
-    }
-    throw error;
-  });
+  }).catch(handleError);
   return data.me.wallets;
 }
 
@@ -85,15 +78,17 @@ export async function getUserPaymentPointers(wallet: {
         }
       }
     `,
-  }).catch((error) => {
-    if (error instanceof GraphQlError) {
-      throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
-        error.message,
-      ]);
-    }
-    throw error;
-  });
+  }).catch(handleError);
   return data.me;
+}
+
+function handleError(error: unknown): never {
+  if (error instanceof GraphQlError) {
+    throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
+      error.message,
+    ]);
+  }
+  throw error;
 }
 
 // For syntax highlighting
