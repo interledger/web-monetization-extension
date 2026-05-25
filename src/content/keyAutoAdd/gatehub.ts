@@ -6,7 +6,8 @@ import {
 } from './lib/keyAutoAdd';
 import { isTimedOut, waitForURL } from './lib/helpers';
 import {
-  getActiveWallet,
+  getUserWallets,
+  getUserPaymentPointers,
   gql,
   GraphQlError,
   graphQlRequest,
@@ -14,16 +15,6 @@ import {
 import type { JWK } from '@interledger/open-payments';
 
 // #region: Steps
-
-type GetUserPaymentPointersResponse = {
-  me: {
-    wallets: {
-      ilpPaymentPointers: {
-        paymentPointerUrl: string;
-      }[];
-    }[];
-  };
-};
 
 type AddILPWalletAddressKeyResponse = {
   addILPWalletAddressKey: {
@@ -64,48 +55,25 @@ const findWallet: Run<void> = async (
   { setNotificationSize },
 ) => {
   setNotificationSize('fullscreen');
-  const activeWallet = getActiveWallet();
-  if (!activeWallet) {
+  const wallets = await getUserWallets();
+  if (!wallets.length) {
     throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
       'No active wallet found',
     ]);
   }
 
-  const data = await graphQlRequest<GetUserPaymentPointersResponse>({
-    operationName: 'GetUserPaymentPointers',
-    variables: {
-      address: activeWallet.address,
-      walletType: activeWallet.walletType,
-    },
-    query: gql`
-      query GetUserPaymentPointers($address: String!, $walletType: WalletType) {
-        me {
-          wallets(address: $address, walletType: $walletType) {
-            ilpPaymentPointers {
-              paymentPointerUrl
-            }
-          }
-        }
-      }
-    `,
-  }).catch((error) => {
-    if (error instanceof GraphQlError) {
-      throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
-        error.message,
-      ]);
-    }
-    throw error;
-  });
-
-  const walletBelongsToUser = data.me.wallets.some((wallet) => {
-    return wallet.ilpPaymentPointers.some(
-      ({ paymentPointerUrl }) =>
-        paymentPointerUrl.toLowerCase() === walletAddressUrl.toLowerCase(),
-    );
-  });
-  if (!walletBelongsToUser) {
-    throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
+  for (const wallet of wallets) {
+    const data = await getUserPaymentPointers(wallet);
+    const walletBelongsToUser = data.wallets.some((wallet) => {
+      return wallet.ilpPaymentPointers.some(
+        ({ paymentPointerUrl }) =>
+          paymentPointerUrl.toLowerCase() === walletAddressUrl.toLowerCase(),
+      );
+    });
+    if (walletBelongsToUser) return; // ok
   }
+
+  throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
 };
 
 const addKey: Run<void> = async ({ nickName, walletAddressUrl, publicKey }) => {
