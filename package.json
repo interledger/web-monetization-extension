@@ -21,7 +21,7 @@
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
-    "test:ci": "pnpm test"
+    "test:ci": "pnpm test --reporters=default --reporters=github-actions"
   },
   "dependencies": {
     "@interledger/open-payments": "^7.4.0",
@@ -65,6 +65,7 @@
     "@types/webextension-polyfill": "^0.12.5",
     "archiver": "^8.0.0",
     "autoprefixer": "^10.5.0",
+    "babel-plugin-jest-hoist": "^30.4.0",
     "esbuild": "^0.28.1",
     "esbuild-node-builtin": "^0.1.1",
     "esbuild-plugin-copy": "^2.1.1",

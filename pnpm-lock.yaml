@@ -132,6 +132,9 @@ importers:
       autoprefixer:
         specifier: ^10.5.0
         version: 10.5.0(postcss@8.5.15)
+      babel-plugin-jest-hoist:
+        specifier: ^30.4.0
+        version: 30.4.0
       esbuild:
         specifier: ^0.28.1
         version: 0.28.1
