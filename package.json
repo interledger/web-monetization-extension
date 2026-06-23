@@ -96,7 +96,9 @@
       "readable-stream": "2.3.8",
       "parse5": "7.3.0"
     },
-    "onlyBuiltDependencies": ["@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3"]
+    "onlyBuiltDependencies": [
+      "@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3"
+    ]
   },
   "type": "module",
   "packageManager": "pnpm@10.34.3"
