@@ -1,6 +1,6 @@
-import type { Config } from 'jest';
+import { defineConfig } from 'jest';
 
-export default {
+export default defineConfig({
   clearMocks: true,
   displayName: 'WM Extension',
   coverageDirectory: 'coverage',
@@ -23,4 +23,4 @@ export default {
     '^.+\\.(ts|tsx)?$': '@jgoz/jest-esbuild',
     '\\.(css|less|scss|sass|svg)$': 'jest-transform-stub',
   },
-} satisfies Config;
+});

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
 import path from 'node:path';
 import type { BuildOptions, Plugin as ESBuildPlugin } from 'esbuild';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import type {
   BuildArgs,
   Channel,
@@ -76,7 +76,7 @@ function zipPlugin({
 
         const dest = path.join(outDir, '..', zipName);
         const output = createWriteStream(dest);
-        const archive = archiver('zip');
+        const archive = new ZipArchive();
         archive.on('end', () => {
           const archiveSize = archive.pointer();
           const fileName = path.relative(process.cwd(), dest);
