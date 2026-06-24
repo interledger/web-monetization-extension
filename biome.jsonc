@@ -1,12 +1,12 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.11/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": true,
     "defaultBranch": "main"
   },
-  "files": { "ignoreUnknown": true, "includes": ["**"] },
+  "files": { "ignoreUnknown": true, "includes": ["**", "!**/*.svg"] },
   "formatter": {
     "enabled": true,
     "useEditorconfig": true,
@@ -31,7 +31,7 @@
       "test": "all"
     },
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
         "noUselessElse": "off", // TODO: turn on, too many cases
         "noNonNullAssertion": "off", // TODO: turn on, too many cases
@@ -50,9 +50,11 @@
         "useSymbolDescription": "error"
       },
       "suspicious": {
-        "recommended": true,
+        "preset": "recommended",
         "noConsole": "warn",
         "noConstantBinaryExpressions": "error",
+        "noUnnecessaryConditions": "off", // false positives??
+        "noLeakedRender": "off", // too many cases, many false positives
         "noSkippedTests": "info",
         "noUnassignedVariables": "error",
         "noUnknownAtRules": "off",
@@ -74,14 +76,14 @@
         "noSvgWithoutTitle": "off"
       },
       "performance": {
-        "recommended": true,
+        "preset": "recommended",
+        "noJsxPropsBind": "off", // TODO, turn on, too many cases
         "noAwaitInLoops": "off" // TODO: turn on, too many cases
       },
       "nursery": {
-        "recommended": true,
+        "preset": "recommended",
         "noFloatingPromises": "error",
         "noMisusedPromises": "error",
-        "noShadow": "off", // TODO: turn on, too many cases
         "useExplicitType": "off", // TODO: check if we want to. way too many cases
         "useSortedClasses": "off" // TODO: turn on
       },
