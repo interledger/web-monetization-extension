@@ -41,7 +41,7 @@ export const ErrorKeyRevoked = ({
 
   React.useEffect(() => {
     const state = transientState.connect;
-    if (!state || state.intent !== 'reconnect') return;
+    if (state?.intent !== 'reconnect') return;
     if (state.type === 'failure' || state.type === 'cancel') {
       setScreen('main');
     }
@@ -109,7 +109,7 @@ const MainScreen = ({
 
   React.useEffect(() => {
     const state = transientState.connect;
-    if (!state || state.intent !== 'reconnect') return;
+    if (state?.intent !== 'reconnect') return;
     if (state.type === 'failure') {
       let msg = 'Unknown error';
       if (isErrorWithKey(state.details)) {
@@ -193,7 +193,7 @@ const ManualReconnectScreen = ({
 
   React.useEffect(() => {
     const state = transientState.connect;
-    if (!state || state.intent !== 'reconnect') return;
+    if (state?.intent !== 'reconnect') return;
     if (state.type !== 'failure') return;
 
     let message = 'Unknown error';
