@@ -1,9 +1,10 @@
+export { Background } from './background';
 export { OpenPaymentsService } from './openPayments';
 export { StorageService } from './storage';
 export { MonetizationService } from './monetization';
 export { OutgoingPaymentGrantService } from './outgoingPaymentGrant';
 export { WalletService } from './wallet';
-export { Background } from './background';
+export { RateListService } from './rateList';
 export { TabEvents } from './tabEvents';
 export { TabState } from './tabState';
 export { WindowState } from './windowState';
