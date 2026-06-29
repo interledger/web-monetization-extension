@@ -34,7 +34,7 @@ jobs:
         run: pnpm build --channel=preview
 
       - name: Get built version
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         id: version
         with:
           script: |
