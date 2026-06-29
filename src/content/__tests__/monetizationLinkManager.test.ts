@@ -9,6 +9,7 @@ import type {
 } from '@/shared/messages';
 import type { Logger } from '@/shared/logger';
 import type { WalletAddress } from '@interledger/open-payments';
+import { beforeEach, describe, expect, test, vi, type Mock } from 'vitest';
 
 const nextTick = promisify(process.nextTick);
 // for syntax highlighting
@@ -46,28 +47,27 @@ const messageManager = {
   send: () => {},
 } as unknown as MessageManager<Msg>;
 const loggerMock = {
-  error: jest.fn(),
+  error: vi.fn(),
 } as unknown as Logger;
 
 type MessageMocks = {
-  [k in keyof Msg]: jest.Mock<
-    Promise<Response<Msg[k]['output']>>,
-    [Msg[k]['input']]
+  [k in keyof Msg]: Mock<
+    (input: Msg[k]['input']) => Promise<Response<Msg[k]['output']>>
   >;
 };
 const msg: MessageMocks = {
-  GET_WALLET_ADDRESS_INFO: jest.fn(),
-  RESUME_MONETIZATION: jest.fn(),
-  START_MONETIZATION: jest.fn(),
-  STOP_MONETIZATION: jest.fn(),
-  TAB_FOCUSED: jest.fn(),
-  PAGE_HIDE: jest.fn(),
+  GET_WALLET_ADDRESS_INFO: vi.fn(),
+  RESUME_MONETIZATION: vi.fn(),
+  START_MONETIZATION: vi.fn(),
+  STOP_MONETIZATION: vi.fn(),
+  TAB_FOCUSED: vi.fn(),
+  PAGE_HIDE: vi.fn(),
 };
-const messageMock = jest.spyOn(messageManager, 'send');
+const messageMock = vi.spyOn(messageManager, 'send');
 // @ts-expect-error let it go
 messageMock.mockImplementation((action, payload) => msg[action](payload));
 
-// @ts-expect-error jest doesn't know of this
+// @ts-expect-error vitest doesn't know of this
 Symbol.dispose ??= Symbol('Symbol.dispose');
 
 function createMonetizationLinkManager(document: Document) {
@@ -115,12 +115,8 @@ function createTestEnv({
 
   const window = dom.window;
   const document = window.document;
-  const documentReadyState = jest.spyOn(document, 'readyState', 'get');
-  const documentVisibilityState = jest.spyOn(
-    document,
-    'visibilityState',
-    'get',
-  );
+  const documentReadyState = vi.spyOn(document, 'readyState', 'get');
+  const documentVisibilityState = vi.spyOn(document, 'visibilityState', 'get');
 
   if (readyState) {
     documentReadyState.mockReturnValue(readyState);
@@ -128,7 +124,7 @@ function createTestEnv({
 
   const crypto = document.defaultView!.globalThis.crypto;
   Object.defineProperty(crypto, 'randomUUID', {
-    value: jest.fn(createCounter()),
+    value: vi.fn(createCounter()),
   });
 
   return {
@@ -162,7 +158,7 @@ function createTestEnvWithIframe({
 
   const crypto = iframeDocument.defaultView!.globalThis.crypto;
   Object.defineProperty(crypto, 'randomUUID', {
-    value: jest.fn(createCounter('uuid-iframe-')),
+    value: vi.fn(createCounter('uuid-iframe-')),
   });
 
   if (head) iframeDocument.head.insertAdjacentHTML('afterbegin', head);
@@ -172,7 +168,7 @@ function createTestEnvWithIframe({
     document: iframeDocument,
     window: iframeWindow,
     iframe,
-    postMessage: jest.spyOn(iframeWindow.parent, 'postMessage'),
+    postMessage: vi.spyOn(iframeWindow.parent, 'postMessage'),
     dispatchMessage: (data: unknown) => {
       const messageEvent = new iframeWindow.MessageEvent('message', { data });
       iframeWindow.dispatchEvent(messageEvent);
@@ -189,7 +185,7 @@ function createLink(document: Document, href: string) {
 }
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   for (const mock of Object.values(msg)) {
     mock.mockReset();
   }
@@ -203,7 +199,7 @@ describe('monetization in main frame', () => {
     using linkManager = createMonetizationLinkManager(document);
 
     const link = document.querySelector('link')!;
-    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+    const dispatchEventSpy = vi.spyOn(link, 'dispatchEvent');
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
     linkManager.start();
@@ -338,7 +334,7 @@ describe('monetization in main frame', () => {
       failure('This wallet address does not exist.'),
     );
     const dispatchEventSpy = [...document.querySelectorAll('link')].map(
-      (link) => jest.spyOn(link, 'dispatchEvent'),
+      (link) => vi.spyOn(link, 'dispatchEvent'),
     );
 
     linkManager.start();
@@ -479,7 +475,7 @@ describe('monetization in main frame', () => {
     ]);
   });
 
-  test.failing('handles rapid attribute changes on link', async () => {
+  test.fails('handles rapid attribute changes on link', async () => {
     const { document } = createTestEnv({
       head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
     });
@@ -534,7 +530,7 @@ describe('monetization in main frame', () => {
     using linkManager = createMonetizationLinkManager(document);
     const failingLink = document.querySelector('link')!;
 
-    const errorSpy = jest.spyOn(failingLink, 'dispatchEvent');
+    const errorSpy = vi.spyOn(failingLink, 'dispatchEvent');
     msg.GET_WALLET_ADDRESS_INFO.mockRejectedValueOnce(
       new Error('Network error'),
     );
@@ -578,9 +574,9 @@ describe('monetization in first level iframe', () => {
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
-    const dispatchEventLink1 = jest.spyOn(link1, 'dispatchEvent');
-    const dispatchEventLink2 = jest.spyOn(link2, 'dispatchEvent');
-    const dispatchEventLink3 = jest.spyOn(link3, 'dispatchEvent');
+    const dispatchEventLink1 = vi.spyOn(link1, 'dispatchEvent');
+    const dispatchEventLink2 = vi.spyOn(link2, 'dispatchEvent');
+    const dispatchEventLink3 = vi.spyOn(link3, 'dispatchEvent');
 
     const iframeId = 'uuid-iframe-0';
     const iframeWARequestId1 = 'uuid-iframe-1';
@@ -924,7 +920,7 @@ describe('link tag attributes changes', () => {
     const div = document.querySelector('div')!;
 
     linkManager.start();
-    const dispatchEventSpy = jest.spyOn(div, 'dispatchEvent');
+    const dispatchEventSpy = vi.spyOn(div, 'dispatchEvent');
 
     div.setAttribute('onmonetization', 'newHandler()');
     await nextTick();
@@ -950,8 +946,8 @@ describe('link tag attributes changes', () => {
     const child = document.getElementById('child')!;
 
     linkManager.start();
-    const parentDispatchSpy = jest.spyOn(parent, 'dispatchEvent');
-    const childDispatchSpy = jest.spyOn(child, 'dispatchEvent');
+    const parentDispatchSpy = vi.spyOn(parent, 'dispatchEvent');
+    const childDispatchSpy = vi.spyOn(child, 'dispatchEvent');
 
     parent.setAttribute('onmonetization', 'parentHandler()');
     await nextTick();
@@ -981,7 +977,7 @@ describe('link tag attributes changes', () => {
     });
     using linkManager = createMonetizationLinkManager(document);
     const link = document.querySelector('link')!;
-    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+    const dispatchEventSpy = vi.spyOn(link, 'dispatchEvent');
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -1099,7 +1095,7 @@ describe('link tag attributes changes', () => {
     });
     using linkManager = createMonetizationLinkManager(document);
     const link = document.querySelector('link')!;
-    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+    const dispatchEventSpy = vi.spyOn(link, 'dispatchEvent');
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
 
@@ -1212,7 +1208,7 @@ describe('document events', () => {
     using linkManager = createMonetizationLinkManager(document);
 
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
-    jest.spyOn(document, 'hasFocus').mockReturnValue(true);
+    vi.spyOn(document, 'hasFocus').mockReturnValue(true);
 
     linkManager.start();
     await nextTick();
@@ -1234,7 +1230,7 @@ describe('load event dispatching', () => {
     using linkManager = createMonetizationLinkManager(document);
 
     const dispatchEventSpies = [...document.querySelectorAll('link')].map(
-      (link) => jest.spyOn(link, 'dispatchEvent'),
+      (link) => vi.spyOn(link, 'dispatchEvent'),
     );
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(
       success(WALLET_INFO[0]),
@@ -1262,7 +1258,7 @@ describe('load event dispatching', () => {
     using linkManager = createMonetizationLinkManager(document);
 
     const link = document.querySelector('link')!;
-    const dispatchEventSpy = jest.spyOn(link, 'dispatchEvent');
+    const dispatchEventSpy = vi.spyOn(link, 'dispatchEvent');
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
 
@@ -1294,7 +1290,7 @@ describe('load event dispatching', () => {
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[0]));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValueOnce(success(WALLET_INFO[1]));
     const originalLink = document.querySelector('link')!;
-    const originalDispatchSpy = jest.spyOn(originalLink, 'dispatchEvent');
+    const originalDispatchSpy = vi.spyOn(originalLink, 'dispatchEvent');
 
     linkManager.start();
     await nextTick();
@@ -1307,7 +1303,7 @@ describe('load event dispatching', () => {
 
     // replace the link with a new one
     const newLink = createLink(document, WALLET_ADDRESS[1]);
-    const newDispatchSpy = jest.spyOn(newLink, 'dispatchEvent');
+    const newDispatchSpy = vi.spyOn(newLink, 'dispatchEvent');
 
     originalLink.replaceWith(newLink);
     await nextTick();
@@ -1334,8 +1330,8 @@ describe('load event dispatching', () => {
     using linkManager = createMonetizationLinkManager(document);
 
     const [invalidLink, validLink] = document.querySelectorAll('link');
-    const invalidLinkSpy = jest.spyOn(invalidLink, 'dispatchEvent');
-    const validLinkSpy = jest.spyOn(validLink, 'dispatchEvent');
+    const invalidLinkSpy = vi.spyOn(invalidLink, 'dispatchEvent');
+    const validLinkSpy = vi.spyOn(validLink, 'dispatchEvent');
 
     msg.GET_WALLET_ADDRESS_INFO.mockRejectedValue(failure('Invalid URL'));
     msg.GET_WALLET_ADDRESS_INFO.mockResolvedValue(success(WALLET_INFO[0]));

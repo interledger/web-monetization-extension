@@ -1,3 +1,4 @@
+import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 
@@ -16,7 +17,7 @@ describe('Code', () => {
   it('calls clipboard.writeText with the correct value', () => {
     Object.assign(navigator, {
       clipboard: {
-        writeText: jest.fn(),
+        writeText: vi.fn(),
       },
     });
 

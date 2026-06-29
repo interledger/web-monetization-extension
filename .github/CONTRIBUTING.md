@@ -61,7 +61,7 @@ We also rely on prettier, for Markdown and YAML files, until Biome supports them
 
 #### Testing
 
-[Jest](https://jestjs.io/) is used for unit and integration testing.
+[Vitest](https://vitest.dev/) is used for unit and integration testing.
 
 #### Language
 

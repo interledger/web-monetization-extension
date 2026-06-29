@@ -30,8 +30,8 @@
   },
   "include": [
     "./src/**/*",
-    "./jest.config.ts",
-    "./jest.setup.ts",
+    "./vitest.config.ts",
+    "./vitest.setup.ts",
     "./scripts/**/*",
     "./tests/e2e/**/*",
     "./.github/actions/*.ts"
