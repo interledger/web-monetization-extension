@@ -52,7 +52,7 @@ Learn how to install the extension from source by reading the [installation inst
 ### Additional commands
 
 - **`pnpm test`**
-  - Runs jest for unit testing and integration testing.
+  - Runs vitest for unit testing and integration testing.
   - Use `pnpm test:watch` to run tests in watch mode.
 
 - **`pnpm test:e2e:chromium`**

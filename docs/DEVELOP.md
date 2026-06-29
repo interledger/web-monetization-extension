@@ -105,8 +105,8 @@ The high-level project directory structure is as follows:
 │   │   └── shared/ # Shared components and libraries for the frontend
 │   ├── shared/ # Shared utilities
 │   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
-├── jest.config.ts
-├── jest.setup.ts
+├── vitest.config.ts
+├── vitest.setup.ts
 ├── package.json
 ├── tailwind.config.ts
 └── tsconfig.json
@@ -268,13 +268,13 @@ Note that, we only support [manifest version 3](https://developer.chrome.com/doc
 ### Unit Testing
 
 **Target:** Focuses on testing individual functions and React components.
-**Tools:** Leverages `jest` as the test runner and `@testing-library/react` for efficient frontend testing.
+**Tools:** Leverages `vitest` as the test runner and `@testing-library/react` for efficient frontend testing.
 **Execution:** Run unit tests with the command `pnpm test`.
 **Best Practices:** Strive for minimal reliance on global state and mocks. Pass required parameters directly to functions and components for cleaner testing.
 
 ### Integration Testing
 
-While not currently implemented, this could involve testing interactions between different parts of the extension using jest.
+While not currently implemented, this could involve testing interactions between different parts of the extension using vitest.
 
 ### End-to-End Testing
 
