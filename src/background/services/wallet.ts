@@ -134,6 +134,7 @@ export class WalletService {
           tabId = openedTabId;
           cleanupListeners = highlightTabOnPopupOpen(browser, tabId);
         });
+        cleanupListeners();
       } catch (error) {
         cleanupListeners();
         const err = this.setConnectStateError(error, 'connect', {

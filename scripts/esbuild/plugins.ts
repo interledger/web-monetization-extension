@@ -30,15 +30,15 @@ export const getPlugins = ({
   return [
     cleanPlugin([outDir]),
     // nodeBuiltIn (powered by rollup plugin) replaces crypto with an empty
-    // package. But we need it, and we use crypto-browserify in for our use
-    // case. The JSPM crypto package is too large and not tree shakeable, so we
-    // don't use it.
+    // package, but we need it. We instead use custom crypto layer based on
+    // @noble/hashes in for our use case. crypto-browserify and the JSPM crypto
+    // package are too large and not tree shakeable, so we don't use them.
     nodeBuiltin({ exclude: ['crypto'] }),
     {
       name: 'crypto-for-extension',
       setup(build) {
         build.onResolve({ filter: /^crypto$/ }, () => ({
-          path: require.resolve('crypto-browserify'),
+          path: require.resolve('./polyfill/lite-crypto.ts'),
         }));
       },
     } satisfies ESBuildPlugin,

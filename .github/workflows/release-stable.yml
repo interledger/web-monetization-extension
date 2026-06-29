@@ -38,7 +38,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Validate stable release
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
         with:
@@ -50,7 +50,7 @@ jobs:
         run: pnpm build --channel=stable
 
       - name: Get built version
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         id: version
         with:
           script: |
@@ -64,7 +64,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
 
       - name: Release
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v2.6.2
         with:
           files: |
             dist/*.zip

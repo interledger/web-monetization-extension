@@ -120,25 +120,6 @@ const WALLETS: Array<WalletOption> = [
     },
     walletAddressPlaceholder: '$ilp.gatehub.net/150012570/usd',
   },
-  {
-    id: 'chimoney',
-    name: 'Chimoney Wallet',
-    url: 'https://chimoney.page.link/yJa2KQ3ZwTX1yLcn8?ref=webmonetization-extension',
-    logo: {
-      src: '/assets/images/logos/chimoney-logo.svg',
-      width: 300,
-      height: 75,
-    },
-    walletAddressScreenshot: {
-      src: '/assets/images/wallet-address-chimoney.png',
-      width: 1500,
-      height: 938,
-    },
-    walletAddressScreenshotMobile: {
-      src: '/assets/images/wallet-address-chimoney.mobile.png',
-    },
-    walletAddressPlaceholder: 'https://ilp.chimoney.com/37294745',
-  },
 ];
 
 const STEP_ID = [

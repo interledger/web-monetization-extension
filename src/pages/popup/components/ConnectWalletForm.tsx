@@ -265,9 +265,9 @@ export const ConnectWalletForm = ({
       }
     }
 
-    const walletInfo =
-      walletAddressInfo ??
-      (await getWalletInfo(toWalletAddressUrl(walletAddressUrl)));
+    const walletInfo = walletAddressInfo
+      ? await getWalletInfo(walletAddressInfo.walletAddress.id)
+      : await getWalletInfo(toWalletAddressUrl(walletAddressUrl));
 
     if (
       !walletInfo.isKeyAdded &&
