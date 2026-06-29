@@ -20,8 +20,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium",
-    "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
-    "test:ci": "vitest run --reporter=default --reporter=github-actions"
+    "test:e2e:report": "playwright show-report tests/e2e/playwright-report"
   },
   "dependencies": {
     "@interledger/open-payments": "^7.4.0",
