@@ -1,3 +1,4 @@
+import { beforeEach, describe, expect, it, test } from 'vitest';
 import { distributeAmount, calculateInterval } from '../paymentManager';
 
 describe('continuous payments / calculateInterval', () => {

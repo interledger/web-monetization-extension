@@ -1,21 +1,22 @@
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Deduplicator } from './deduplicator';
 import type { Logger } from '@/shared/logger';
 
 describe('Deduplicator', () => {
   const deduplicatorService: Deduplicator = new Deduplicator({
     logger: {
-      debug: jest.fn(),
+      debug: vi.fn(),
     } as unknown as Logger,
   });
   let returnValueFn1: { access_token: { value: string; type: string } };
   let returnValueFn2: { access_token: { value: string; type: string } };
 
   beforeAll(async (): Promise<void> => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   beforeEach(() => {
-    jest.runAllTimers();
+    vi.runAllTimers();
     returnValueFn1 = { access_token: { value: 'value1', type: 'quote' } };
     returnValueFn2 = { access_token: { value: 'value2', type: 'incoming' } };
   });
@@ -32,7 +33,7 @@ describe('Deduplicator', () => {
     shouldReject?: boolean;
     mockFnName?: string;
   }) => {
-    const fn = jest.fn(
+    const fn = vi.fn(
       async (..._args: unknown[]) =>
         new Promise((resolve, reject) => {
           try {
@@ -48,7 +49,7 @@ describe('Deduplicator', () => {
           }
         }),
     );
-    // jest.fn() returns an anonymous function, which is created using the new Promise constructor.
+    // vi.fn() returns an anonymous function, which is created using the new Promise constructor.
     // it needs a `name` property, to have a key for deduplication service
     Object.defineProperty(fn, 'name', { value: mockFnName });
 
@@ -63,7 +64,7 @@ describe('Deduplicator', () => {
       const fn = createAsyncFn({ returnValue });
       const dedupedFn = deduplicatorService.dedupe(fn);
       const resultPromises = [dedupedFn(), dedupedFn(), dedupedFn()];
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       const results = await Promise.all(resultPromises);
       expect(results[0]).toBe(returnValue);
@@ -87,7 +88,7 @@ describe('Deduplicator', () => {
       const dedupedFn2 = deduplicatorService.dedupe(fn2);
       const resultPromises = [dedupedFn1('arg1'), dedupedFn2('arg2')];
 
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       const [result1, result2] = await Promise.all(resultPromises);
 
@@ -110,7 +111,7 @@ describe('Deduplicator', () => {
       // cache will return and reuse the same pending promise to result2
       const result2 = dedupedFn2({ object: { key: 'arg2' } }, 2);
       const result3 = dedupedFn2({ object: { key: 'arg3' } }, 3);
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       await expect(result1).resolves.toBe(returnValueFn1);
       await expect(result2).resolves.toBe(returnValueFn1);
@@ -136,7 +137,7 @@ describe('Deduplicator', () => {
       void dedupedFn(dedupedFnArg1);
       const dedupedFnArg2 = ['arg2'];
       void dedupedFn(dedupedFnArg2);
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       expect(fn).toHaveBeenCalledWith(dedupedFnArg1);
       expect(fn).toHaveBeenCalledWith(dedupedFnArg2);
@@ -157,7 +158,7 @@ describe('Deduplicator', () => {
         dedupedFn(1, { object: { key: 'arg' } }),
         dedupedFn(1, { object: { key: 'arg' } }),
       ];
-      jest.runAllTimers();
+      vi.runAllTimers();
       const [result1, result2, result3] = await Promise.all(resultPromises);
 
       expect(result1).toBe(returnValue);
@@ -191,7 +192,7 @@ describe('Deduplicator', () => {
         }),
       ];
 
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       const [result1, result2] = await Promise.all(resultPromises);
 
@@ -233,7 +234,7 @@ describe('Deduplicator', () => {
       // at this point, result1 promise is still pending,
       // cache will return and reuse the same pending promise to result2
       const result2 = dedupedFn(1, 2);
-      jest.runAllTimers();
+      vi.runAllTimers();
 
       await expect(result1).rejects.toThrow('Test error');
       await expect(result2).rejects.toThrow('Test error');
@@ -269,15 +270,15 @@ describe('Deduplicator', () => {
       const dedupedFn = deduplicatorService.dedupe(fn);
 
       const promise1 = dedupedFn();
-      jest.runAllTimers();
+      vi.runAllTimers();
       const results = await promise1;
       expect(results).toBe(returnValue);
 
-      jest.advanceTimersByTime(timeout);
-      jest.runAllTimers();
+      vi.advanceTimersByTime(timeout);
+      vi.runAllTimers();
 
       const promise2 = dedupedFn();
-      jest.runAllTimers();
+      vi.runAllTimers();
       const results2 = await promise2;
       expect(results2).toBe(returnValue);
 
