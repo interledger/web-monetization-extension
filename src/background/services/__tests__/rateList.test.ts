@@ -2,6 +2,7 @@ import { openDB } from 'idb';
 import { RateListService, type RateListRecord } from '../rateList';
 import type { StorageService } from '../storage';
 import type { WalletInfo } from '@/shared/types';
+import { describe, it, afterEach, vi, expect } from 'vitest';
 
 // IDBKeyRange is not provided by jsdom; shim it for the mock below.
 Object.assign(global, {
@@ -10,13 +11,13 @@ Object.assign(global, {
 
 const mockStore = new Map<string, RateListRecord>();
 
-jest.mock('idb');
-const mockedOpenDB = jest.mocked(openDB);
+vi.mock('idb');
+const mockedOpenDB = vi.mocked(openDB);
 
 // @ts-expect-error mocking partially only
 mockedOpenDB.mockImplementation(async (_name, _v, { upgrade }) => {
   const db = {
-    createObjectStore: jest.fn().mockReturnValue({ createIndex: jest.fn() }),
+    createObjectStore: vi.fn().mockReturnValue({ createIndex: vi.fn() }),
     get: (
       _s: string,
       [ac, as, site]: [assetCode: string, assetScale: number, site: string],
@@ -51,7 +52,7 @@ mockedOpenDB.mockImplementation(async (_name, _v, { upgrade }) => {
 
 afterEach(() => {
   mockStore.clear();
-  jest.clearAllMocks();
+  vi.clearAllMocks();
 });
 
 type Wallet = Pick<WalletInfo, 'assetCode' | 'assetScale'>;
@@ -59,7 +60,7 @@ function makeRateListService(
   wallet: Wallet | null = { assetCode: 'USD', assetScale: 2 },
 ): RateListService {
   const storage = {
-    get: jest.fn().mockResolvedValue({ walletAddress: wallet }),
+    get: vi.fn().mockResolvedValue({ walletAddress: wallet }),
   } as unknown as StorageService;
   return new RateListService({ storage });
 }
