@@ -8,7 +8,7 @@ import { signAsync } from '@noble/ed25519';
 import { hexToBytes } from '@noble/hashes/utils.js';
 import type { Request } from 'http-message-signatures';
 import { signMessage } from 'http-message-signatures/lib/httpbis';
-import { createContentDigestHeader } from 'httpbis-digest-headers';
+import { createContentDigestHeader } from '@/shared/crypto';
 import type { AmountType } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 
@@ -83,11 +83,10 @@ export class OpenPaymentsService {
     );
   }
 
-  private createContentHeaders(body: string): ContentHeaders {
+  private async createContentHeaders(body: string): Promise<ContentHeaders> {
     return {
-      'Content-Digest': createContentDigestHeader(
+      'Content-Digest': await createContentDigestHeader(
         JSON.stringify(JSON.parse(body)),
-        ['sha-512'],
       ),
       'Content-Length': new TextEncoder().encode(body).length.toString(),
       'Content-Type': 'application/json',
@@ -145,7 +144,7 @@ export class OpenPaymentsService {
     keyId,
   }: SignOptions): Promise<Headers> {
     if (request.body) {
-      const contentHeaders = this.createContentHeaders(request.body);
+      const contentHeaders = await this.createContentHeaders(request.body);
       request.headers = { ...request.headers, ...contentHeaders };
     }
 

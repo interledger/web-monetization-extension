@@ -1,4 +1,5 @@
 import { keygenAsync } from '@noble/ed25519';
+import { serializeDictionary } from 'structured-headers';
 
 export async function generateEd25519KeyPair() {
   const keyPair = await keygenAsync();
@@ -23,4 +24,10 @@ export function exportJWK(key: Uint8Array, kid: string) {
     x: base64Url,
     kid,
   };
+}
+
+export async function createContentDigestHeader(body: string): Promise<string> {
+  const data = new TextEncoder().encode(body);
+  const hash = await crypto.subtle.digest('SHA-512', data);
+  return serializeDictionary({ 'sha-512': [hash, new Map()] });
 }
