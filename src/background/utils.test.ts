@@ -1,4 +1,4 @@
-/// <reference types="jest-expect-message" />
+import { describe, expect, it } from 'vitest';
 import {
   convertWithExchangeRate,
   getNextSendableAmount,

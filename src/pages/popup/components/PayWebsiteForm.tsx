@@ -125,7 +125,7 @@ export const PayWebsiteForm = () => {
         type="submit"
         className={cn(
           'w-full',
-          isSubmitting || !amount || !!errors.amount ? 'opacity-100' : null,
+          isSubmitting || !amount || errors.amount ? 'opacity-100' : null,
         )}
         disabled={isSubmitting || !amount || !!errors.amount}
         loading={isSubmitting}

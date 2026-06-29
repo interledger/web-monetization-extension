@@ -1,3 +1,12 @@
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import { useLocalStorage } from './hooks';
@@ -7,15 +16,15 @@ describe('useLocalStorage', () => {
   let now = Date.now();
   let defaultExpiresAt = now + defaultMaxAge;
   beforeAll(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
   beforeEach(() => {
     localStorage.clear();
-    now = jest.getRealSystemTime();
+    now = vi.getRealSystemTime();
     defaultExpiresAt = now + defaultMaxAge;
   });
   afterAll(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
     localStorage.clear();
   });
 
@@ -136,8 +145,8 @@ describe('useLocalStorage', () => {
     expect(stored.expiresAt).toBeGreaterThanOrEqual(now + maxAge * 1000);
     expect(stored.expiresAt).toBeLessThan(defaultExpiresAt);
 
-    jest.setSystemTime(now + (maxAge + 1) * 1000);
-    jest.advanceTimersByTime(now + (maxAge + 1) * 1000);
+    vi.setSystemTime(now + (maxAge + 1) * 1000);
+    vi.advanceTimersByTime(now + (maxAge + 1) * 1000);
 
     unmount();
     const remounted = render(ui);

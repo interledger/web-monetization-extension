@@ -1,5 +1,15 @@
 import { addDays, addMonths, addSeconds } from 'date-fns';
 import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  test,
+  vi,
+  type MockedFunction,
+} from 'vitest';
+import {
   isOkState,
   objectEquals,
   removeQueryParams,
@@ -233,22 +243,22 @@ describe('toWalletAddressUrl', () => {
 });
 
 describe('Timeout', () => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 
-  let callback: jest.Mock;
+  let callback: ReturnType<typeof vi.fn>;
   let timeout: Timeout;
   beforeEach(() => {
-    callback = jest.fn();
+    callback = vi.fn();
     timeout = new Timeout(1000, callback);
   });
 
   afterEach(() => {
-    jest.clearAllTimers();
+    vi.clearAllTimers();
     test;
   });
 
   it('should call the callback after the specified time', () => {
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
@@ -256,35 +266,35 @@ describe('Timeout', () => {
     timeout.reset(2000);
     // @ts-expect-error for testing it's ok to access private properties
     expect(timeout.ms).toBe(2000);
-    jest.advanceTimersByTime(2000);
+    vi.advanceTimersByTime(2000);
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
   it('should pause the timeout', () => {
     timeout.pause();
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(callback).not.toHaveBeenCalled();
   });
 
   it('should resume the timeout', () => {
     timeout.pause();
-    jest.advanceTimersByTime(500);
+    vi.advanceTimersByTime(500);
     timeout.resume();
-    jest.advanceTimersByTime(500);
+    vi.advanceTimersByTime(500);
     expect(callback).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(500);
+    vi.advanceTimersByTime(500);
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
   it('should clear the timeout', () => {
     timeout.clear();
-    jest.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1000);
     expect(callback).not.toHaveBeenCalled();
   });
 });
 
 describe('memoize', () => {
-  jest.useFakeTimers();
+  vi.useFakeTimers();
 
   type SuccessResponse = { data: string };
   type MockFunction = () => Promise<SuccessResponse>;
@@ -293,9 +303,9 @@ describe('memoize', () => {
   const successResponse2: SuccessResponse = { data: 'success2' };
   const errorResponse = new Error('failure');
 
-  let mockFn: jest.MockedFunction<MockFunction>;
+  let mockFn: MockedFunction<MockFunction>;
   beforeEach(() => {
-    mockFn = jest.fn();
+    mockFn = vi.fn();
   });
 
   it('should cache the result of a successful promise with max-age mechanism', async () => {
@@ -310,7 +320,7 @@ describe('memoize', () => {
     expect(result1).toBe(successResponse1);
     expect(result2).toBe(successResponse1);
 
-    jest.advanceTimersByTime(1001);
+    vi.advanceTimersByTime(1001);
     const result3 = await memoizedFn();
     expect(mockFn).toHaveBeenCalledTimes(2);
     expect(result3).toBe(successResponse2);
@@ -331,12 +341,12 @@ describe('memoize', () => {
     expect(result1).toBe(successResponse1);
     expect(result2).toBe(successResponse1);
 
-    jest.advanceTimersByTime(1001);
+    vi.advanceTimersByTime(1001);
     const result3 = await memoizedFn();
     expect(mockFn).toHaveBeenCalledTimes(2);
     expect(result3).toBe(successResponse1);
 
-    jest.advanceTimersByTime(50);
+    vi.advanceTimersByTime(50);
     const result4 = await memoizedFn();
     expect(mockFn).toHaveBeenCalledTimes(2);
     expect(result4).toBe(successResponse2);
@@ -374,7 +384,7 @@ describe('memoize', () => {
     expect(mockFn).toHaveBeenCalledTimes(2);
     expect(result1).toBe(successResponse1);
 
-    jest.advanceTimersByTime(1001);
+    vi.advanceTimersByTime(1001);
 
     // even though 3rd call results in an error, reuse successful response from
     // a previous call

@@ -36,7 +36,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Test
-        run: pnpm test:ci
+        run: pnpm test
 
   lint:
     name: Lint
