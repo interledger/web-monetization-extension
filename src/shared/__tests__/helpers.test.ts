@@ -245,10 +245,10 @@ describe('toWalletAddressUrl', () => {
 describe('Timeout', () => {
   vi.useFakeTimers();
 
-  let callback: ReturnType<typeof vi.fn>;
+  let callback: MockedFunction<() => void>;
   let timeout: Timeout;
   beforeEach(() => {
-    callback = vi.fn();
+    callback = vi.fn<() => void>();
     timeout = new Timeout(1000, callback);
   });
 

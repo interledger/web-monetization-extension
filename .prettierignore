@@ -15,3 +15,5 @@ LICENSE
 *.jsonc
 *.css
 *.html
+
+docs/testing/testplan.md
