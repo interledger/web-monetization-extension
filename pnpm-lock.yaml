@@ -38,9 +38,6 @@ importers:
       http-message-signatures:
         specifier: ^1.0.6
         version: 1.0.6
-      httpbis-digest-headers:
-        specifier: ^1.0.0
-        version: 1.0.0
       idb:
         specifier: ^8.0.3
         version: 8.0.3
@@ -62,6 +59,9 @@ importers:
       safe-buffer:
         specifier: 5.2.1
         version: 5.2.1
+      structured-headers:
+        specifier: ^2.0.2
+        version: 2.0.2
       tailwind-merge:
         specifier: ^2.6.1
         version: 2.6.1
