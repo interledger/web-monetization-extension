@@ -38,6 +38,9 @@ importers:
       http-message-signatures:
         specifier: ^1.0.6
         version: 1.0.6
+      idb:
+        specifier: ^8.0.3
+        version: 8.0.3
       iso8601-duration:
         specifier: ^2.1.4
         version: 2.1.4
@@ -1637,6 +1640,9 @@ packages:
     engines: {node: ^10 || ^12 || >= 14}
     peerDependencies:
       postcss: ^8.1.0
+
+  idb@8.0.3:
+    resolution: {integrity: sha512-LtwtVyVYO5BqRvcsKuB2iUMnHwPVByPCXFXOpuU96IZPPoPN6xjOGxZQ74pgSVVLQWtUOYgyeL4GE98BY5D3wg==}
 
   ignore@5.3.1:
     resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
@@ -3938,6 +3944,8 @@ snapshots:
   icss-utils@5.1.0(postcss@8.5.16):
     dependencies:
       postcss: 8.5.16
+
+  idb@8.0.3: {}
 
   ignore@5.3.1: {}
 

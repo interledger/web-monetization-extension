@@ -9,6 +9,7 @@ import {
   OpenPaymentsService,
   OutgoingPaymentGrantService,
   StorageService,
+  RateListService,
   WalletService,
   MonetizationService,
   Background,
@@ -49,6 +50,7 @@ export interface Cradle {
   events: EventsService;
   deduplicator: Deduplicator;
   storage: StorageService;
+  rateList: RateListService;
   outgoingPaymentGrantService: OutgoingPaymentGrantService;
   openPaymentsService: OpenPaymentsService;
   walletService: WalletService;
@@ -91,6 +93,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('storage'),
+      })),
+    rateList: asClass(RateListService)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('rate-list'),
       })),
     outgoingPaymentGrantService: asClass(OutgoingPaymentGrantService)
       .singleton()

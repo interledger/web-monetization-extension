@@ -31,6 +31,7 @@
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.4.0",
     "http-message-signatures": "^1.0.6",
+    "idb": "^8.0.3",
     "iso8601-duration": "^2.1.4",
     "loglevel": "^1.9.2",
     "posthog-js": "^1.396.1",
