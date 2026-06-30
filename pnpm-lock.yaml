@@ -148,8 +148,8 @@ importers:
         specifier: ^8.5.16
         version: 8.5.16
       prettier:
-        specifier: ^3.9.3
-        version: 3.9.3
+        specifier: ^3.9.4
+        version: 3.9.4
       sade:
         specifier: ^1.8.1
         version: 1.8.1
@@ -178,7 +178,7 @@ packages:
     resolution: {integrity: sha512-+sCcHHbVdk93a0XT19ECtO/gIXoxvdsgQLzb2fE2/5sIZmWQuluYyjPQtrtTHdU1YzTZ7bAPN4sITq2xi1679w==}
 
   '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3':
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3}
+    resolution: {gitHosted: true, integrity: sha512-8ycuXIPYjTQtJUUbjlRvrrdRRyGI06dMCDM/akxV3gEqGUOlhi9v9o4MrpwNFsdRJ1n6umPYJaseE5Wl0x7kkg==, tarball: https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3}
     version: 9.0.0
     engines: {node: '>=24'}
 
@@ -2073,8 +2073,8 @@ packages:
   preact@10.29.2:
     resolution: {integrity: sha512-7tNmwg/7mzzAoB/8kSg6Hl37JraAZw3Z3A0JSY7VXlZwo82Xn0G7wKbNNs2qoF4ZEEsQGTwDAroNdqKs1ofJxQ==}
 
-  prettier@3.9.3:
-    resolution: {integrity: sha512-HWmu+K+zvHNpaMfSnYeqdqrDbR16cuIXaPx8WoHaviQkDJh1/0BNtOZmHVQI5jc3wXv0H1yXc9wjvFdXh+n3hQ==}
+  prettier@3.9.4:
+    resolution: {integrity: sha512-yWG/o/4oJfo036EKAfK6ACAoDOfHeRHx4tuxkfBZiauURiaSmYwlpOr5LQqKtIkRD2z1PLteme2WoxEnj4tHTg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -4368,7 +4368,7 @@ snapshots:
 
   preact@10.29.2: {}
 
-  prettier@3.9.3: {}
+  prettier@3.9.4: {}
 
   pretty-format@27.5.1:
     dependencies:
