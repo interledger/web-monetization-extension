@@ -6,10 +6,15 @@ import type {
   StartMonetizationPayload,
   StopMonetizationPayload,
 } from '@/shared/messages';
+import {
+  matchesPattern,
+  hostnameToSiteKey,
+} from '@/background/services/rateList';
 import { getSender, getTabId } from '@/background/utils';
 import {
   ErrorWithKey,
   isOkState,
+  isTabWithUrl,
   removeQueryParams,
   transformBalance,
 } from '@/shared/helpers';
@@ -19,6 +24,7 @@ import type { Cradle } from '@/background/container';
 export class MonetizationService {
   private logger: Cradle['logger'];
   private rootLogger: Cradle['rootLogger'];
+  private browser: Cradle['browser'];
   private openPaymentsService: Cradle['openPaymentsService'];
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private storage: Cradle['storage'];
@@ -29,10 +35,12 @@ export class MonetizationService {
   private telemetry: Cradle['telemetry'];
   private PaymentSession: Cradle['PaymentSession'];
   private PaymentManager: Cradle['PaymentManager'];
+  private rateList: Cradle['rateList'];
 
   constructor({
     logger,
     rootLogger,
+    browser,
     openPaymentsService,
     outgoingPaymentGrantService,
     storage,
@@ -43,9 +51,11 @@ export class MonetizationService {
     telemetry,
     PaymentSession,
     PaymentManager,
+    rateList,
   }: Cradle) {
     this.logger = logger;
     this.rootLogger = rootLogger;
+    this.browser = browser;
     this.openPaymentsService = openPaymentsService;
     this.outgoingPaymentGrantService = outgoingPaymentGrantService;
     this.storage = storage;
@@ -56,6 +66,7 @@ export class MonetizationService {
     this.telemetry = telemetry;
     this.PaymentSession = PaymentSession;
     this.PaymentManager = PaymentManager;
+    this.rateList = rateList;
 
     this.registerEventListeners();
   }
@@ -85,11 +96,14 @@ export class MonetizationService {
     let paymentManager = this.tabState.paymentManagers.get(tabId);
     if (!paymentManager) {
       const url = removeQueryParams(this.tabState.url.get(tabId) || fullUrl!);
+      const siteRate = await this.rateList.getRateForHostname(
+        new URL(url).hostname,
+      );
       paymentManager = new this.PaymentManager(
         tabId,
         url,
         connectedWallet,
-        rateOfPay,
+        siteRate ?? rateOfPay,
         {
           storage: this.storage,
           openPaymentsService: this.openPaymentsService,
@@ -348,10 +362,37 @@ export class MonetizationService {
   }
 
   private registerEventListeners() {
+    this.onSiteRateUpdate();
     this.onRateOfPayUpdate();
     this.onKeyRevoked();
     this.onOutOfFunds();
     this.onInvalidReceiver();
+  }
+
+  private onSiteRateUpdate() {
+    this.events.on('rateList.site_rate_update', async ({ hostname, rate }) => {
+      this.logger.debug("Received event='rateList.site_rate_update'", {
+        hostname,
+      });
+      const { rateOfPay } = await this.storage.get(['rateOfPay']);
+      if (!rateOfPay) return;
+
+      const site = hostnameToSiteKey(hostname);
+      const effectiveRate = rate ?? rateOfPay;
+
+      const matchingTabs = await this.browser.tabs
+        .query({ url: `*://${site}/*` })
+        .then((tabs) => tabs.filter(isTabWithUrl));
+
+      for (const tab of matchingTabs) {
+        const tabHostname = new URL(tab.url).hostname;
+        if (!matchesPattern(tabHostname, site)) continue;
+
+        const paymentManager = this.tabState.paymentManagers.get(tab.id);
+        if (!paymentManager) continue;
+        paymentManager.setRate(effectiveRate);
+      }
+    });
   }
 
   private onRateOfPayUpdate() {
@@ -370,11 +411,20 @@ export class MonetizationService {
         }
       }
 
-      for (const tabId of tabIds) {
-        const paymentManager = this.tabState.paymentManagers.get(tabId);
-        paymentManager?.setRate(rate);
+      const hasSiteRate = await Promise.all(tabIds.map(hasSiteSpecificRate));
+      for (let i = 0; i < tabIds.length; i++) {
+        if (hasSiteRate[i]) continue;
+        this.tabState.paymentManagers.get(tabIds[i])?.setRate(rate);
       }
     });
+
+    const hasSiteSpecificRate = async (tabId: number): Promise<boolean> => {
+      const tabUrl = this.tabState.url.get(tabId);
+      if (!tabUrl) return false;
+      const { hostname } = new URL(tabUrl);
+      const siteRate = await this.rateList.getRateForHostname(hostname);
+      return !!siteRate;
+    };
   }
 
   private onKeyRevoked() {
@@ -431,10 +481,18 @@ export class MonetizationService {
 
     const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData;
 
+    const tabData = this.tabState.getPopupTabData(tab);
+    if (tabData.url) {
+      const siteRate = await this.rateList.getRateForHostname(
+        new URL(tabData.url).hostname,
+      );
+      if (siteRate) tabData.rateOfPay = siteRate;
+    }
+
     return {
       ...dataFromStorage,
       balance: balance.total.toString(),
-      tab: this.tabState.getPopupTabData(tab),
+      tab: tabData,
       transientState: this.storage.getTransientState(),
       grants: {
         oneTime: oneTimeGrant?.amount,

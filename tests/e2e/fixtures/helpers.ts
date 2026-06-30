@@ -17,6 +17,10 @@ import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../scripts/esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
 import type { Storage, StorageKey } from '../../../src/shared/types';
+import type {
+  PopupToBackgroundMessage,
+  Response,
+} from '../../../src/shared/messages';
 
 export type BrowserInfo = { browserName: string; channel: string | undefined };
 export type Background = Worker;
@@ -368,6 +372,18 @@ export class BrowserIntl {
     }
     return result;
   }
+}
+
+type Msg = PopupToBackgroundMessage;
+export async function sendBackgroundMessage<K extends keyof Msg>(
+  background: Background,
+  action: K,
+  payload: Msg[K]['input'] extends never ? undefined : Msg[K]['input'],
+): Promise<Response<Msg[K]['output']>> {
+  return background.evaluate(
+    ([action, payload]) => chrome.runtime.sendMessage({ action, payload }),
+    [action, payload],
+  );
 }
 
 export async function getStorage<TKey extends StorageKey>(

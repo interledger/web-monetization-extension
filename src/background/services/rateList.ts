@@ -44,7 +44,7 @@ export class RateListService {
     return entries.map(({ site, rate }) => ({ site, rate }));
   }
 
-  async setRate(site: string, rate: AmountValue): Promise<void> {
+  async setRate(hostname: string, rate: AmountValue): Promise<void> {
     const wallet = await this.#getWallet();
     if (!wallet) {
       throw new Error('Cannot set rate without a connected wallet');
@@ -52,13 +52,15 @@ export class RateListService {
 
     const db = await this.#getDb();
     const { assetCode, assetScale } = wallet;
+    const site = hostnameToSiteKey(hostname);
     await db.put('rates', { assetCode, assetScale, site, rate });
   }
 
-  async deleteRate(site: string): Promise<void> {
+  async deleteRate(hostname: string): Promise<void> {
     const wallet = await this.#getWallet();
     if (!wallet) return;
     const db = await this.#getDb();
+    const site = hostnameToSiteKey(hostname);
     await db.delete('rates', [wallet.assetCode, wallet.assetScale, site]);
   }
 
@@ -89,19 +91,30 @@ export class RateListService {
     const defaultEntry = await db.get('rates', [assetCode, assetScale, '*']);
     return defaultEntry?.rate;
   }
+}
 
-  /**
-   * Returns true if the given hostname is covered by the pattern. Used by
-   * MonetizationService to decide which open tabs are affected when a per-site
-   * rate changes.
-   */
-  static matchesPattern(hostname: string, pattern: string): boolean {
-    if (pattern === '*') return true;
-    if (pattern === hostname) return true;
-    if (!pattern.startsWith('*.')) return false;
-    const domain = pattern.slice(2);
-    return hostname === domain || hostname.endsWith(`.${domain}`);
-  }
+/**
+ * Returns true if the given hostname is covered by the pattern. Used by
+ * MonetizationService to decide which open tabs are affected when a per-site
+ * rate changes.
+ */
+export function matchesPattern(hostname: string, pattern: string): boolean {
+  if (pattern === '*') return true;
+  if (pattern === hostname) return true;
+  if (!pattern.startsWith('*.')) return false;
+  const domain = pattern.slice(2);
+  return hostname === domain || hostname.endsWith(`.${domain}`);
+}
+
+/**
+ * Converts a raw hostname to the site key used in the rate list. "www" is
+ * treated as an alias for the apex domain and gets the same low-priority
+ * wildcard (*.example.com). All other subdomains get their own wildcard
+ * (*.sub.example.com) so they take priority over the apex wildcard.
+ */
+export function hostnameToSiteKey(hostname: string): string {
+  const base = hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+  return `*.${base}`;
 }
 
 interface RatesSchema extends DBSchema {

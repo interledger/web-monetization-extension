@@ -1,5 +1,10 @@
 import { openDB } from 'idb';
-import { RateListService, type RateListRecord } from '../rateList';
+import {
+  RateListService,
+  matchesPattern,
+  hostnameToSiteKey,
+  type RateListRecord,
+} from '../rateList';
 import type { StorageService } from '../storage';
 import type { WalletInfo } from '@/shared/types';
 import { describe, it, afterEach, vi, expect } from 'vitest';
@@ -69,10 +74,10 @@ describe('RateListService CRUD', () => {
   it('setRate and getAll', async () => {
     const rateList = makeRateListService();
     await rateList.setRate('example.com', '3');
-    await rateList.setRate('*.other.com', '5');
+    await rateList.setRate('other.com', '5');
     await expect(rateList.getAll()).resolves.toEqual(
       expect.arrayContaining([
-        { site: 'example.com', rate: '3' },
+        { site: '*.example.com', rate: '3' },
         { site: '*.other.com', rate: '5' },
       ]),
     );
@@ -110,7 +115,7 @@ describe('RateListService CRUD', () => {
     const rateList = makeRateListService();
     await rateList.setRate('example.com', '3');
     const [entry] = await rateList.getAll();
-    expect(entry).toEqual({ site: 'example.com', rate: '3' });
+    expect(entry).toEqual({ site: '*.example.com', rate: '3' });
     expect(entry).not.toHaveProperty('assetCode');
     expect(entry).not.toHaveProperty('assetScale');
   });
@@ -131,24 +136,15 @@ describe('RateListService.getRateForHostname', () => {
     ).rejects.toThrow('connected wallet');
   });
 
-  it('exact match takes priority over wildcard', async () => {
-    const rateList = makeRateListService();
-    await rateList.setRate('*.example.com', '3');
-    await rateList.setRate('www.example.com', '10');
-    await expect(rateList.getRateForHostname('www.example.com')).resolves.toBe(
-      '10',
-    );
-  });
-
   it('wildcard matches the apex domain', async () => {
     const rateList = makeRateListService();
-    await rateList.setRate('*.example.com', '3');
+    await rateList.setRate('example.com', '3');
     await expect(rateList.getRateForHostname('example.com')).resolves.toBe('3');
   });
 
   it('wildcard matches a direct subdomain', async () => {
     const rateList = makeRateListService();
-    await rateList.setRate('*.example.com', '3');
+    await rateList.setRate('example.com', '3');
     await expect(rateList.getRateForHostname('www.example.com')).resolves.toBe(
       '3',
     );
@@ -159,7 +155,7 @@ describe('RateListService.getRateForHostname', () => {
 
   it('wildcard matches a deep subdomain', async () => {
     const rateList = makeRateListService();
-    await rateList.setRate('*.example.com', '3');
+    await rateList.setRate('example.com', '3');
     await expect(rateList.getRateForHostname('a.b.example.com')).resolves.toBe(
       '3',
     );
@@ -167,8 +163,8 @@ describe('RateListService.getRateForHostname', () => {
 
   it('more-specific wildcard takes priority over less-specific', async () => {
     const rateList = makeRateListService();
-    await rateList.setRate('*.example.com', '3');
-    await rateList.setRate('*.sub.example.com', '7');
+    await rateList.setRate('example.com', '3');
+    await rateList.setRate('sub.example.com', '7');
     await expect(
       rateList.getRateForHostname('deep.sub.example.com'),
     ).resolves.toBe('7');
@@ -179,22 +175,60 @@ describe('RateListService.getRateForHostname', () => {
       rateList.getRateForHostname('other.example.com'),
     ).resolves.toBe('3');
   });
+});
 
-  it('falls back to * when no site-specific entry matches', async () => {
+describe('RateListService per-site priority and deletion', () => {
+  it('more-specific subdomain rate takes priority over apex rate', async () => {
     const rateList = makeRateListService();
-    await rateList.setRate('*', '2');
-    await rateList.setRate('other.com', '5');
-    await expect(rateList.getRateForHostname('example.com')).resolves.toBe('2');
+    await rateList.setRate('hostname.com', '3');
+    await rateList.setRate('test.hostname.com', '7');
+    await expect(
+      rateList.getRateForHostname('test.hostname.com'),
+    ).resolves.toBe('7');
+    await expect(
+      rateList.getRateForHostname('deep.test.hostname.com'),
+    ).resolves.toBe('7');
+    await expect(
+      rateList.getRateForHostname('other.hostname.com'),
+    ).resolves.toBe('3');
   });
 
-  it('* is overridden by a matching site entry', async () => {
+  it('insertion order does not affect priority', async () => {
     const rateList = makeRateListService();
-    await rateList.setRate('*', '2');
-    await rateList.setRate('*.example.com', '3');
-    await expect(rateList.getRateForHostname('example.com')).resolves.toBe('3');
-    await expect(rateList.getRateForHostname('unrelated.com')).resolves.toBe(
-      '2',
-    );
+    await rateList.setRate('test.hostname.com', '7');
+    await rateList.setRate('hostname.com', '3');
+    await expect(
+      rateList.getRateForHostname('test.hostname.com'),
+    ).resolves.toBe('7');
+    await expect(
+      rateList.getRateForHostname('other.hostname.com'),
+    ).resolves.toBe('3');
+  });
+
+  it('deleting the specific rate falls back to the apex rate', async () => {
+    const rateList = makeRateListService();
+    await rateList.setRate('hostname.com', '3');
+    await rateList.setRate('test.hostname.com', '7');
+    await rateList.deleteRate('test.hostname.com');
+    await expect(
+      rateList.getRateForHostname('test.hostname.com'),
+    ).resolves.toBe('3');
+    await expect(
+      rateList.getRateForHostname('other.hostname.com'),
+    ).resolves.toBe('3');
+  });
+
+  it('deleting the apex rate leaves only the specific rate active', async () => {
+    const rateList = makeRateListService();
+    await rateList.setRate('hostname.com', '3');
+    await rateList.setRate('test.hostname.com', '7');
+    await rateList.deleteRate('hostname.com');
+    await expect(
+      rateList.getRateForHostname('test.hostname.com'),
+    ).resolves.toBe('7');
+    await expect(
+      rateList.getRateForHostname('other.hostname.com'),
+    ).resolves.toBeUndefined();
   });
 });
 
@@ -219,7 +253,7 @@ describe('RateListService currency isolation', () => {
 
     const usdAll = await usd.getAll();
     expect(usdAll).toHaveLength(1);
-    expect(usdAll[0].site).toBe('example.com');
+    expect(usdAll[0].site).toBe('*.example.com');
   });
 
   it('reconnecting with the same currency reuses existing data', async () => {
@@ -233,9 +267,25 @@ describe('RateListService currency isolation', () => {
   });
 });
 
-describe('RateListService.matchesPattern', () => {
-  const { matchesPattern } = RateListService;
+describe('hostnameToSiteKey', () => {
+  it('maps www to the apex wildcard', () => {
+    expect(hostnameToSiteKey('www.example.com')).toBe('*.example.com');
+  });
 
+  it('maps an apex domain to its own wildcard', () => {
+    expect(hostnameToSiteKey('example.com')).toBe('*.example.com');
+  });
+
+  it('maps other subdomains to their own wildcard', () => {
+    expect(hostnameToSiteKey('blog.example.com')).toBe('*.blog.example.com');
+    expect(hostnameToSiteKey('sub.example.com')).toBe('*.sub.example.com');
+    expect(hostnameToSiteKey('deep.sub.example.com')).toBe(
+      '*.deep.sub.example.com',
+    );
+  });
+});
+
+describe('matchesPattern', () => {
   it('* matches any hostname', () => {
     expect(matchesPattern('example.com', '*')).toBe(true);
     expect(matchesPattern('www.example.com', '*')).toBe(true);

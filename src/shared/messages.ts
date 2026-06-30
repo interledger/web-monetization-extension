@@ -142,6 +142,11 @@ export interface UpdateRateOfPayPayload {
   rateOfPay: AmountValue;
 }
 
+export interface SiteRateEntry {
+  site: string;
+  rate: AmountValue;
+}
+
 export interface UpdateBudgetPayload {
   walletAddressUrl: string;
   amount: ConnectWalletPayload['amount'];
@@ -196,6 +201,14 @@ export type PopupToBackgroundMessage = {
   UPDATE_RATE_OF_PAY: {
     input: UpdateRateOfPayPayload;
     output: never;
+  };
+  SET_SITE_RATE_OF_PAY: {
+    input: { hostname: string; rate: AmountValue | null };
+    output: never;
+  };
+  GET_PER_SITE_RATE_OF_PAY: {
+    input: never;
+    output: SiteRateEntry[];
   };
   OPEN_APP: {
     input: { path: string; action?: string };

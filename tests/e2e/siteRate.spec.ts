@@ -1,0 +1,212 @@
+import { MIN_PAYMENT_WAIT } from '@/background/config';
+import { hostnameToSiteKey } from '@/background/services/rateList';
+import { getResponseOrThrow, type SiteRateEntry } from '@/shared/messages';
+import { test, expect } from './fixtures/connected';
+import { type Background, sendBackgroundMessage } from './fixtures/helpers';
+import {
+  interceptPaymentCreateRequests,
+  playgroundUrl,
+  setupPlayground,
+} from './helpers/common';
+import type { AmountValue } from '@/shared/types';
+
+const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
+const PLAYGROUND_HOSTNAME = 'webmonetization.org';
+
+const GLOBAL_RATE = '3600';
+const SITE_RATE = '7200';
+
+test.describe('per-site rate – storage', () => {
+  test('GET_PER_SITE_RATE_OF_PAY returns empty list initially', async ({
+    background,
+    popup,
+  }) => {
+    void popup;
+    const rates = await getSiteRates(background);
+    expect(rates).toEqual([]);
+  });
+
+  test('SET_SITE_RATE_OF_PAY stores a rate', async ({ background, popup }) => {
+    void popup;
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, '500');
+    const rates = await getSiteRates(background);
+    expect(rates).toContainEqual({
+      site: hostnameToSiteKey(PLAYGROUND_HOSTNAME),
+      rate: '500',
+    });
+  });
+
+  test('SET_SITE_RATE_OF_PAY overwrites existing entry', async ({
+    background,
+    popup,
+  }) => {
+    void popup;
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, '500');
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, '800');
+    const rates = await getSiteRates(background);
+    const entry = rates.filter(
+      (r) => r.site === hostnameToSiteKey(PLAYGROUND_HOSTNAME),
+    );
+    expect(entry).toHaveLength(1);
+    expect(entry[0].rate).toBe('800');
+  });
+
+  test('SET_SITE_RATE_OF_PAY with rate=null deletes the entry', async ({
+    background,
+    popup,
+  }) => {
+    void popup;
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, '500');
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, null);
+    const rates = await getSiteRates(background);
+    expect(
+      rates.find((r) => r.site === hostnameToSiteKey(PLAYGROUND_HOSTNAME)),
+    ).toBeUndefined();
+  });
+});
+
+test.describe('per-site rate – GET_DATA_POPUP', () => {
+  test('tab.rateOfPay is present when a site rate is active', async ({
+    background,
+    page,
+    popup,
+  }) => {
+    void popup;
+    const SITE_RATE_VAL = '500';
+    await setupPlayground(page, walletAddressUrl);
+    await page.bringToFront();
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, SITE_RATE_VAL);
+
+    const res = await sendBackgroundMessage(
+      background,
+      'GET_DATA_POPUP',
+      undefined,
+    );
+    const data = getResponseOrThrow(res);
+    expect(data.tab.rateOfPay).toBe(SITE_RATE_VAL);
+  });
+});
+
+test.describe('per-site rate – payment session', () => {
+  test.beforeEach(async ({ background }) => {
+    await background.evaluate(
+      (rate) => chrome.storage.local.set({ rateOfPay: rate }),
+      GLOBAL_RATE,
+    );
+  });
+
+  test('site rate is used when a payment session starts', async ({
+    background,
+    page,
+    context,
+    popup,
+  }) => {
+    void popup;
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, SITE_RATE);
+    await setupPlayground(page, walletAddressUrl);
+
+    await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(1, {
+      timeout: 10_000,
+    });
+    const siteRateDebit = Number(
+      outgoingPaymentCreatedCallback.calls[0][0].debitAmount.value,
+    );
+
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, null);
+    await page.goto(playgroundUrl(walletAddressUrl));
+
+    await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(2, {
+      timeout: 10_000,
+    });
+    const globalRateDebit = Number(
+      outgoingPaymentCreatedCallback.calls[1][0].debitAmount.value,
+    );
+
+    expect(siteRateDebit).toBeGreaterThan(globalRateDebit);
+  });
+
+  test('site rate change propagates to active payment session', async ({
+    background,
+    page,
+    context,
+    popup,
+  }) => {
+    void popup;
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+    const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+    const firstDebit = Number(
+      outgoingPaymentCreatedCallback.calls[0][0].debitAmount.value,
+    );
+
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, SITE_RATE);
+    await context.clock.runFor(MIN_PAYMENT_WAIT);
+
+    await expect(monetizationCallback).toHaveBeenCalledTimes(2);
+    const secondDebit = Number(
+      outgoingPaymentCreatedCallback.calls[1][0].debitAmount.value,
+    );
+
+    expect(secondDebit).toBeGreaterThan(firstDebit);
+  });
+
+  test('deleting site rate reverts active session to global rate', async ({
+    background,
+    page,
+    context,
+    popup,
+  }) => {
+    void popup;
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+    const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+
+    await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+    const globalDebit = Number(
+      outgoingPaymentCreatedCallback.calls[0][0].debitAmount.value,
+    );
+
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, SITE_RATE);
+    await context.clock.runFor(MIN_PAYMENT_WAIT);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(2);
+    const siteDebit = Number(
+      outgoingPaymentCreatedCallback.calls[1][0].debitAmount.value,
+    );
+    expect(siteDebit).toBeGreaterThan(globalDebit);
+
+    await setSiteRate(background, PLAYGROUND_HOSTNAME, null);
+    await context.clock.runFor(MIN_PAYMENT_WAIT);
+    await expect(monetizationCallback).toHaveBeenCalledTimes(3);
+    const revertedDebit = Number(
+      outgoingPaymentCreatedCallback.calls[2][0].debitAmount.value,
+    );
+    expect(revertedDebit).toBe(globalDebit);
+  });
+});
+
+// TODO: we'll use UI interactions in the future.
+async function setSiteRate(
+  background: Background,
+  hostname: string,
+  rate: AmountValue | null,
+): Promise<void> {
+  const res = await sendBackgroundMessage(background, 'SET_SITE_RATE_OF_PAY', {
+    hostname,
+    rate,
+  });
+  getResponseOrThrow(res);
+}
+
+async function getSiteRates(background: Background): Promise<SiteRateEntry[]> {
+  const res = await sendBackgroundMessage(
+    background,
+    'GET_PER_SITE_RATE_OF_PAY',
+    undefined,
+  );
+  return getResponseOrThrow(res);
+}
