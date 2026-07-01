@@ -100,6 +100,10 @@ test.describe('per-site rate – payment session', () => {
     );
 
     await setSiteRate(popup, PLAYGROUND_HOSTNAME, null);
+    // Navigate away to destroy the PaymentManager (clears its timer),
+    // then advance fake time so preventOverpaying won't block the next session.
+    await page.goto('about:blank');
+    await context.clock.runFor(MIN_PAYMENT_WAIT);
     await page.goto(playgroundUrl(walletAddressUrl));
 
     await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(2, {
@@ -160,7 +164,11 @@ test.describe('per-site rate – payment session', () => {
     expect(siteDebit).toBeGreaterThan(globalDebit);
 
     await setSiteRate(popup, PLAYGROUND_HOSTNAME, null);
+    // Navigate away to destroy the PaymentManager (clears its timer),
+    // then advance fake time so preventOverpaying won't block the next session.
+    await page.goto('about:blank');
     await context.clock.runFor(MIN_PAYMENT_WAIT);
+    await page.goto(playgroundUrl(walletAddressUrl));
     await expect(monetizationCallback).toHaveBeenCalledTimes(3);
     const revertedDebit = Number(
       outgoingPaymentCreatedCallback.calls[2][0].debitAmount.value,
