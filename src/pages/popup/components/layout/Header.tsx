@@ -23,7 +23,7 @@ const NavigationButton = () => {
       );
     }
 
-    return pathname === `${ROUTES_PATH.SETTINGS}` ? (
+    return pathname.startsWith(ROUTES_PATH.SETTINGS) ? (
       <Link to={ROUTES_PATH.HOME} aria-label="Back">
         <ArrowBack className="h-6 touch:h-8 text-gray-500" />
       </Link>
