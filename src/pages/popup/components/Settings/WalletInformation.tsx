@@ -37,7 +37,7 @@ export const WalletInformation = ({
         }
         throw new Error(res.message);
       }
-      navigate('~' + ROUTES_PATH.HOME);
+      navigate(`~${ROUTES_PATH.HOME}`);
       window.location.reload();
     } catch (error) {
       setDisconnectError(error.message);
