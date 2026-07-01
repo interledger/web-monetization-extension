@@ -9,6 +9,7 @@ import {
   chromium,
   firefox,
   type BrowserContext,
+  type Page,
   type WorkerInfo,
   type Worker,
 } from '@playwright/test';
@@ -376,11 +377,11 @@ export class BrowserIntl {
 
 type Msg = PopupToBackgroundMessage;
 export async function sendBackgroundMessage<K extends keyof Msg>(
-  background: Background,
+  page: Page,
   action: K,
   payload: Msg[K]['input'] extends never ? undefined : Msg[K]['input'],
 ): Promise<Response<Msg[K]['output']>> {
-  return background.evaluate(
+  return page.evaluate(
     ([action, payload]) => chrome.runtime.sendMessage({ action, payload }),
     [action, payload],
   );
