@@ -482,7 +482,7 @@ export class MonetizationService {
     const { oneTimeGrant, recurringGrant, ...dataFromStorage } = storedData;
 
     const tabData = this.tabState.getPopupTabData(tab);
-    if (tabData.url) {
+    if (tabData.url && storedData.walletAddress) {
       const siteRate = await this.rateList.getRateForHostname(
         new URL(tabData.url).hostname,
       );
