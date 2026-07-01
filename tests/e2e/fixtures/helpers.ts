@@ -376,7 +376,7 @@ export class BrowserIntl {
 }
 
 type Msg = PopupToBackgroundMessage;
-export async function sendBackgroundMessage<K extends keyof Msg>(
+export async function sendMessageToBackground<K extends keyof Msg>(
   page: Page,
   action: K,
   payload: Msg[K]['input'] extends never ? undefined : Msg[K]['input'],

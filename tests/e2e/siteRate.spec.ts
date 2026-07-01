@@ -2,7 +2,7 @@ import { MIN_PAYMENT_WAIT } from '@/background/config';
 import { hostnameToSiteKey } from '@/background/services/rateList';
 import { getResponseOrThrow, type SiteRateEntry } from '@/shared/messages';
 import { test, expect } from './fixtures/connected';
-import { sendBackgroundMessage } from './fixtures/helpers';
+import { sendMessageToBackground } from './fixtures/helpers';
 import {
   interceptPaymentCreateRequests,
   playgroundUrl,
@@ -67,7 +67,11 @@ test.describe('per-site rate – GET_DATA_POPUP', () => {
     await page.bringToFront();
     await setSiteRate(popup, PLAYGROUND_HOSTNAME, SITE_RATE_VAL);
 
-    const res = await sendBackgroundMessage(popup, 'GET_DATA_POPUP', undefined);
+    const res = await sendMessageToBackground(
+      popup,
+      'GET_DATA_POPUP',
+      undefined,
+    );
     const data = getResponseOrThrow(res);
     expect(data.tab.rateOfPay).toBe(SITE_RATE_VAL);
   });
@@ -183,7 +187,7 @@ async function setSiteRate(
   hostname: string,
   rate: AmountValue | null,
 ): Promise<void> {
-  const res = await sendBackgroundMessage(popup, 'SET_SITE_RATE_OF_PAY', {
+  const res = await sendMessageToBackground(popup, 'SET_SITE_RATE_OF_PAY', {
     hostname,
     rate,
   });
@@ -191,7 +195,7 @@ async function setSiteRate(
 }
 
 async function getSiteRates(popup: Popup): Promise<SiteRateEntry[]> {
-  const res = await sendBackgroundMessage(
+  const res = await sendMessageToBackground(
     popup,
     'GET_PER_SITE_RATE_OF_PAY',
     undefined,

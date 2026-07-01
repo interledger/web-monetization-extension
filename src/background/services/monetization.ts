@@ -385,12 +385,9 @@ export class MonetizationService {
         .then((tabs) => tabs.filter(isTabWithUrl));
 
       for (const tab of matchingTabs) {
-        const tabHostname = new URL(tab.url).hostname;
-        if (!matchesPattern(tabHostname, site)) continue;
-
+        if (!matchesPattern(new URL(tab.url).hostname, site)) continue;
         const paymentManager = this.tabState.paymentManagers.get(tab.id);
-        if (!paymentManager) continue;
-        paymentManager.setRate(effectiveRate);
+        paymentManager?.setRate(effectiveRate);
       }
     });
   }
@@ -412,9 +409,9 @@ export class MonetizationService {
       }
 
       const hasSiteRate = await Promise.all(tabIds.map(hasSiteSpecificRate));
-      for (let i = 0; i < tabIds.length; i++) {
+      for (const [i, tabId] of tabIds.entries()) {
         if (hasSiteRate[i]) continue;
-        this.tabState.paymentManagers.get(tabIds[i])?.setRate(rate);
+        this.tabState.paymentManagers.get(tabId)?.setRate(rate);
       }
     });
 
