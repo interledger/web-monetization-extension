@@ -35,6 +35,7 @@ export class Background {
   private events: Cradle['events'];
   private heartbeat: Cradle['heartbeat'];
   private telemetry: Cradle['telemetry'];
+  private rateList: Cradle['rateList'];
 
   constructor({
     browser,
@@ -51,6 +52,7 @@ export class Background {
     events,
     heartbeat,
     telemetry,
+    rateList,
   }: Cradle) {
     this.browser = browser;
     this.browserName = browserName;
@@ -66,6 +68,7 @@ export class Background {
     this.events = events;
     this.heartbeat = heartbeat;
     this.telemetry = telemetry;
+    this.rateList = rateList;
   }
 
   async start() {
@@ -304,6 +307,22 @@ export class Background {
 
         case 'UPDATE_RATE_OF_PAY': {
           await this.storage.updateRate(message.payload.rateOfPay);
+          return success(undefined);
+        }
+
+        case 'GET_PER_SITE_RATE_OF_PAY': {
+          const rates = await this.rateList.getAll();
+          return success(rates);
+        }
+
+        case 'SET_SITE_RATE_OF_PAY': {
+          const { hostname, rate } = message.payload;
+          if (rate === null) {
+            await this.rateList.deleteRate(hostname);
+          } else {
+            await this.rateList.setRate(hostname, rate);
+          }
+          this.events.emit('rateList.site_rate_update', { hostname, rate });
           return success(undefined);
         }
 

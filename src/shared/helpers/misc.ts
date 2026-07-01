@@ -1,5 +1,5 @@
-import type { Browser } from 'webextension-polyfill';
-import type { Storage } from '../types';
+import type { Browser, Tabs } from 'webextension-polyfill';
+import type { Storage, Tab } from '../types';
 
 export const notNullOrUndef = <T>(
   t: T | null | undefined,
@@ -128,6 +128,10 @@ export const getBrowserName = (
   }
 
   return 'unknown';
+};
+
+export const isTabWithUrl = (tab: Tabs.Tab): tab is Tab => {
+  return !!tab.id && !!tab.url;
 };
 
 /** @see {@linkcode Storage['consent']} */
