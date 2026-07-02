@@ -102,13 +102,13 @@ The high-level project directory structure is as follows:
 │   │   ├── popup/ # Source code for the popup UI
 │   │   ├── app/ # Source code for the full screen extension page (post-install, more settings etc.)
 │   │   ├── progress-connect/ # Source code for the progress-connect (notification/layover) UI
-│   │   └── shared/ # Shared components and libraries for the frontend
+│   │   ├── shared/ # Shared components and libraries for the frontend
+│   │   └── tailwind.config.ts # Tailwind config, scoped to src/pages
 │   ├── shared/ # Shared utilities
 │   └── manifest.json # Extension's manifest - processed by Webpack depending on the target build
 ├── vitest.config.ts
 ├── vitest.setup.ts
 ├── package.json
-├── tailwind.config.ts
 └── tsconfig.json
 ```
 

@@ -12,7 +12,7 @@ export const TogglePaymentsButton = () => {
   return (
     <label
       className={cn(
-        'group my-0 cursor-pointer rounded-full p-0.5 transition-colors focus-within:shadow',
+        'group my-0 cursor-pointer rounded-full p-0.5 transition-colors focus-within:shadow-sm',
         enabled
           ? 'text-gray-500 focus-within:text-error hover:text-error'
           : 'text-gray-300 focus-within:text-secondary-dark hover:text-secondary-dark',

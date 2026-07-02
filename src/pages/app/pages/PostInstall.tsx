@@ -209,7 +209,7 @@ const Steps = () => {
               rel="noreferrer"
               className={cn(
                 { hidden: !wallet.url },
-                'sm:p-2 p-4 shadow max-w-72 rounded-md',
+                'sm:p-2 p-4 shadow-sm max-w-72 rounded-md',
                 'hover:shadow-lg hover:scale-105 transition-[transform,box-shadow] duration-300 ease-in-out',
                 'group-hover/wallet:opacity-25 group-focus-within/wallet:hover:opacity-25 group-focus-within/wallet:opacity-25',
                 'group-hover/wallet:hover:opacity-100',
@@ -294,7 +294,7 @@ const Steps = () => {
             ) : (
               <button
                 type="button"
-                className="block w-fit rounded-md bg-orange-100 px-2 py-1.5 mt-1 font-medium text-orange-800 hover:bg-orange-200 focus:bg-orange-200 focus:outline-none hover:shadow-md focus:shadow-md"
+                className="block w-fit rounded-md bg-orange-100 px-2 py-1.5 mt-1 font-medium text-orange-800 hover:bg-orange-200 focus:bg-orange-200 focus:outline-hidden hover:shadow-md focus:shadow-md"
                 onClick={() => requestAllHostsPermission(browser)}
               >
                 {t('postInstall_action_stepPermissions_grant')}
@@ -395,7 +395,7 @@ function Step({
       <details
         open={open}
         className={cn(
-          'group relative gap-2 space-y-4 overflow-hidden rounded-md border border-slate-200 p-2 text-base transition-colors open:shadow-sm focus-within:border-slate-300 focus-within:shadow-md open:hover:bg-white sm:p-4 sm:text-lg',
+          'group relative gap-2 space-y-4 overflow-hidden rounded-md border border-slate-200 p-2 text-base transition-colors open:shadow-xs focus-within:border-slate-300 focus-within:shadow-md open:hover:bg-white sm:p-4 sm:text-lg',
           isPrimaryButton && 'duration-0',
           isPrimaryButton && !open
             ? 'bg-button-base text-white hover:bg-button-base-hover'
@@ -406,7 +406,7 @@ function Step({
       >
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Not needed here */}
         <summary
-          className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-none font-medium sm:font-normal"
+          className="-mx-4 -my-4 flex cursor-pointer items-center gap-2 p-4 focus:outline-hidden font-medium sm:font-normal"
           onClick={(ev) => {
             // onToggle gets fired when `open` is set (even from prop set on
             // mount). So, we use onClick to catch only user interaction.

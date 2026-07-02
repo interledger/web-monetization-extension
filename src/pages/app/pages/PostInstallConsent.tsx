@@ -267,7 +267,7 @@ function AcceptForm({
       className="flex items-center justify-between w-full max-w-2xl flex-col md:flex-row gap-2 md:gap-4"
     >
       <label className="flex gap-2 items-start">
-        <input type="checkbox" required className="rounded-sm mt-1" />
+        <input type="checkbox" required className="rounded-xs mt-1" />
         <span className="">{t('postInstallConsent_text_confirmation')}</span>
       </label>
       <Button type="submit" className="w-full sm:w-auto">

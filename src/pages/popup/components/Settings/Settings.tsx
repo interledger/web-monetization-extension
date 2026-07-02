@@ -28,7 +28,10 @@ function DataCollectionSettings() {
   const browserInfo = useBrowserInfo();
 
   return (
-    <details className="border p-4 rounded-md space-y-2 group" open>
+    <details
+      className="border border-gray-200 p-4 rounded-md space-y-2 group"
+      open
+    >
       <summary className="flex cursor-pointer items-center justify-between font-semibold text-xl text-alt">
         {t('settings_dataCollection_title')}
         <CaretDownIcon className="h-4 w-4 group-open:rotate-180" />

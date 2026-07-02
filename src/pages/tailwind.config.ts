@@ -1,18 +1,14 @@
 import type { Config } from 'tailwindcss';
 import plugin from 'tailwindcss/plugin';
+import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
-import containerQueries from '@tailwindcss/container-queries';
-import { fontFamily } from 'tailwindcss/defaultTheme';
 
 module.exports = {
-  content: [
-    './src/**/*.{html,js,jsx,ts,tsx}',
-    './src/components/**/*.{js,jsx,ts,tsx}',
-  ],
+  content: ['./**/*.{html,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        titillium: ['Titillium Web', ...fontFamily.sans],
+        titillium: ['Titillium Web', ...defaultTheme.fontFamily.sans],
       },
       width: {
         popup: 'var(--popup-width)',
@@ -66,7 +62,6 @@ module.exports = {
   },
   plugins: [
     forms,
-    containerQueries,
     plugin(({ addVariant }) => {
       addVariant('touch', '@media (pointer: coarse)');
     }),

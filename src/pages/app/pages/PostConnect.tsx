@@ -38,7 +38,7 @@ export default function PostConnect() {
         </h1>
       </header>
 
-      <div className="md:p-8 md:border rounded-lg bg-white bg-opacity-75 border-gray-100 mb-auto flex flex-col items-center gap-6 text-center w-full md:w-[42rem]">
+      <div className="md:p-8 md:border rounded-lg bg-white/75 border-gray-100 mb-auto flex flex-col items-center gap-6 text-center w-full md:w-[42rem]">
         <img
           className="h-8 w-8 md:w-32 md:h-32"
           src={params.image.src}

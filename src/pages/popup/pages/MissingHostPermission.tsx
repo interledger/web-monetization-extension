@@ -29,7 +29,7 @@ export default () => {
       </div>
       <button
         type="button"
-        className="mx-auto mt-3 block w-fit rounded-md bg-orange-100 px-2 py-1.5 font-medium text-orange-800 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 focus:ring-offset-orange-50"
+        className="mx-auto mt-3 block w-fit rounded-md bg-orange-100 px-2 py-1.5 font-medium text-orange-800 hover:bg-orange-100 focus:outline-hidden focus:ring-2 focus:ring-orange-600 focus:ring-offset-2 focus:ring-offset-orange-50"
         onClick={() => {
           const origins = browser.runtime.getManifest().host_permissions!;
           return browser.permissions.request({ origins }).finally(() => {
