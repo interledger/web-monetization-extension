@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 @import './tokens.css';
-@config '../../../tailwind.config.ts';
+@config '../tailwind.config.ts';
 
 @layer base {
   @font-face {

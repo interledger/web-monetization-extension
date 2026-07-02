@@ -4,7 +4,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 
 module.exports = {
-  content: ['./src/**/*.{html,tsx}'],
+  content: ['./**/*.{html,tsx}'],
   theme: {
     extend: {
       fontFamily: {
