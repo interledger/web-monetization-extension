@@ -1,5 +1,6 @@
 import React from 'react';
 import { MainLayout } from '@/popup/components/layout/MainLayout';
+import { SettingsLayout } from '@/popup/components/layout/SettingsLayout';
 import {
   BrowserContextProvider,
   BrowserInfoContextProvider,
@@ -37,7 +38,17 @@ const Routes = () => (
     <Route path={P.OUT_OF_FUNDS_ADD_FUNDS} component={C.OutOfFundsAddFunds} />
     <Route path={P.CONSENT_REQUIRED} component={C.ConsentRequired} />
 
-    <Route path={P.SETTINGS} component={C.Settings} />
+    <Route path={P.SETTINGS} nest={true}>
+      <SettingsLayout>
+        <Switch>
+          <Route path="/wallet" component={C.SettingsWallet} />
+          <Route path="/budget" component={C.SettingsBudget} />
+          <Route path="/rate" component={C.SettingsRate} />
+          <Route path="/other" component={C.SettingsOther} />
+        </Switch>
+      </SettingsLayout>
+    </Route>
+
     <Route path={P.CONNECT_WALLET} component={C.ConnectWallet} />
   </Switch>
 );

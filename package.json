@@ -26,7 +26,6 @@
     "@interledger/open-payments": "^7.4.0",
     "@noble/ed25519": "^3.1.0",
     "@noble/hashes": "^2.2.0",
-    "@radix-ui/react-tabs": "^1.1.15",
     "awilix": "^13.0.5",
     "class-variance-authority": "^0.7.1",
     "date-fns": "^4.4.0",

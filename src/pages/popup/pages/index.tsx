@@ -1,6 +1,9 @@
 export { default as Home } from './Home';
 export { default as ConnectWallet } from './ConnectWallet';
-export { default as Settings } from './Settings';
+export { default as SettingsWallet } from './SettingsWallet';
+export { default as SettingsBudget } from './SettingsBudget';
+export { default as SettingsRate } from './SettingsRate';
+export { default as SettingsOther } from './SettingsOther';
 export { default as MissingHostPermission } from './MissingHostPermission';
 export { default as OutOfFunds } from './OutOfFunds';
 export { default as OutOfFundsAddFunds } from './OutOfFunds_AddFunds';
