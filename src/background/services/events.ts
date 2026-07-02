@@ -12,6 +12,7 @@ interface BackgroundEvents {
   'open_payments.invalid_receiver': { tabId: number };
   request_popup_close: undefined;
   'storage.rate_of_pay_update': { rate: string };
+  'rateList.site_rate_update': { hostname: string; rate: AmountValue | null };
   'storage.state_update': {
     state: Storage['state'];
     prevState: Storage['state'];
