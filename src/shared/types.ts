@@ -126,6 +126,7 @@ export type PopupTabInfo = {
   tabId: TabId;
   url: string;
   minSendAmount: AmountValue;
+  rateOfPay?: AmountValue;
   status:
     | never // just added for code formatting
     /** Happy state */
