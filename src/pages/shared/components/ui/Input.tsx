@@ -85,7 +85,7 @@ export function Input({
           ref={ref}
           type={type}
           className={cn(
-            'border-none focus:border-none focus:ring-0 focus:outline-none',
+            'border-none focus:border-none focus:ring-0 focus:outline-hidden',
             'table-cell w-full py-3.5 text-base',
             'text-inherit bg-inherit',
             'placeholder:text-disabled',

@@ -81,7 +81,7 @@ export const WalletInformation = ({
         </Button>
 
         {disconnectError && (
-          <p className="text-sm text-error !mt-1">
+          <p className="text-sm text-error mt-1!">
             {disconnectError}
             <button
               type="button"
@@ -94,7 +94,7 @@ export const WalletInformation = ({
         )}
       </form>
 
-      <details className="border-t">
+      <details className="border-t border-gray-200">
         <summary className="flex cursor-pointer items-center justify-between px-2 py-2 text-sm text-weak hover:text-strong">
           <span>Advanced</span>
           <span className="-rotate-90">

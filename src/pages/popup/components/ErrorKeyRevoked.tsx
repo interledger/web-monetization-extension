@@ -147,7 +147,7 @@ const MainScreen = ({
 
       <FadeInOut
         visible={!!errorMsg}
-        className="rounded-sm px-2 text-sm text-error"
+        className="rounded-xs px-2 text-sm text-error"
       >
         {errorMsg}
       </FadeInOut>
@@ -244,7 +244,7 @@ const ManualReconnectScreen = ({
 
       <FadeInOut
         visible={!!errors.root?.message}
-        className="rounded-sm px-2 text-sm text-error"
+        className="rounded-xs px-2 text-sm text-error"
       >
         {errors.root?.message}
       </FadeInOut>
