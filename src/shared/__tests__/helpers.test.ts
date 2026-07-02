@@ -1,4 +1,6 @@
-import { addDays, addMonths, addSeconds } from 'date-fns';
+import { addDays } from 'date-fns/addDays';
+import { addMonths } from 'date-fns/addMonths';
+import { addSeconds } from 'date-fns/addSeconds';
 import {
   afterEach,
   beforeEach,

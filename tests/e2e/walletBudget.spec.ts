@@ -15,7 +15,7 @@ import {
 } from './helpers/common';
 import { completeGrant, DEFAULT_CONTINUE_WAIT_MS } from './helpers/testWallet';
 import { transformBalance } from '@/shared/helpers';
-import { addMonths } from 'date-fns';
+import { addMonths } from 'date-fns/addMonths';
 import type { WalletAddress } from '@interledger/open-payments';
 import type { AmountValue } from '@/shared/types';
 

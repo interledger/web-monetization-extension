@@ -13,7 +13,7 @@ import {
   type WorkerInfo,
   type Worker,
 } from '@playwright/test';
-import { format } from 'date-fns';
+import { format } from 'date-fns/format';
 import { APP_URL } from '@/background/constants';
 import { DIST_DIR, ROOT_DIR } from '../../../scripts/esbuild/config';
 import type { TranslationKeys } from '../../../src/shared/helpers';
