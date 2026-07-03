@@ -33,7 +33,7 @@
     "idb": "^8.0.3",
     "iso8601-duration": "^2.1.4",
     "loglevel": "^1.9.2",
-    "posthog-js": "^1.396.1",
+    "posthog-js": "1.396.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "safe-buffer": "5.2.1",
@@ -44,7 +44,7 @@
     "wouter": "^3.10.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.1",
+    "@biomejs/biome": "2.5.2",
     "@jgoz/esbuild-plugin-typecheck": "^4.0.4",
     "@octokit/openapi-webhooks-types": "^12.1.0",
     "@playwright/test": "^1.61.1",
@@ -53,7 +53,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/archiver": "^8.0.0",
-    "@types/chrome": "^0.2.0",
+    "@types/chrome": "^0.2.2",
     "@types/github-script": "github:actions/github-script#v9.0.0",
     "@types/jsdom": "^28.0.3",
     "@types/node": "^24.13.2",
@@ -67,7 +67,7 @@
     "esbuild-style-plugin": "^1.6.3",
     "jsdom": "29.1.1",
     "postcss": "^8.5.16",
-    "prettier": "^3.9.3",
+    "prettier": "^3.9.4",
     "sade": "^1.8.1",
     "tailwindcss": "^4.3.2",
     "tinyspy": "^4.0.4",
@@ -80,7 +80,7 @@
     "pnpm": "^11.9.0",
     "npm": "pnpm",
     "yarn": "pnpm",
-    "node": "^24.13.0"
+    "node": "^24.15.0"
   },
   "type": "module",
   "packageManager": "pnpm@11.9.0"
