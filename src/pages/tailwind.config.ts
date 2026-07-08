@@ -38,6 +38,7 @@ module.exports = {
         error: 'rgb(var(--bg-error) / <alpha-value>)',
         'nav-active': 'rgb(var(--bg-nav-active) / <alpha-value>)',
         'error-hover': 'rgb(var(--bg-error-hover) / <alpha-value>)',
+        'popup-light': 'rgb(var(--bg-popup-light) / <alpha-value>)',
         'button-base': 'rgb(var(--bg-button-base) / <alpha-value>)',
         'button-base-hover': 'rgb(var(--bg-button-base-hover) / <alpha-value>)',
         'switch-base': 'rgb(var(--bg-switch-base) / <alpha-value>)',

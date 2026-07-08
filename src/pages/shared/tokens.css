@@ -20,9 +20,11 @@
   --bg-switch-base: 152 225 208;
   --bg-disabled: 248 250 252;
   --bg-disabled-strong: 203 213 225;
+  --bg-popup-light: 243 255 252;
 
   /* Border colors */
   --border-base: 203 213 225;
+  --border-popup: 86 183 181;
   --border-focus: 59 130 246;
   --border-error: 220 38 38;
 

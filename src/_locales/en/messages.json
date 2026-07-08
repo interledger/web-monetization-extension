@@ -515,6 +515,25 @@
     "message": "We couldn’t verify your wallet. Please try again, or manually copy the public key and add it to your digital wallet account."
   },
 
+  "settings_rate_continuousPayments_label": {
+    "message": "Continuous payments"
+  },
+  "settings_rate_continuousPayments_disabled_text": {
+    "message": "Ongoing payments are now disabled. You can still make one time payments."
+  },
+  "settings_rate_label_manageExceptions": {
+    "message": "Manage exceptions"
+  },
+  "settings_rate_label_addException": {
+    "message": "Add exception"
+  },
+  "settings_rate_label_inputDefaultRate": {
+    "message": "Default rate"
+  },
+  "settings_rate_action_removeException": {
+    "message": "Remove exception"
+  },
+
   "settings_dataCollection_title": {
     "message": "Data Collection"
   },

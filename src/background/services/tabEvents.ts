@@ -52,6 +52,7 @@ type CallbackTab<T extends Extract<keyof Browser['tabs'], `on${string}`>> =
 
 export class TabEvents {
   private storage: Cradle['storage'];
+  private rateList: Cradle['rateList'];
   private tabState: Cradle['tabState'];
   private windowState: Cradle['windowState'];
   private sendToPopup: Cradle['sendToPopup'];
@@ -62,6 +63,7 @@ export class TabEvents {
 
   constructor({
     storage,
+    rateList,
     tabState,
     windowState,
     sendToPopup,
@@ -71,6 +73,7 @@ export class TabEvents {
     browserName,
   }: Cradle) {
     this.storage = storage;
+    this.rateList = rateList;
     this.tabState = tabState;
     this.windowState = windowState;
     this.sendToPopup = sendToPopup;
@@ -139,6 +142,12 @@ export class TabEvents {
 
   updateVisualIndicators = async (tab: Tabs.Tab) => {
     const tabInfo = this.tabState.getPopupTabData(tab);
+    if (tabInfo.url) {
+      const siteRate = await this.rateList
+        .getRateForHostname(new URL(tabInfo.url).hostname)
+        .catch(() => undefined);
+      if (siteRate) tabInfo.rateOfPay = siteRate;
+    }
     this.sendToPopup.send('SET_TAB_DATA', tabInfo);
     const { continuousPaymentsEnabled, enabled, connected, state } =
       await this.storage.get([
