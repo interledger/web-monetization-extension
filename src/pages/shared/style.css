@@ -2,6 +2,19 @@
 @import './tokens.css';
 @config '../tailwind.config.ts';
 
+body {
+  @apply bg-white font-titillium text-base text-medium;
+}
+
+button,
+[role='button'] {
+  cursor: pointer;
+}
+
+:disabled {
+  cursor: default;
+}
+
 @layer base {
   @font-face {
     font-family: 'Titillium Web';
@@ -37,18 +50,5 @@
     font-style: normal;
     /* font-bold */
     font-weight: 700;
-  }
-
-  body {
-    @apply bg-white font-titillium text-base text-medium;
-  }
-
-  button,
-  [role='button'] {
-    cursor: pointer;
-  }
-
-  :disabled {
-    cursor: default;
   }
 }
