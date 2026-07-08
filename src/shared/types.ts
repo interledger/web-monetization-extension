@@ -233,6 +233,8 @@ export type PopupStore = Omit<
     oneTime: OneTimeGrant['amount'];
     recurring: RecurringGrant['amount'];
   }>;
+  // set on request only, not on initial load (perf)
+  sitesRateOfPay?: { hostname: Host; rate: AmountValue }[];
 };
 
 export type AppStore = Pick<

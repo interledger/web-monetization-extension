@@ -27,6 +27,7 @@ interface Props {
   min?: number;
   max?: number;
   controls?: boolean;
+  size?: 'small' | 'default';
 }
 
 export const InputAmount = ({
@@ -45,6 +46,7 @@ export const InputAmount = ({
   min = 0,
   max,
   readOnly,
+  size = 'default',
   controls = false,
 }: Props) => {
   const { assetScale } = walletAddress;
@@ -134,6 +136,7 @@ export const InputAmount = ({
       description={description}
       placeholder={placeholder}
       wrapperClassName={wrapperClassName}
+      className={size === 'small' ? 'py-2.5' : ''}
       defaultValue={amount}
       readOnly={readOnly}
       leadingAddOn={

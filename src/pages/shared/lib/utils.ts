@@ -87,6 +87,18 @@ export function formatNumber(
   }
 }
 
+export function compareSitesByDomain(a: string, b: string): number {
+  const partsA = a.split('.').reverse();
+  const partsB = b.split('.').reverse();
+  const len = Math.min(partsA.length, partsB.length);
+  for (let i = 1; i < len; i++) {
+    const cmp = partsA[i].localeCompare(partsB[i]);
+    if (cmp !== 0) return cmp;
+  }
+  if (partsA.length !== partsB.length) return partsA.length - partsB.length;
+  return partsA[0].localeCompare(partsB[0]);
+}
+
 export const cn = (...inputs: CxOptions) => {
   return twMerge(cx(inputs));
 };
