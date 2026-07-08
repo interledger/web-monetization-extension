@@ -4,7 +4,7 @@ import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
 import { IconTrash } from '@/pages/shared/components/Icons';
-import { debounceAsync } from '@/shared/helpers';
+import { debounceAsync, normalizeHostname } from '@/shared/helpers';
 import { cn, formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
 import { useMessage, useTelemetry, useTranslation } from '@/popup/lib/context';
 import { dispatch, usePopupState, type PopupState } from '@/popup/lib/store';
@@ -191,7 +191,7 @@ const SiteRateOfPayInput = ({
   const { rateOfPay, maxRateOfPay, walletAddress, tab } = usePopupState();
 
   const hostname = new URL(tab.url).hostname;
-  const site = hostname.replace(/^www\./, '');
+  const site = normalizeHostname(hostname);
 
   return (
     <>
