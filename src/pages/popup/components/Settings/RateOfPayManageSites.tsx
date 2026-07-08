@@ -24,15 +24,11 @@ export function RateOfPayManageSites() {
     return () => clearTimeout(timer);
   }, [highlightedHostname]);
 
-  const handleFormDone = useCallback(
-    (res: 'ok' | 'cancel', hostname?: Host) => {
-      setIsFormOpen(false);
-      if (res === 'ok' && hostname) {
-        setHighlightedHostname(hostname);
-      }
-    },
-    [],
-  );
+  type OnDone = React.ComponentProps<typeof AddExceptionForm>['onDone'];
+  const onFormDone: OnDone = useCallback((entry) => {
+    setIsFormOpen(false);
+    if (entry) setHighlightedHostname(entry.hostname);
+  }, []);
 
   return (
     <>
@@ -52,7 +48,7 @@ export function RateOfPayManageSites() {
         ) : (
           <AddExceptionForm
             defaultHostname={defaultHostname}
-            onDone={handleFormDone}
+            onDone={onFormDone}
           />
         )}
       </div>

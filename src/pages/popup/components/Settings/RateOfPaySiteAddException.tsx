@@ -4,7 +4,7 @@ import { Input } from '@/pages/shared/components/ui/Input';
 import { useMessage, useTranslation } from '@/popup/lib/context';
 import { usePopupState, dispatch } from '@/popup/lib/store';
 import { normalizeHostname } from '@/shared/helpers';
-import type { Host } from '@/shared/types';
+import type { AmountValue, Host } from '@/shared/types';
 import { RateOfPayInput } from './RateOfPay';
 
 export function AddExceptionForm({
@@ -12,7 +12,7 @@ export function AddExceptionForm({
   onDone,
 }: {
   defaultHostname: Host;
-  onDone: (res: 'ok' | 'cancel', hostname?: Host) => void;
+  onDone: (entry?: { hostname: Host; rate: AmountValue }) => void;
 }) {
   const t = useTranslation();
   const message = useMessage();
@@ -32,14 +32,14 @@ export function AddExceptionForm({
   const [isRateValid, setIsRateValid] = useState(true);
   const isSiteValid = isValidHostname(hostname);
 
-  const save = useCallback(
-    (ev: React.SubmitEvent) => {
+  const save: React.SubmitEventHandler = useCallback(
+    (ev) => {
       ev.preventDefault();
 
       const data = { rate, hostname };
       dispatch({ type: 'UPDATE_SITE_RATE_OF_PAY', data });
       void message.send('SET_SITE_RATE_OF_PAY', data);
-      onDone('ok', hostname);
+      onDone(data);
     },
     [message, rate, hostname, onDone],
   );
@@ -53,7 +53,7 @@ export function AddExceptionForm({
         <button
           className="underline text-error"
           type="button"
-          onClick={() => onDone('cancel')}
+          onClick={() => onDone()}
         >
           {t('settings_sitePaymentRates_action_cancel')}
         </button>
