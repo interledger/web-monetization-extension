@@ -275,7 +275,7 @@ export const RateOfPayInput = ({
         onValidityChange?.(false);
       }}
       errorMessage={errorMessage}
-      min={Number(formatAmount(1))}
+      min={0}
       max={Number(formatAmount(maxRateOfPay))}
       amount={formatAmount(rateOfPay)}
       controls={true}
