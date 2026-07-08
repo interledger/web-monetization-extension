@@ -1,6 +1,6 @@
 import React from 'react';
 import { CaretDownIcon } from '@/pages/shared/components/Icons';
-import { useTranslation } from '@/app/lib/context';
+import { useTranslation } from '@/popup/lib/context';
 import { DataCollectionSettings } from './SettingsDataCollection';
 
 export function SettingsScreen() {
