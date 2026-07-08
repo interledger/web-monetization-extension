@@ -527,6 +527,12 @@
   "settings_rate_label_addException": {
     "message": "Add exception"
   },
+  "settings_rate_label_inputDefaultRate": {
+    "message": "Default rate"
+  },
+  "settings_rate_action_removeException": {
+    "message": "Remove exception"
+  },
 
   "settings_dataCollection_title": {
     "message": "Data Collection"

@@ -123,7 +123,7 @@ export const RateOfPayComponent = ({
       >
         <RateOfPayInput
           id="rateOfPay"
-          label="Default rate"
+          label={t('settings_rate_label_inputDefaultRate')}
           onRateChange={onRateChange}
           rateOfPay={rateOfPay}
           maxRateOfPay={maxRateOfPay}
@@ -187,6 +187,7 @@ const SiteRateOfPayInput = ({
 }: {
   onRateChange: Props['onSiteRateChange'];
 }) => {
+  const t = useTranslation();
   const { rateOfPay, maxRateOfPay, walletAddress, tab } = usePopupState();
 
   const hostname = new URL(tab.url).hostname;
@@ -206,7 +207,9 @@ const SiteRateOfPayInput = ({
           type="button"
           className="p-1 text-alt"
         >
-          <span className="sr-only">Remove exception</span>
+          <span className="sr-only">
+            {t('settings_rate_action_removeException')}
+          </span>
           <IconTrash className="size-4" />
         </button>
       </div>
