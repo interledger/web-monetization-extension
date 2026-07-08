@@ -262,3 +262,5 @@ export type WindowId = NonNullable<Tabs.Tab['windowId']>;
 /** `0` represents the top-level frame, everything else is an _iframe_ */
 export type FrameId = number;
 export type SessionId = string;
+
+export type Host = URL['hostname'];

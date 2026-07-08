@@ -1,3 +1,4 @@
+// cSpell:ignore wwwexample
 import { addDays } from 'date-fns/addDays';
 import { addMonths } from 'date-fns/addMonths';
 import { addSeconds } from 'date-fns/addSeconds';
@@ -14,6 +15,7 @@ import {
 import {
   isOkState,
   objectEquals,
+  normalizeHostname,
   removeQueryParams,
   withResolvers,
   getNextOccurrence,
@@ -76,6 +78,19 @@ describe('moveToFront', () => {
     const array = [obj1, obj2, obj3];
     moveToFront(array, obj3);
     expect(array).toEqual([obj3, obj1, obj2]);
+  });
+});
+
+describe('normalizeHostname', () => {
+  it('strips www. prefix', () => {
+    expect(normalizeHostname('www.example.com')).toBe('example.com');
+    expect(normalizeHostname('www.example.co.uk')).toBe('example.co.uk');
+  });
+
+  it('leaves non-www hostnames unchanged', () => {
+    expect(normalizeHostname('example.com')).toBe('example.com');
+    expect(normalizeHostname('sub.example.com')).toBe('sub.example.com');
+    expect(normalizeHostname('wwwexample.com')).toBe('wwwexample.com');
   });
 });
 

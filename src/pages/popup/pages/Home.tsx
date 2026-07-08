@@ -68,10 +68,11 @@ export default () => {
 };
 
 const InfoBanner = () => {
-  const { rateOfPay, balance, walletAddress } = usePopupState();
+  const { rateOfPay, tab, balance, walletAddress } = usePopupState();
 
   const rate = React.useMemo(() => {
-    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;
+    const currentRateOfPay = tab.rateOfPay ?? rateOfPay;
+    const r = Number(currentRateOfPay) / 10 ** walletAddress.assetScale;
     const roundedR = roundWithPrecision(r, walletAddress.assetScale);
 
     return formatCurrency(
@@ -79,7 +80,12 @@ const InfoBanner = () => {
       walletAddress.assetCode,
       walletAddress.assetScale,
     );
-  }, [rateOfPay, walletAddress.assetCode, walletAddress.assetScale]);
+  }, [
+    rateOfPay,
+    tab.rateOfPay,
+    walletAddress.assetCode,
+    walletAddress.assetScale,
+  ]);
 
   const remainingBalance = React.useMemo(() => {
     const val = Number(balance) / 10 ** walletAddress.assetScale;
@@ -96,7 +102,11 @@ const InfoBanner = () => {
       <dl className="flex items-center justify-between px-10">
         <div className="flex flex-col-reverse items-center">
           <dt className="text-sm">Hourly rate</dt>
-          <dd className="font-medium tabular-nums">{rate}</dd>
+          <dd className="font-medium tabular-nums">
+            {rate}
+            {/* For now: added * as indicator when custom rate is active, will be redesigned */}
+            {tab.rateOfPay ? '*' : ''}
+          </dd>
         </div>
         <div className="flex flex-col-reverse items-center">
           <dt className="text-sm">Balance</dt>

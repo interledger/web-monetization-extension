@@ -37,6 +37,9 @@ export function isNotNull<T>(value: T | null): value is T {
   return value !== null;
 }
 
+export const normalizeHostname = (hostname: string): string =>
+  hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+
 export const removeQueryParams = (urlString: string) => {
   const url = new URL(urlString);
   return url.origin + url.pathname;
