@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { Input } from '@/pages/shared/components/ui/Input';
 import { useMessage, useTranslation } from '@/popup/lib/context';
@@ -19,7 +19,7 @@ export function AddExceptionForm({
   const {
     walletAddress,
     rateOfPay: defaultRateOfPay,
-    sitesRateOfPay,
+    sitesRateOfPay = [],
     maxRateOfPay,
   } = usePopupState();
 
@@ -31,6 +31,12 @@ export function AddExceptionForm({
   });
   const [isRateValid, setIsRateValid] = useState(true);
   const isSiteValid = isValidHostname(hostname);
+
+  useEffect(() => {
+    document
+      .querySelector('[data-testid="rate-of-pay-site-add-exception-form"]')
+      ?.scrollIntoView();
+  }, []);
 
   const save: React.SubmitEventHandler = useCallback(
     (ev) => {
@@ -45,7 +51,11 @@ export function AddExceptionForm({
   );
 
   return (
-    <form className="flex flex-col gap-6" onSubmit={save}>
+    <form
+      className="flex flex-col gap-6"
+      onSubmit={save}
+      data-testid="rate-of-pay-site-add-exception-form"
+    >
       <div className="flex justify-between gap-2">
         <h3 className="font-medium text-secondary">
           {t('settings_sitePaymentRates_text_formTitle')}

@@ -35,7 +35,7 @@ export const PayWebsiteForm = () => {
     message: string;
   }>(null);
 
-  const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit: React.SubmitEventHandler = async (ev) => {
     ev.preventDefault();
     if (isSubmitting) return;
     setErrors({ amount: null, pay: null });
@@ -72,7 +72,7 @@ export const PayWebsiteForm = () => {
     <form
       ref={form}
       className={cn(
-        'space-y-2 rounded-md bg-gray-50 px-4 py-4',
+        'space-y-2 rounded-md bg-slate-100 px-4 py-4',
         !errors.pay && 'pb-12',
       )}
       onSubmit={onSubmit}

@@ -4,6 +4,7 @@ import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
 import { IconTrash } from '@/pages/shared/components/Icons';
+import type { OtherSettingsHistoryState } from '@/popup/components/Settings/Settings';
 import { debounceAsync, normalizeHostname } from '@/shared/helpers';
 import { cn, formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
 import { useMessage, useTelemetry, useTranslation } from '@/popup/lib/context';
@@ -161,7 +162,10 @@ export const RateOfPayComponent = ({
           onClick={() =>
             navigate('~/settings/other', {
               replace: true,
-              state: { open: 'sites-rate-of-pay' },
+              state: {
+                open: 'sites-rate-of-pay',
+                highlight: URL.parse(tab.url)?.hostname,
+              } satisfies OtherSettingsHistoryState,
             })
           }
         >

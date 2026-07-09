@@ -485,10 +485,12 @@ export class MonetizationService {
       );
       if (siteRate) tabData.rateOfPay = siteRate;
     }
+    const isRateListEmpty = await this.rateList.isEmpty();
 
     return {
       ...dataFromStorage,
       balance: balance.total.toString(),
+      hasSitesRateOfPay: !isRateListEmpty,
       tab: tabData,
       transientState: this.storage.getTransientState(),
       grants: {

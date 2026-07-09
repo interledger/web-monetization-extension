@@ -39,6 +39,29 @@
   "app_text_disabled": {
     "message": "The extension is disabled. Click the power icon above to enable the extension and continue making payments."
   },
+
+  "home_title_balance": {
+    "message": "Balance"
+  },
+  "home_action_manageBudget": {
+    "message": "Manage budget"
+  },
+  "home_title_hourlyRate": {
+    "message": "Hourly rate"
+  },
+  "home_action_addException": {
+    "message": "Add exception"
+  },
+  "home_action_manageExceptions": {
+    "message": "Manage exceptions"
+  },
+  "home_text_hourlyRateException": {
+    "message": "Exception"
+  },
+  "home_text_hourlyRateDefault": {
+    "message": "default"
+  },
+
   "keyRevoked_error_title": {
     "message": "Unauthorized access to the wallet."
   },
