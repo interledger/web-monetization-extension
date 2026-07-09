@@ -62,8 +62,8 @@ export const RateOfPayScreen = () => {
 };
 
 interface Props {
-  onRateChange: (rate: AmountValue) => Promise<void>;
-  onSiteRateChange: (data: SiteRateChangeData) => Promise<void>;
+  onRateChange: (rate: AmountValue) => Promise<void> | void;
+  onSiteRateChange: (data: SiteRateChangeData) => Promise<void> | void;
   toggle: (nowEnabled: boolean) => void | Promise<void>;
 }
 
@@ -176,10 +176,13 @@ type RateOfPayInputProps = {
   id: string;
   label: React.ReactNode;
   onRateChange: Props['onRateChange'];
+  onValidityChange?: (isValid: boolean) => void;
   walletAddress: PopupState['walletAddress'];
   rateOfPay: PopupState['rateOfPay'];
   maxRateOfPay: PopupState['maxRateOfPay'];
   disabled?: boolean;
+  className?: string;
+  smallSize?: boolean;
 };
 
 const SiteRateOfPayInput = ({
@@ -226,14 +229,17 @@ const SiteRateOfPayInput = ({
   );
 };
 
-const RateOfPayInput = ({
+export const RateOfPayInput = ({
   id,
   label,
   onRateChange,
+  onValidityChange,
   walletAddress,
   rateOfPay,
   maxRateOfPay,
   disabled,
+  className,
+  smallSize,
 }: RateOfPayInputProps) => {
   const t = useTranslation();
   const [errorMessage, setErrorMessage] = React.useState('');
@@ -255,20 +261,26 @@ const RateOfPayInput = ({
       className={cn(
         'bg-white border-base',
         disabled && 'focus-within:border-base',
+        className,
       )}
       walletAddress={walletAddress}
       onChange={(value) => {
         setErrorMessage('');
+        onValidityChange?.(true);
         const rate = Number(value) * 10 ** walletAddress.assetScale;
         onRateChange(Math.round(rate).toString());
       }}
-      onError={(error) => setErrorMessage(t(error))}
+      onError={(error) => {
+        setErrorMessage(t(error));
+        onValidityChange?.(false);
+      }}
       errorMessage={errorMessage}
-      min={Number(formatAmount(1))}
+      min={0}
       max={Number(formatAmount(maxRateOfPay))}
       amount={formatAmount(rateOfPay)}
       controls={true}
       readOnly={disabled}
+      size={smallSize ? 'small' : 'default'}
     />
   );
 };

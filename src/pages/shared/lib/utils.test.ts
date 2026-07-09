@@ -3,7 +3,90 @@ import {
   formatNumber,
   formatCurrency,
   getCurrencySymbol,
+  compareSitesByDomain,
 } from '@/pages/shared/lib/utils';
+
+describe('compareSitesByDomain', () => {
+  const sort = (hostnames: string[]) =>
+    [...hostnames].sort(compareSitesByDomain);
+
+  it('sorts root domain before its subdomains', () => {
+    expect(sort(['test.sidvishnoi.com', 'sidvishnoi.com'])).toEqual([
+      'sidvishnoi.com',
+      'test.sidvishnoi.com',
+    ]);
+    expect(sort(['www.example.com', 'example.com'])).toEqual([
+      'example.com',
+      'www.example.com',
+    ]);
+  });
+
+  it('groups subdomains with their root domain', () => {
+    expect(
+      sort([
+        'test.sidvishnoi.com',
+        'example.com',
+        'www.example.com',
+        'sidvishnoi.com',
+      ]),
+    ).toEqual([
+      'example.com',
+      'www.example.com',
+      'sidvishnoi.com',
+      'test.sidvishnoi.com',
+    ]);
+  });
+
+  it('sorts groups alphabetically by domain', () => {
+    expect(sort(['zebra.com', 'apple.com'])).toEqual([
+      'apple.com',
+      'zebra.com',
+    ]);
+  });
+
+  it('handles multi-level TLDs (e.g. co.uk)', () => {
+    expect(sort(['www.example.co.uk', 'example.co.uk'])).toEqual([
+      'example.co.uk',
+      'www.example.co.uk',
+    ]);
+    expect(sort(['foo.co.uk', 'bar.co.uk'])).toEqual([
+      'bar.co.uk',
+      'foo.co.uk',
+    ]);
+  });
+
+  it('groups multi-level TLD subdomains together', () => {
+    expect(
+      sort(['www.foo.co.uk', 'bar.com', 'foo.co.uk', 'www.bar.com']),
+    ).toEqual(['bar.com', 'www.bar.com', 'foo.co.uk', 'www.foo.co.uk']);
+  });
+
+  it('returns 0 for identical hostnames', () => {
+    expect(compareSitesByDomain('example.com', 'example.com')).toBe(0);
+  });
+
+  it('sorts by domain name, not TLD', () => {
+    expect(sort(['zebra.com', 'apple.xyz'])).toEqual([
+      'apple.xyz',
+      'zebra.com',
+    ]);
+  });
+
+  it('uses TLD only as a tiebreaker when domain names are equal', () => {
+    expect(sort(['example.xyz', 'example.com'])).toEqual([
+      'example.com',
+      'example.xyz',
+    ]);
+  });
+
+  it('sorts subdomains alphabetically within the same root', () => {
+    expect(sort(['z.example.com', 'a.example.com', 'example.com'])).toEqual([
+      'example.com',
+      'a.example.com',
+      'z.example.com',
+    ]);
+  });
+});
 
 describe('formatNumber', () => {
   it('should display right format for integers', () => {

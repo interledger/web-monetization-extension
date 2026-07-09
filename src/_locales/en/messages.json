@@ -534,6 +534,40 @@
     "message": "Remove exception"
   },
 
+  "settings_sitePaymentRates_title": {
+    "message": "Hourly payments exceptions"
+  },
+  "settings_sitePaymentRates_desc": {
+    "message": "The website will be automatically detected and the exception rate will be applied. You can also choose the global rate any time."
+  },
+  "settings_sitePaymentRates_action_addException": {
+    "message": "Add new exception"
+  },
+  "settings_sitePaymentRates_text_formTitle": {
+    "message": "New exception"
+  },
+  "settings_sitePaymentRates_action_cancel": {
+    "message": "Cancel"
+  },
+  "settings_sitePaymentRates_inputSite_label": {
+    "message": "Add website domain"
+  },
+  "settings_sitePaymentRates_inputRate_label": {
+    "message": "Custom rate"
+  },
+  "settings_sitePaymentRates_action_save": {
+    "message": "Save"
+  },
+  "settings_sitePaymentRates_inputSite_error_required": {
+    "message": "Domain is required"
+  },
+  "settings_sitePaymentRates_inputSite_error_invalid": {
+    "message": "Enter a valid domain (e.g. example.com)"
+  },
+  "settings_sitePaymentRates_noExceptions": {
+    "message": "There are no exceptions added"
+  },
+
   "settings_dataCollection_title": {
     "message": "Data Collection"
   },

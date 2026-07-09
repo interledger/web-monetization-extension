@@ -1,5 +1,6 @@
 import { proxy, useSnapshot } from 'valtio';
 import { normalizeHostname } from '@/shared/helpers';
+import { compareSitesByDomain } from '@/pages/shared/lib/utils';
 import type {
   AmountValue,
   DeepNonNullable,
@@ -50,11 +51,31 @@ export const dispatch = ({ type, data }: Actions) => {
       const tabHostname = URL.parse(store.tab.url || '')?.hostname;
       if (tabHostname && normalizeHostname(tabHostname) === hostname) {
         store.tab.rateOfPay = data.rate ?? undefined;
+      }
+
+      store.sitesRateOfPay ??= [];
+      if (data.rate === null) {
+        store.sitesRateOfPay = store.sitesRateOfPay.filter(
+          (e) => e.hostname !== hostname,
+        );
       } else {
-        // TODO: update in rates list
+        const e = store.sitesRateOfPay.find((e) => e.hostname === hostname);
+        if (!e) {
+          store.sitesRateOfPay = [
+            ...store.sitesRateOfPay,
+            { hostname, rate: data.rate },
+          ].sort((a, b) => compareSitesByDomain(a.hostname, b.hostname));
+        } else {
+          e.rate = data.rate;
+        }
       }
       break;
     }
+    case 'SET_DATA_SITES_RATE_OF_PAY':
+      store.sitesRateOfPay = [...data].sort((a, b) =>
+        compareSitesByDomain(a.hostname, b.hostname),
+      );
+      break;
     case 'SET_STATE':
       store.state = data.state;
       break;
@@ -82,5 +103,9 @@ type Actions =
   | {
       type: 'UPDATE_SITE_RATE_OF_PAY';
       data: { hostname: Host; rate: AmountValue | null };
+    }
+  | {
+      type: 'SET_DATA_SITES_RATE_OF_PAY';
+      data: { hostname: Host; rate: AmountValue }[];
     }
   | BackgroundToPopupMessage;
