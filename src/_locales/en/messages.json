@@ -553,7 +553,7 @@
     "message": "Add website domain"
   },
   "settings_sitePaymentRates_inputRate_label": {
-    "message": "Custom Rate"
+    "message": "Custom rate"
   },
   "settings_sitePaymentRates_action_save": {
     "message": "Save"
