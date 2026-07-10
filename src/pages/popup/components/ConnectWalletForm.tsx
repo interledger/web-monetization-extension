@@ -205,6 +205,27 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
     [saveValue, getWalletInformation, toErrorInfo],
   );
 
+  const commitWalletAddressUrl = React.useCallback(
+    async (
+      value: string,
+      input: HTMLInputElement,
+      focusAmountOnSuccess = false,
+    ) => {
+      if (value === walletAddressUrl) {
+        if (value || !input.required) {
+          return false;
+        }
+      }
+      const ok = await handleWalletAddressUrlChange(value, input);
+      void resetState();
+      if (focusAmountOnSuccess && ok) {
+        document.getElementById('connectAmount')?.focus();
+      }
+      return ok;
+    },
+    [walletAddressUrl, handleWalletAddressUrlChange, resetState],
+  );
+
   const onWalletAddressInput: OnInputHandler = React.useCallback(
     (event) => {
       const input = event.currentTarget;
@@ -219,18 +240,10 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       if (validateWalletAddressUrl(value)) {
         return; // not valid data from autocomplete, fallback to input blur based behavior
       }
-      if (value === walletAddressUrl) {
-        if (value || !input.required) {
-          return;
-        }
-      }
       // use as autocompleted value
-      void handleWalletAddressUrlChange(value, input).then((ok) => {
-        void resetState();
-        if (ok) document.getElementById('connectAmount')?.focus();
-      });
+      void commitWalletAddressUrl(value, input, true);
     },
-    [handleWalletAddressUrlChange, resetState, walletAddressUrl],
+    [commitWalletAddressUrl],
   );
 
   const handleSubmit = async (ev?: React.SubmitEvent<HTMLFormElement>) => {
@@ -395,25 +408,11 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
             await sleep(0); // allow paste to be complete
             value = input.value;
           }
-          if (value === walletAddressUrl) {
-            if (value || !input.required) {
-              return;
-            }
-          }
-          const ok = await handleWalletAddressUrlChange(value, input);
-          void resetState();
-          if (ok) document.getElementById('connectAmount')?.focus();
+          await commitWalletAddressUrl(value, input, true);
         }}
-        onBlur={async (ev) => {
-          const value = ev.currentTarget.value;
-          if (value === walletAddressUrl) {
-            if (value || !ev.currentTarget.required) {
-              return;
-            }
-          }
-          await handleWalletAddressUrlChange(value, ev.currentTarget);
-          await resetState();
-        }}
+        onBlur={(ev) =>
+          commitWalletAddressUrl(ev.currentTarget.value, ev.currentTarget)
+        }
       />
 
       <fieldset className="space-y-2">
