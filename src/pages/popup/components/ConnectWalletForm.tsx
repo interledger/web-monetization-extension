@@ -3,6 +3,11 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useImperativeHandle,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
 } from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { Input } from '@/pages/shared/components/ui/Input';
@@ -53,11 +58,14 @@ interface Inputs {
 }
 
 type ConnectTransientState = DeepReadonly<TransientState['connect']>;
-type ErrorsParams = 'walletAddressUrl' | 'amount' | 'keyPair' | 'connect';
+type ErrorsParams = 'amount' | 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
 type OnInputHandler = NonNullable<
   React.DOMAttributes<HTMLInputElement>['onInput']
+>;
+type OnPasteHandler = NonNullable<
+  React.DOMAttributes<HTMLInputElement>['onPaste']
 >;
 
 // carries the frequently-updating transient connect state.
@@ -117,18 +125,15 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
     setAutoKeyShareFailed(false);
   }, [clearConnectState]);
 
+  const walletAddressInputRef = useRef<WalletAddressInputHandle>(null);
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<ConnectWalletAddressInfo | null>(null);
 
-  const [errors, setErrors] = React.useReducer(
+  const [errors, setErrors] = useReducer(
     (prev: Errors, patch: Partial<Errors>): Errors => ({ ...prev, ...patch }),
-    { walletAddressUrl: null, amount: null, keyPair: null, connect: null },
+    { amount: null, keyPair: null, connect: null },
   );
 
-  const [isValidating, setIsValidating] = React.useState({
-    walletAddressUrl: false,
-    amount: false,
-  });
   const [isSubmitting, setIsSubmitting] = React.useState(
     initialState?.type === 'progress',
   );
@@ -145,119 +150,45 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
     [saveValue],
   );
 
-  const getWalletInformation = React.useCallback(
-    async (
-      walletAddressUrl: string,
-    ): Promise<ConnectWalletAddressInfo | null> => {
-      setErrors({ walletAddressUrl: null });
-      if (!walletAddressUrl) return null;
-      try {
-        setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
-        const url = new URL(toWalletAddressUrl(walletAddressUrl));
-        const walletInfo = await getWalletInfo(url.toString());
-        setWalletAddressInfo(walletInfo);
-        const defaultBudget = formatNumber(
-          walletInfo.defaultBudget,
-          walletInfo.walletAddress.assetScale,
-        );
-        const inputEl = document.querySelector<HTMLInputElement>(
-          'input#connectAmount',
-        );
-        if (
-          inputEl &&
-          (!inputEl.dataset.modified ||
-            !inputEl.value ||
-            inputEl.ariaInvalid === 'true')
-        ) {
-          setErrors({ amount: null });
-          inputEl.defaultValue = defaultBudget;
-          inputEl.value = defaultBudget;
-          setAmount(defaultBudget);
-          saveValue('amount', defaultBudget);
-        }
-        return walletInfo;
-      } catch (error) {
-        setErrors({ walletAddressUrl: toErrorInfo(error.message) });
-        return null;
-      } finally {
-        setIsValidating((_) => ({ ..._, walletAddressUrl: false }));
-      }
-    },
-    [getWalletInfo, saveValue, toErrorInfo],
-  );
+  const onWalletInfoChange = useCallback(
+    (info: ConnectWalletAddressInfo | null) => {
+      setWalletAddressInfo(info);
+      if (!info) return;
 
-  const handleWalletAddressUrlChange = React.useCallback(
-    async (
-      value: string,
-      _input?: HTMLInputElement,
-    ): Promise<ConnectWalletAddressInfo | null> => {
-      setWalletAddressInfo(null);
-      setWalletAddressUrl(value);
-
-      const error = validateWalletAddressUrl(value);
-      setErrors({ walletAddressUrl: toErrorInfo(error) });
-      saveValue('walletAddressUrl', value);
-      if (!error) {
-        return await getWalletInformation(value);
-      }
-      return null;
-    },
-    [saveValue, getWalletInformation, toErrorInfo],
-  );
-
-  const commitWalletAddressUrl = React.useCallback(
-    async (
-      value: string,
-      input: HTMLInputElement,
-      focusAmountOnSuccess = false,
-    ): Promise<ConnectWalletAddressInfo | null | undefined> => {
-      if (value === walletAddressUrl) {
-        if (value || !input.required) {
-          return;
-        }
-      }
-      const walletInfo = await handleWalletAddressUrlChange(value, input);
-      void resetState();
-      if (focusAmountOnSuccess && walletInfo) {
-        document.getElementById('connectAmount')?.focus();
-      }
-      return walletInfo;
-    },
-    [walletAddressUrl, handleWalletAddressUrlChange, resetState],
-  );
-
-  const onWalletAddressInput: OnInputHandler = React.useCallback(
-    (event) => {
-      const input = event.currentTarget;
-      const ev = event.nativeEvent as InputEvent;
-      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
+      const defaultBudget = formatNumber(
+        info.defaultBudget,
+        info.walletAddress.assetScale,
+      );
+      const inputEl = document.querySelector<HTMLInputElement>(
+        'input#connectAmount',
+      );
       if (
-        !value ||
-        (ev.inputType && ev.inputType !== 'insertReplacementText')
+        inputEl &&
+        (!inputEl.dataset.modified ||
+          !inputEl.value ||
+          inputEl.ariaInvalid === 'true')
       ) {
-        return; // not autocomplete
+        setErrors({ amount: null });
+        inputEl.defaultValue = defaultBudget;
+        inputEl.value = defaultBudget;
+        setAmount(defaultBudget);
+        saveValue('amount', defaultBudget);
       }
-      if (validateWalletAddressUrl(value)) {
-        return; // not valid data from autocomplete, fallback to input blur based behavior
-      }
-      // use as autocompleted value
-      void commitWalletAddressUrl(value, input, true);
     },
-    [commitWalletAddressUrl],
+    [saveValue],
   );
 
   const handleSubmit = async (ev?: React.SubmitEvent<HTMLFormElement>) => {
     ev?.preventDefault();
 
-    let walletAddressInput = walletAddressUrl;
-    let freshWalletInfo = walletAddressInfo;
     const addressInputEl = ev?.currentTarget.connectWalletAddressUrl;
+    const walletAddressInput =
+      addressInputEl instanceof HTMLInputElement
+        ? addressInputEl.value
+        : walletAddressUrl;
+    let freshWalletInfo = walletAddressInfo;
     if (addressInputEl) {
-      walletAddressInput = addressInputEl.value;
-      const result = await commitWalletAddressUrl(
-        walletAddressInput,
-        addressInputEl,
-      );
+      const result = await walletAddressInputRef.current!.commit();
       if (result === null) return;
       if (result) freshWalletInfo = result;
     }
@@ -280,14 +211,9 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
     )!;
     const amount = amountInput.value;
 
-    const errWalletAddressUrl = validateWalletAddressUrl(walletAddressInput);
     const errAmount = validateAmount(amount, walletInfo.walletAddress);
-    if (errAmount || errWalletAddressUrl) {
-      setErrors({
-        walletAddressUrl: toErrorInfo(errWalletAddressUrl),
-        amount: toErrorInfo(errAmount),
-      });
-      return;
+    if (errAmount) {
+      return setErrors({ amount: toErrorInfo(errAmount) });
     }
 
     try {
@@ -317,12 +243,6 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       setIsSubmitting(false);
     }
   };
-
-  React.useEffect(() => {
-    if (defaultValues.walletAddressUrl) {
-      void handleWalletAddressUrlChange(defaultValues.walletAddressUrl);
-    }
-  }, [defaultValues.walletAddressUrl, handleWalletAddressUrlChange]);
 
   const keyAddNeeded = !walletAddressInfo?.isKeyAdded;
   const showManualKeyCopy =
@@ -372,13 +292,15 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       )}
 
       <WalletAddressInput
+        ref={walletAddressInputRef}
         placeholder={walletAddressPlaceholder}
-        error={errors.walletAddressUrl}
-        defaultValue={walletAddressUrl}
-        isValidating={isValidating.walletAddressUrl}
+        defaultValue={defaultValues.walletAddressUrl || ''}
         isSubmitting={isSubmitting}
-        onInput={onWalletAddressInput}
-        onCommit={commitWalletAddressUrl}
+        saveValue={saveValue}
+        getWalletInfo={getWalletInfo}
+        resetState={resetState}
+        onWalletAddressChange={setWalletAddressUrl}
+        onWalletInfoChange={onWalletInfoChange}
       />
 
       <fieldset className="space-y-2">
@@ -448,13 +370,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
           type="submit"
           className="w-full"
           disabled={
-            isValidating.amount ||
-            isValidating.walletAddressUrl ||
-            !!errors.amount ||
-            !!errors.walletAddressUrl ||
-            isSubmitting ||
-            !walletAddressUrl ||
-            !amount
+            !walletAddressInfo || !!errors.amount || isSubmitting || !amount
           }
           loading={isSubmitting}
           loadingText={<ConnectSubmitLoadingText />}
@@ -546,33 +462,140 @@ export function useConnectWalletFormActions(
   return { getWalletInfo, connectWallet, clearConnectState };
 }
 
+interface WalletAddressInputHandle {
+  /** Force-validates and re-fetches whatever is currently in the field. */
+  commit: () => Promise<ConnectWalletAddressInfo | null | undefined>;
+}
+
 interface WalletAddressInputProps {
   placeholder: string;
-  error: ErrorInfo | null;
   defaultValue: string;
-  isValidating: boolean;
   isSubmitting: boolean;
-  onInput: OnInputHandler;
-  onCommit: (
-    value: string,
-    input: HTMLInputElement,
-    focusAmountOnSuccess?: boolean,
-  ) => Promise<ConnectWalletAddressInfo | null | undefined>;
+  saveValue: Props['saveValue'];
+  getWalletInfo: Props['getWalletInfo'];
+  resetState: () => Promise<void>;
+  onWalletAddressChange: (value: string) => void;
+  onWalletInfoChange: (info: ConnectWalletAddressInfo | null) => void;
+  ref?: React.Ref<WalletAddressInputHandle>;
 }
 
 function WalletAddressInput({
   placeholder,
-  error,
   defaultValue,
-  isValidating,
   isSubmitting,
-  onInput,
-  onCommit,
+  saveValue,
+  getWalletInfo,
+  resetState,
+  onWalletAddressChange,
+  onWalletInfoChange,
+  ref,
 }: WalletAddressInputProps) {
   const t = useTranslation();
+  const toErrorInfo = useMemo(() => toErrorInfoFactory(t), [t]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const lastCommittedValue = useRef(defaultValue);
+
+  const [error, setError] = useState<ErrorInfo | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
+
+  const validateAndFetch = useCallback(
+    async (value: string): Promise<ConnectWalletAddressInfo | null> => {
+      lastCommittedValue.current = value;
+      onWalletAddressChange(value);
+      onWalletInfoChange(null);
+      saveValue('walletAddressUrl', value);
+
+      const validationError = validateWalletAddressUrl(value);
+      setError(toErrorInfo(validationError));
+      if (validationError) return null;
+
+      setIsValidating(true);
+      try {
+        const url = new URL(toWalletAddressUrl(value));
+        const walletInfo = await getWalletInfo(url.toString());
+        onWalletInfoChange(walletInfo);
+        return walletInfo;
+      } catch (err) {
+        setError(toErrorInfo(err.message));
+        return null;
+      } finally {
+        setIsValidating(false);
+      }
+    },
+    [
+      saveValue,
+      getWalletInfo,
+      onWalletAddressChange,
+      onWalletInfoChange,
+      toErrorInfo,
+    ],
+  );
+
+  const commit = useCallback(
+    async (
+      value: string,
+    ): Promise<ConnectWalletAddressInfo | null | undefined> => {
+      if (value && value === lastCommittedValue.current) {
+        return;
+      }
+      const walletInfo = await validateAndFetch(value);
+      void resetState();
+      return walletInfo;
+    },
+    [validateAndFetch, resetState],
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({ commit: () => commit(inputRef.current!.value) }),
+    [commit],
+  );
+
+  const onInput: OnInputHandler = useCallback(
+    (event) => {
+      const input = event.currentTarget;
+      const ev = event.nativeEvent as InputEvent;
+      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
+      if (
+        !value ||
+        (ev.inputType && ev.inputType !== 'insertReplacementText')
+      ) {
+        return; // not autocomplete
+      }
+      if (validateWalletAddressUrl(value)) {
+        return; // not valid data from autocomplete, fallback to input blur based behavior
+      }
+      // use as autocompleted value
+      void commit(value);
+    },
+    [commit],
+  );
+
+  const onPaste: OnPasteHandler = useCallback(
+    async (ev) => {
+      const input = ev.currentTarget;
+      let value = ev.clipboardData.getData('text');
+      if (!value) return;
+      if (!validateWalletAddressUrl(value)) {
+        ev.preventDefault(); // full url was pasted
+        input.value = value;
+      } else {
+        await sleep(0); // allow paste to be complete
+        value = input.value;
+      }
+      await commit(value);
+    },
+    [commit],
+  );
+
+  useEffect(() => {
+    if (defaultValue) void validateAndFetch(defaultValue);
+  }, [defaultValue, validateAndFetch]);
 
   return (
     <Input
+      ref={inputRef}
       type="text"
       label={t('connectWallet_label_walletAddress')}
       id="connectWalletAddressUrl"
@@ -588,20 +611,8 @@ function WalletAddressInput({
       enterKeyHint="go"
       readOnly={isSubmitting}
       onInput={onInput}
-      onPaste={async (ev) => {
-        const input = ev.currentTarget;
-        let value = ev.clipboardData.getData('text');
-        if (!value) return;
-        if (!validateWalletAddressUrl(value)) {
-          ev.preventDefault(); // full url was pasted
-          input.value = value;
-        } else {
-          await sleep(0); // allow paste to be complete
-          value = input.value;
-        }
-        await onCommit(value, input, true);
-      }}
-      onBlur={(ev) => onCommit(ev.currentTarget.value, ev.currentTarget)}
+      onPaste={onPaste}
+      onBlur={(ev) => commit(ev.currentTarget.value)}
     />
   );
 }
