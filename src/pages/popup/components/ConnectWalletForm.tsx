@@ -114,7 +114,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
 
   const resetState = React.useCallback(async () => {
     await clearConnectState();
-    setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
+    setErrors({ keyPair: null, connect: null });
     setAutoKeyShareFailed(false);
     setKeyAddNeeded(true);
   }, [clearConnectState]);
@@ -122,12 +122,10 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<ConnectWalletAddressInfo | null>(null);
 
-  const [errors, setErrors] = React.useState<Errors>({
-    walletAddressUrl: null,
-    amount: null,
-    keyPair: null,
-    connect: null,
-  });
+  const [errors, setErrors] = React.useReducer(
+    (prev: Errors, patch: Partial<Errors>): Errors => ({ ...prev, ...patch }),
+    { walletAddressUrl: null, amount: null, keyPair: null, connect: null },
+  );
 
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
@@ -139,7 +137,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
 
   const handleAmountChange = React.useCallback(
     (amountValue: string, input?: HTMLInputElement) => {
-      setErrors((prev) => ({ ...prev, amount: null }));
+      setErrors({ amount: null });
       setAmount(amountValue);
       if (input && Number(amountValue) > 0) {
         input.dataset.modified = '1';
@@ -151,7 +149,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
 
   const getWalletInformation = React.useCallback(
     async (walletAddressUrl: string): Promise<boolean> => {
-      setErrors((prev) => ({ ...prev, walletAddressUrl: null }));
+      setErrors({ walletAddressUrl: null });
       if (!walletAddressUrl) return false;
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
@@ -172,17 +170,14 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
             !inputEl.value ||
             inputEl.ariaInvalid === 'true')
         ) {
-          setErrors((prev) => ({ ...prev, amount: null }));
+          setErrors({ amount: null });
           inputEl.defaultValue = defaultBudget;
           inputEl.value = defaultBudget;
           setAmount(defaultBudget);
           saveValue('amount', defaultBudget);
         }
       } catch (error) {
-        setErrors((prev) => ({
-          ...prev,
-          walletAddressUrl: toErrorInfo(error.message),
-        }));
+        setErrors({ walletAddressUrl: toErrorInfo(error.message) });
         return false;
       } finally {
         setIsValidating((_) => ({ ..._, walletAddressUrl: false }));
@@ -199,7 +194,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       setWalletAddressUrl(value);
 
       const error = validateWalletAddressUrl(value);
-      setErrors((prev) => ({ ...prev, walletAddressUrl: toErrorInfo(error) }));
+      setErrors({ walletAddressUrl: toErrorInfo(error) });
       saveValue('walletAddressUrl', value);
       if (!error) {
         const ok = await getWalletInformation(value);
@@ -284,11 +279,10 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressInput);
     const errAmount = validateAmount(amount, walletInfo!.walletAddress);
     if (errAmount || errWalletAddressUrl) {
-      setErrors((prev) => ({
-        ...prev,
+      setErrors({
         walletAddressUrl: toErrorInfo(errWalletAddressUrl),
         amount: toErrorInfo(errAmount),
-      }));
+      });
       return;
     }
 
@@ -298,7 +292,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         setAutoKeyShareFailed(true);
       }
 
-      setErrors((prev) => ({ ...prev, keyPair: null, connect: null }));
+      setErrors({ keyPair: null, connect: null });
       const res = await connectWallet({
         walletAddress: walletInfo.walletAddress,
         amount,
@@ -314,7 +308,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         // Otherwise, errors are handled by `ConnectStateErrorSync`
       }
     } catch (error) {
-      setErrors((prev) => ({ ...prev, connect: toErrorInfo(error.message) }));
+      setErrors({ connect: toErrorInfo(error.message) });
     } finally {
       setIsSubmitting(false);
     }
@@ -343,7 +337,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         }}
         onDecline={() => {
           const error = errorWithKey('connectWalletKeyService_error_noConsent');
-          setErrors((prev) => ({ ...prev, keyPair: toErrorInfo(error) }));
+          setErrors({ keyPair: toErrorInfo(error) });
           setShowConsent(false);
         }}
         intent="CONNECT_WALLET"
@@ -434,7 +428,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
             onAmountChange={handleAmountChange}
             error={errors.amount}
             onError={(err) => {
-              setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
+              setErrors({ amount: toErrorInfo(err) });
             }}
           />
 
@@ -511,7 +505,7 @@ function ConnectStateErrorSync({
   setErrors,
   toErrorInfo,
 }: {
-  setErrors: React.Dispatch<React.SetStateAction<Errors>>;
+  setErrors: React.Dispatch<Partial<Errors>>;
   toErrorInfo: ReturnType<typeof toErrorInfoFactory>;
 }) {
   const state = useConnectState();
@@ -519,15 +513,15 @@ function ConnectStateErrorSync({
   useEffect(() => {
     if (state?.type === 'failure' && state.code === 'key_add_failed') {
       const errInfo = toErrorInfo(mapErrorFailure(state));
-      setErrors((prev) => ({ ...prev, keyPair: errInfo }));
+      setErrors({ keyPair: errInfo });
     }
     if (state?.type === 'failure' && state.code !== 'key_add_failed') {
       const errInfo = toErrorInfo(mapErrorFailure(state));
-      setErrors((prev) => ({ ...prev, connect: errInfo }));
+      setErrors({ connect: errInfo });
     }
     if (state?.type === 'cancel') {
       const errInfo = toErrorInfo(mapErrorCancel(state));
-      setErrors((prev) => ({ ...prev, connect: errInfo }));
+      setErrors({ connect: errInfo });
     }
   }, [state, toErrorInfo, setErrors]);
 
