@@ -1,5 +1,6 @@
 // cSpell:ignore IDBPDatabase
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import { normalizeHostname } from '@/shared/helpers';
 import type { Cradle as Cradle_ } from '@/background/container';
 import type { AmountValue } from '@/shared/types';
 
@@ -42,6 +43,18 @@ export class RateListService {
       IDBKeyRange.only([wallet.assetCode, wallet.assetScale]),
     );
     return entries.map(({ site, rate }) => ({ site, rate }));
+  }
+
+  async isEmpty(): Promise<boolean> {
+    const wallet = await this.#getWallet();
+    if (!wallet) return true;
+    const db = await this.#getDb();
+    const key = await db.getKeyFromIndex(
+      'rates',
+      'by-currency',
+      IDBKeyRange.only([wallet.assetCode, wallet.assetScale]),
+    );
+    return key === undefined;
   }
 
   async setRate(hostname: string, rate: AmountValue): Promise<void> {
@@ -113,8 +126,7 @@ export function matchesPattern(hostname: string, pattern: string): boolean {
  * (*.sub.example.com) so they take priority over the apex wildcard.
  */
 export function hostnameToSiteKey(hostname: string): string {
-  const base = hostname.startsWith('www.') ? hostname.slice(4) : hostname;
-  return `*.${base}`;
+  return `*.${normalizeHostname(hostname)}`;
 }
 
 interface RatesSchema extends DBSchema {

@@ -50,6 +50,21 @@ mockedOpenDB.mockImplementation(async (_name, _v, { upgrade }) => {
       mockStore.delete(`${ac}:${as}:${site}`);
       return Promise.resolve();
     },
+    getKeyFromIndex: (
+      _s: string,
+      _i: string,
+      range: { only: [assetCode: string, assetScale: number] },
+    ) => {
+      const [ac, as] = range.only;
+      const entry = [...mockStore.values()].find(
+        (e) => e.assetCode === ac && e.assetScale === as,
+      );
+      return Promise.resolve(
+        entry
+          ? ([entry.assetCode, entry.assetScale, entry.site] as const)
+          : undefined,
+      );
+    },
   };
   upgrade(db);
   return db;
@@ -73,8 +88,10 @@ function makeRateListService(
 describe('RateListService CRUD', () => {
   it('setRate and getAll', async () => {
     const rateList = makeRateListService();
+    await expect(rateList.isEmpty()).resolves.toBe(true);
     await rateList.setRate('example.com', '3');
     await rateList.setRate('other.com', '5');
+    await expect(rateList.isEmpty()).resolves.toBe(false);
     await expect(rateList.getAll()).resolves.toEqual(
       expect.arrayContaining([
         { site: '*.example.com', rate: '3' },
@@ -97,6 +114,7 @@ describe('RateListService CRUD', () => {
     await rateList.setRate('example.com', '3');
     await rateList.deleteRate('example.com');
     await expect(rateList.getAll()).resolves.toHaveLength(0);
+    await expect(rateList.isEmpty()).resolves.toBe(true);
   });
 
   it('getAll throws with no wallet connected', async () => {

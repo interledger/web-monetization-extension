@@ -39,6 +39,29 @@
   "app_text_disabled": {
     "message": "The extension is disabled. Click the power icon above to enable the extension and continue making payments."
   },
+
+  "home_title_balance": {
+    "message": "Balance"
+  },
+  "home_action_manageBudget": {
+    "message": "Manage budget"
+  },
+  "home_title_hourlyRate": {
+    "message": "Hourly rate"
+  },
+  "home_action_addException": {
+    "message": "Add exception"
+  },
+  "home_action_manageExceptions": {
+    "message": "Manage exceptions"
+  },
+  "home_text_hourlyRateException": {
+    "message": "Exception"
+  },
+  "home_text_hourlyRateDefault": {
+    "message": "default"
+  },
+
   "keyRevoked_error_title": {
     "message": "Unauthorized access to the wallet."
   },
@@ -513,6 +536,59 @@
   },
   "postConnect_reconnect_failure_other_msg": {
     "message": "We couldn’t verify your wallet. Please try again, or manually copy the public key and add it to your digital wallet account."
+  },
+
+  "settings_rate_continuousPayments_label": {
+    "message": "Continuous payments"
+  },
+  "settings_rate_continuousPayments_disabled_text": {
+    "message": "Ongoing payments are now disabled. You can still make one time payments."
+  },
+  "settings_rate_label_manageExceptions": {
+    "message": "Manage exceptions"
+  },
+  "settings_rate_label_addException": {
+    "message": "Add exception"
+  },
+  "settings_rate_label_inputDefaultRate": {
+    "message": "Default rate"
+  },
+  "settings_rate_action_removeException": {
+    "message": "Remove exception"
+  },
+
+  "settings_sitePaymentRates_title": {
+    "message": "Hourly payments exceptions"
+  },
+  "settings_sitePaymentRates_desc": {
+    "message": "The website will be automatically detected and the exception rate will be applied. You can also choose the global rate any time."
+  },
+  "settings_sitePaymentRates_action_addException": {
+    "message": "Add new exception"
+  },
+  "settings_sitePaymentRates_text_formTitle": {
+    "message": "New exception"
+  },
+  "settings_sitePaymentRates_action_cancel": {
+    "message": "Cancel"
+  },
+  "settings_sitePaymentRates_inputSite_label": {
+    "message": "Add website domain"
+  },
+  "settings_sitePaymentRates_inputRate_label": {
+    "message": "Custom rate"
+  },
+  "settings_sitePaymentRates_action_save": {
+    "message": "Save"
+  },
+  "settings_sitePaymentRates_inputSite_error_required": {
+    "message": "Domain is required"
+  },
+  "settings_sitePaymentRates_inputSite_error_invalid": {
+    "message": "Enter a valid domain (e.g. example.com)"
+  },
+  "settings_sitePaymentRates_noExceptions": {
+    "message": "There are no exceptions added"
   },
 
   "settings_dataCollection_title": {

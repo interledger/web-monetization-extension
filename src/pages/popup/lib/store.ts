@@ -1,5 +1,12 @@
 import { proxy, useSnapshot } from 'valtio';
-import type { AmountValue, DeepNonNullable, PopupStore } from '@/shared/types';
+import { normalizeHostname } from '@/shared/helpers';
+import { compareSitesByDomain } from '@/pages/shared/lib/utils';
+import type {
+  AmountValue,
+  DeepNonNullable,
+  Host,
+  PopupStore,
+} from '@/shared/types';
 import type { BackgroundToPopupMessage } from '@/shared/messages';
 
 export type PopupState = Required<
@@ -39,6 +46,36 @@ export const dispatch = ({ type, data }: Actions) => {
     case 'UPDATE_RATE_OF_PAY':
       store.rateOfPay = data.rateOfPay;
       break;
+    case 'UPDATE_SITE_RATE_OF_PAY': {
+      const hostname = normalizeHostname(data.hostname);
+      const tabHostname = URL.parse(store.tab.url || '')?.hostname;
+      if (tabHostname && normalizeHostname(tabHostname) === hostname) {
+        store.tab.rateOfPay = data.rate ?? undefined;
+      }
+
+      store.sitesRateOfPay ??= [];
+      if (data.rate === null) {
+        store.sitesRateOfPay = store.sitesRateOfPay.filter(
+          (e) => e.hostname !== hostname,
+        );
+      } else {
+        const e = store.sitesRateOfPay.find((e) => e.hostname === hostname);
+        if (!e) {
+          store.sitesRateOfPay = [
+            ...store.sitesRateOfPay,
+            { hostname, rate: data.rate },
+          ].sort((a, b) => compareSitesByDomain(a.hostname, b.hostname));
+        } else {
+          e.rate = data.rate;
+        }
+      }
+      break;
+    }
+    case 'SET_DATA_SITES_RATE_OF_PAY':
+      store.sitesRateOfPay = [...data].sort((a, b) =>
+        compareSitesByDomain(a.hostname, b.hostname),
+      );
+      break;
     case 'SET_STATE':
       store.state = data.state;
       break;
@@ -63,4 +100,12 @@ type Actions =
   | { type: 'OPT_IN_OUT_TELEMETRY'; data: { isOptedIn: boolean } }
   | { type: 'SET_CONNECTED'; data: { connected: boolean } }
   | { type: 'UPDATE_RATE_OF_PAY'; data: { rateOfPay: AmountValue } }
+  | {
+      type: 'UPDATE_SITE_RATE_OF_PAY';
+      data: { hostname: Host; rate: AmountValue | null };
+    }
+  | {
+      type: 'SET_DATA_SITES_RATE_OF_PAY';
+      data: { hostname: Host; rate: AmountValue }[];
+    }
   | BackgroundToPopupMessage;

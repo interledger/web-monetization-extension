@@ -323,6 +323,7 @@ export class Background {
             await this.rateList.setRate(hostname, rate);
           }
           this.events.emit('rateList.site_rate_update', { hostname, rate });
+          void this.updateVisualIndicatorsForCurrentTab();
           return success(undefined);
         }
 

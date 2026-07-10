@@ -1,16 +1,18 @@
 import React from 'react';
-import { Settings } from '@/pages/shared/components/Icons';
+import { Link, Redirect as Navigate } from 'wouter';
 import {
   formatNumber,
   roundWithPrecision,
   formatCurrency,
+  cn,
 } from '@/pages/shared/lib/utils';
 import { PayWebsiteForm } from '@/popup/components/PayWebsiteForm';
 import { NotMonetized } from '@/popup/components/NotMonetized';
+import type { OtherSettingsHistoryState } from '@/popup/components/Settings/Settings';
 import { useTranslation } from '@/popup/lib/context';
 import { usePopupState } from '@/popup/lib/store';
 import { ROUTES_PATH } from '../Popup';
-import { Redirect as Navigate } from 'wouter';
+import type { AmountValue, WalletInfo } from '@/shared/types';
 
 export default () => {
   const t = useTranslation();
@@ -68,46 +70,93 @@ export default () => {
 };
 
 const InfoBanner = () => {
-  const { rateOfPay, balance, walletAddress } = usePopupState();
+  const t = useTranslation();
+  const { rateOfPay, tab, balance, walletAddress, hasSitesRateOfPay } =
+    usePopupState();
+
+  const hasExceptions = hasSitesRateOfPay || tab.rateOfPay;
 
   const rate = React.useMemo(() => {
-    const r = Number(rateOfPay) / 10 ** walletAddress.assetScale;
-    const roundedR = roundWithPrecision(r, walletAddress.assetScale);
+    return formattedAmount(rateOfPay, walletAddress);
+  }, [rateOfPay, walletAddress]);
 
-    return formatCurrency(
-      formatNumber(roundedR, walletAddress.assetScale, true),
-      walletAddress.assetCode,
-      walletAddress.assetScale,
-    );
-  }, [rateOfPay, walletAddress.assetCode, walletAddress.assetScale]);
+  const tabRateOfPay = React.useMemo(() => {
+    return tab.rateOfPay ? formattedAmount(tab.rateOfPay, walletAddress) : null;
+  }, [tab.rateOfPay, walletAddress]);
 
   const remainingBalance = React.useMemo(() => {
-    const val = Number(balance) / 10 ** walletAddress.assetScale;
-    const rounded = roundWithPrecision(val, walletAddress.assetScale);
-    return formatCurrency(
-      formatNumber(rounded, walletAddress.assetScale, true),
-      walletAddress.assetCode,
-      walletAddress.assetScale,
-    );
-  }, [balance, walletAddress.assetCode, walletAddress.assetScale]);
+    return formattedAmount(balance, walletAddress);
+  }, [balance, walletAddress]);
 
   return (
-    <div className="space-y-2 rounded-md bg-button-base p-4 text-white">
-      <dl className="flex items-center justify-between px-10">
-        <div className="flex flex-col-reverse items-center">
-          <dt className="text-sm">Hourly rate</dt>
-          <dd className="font-medium tabular-nums">{rate}</dd>
-        </div>
-        <div className="flex flex-col-reverse items-center">
-          <dt className="text-sm">Balance</dt>
-          <dd className="font-medium tabular-nums">{remainingBalance}</dd>
-        </div>
-      </dl>
+    <div className="grid grid-cols-2 h-40 items-center justify-between gap-2 text-medium">
+      <section className="flex flex-col h-full p-3 border border-gray-200 rounded-md">
+        <h3 className="text-sm mb-1">{t('home_title_balance')}</h3>
+        <p className="text-4xl font-medium tabular-nums">{remainingBalance}</p>
 
-      <p className="text-center text-xs italic text-white/90">
-        To adjust your budget or rate of pay, click on{' '}
-        <Settings className="inline-block h-4 w-4 fill-white align-top" />
-      </p>
+        <Link
+          className="mt-auto px-3 py-2 border border-current rounded-lg text-alt font-medium text-sm flex items-center justify-center"
+          to="/settings/budget"
+        >
+          {t('home_action_manageBudget')}
+        </Link>
+      </section>
+
+      <section className="flex flex-col h-full p-3 border border-gray-200 rounded-md">
+        <h3 className="text-sm mb-1">{t('home_title_hourlyRate')}</h3>
+        <p className="flex flex-col gap-1">
+          <span
+            className={cn(
+              'flex items-center gap-1',
+              !!tab.rateOfPay && 'text-alt',
+            )}
+          >
+            <span className="tabular-nums text-3xl font-medium">
+              {tabRateOfPay || rate}
+            </span>
+            <span className="text-xs font-normal">
+              {!tab.rateOfPay
+                ? t('home_text_hourlyRateDefault')
+                : t('home_text_hourlyRateException')}
+            </span>
+          </span>
+
+          {!!tab.rateOfPay && (
+            <span className="text-xs font-normal px-2 py-1 rounded-lg bg-slate-50 w-fit">
+              {t('home_text_hourlyRateDefault')}{' '}
+              <span className="tabular-nums">{rate}</span>
+            </span>
+          )}
+        </p>
+
+        <Link
+          className="mt-auto px-3 py-2 border border-current rounded-lg text-alt font-medium text-sm flex items-center justify-center"
+          to="/settings/other"
+          state={
+            {
+              open: 'sites-rate-of-pay',
+              highlight: hasExceptions ? URL.parse(tab.url)?.hostname : 'new',
+            } satisfies OtherSettingsHistoryState
+          }
+        >
+          {hasExceptions
+            ? t('home_action_manageExceptions')
+            : t('home_action_addException')}
+        </Link>
+      </section>
     </div>
   );
 };
+
+function formattedAmount(
+  amount: AmountValue,
+  walletAddress: Pick<WalletInfo, 'assetCode' | 'assetScale'>,
+): string {
+  const val = Number(amount) / 10 ** walletAddress.assetScale;
+  const rounded = roundWithPrecision(val, walletAddress.assetScale);
+  return formatCurrency(
+    formatNumber(rounded, walletAddress.assetScale, true),
+    walletAddress.assetCode,
+    walletAddress.assetScale,
+  );
+}

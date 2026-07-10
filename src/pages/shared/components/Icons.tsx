@@ -197,6 +197,28 @@ export const XIcon = (props: React.SVGProps<SVGSVGElement>) => {
   );
 };
 
+export const IconTrash = (props: React.SVGProps<SVGSVGElement>) => {
+  return (
+    <svg fill="none" viewBox="0 0 14 16" aria-hidden="true" {...props}>
+      <path
+        d="M2.616 15.77C2.168 15.77 1.78667 15.6127 1.472 15.298C1.15733 14.9833 1 14.6023 1 14.155L1 1.77L0 1.77L0 0.77L4 0.77V0L10 0V0.77L14 0.77V1.77L13 1.77L13 14.155C13 14.615 12.846 14.9993 12.538 15.308C12.23 15.6167 11.8453 15.7707 11.384 15.77L2.616 15.77ZM12 1.77L2 1.77L2 14.155C2 14.3343 2.05767 14.4817 2.173 14.597C2.28833 14.7123 2.436 14.77 2.616 14.77L11.385 14.77C11.5383 14.77 11.6793 14.706 11.808 14.578C11.9367 14.45 12.0007 14.3087 12 14.154L12 1.77ZM4.808 12.77H5.808L5.808 3.77L4.808 3.77L4.808 12.77ZM8.192 12.77H9.192L9.192 3.77L8.192 3.77L8.192 12.77Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
+export const IconPlus = (props: React.SVGProps<SVGSVGElement>) => {
+  return (
+    <svg viewBox="0 0 12 12" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M5.5 6.5H0V5.5H5.5V0H6.5V5.5H12V6.5H6.5V12H5.5V6.5Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
+
 export const InfoCircle = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg

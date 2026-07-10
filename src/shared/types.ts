@@ -241,6 +241,10 @@ export type PopupStore = Omit<
     oneTime: OneTimeGrant['amount'];
     recurring: RecurringGrant['amount'];
   }>;
+  // set on request only, not on initial load (perf)
+  sitesRateOfPay?: { hostname: Host; rate: AmountValue }[];
+  // ...but getting hasSitesRateOfPay is fast
+  hasSitesRateOfPay: boolean;
 };
 
 export type AppStore = Pick<
@@ -270,3 +274,5 @@ export type WindowId = NonNullable<Tabs.Tab['windowId']>;
 /** `0` represents the top-level frame, everything else is an _iframe_ */
 export type FrameId = number;
 export type SessionId = string;
+
+export type Host = URL['hostname'];
