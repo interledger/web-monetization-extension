@@ -58,7 +58,7 @@ interface Inputs {
 }
 
 type ConnectTransientState = DeepReadonly<TransientState['connect']>;
-type ErrorsParams = 'amount' | 'keyPair' | 'connect';
+type ErrorsParams = 'keyPair' | 'connect';
 type Errors = Record<ErrorsParams, ErrorInfo | null>;
 
 type OnInputHandler = NonNullable<
@@ -126,55 +126,18 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
   }, [clearConnectState]);
 
   const walletAddressInputRef = useRef<WalletAddressInputHandle>(null);
-  const amountInputRef = useRef<HTMLInputElement>(null);
+  const amountInputRef = useRef<AmountInputHandle>(null);
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<ConnectWalletAddressInfo | null>(null);
+  const [amountError, setAmountError] = React.useState<ErrorInfo | null>(null);
 
   const [errors, setErrors] = useReducer(
     (prev: Errors, patch: Partial<Errors>): Errors => ({ ...prev, ...patch }),
-    { amount: null, keyPair: null, connect: null },
+    { keyPair: null, connect: null },
   );
 
   const [isSubmitting, setIsSubmitting] = React.useState(
     initialState?.type === 'progress',
-  );
-
-  const handleAmountChange = React.useCallback(
-    (amountValue: string, input?: HTMLInputElement) => {
-      setErrors({ amount: null });
-      setAmount(amountValue);
-      if (input && Number(amountValue) > 0) {
-        input.dataset.modified = '1';
-      }
-      saveValue('amount', amountValue);
-    },
-    [saveValue],
-  );
-
-  const onWalletInfoChange = useCallback(
-    (info: ConnectWalletAddressInfo | null) => {
-      setWalletAddressInfo(info);
-      if (!info) return;
-
-      const defaultBudget = formatNumber(
-        info.defaultBudget,
-        info.walletAddress.assetScale,
-      );
-      const inputEl = amountInputRef.current;
-      if (
-        inputEl &&
-        (!inputEl.dataset.modified ||
-          !inputEl.value ||
-          inputEl.ariaInvalid === 'true')
-      ) {
-        setErrors({ amount: null });
-        inputEl.defaultValue = defaultBudget;
-        inputEl.value = defaultBudget;
-        setAmount(defaultBudget);
-        saveValue('amount', defaultBudget);
-      }
-    },
-    [saveValue],
   );
 
   const handleSubmit = async (ev?: React.SubmitEvent<HTMLFormElement>) => {
@@ -205,11 +168,11 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       return;
     }
 
-    const amount = amountInputRef.current!.value;
+    const amount = amountInputRef.current!.getValue();
 
     const errAmount = validateAmount(amount, walletInfo.walletAddress);
     if (errAmount) {
-      return setErrors({ amount: toErrorInfo(errAmount) });
+      return amountInputRef.current!.setError(toErrorInfo(errAmount));
     }
 
     try {
@@ -296,7 +259,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         getWalletInfo={getWalletInfo}
         resetState={resetState}
         onWalletAddressChange={setWalletAddressUrl}
-        onWalletInfoChange={onWalletInfoChange}
+        onWalletInfoChange={setWalletAddressInfo}
       />
 
       <fieldset className="space-y-2">
@@ -306,21 +269,19 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
           <AmountInput
             ref={amountInputRef}
-            amount={amount}
+            defaultAmount={defaultValues.amount || '5.00'}
             isSubmitting={isSubmitting}
             walletAddressInfo={walletAddressInfo}
-            onAmountChange={handleAmountChange}
-            error={errors.amount}
-            onError={(err) => {
-              setErrors({ amount: toErrorInfo(err) });
-            }}
+            saveValue={saveValue}
+            onAmountChange={setAmount}
+            onErrorChange={setAmountError}
           />
 
           <label
             htmlFor="connectRecurring"
             className="flex items-center gap-x-4 px-2"
           >
-            <span className="font-medium text-medium @sm:font-normal flex-grow @sm:flex-grow-0 @sm:order-last">
+            <span className="font-medium text-medium @sm:font-normal grow @sm:grow-0 @sm:order-last">
               {t('connectWallet_label_recurring')}
             </span>
             <SwitchButton
@@ -337,8 +298,8 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
           </label>
         </div>
 
-        {errors.amount && (
-          <p className="px-2 text-sm text-error">{errors.amount.message}</p>
+        {amountError && (
+          <p className="px-2 text-sm text-error">{amountError.message}</p>
         )}
       </fieldset>
 
@@ -367,7 +328,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
           type="submit"
           className="w-full"
           disabled={
-            !walletAddressInfo || !!errors.amount || isSubmitting || !amount
+            !walletAddressInfo || !!amountError || isSubmitting || !amount
           }
           loading={isSubmitting}
           loadingText={<ConnectSubmitLoadingText />}
@@ -614,46 +575,110 @@ function WalletAddressInput({
   );
 }
 
+interface AmountInputHandle {
+  getValue: () => string;
+  setError: (error: ErrorInfo | null) => void;
+}
+
 interface AmountInputProps {
-  amount: string;
+  defaultAmount: string;
   isSubmitting: boolean;
-  error: ErrorInfo | null;
   walletAddressInfo: ConnectWalletAddressInfo | null;
-  onError: React.ComponentProps<typeof InputAmount>['onError'];
-  onAmountChange: React.ComponentProps<typeof InputAmount>['onChange'];
-  ref?: React.RefObject<HTMLInputElement | null>;
+  saveValue: Props['saveValue'];
+  onAmountChange: (value: string) => void;
+  onErrorChange: (error: ErrorInfo | null) => void;
+  ref?: React.Ref<AmountInputHandle>;
 }
 
 function AmountInput({
-  amount,
+  defaultAmount,
   isSubmitting,
-  error,
   walletAddressInfo,
-  onError,
+  saveValue,
   onAmountChange,
+  onErrorChange,
   ref,
 }: AmountInputProps) {
+  const DEFAULT_WALLET_ADDRESS = { assetCode: 'USD', assetScale: 2 };
+
   const t = useTranslation();
+  const toErrorInfo = useMemo(() => toErrorInfoFactory(t), [t]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setErrorState] = useState<ErrorInfo | null>(null);
+
+  const setError = useCallback(
+    (err: ErrorInfo | null) => {
+      setErrorState(err);
+      onErrorChange(err);
+    },
+    [onErrorChange],
+  );
+
+  const handleChange = useCallback(
+    (value: string, input: HTMLInputElement) => {
+      setError(null);
+      if (Number(value) > 0) {
+        input.dataset.modified = '1';
+      }
+      saveValue('amount', value);
+      onAmountChange(value);
+    },
+    [saveValue, onAmountChange, setError],
+  );
+
+  const handleError = useCallback(
+    (err: ErrorWithKeyLike) => setError(toErrorInfo(err)),
+    [toErrorInfo, setError],
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getValue: () => inputRef.current!.value,
+      setError,
+    }),
+    [setError],
+  );
+
+  // Applies the wallet's default budget once it's fetched, unless the user
+  // has already typed their own amount (or the field is currently invalid).
+  useEffect(() => {
+    if (!walletAddressInfo) return;
+    const inputEl = inputRef.current;
+    if (
+      !inputEl ||
+      (inputEl.dataset.modified &&
+        inputEl.value &&
+        inputEl.ariaInvalid !== 'true')
+    ) {
+      return;
+    }
+    const defaultBudget = formatNumber(
+      walletAddressInfo.defaultBudget,
+      walletAddressInfo.walletAddress.assetScale,
+    );
+    setError(null);
+    inputEl.defaultValue = defaultBudget;
+    inputEl.value = defaultBudget;
+    saveValue('amount', defaultBudget);
+    onAmountChange(defaultBudget);
+  }, [walletAddressInfo, saveValue, onAmountChange, setError]);
 
   return (
     <InputAmount
-      ref={ref}
+      ref={inputRef}
       id="connectAmount"
       label={t('connectWallet_label_amount')}
       labelHidden={true}
-      amount={amount}
+      amount={defaultAmount}
       className="@sm:max-w-48"
-      walletAddress={
-        walletAddressInfo?.walletAddress || {
-          assetCode: 'USD',
-          assetScale: 2,
-        }
-      }
+      walletAddress={walletAddressInfo?.walletAddress || DEFAULT_WALLET_ADDRESS}
       errorMessage={error?.message}
       errorHidden={true}
       readOnly={isSubmitting}
-      onError={onError}
-      onChange={onAmountChange}
+      onError={handleError}
+      onChange={handleChange}
       placeholder={walletAddressInfo?.defaultBudget?.toString() || '5.00'}
     />
   );
