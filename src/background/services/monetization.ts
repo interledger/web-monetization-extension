@@ -321,8 +321,6 @@ export class MonetizationService {
       throw new Error('Unexpected: wallet address not found.');
     }
 
-    this.outgoingPaymentGrantService.getGrantSpentAmounts(walletAddress);
-
     const payableSessions = paymentManager.payableSessions;
     if (!payableSessions.length) {
       if (paymentManager.enabledSessions.length) {
