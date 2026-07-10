@@ -121,7 +121,7 @@ export interface Storage {
    * for grants to not require polling of outgoing payments.
    * @default undefined implies that support is unknown and needs to be checked.
    */
-  supportsGrantSpentAmounts?: boolean
+  supportsGrantSpentAmounts?: boolean;
 
   /** Key information */
   publicKey: string;
