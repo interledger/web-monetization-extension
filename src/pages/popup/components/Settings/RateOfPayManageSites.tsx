@@ -8,11 +8,15 @@ import type { Host } from '@/shared/types';
 import { AddExceptionForm } from './RateOfPaySiteAddException';
 import { SitesList } from './RateOfPaySitesList';
 
-export function RateOfPayManageSites() {
+interface Props {
+  highlight?: 'new' | Host;
+}
+
+export function RateOfPayManageSites({ highlight }: Props) {
   const t = useTranslation();
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(highlight === 'new');
   const [highlightedHostname, setHighlightedHostname] = useState<Host | null>(
-    null,
+    highlight && highlight !== 'new' ? normalizeHostname(highlight) : null,
   );
   const { tab } = usePopupState();
 

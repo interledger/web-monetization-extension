@@ -235,6 +235,8 @@ export type PopupStore = Omit<
   }>;
   // set on request only, not on initial load (perf)
   sitesRateOfPay?: { hostname: Host; rate: AmountValue }[];
+  // ...but getting hasSitesRateOfPay is fast
+  hasSitesRateOfPay: boolean;
 };
 
 export type AppStore = Pick<

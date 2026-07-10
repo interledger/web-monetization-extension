@@ -45,6 +45,18 @@ export class RateListService {
     return entries.map(({ site, rate }) => ({ site, rate }));
   }
 
+  async isEmpty(): Promise<boolean> {
+    const wallet = await this.#getWallet();
+    if (!wallet) return true;
+    const db = await this.#getDb();
+    const key = await db.getKeyFromIndex(
+      'rates',
+      'by-currency',
+      IDBKeyRange.only([wallet.assetCode, wallet.assetScale]),
+    );
+    return key === undefined;
+  }
+
   async setRate(hostname: string, rate: AmountValue): Promise<void> {
     const wallet = await this.#getWallet();
     if (!wallet) {
