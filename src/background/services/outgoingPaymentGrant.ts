@@ -10,15 +10,17 @@ import {
   type Grant,
   type PendingGrant,
   type WalletAddress,
-} from '@interledger/open-payments/dist/types';
+  type OutgoingPaymentGrantSpentAmounts,
+} from '@interledger/open-payments';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
-import { ACCEPT_GRANT_TIMEOUT } from '@/background/config';
+import { ACCEPT_GRANT_TIMEOUT, MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import { ensureEnd, ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
   isInvalidClientError,
   isInvalidContinuationError,
+  isTokenExpiredError,
   isNotFoundError,
 } from '@/background/services/openPayments';
 import {
@@ -260,7 +262,17 @@ export class OutgoingPaymentGrantService {
     }
   }
 
-  async getGrantSpentAmounts(walletAddress: WalletAddress) {
+  async getGrantSpentAmounts(
+    walletAddress: WalletAddress,
+    retry = 0,
+  ): Promise<OutgoingPaymentGrantSpentAmounts | undefined> {
+    if (retry > MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES) {
+      this.logger.warn(
+        `Failed to get grant spent amounts after ${retry} retries`,
+      );
+      return;
+    }
+
     try {
       const spentAmounts =
         await this.openPaymentsService.client.outgoingPayment.getGrantSpentAmounts(
@@ -276,14 +288,21 @@ export class OutgoingPaymentGrantService {
 
       return spentAmounts;
     } catch (error) {
-      this.logger.debug(
-        'Resource server does not support grant spent amounts endpoint',
-        error,
-      );
+      if (isTokenExpiredError(error)) {
+        await this.rotateToken();
+        return await this.getGrantSpentAmounts(walletAddress, retry + 1);
+      } else if (isNotFoundError(error)) {
+        this.logger.debug(
+          'Resource server does not support grant spent amounts endpoint',
+          error,
+        );
 
-      await this.storage.set({
-        supportsGrantSpentAmounts: false,
-      });
+        await this.storage.set({
+          supportsGrantSpentAmounts: false,
+        });
+      } else {
+        throw error;
+      }
     }
   }
 
