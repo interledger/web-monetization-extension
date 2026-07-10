@@ -146,9 +146,11 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
   );
 
   const getWalletInformation = React.useCallback(
-    async (walletAddressUrl: string): Promise<boolean> => {
+    async (
+      walletAddressUrl: string,
+    ): Promise<ConnectWalletAddressInfo | null> => {
       setErrors({ walletAddressUrl: null });
-      if (!walletAddressUrl) return false;
+      if (!walletAddressUrl) return null;
       try {
         setIsValidating((_) => ({ ..._, walletAddressUrl: true }));
         const url = new URL(toWalletAddressUrl(walletAddressUrl));
@@ -173,19 +175,22 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
           setAmount(defaultBudget);
           saveValue('amount', defaultBudget);
         }
+        return walletInfo;
       } catch (error) {
         setErrors({ walletAddressUrl: toErrorInfo(error.message) });
-        return false;
+        return null;
       } finally {
         setIsValidating((_) => ({ ..._, walletAddressUrl: false }));
       }
-      return true;
     },
     [getWalletInfo, saveValue, toErrorInfo],
   );
 
   const handleWalletAddressUrlChange = React.useCallback(
-    async (value: string, _input?: HTMLInputElement) => {
+    async (
+      value: string,
+      _input?: HTMLInputElement,
+    ): Promise<ConnectWalletAddressInfo | null> => {
       setWalletAddressInfo(null);
       setWalletAddressUrl(value);
 
@@ -193,10 +198,9 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       setErrors({ walletAddressUrl: toErrorInfo(error) });
       saveValue('walletAddressUrl', value);
       if (!error) {
-        const ok = await getWalletInformation(value);
-        return ok;
+        return await getWalletInformation(value);
       }
-      return false;
+      return null;
     },
     [saveValue, getWalletInformation, toErrorInfo],
   );
@@ -206,18 +210,18 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       value: string,
       input: HTMLInputElement,
       focusAmountOnSuccess = false,
-    ) => {
+    ): Promise<ConnectWalletAddressInfo | null | undefined> => {
       if (value === walletAddressUrl) {
         if (value || !input.required) {
-          return false;
+          return;
         }
       }
-      const ok = await handleWalletAddressUrlChange(value, input);
+      const walletInfo = await handleWalletAddressUrlChange(value, input);
       void resetState();
-      if (focusAmountOnSuccess && ok) {
+      if (focusAmountOnSuccess && walletInfo) {
         document.getElementById('connectAmount')?.focus();
       }
-      return ok;
+      return walletInfo;
     },
     [walletAddressUrl, handleWalletAddressUrlChange, resetState],
   );
@@ -246,30 +250,21 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
     ev?.preventDefault();
 
     let walletAddressInput = walletAddressUrl;
-    if (ev) {
-      // When submitting form using Enter key on wallet address input, we want
-      // to ensure its current value is same as the value we've in React state
-      // (as state is not set until input field blur). If it's not same, we
-      // validate it before connecting.
-      const form = ev.currentTarget;
-      if (
-        form.connectWalletAddressUrl &&
-        walletAddressInput !== form.connectWalletAddressUrl.value
-      ) {
-        walletAddressInput = form.connectWalletAddressUrl.value;
-        const ok = await handleWalletAddressUrlChange(
-          walletAddressInput,
-          form.connectWalletAddressUrl,
-        );
-        if (!ok) return;
-        // above call will not immediately set `walletAddressUrl` state
-        // variable, so we get latest value via `walletAddress` variable.
-      }
+    let freshWalletInfo = walletAddressInfo;
+    const addressInputEl = ev?.currentTarget.connectWalletAddressUrl;
+    if (addressInputEl) {
+      walletAddressInput = addressInputEl.value;
+      const result = await commitWalletAddressUrl(
+        walletAddressInput,
+        addressInputEl,
+      );
+      if (result === null) return;
+      if (result) freshWalletInfo = result;
     }
 
-    const walletInfo = walletAddressInfo
-      ? await getWalletInfo(walletAddressInfo.walletAddress.id)
-      : await getWalletInfo(toWalletAddressUrl(walletAddressUrl));
+    const walletInfo = freshWalletInfo
+      ? await getWalletInfo(freshWalletInfo.walletAddress.id)
+      : await getWalletInfo(toWalletAddressUrl(walletAddressInput));
 
     if (
       !walletInfo.isKeyAdded &&
@@ -286,7 +281,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
     const amount = amountInput.value;
 
     const errWalletAddressUrl = validateWalletAddressUrl(walletAddressInput);
-    const errAmount = validateAmount(amount, walletInfo!.walletAddress);
+    const errAmount = validateAmount(amount, walletInfo.walletAddress);
     if (errAmount || errWalletAddressUrl) {
       setErrors({
         walletAddressUrl: toErrorInfo(errWalletAddressUrl),
