@@ -126,6 +126,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
   }, [clearConnectState]);
 
   const walletAddressInputRef = useRef<WalletAddressInputHandle>(null);
+  const amountInputRef = useRef<HTMLInputElement>(null);
   const [walletAddressInfo, setWalletAddressInfo] =
     React.useState<ConnectWalletAddressInfo | null>(null);
 
@@ -159,9 +160,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         info.defaultBudget,
         info.walletAddress.assetScale,
       );
-      const inputEl = document.querySelector<HTMLInputElement>(
-        'input#connectAmount',
-      );
+      const inputEl = amountInputRef.current;
       if (
         inputEl &&
         (!inputEl.dataset.modified ||
@@ -206,10 +205,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       return;
     }
 
-    const amountInput = document.querySelector<HTMLInputElement>(
-      'input#connectAmount',
-    )!;
-    const amount = amountInput.value;
+    const amount = amountInputRef.current!.value;
 
     const errAmount = validateAmount(amount, walletInfo.walletAddress);
     if (errAmount) {
@@ -309,6 +305,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         </legend>
         <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
           <AmountInput
+            ref={amountInputRef}
             amount={amount}
             isSubmitting={isSubmitting}
             walletAddressInfo={walletAddressInfo}
@@ -624,6 +621,7 @@ interface AmountInputProps {
   walletAddressInfo: ConnectWalletAddressInfo | null;
   onError: React.ComponentProps<typeof InputAmount>['onError'];
   onAmountChange: React.ComponentProps<typeof InputAmount>['onChange'];
+  ref?: React.RefObject<HTMLInputElement | null>;
 }
 
 function AmountInput({
@@ -633,11 +631,13 @@ function AmountInput({
   walletAddressInfo,
   onError,
   onAmountChange,
+  ref,
 }: AmountInputProps) {
   const t = useTranslation();
 
   return (
     <InputAmount
+      ref={ref}
       id="connectAmount"
       label={t('connectWallet_label_amount')}
       labelHidden={true}

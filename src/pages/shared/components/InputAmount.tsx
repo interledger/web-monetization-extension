@@ -28,6 +28,7 @@ interface Props {
   max?: number;
   controls?: boolean;
   size?: 'small' | 'default';
+  ref?: React.RefObject<HTMLInputElement | null>;
 }
 
 export const InputAmount = ({
@@ -48,12 +49,14 @@ export const InputAmount = ({
   readOnly,
   size = 'default',
   controls = false,
+  ref,
 }: Props) => {
   const { assetScale } = walletAddress;
   const step = 1 / 10 ** assetScale;
   const currencySymbol = getCurrencySymbol(walletAddress.assetCode);
 
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const internalInputRef = React.useRef<HTMLInputElement>(null);
+  const inputRef = ref ?? internalInputRef;
 
   const formatAmount = React.useCallback(
     (value: number) => formatNumber(value, assetScale),
@@ -74,7 +77,7 @@ export const InputAmount = ({
         onChange(formattedValue, input);
       }
     },
-    [walletAddress, onChange, onError, formatAmount, min, max],
+    [walletAddress, onChange, onError, formatAmount, min, max, inputRef],
   );
 
   const validateAmountOnChange = useThrottle(
@@ -120,10 +123,10 @@ export const InputAmount = ({
 
   const controlInc = React.useCallback(() => {
     incOrDec(inputRef.current!, 1, step, formatAmount, handleValue, min, max);
-  }, [step, formatAmount, handleValue, min, max]);
+  }, [step, formatAmount, handleValue, min, max, inputRef]);
   const controlDec = React.useCallback(() => {
     incOrDec(inputRef.current!, -1, step, formatAmount, handleValue, min, max);
-  }, [step, formatAmount, handleValue, min, max]);
+  }, [step, formatAmount, handleValue, min, max, inputRef]);
 
   return (
     <Input
