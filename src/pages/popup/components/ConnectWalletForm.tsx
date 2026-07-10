@@ -371,40 +371,14 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
         <ErrorMessage error={errors.connect.message} className="my-0" />
       )}
 
-      <Input
-        type="text"
-        label={t('connectWallet_label_walletAddress')}
-        id="connectWalletAddressUrl"
+      <WalletAddressInput
         placeholder={walletAddressPlaceholder}
-        errorMessage={errors.walletAddressUrl?.message}
+        error={errors.walletAddressUrl}
         defaultValue={walletAddressUrl}
-        trailingAddOn={
-          isValidating.walletAddressUrl ? (
-            <LoadingSpinner color="gray" size="md" />
-          ) : null
-        }
-        required={true}
-        autoComplete="on"
-        spellCheck={false}
-        enterKeyHint="go"
-        readOnly={isSubmitting}
+        isValidating={isValidating.walletAddressUrl}
+        isSubmitting={isSubmitting}
         onInput={onWalletAddressInput}
-        onPaste={async (ev) => {
-          const input = ev.currentTarget;
-          let value = ev.clipboardData.getData('text');
-          if (!value) return;
-          if (!validateWalletAddressUrl(value)) {
-            ev.preventDefault(); // full url was pasted
-            input.value = value;
-          } else {
-            await sleep(0); // allow paste to be complete
-            value = input.value;
-          }
-          await commitWalletAddressUrl(value, input, true);
-        }}
-        onBlur={(ev) =>
-          commitWalletAddressUrl(ev.currentTarget.value, ev.currentTarget)
-        }
+        onCommit={commitWalletAddressUrl}
       />
 
       <fieldset className="space-y-2">
@@ -570,6 +544,66 @@ export function useConnectWalletFormActions(
   );
 
   return { getWalletInfo, connectWallet, clearConnectState };
+}
+
+interface WalletAddressInputProps {
+  placeholder: string;
+  error: ErrorInfo | null;
+  defaultValue: string;
+  isValidating: boolean;
+  isSubmitting: boolean;
+  onInput: OnInputHandler;
+  onCommit: (
+    value: string,
+    input: HTMLInputElement,
+    focusAmountOnSuccess?: boolean,
+  ) => Promise<ConnectWalletAddressInfo | null | undefined>;
+}
+
+function WalletAddressInput({
+  placeholder,
+  error,
+  defaultValue,
+  isValidating,
+  isSubmitting,
+  onInput,
+  onCommit,
+}: WalletAddressInputProps) {
+  const t = useTranslation();
+
+  return (
+    <Input
+      type="text"
+      label={t('connectWallet_label_walletAddress')}
+      id="connectWalletAddressUrl"
+      placeholder={placeholder}
+      errorMessage={error?.message}
+      defaultValue={defaultValue}
+      trailingAddOn={
+        isValidating ? <LoadingSpinner color="gray" size="md" /> : null
+      }
+      required={true}
+      autoComplete="on"
+      spellCheck={false}
+      enterKeyHint="go"
+      readOnly={isSubmitting}
+      onInput={onInput}
+      onPaste={async (ev) => {
+        const input = ev.currentTarget;
+        let value = ev.clipboardData.getData('text');
+        if (!value) return;
+        if (!validateWalletAddressUrl(value)) {
+          ev.preventDefault(); // full url was pasted
+          input.value = value;
+        } else {
+          await sleep(0); // allow paste to be complete
+          value = input.value;
+        }
+        await onCommit(value, input, true);
+      }}
+      onBlur={(ev) => onCommit(ev.currentTarget.value, ev.currentTarget)}
+    />
+  );
 }
 
 interface AmountInputProps {
