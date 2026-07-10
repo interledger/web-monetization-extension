@@ -37,6 +37,7 @@ const defaultStorage = {
   oneTimeGrantSpentAmount: '0',
   rateOfPay: null,
   maxRateOfPay: null,
+  supportsGrantSpentAmounts: undefined,
 } satisfies Omit<Storage, 'uid' | 'publicKey' | 'privateKey' | 'keyId'>;
 
 export class StorageService {
