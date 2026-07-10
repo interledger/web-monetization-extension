@@ -260,6 +260,27 @@ export class OutgoingPaymentGrantService {
     }
   }
 
+  async getGrantSpentAmounts(walletAddress: WalletAddress) {
+    try {
+      const spentAmounts = await this.openPaymentsService.client.outgoingPayment.getGrantSpentAmounts({
+        url: walletAddress.resourceServer,
+        accessToken: this.accessToken,
+      });
+
+      await this.storage.set({
+        supportsGrantSpentAmounts: true,
+      });
+
+      return spentAmounts;
+    } catch (error) {
+      this.logger.debug('Resource server does not support grant spent amounts endpoint', error);
+
+      await this.storage.set({
+        supportsGrantSpentAmounts: false,
+      });
+    }
+  }
+
   private async getInteractionInfo(
     url: string,
     onTabOpen: (tabId: TabId) => void,
