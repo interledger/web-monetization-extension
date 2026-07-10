@@ -83,7 +83,6 @@ export class RateListService {
    * 2. Wildcard patterns, most-specific first (e.g. *.sub.example.com before *.example.com)
    * 3. The global default entry stored under key '*'
    */
-
   async getRateForHostname(hostname: string): Promise<AmountValue | undefined> {
     const wallet = await this.#getWallet();
     if (!wallet) {

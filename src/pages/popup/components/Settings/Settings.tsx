@@ -16,7 +16,7 @@ export function SettingsScreen() {
 
   React.useEffect(() => {
     if (state?.open === 'sites-rate-of-pay') {
-      document.getElementById('settings-data-collection')?.scrollIntoView();
+      document.getElementById('settings-site-payment-rates')?.scrollIntoView();
     }
   }, [state?.open]);
 
