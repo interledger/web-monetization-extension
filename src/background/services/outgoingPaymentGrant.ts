@@ -324,7 +324,7 @@ export class OutgoingPaymentGrantService {
     try {
       const amounts = await this.getGrantSpentAmounts(walletInfo.walletAddress);
 
-      if (!amounts || !amounts.spentDebitAmount) return;
+      if (!amounts?.spentDebitAmount) return;
 
       this.logger.debug(
         'Updating balance with grant spentDebitAmount',
@@ -354,10 +354,10 @@ export class OutgoingPaymentGrantService {
     const timeoutMs = continuousPaymentsEnabled ? ONE_MINUTE : FIVE_MINUTES;
 
     const updateBalance = async () => {
-      this.saveUpdatedBalance();
+      await this.saveUpdatedBalance();
 
-      this.balanceUpdateTimeout = new Timeout(timeoutMs, () => {
-        this.saveUpdatedBalance();
+      this.balanceUpdateTimeout = new Timeout(timeoutMs, async () => {
+        await this.saveUpdatedBalance();
 
         if (this.balanceUpdateTimeout) {
           this.balanceUpdateTimeout.reset(timeoutMs);
