@@ -24,3 +24,5 @@ export const OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS = 8;
  * user is logged in, we could make it < 1min.
  */
 export const ACCEPT_GRANT_TIMEOUT = 3 * 60 * 1000;
+
+export const MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES = 3;

@@ -115,6 +115,14 @@ export interface Storage {
   exceptionList: {
     [website: string]: Amount;
   };
+
+  /**
+   * If the current wallet address' resource server supports the "spent amounts" endpoint
+   * for grants to not require polling of outgoing payments.
+   * @default undefined implies that support is unknown and needs to be checked.
+   */
+  supportsGrantSpentAmounts?: boolean;
+
   /** Key information */
   publicKey: string;
   privateKey: string;
