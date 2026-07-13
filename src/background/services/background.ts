@@ -91,6 +91,7 @@ export class Background {
     await this.monetizationService
       .resumePaymentSessionActiveTab()
       .catch(() => {}); // if tabs not ready yet
+    await this.updateVisualIndicatorsForCurrentTab().catch(() => {});
   }
 
   async onStart() {
