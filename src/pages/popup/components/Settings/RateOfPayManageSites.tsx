@@ -58,7 +58,9 @@ export function RateOfPayManageSites({ highlight }: Props) {
       </div>
 
       <div className="space-y-6">
-        <h3 className="font-bold text-medium text-lg">Your exceptions</h3>
+        <h3 className="font-bold text-medium text-lg">
+          {t('settings_sitePaymentRates_heading')}
+        </h3>
         <SitesList highlightedHostname={highlightedHostname} />
       </div>
     </>
