@@ -6,9 +6,14 @@ import {
   ExternalIcon,
 } from '@/pages/shared/components/Icons';
 import { isConsentRequired, type BrowserName } from '@/shared/helpers';
-import { getResponseOrThrow } from '@/shared/messages';
 import { useBrowser, useBrowserInfo, useTranslation } from '@/app/lib/context';
-import { ConnectWalletForm } from '@/popup/components/ConnectWalletForm';
+import {
+  ConnectStateContext,
+  ConnectWalletForm,
+  getSavedValues,
+  saveValue,
+  useConnectWalletFormActions,
+} from '@/popup/components/ConnectWalletForm';
 import { cn } from '@/pages/shared/lib/utils';
 import { useMessage } from '@/app/lib/context';
 import { useAppState } from '@/app/lib/store';
@@ -455,13 +460,8 @@ function StepConnectWallet({
 }: {
   selectedWallet: WalletOption;
 }) {
-  const message = useMessage();
   const t = useTranslation();
-  const {
-    transientState: { connect: connectState },
-    connected,
-    publicKey,
-  } = useAppState();
+  const { connected } = useAppState();
 
   if (connected) {
     return (
@@ -477,32 +477,44 @@ function StepConnectWallet({
   }
 
   return (
+    <StepConnectWalletForm
+      walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
+    />
+  );
+}
+
+function StepConnectWalletForm({
+  walletAddressPlaceholder,
+}: {
+  walletAddressPlaceholder: string;
+}) {
+  const message = useMessage();
+  const {
+    transientState: { connect: connectState },
+    publicKey,
+  } = useAppState();
+
+  const initialConnectState = React.useRef(connectState).current;
+  const defaultValues = React.useMemo(getSavedValues, []);
+  const { getWalletInfo, connectWallet, clearConnectState } =
+    useConnectWalletFormActions(message);
+
+  return (
     <div className="@container sm:h-popup mx-auto sm:w-popup pt-4 overflow-hidden">
-      <ConnectWalletForm
-        publicKey={publicKey}
-        // @ts-expect-error we know, it's complicated
-        state={connectState}
-        defaultValues={{
-          recurring:
-            localStorage?.getItem('connect.recurring') === 'true' || false,
-          amount: localStorage?.getItem('connect.amount') || undefined,
-          walletAddressUrl:
-            localStorage?.getItem('connect.walletAddressUrl') || undefined,
-          autoKeyAddConsent:
-            localStorage?.getItem('connect.autoKeyAddConsent') === 'true',
-        }}
-        saveValue={(key, val) => {
-          localStorage?.setItem(`connect.${key}`, val.toString());
-        }}
-        getWalletInfo={(walletAddressUrl) =>
-          message
-            .send('GET_CONNECT_WALLET_ADDRESS_INFO', walletAddressUrl)
-            .then(getResponseOrThrow)
-        }
-        walletAddressPlaceholder={selectedWallet.walletAddressPlaceholder}
-        connectWallet={(data) => message.send('CONNECT_WALLET', data)}
-        clearConnectState={() => message.send('RESET_CONNECT_STATE')}
-      />
+      {/* @ts-expect-error we know, it's complicated */}
+      <ConnectStateContext.Provider value={connectState}>
+        <ConnectWalletForm
+          publicKey={publicKey}
+          // @ts-expect-error we know, it's complicated
+          initialState={initialConnectState}
+          defaultValues={defaultValues}
+          saveValue={saveValue}
+          getWalletInfo={getWalletInfo}
+          walletAddressPlaceholder={walletAddressPlaceholder}
+          connectWallet={connectWallet}
+          clearConnectState={clearConnectState}
+        />
+      </ConnectStateContext.Provider>
     </div>
   );
 }

@@ -1,4 +1,9 @@
-import React from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+} from 'react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { Input } from '@/pages/shared/components/ui/Input';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
@@ -26,9 +31,12 @@ import {
   toWalletAddressUrl,
   type ErrorWithKeyLike,
 } from '@/shared/helpers';
+import { getResponseOrThrow } from '@/shared/messages';
 import type {
   ConnectWalletPayload,
   ConnectWalletAddressInfo,
+  MessageManager,
+  PopupToBackgroundMessage,
   Response,
 } from '@/shared/messages';
 import type {
@@ -52,12 +60,16 @@ type OnInputHandler = NonNullable<
   React.DOMAttributes<HTMLInputElement>['onInput']
 >;
 
-interface ConnectWalletFormProps {
+// carries the frequently-updating transient connect state.
+export const ConnectStateContext = createContext<ConnectTransientState>(null);
+const useConnectState = () => useContext(ConnectStateContext);
+
+interface Props {
   publicKey: string;
   defaultValues: Partial<Inputs>;
-  state?: ConnectTransientState;
+  initialState?: ConnectTransientState;
   walletAddressPlaceholder?: string;
-  saveValue?: (key: keyof Inputs, val: Inputs[typeof key]) => void;
+  saveValue: (key: keyof Inputs, val: Inputs[typeof key]) => void;
   getWalletInfo: (
     walletAddressUrl: string,
   ) => Promise<ConnectWalletAddressInfo>;
@@ -65,18 +77,19 @@ interface ConnectWalletFormProps {
   clearConnectState: () => Promise<unknown>;
   onConnect?: () => void;
 }
+export type { Props as ConnectWalletFormProps };
 
-export const ConnectWalletForm = ({
+export const ConnectWalletForm = React.memo(function ConnectWalletForm({
   publicKey,
   defaultValues,
-  state,
+  initialState,
   walletAddressPlaceholder = 'https://walletprovider.com/MyWallet',
   getWalletInfo,
   connectWallet,
   clearConnectState,
-  saveValue = () => {},
-  onConnect = () => {},
-}: ConnectWalletFormProps) => {
+  saveValue,
+  onConnect,
+}: Props) {
   const t = useTranslation();
   const toErrorInfo = React.useMemo(() => toErrorInfoFactory(t), [t]);
 
@@ -91,7 +104,7 @@ export const ConnectWalletForm = ({
   );
 
   const [autoKeyShareFailed, setAutoKeyShareFailed] = React.useState(
-    state?.type === 'failure' && state.code === 'key_add_failed',
+    initialState?.type === 'failure' && initialState.code === 'key_add_failed',
   );
   const [keyAddNeeded, setKeyAddNeeded] = React.useState(true);
   const [showConsent, setShowConsent] = React.useState(false);
@@ -116,27 +129,12 @@ export const ConnectWalletForm = ({
     connect: null,
   });
 
-  React.useEffect(() => {
-    if (state?.type === 'failure' && state.code === 'key_add_failed') {
-      const errInfo = toErrorInfo(mapErrorFailure(state));
-      setErrors((prev) => ({ ...prev, keyPair: errInfo }));
-    }
-    if (state?.type === 'failure' && state.code !== 'key_add_failed') {
-      const errInfo = toErrorInfo(mapErrorFailure(state));
-      setErrors((prev) => ({ ...prev, connect: errInfo }));
-    }
-    if (state?.type === 'cancel') {
-      const errInfo = toErrorInfo(mapErrorCancel(state));
-      setErrors((prev) => ({ ...prev, connect: errInfo }));
-    }
-  }, [state, toErrorInfo]);
-
   const [isValidating, setIsValidating] = React.useState({
     walletAddressUrl: false,
     amount: false,
   });
   const [isSubmitting, setIsSubmitting] = React.useState(
-    state?.type === 'progress',
+    initialState?.type === 'progress',
   );
 
   const handleAmountChange = React.useCallback(
@@ -240,7 +238,7 @@ export const ConnectWalletForm = ({
     [handleWalletAddressUrlChange, resetState, walletAddressUrl],
   );
 
-  const handleSubmit = async (ev?: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (ev?: React.SubmitEvent<HTMLFormElement>) => {
     ev?.preventDefault();
 
     let walletAddressInput = walletAddressUrl;
@@ -310,10 +308,10 @@ export const ConnectWalletForm = ({
         autoKeyAdd: autoKeyAddConsent.current,
       });
       if (res.success) {
-        onConnect();
+        onConnect?.();
       } else {
         if (!isErrorWithKey(res.error)) throw new Error(res.message);
-        // Otherwise, errors are handled by `state` + `useEffect`
+        // Otherwise, errors are handled by `ConnectStateErrorSync`
       }
     } catch (error) {
       setErrors((prev) => ({ ...prev, connect: toErrorInfo(error.message) }));
@@ -359,6 +357,8 @@ export const ConnectWalletForm = ({
       className="my-auto flex flex-col gap-4"
       onSubmit={handleSubmit}
     >
+      <ConnectStateErrorSync setErrors={setErrors} toErrorInfo={toErrorInfo} />
+
       <div className={cn(!!errors.connect && 'sr-only')}>
         <h2 className="text-center text-lg text-strong">
           {t('connectWallet_text_title')}
@@ -498,20 +498,94 @@ export const ConnectWalletForm = ({
             !amount
           }
           loading={isSubmitting}
-          loadingText={
-            state?.type === 'progress'
-              ? typeof state.currentStep === 'string'
-                ? state.currentStep
-                : t(state.currentStep.key, [...state.currentStep.substitutions])
-              : undefined
-          }
+          loadingText={<ConnectSubmitLoadingText />}
         >
           {t('connectWallet_action_connect')}
         </Button>
       </div>
     </form>
   );
+});
+
+function ConnectStateErrorSync({
+  setErrors,
+  toErrorInfo,
+}: {
+  setErrors: React.Dispatch<React.SetStateAction<Errors>>;
+  toErrorInfo: ReturnType<typeof toErrorInfoFactory>;
+}) {
+  const state = useConnectState();
+
+  useEffect(() => {
+    if (state?.type === 'failure' && state.code === 'key_add_failed') {
+      const errInfo = toErrorInfo(mapErrorFailure(state));
+      setErrors((prev) => ({ ...prev, keyPair: errInfo }));
+    }
+    if (state?.type === 'failure' && state.code !== 'key_add_failed') {
+      const errInfo = toErrorInfo(mapErrorFailure(state));
+      setErrors((prev) => ({ ...prev, connect: errInfo }));
+    }
+    if (state?.type === 'cancel') {
+      const errInfo = toErrorInfo(mapErrorCancel(state));
+      setErrors((prev) => ({ ...prev, connect: errInfo }));
+    }
+  }, [state, toErrorInfo, setErrors]);
+
+  return null;
+}
+
+function ConnectSubmitLoadingText() {
+  const t = useTranslation();
+  const state = useConnectState();
+
+  if (state?.type !== 'progress') return null;
+  return typeof state.currentStep === 'string'
+    ? state.currentStep
+    : t(state.currentStep.key, [...state.currentStep.substitutions]);
+}
+
+export const saveValue: Props['saveValue'] = (key, val) => {
+  localStorage?.setItem(`connect.${key}`, String(val));
 };
+export const getSavedValues = (): Props['defaultValues'] => {
+  return {
+    recurring: localStorage?.getItem('connect.recurring') === 'true' || false,
+    amount: localStorage?.getItem('connect.amount') || undefined,
+    walletAddressUrl:
+      localStorage?.getItem('connect.walletAddressUrl') || undefined,
+    autoKeyAddConsent:
+      localStorage?.getItem('connect.autoKeyAddConsent') === 'true',
+  };
+};
+
+type ConnectWalletMessages = Pick<
+  PopupToBackgroundMessage,
+  'GET_CONNECT_WALLET_ADDRESS_INFO' | 'CONNECT_WALLET' | 'RESET_CONNECT_STATE'
+>;
+
+export function useConnectWalletFormActions(
+  message: MessageManager<ConnectWalletMessages>,
+) {
+  const getWalletInfo: Props['getWalletInfo'] = useCallback(
+    async (waUrl) => {
+      const res = await message.send('GET_CONNECT_WALLET_ADDRESS_INFO', waUrl);
+      return getResponseOrThrow(res);
+    },
+    [message],
+  );
+
+  const connectWallet: Props['connectWallet'] = useCallback(
+    (data) => message.send('CONNECT_WALLET', data),
+    [message],
+  );
+
+  const clearConnectState: Props['clearConnectState'] = useCallback(
+    () => message.send('RESET_CONNECT_STATE'),
+    [message],
+  );
+
+  return { getWalletInfo, connectWallet, clearConnectState };
+}
 
 interface AmountInputProps {
   amount: string;

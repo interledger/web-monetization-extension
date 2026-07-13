@@ -40,7 +40,7 @@ export interface ButtonProps
   extends VariantProps<typeof buttonVariants>,
     React.ComponentPropsWithRef<'button'> {
   loading?: boolean;
-  loadingText?: string;
+  loadingText?: React.ReactNode;
   /** Optional only when children are passed */
   'aria-label'?: string;
 }
