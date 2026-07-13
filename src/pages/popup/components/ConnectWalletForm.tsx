@@ -475,7 +475,8 @@ function WalletAddressInput({
         onWalletInfoChange(walletInfo);
         return walletInfo;
       } catch (err) {
-        setError(toErrorInfo(err.message));
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(toErrorInfo(msg));
         return null;
       } finally {
         setIsValidating(false);
@@ -498,7 +499,7 @@ function WalletAddressInput({
         return;
       }
       const walletInfo = await validateAndFetch(value);
-      void resetState();
+      await resetState();
       return walletInfo;
     },
     [validateAndFetch, resetState],
@@ -590,6 +591,8 @@ interface AmountInputProps {
   ref?: React.Ref<AmountInputHandle>;
 }
 
+const DEFAULT_WALLET_ADDRESS = { assetCode: 'USD', assetScale: 2 };
+
 function AmountInput({
   defaultAmount,
   isSubmitting,
@@ -599,8 +602,6 @@ function AmountInput({
   onErrorChange,
   ref,
 }: AmountInputProps) {
-  const DEFAULT_WALLET_ADDRESS = { assetCode: 'USD', assetScale: 2 };
-
   const t = useTranslation();
   const toErrorInfo = useMemo(() => toErrorInfoFactory(t), [t]);
 
