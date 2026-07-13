@@ -21,6 +21,9 @@ import type { WalletAddress } from '@interledger/open-payments';
 type OnConnectCallback = Parameters<
   Browser['runtime']['onConnect']['addListener']
 >[0];
+type OnDisconnectCallback = Parameters<
+  Runtime.Port['onDisconnect']['addListener']
+>[0];
 
 export class WalletStatusFailureError extends Error {
   public readonly details: WalletStatusFailure['details'];
@@ -278,10 +281,19 @@ export const createTabIfNotExists = async (
 export const onPopupOpen = (
   browser: Browser,
   callback: () => Promise<void>,
+  closeCallback?: () => Promise<void>,
 ) => {
   const listener: OnConnectCallback = (port) => {
     if (port.name !== BACKGROUND_TO_POPUP_CONNECTION_NAME) return;
     if (port.error) return;
+
+    if (closeCallback) {
+      const disconnectListener: OnDisconnectCallback = () => {
+        void closeCallback();
+        port.onDisconnect.removeListener(disconnectListener);
+      };
+      port.onDisconnect.addListener(disconnectListener);
+    }
 
     void callback();
   };

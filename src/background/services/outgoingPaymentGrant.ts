@@ -19,7 +19,12 @@ import {
   MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES,
 } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
-import { ensureEnd, ErrorWithKey, withResolvers } from '@/shared/helpers';
+import {
+  ensureEnd,
+  ErrorWithKey,
+  Timeout,
+  withResolvers,
+} from '@/shared/helpers';
 import {
   isInvalidClientError,
   isInvalidContinuationError,
@@ -28,6 +33,7 @@ import {
 } from '@/background/services/openPayments';
 import {
   createTabIfNotExists,
+  onPopupOpen,
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from '@/background/utils';
@@ -56,6 +62,7 @@ export class OutgoingPaymentGrantService {
   private grantDetails: GrantDetails | null = null;
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false };
+  private balanceUpdateTimeout: Timeout | null = null;
 
   public switchGrant: OutgoingPaymentGrantService['_switchGrant'];
 
@@ -307,6 +314,65 @@ export class OutgoingPaymentGrantService {
         throw error;
       }
     }
+  }
+
+  private async saveUpdatedBalance() {
+    const walletInfo = await this.storage.get(['walletAddress']);
+
+    if (!walletInfo.walletAddress) return;
+
+    try {
+      const amounts = await this.getGrantSpentAmounts(walletInfo.walletAddress);
+
+      if (!amounts || !amounts.spentDebitAmount) return;
+
+      this.logger.debug(
+        'Updating balance with grant spentDebitAmount',
+        amounts.spentDebitAmount.value,
+      );
+
+      this.storage.updateSpentAmount(
+        this.grantType,
+        amounts.spentDebitAmount.value,
+      );
+    } catch (error) {
+      this.logger.debug('Background balance update failed', error);
+
+      if (this.balanceUpdateTimeout) {
+        this.balanceUpdateTimeout.clear();
+      }
+    }
+  }
+
+  async registerBalanceUpdateHandler() {
+    const { continuousPaymentsEnabled } = await this.storage.get([
+      'continuousPaymentsEnabled',
+    ]);
+
+    const FIVE_MINUTES = 5 * 60 * 1000;
+    const ONE_MINUTE = 60 * 1000;
+    const timeoutMs = continuousPaymentsEnabled ? ONE_MINUTE : FIVE_MINUTES;
+
+    const updateBalance = async () => {
+      this.saveUpdatedBalance();
+
+      this.balanceUpdateTimeout = new Timeout(timeoutMs, () => {
+        this.saveUpdatedBalance();
+
+        if (this.balanceUpdateTimeout) {
+          this.balanceUpdateTimeout.reset(timeoutMs);
+        }
+      });
+    };
+
+    const unregisterTimeout = async () => {
+      if (this.balanceUpdateTimeout) {
+        this.balanceUpdateTimeout.clear();
+        this.balanceUpdateTimeout = null;
+      }
+    };
+
+    onPopupOpen(this.browser, updateBalance, unregisterTimeout);
   }
 
   private async getInteractionInfo(
