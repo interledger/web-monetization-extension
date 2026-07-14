@@ -65,6 +65,17 @@ mockedOpenDB.mockImplementation(async (_name, _v, { upgrade }) => {
           : undefined,
       );
     },
+    countFromIndex: (
+      _s: string,
+      _i: string,
+      range: { only: [assetCode: string, assetScale: number] },
+    ) => {
+      const [ac, as] = range.only;
+      const count = [...mockStore.values()].filter(
+        (e) => e.assetCode === ac && e.assetScale === as,
+      ).length;
+      return Promise.resolve(count);
+    },
   };
   upgrade(db);
   return db;
@@ -89,6 +100,8 @@ describe('RateListService CRUD', () => {
   it('setRate and getAll', async () => {
     const rateList = makeRateListService();
     await expect(rateList.isEmpty()).resolves.toBe(true);
+    await expect(rateList.count()).resolves.toBe(0);
+
     await rateList.setRate('example.com', '3');
     await rateList.setRate('other.com', '5');
     await expect(rateList.isEmpty()).resolves.toBe(false);
@@ -98,6 +111,7 @@ describe('RateListService CRUD', () => {
         { site: '*.other.com', rate: '5' },
       ]),
     );
+    await expect(rateList.count()).resolves.toBe(2);
   });
 
   it('setRate overwrites an existing entry', async () => {
@@ -107,6 +121,7 @@ describe('RateListService CRUD', () => {
     const all = await rateList.getAll();
     expect(all).toHaveLength(1);
     expect(all[0].rate).toBe('10');
+    await expect(rateList.count()).resolves.toBe(1);
   });
 
   it('deleteRate removes the entry', async () => {

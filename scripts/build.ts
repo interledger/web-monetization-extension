@@ -20,7 +20,6 @@ import { getProdOptions } from './esbuild/prod.ts';
 sade('build [target]', true)
   .option('--channel', `One of: ${CHANNELS.join(', ')}`, 'nightly')
   .option('--dev', 'Dev-mode (watch, live-reload)', false)
-  .option('--typecheck', 'Typecheck code (can --no-typecheck in CI)', true)
   .example('chrome --channel=nightly')
   .example('firefox --channel=stable')
   .describe([`\`target\` should be one of ${TARGETS.join(', ')}`])
@@ -33,15 +32,7 @@ sade('build [target]', true)
 
     if (!options.target && !options.dev) {
       console.log(`Building all targets with channel: ${options.channel}`);
-      return Promise.all(
-        TARGETS.map((t, i) =>
-          build({
-            ...options,
-            typecheck: i === 0 && opts.typecheck,
-            target: t,
-          }),
-        ),
-      );
+      return Promise.all(TARGETS.map((t) => build({ ...options, target: t })));
     }
 
     // Default to chrome in dev build
@@ -61,11 +52,11 @@ sade('build [target]', true)
   })
   .parse(process.argv);
 
-async function build({ target, channel, typecheck }: BuildArgs) {
+async function build({ target, channel }: BuildArgs) {
   const OUTPUT_DIR = path.join(DIST_DIR, target);
   const result = await esbuild.build({
     ...options,
-    ...getProdOptions({ outDir: OUTPUT_DIR, target, channel, typecheck }),
+    ...getProdOptions({ outDir: OUTPUT_DIR, target, channel }),
     outdir: OUTPUT_DIR,
   });
 
@@ -77,11 +68,11 @@ async function build({ target, channel, typecheck }: BuildArgs) {
   }
 }
 
-async function buildWatch({ target, channel, typecheck }: BuildArgs) {
+async function buildWatch({ target, channel }: BuildArgs) {
   const OUTPUT_DIR = path.join(DEV_DIR, target);
   const ctx = await esbuild.context({
     ...options,
-    ...getDevOptions({ outDir: OUTPUT_DIR, target, channel, typecheck }),
+    ...getDevOptions({ outDir: OUTPUT_DIR, target, channel }),
     outdir: OUTPUT_DIR,
   });
 

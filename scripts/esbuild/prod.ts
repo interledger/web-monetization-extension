@@ -15,7 +15,6 @@ export const getProdOptions = ({
   outDir,
   target,
   channel,
-  typecheck,
 }: Omit<BuildArgs, 'dev'> & {
   outDir: string;
 }): BuildOptions => {
@@ -28,7 +27,6 @@ export const getProdOptions = ({
       dev: false,
       target,
       channel,
-      typecheck,
     }).concat([
       preservePolyfillClassNamesPlugin({ outDir }),
       zipPlugin({ outDir, target, channel }),

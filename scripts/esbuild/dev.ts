@@ -7,7 +7,6 @@ export const getDevOptions = ({
   outDir,
   target,
   channel,
-  typecheck,
 }: Omit<BuildArgs, 'dev'> & {
   outDir: string;
 }): BuildOptions => {
@@ -20,7 +19,6 @@ export const getDevOptions = ({
       dev: true,
       target,
       channel,
-      typecheck,
     }).concat([liveReloadPlugin({ target })]),
     define: {
       NODE_ENV: JSON.stringify('development'),
