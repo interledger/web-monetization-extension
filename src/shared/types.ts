@@ -17,12 +17,6 @@ export interface WalletAmount {
   interval?: RepeatingInterval;
 }
 
-/** Amount interface - used in the `exceptionList` */
-export interface Amount {
-  value: AmountValue;
-  interval: number;
-}
-
 export interface AccessToken {
   value: AmountValue;
   manageUrl: string;
@@ -110,11 +104,6 @@ export interface Storage {
   recurringGrantSpentAmount?: AmountValue | undefined | null;
   oneTimeGrant?: OneTimeGrant | undefined | null;
   oneTimeGrantSpentAmount?: AmountValue | undefined | null;
-
-  /** Exception list with websites and each specific amount */
-  exceptionList: {
-    [website: string]: Amount;
-  };
 
   /**
    * If the current wallet address' resource server supports the "spent amounts" endpoint
@@ -227,12 +216,7 @@ export type TransientState = Partial<{
 
 export type PopupStore = Omit<
   Storage,
-  | 'version'
-  | 'privateKey'
-  | 'keyId'
-  | 'exceptionList'
-  | 'recurringGrant'
-  | 'oneTimeGrant'
+  'version' | 'privateKey' | 'keyId' | 'recurringGrant' | 'oneTimeGrant'
 > & {
   balance: AmountValue;
   tab: PopupTabInfo;
