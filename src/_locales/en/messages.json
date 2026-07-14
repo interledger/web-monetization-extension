@@ -572,6 +572,9 @@
   "settings_sitePaymentRates_action_cancel": {
     "message": "Cancel"
   },
+  "settings_sitePaymentRates_maxExceptionsError": {
+    "message": "You have reached your custom rates limit. Delete one of your existing custom rates to add a new one."
+  },
   "settings_sitePaymentRates_inputSite_label": {
     "message": "Add website domain"
   },
