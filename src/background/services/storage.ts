@@ -38,6 +38,7 @@ const defaultStorage = {
   rateOfPay: null,
   maxRateOfPay: null,
   supportsGrantSpentAmounts: undefined,
+  supportsGrantSpentAmountsCheckedAt: undefined,
 } satisfies Omit<Storage, 'uid' | 'publicKey' | 'privateKey' | 'keyId'>;
 
 export class StorageService {
@@ -173,7 +174,7 @@ export class StorageService {
     }
   }
 
-  private async setSpentAmount(grant: GrantDetails['type'], amount: string) {
+  async setSpentAmount(grant: GrantDetails['type'], amount: string) {
     if (grant === 'recurring') {
       await this.set({ recurringGrantSpentAmount: amount });
     } else if (grant === 'one-time') {

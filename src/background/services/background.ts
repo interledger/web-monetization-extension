@@ -88,6 +88,7 @@ export class Background {
     this.sendToPopup.start();
     this.sendToApp.start();
     this.outgoingPaymentGrantService.registerBalanceUpdateHandler();
+    void this.outgoingPaymentGrantService.checkGrantSpentAmountsSupport();
     await KeyAutoAddService.registerContentScripts({ browser: this.browser });
     // When the background restarts (e.g. after computer wake up), ask the
     // content script to resume monetization for active tab as the background no

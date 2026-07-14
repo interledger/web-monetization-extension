@@ -123,6 +123,9 @@ export interface Storage {
    */
   supportsGrantSpentAmounts?: boolean;
 
+  /** Timestamp of the last time we checked grant spent amounts support. */
+  supportsGrantSpentAmountsCheckedAt?: number;
+
   /** Key information */
   publicKey: string;
   privateKey: string;
