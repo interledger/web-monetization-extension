@@ -5,7 +5,6 @@ import type { Plugin as ESBuildPlugin } from 'esbuild';
 import { nodeBuiltin } from 'esbuild-node-builtin';
 import esbuildStylePlugin from 'esbuild-style-plugin';
 import { copy } from 'esbuild-plugin-copy';
-import { typecheckPlugin } from '@jgoz/esbuild-plugin-typecheck';
 import tailwindcss from '@tailwindcss/postcss';
 
 import {
@@ -22,7 +21,6 @@ export const getPlugins = ({
   target,
   channel,
   dev,
-  typecheck,
 }: BuildArgs & {
   outDir: string;
 }): ESBuildPlugin[] => {
@@ -88,7 +86,6 @@ export const getPlugins = ({
     }),
     processManifestPlugin({ outDir, dev, target, channel }),
     safariSupportPlugin({ outDir, target }),
-    typecheck ? typecheckPlugin({ buildMode: 'readonly', watch: dev }) : null,
   ].filter((e) => e !== null);
 };
 
@@ -118,7 +115,7 @@ function processManifestPlugin({
   outDir,
   target,
   channel,
-}: Omit<BuildArgs, 'typecheck'> & { outDir: string }): ESBuildPlugin {
+}: BuildArgs & { outDir: string }): ESBuildPlugin {
   return {
     name: 'process-manifest',
     setup(build) {
