@@ -71,10 +71,7 @@ export const PayWebsiteForm = () => {
   return (
     <form
       ref={form}
-      className={cn(
-        'space-y-2 rounded-md bg-slate-100 px-4 py-4',
-        !errors.pay && 'pb-12',
-      )}
+      className="space-y-2 rounded-md bg-slate-100 px-4 py-4"
       onSubmit={onSubmit}
       data-testid="pay-form"
     >
@@ -106,6 +103,7 @@ export const PayWebsiteForm = () => {
         walletAddress={walletAddress}
         amount={amount}
         placeholder="0.00"
+        className="bg-white"
         min={roundWithPrecision(
           Number(tab.minSendAmount) / 10 ** walletAddress.assetScale,
           walletAddress.assetScale,
