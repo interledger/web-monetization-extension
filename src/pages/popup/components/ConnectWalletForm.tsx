@@ -29,6 +29,7 @@ import {
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
+  debounceAsync,
   ErrorWithKey,
   errorWithKey,
   isErrorWithKey,
@@ -505,6 +506,8 @@ function WalletAddressInput({
     [validateAndFetch, resetState],
   );
 
+  const debouncedCommit = useRef(debounceAsync(commit, 500)).current;
+
   useImperativeHandle(
     ref,
     () => ({ commit: () => commit(inputRef.current!.value) }),
@@ -515,20 +518,22 @@ function WalletAddressInput({
     (event) => {
       const input = event.currentTarget;
       const ev = event.nativeEvent as InputEvent;
-      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
-      if (
-        !value ||
-        (ev.inputType && ev.inputType !== 'insertReplacementText')
-      ) {
-        return; // not autocomplete
+
+      if (ev.inputType && ev.inputType !== 'insertReplacementText') {
+        // regular typing, not autocomplete. commit once the user pauses
+        void debouncedCommit(input.value);
+        return;
       }
+
+      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
+      if (!value) return;
       if (validateWalletAddressUrl(value)) {
         return; // not valid data from autocomplete, fallback to input blur based behavior
       }
       // use as autocompleted value
       void commit(value);
     },
-    [commit],
+    [commit, debouncedCommit],
   );
 
   const onPaste: OnPasteHandler = useCallback(
