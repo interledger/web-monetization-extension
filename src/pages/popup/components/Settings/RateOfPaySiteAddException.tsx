@@ -3,6 +3,7 @@ import { Button } from '@/pages/shared/components/ui/Button';
 import { Input } from '@/pages/shared/components/ui/Input';
 import { useMessage, useTranslation } from '@/popup/lib/context';
 import { usePopupState, dispatch } from '@/popup/lib/store';
+import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import { normalizeHostname } from '@/shared/helpers';
 import type { AmountValue, Host } from '@/shared/types';
 import { RateOfPayInput } from './RateOfPay';
@@ -49,6 +50,14 @@ export function AddExceptionForm({
     },
     [message, rate, hostname, onDone],
   );
+
+  if (sitesRateOfPay.length === MAX_CUSTOM_RATE_EXCEPTIONS) {
+    return (
+      <p className="px-3 py-2 rounded-xl bg-error border border-error">
+        {t('settings_sitePaymentRates_maxExceptionsError')}
+      </p>
+    );
+  }
 
   return (
     <form
