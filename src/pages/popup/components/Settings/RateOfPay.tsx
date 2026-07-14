@@ -145,7 +145,7 @@ export const RateOfPayComponent = ({
         </div>
       )}
 
-      {!tab.rateOfPay ? (
+      {!tab.rateOfPay && URL.parse(tab.url)?.hostname ? (
         <Button
           type="button"
           variant="default"
@@ -207,7 +207,7 @@ const SiteRateOfPayInput = ({
           htmlFor="rateOfPaySite"
           className="flex items-center px-2 font-medium leading-6 text-medium"
         >
-          {site} (exception)
+          {site} ({t('home_text_hourlyRateException')})
         </label>
         <button
           onClick={() => onRateChange({ rate: null, hostname })}
