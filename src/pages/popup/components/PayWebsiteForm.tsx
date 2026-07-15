@@ -55,7 +55,7 @@ export const PayWebsiteForm = () => {
     } else {
       setAmount('');
       const { type } = response.payload;
-      setPayStatus({ type, message: t('pay_state_success') });
+      setPayStatus({ type, message: t('pay_success_text') });
       form.current?.reset();
     }
     telemetry.capture('one_time_pay', {
@@ -127,9 +127,9 @@ export const PayWebsiteForm = () => {
         )}
         disabled={isSubmitting || !amount || !!errors.amount}
         loading={isSubmitting}
-        aria-label={t('pay_action_pay')}
+        aria-label={t('pay_action')}
       >
-        {t('pay_action_pay')}
+        {t('pay_action')}
       </Button>
     </form>
   );

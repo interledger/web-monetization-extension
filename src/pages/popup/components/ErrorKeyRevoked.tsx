@@ -118,7 +118,7 @@ const MainScreen = ({
       }
       setErrorMsg(msg);
     } else if (state.type === 'cancel' && state.code === 'tab_closed') {
-      const msg = t('connectWallet_error_tabClosed');
+      const msg = t('connectWallet_tabClosed_error');
       setErrorMsg(msg);
     }
   }, [transientState.connect, toErrorInfo, t]);
@@ -140,10 +140,10 @@ const MainScreen = ({
       <div className="flex gap-2 rounded-md bg-error p-2">
         <WarningSign className="size-6 text-error" />
         <h3 className="text-base font-medium text-error">
-          {t('keyRevoked_error_title')}
+          {t('keyRevoked_title')}
         </h3>
       </div>
-      <p className="text-sm text-medium">{t('keyRevoked_error_text')}</p>
+      <p className="text-sm text-medium">{t('keyRevoked_text')}</p>
 
       <FadeInOut
         visible={!!errorMsg}
@@ -154,7 +154,7 @@ const MainScreen = ({
 
       <form className="flex flex-col items-stretch gap-4">
         <Button onClick={() => requestDisconnect()} loading={loading}>
-          {t('keyRevoked_action_disconnect')}
+          {t('keyRevoked_disconnect_action')}
         </Button>
         <Button
           onClick={async () => {
@@ -162,7 +162,7 @@ const MainScreen = ({
             setScreen('consent-reconnect');
           }}
         >
-          {t('keyRevoked_action_reconnect')}
+          {t('keyRevoked_reconnect_action')}
         </Button>
       </form>
     </div>
@@ -250,7 +250,7 @@ const ManualReconnectScreen = ({
       </FadeInOut>
 
       <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
-        {t('keyRevoked_action_reconnectBtn')}
+        {t('keyRevoked_reconnectBtn_action')}
       </Button>
     </FadeInOut>
   );

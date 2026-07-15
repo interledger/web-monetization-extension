@@ -35,7 +35,7 @@ const Header = () => {
         alt=""
       />
       <h1 className="text-2xl font-bold text-secondary-dark landscape:mb-2 landscape:text-3xl landscape:2xl:mb-3 landscape:2xl:text-4xl">
-        {t('postInstallConsent_text_title')}
+        {t('postInstallConsent_title')}
       </h1>
     </header>
   );
@@ -49,8 +49,8 @@ const Main = () => {
     <main className="mx-auto w-full max-w-3xl p-3 sm:p-8">
       <div className="space-y-4 mb-48">
         <div className="space-y-1">
-          <p>{t('postInstallConsent_text_header1')}</p>
-          <p>{t('postInstallConsent_text_header2')}</p>
+          <p>{t('postInstallConsent_header_text__1')}</p>
+          <p>{t('postInstallConsent_header_text__2')}</p>
         </div>
 
         <DataShared />
@@ -72,28 +72,28 @@ function DataShared() {
   return (
     <div className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
-        {t('postInstallConsent_text_dataShared_title')}
+        {t('postInstallConsent_dataShared_title')}
       </h3>
       <div className="space-y-1">
         <h4 className="font-medium text-lg">
-          {t('postInstallConsent_text_dataShared_yourWallet_title')}
+          {t('postInstallConsent_dataShared_yourWallet_title')}
         </h4>
-        <p>{t('postInstallConsent_text_dataShared_yourWallet_wa')}</p>
-        <p>{t('postInstallConsent_text_dataShared_yourWallet_keyConsent')}</p>
+        <p>{t('postInstallConsent_dataShared_yourWallet_wa_text')}</p>
+        <p>{t('postInstallConsent_dataShared_yourWallet_keyConsent_text')}</p>
       </div>
 
       <div className="space-y-1">
         <h4 className="font-medium text-lg">
-          {t('postInstallConsent_text_dataShared_websiteWallets_title')}
+          {t('postInstallConsent_dataShared_websiteWallets_title')}
         </h4>
-        <p>{t('postInstallConsent_text_dataShared_websiteWallets_wa')}</p>
+        <p>{t('postInstallConsent_dataShared_websiteWallets_wa_text')}</p>
       </div>
 
       <div className="space-y-1">
         <h4 className="font-medium text-lg">
-          {t('postInstallConsent_text_dataShared_websites_title')}
+          {t('postInstallConsent_dataShared_websites_title')}
         </h4>
-        <p>{t('postInstallConsent_text_dataShared_websites_text')}</p>
+        <p>{t('postInstallConsent_dataShared_websites_desc')}</p>
       </div>
     </div>
   );
@@ -104,12 +104,12 @@ function DataSharedBrowser() {
   return (
     <div className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
-        {t('postInstallConsent_text_dataShared_browser_title')}
+        {t('postInstallConsent_dataShared_browser_title')}
       </h3>
       <p>
-        {t('postInstallConsent_text_dataShared_browser_text')}{' '}
+        {t('postInstallConsent_dataShared_browser_desc')}{' '}
         <InformationTooltip
-          text={t('postInstallConsent_text_dataShared_headers')}
+          text={t('postInstallConsent_dataShared_headers_text')}
         />
       </p>
     </div>
@@ -137,33 +137,33 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
   return (
     <form className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
-        {t('postInstallConsent_text_dataCollection_title')}
+        {t('postInstallConsent_dataCollection_title')}
       </h3>
-      <p>{t('postInstallConsent_text_dataCollection_desc')}</p>
+      <p>{t('postInstallConsent_dataCollection_desc')}</p>
 
       <div className="space-y-1">
         <h4 className="font-medium text-lg">
-          {t('postInstallConsent_text_dataCollection_yes_heading')}
+          {t('postInstallConsent_dataCollection_yes_heading')}
         </h4>
         <ul className="list-disc ml-4">
           <li>
             {replaceWithJSX(
-              t('postInstallConsent_text_dataCollection_yes_text1'),
+              t('postInstallConsent_dataCollection_yes_text__1'),
               /\bPostHog\b/,
               linkToPostHog,
             )}
           </li>
-          <li>{t('postInstallConsent_text_dataCollection_yes_text2')}</li>
+          <li>{t('postInstallConsent_dataCollection_yes_text__2')}</li>
         </ul>
       </div>
 
       <div className="space-y-1">
         <h4 className="font-medium text-lg">
-          {t('postInstallConsent_text_dataCollection_no_heading')}
+          {t('postInstallConsent_dataCollection_no_heading')}
         </h4>
         <ul className="list-disc ml-4">
-          <li>{t('postInstallConsent_text_dataCollection_no_text1')}</li>
-          <li>{t('postInstallConsent_text_dataCollection_no_text2')}</li>
+          <li>{t('postInstallConsent_dataCollection_no_text__1')}</li>
+          <li>{t('postInstallConsent_dataCollection_no_text__2')}</li>
         </ul>
       </div>
 
@@ -171,7 +171,7 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
         htmlFor="consent-field-telemetry"
         className="my-6 font-medium text-lg flex items-center gap-4"
       >
-        <span>{t('postInstallConsent_label_dataCollection_optIn')}</span>
+        <span>{t('postInstallConsent_dataCollection_optIn_label')}</span>
         <SwitchButton
           form="consent-form"
           id="consent-field-telemetry"
@@ -183,7 +183,7 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
         />
       </label>
 
-      <p>{t('postInstallConsent_text_dataCollection_footer')}</p>
+      <p>{t('postInstallConsent_dataCollection_footer')}</p>
     </form>
   );
 }
@@ -193,17 +193,17 @@ function Permissions() {
   return (
     <div className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
-        {t('postInstallConsent_text_permissions_title')}
+        {t('postInstallConsent_permissions_title')}
       </h3>
       <p>
-        {t('postInstallConsent_text_permissions_text')}{' '}
+        {t('postInstallConsent_permissions_text')}{' '}
         <a
           href="https://github.com/interledger/web-monetization-extension/blob/main/docs/PERMISSIONS.md"
           className="group pr-1 text-primary outline-current hover:underline"
           target="_blank"
           rel="noreferrer noopener"
         >
-          {t('postInstallConsent_text_permissions_linkText')}
+          {t('postInstallConsent_permissions_link_text')}
         </a>
       </p>
     </div>
@@ -254,7 +254,7 @@ function AcceptForm({
       return (
         <div className="max-w-2xl flex gap-2" role="alert">
           <InfoCircle className="size-6 flex-shrink-0" />
-          <p>{t('postInstallConsent_state_consentProvided')}</p>
+          <p>{t('postInstallConsent_consentProvided_text')}</p>
         </div>
       );
     }
@@ -268,10 +268,10 @@ function AcceptForm({
     >
       <label className="flex gap-2 items-start">
         <input type="checkbox" required className="rounded-xs mt-1" />
-        <span className="">{t('postInstallConsent_text_confirmation')}</span>
+        <span className="">{t('postInstallConsent_confirmation')}</span>
       </label>
       <Button type="submit" className="w-full sm:w-auto">
-        {t('postInstallConsent_action_confirm')}
+        {t('postInstallConsent_confirm_action')}
       </Button>
     </form>
   );

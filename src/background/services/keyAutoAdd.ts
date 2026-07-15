@@ -64,7 +64,7 @@ export class KeyAutoAddService {
         'keyId',
       ]);
       this.setTransientStateProgress(intent, {
-        key: 'connectWalletKeyService_text_stepAddKey',
+        key: 'connectWalletKeyService_stepAddKey_text',
         substitutions: [],
       });
       await this.process(
@@ -150,7 +150,7 @@ export class KeyAutoAddService {
         const { stepName, details: err } = message.payload;
         reject(
           new ErrorWithKey(
-            'connectWalletKeyService_error_failed',
+            'connectWalletKeyService_failed_error',
             [
               stepName,
               isErrorWithKey(err.error) ? this.t(err.error) : err.message,
@@ -326,5 +326,5 @@ function walletAddressToProvider(walletAddress: WalletInfo): string {
       return 'https://wallet.gatehub.net/#/wallets/';
   }
 
-  throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+  throw new ErrorWithKey('connectWalletKeyService_notImplemented_error');
 }

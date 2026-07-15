@@ -44,7 +44,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
       ).toBeVisible();
       await popup
         .getByRole('button', {
-          name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
+          name: i18n.getMessage('connectWalletKeyService_consentAccept_action'),
         })
         .click();
     });
@@ -134,7 +134,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
 
   await test.step('asks for key-add consent to reconnect wallet', async () => {
     const reconnectButton = popup.getByRole('button', {
-      name: i18n.getMessage('keyRevoked_action_reconnect'),
+      name: i18n.getMessage('keyRevoked_reconnect_action'),
     });
     await expect(reconnectButton).toBeVisible();
     await reconnectButton.click();
@@ -144,7 +144,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
     ).toBeVisible();
     await popup
       .getByRole('button', {
-        name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
+        name: i18n.getMessage('connectWalletKeyService_consentAccept_action'),
       })
       .click();
 

@@ -52,7 +52,7 @@ export function SitesList({
   if (!sitesRateOfPay.length) {
     return (
       <p className="text-xs italic text-slate-600">
-        {t('settings_sitePaymentRates_noExceptions')}
+        {t('settings_sitePaymentRates_noExceptions_text')}
       </p>
     );
   }
@@ -125,7 +125,7 @@ function SiteEntry({
       >
         <IconTrash className="size-4" />
         <span className="sr-only">
-          {t('settings_rate_action_removeException')}
+          {t('settings_rate_removeException_action')}
         </span>
       </button>
     </>

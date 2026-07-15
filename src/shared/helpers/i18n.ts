@@ -5,7 +5,7 @@ export type TranslationKeys = keyof typeof Translations;
 
 export type ErrorKeys = Extract<
   TranslationKeys,
-  `${string}_${'error' | 'warn'}_${string}`
+  `${string}_error` | `${string}_warn`
 >;
 
 export interface I18nInfo {

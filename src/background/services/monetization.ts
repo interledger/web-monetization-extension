@@ -326,9 +326,9 @@ export class MonetizationService {
     const payableSessions = paymentManager.payableSessions;
     if (!payableSessions.length) {
       if (paymentManager.enabledSessions.length) {
-        throw new ErrorWithKey('pay_error_invalidReceivers');
+        throw new ErrorWithKey('pay_invalidReceivers_error');
       }
-      throw new ErrorWithKey('pay_error_notMonetized');
+      throw new ErrorWithKey('pay_notMonetized_error');
     }
 
     const amountToSend = BigInt(

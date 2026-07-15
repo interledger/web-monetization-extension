@@ -47,7 +47,7 @@ export function RateOfPayManageSites({ highlight }: Props) {
             onClick={() => setIsFormOpen(true)}
           >
             <IconPlus className="size-4 p-0.5" />
-            {t('settings_sitePaymentRates_action_addException')}
+            {t('settings_sitePaymentRates_addException_action')}
           </Button>
         ) : (
           <AddExceptionForm
