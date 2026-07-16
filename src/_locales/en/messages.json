@@ -50,13 +50,13 @@
     "message": "Hourly rate"
   },
   "home_action_addException": {
-    "message": "Add exception"
+    "message": "Add custom rate"
   },
   "home_action_manageExceptions": {
-    "message": "Manage exceptions"
+    "message": "Manage custom rates"
   },
   "home_text_hourlyRateException": {
-    "message": "Exception"
+    "message": "custom"
   },
   "home_text_hourlyRateDefault": {
     "message": "default"
@@ -545,32 +545,35 @@
     "message": "Ongoing payments are now disabled. You can still make one time payments."
   },
   "settings_rate_label_manageExceptions": {
-    "message": "Manage exceptions"
+    "message": "Manage custom rates"
   },
   "settings_rate_label_addException": {
-    "message": "Add exception"
+    "message": "Add custom rate"
   },
   "settings_rate_label_inputDefaultRate": {
     "message": "Default rate"
   },
   "settings_rate_action_removeException": {
-    "message": "Remove exception"
+    "message": "Remove custom rate"
   },
 
   "settings_sitePaymentRates_title": {
-    "message": "Hourly payments exceptions"
+    "message": "Custom rates by site"
   },
   "settings_sitePaymentRates_desc": {
-    "message": "The website will be automatically detected and the exception rate will be applied. You can also choose the global rate any time."
+    "message": "Set a custom hourly rate for any site, we'll apply it automatically when you visit. You can go back to the default rate any time."
   },
   "settings_sitePaymentRates_action_addException": {
-    "message": "Add new exception"
+    "message": "Add a site"
   },
   "settings_sitePaymentRates_text_formTitle": {
-    "message": "New exception"
+    "message": "Add a site"
   },
   "settings_sitePaymentRates_action_cancel": {
     "message": "Cancel"
+  },
+  "settings_sitePaymentRates_maxExceptionsError": {
+    "message": "You have reached your custom rates limit. Delete one of your existing custom rates to add a new one."
   },
   "settings_sitePaymentRates_inputSite_label": {
     "message": "Add website domain"
@@ -587,8 +590,11 @@
   "settings_sitePaymentRates_inputSite_error_invalid": {
     "message": "Enter a valid domain (e.g. example.com)"
   },
+  "settings_sitePaymentRates_heading": {
+    "message": "Your custom rates"
+  },
   "settings_sitePaymentRates_noExceptions": {
-    "message": "There are no exceptions added"
+    "message": "There are no custom rates added"
   },
 
   "settings_dataCollection_title": {

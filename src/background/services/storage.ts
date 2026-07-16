@@ -23,13 +23,12 @@ const defaultStorage = {
    * structural changes would need migrations for keeping compatibility with
    * existing installations.
    */
-  version: 6,
+  version: 7,
   consent: 0,
   state: {},
   connected: false,
   enabled: true,
   continuousPaymentsEnabled: true,
-  exceptionList: {},
   walletAddress: null,
   recurringGrant: null,
   recurringGrantSpentAmount: '0',
@@ -309,5 +308,8 @@ const MIGRATIONS: Record<Storage['version'], Migration> = {
       data.uid = crypto.randomUUID();
     }
     return [data];
+  },
+  7: (data) => {
+    return [data, ['exceptionList']];
   },
 };

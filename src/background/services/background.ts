@@ -1,6 +1,7 @@
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { BUILD_TARGET } from '@/shared/defines';
 import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
+import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import {
   errorWithKeyToJSON,
   getNextOccurrence,
@@ -95,6 +96,7 @@ export class Background {
     await this.monetizationService
       .resumePaymentSessionActiveTab()
       .catch(() => {}); // if tabs not ready yet
+    await this.updateVisualIndicatorsForCurrentTab().catch(() => {});
   }
 
   async onStart() {
@@ -324,6 +326,10 @@ export class Background {
           if (rate === null) {
             await this.rateList.deleteRate(hostname);
           } else {
+            const count = await this.rateList.count();
+            if (count === MAX_CUSTOM_RATE_EXCEPTIONS) {
+              throw new Error('Cannot add further custom rates');
+            }
             await this.rateList.setRate(hostname, rate);
           }
           this.events.emit('rateList.site_rate_update', { hostname, rate });

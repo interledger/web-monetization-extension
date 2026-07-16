@@ -2,7 +2,7 @@ import React from 'react';
 import { Header } from './Header';
 
 const Divider = () => {
-  return <div className="w-100 h-1 bg-divider-gradient" />;
+  return <div className="w-100 h-1 bg-divider-gradient shrink-0" />;
 };
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {

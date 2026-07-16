@@ -75,9 +75,6 @@ importers:
       '@biomejs/biome':
         specifier: 2.5.3
         version: 2.5.3
-      '@jgoz/esbuild-plugin-typecheck':
-        specifier: ^4.0.4
-        version: 4.0.4(esbuild@0.28.1)(typescript@6.0.3)
       '@octokit/openapi-webhooks-types':
         specifier: ^12.1.0
         version: 12.1.0
@@ -527,16 +524,6 @@ packages:
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
     engines: {node: '>=12'}
-
-  '@jgoz/esbuild-plugin-typecheck@4.0.4':
-    resolution: {integrity: sha512-ca38NAWnE/GchWjO5m7Wbny+yMOsYkoJOboQGheCjnnu5uDxqQWJSIegN+C+CWl8K/1naI/cMfTrAfDH1oRoVQ==}
-    peerDependencies:
-      '@jgoz/esbuild-plugin-livereload': '>=2.1.4'
-      esbuild: '>=0.25.0'
-      typescript: '>= 3.5'
-    peerDependenciesMeta:
-      '@jgoz/esbuild-plugin-livereload':
-        optional: true
 
   '@jridgewell/gen-mapping@0.3.5':
     resolution: {integrity: sha512-IzL8ZoEDIBRWEzlCcRhOaCupYyN5gdIK+Q6fbFdPDg6HqX6jpkItn7DFIpW9LQzXG6Df9sA7+OKnq0qlz/GaQg==}
@@ -2710,11 +2697,6 @@ snapshots:
       strip-ansi-cjs: strip-ansi@6.0.1
       wrap-ansi: 8.1.0
       wrap-ansi-cjs: wrap-ansi@7.0.0
-
-  '@jgoz/esbuild-plugin-typecheck@4.0.4(esbuild@0.28.1)(typescript@6.0.3)':
-    dependencies:
-      esbuild: 0.28.1
-      typescript: 6.0.3
 
   '@jridgewell/gen-mapping@0.3.5':
     dependencies:

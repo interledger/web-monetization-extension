@@ -45,6 +45,20 @@ export class RateListService {
     return entries.map(({ site, rate }) => ({ site, rate }));
   }
 
+  async count(): Promise<number> {
+    const wallet = await this.#getWallet();
+    if (!wallet) {
+      throw new Error('Cannot get count without a connected wallet');
+    }
+
+    const db = await this.#getDb();
+    return await db.countFromIndex(
+      'rates',
+      'by-currency',
+      IDBKeyRange.only([wallet.assetCode, wallet.assetScale]),
+    );
+  }
+
   async isEmpty(): Promise<boolean> {
     const wallet = await this.#getWallet();
     if (!wallet) return true;

@@ -5,6 +5,7 @@ import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
 import { IconTrash } from '@/pages/shared/components/Icons';
 import type { OtherSettingsHistoryState } from '@/popup/components/Settings/Settings';
+import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import { debounceAsync, normalizeHostname } from '@/shared/helpers';
 import { cn, formatNumber, roundWithPrecision } from '@/pages/shared/lib/utils';
 import { useMessage, useTelemetry, useTranslation } from '@/popup/lib/context';
@@ -145,7 +146,7 @@ export const RateOfPayComponent = ({
         </div>
       )}
 
-      {!tab.rateOfPay ? (
+      {!tab.rateOfPay && URL.parse(tab.url)?.hostname ? (
         <Button
           type="button"
           variant="default"
@@ -195,7 +196,13 @@ const SiteRateOfPayInput = ({
   onRateChange: Props['onSiteRateChange'];
 }) => {
   const t = useTranslation();
-  const { rateOfPay, maxRateOfPay, walletAddress, tab } = usePopupState();
+  const {
+    rateOfPay,
+    maxRateOfPay,
+    walletAddress,
+    tab,
+    sitesRateOfPay = [],
+  } = usePopupState();
 
   const hostname = new URL(tab.url).hostname;
   const site = normalizeHostname(hostname);
@@ -207,7 +214,7 @@ const SiteRateOfPayInput = ({
           htmlFor="rateOfPaySite"
           className="flex items-center px-2 font-medium leading-6 text-medium"
         >
-          {site} (exception)
+          {site} ({t('home_text_hourlyRateException')})
         </label>
         <button
           onClick={() => onRateChange({ rate: null, hostname })}
@@ -228,6 +235,7 @@ const SiteRateOfPayInput = ({
         rateOfPay={tab.rateOfPay || rateOfPay}
         maxRateOfPay={maxRateOfPay}
         walletAddress={walletAddress}
+        disabled={sitesRateOfPay.length > MAX_CUSTOM_RATE_EXCEPTIONS}
       />
     </>
   );

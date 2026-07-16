@@ -148,7 +148,9 @@ export class TabEvents {
         .catch(() => undefined);
       if (siteRate) tabInfo.rateOfPay = siteRate;
     }
-    this.sendToPopup.send('SET_TAB_DATA', tabInfo);
+    if (tabInfo.tabId === this.windowState.getCurrentTabId()) {
+      this.sendToPopup.send('SET_TAB_DATA', tabInfo);
+    }
     const { continuousPaymentsEnabled, enabled, connected, state } =
       await this.storage.get([
         'continuousPaymentsEnabled',

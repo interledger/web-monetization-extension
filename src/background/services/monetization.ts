@@ -221,10 +221,12 @@ export class MonetizationService {
       !this.canTryPayment(connected, state)
     ) {
       paymentManager.pause('paused-by-user');
+      this.events.emit('monetization.state_update', tabId);
       return;
     }
 
     paymentManager.resume();
+    this.events.emit('monetization.state_update', tabId);
   }
 
   async resumePaymentSessionsByTabId(tabId: number) {
