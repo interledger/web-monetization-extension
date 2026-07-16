@@ -48,7 +48,7 @@ test('connects with correct details provided', async ({
 
   await page.goto('https://webmonetization.org/play/');
   await expect(popup.locator('h3')).toHaveText(
-    i18n.getMessage('notMonetized_text_noLinks'),
+    i18n.getMessage('notMonetized_noLinks_text'),
   );
 
   await disconnectWallet(popup);

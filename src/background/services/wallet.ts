@@ -113,10 +113,10 @@ export class WalletService {
     const isKeyAdded = await isKeyAddedToWallet(walletAddress.id, keyId);
     if (!isKeyAdded) {
       if (!autoKeyAdd) {
-        throw new ErrorWithKey('connectWallet_error_invalidClient');
+        throw new ErrorWithKey('connectWallet_invalidClient_error');
       }
       if (!KeyAutoAddService.supports(walletAddress)) {
-        throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+        throw new ErrorWithKey('connectWalletKeyService_notImplemented_error');
       }
     }
 
@@ -126,7 +126,7 @@ export class WalletService {
     if (!isKeyAdded && autoKeyAdd) {
       try {
         this.setConnectStateProgress('connect', {
-          key: 'connectWalletKeyService_text_stepAddKey',
+          key: 'connectWalletKeyService_stepAddKey_text',
           substitutions: [],
         });
         await closeAppTabs(this.browser);
@@ -167,7 +167,7 @@ export class WalletService {
       await closeAppTabs(this.browser);
 
       this.setConnectStateProgress('connect', {
-        key: 'connectWallet_text_stepAcceptGrant',
+        key: 'connectWallet_stepAcceptGrant_text',
         substitutions: [],
       });
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
@@ -226,7 +226,7 @@ export class WalletService {
       throw new Error('reconnectWallet_error_walletAddressMissing');
     }
     if (!KeyAutoAddService.supports(walletAddress)) {
-      throw new ErrorWithKey('connectWalletKeyService_error_notImplemented');
+      throw new ErrorWithKey('connectWalletKeyService_notImplemented_error');
     }
 
     this.setConnectStateProgress('reconnect', 'Reconnecting wallet');
@@ -266,7 +266,7 @@ export class WalletService {
       }
 
       if (isInvalidClientError(error)) {
-        throw new ErrorWithKey('connectWallet_error_invalidClient');
+        throw new ErrorWithKey('connectWallet_invalidClient_error');
       }
       throw error;
     }
@@ -296,7 +296,7 @@ export class WalletService {
       if (force) return;
 
       if (isOpenPaymentsClientError(err)) {
-        throw new ErrorWithKey('disconnectWallet_error_generic', [
+        throw new ErrorWithKey('disconnectWallet_error', [
           err.status ? `HTTP ${err.status} - ${err.message}` : err.message,
         ]);
       }
@@ -498,7 +498,7 @@ export class WalletService {
       await this.outgoingPaymentGrantService.rotateToken();
     } catch (error) {
       if (isInvalidClientError(error)) {
-        throw new Error('connectWallet_error_invalidClient', { cause: error });
+        throw new Error('connectWallet_invalidClient_error', { cause: error });
       }
       throw error;
     }

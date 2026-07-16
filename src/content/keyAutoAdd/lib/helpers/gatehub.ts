@@ -84,7 +84,7 @@ export async function getUserPaymentPointers(wallet: {
 
 function handleError(error: unknown): never {
   if (error instanceof GraphQlError) {
-    throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
+    throw new ErrorWithKey('connectWalletKeyService_accountNotFound_error', [
       error.message,
     ]);
   }

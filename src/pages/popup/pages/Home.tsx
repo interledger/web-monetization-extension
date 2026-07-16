@@ -35,21 +35,21 @@ export default () => {
   }
 
   if (!enabled) {
-    return <NotMonetized text={t('app_text_disabled')} />;
+    return <NotMonetized text={t('app_disabled_text')} />;
   }
 
   if (tab.status !== 'monetized') {
     switch (tab.status) {
       case 'all_sessions_invalid':
-        return <NotMonetized text={t('notMonetized_text_allInvalid')} />;
+        return <NotMonetized text={t('notMonetized_allInvalid_text')} />;
       case 'internal_page':
-        return <NotMonetized text={t('notMonetized_text_internalPage')} />;
+        return <NotMonetized text={t('notMonetized_internalPage_text')} />;
       case 'new_tab':
-        return <NotMonetized text={t('notMonetized_text_newTab')} />;
+        return <NotMonetized text={t('notMonetized_newTab_text')} />;
       case 'unsupported_scheme':
-        return <NotMonetized text={t('notMonetized_text_unsupportedScheme')} />;
+        return <NotMonetized text={t('notMonetized_unsupportedScheme_text')} />;
       default:
-        return <NotMonetized text={t('notMonetized_text_noLinks')} />;
+        return <NotMonetized text={t('notMonetized_noLinks_text')} />;
     }
   }
 
@@ -91,19 +91,19 @@ const InfoBanner = () => {
   return (
     <div className="grid grid-cols-2 h-40 items-center justify-between gap-2 text-medium">
       <section className="flex flex-col h-full p-3 border border-gray-200 rounded-md">
-        <h3 className="text-sm mb-1">{t('home_title_balance')}</h3>
+        <h3 className="text-sm mb-1">{t('home_balance_title')}</h3>
         <p className="text-4xl font-medium tabular-nums">{remainingBalance}</p>
 
         <Link
           className="mt-auto px-3 py-2 border border-current rounded-lg text-alt font-medium text-sm flex items-center justify-center"
           to="/settings/budget"
         >
-          {t('home_action_manageBudget')}
+          {t('home_manageBudget_action')}
         </Link>
       </section>
 
       <section className="flex flex-col h-full p-3 border border-gray-200 rounded-md">
-        <h3 className="text-sm mb-1">{t('home_title_hourlyRate')}</h3>
+        <h3 className="text-sm mb-1">{t('home_hourlyRate_title')}</h3>
         <p className="flex flex-col gap-1">
           <span
             className={cn(
@@ -116,14 +116,14 @@ const InfoBanner = () => {
             </span>
             <span className="text-xs font-normal">
               {!tab.rateOfPay
-                ? t('home_text_hourlyRateDefault')
-                : t('home_text_hourlyRateException')}
+                ? t('home_hourlyRateDefault_text')
+                : t('home_hourlyRateException_text')}
             </span>
           </span>
 
           {!!tab.rateOfPay && (
             <span className="text-xs font-normal px-2 py-1 rounded-lg bg-slate-50 w-fit">
-              {t('home_text_hourlyRateDefault')}{' '}
+              {t('home_hourlyRateDefault_text')}{' '}
               <span className="tabular-nums">{rate}</span>
             </span>
           )}
@@ -140,8 +140,8 @@ const InfoBanner = () => {
           }
         >
           {hasExceptions
-            ? t('home_action_manageExceptions')
-            : t('home_action_addException')}
+            ? t('home_manageExceptions_action')
+            : t('home_addException_action')}
         </Link>
       </section>
     </div>

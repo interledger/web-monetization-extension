@@ -36,7 +36,7 @@ export const OutOfFunds = ({
       />
       <div className="px-2 text-xs text-medium">
         <p>{t('outOfFunds_error_text')}</p>
-        <p>{t('outOfFunds_error_textHint')}</p>
+        <p>{t('outOfFunds_error_hint_text')}</p>
         {grantRecurring?.value && (
           <p className="mt-1" data-testid="out-of-funds-recurring-info">
             <RecurringAutoRenewInfo
@@ -50,10 +50,10 @@ export const OutOfFunds = ({
       <div className="w-100 h-0.5 bg-disabled" />
 
       <Button onClick={() => onChooseOption(true)}>
-        {t('outOfFunds_action_optionRecurring')}
+        {t('outOfFunds_optionRecurring_action')}
       </Button>
       <Button onClick={() => onChooseOption(false)}>
-        {t('outOfFunds_action_optionOneTime')}
+        {t('outOfFunds_optionOneTime_action')}
       </Button>
     </div>
   );
@@ -110,7 +110,7 @@ export function AddFunds({
     >
       <Input
         type="url"
-        label={t('outOfFundsAddFunds_label_walletAddress')}
+        label={t('outOfFundsAddFunds_walletAddress_label')}
         value={info.id}
         readOnly
         disabled
@@ -119,13 +119,13 @@ export function AddFunds({
       <InputAmount
         id="amount_outOfFunds"
         walletAddress={info}
-        label={t('outOfFundsAddFunds_label_amount')}
+        label={t('outOfFundsAddFunds_amount_label')}
         description={
           recurring
-            ? t('outOfFundsAddFunds_label_amountDescriptionRecurring', [
+            ? t('outOfFundsAddFunds_amount_recurring_desc', [
                 getNextOccurrenceDate('P1M'),
               ])
-            : t('outOfFundsAddFunds_label_amountDescriptionOneTime')
+            : t('outOfFundsAddFunds_amount_oneTime_desc')
         }
         amount={amount}
         placeholder="5.00"
@@ -152,8 +152,8 @@ export function AddFunds({
         loading={isSubmitting}
       >
         {recurring
-          ? t('outOfFundsAddFunds_action_addRecurring')
-          : t('outOfFundsAddFunds_action_addOneTime')}
+          ? t('outOfFundsAddFunds_recurring_action')
+          : t('outOfFundsAddFunds_oneTime_action')}
       </Button>
     </form>
   );
@@ -175,7 +175,7 @@ function RecurringAutoRenewInfo({
     timeStyle: 'short',
   });
 
-  return t('outOfFunds_error_textDoNothing', [
+  return t('outOfFunds_recurringAutoRenew_text', [
     `${currencySymbol}${amount}`,
     renewDateLocalized,
   ]);

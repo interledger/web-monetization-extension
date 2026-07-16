@@ -16,14 +16,14 @@ export default () => {
         <WarningSign className="size-6 text-yellow-700 shrink-0 self-center" />
         <h3 className="text-base font-medium text-yellow-700">
           {isUpdated
-            ? t('consentRequired_text_titleUpdated')
-            : t('consentRequired_text_title')}
+            ? t('consentRequired_updated_title')
+            : t('consentRequired_title')}
         </h3>
       </div>
 
-      <p className="">{t('consentRequired_text_subtitle')}</p>
+      <p className="">{t('consentRequired_subtitle')}</p>
 
-      <p className="pt-2">{t('consentRequired_text_msg')}</p>
+      <p className="pt-2">{t('consentRequired_text')}</p>
 
       <Button
         type="button"
@@ -32,7 +32,7 @@ export default () => {
           message.send('OPEN_APP', { path: '/post-install/consent' })
         }
       >
-        {t('consentRequired_action_primary')}
+        {t('consentRequired_primary_action')}
       </Button>
     </div>
   );

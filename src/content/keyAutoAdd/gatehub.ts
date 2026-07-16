@@ -40,13 +40,13 @@ const waitForLogin: Run<void> = async (
     setNotificationSize('fullscreen');
   } catch (error) {
     if (isTimedOut(error)) {
-      throw new ErrorWithKey('connectWalletKeyService_error_timeoutLogin');
+      throw new ErrorWithKey('connectWalletKeyService_timeoutLogin_error');
     }
     throw new Error(error);
   }
 
   if (alreadyLoggedIn) {
-    skip(errorWithKey('connectWalletKeyService_error_skipAlreadyLoggedIn'));
+    skip(errorWithKey('connectWalletKeyService_skipAlreadyLoggedIn_error'));
   }
 };
 
@@ -57,7 +57,7 @@ const findWallet: Run<void> = async (
   setNotificationSize('fullscreen');
   const wallets = await getUserWallets();
   if (!wallets.length) {
-    throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound', [
+    throw new ErrorWithKey('connectWalletKeyService_accountNotFound_error', [
       'No active wallet found',
     ]);
   }
@@ -73,7 +73,7 @@ const findWallet: Run<void> = async (
     if (walletBelongsToUser) return; // ok
   }
 
-  throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
+  throw new ErrorWithKey('connectWalletKeyService_accountNotFound_error');
 };
 
 const addKey: Run<void> = async ({ nickName, walletAddressUrl, publicKey }) => {

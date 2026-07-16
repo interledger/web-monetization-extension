@@ -23,7 +23,7 @@ export default () => {
         <div className="ml-3 flex flex-col gap-2">
           <h3 className="font-medium text-orange-800">Permission needed</h3>
           <div className="text-orange-700">
-            <p>{t('missingHostPermission_state_text')}</p>
+            <p>{t('missingHostPermission_text')}</p>
           </div>
         </div>
       </div>

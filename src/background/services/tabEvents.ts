@@ -216,7 +216,7 @@ export class TabEvents {
       iconData = continuousPaymentsEnabled
         ? ICONS.enabled_warn
         : ICONS.disabled_warn;
-      const tabStateText = this.t('icon_state_actionRequired');
+      const tabStateText = this.t('icon_actionRequired_text');
       title = `${title} - ${tabStateText}`;
     } else if (
       tabInfo.status !== 'monetized' &&
@@ -235,8 +235,8 @@ export class TabEvents {
           : ICONS.disabled_noLinks;
       }
       const tabStateText = isTabMonetized
-        ? this.t('icon_state_monetizationActive')
-        : this.t('icon_state_monetizationInactive');
+        ? this.t('icon_monetizationActive_text')
+        : this.t('icon_monetizationInactive_text');
       title = `${title} - ${tabStateText}`;
     }
 

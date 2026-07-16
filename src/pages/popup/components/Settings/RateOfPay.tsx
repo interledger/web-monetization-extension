@@ -125,7 +125,7 @@ export const RateOfPayComponent = ({
       >
         <RateOfPayInput
           id="rateOfPay"
-          label={t('settings_rate_label_inputDefaultRate')}
+          label={t('settings_rate_inputDefaultRate_label')}
           onRateChange={onRateChange}
           rateOfPay={rateOfPay}
           maxRateOfPay={maxRateOfPay}
@@ -153,7 +153,7 @@ export const RateOfPayComponent = ({
           className="w-full font-semibold"
           onClick={() => setEditingSiteRate(true)}
         >
-          {t('settings_rate_label_addException')}
+          {t('settings_rate_addException_action')}
         </Button>
       ) : (
         <Button
@@ -170,7 +170,7 @@ export const RateOfPayComponent = ({
             })
           }
         >
-          {t('settings_rate_label_manageExceptions')}
+          {t('settings_rate_manageExceptions_action')}
         </Button>
       )}
     </div>
@@ -214,7 +214,7 @@ const SiteRateOfPayInput = ({
           htmlFor="rateOfPaySite"
           className="flex items-center px-2 font-medium leading-6 text-medium"
         >
-          {site} ({t('home_text_hourlyRateException')})
+          {site} ({t('home_hourlyRateException_text')})
         </label>
         <button
           onClick={() => onRateChange({ rate: null, hostname })}
@@ -222,7 +222,7 @@ const SiteRateOfPayInput = ({
           className="p-1 text-alt"
         >
           <span className="sr-only">
-            {t('settings_rate_action_removeException')}
+            {t('settings_rate_removeException_action')}
           </span>
           <IconTrash className="size-4" />
         </button>

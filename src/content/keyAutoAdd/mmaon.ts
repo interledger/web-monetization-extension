@@ -25,13 +25,13 @@ const waitForLogin: Run<void> = async (
     setNotificationSize('fullscreen');
   } catch (error) {
     if (isTimedOut(error)) {
-      throw new ErrorWithKey('connectWalletKeyService_error_timeoutLogin');
+      throw new ErrorWithKey('connectWalletKeyService_timeoutLogin_error');
     }
     throw new Error(error);
   }
 
   if (alreadyLoggedIn) {
-    skip(errorWithKey('connectWalletKeyService_error_skipAlreadyLoggedIn'));
+    skip(errorWithKey('connectWalletKeyService_skipAlreadyLoggedIn_error'));
   }
 };
 
@@ -49,7 +49,7 @@ const findWallet: Run<void> = async (
   const accountInfo: { address: string } = await res.json();
 
   if (accountInfo.address !== accountAddress) {
-    throw new ErrorWithKey('connectWalletKeyService_error_accountNotFound');
+    throw new ErrorWithKey('connectWalletKeyService_accountNotFound_error');
   }
 };
 

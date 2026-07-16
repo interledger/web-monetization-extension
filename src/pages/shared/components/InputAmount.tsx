@@ -253,19 +253,19 @@ export function validateAmount(
   max?: number,
 ): null | ErrorWithKeyLike {
   if (!value) {
-    return errorWithKey('connectWallet_error_amountRequired');
+    return errorWithKey('connectWallet_amount_required_error');
   }
   const val = Number(value);
   if (Number.isNaN(val)) {
-    return errorWithKey('connectWallet_error_amountInvalidNumber');
+    return errorWithKey('connectWallet_amount_invalidNumber_error');
   }
   if (val < min) {
-    return errorWithKey('connectWallet_error_amountMinimum', [
+    return errorWithKey('connectWallet_amount_minimum_error', [
       formatCurrency(min, walletAddress.assetCode, walletAddress.assetScale),
     ]);
   }
   if (max && val > max) {
-    return errorWithKey('connectWallet_error_amountMaximum', [
+    return errorWithKey('connectWallet_amount_maximum_error', [
       formatCurrency(max, walletAddress.assetCode, walletAddress.assetScale),
     ]);
   }
