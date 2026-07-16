@@ -79,17 +79,17 @@ export async function fillPopup(
 export function getPopupFields(popup: Popup, i18n: BrowserIntl) {
   return {
     walletAddressUrl: popup.getByLabel(
-      i18n.getMessage('connectWallet_label_walletAddress'),
+      i18n.getMessage('connectWallet_walletAddress_label'),
     ),
-    amount: popup.getByLabel(i18n.getMessage('connectWallet_label_amount'), {
+    amount: popup.getByLabel(i18n.getMessage('connectWallet_amount_label'), {
       exact: true,
     }),
     recurring: popup.getByLabel(
-      i18n.getMessage('connectWallet_label_recurring'),
+      i18n.getMessage('connectWallet_recurring_label'),
     ),
     connectButton: popup
       .locator('button')
-      .getByText(i18n.getMessage('connectWallet_action_connect')),
+      .getByText(i18n.getMessage('connectWallet_connect_action')),
   };
 }
 

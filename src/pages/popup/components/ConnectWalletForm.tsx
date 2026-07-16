@@ -29,6 +29,7 @@ import {
 import { useTranslation } from '@/popup/lib/context';
 import { deepClone } from 'valtio/utils';
 import {
+  debounceAsync,
   ErrorWithKey,
   errorWithKey,
   isErrorWithKey,
@@ -220,7 +221,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
           await handleSubmit();
         }}
         onDecline={() => {
-          const error = errorWithKey('connectWalletKeyService_error_noConsent');
+          const error = errorWithKey('connectWalletKeyService_noConsent_error');
           setErrors({ keyPair: toErrorInfo(error) });
           setShowConsent(false);
         }}
@@ -239,10 +240,10 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
 
       <div className={cn(!!errors.connect && 'sr-only')}>
         <h2 className="text-center text-lg text-strong">
-          {t('connectWallet_text_title')}
+          {t('connectWallet_title')}
         </h2>
         <p className="text-center text-sm text-weak">
-          {t('connectWallet_text_desc')}
+          {t('connectWallet_desc')}
         </p>
       </div>
 
@@ -264,7 +265,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
 
       <fieldset className="space-y-2">
         <legend className="flex items-center px-2 font-medium leading-6 text-medium">
-          {t('connectWallet_labelGroup_amount')}
+          {t('connectWallet_amount_group_label')}
         </legend>
         <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
           <AmountInput
@@ -282,7 +283,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
             className="flex items-center gap-x-4 px-2"
           >
             <span className="font-medium text-medium @sm:font-normal grow @sm:grow-0 @sm:order-last">
-              {t('connectWallet_label_recurring')}
+              {t('connectWallet_recurring_label')}
             </span>
             <SwitchButton
               id="connectRecurring"
@@ -306,14 +307,14 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       {showManualKeyCopy && (
         <ManualKeyPairNeeded
           error={{
-            message: t('connectWallet_error_failedAutoKeyAdd'),
+            message: t('connectWallet_failedAutoKeyAdd_error'),
             details: errors.keyPair,
-            whyText: t('connectWallet_error_failedAutoKeyAddWhy'),
+            whyText: t('connectWallet_failedAutoKeyAdd_why_text'),
           }}
           retry={resetState}
           hideError={!errors.keyPair}
-          text={t('connectWallet_label_publicKey')}
-          learnMoreText={t('connectWallet_text_publicKeyLearnMore')}
+          text={t('connectWallet_publicKey_label')}
+          learnMoreText={t('connectWallet_publicKeyLearnMore_text')}
           publicKey={publicKey}
         />
       )}
@@ -333,7 +334,7 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
           loading={isSubmitting}
           loadingText={<ConnectSubmitLoadingText />}
         >
-          {t('connectWallet_action_connect')}
+          {t('connectWallet_connect_action')}
         </Button>
       </div>
     </form>
@@ -505,6 +506,8 @@ function WalletAddressInput({
     [validateAndFetch, resetState],
   );
 
+  const debouncedCommit = useRef(debounceAsync(commit, 500)).current;
+
   useImperativeHandle(
     ref,
     () => ({ commit: () => commit(inputRef.current!.value) }),
@@ -515,20 +518,22 @@ function WalletAddressInput({
     (event) => {
       const input = event.currentTarget;
       const ev = event.nativeEvent as InputEvent;
-      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
-      if (
-        !value ||
-        (ev.inputType && ev.inputType !== 'insertReplacementText')
-      ) {
-        return; // not autocomplete
+
+      if (ev.inputType && ev.inputType !== 'insertReplacementText') {
+        // regular typing, not autocomplete. commit once the user pauses
+        void debouncedCommit(input.value);
+        return;
       }
+
+      const value = ev.data ?? input.value; // Chrome doesn't fire InputEvent on autocomplete!
+      if (!value) return;
       if (validateWalletAddressUrl(value)) {
         return; // not valid data from autocomplete, fallback to input blur based behavior
       }
       // use as autocompleted value
       void commit(value);
     },
-    [commit],
+    [commit, debouncedCommit],
   );
 
   const onPaste: OnPasteHandler = useCallback(
@@ -556,7 +561,7 @@ function WalletAddressInput({
     <Input
       ref={inputRef}
       type="text"
-      label={t('connectWallet_label_walletAddress')}
+      label={t('connectWallet_walletAddress_label')}
       id="connectWalletAddressUrl"
       placeholder={placeholder}
       errorMessage={error?.message}
@@ -670,7 +675,7 @@ function AmountInput({
     <InputAmount
       ref={inputRef}
       id="connectAmount"
-      label={t('connectWallet_label_amount')}
+      label={t('connectWallet_amount_label')}
       labelHidden={true}
       amount={defaultAmount}
       className="@sm:max-w-48"
@@ -742,27 +747,27 @@ function mapErrorFailure(
 ): ErrorWithKeyLike {
   switch (state.code) {
     case 'timeout':
-      return new ErrorWithKey('connectWallet_error_timeout');
+      return new ErrorWithKey('connectWallet_timeout_error');
     case 'grant_continuation_failed':
-      return new ErrorWithKey('connectWallet_error_continuationFailed');
+      return new ErrorWithKey('connectWallet_continuationFailed_error');
     case 'grant_hash_failed':
-      return new ErrorWithKey('connectWallet_error_hashFailed');
+      return new ErrorWithKey('connectWallet_hashFailed_error');
     case 'grant_invalid':
-      return new ErrorWithKey('connectWallet_error_grantInvalid');
+      return new ErrorWithKey('connectWallet_grantInvalid_error');
     case 'key_add_failed': {
       if (isErrorWithKey(state.details)) {
         return new ErrorWithKey(
-          'connectWalletKeyService_error_failed',
+          'connectWalletKeyService_failed_error',
           deepClone(state.details.substitutions || []),
           deepClone(state.details),
         );
       } else {
-        return new ErrorWithKey('connectWalletKeyService_error_failed');
+        return new ErrorWithKey('connectWalletKeyService_failed_error');
       }
     }
     default:
       // TODO: better error message
-      return new ErrorWithKey('connectWallet_error_invalidClient');
+      return new ErrorWithKey('connectWallet_invalidClient_error');
   }
 }
 
@@ -771,36 +776,36 @@ function mapErrorCancel(
 ): ErrorWithKeyLike {
   switch (state.code) {
     case 'grant_rejected':
-      return new ErrorWithKey('connectWallet_error_grantRejected');
+      return new ErrorWithKey('connectWallet_grantRejected_error');
     case 'tab_closed':
-      return new ErrorWithKey('connectWallet_error_tabClosed');
+      return new ErrorWithKey('connectWallet_tabClosed_error');
     default:
-      return new ErrorWithKey('connectWallet_error_grantRejected'); // TODO: better error for unknown cancel reason
+      return new ErrorWithKey('connectWallet_grantRejected_error'); // TODO: better error for unknown cancel reason
   }
 }
 
 function canRetryAutoKeyAdd(err?: ErrorInfo['info']) {
   if (!err) return false;
   return (
-    err.key === 'connectWalletKeyService_error_noConsent' ||
-    err.cause?.key === 'connectWalletKeyService_error_timeoutLogin' ||
-    err.cause?.key === 'connectWalletKeyService_error_accountNotFound'
+    err.key === 'connectWalletKeyService_noConsent_error' ||
+    err.cause?.key === 'connectWalletKeyService_timeoutLogin_error' ||
+    err.cause?.key === 'connectWalletKeyService_accountNotFound_error'
   );
 }
 
 function validateWalletAddressUrl(value: string): null | ErrorWithKeyLike {
   if (!value) {
-    return errorWithKey('connectWallet_error_urlRequired');
+    return errorWithKey('connectWallet_url_required_error');
   }
   let url: URL;
   try {
     url = new URL(toWalletAddressUrl(value));
   } catch {
-    return errorWithKey('connectWallet_error_urlInvalidUrl');
+    return errorWithKey('connectWallet_url_invalidUrl_error');
   }
 
   if (url.protocol !== 'https:') {
-    return errorWithKey('connectWallet_error_urlInvalidNotHttps');
+    return errorWithKey('connectWallet_url_invalidNotHttps_error');
   }
 
   return null;

@@ -101,10 +101,10 @@ import type { MonetizationEventPayload } from '@/shared/messages';
   // @ts-expect-error: we're defining this now
   window.MonetizationEvent = MonetizationEvent;
 
-  // @ts-expect-error: we're defining this now
   window.addEventListener(
     '__wm_ext_monetization',
-    (event: CustomEvent<MonetizationEventPayload['details']>) => {
+    (ev) => {
+      const event = ev as CustomEvent<MonetizationEventPayload['details']>;
       if (!(event.target instanceof HTMLLinkElement)) return;
       if (!event.target.isConnected) return;
 
@@ -116,10 +116,10 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     { capture: true },
   );
 
-  // @ts-expect-error: we're defining this now
   window.addEventListener(
     '__wm_ext_onmonetization_attr_change',
-    (event: CustomEvent<{ attribute?: string }>) => {
+    (ev) => {
+      const event = ev as CustomEvent<{ attribute?: string }>;
       if (!event.target) return;
 
       const { attribute } = event.detail;

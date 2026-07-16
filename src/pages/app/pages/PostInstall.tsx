@@ -48,10 +48,10 @@ const Header = () => {
         alt=""
       />
       <p className="text-xl font-bold text-secondary-dark landscape:mb-2 landscape:text-3xl landscape:2xl:mb-3 landscape:2xl:text-4xl">
-        {t('tagline_text_1')}
+        {t('tagline_text__1')}
       </p>
       <p className="text-xl font-light text-secondary-dark landscape:text-3xl landscape:2xl:text-4xl">
-        {t('tagline_text_2')}
+        {t('tagline_text__2')}
       </p>
     </div>
   );
@@ -68,7 +68,7 @@ const Main = () => {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 rounded-lg sm:border border-gray-200 sm:bg-gray-50/75 p-3 sm:shadow-md backdrop-blur-0 sm:p-8">
       <h2 className="rounded-2xl bg-gray-100 p-4 text-center text-lg font-medium">
-        {t('postInstall_text_title')}
+        {t('postInstall_title')}
       </h2>
 
       <Steps />
@@ -189,13 +189,13 @@ const Steps = () => {
               className="group pr-1 text-primary outline-current hover:underline"
               onClick={(ev) => ev.stopPropagation()}
             >
-              {t('postInstall_text_stepGetWallet_title')}{' '}
+              {t('postInstall_stepGetWallet_title')}{' '}
               <ExternalIcon className="inline-block size-4 align-baseline transition-transform hover:scale-125 group-focus:scale-125" />
             </a>
           </React.Fragment>
         }
       >
-        <p>{t('postInstall_text_stepGetWallet_desc')}</p>
+        <p>{t('postInstall_stepGetWallet_desc')}</p>
         <div
           className={cn(
             'grid gap-4 justify-center mt-4 mx-auto group/wallet',
@@ -227,7 +227,7 @@ const Steps = () => {
           ))}
         </div>
         <p className="text-slate-400 text-sm text-right">
-          {t('postInstall_text_stepGetWallet_comingSoon')}
+          {t('postInstall_stepGetWallet_comingSoon_text')}
         </p>
       </Step>
 
@@ -236,7 +236,7 @@ const Steps = () => {
         index={1}
         open={isOpen === STEP_ID[1]}
         onClick={onClick}
-        title={t('postInstall_text_stepWalletAddress_title')}
+        title={t('postInstall_stepWalletAddress_title')}
       >
         <picture>
           <source
@@ -259,12 +259,12 @@ const Steps = () => {
           index={2}
           open={isOpen === STEP_ID[2]}
           onClick={onClick}
-          title={t('postInstall_text_stepPin_title')}
+          title={t('postInstall_stepPin_title')}
         >
           <p>
-            {t('postInstall_text_stepPin_desc')}
+            {t('postInstall_stepPin_desc')}
             {isPinnedToToolbar && (
-              <span> {t('postInstall_text_stepPin_descComplete')}</span>
+              <span> {t('postInstall_stepPin_complete_text')}</span>
             )}
           </p>
           <img
@@ -288,13 +288,13 @@ const Steps = () => {
           index={3}
           open={isOpen === STEP_ID[3]}
           onClick={onClick}
-          title={t('postInstall_text_stepPermissions_title')}
+          title={t('postInstall_stepPermissions_title')}
         >
           <p>
-            {t('missingHostPermission_state_text')}{' '}
+            {t('missingHostPermission_text')}{' '}
             {hasAllHostsPermission ? (
               <span className="text-secondary-dark">
-                {t('postInstall_text_stepPermissions_descComplete')}
+                {t('postInstall_stepPermissions_complete_text')}
               </span>
             ) : (
               <button
@@ -302,7 +302,7 @@ const Steps = () => {
                 className="block w-fit rounded-md bg-orange-100 px-2 py-1.5 mt-1 font-medium text-orange-800 hover:bg-orange-200 focus:bg-orange-200 focus:outline-hidden hover:shadow-md focus:shadow-md"
                 onClick={() => requestAllHostsPermission(browser)}
               >
-                {t('postInstall_action_stepPermissions_grant')}
+                {t('postInstall_stepPermissions_grant_action')}
               </button>
             )}
           </p>
@@ -315,7 +315,7 @@ const Steps = () => {
         index={isSafari ? 4 : isFirefoxAndroid ? 2 : 3}
         open={isOpen === STEP_ID[4]}
         onClick={onClick}
-        title={t('postInstall_action_submit')}
+        title={t('postInstall_submit_action')}
         highlighted={focusConnect}
       >
         <StepConnectWallet selectedWallet={selectedWallet} />
@@ -467,10 +467,10 @@ function StepConnectWallet({
     return (
       <div className="text-center pt-4 pb-8">
         <p className="font-medium text-secondary-dark landscape:mb-2 landscape:text-xl landscape:2xl:mb-3 landscape:2xl:text-xl">
-          {t('postInstall_text_wallet_connected_1')}
+          {t('postInstall_walletConnected_text__1')}
         </p>
         <p className="text-secondary-dark landscape:text-xl landscape:2xl:text-xl">
-          {t('postInstall_text_wallet_connected_2')}
+          {t('postInstall_walletConnected_text__2')}
         </p>
       </div>
     );

@@ -54,7 +54,7 @@ export function AddExceptionForm({
   if (sitesRateOfPay.length === MAX_CUSTOM_RATE_EXCEPTIONS) {
     return (
       <p className="px-3 py-2 rounded-xl bg-error border border-error">
-        {t('settings_sitePaymentRates_maxExceptionsError')}
+        {t('settings_sitePaymentRates_maxExceptions_error')}
       </p>
     );
   }
@@ -67,14 +67,14 @@ export function AddExceptionForm({
     >
       <div className="flex justify-between gap-2">
         <h3 className="font-medium text-secondary">
-          {t('settings_sitePaymentRates_text_formTitle')}
+          {t('settings_sitePaymentRates_form_title')}
         </h3>
         <button
           className="underline text-error"
           type="button"
           onClick={() => onDone()}
         >
-          {t('settings_sitePaymentRates_action_cancel')}
+          {t('settings_sitePaymentRates_cancel_action')}
         </button>
       </div>
 
@@ -97,7 +97,7 @@ export function AddExceptionForm({
         variant="default"
         disabled={!isSiteValid || !isRateValid}
       >
-        {t('settings_sitePaymentRates_action_save')}
+        {t('settings_sitePaymentRates_save_action')}
       </Button>
     </form>
   );
@@ -115,10 +115,10 @@ function SiteInput({
 
   const validate = (val: string): string => {
     if (!val) {
-      return t('settings_sitePaymentRates_inputSite_error_required');
+      return t('settings_sitePaymentRates_inputSite_required_error');
     }
     if (!isValidHostname(val)) {
-      return t('settings_sitePaymentRates_inputSite_error_invalid');
+      return t('settings_sitePaymentRates_inputSite_invalid_error');
     }
     return '';
   };

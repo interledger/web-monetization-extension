@@ -507,7 +507,7 @@ export class PaymentSession {
           outgoingPayment.failed &&
           outgoingPayment.sentAmount.value === '0'
         ) {
-          throw new ErrorWithKey('pay_error_outgoingPaymentFailed');
+          throw new ErrorWithKey('pay_outgoingPaymentFailed_error');
         }
         if (
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
@@ -539,7 +539,7 @@ export class PaymentSession {
       }
     }
 
-    throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
+    throw new ErrorWithKey('pay_outgoingPaymentPollingIncomplete_warn');
   }
 
   /**

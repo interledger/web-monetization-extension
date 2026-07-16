@@ -15,10 +15,10 @@ test('shows not-monetized status', async ({
 }) => {
   const warning = popup.getByTestId('not-monetized-message');
   const msg = {
-    newTab: i18n.getMessage('notMonetized_text_newTab'),
-    internalPage: i18n.getMessage('notMonetized_text_internalPage'),
-    unsupportedScheme: i18n.getMessage('notMonetized_text_unsupportedScheme'),
-    noLinks: i18n.getMessage('notMonetized_text_noLinks'),
+    newTab: i18n.getMessage('notMonetized_newTab_text'),
+    internalPage: i18n.getMessage('notMonetized_internalPage_text'),
+    unsupportedScheme: i18n.getMessage('notMonetized_unsupportedScheme_text'),
+    noLinks: i18n.getMessage('notMonetized_noLinks_text'),
   };
 
   const newPage = async () => {

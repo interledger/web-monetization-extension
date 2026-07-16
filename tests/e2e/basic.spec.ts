@@ -34,7 +34,7 @@ test.describe('should fail to connect if:', () => {
 
     await expect(connectButton).toBeDisabled();
     await expect(popup.locator('p.text-error')).toHaveText(
-      i18n.getMessage('connectWallet_error_urlInvalidUrl'),
+      i18n.getMessage('connectWallet_url_invalidUrl_error'),
     );
 
     await expect(background).toHaveStorage({ connected: false });

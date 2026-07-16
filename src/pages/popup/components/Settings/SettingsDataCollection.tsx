@@ -51,8 +51,8 @@ export function DataCollectionSettings() {
       </label>
 
       <p className="text-sm">
-        {t('settings_dataCollection_text')}{' '}
-        {t('settings_dataCollection_text_learnMore')}{' '}
+        {t('settings_dataCollection_desc')}{' '}
+        {t('settings_dataCollection_learnMore_text')}{' '}
         <button
           type="button"
           onClick={() =>
