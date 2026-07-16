@@ -16,17 +16,10 @@ import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
 import {
   ACCEPT_GRANT_TIMEOUT,
-  GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM,
-  GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS,
   MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES,
 } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
-import {
-  ensureEnd,
-  ErrorWithKey,
-  Timeout,
-  withResolvers,
-} from '@/shared/helpers';
+import { ensureEnd, ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
   isInvalidClientError,
   isInvalidContinuationError,
@@ -35,7 +28,6 @@ import {
 } from '@/background/services/openPayments';
 import {
   createTabIfNotExists,
-  onPopupOpen,
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from '@/background/utils';
@@ -64,7 +56,6 @@ export class OutgoingPaymentGrantService {
   private grantDetails: GrantDetails | null = null;
   /** Whether a grant has enough balance to make payments */
   private isGrantUsable = { recurring: false, oneTime: false };
-  private balanceUpdateTimeout: Timeout | null = null;
 
   public switchGrant: OutgoingPaymentGrantService['_switchGrant'];
 
@@ -134,14 +125,6 @@ export class OutgoingPaymentGrantService {
     if (connected === true && (recurringGrant || oneTimeGrant)) {
       this.grant = recurringGrant || oneTimeGrant!; // prefer recurring
     }
-
-    this.browser.alarms.onAlarm.addListener(async (alarm) => {
-      if (alarm.name !== GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM) return;
-      const supported = await this.checkGrantSpentAmountsSupport();
-      if (supported) {
-        this.browser.alarms.clear(GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM);
-      }
-    });
   }
 
   async completeOutgoingPaymentGrant(
@@ -290,7 +273,7 @@ export class OutgoingPaymentGrantService {
       this.logger.warn(
         `Failed to get grant spent amounts after ${retry} retries`,
       );
-      return;
+      throw new Error('Failed to get grant spent amounts');
     }
 
     try {
@@ -302,126 +285,15 @@ export class OutgoingPaymentGrantService {
           },
         );
 
-      await this.storage.set({
-        supportsGrantSpentAmounts: true,
-        supportsGrantSpentAmountsCheckedAt: Date.now(),
-      });
-
       return spentAmounts;
     } catch (error) {
       if (isTokenExpiredError(error)) {
         await this.rotateToken();
         return await this.getGrantSpentAmounts(walletAddress, retry + 1);
-      } else if (isNotFoundError(error)) {
-        this.logger.debug(
-          'Resource server does not support grant spent amounts endpoint',
-          error,
-        );
-
-        await this.storage.set({
-          supportsGrantSpentAmounts: false,
-          supportsGrantSpentAmountsCheckedAt: Date.now(),
-        });
       } else {
-        await this.storage.set({
-          supportsGrantSpentAmountsCheckedAt: Date.now(),
-        });
-
         throw error;
       }
     }
-  }
-
-  async checkGrantSpentAmountsSupport() {
-    if (!this.isAnyGrantUsable) return;
-
-    const {
-      supportsGrantSpentAmounts,
-      supportsGrantSpentAmountsCheckedAt,
-      walletAddress,
-    } = await this.storage.get([
-      'supportsGrantSpentAmounts',
-      'supportsGrantSpentAmountsCheckedAt',
-      'walletAddress',
-    ]);
-
-    if (supportsGrantSpentAmounts || !walletAddress) return;
-
-    const existingGrantSpentAmountAlarm = await this.browser.alarms.get(
-      GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM,
-    );
-
-    if (!existingGrantSpentAmountAlarm) {
-      this.browser.alarms.create(GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM, {
-        when:
-          (supportsGrantSpentAmountsCheckedAt ?? 0) +
-          GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS,
-        periodInMinutes:
-          GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS / 60 / 1000,
-      });
-    }
-
-    const spentAmounts = await this.getGrantSpentAmounts(walletAddress);
-    return spentAmounts?.spentDebitAmount !== undefined;
-  }
-
-  private async saveUpdatedBalance() {
-    const { walletAddress } = await this.storage.get(['walletAddress']);
-
-    if (!walletAddress) return;
-
-    try {
-      const amounts = await this.getGrantSpentAmounts(walletAddress);
-
-      if (!amounts?.spentDebitAmount) return;
-
-      this.storage.setSpentAmount(
-        this.grantType,
-        amounts.spentDebitAmount.value,
-      );
-    } catch (error) {
-      this.logger.warn('Background balance update failed', error);
-      this.balanceUpdateTimeout?.clear();
-    }
-  }
-
-  async registerBalanceUpdateHandler() {
-    const FIVE_MINUTES = 5 * 60 * 1000;
-    const ONE_MINUTE = 60 * 1000;
-
-    const { supportsGrantSpentAmounts } = await this.storage.get([
-      'supportsGrantSpentAmounts',
-    ]);
-
-    if (!supportsGrantSpentAmounts) {
-      return;
-    }
-
-    const updateBalance = async () => {
-      await this.saveUpdatedBalance();
-
-      const { continuousPaymentsEnabled } = await this.storage.get([
-        'continuousPaymentsEnabled',
-      ]);
-      const timeoutMs = continuousPaymentsEnabled ? ONE_MINUTE : FIVE_MINUTES;
-
-      this.balanceUpdateTimeout = new Timeout(timeoutMs, async () => {
-        await this.saveUpdatedBalance();
-
-        if (this.balanceUpdateTimeout) {
-          this.balanceUpdateTimeout.reset(timeoutMs);
-        }
-      });
-    };
-
-    const unregisterTimeout = async () => {
-      if (this.balanceUpdateTimeout) {
-        this.balanceUpdateTimeout.clear();
-        this.balanceUpdateTimeout = null;
-      }
-    };
-
-    onPopupOpen(this.browser, updateBalance, unregisterTimeout);
   }
 
   private async getInteractionInfo(

@@ -23,6 +23,7 @@ import {
   PaymentSession,
   PaymentManager,
   Telemetry,
+  GrantBalanceService,
 } from './services';
 import { createLogger, type Logger, type RootLogger } from '@/shared/logger';
 import { LOG_LEVEL } from '@/shared/defines';
@@ -52,6 +53,7 @@ export interface Cradle {
   storage: StorageService;
   rateList: RateListService;
   outgoingPaymentGrantService: OutgoingPaymentGrantService;
+  grantBalanceService: GrantBalanceService;
   openPaymentsService: OpenPaymentsService;
   walletService: WalletService;
   monetizationService: MonetizationService;
@@ -103,6 +105,11 @@ export const configureContainer = () => {
       .singleton()
       .inject(() => ({
         logger: logger.getLogger('outgoing-payment-grant'),
+      })),
+    grantBalanceService: asClass(GrantBalanceService)
+      .singleton()
+      .inject(() => ({
+        logger: logger.getLogger('grant-balance'),
       })),
     openPaymentsService: asClass(OpenPaymentsService)
       .singleton()

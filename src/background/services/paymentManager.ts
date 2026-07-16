@@ -261,36 +261,28 @@ export class PaymentManager {
       ]),
     );
 
-    const { supportsGrantSpentAmounts } = await this.deps.storage.get([
-      'supportsGrantSpentAmounts',
-    ]);
-
-    const pollingResults = supportsGrantSpentAmounts
-      ? []
-      : await Promise.allSettled(
-          [...outgoingPayments]
-            .filter(([, outgoingPayment]) => outgoingPayment !== null)
-            .map(async ([sessionId, outgoingPaymentInitial]) => {
-              const session = payableSessions.find((s) => s.id === sessionId);
-              if (!session) {
-                this.logger.error(
-                  'Could not find session for outgoing payment.',
-                );
-                return null;
-              }
-              for await (const outgoingPayment of session.pollOutgoingPayment(
-                // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
-                outgoingPaymentInitial!.id,
-                {
-                  signal,
-                  maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
-                },
-              )) {
-                outgoingPayments.set(sessionId, outgoingPayment);
-              }
-              return outgoingPayments.get(sessionId);
-            }),
-        );
+    const pollingResults = await Promise.allSettled(
+      [...outgoingPayments]
+        .filter(([, outgoingPayment]) => outgoingPayment !== null)
+        .map(async ([sessionId, outgoingPaymentInitial]) => {
+          const session = payableSessions.find((s) => s.id === sessionId);
+          if (!session) {
+            this.logger.error('Could not find session for outgoing payment.');
+            return null;
+          }
+          for await (const outgoingPayment of session.pollOutgoingPayment(
+            // Null assertion: https://github.com/microsoft/TypeScript/issues/41173
+            outgoingPaymentInitial!.id,
+            {
+              signal,
+              maxAttempts: OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
+            },
+          )) {
+            outgoingPayments.set(sessionId, outgoingPayment);
+          }
+          return outgoingPayments.get(sessionId);
+        }),
+    );
 
     const sentAmount = [...outgoingPayments.values()].reduce(
       (acc, op) => acc + BigInt(op?.sentAmount?.value ?? 0),

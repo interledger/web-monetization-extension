@@ -3,6 +3,7 @@ export { OpenPaymentsService } from './openPayments';
 export { StorageService } from './storage';
 export { MonetizationService } from './monetization';
 export { OutgoingPaymentGrantService } from './outgoingPaymentGrant';
+export { GrantBalanceService } from './grantBalance';
 export { WalletService } from './wallet';
 export { RateListService } from './rateList';
 export { TabEvents } from './tabEvents';
