@@ -114,7 +114,7 @@ export interface Storage {
     supported?: boolean;
 
     /** Timestamp of the last time we checked grant spent amounts support. */
-    lastCheckedAt?: number;
+    lastCheckedAt: number;
   };
 
   /** Key information */

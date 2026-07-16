@@ -14,10 +14,7 @@ import {
 } from '@interledger/open-payments';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
-import {
-  ACCEPT_GRANT_TIMEOUT,
-  MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES,
-} from '@/background/config';
+import { ACCEPT_GRANT_TIMEOUT } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import { ensureEnd, ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
@@ -42,6 +39,8 @@ type TabUpdateCallback = Parameters<Tabs.OnUpdatedEvent['addListener']>[0];
 type TabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
 >[0];
+
+export const MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES = 3;
 
 export class OutgoingPaymentGrantService {
   private storage: Cradle['storage'];

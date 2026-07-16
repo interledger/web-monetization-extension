@@ -3,13 +3,14 @@ import type {
   OutgoingPaymentGrantSpentAmounts,
 } from '@interledger/open-payments';
 import type { Cradle } from '@/background/container';
-import {
-  GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM,
-  GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS,
-} from '@/background/config';
 import { Timeout } from '@/shared/helpers';
 import { isNotFoundError } from '@/background/services/openPayments';
 import { onPopupOpen } from '@/background/utils';
+
+export const GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS =
+  7 * 24 * 60 * 60 * 1000;
+export const GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM =
+  'grant-spent-amounts-support-recheck';
 
 export class GrantBalanceService {
   private storage: Cradle['storage'];
@@ -28,15 +29,11 @@ export class GrantBalanceService {
     this.logger = logger;
     this.outgoingPaymentGrantService = outgoingPaymentGrantService;
     this.browser = browser;
-
-    this.initialize();
-  }
-
-  private initialize() {
-    void this.registerBalanceUpdateHandler();
   }
 
   start() {
+    void this.registerBalanceUpdateHandler();
+
     this.browser.alarms.onAlarm.addListener(async (alarm) => {
       if (alarm.name !== GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM) return;
 
@@ -75,7 +72,7 @@ export class GrantBalanceService {
 
         await this.storage.set({
           supportsGrantSpentAmounts: {
-            supported: true,
+            supported: false,
             lastCheckedAt: Date.now(),
           },
         });
@@ -128,24 +125,20 @@ export class GrantBalanceService {
       'supportsGrantSpentAmounts',
     ]);
 
-    if (!supportsGrantSpentAmounts?.supported) {
+    if (!supportsGrantSpentAmounts?.supported || this.balanceUpdateTimeout) {
       return;
     }
 
     const updateBalance = async () => {
       await this.saveUpdatedBalance();
 
-      const { continuousPaymentsEnabled } = await this.storage.get([
-        'continuousPaymentsEnabled',
-      ]);
-      const timeoutMs = continuousPaymentsEnabled
-        ? 1 * 60 * 1000
-        : 5 * 60 * 1000;
+      const timeoutMs = await this.getBalanceUpdateTimeout();
 
       this.balanceUpdateTimeout = new Timeout(timeoutMs, async () => {
         await this.saveUpdatedBalance();
 
         if (this.balanceUpdateTimeout) {
+          const timeoutMs = await this.getBalanceUpdateTimeout();
           this.balanceUpdateTimeout.reset(timeoutMs);
         }
       });
@@ -159,6 +152,16 @@ export class GrantBalanceService {
     };
 
     onPopupOpen(this.browser, updateBalance, unregisterTimeout);
+  }
+
+  private async getBalanceUpdateTimeout() {
+    const { continuousPaymentsEnabled } = await this.storage.get([
+      'continuousPaymentsEnabled',
+    ]);
+
+    const timeoutMs = continuousPaymentsEnabled ? 1 * 60 * 1000 : 5 * 60 * 1000;
+
+    return timeoutMs;
   }
 
   private async saveUpdatedBalance() {
@@ -178,6 +181,7 @@ export class GrantBalanceService {
     } catch (error) {
       this.logger.warn('Background balance update failed', error);
       this.balanceUpdateTimeout?.clear();
+      this.balanceUpdateTimeout = null;
     }
   }
 }
