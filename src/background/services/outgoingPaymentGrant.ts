@@ -14,10 +14,7 @@ import {
 } from '@interledger/open-payments';
 import type { Browser, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
-import {
-  ACCEPT_GRANT_TIMEOUT,
-  MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES,
-} from '@/background/config';
+import { ACCEPT_GRANT_TIMEOUT } from '@/background/config';
 import { OPEN_PAYMENTS_REDIRECT_URL } from '@/shared/defines';
 import { ensureEnd, ErrorWithKey, withResolvers } from '@/shared/helpers';
 import {
@@ -42,6 +39,8 @@ type TabUpdateCallback = Parameters<Tabs.OnUpdatedEvent['addListener']>[0];
 type TabRemovedCallback = Parameters<
   Browser['tabs']['onRemoved']['addListener']
 >[0];
+
+export const MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES = 3;
 
 export class OutgoingPaymentGrantService {
   private storage: Cradle['storage'];
@@ -273,7 +272,7 @@ export class OutgoingPaymentGrantService {
       this.logger.warn(
         `Failed to get grant spent amounts after ${retry} retries`,
       );
-      return;
+      throw new Error('Failed to get grant spent amounts');
     }
 
     try {
@@ -285,24 +284,11 @@ export class OutgoingPaymentGrantService {
           },
         );
 
-      await this.storage.set({
-        supportsGrantSpentAmounts: true,
-      });
-
       return spentAmounts;
     } catch (error) {
       if (isTokenExpiredError(error)) {
         await this.rotateToken();
         return await this.getGrantSpentAmounts(walletAddress, retry + 1);
-      } else if (isNotFoundError(error)) {
-        this.logger.debug(
-          'Resource server does not support grant spent amounts endpoint',
-          error,
-        );
-
-        await this.storage.set({
-          supportsGrantSpentAmounts: false,
-        });
       } else {
         throw error;
       }

@@ -172,7 +172,7 @@ export class StorageService {
     }
   }
 
-  private async setSpentAmount(grant: GrantDetails['type'], amount: string) {
+  async setSpentAmount(grant: GrantDetails['type'], amount: string) {
     if (grant === 'recurring') {
       await this.set({ recurringGrantSpentAmount: amount });
     } else if (grant === 'one-time') {

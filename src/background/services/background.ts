@@ -37,6 +37,7 @@ export class Background {
   private heartbeat: Cradle['heartbeat'];
   private telemetry: Cradle['telemetry'];
   private rateList: Cradle['rateList'];
+  private grantBalanceService: Cradle['grantBalanceService'];
 
   constructor({
     browser,
@@ -54,6 +55,7 @@ export class Background {
     heartbeat,
     telemetry,
     rateList,
+    grantBalanceService,
   }: Cradle) {
     this.browser = browser;
     this.browserName = browserName;
@@ -70,6 +72,7 @@ export class Background {
     this.heartbeat = heartbeat;
     this.telemetry = telemetry;
     this.rateList = rateList;
+    this.grantBalanceService = grantBalanceService;
   }
 
   async start() {
@@ -85,6 +88,7 @@ export class Background {
     this.bindWindowHandlers();
     this.sendToPopup.start();
     this.sendToApp.start();
+    this.grantBalanceService.start();
     await KeyAutoAddService.registerContentScripts({ browser: this.browser });
     // When the background restarts (e.g. after computer wake up), ask the
     // content script to resume monetization for active tab as the background no

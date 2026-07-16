@@ -105,12 +105,17 @@ export interface Storage {
   oneTimeGrant?: OneTimeGrant | undefined | null;
   oneTimeGrantSpentAmount?: AmountValue | undefined | null;
 
-  /**
-   * If the current wallet address' resource server supports the "spent amounts" endpoint
-   * for grants to not require polling of outgoing payments.
-   * @default undefined implies that support is unknown and needs to be checked.
-   */
-  supportsGrantSpentAmounts?: boolean;
+  supportsGrantSpentAmounts?: {
+    /**
+     * If the current wallet address' resource server supports the "spent amounts" endpoint
+     * for grants to not require polling of outgoing payments.
+     * @default undefined implies that support is unknown and needs to be checked.
+     */
+    supported?: boolean;
+
+    /** Timestamp of the last time we checked grant spent amounts support. */
+    lastCheckedAt: number;
+  };
 
   /** Key information */
   publicKey: string;
