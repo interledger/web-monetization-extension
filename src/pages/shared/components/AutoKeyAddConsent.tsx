@@ -6,8 +6,8 @@ import type { TranslationKeys } from '@/shared/helpers';
 type Intent = 'CONNECT_WALLET' | 'RECONNECT_WALLET';
 
 const consentMessage: Record<Intent, TranslationKeys> = {
-  CONNECT_WALLET: 'connectWalletKeyService_text_consentP1',
-  RECONNECT_WALLET: 'reconnectWalletKeyService_text_consentP1',
+  CONNECT_WALLET: 'connectWalletKeyService_consent_text__1',
+  RECONNECT_WALLET: 'reconnectWalletKeyService_consent_text__1',
 };
 
 type Props = {
@@ -32,21 +32,21 @@ export const AutoKeyAddConsent = ({ onAccept, onDecline, intent }: Props) => {
           target="_blank"
           rel="noreferrer"
         >
-          {t('connectWalletKeyService_text_consentLearnMore')}
+          {t('connectWalletKeyService_consentLearnMore_text')}
         </a>
       </p>
 
       <div className="space-y-2 pt-12 text-medium">
-        <p>{t('connectWalletKeyService_text_consentP2')}</p>
-        <p>{t('connectWalletKeyService_text_consentP3')}</p>
+        <p>{t('connectWalletKeyService_consent_text__2')}</p>
+        <p>{t('connectWalletKeyService_consent_text__3')}</p>
       </div>
 
       <div className="mx-auto flex flex-col @sm:flex-row @sm:w-3/4 justify-around gap-4">
         <Button onClick={onAccept}>
-          {t('connectWalletKeyService_label_consentAccept')}
+          {t('connectWalletKeyService_consentAccept_action')}
         </Button>
         <Button onClick={onDecline} variant="destructive">
-          {t('connectWalletKeyService_label_consentDecline')}
+          {t('connectWalletKeyService_consentDecline_action')}
         </Button>
       </div>
     </form>

@@ -87,7 +87,7 @@ for (const testCase of TEST_CASES) {
         await popup
           .getByRole('button', {
             name: i18n.getMessage(
-              'connectWalletKeyService_label_consentAccept',
+              'connectWalletKeyService_consentAccept_action',
             ),
           })
           .click();

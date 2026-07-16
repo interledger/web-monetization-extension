@@ -70,7 +70,7 @@ test('Connect to Fynbos with automatic key addition when not logged-in to wallet
     ).toBeVisible();
     await popup
       .getByRole('button', {
-        name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
+        name: i18n.getMessage('connectWalletKeyService_consentAccept_action'),
       })
       .click();
   });

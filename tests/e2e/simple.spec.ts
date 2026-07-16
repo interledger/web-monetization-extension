@@ -133,7 +133,7 @@ test('does not monetize when global payments toggle in unchecked', async ({
       .uncheck({ force: true }); // TODO: remove force; normally this should not be necessary
 
     await expect(popup.getByTestId('not-monetized-message')).toHaveText(
-      i18n.getMessage('app_text_disabled'),
+      i18n.getMessage('app_disabled_text'),
     );
     await expect(background).toHaveStorage({
       continuousPaymentsEnabled: true,
@@ -237,8 +237,8 @@ test.describe('one-time payment', () => {
     });
     await expect(alertMsg).toBeVisible();
     await expect(alertMsg).toHaveEitherText([
-      i18n.getMessage('pay_state_success'),
-      i18n.getMessage('pay_warn_outgoingPaymentPollingIncomplete'),
+      i18n.getMessage('pay_success_text'),
+      i18n.getMessage('pay_outgoingPaymentPollingIncomplete_warn'),
     ]);
   });
 
@@ -264,7 +264,7 @@ test.describe('one-time payment', () => {
 
       await expect(alertMsg).toBeVisible();
       await expect(alertMsg).toHaveText(
-        i18n.getMessage('pay_error_notEnoughFunds'),
+        i18n.getMessage('pay_notEnoughFunds_error'),
       );
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(0);
@@ -294,7 +294,7 @@ test.describe('one-time payment', () => {
 
       await expect(alertMsg).toBeVisible();
       await expect(alertMsg).toHaveText(
-        i18n.getMessage('pay_error_notEnoughFunds'),
+        i18n.getMessage('pay_notEnoughFunds_error'),
       );
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(1);

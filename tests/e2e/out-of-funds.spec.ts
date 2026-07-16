@@ -99,10 +99,10 @@ for (const testCase of TEST_CASES) {
       const toRecurring = testCase.to.recurring;
 
       const addRecurringButton = popup.getByRole('button', {
-        name: i18n.getMessage('outOfFunds_action_optionRecurring'),
+        name: i18n.getMessage('outOfFunds_optionRecurring_action'),
       });
       const addOneTimeButton = popup.getByRole('button', {
-        name: i18n.getMessage('outOfFunds_action_optionOneTime'),
+        name: i18n.getMessage('outOfFunds_optionOneTime_action'),
       });
 
       const monetizationCallback = await setupPlayground(
@@ -164,7 +164,7 @@ for (const testCase of TEST_CASES) {
 
         await test.step('check add-funds screen', async () => {
           const inputField = popup.getByRole('textbox', {
-            name: i18n.getMessage('outOfFundsAddFunds_label_amount'),
+            name: i18n.getMessage('outOfFundsAddFunds_amount_label'),
           });
           await expect(inputField).toBeVisible();
           await expect(inputField).toHaveValue(initialAmountFormatted);
@@ -185,13 +185,13 @@ for (const testCase of TEST_CASES) {
               { dateStyle: 'medium' },
             );
             const msg = i18n.getMessage(
-              'outOfFundsAddFunds_label_amountDescriptionRecurring',
+              'outOfFundsAddFunds_amount_recurring_desc',
               [nextOccurrenceDate],
             );
             await expect(desc).toHaveText(msg);
           } else {
             const msg = i18n.getMessage(
-              'outOfFundsAddFunds_label_amountDescriptionOneTime',
+              'outOfFundsAddFunds_amount_oneTime_desc',
             );
             await expect(desc).toHaveText(msg);
           }
@@ -202,8 +202,8 @@ for (const testCase of TEST_CASES) {
         await test.step('complete new grant', async () => {
           const submitButton = popup.getByRole('button', {
             name: toRecurring
-              ? i18n.getMessage('outOfFundsAddFunds_action_addRecurring')
-              : i18n.getMessage('outOfFundsAddFunds_action_addOneTime'),
+              ? i18n.getMessage('outOfFundsAddFunds_recurring_action')
+              : i18n.getMessage('outOfFundsAddFunds_oneTime_action'),
           });
           await submitButton.click();
 

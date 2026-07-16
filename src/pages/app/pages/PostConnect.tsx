@@ -146,19 +146,19 @@ function mapSuccessMessage(
   const SUCCESS_MSGS: Record<WalletStatus['intent'], MessageContent> = {
     connect: {
       heading: t('postConnect_connect_success_title'),
-      info: t('postConnect_connect_success_msg'),
+      info: t('postConnect_connect_success_text'),
     },
     add_funds: {
       heading: t('postConnect_addFunds_success_title'),
-      info: t('postConnect_addFunds_success_msg'),
+      info: t('postConnect_addFunds_success_text'),
     },
     update_budget: {
       heading: t('postConnect_updateBudget_success_title'),
-      info: t('postConnect_updateBudget_success_msg'),
+      info: t('postConnect_updateBudget_success_text'),
     },
     reconnect: {
       heading: t('postConnect_reconnect_success_title'),
-      info: t('postConnect_reconnect_success_msg'),
+      info: t('postConnect_reconnect_success_text'),
     },
   };
   return SUCCESS_MSGS[status.intent];
@@ -182,19 +182,19 @@ function mapCancelMessage(
     connect: {
       grant_rejected: {
         heading: t('postConnect_connect_cancel_grantRejected_title'),
-        info: t('postConnect_connect_cancel_grantRejected_msg'),
+        info: t('postConnect_connect_cancel_grantRejected_text'),
       },
     },
     add_funds: {
       grant_rejected: {
         heading: t('postConnect_addFunds_cancel_grantRejected_title'),
-        info: t('postConnect_addFunds_cancel_grantRejected_msg'),
+        info: t('postConnect_addFunds_cancel_grantRejected_text'),
       },
     },
     update_budget: {
       grant_rejected: {
         heading: t('postConnect_updateBudget_cancel_grantRejected_title'),
-        info: t('postConnect_updateBudget_cancel_grantRejected_msg'),
+        info: t('postConnect_updateBudget_cancel_grantRejected_text'),
       },
     },
     reconnect: {
@@ -221,7 +221,7 @@ function mapFailureMessage(
       if (code === 'timeout') {
         return {
           heading: t('postConnect_connect_failure_timeout_title'),
-          info: t('postConnect_connect_failure_timeout_msg'),
+          info: t('postConnect_connect_failure_timeout_text'),
         };
       }
       if (code === 'key_add_failed') {
@@ -230,21 +230,21 @@ function mapFailureMessage(
           : details?.message;
         return {
           heading: t('postConnect_connect_failure_keyAdd_title'),
-          info: t('postConnect_connect_failure_keyAdd_msg', [
+          info: t('postConnect_connect_failure_keyAdd_text', [
             infoPlus ? `\n${infoPlus}` : '',
           ]),
         };
       }
       return {
         heading: t('postConnect_connect_failure_other_title'),
-        info: t('postConnect_connect_failure_other_msg'),
+        info: t('postConnect_connect_failure_other_text'),
       };
     },
     add_funds(code, details) {
       if (code === 'timeout') {
         return {
           heading: t('postConnect_addFunds_failure_timeout_title'),
-          info: t('postConnect_addFunds_failure_timeout_msg'),
+          info: t('postConnect_addFunds_failure_timeout_text'),
         };
       }
       const infoPlus = isErrorWithKey(details)
@@ -252,7 +252,7 @@ function mapFailureMessage(
         : details?.message;
       return {
         heading: t('postConnect_addFunds_failure_other_title'),
-        info: t('postConnect_addFunds_failure_other_msg', [
+        info: t('postConnect_addFunds_failure_other_text', [
           infoPlus ? `\n${infoPlus}` : '',
         ]),
       };
@@ -264,21 +264,21 @@ function mapFailureMessage(
           : details?.message;
         return {
           heading: t('postConnect_reconnect_failure_keyAdd_title'),
-          info: t('postConnect_reconnect_failure_keyAdd_msg', [
+          info: t('postConnect_reconnect_failure_keyAdd_text', [
             infoPlus ? `\n${infoPlus}` : '',
           ]),
         };
       }
       return {
         heading: t('postConnect_reconnect_failure_other_title'),
-        info: t('postConnect_reconnect_failure_other_msg'),
+        info: t('postConnect_reconnect_failure_other_text'),
       };
     },
     update_budget(code, details) {
       if (code === 'timeout') {
         return {
           heading: t('postConnect_updateBudget_failure_timeout_title'),
-          info: t('postConnect_updateBudget_failure_timeout_msg'),
+          info: t('postConnect_updateBudget_failure_timeout_text'),
         };
       }
       const infoPlus = isErrorWithKey(details)
@@ -286,7 +286,7 @@ function mapFailureMessage(
         : details?.message;
       return {
         heading: t('postConnect_updateBudget_failure_other_title'),
-        info: t('postConnect_updateBudget_failure_other_msg', [
+        info: t('postConnect_updateBudget_failure_other_text', [
           infoPlus ? `\n${infoPlus}` : '',
         ]),
       };

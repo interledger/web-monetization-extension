@@ -56,7 +56,7 @@ test.skip('Connect to MMAON wallet with automatic key addition when not logged-i
 
     await popup
       .getByRole('button', {
-        name: i18n.getMessage('connectWalletKeyService_label_consentAccept'),
+        name: i18n.getMessage('connectWalletKeyService_consentAccept_action'),
       })
       .click();
   });

@@ -259,7 +259,7 @@ export class OutgoingPaymentGrantService {
       return { grant, nonce };
     } catch (error) {
       if (isInvalidClientError(error)) {
-        throw new ErrorWithKey('connectWallet_error_invalidClient');
+        throw new ErrorWithKey('connectWallet_invalidClient_error');
       }
       throw error;
     }

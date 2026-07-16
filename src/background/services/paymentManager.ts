@@ -312,17 +312,17 @@ export class PaymentManager {
       const isPollingLimitReached = pollingErrors.some(
         (err) =>
           (isErrorWithKey(err) &&
-            err.key === 'pay_warn_outgoingPaymentPollingIncomplete') ||
+            err.key === 'pay_outgoingPaymentPollingIncomplete_warn') ||
           isAbortSignalTimeout(err),
       );
 
       if (isNotEnoughFunds) {
-        throw new ErrorWithKey('pay_error_notEnoughFunds');
+        throw new ErrorWithKey('pay_notEnoughFunds_error');
       }
       if (isPollingLimitReached) {
-        throw new ErrorWithKey('pay_warn_outgoingPaymentPollingIncomplete');
+        throw new ErrorWithKey('pay_outgoingPaymentPollingIncomplete_warn');
       }
-      throw new ErrorWithKey('pay_error_general');
+      throw new ErrorWithKey('pay_error');
     }
 
     return { sentAmount, debitAmount, outgoingPayments };
