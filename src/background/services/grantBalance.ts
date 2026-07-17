@@ -15,6 +15,7 @@ export const GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_ALARM =
 export class GrantBalanceService {
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
+  private events: Cradle['events'];
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private browser: Cradle['browser'];
   private balanceUpdateTimeout: Timeout | null = null;
@@ -22,11 +23,13 @@ export class GrantBalanceService {
   constructor({
     storage,
     logger,
+    events,
     outgoingPaymentGrantService,
     browser,
   }: Cradle) {
     this.storage = storage;
     this.logger = logger;
+    this.events = events;
     this.outgoingPaymentGrantService = outgoingPaymentGrantService;
     this.browser = browser;
   }
@@ -44,6 +47,29 @@ export class GrantBalanceService {
     });
 
     void this.checkGrantSpentAmountsSupport();
+
+    this.events.on('balance.adjust_spent_amount', async ({ amount }) => {
+      const amountToAdjust = BigInt(amount);
+      void this.adjustSpentAmount(amountToAdjust);
+    });
+  }
+
+  private async adjustSpentAmount(amount: bigint) {
+    const grant = this.outgoingPaymentGrantService.grantType;
+    const { recurringGrantSpentAmount, oneTimeGrantSpentAmount } =
+      await this.storage.get([
+        'recurringGrantSpentAmount',
+        'oneTimeGrantSpentAmount',
+      ]);
+    let newGrantSpentAmount = 0n;
+
+    if (grant === 'recurring') {
+      newGrantSpentAmount = BigInt(recurringGrantSpentAmount ?? 0) + amount;
+    } else if (grant === 'one-time') {
+      newGrantSpentAmount = BigInt(oneTimeGrantSpentAmount ?? 0) + amount;
+    }
+
+    await this.storage.setSpentAmount(grant, newGrantSpentAmount.toString());
   }
 
   private async getGrantSpentAmounts(

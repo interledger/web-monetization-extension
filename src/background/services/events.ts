@@ -7,6 +7,9 @@ import type {
 } from '@/shared/types';
 
 interface BackgroundEvents {
+  'balance.adjust_spent_amount': {
+    amount: AmountValue;
+  };
   'open_payments.key_revoked': undefined;
   'open_payments.out_of_funds': undefined;
   'open_payments.invalid_receiver': { tabId: number };
