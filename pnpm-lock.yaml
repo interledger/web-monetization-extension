@@ -157,8 +157,8 @@ importers:
         specifier: 2.0.1
         version: 2.0.1
       typescript:
-        specifier: npm:typescript@^6.0.3
-        version: 6.0.3
+        specifier: npm:typescript@^7.0.2
+        version: 7.0.2
       typescript7:
         specifier: npm:typescript@^7.0.2
         version: typescript@7.0.2
@@ -2321,11 +2321,6 @@ packages:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
     engines: {node: '>= 0.6'}
 
-  typescript@6.0.3:
-    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   typescript@7.0.2:
     resolution: {integrity: sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==}
     engines: {node: '>=16.20.0'}
@@ -4467,8 +4462,6 @@ snapshots:
     dependencies:
       media-typer: 0.3.0
       mime-types: 2.1.35
-
-  typescript@6.0.3: {}
 
   typescript@7.0.2:
     optionalDependencies:

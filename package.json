@@ -71,7 +71,7 @@
     "tailwindcss": "^4.3.2",
     "tinyspy": "^4.0.4",
     "totp-generator": "2.0.1",
-    "typescript": "npm:typescript@^6.0.3",
+    "typescript": "npm:typescript@^7.0.2",
     "typescript7": "npm:typescript@^7.0.2",
     "vitest": "^4.1.10",
     "@vitest/coverage-v8": "^4.1.10"
