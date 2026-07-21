@@ -49,7 +49,7 @@
     "@playwright/test": "^1.61.1",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.3.2",
-    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@types/archiver": "^8.0.0",
     "@types/chrome": "^0.2.2",
