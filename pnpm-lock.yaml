@@ -57,8 +57,8 @@ importers:
         specifier: 5.2.1
         version: 5.2.1
       structured-headers:
-        specifier: ^2.0.2
-        version: 2.0.2
+        specifier: ^2.0.3
+        version: 2.0.3
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
@@ -2231,8 +2231,8 @@ packages:
   structured-headers@0.5.0:
     resolution: {integrity: sha512-oLnmXSsjhud+LxRJpvokwP8ImEB2wTg8sg30buwfVViKMuluTv3BlOJHUX9VW9pJ2nQOxmx87Z0kB86O4cphag==}
 
-  structured-headers@2.0.2:
-    resolution: {integrity: sha512-IUul56vVHuMg2UxWhwDj9zVJE6ztYEQQkynr1FQ/NydPhivtk5+Qb2N1RS36owEFk2fNUriTguJ2R7htRObcdA==}
+  structured-headers@2.0.3:
+    resolution: {integrity: sha512-4g5yxhlDMClRwCcfKfLeS7Z8yAVdOWGDADwm80Poh1iReU2KVKLGBlqwpHWJ2qovq0+ZIf1atAEO1eua2o9Rgg==}
     engines: {node: '>=18', npm: '>=6'}
 
   supports-color@7.2.0:
@@ -3762,7 +3762,7 @@ snapshots:
 
   http-message-signatures@1.0.6:
     dependencies:
-      structured-headers: 2.0.2
+      structured-headers: 2.0.3
 
   httpbis-digest-headers@1.0.0:
     dependencies:
@@ -4392,7 +4392,7 @@ snapshots:
 
   structured-headers@0.5.0: {}
 
-  structured-headers@2.0.2: {}
+  structured-headers@2.0.3: {}
 
   supports-color@7.2.0:
     dependencies:
