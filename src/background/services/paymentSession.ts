@@ -404,12 +404,6 @@ export class PaymentSession {
       },
     );
 
-    if (outgoingPayment.grantSpentDebitAmount) {
-      this.storage.updateSpentAmount(
-        this.outgoingPaymentGrantService.grantType,
-        outgoingPayment.grantSpentDebitAmount.value,
-      );
-    }
     await this.storage.setState({ out_of_funds: false });
 
     return outgoingPayment;
