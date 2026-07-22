@@ -2,6 +2,7 @@
   "appDescription": {
     "message": "Support content you love. Pay as you browse!"
   },
+  "app_loading_text": { "message": "Loading" },
   "icon_monetizationActive_text": {
     "message": "Active"
   },
@@ -11,11 +12,8 @@
   "icon_actionRequired_text": {
     "message": "Action Required!"
   },
-  "tagline_text__1": {
-    "message": "Support content you love"
-  },
-  "tagline_text__2": {
-    "message": "Pay as you browse"
+  "missingHostPermission_title": {
+    "message": "Permission needed"
   },
   "missingHostPermission_text": {
     "message": "Permission to access your data on all websites is required to use Web Monetization."
@@ -40,6 +38,29 @@
     "message": "The extension is disabled. Click the power icon above to enable the extension and continue making payments."
   },
 
+  "tagline_text__1": {
+    "message": "Support content you love"
+  },
+  "tagline_text__2": {
+    "message": "Pay as you browse"
+  },
+
+  "header_brand_text": {
+    "message": "Web Monetization"
+  },
+  "header_back_action": {
+    "message": "Back"
+  },
+  "header_settings_action": {
+    "message": "Settings"
+  },
+  "header_togglePayments_disable_action": {
+    "message": "Disable extension"
+  },
+  "header_togglePayments_enable_action": {
+    "message": "Enable extension"
+  },
+
   "home_balance_title": {
     "message": "Balance"
   },
@@ -61,6 +82,12 @@
   "home_hourlyRateDefault_text": {
     "message": "default"
   },
+  "home_hourlyRateDefaultRate_text": {
+    "message": "default <span>$RATE$</span>",
+    "placeholders": {
+      "RATE": { "content": "$1", "example": "$2.05" }
+    }
+  },
 
   "keyRevoked_title": {
     "message": "Unauthorized access to the wallet."
@@ -76,6 +103,18 @@
   },
   "keyRevoked_reconnectBtn_action": {
     "message": "Reconnect"
+  },
+  "keyRevoked_unknown_error": {
+    "message": "Unknown error"
+  },
+  "keyRevoked_reconnecting_text": {
+    "message": "Reconnecting to wallet: <span>$ID$</span>",
+    "placeholders": {
+      "ID": { "content": "$1", "example": "https://wallet.example.com/alice" }
+    }
+  },
+  "keyRevoked_copyKey_text": {
+    "message": "*Before* you reconnect, copy the public key below and add it to your wallet."
   },
 
   "disconnectWallet_error": {
@@ -110,6 +149,12 @@
   },
   "pay_success_text": {
     "message": "Thank you for your support!"
+  },
+  "pay_amount_label": {
+    "message": "Support <span>$URL$</span>",
+    "placeholders": {
+      "URL": { "content": "$1", "example": "example.com" }
+    }
   },
 
   "outOfFunds_error_title": {
@@ -175,13 +220,13 @@
     "message": "Renew monthly"
   },
   "connectWallet_publicKey_label": {
-    "message": "Please copy this key, paste it manually into your wallet, and then connect."
-  },
-  "connectWallet_publicKeyLearnMore_text": {
-    "message": "Learn more."
+    "message": "Please copy this key, paste it manually into your wallet, and then connect. [Learn more](https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure)."
   },
   "connectWallet_connect_action": {
     "message": "Connect"
+  },
+  "connectWallet_retry_action": {
+    "message": "Try again?"
   },
   "connectWallet_stepAcceptGrant_text": {
     "message": "Waiting for your approval"
@@ -241,16 +286,11 @@
   "connectWallet_grantInvalid_error": {
     "message": "Connection failed. Please try again."
   },
-
   "connectWalletKeyService_consent_text__1": {
-    "message": "We will automatically connect with your wallet provider."
+    "message": "We will automatically connect with your wallet provider. [Learn more](https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure)"
   },
   "reconnectWalletKeyService_consent_text__1": {
-    "message": "We will automatically reconnect with your wallet provider."
-  },
-  "connectWalletKeyService_consentLearnMore_text": {
-    "message": "Learn more",
-    "description": "Learn more about how this works"
+    "message": "We will automatically reconnect with your wallet provider. [Learn more](https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure)"
   },
   "connectWalletKeyService_consent_text__2": {
     "message": "By agreeing, you provide us consent to automatically access your wallet to securely add a key."
@@ -302,6 +342,9 @@
   "postInstall_title": {
     "message": "Let's get you started with Web Monetization!"
   },
+  "postInstall_step_text": {
+    "message": "Step "
+  },
   "postInstall_stepGetWallet_title": {
     "message": "Get a wallet compatible with Web Monetization"
   },
@@ -313,6 +356,12 @@
   },
   "postInstall_stepWalletAddress_title": {
     "message": "Find your wallet address or payment pointer"
+  },
+  "postInstall_stepWalletAddress_screenshot_text": {
+    "message": "Screenshot of wallet address for $WALLET_NAME$",
+    "placeholders": {
+      "WALLET_NAME": { "content": "$1", "example": "Fynbos" }
+    }
   },
   "postInstall_stepPin_title": {
     "message": "Pin extension to the browser toolbar"
@@ -394,7 +443,7 @@
     "message": "The Interledger Foundation:"
   },
   "postInstallConsent_dataCollection_yes_text__1": {
-    "message": "Uses PostHog to collect usage and analytics data."
+    "message": "Uses [PostHog](https://posthog.com/) to collect usage and analytics data."
   },
   "postInstallConsent_dataCollection_yes_text__2": {
     "message": "Assigns each installation a unique ID, and associates your actions and interactions (events) with that ID."
@@ -418,10 +467,7 @@
     "message": "Extension Permissions"
   },
   "postInstallConsent_permissions_text": {
-    "message": "The extension needs basic permissions to work."
-  },
-  "postInstallConsent_permissions_link_text": {
-    "message": "See details."
+    "message": "The extension needs basic permissions to work. [See details](https://github.com/interledger/web-monetization-extension/blob/main/docs/PERMISSIONS.md)."
   },
   "postInstallConsent_consentProvided_text": {
     "message": "You have provided your consent to the above. Access the extension from the browser toolbar."
@@ -433,6 +479,21 @@
     "message": "Confirm and continue"
   },
 
+  "postConnect_title": {
+    "message": "Web Monetization extension"
+  },
+  "postConnect_empty_text": {
+    "message": "Nothing to see here"
+  },
+  "postConnect_unmapped_text": {
+    "message": "No mapping from status to messages!!"
+  },
+  "postConnect_retry_action": {
+    "message": "Try again"
+  },
+  "postConnect_changeDetails_action": {
+    "message": "Change the wallet address or budget amount"
+  },
   "postConnect_connect_success_title": {
     "message": "Wallet Connected!"
   },
@@ -608,10 +669,61 @@
     "message": "Usage data & analytics"
   },
   "settings_dataCollection_desc": {
-    "message": "The extension gathers anonymous data about how you use it (e.g., clicks, interactions) to help us improve the app and your overall experience."
+    "message": "The extension gathers anonymous data about how you use it (e.g., clicks, interactions) to help us improve the app and your overall experience. Read the full details in our [data policy](/post-install/consent)."
   },
-  "settings_dataCollection_learnMore_text": {
-    "message": "Read the full details in our"
+
+  "settings_tabs_wallet_text": {
+    "message": "Wallet"
+  },
+  "settings_tabs_budget_text": {
+    "message": "Budget"
+  },
+  "settings_tabs_rate_text": {
+    "message": "Rate"
+  },
+  "settings_tabs_other_text": {
+    "message": "Settings"
+  },
+
+  "settings_wallet_addressId_text": {
+    "message": "Wallet address ID: $ID$",
+    "placeholders": {
+      "ID": { "content": "$1", "example": "https://wallet.example.com/alice" }
+    }
+  },
+  "settings_wallet_disconnect_action": {
+    "message": "Disconnect"
+  },
+  "settings_wallet_disconnect_ariaLabel_action": {
+    "message": "Disconnect your wallet"
+  },
+  "settings_wallet_forceDisconnect_action": {
+    "message": "Force disconnect?"
+  },
+  "settings_wallet_advanced_text": {
+    "message": "Advanced"
+  },
+  "settings_wallet_publicKey_label": {
+    "message": "Public key"
+  },
+
+  "settings_budget_amount_label": {
+    "message": "Budget amount"
+  },
+  "settings_budget_monthly_label": {
+    "message": "Monthly"
+  },
+  "settings_budget_renewDate_text": {
+    "message": "Your budget will renew on <time>$RENEW_DATE$</time>.",
+    "placeholders": {
+      "RENEW_DATE": { "content": "$1", "example": "Aug 22, 2024" }
+    }
+  },
+  "settings_budget_submit_action": {
+    "message": "Submit changes"
+  },
+  "settings_budget_remainingBalance_label": {
+    "message": "Remaining balance"
   },
 
   "consentRequired_title": {
@@ -628,5 +740,15 @@
   },
   "consentRequired_primary_action": {
     "message": "View data policy and consent"
+  },
+
+  "code_copy_action": {
+    "message": "copy"
+  },
+  "inputAmount_currency_text": {
+    "message": "Currency: $CODE$",
+    "placeholders": {
+      "CODE": { "content": "$1", "example": "USD" }
+    }
   }
 }

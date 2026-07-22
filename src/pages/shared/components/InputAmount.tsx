@@ -9,6 +9,7 @@ import {
 } from '../lib/utils';
 import { errorWithKey, type ErrorWithKeyLike } from '@/shared/helpers';
 import { useLongPress, useThrottle } from '@/pages/shared/lib/hooks';
+import { useTranslation } from '@/pages/shared/lib/context';
 
 interface Props {
   id: string;
@@ -51,6 +52,7 @@ export const InputAmount = ({
   controls = false,
   ref,
 }: Props) => {
+  const t = useTranslation();
   const { assetScale } = walletAddress;
   const step = 1 / 10 ** assetScale;
   const currencySymbol = getCurrencySymbol(walletAddress.assetCode);
@@ -149,7 +151,9 @@ export const InputAmount = ({
             walletAddress.assetCode.length !== 3 && 'font-normal font-mono',
           )}
           style={{ maxWidth: '6ch', paddingLeft: '1ch' }}
-          title={`Currency: ${walletAddress.assetCode.toUpperCase()}`}
+          title={t('inputAmount_currency_text', [
+            walletAddress.assetCode.toUpperCase(),
+          ])}
         >
           {currencySymbol}
         </span>

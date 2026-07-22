@@ -1,4 +1,5 @@
 import React from 'react';
+import { md } from 'imd/react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
 import { FadeInOut } from '@/pages/shared/components/FadeInOut';
@@ -96,8 +97,11 @@ export const PayWebsiteForm = () => {
         id="payAmount"
         label={
           <p className="overflow-hidden text-ellipsis whitespace-nowrap">
-            Support{' '}
-            <span className="text-ellipsis text-primary">{tab.url}</span>
+            {md(t('pay_amount_label', [tab.url]), {
+              html: ({ children }) => (
+                <span className="text-ellipsis text-primary">{children}</span>
+              ),
+            })}
           </p>
         }
         walletAddress={walletAddress}

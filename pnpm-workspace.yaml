@@ -8,3 +8,6 @@ allowBuilds:
   '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3': true
   core-js: false
   esbuild: false
+
+minimumReleaseAgeExclude:
+  - '@sidvishnoi/imd@0.0.2'

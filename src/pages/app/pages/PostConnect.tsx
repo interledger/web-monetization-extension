@@ -17,24 +17,20 @@ export default function PostConnect() {
   const { transientState } = useAppState();
 
   if (!transientState.connect || transientState.connect.type === 'progress') {
-    return <p>Nothing to see here</p>;
+    return <p>{t('postConnect_empty_text')}</p>;
   }
 
   const params = mapStatusToMessage(transientState.connect as WalletStatus, t);
   if (!params) {
-    return <p>No mapping from status to messages!!</p>;
+    return <p>{t('postConnect_unmapped_text')}</p>;
   }
 
   return (
     <div className="bg-white md:bg-gray-50 flex h-screen w-screen flex-col items-center justify-center gap-6 md:gap-14 p-3 md:p-4">
       <header className="flex gap-2 items-center w-fit mx-auto mt-8 md:mt-16 md:mb-14 text-center">
-        <img
-          src="/assets/images/logo.svg"
-          alt="Web Monetization"
-          className="h-6 md:h-16"
-        />
+        <img src="/assets/images/logo.svg" alt="" className="h-6 md:h-16" />
         <h1 className="text-base md:text-4xl font-bold text-secondary-dark">
-          Web Monetization extension
+          {t('postConnect_title')}
         </h1>
       </header>
 
@@ -59,7 +55,7 @@ export default function PostConnect() {
                 return message.send(action, payload);
               }}
             >
-              Try again
+              {t('postConnect_retry_action')}
             </button>
           )}
 
@@ -75,7 +71,7 @@ export default function PostConnect() {
                 variant: params.retryPossible === 'auto' ? 'outline' : 'solid',
               })}
             >
-              Change the wallet address or budget amount
+              {t('postConnect_changeDetails_action')}
             </a>
           )}
         </div>

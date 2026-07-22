@@ -58,13 +58,13 @@ export const WalletInformation = ({
       >
         <Input
           className="bg-disabled"
-          label="Connected wallet address"
+          label={t('outOfFundsAddFunds_walletAddress_label')}
           disabled={true}
           readOnly={true}
           value={walletAddress?.url}
           title={
             walletAddress && walletAddress.id !== walletAddress.url
-              ? `Wallet address ID: ${walletAddress.id}`
+              ? t('settings_wallet_addressId_text', [walletAddress.id])
               : undefined
           }
         />
@@ -73,11 +73,11 @@ export const WalletInformation = ({
           type="submit"
           variant="destructive"
           className="w-full"
-          aria-label="Disconnect your wallet"
+          aria-label={t('settings_wallet_disconnect_ariaLabel_action')}
           disabled={isSubmitting}
           loading={isSubmitting}
         >
-          Disconnect
+          {t('settings_wallet_disconnect_action')}
         </Button>
 
         {disconnectError && (
@@ -88,7 +88,7 @@ export const WalletInformation = ({
               onClick={() => disconnectWallet(true)}
               className="ml-1 inline-block underline"
             >
-              Force disconnect?
+              {t('settings_wallet_forceDisconnect_action')}
             </button>
           </p>
         )}
@@ -96,13 +96,13 @@ export const WalletInformation = ({
 
       <details className="border-t border-gray-200">
         <summary className="flex cursor-pointer items-center justify-between px-2 py-2 text-sm text-weak hover:text-strong">
-          <span>Advanced</span>
+          <span>{t('settings_wallet_advanced_text')}</span>
           <span className="-rotate-90">
             <ArrowBack className="h-4 w-4" />
           </span>
         </summary>
         <div className="space-y-2">
-          <Label>Public key</Label>
+          <Label>{t('settings_wallet_publicKey_label')}</Label>
           <Code className="text-xs" value={publicKey} />
         </div>
       </details>
