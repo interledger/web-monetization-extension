@@ -1,4 +1,5 @@
 import React from 'react';
+import { md } from 'imd/react';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import {
   useBrowser,
@@ -51,17 +52,17 @@ export function DataCollectionSettings() {
       </label>
 
       <p className="text-sm">
-        {t('settings_dataCollection_desc')}{' '}
-        {t('settings_dataCollection_learnMore_text')}{' '}
-        <button
-          type="button"
-          onClick={() =>
-            message.send('OPEN_APP', { path: '/post-install/consent' })
-          }
-          className="underline text-alt"
-        >
-          data policy.
-        </button>
+        {md(t('settings_dataCollection_desc'), {
+          link: (children, href) => (
+            <button
+              type="button"
+              onClick={() => message.send('OPEN_APP', { path: href })}
+              className="underline text-alt"
+            >
+              {children}
+            </button>
+          ),
+        })}
       </p>
     </>
   );

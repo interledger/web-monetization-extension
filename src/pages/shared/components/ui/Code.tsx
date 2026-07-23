@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from './Button';
 import { CheckIcon, ClipboardIcon } from '../Icons';
 import { cn } from '@/pages/shared/lib/utils';
+import { useTranslation } from '@/pages/shared/lib/context';
 
 interface CodeProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string;
@@ -29,6 +30,7 @@ interface CopyButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 }
 
 const CopyButton = ({ value, ...props }: CopyButtonProps) => {
+  const t = useTranslation();
   const [hasCopied, setHasCopied] = React.useState(false);
 
   React.useEffect(() => {
@@ -42,7 +44,7 @@ const CopyButton = ({ value, ...props }: CopyButtonProps) => {
   return (
     <Button
       {...props}
-      aria-label="copy"
+      aria-label={t('code_copy_action')}
       variant="ghost"
       size="icon"
       className="rounded-xs text-primary"

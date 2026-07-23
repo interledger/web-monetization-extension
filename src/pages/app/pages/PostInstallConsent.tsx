@@ -1,5 +1,6 @@
 import React from 'react';
 import { Redirect } from 'wouter';
+import { md } from 'imd/react';
 import { isConsentRequired } from '@/shared/helpers';
 import { getResponseOrThrow } from '@/shared/messages';
 import {
@@ -123,17 +124,6 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
     typeof consentTelemetry === 'undefined' || consentTelemetry,
   );
 
-  const linkToPostHog = (
-    <a
-      href="https://posthog.com/"
-      className="pr-1 text-primary outline-current hover:underline"
-      target="_blank"
-      rel="noreferrer noopener"
-    >
-      PostHog
-    </a>
-  );
-
   return (
     <form className="space-y-2">
       <h3 className="font-semibold text-xl text-alt">
@@ -147,11 +137,18 @@ function Telemetry({ ref }: { ref: TelemetryConsentRef }) {
         </h4>
         <ul className="list-disc ml-4">
           <li>
-            {replaceWithJSX(
-              t('postInstallConsent_dataCollection_yes_text__1'),
-              /\bPostHog\b/,
-              linkToPostHog,
-            )}
+            {md(t('postInstallConsent_dataCollection_yes_text__1'), {
+              link: (children, href) => (
+                <a
+                  href={href}
+                  className="pr-1 text-primary outline-current hover:underline"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  {children}
+                </a>
+              ),
+            })}
           </li>
           <li>{t('postInstallConsent_dataCollection_yes_text__2')}</li>
         </ul>
@@ -196,15 +193,18 @@ function Permissions() {
         {t('postInstallConsent_permissions_title')}
       </h3>
       <p>
-        {t('postInstallConsent_permissions_text')}{' '}
-        <a
-          href="https://github.com/interledger/web-monetization-extension/blob/main/docs/PERMISSIONS.md"
-          className="group pr-1 text-primary outline-current hover:underline"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {t('postInstallConsent_permissions_link_text')}
-        </a>
+        {md(t('postInstallConsent_permissions_text'), {
+          link: (children, href) => (
+            <a
+              href={href}
+              className="group pr-1 text-primary outline-current hover:underline"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {children}
+            </a>
+          ),
+        })}
       </p>
     </div>
   );
@@ -283,17 +283,6 @@ function InformationTooltip({ text }: { text: string }) {
       <InfoCircle className="inline-block h-5 w-5 ml-1 -mt-1 text-gray-500" />
     </span>
   );
-}
-
-function replaceWithJSX(
-  text: string,
-  pattern: RegExp,
-  replacement: React.ReactNode,
-) {
-  return text
-    .split(pattern)
-    .flatMap((item) => [item, replacement])
-    .slice(0, -1);
 }
 
 type TelemetryConsentRef = React.RefObject<HTMLInputElement | null>;

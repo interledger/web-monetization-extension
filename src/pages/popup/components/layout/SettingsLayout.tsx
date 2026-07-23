@@ -2,12 +2,13 @@ import React from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/pages/shared/lib/utils';
 import { useLocalStorage } from '@/pages/shared/lib/hooks';
+import { useTranslation } from '@/popup/lib/context';
 
 export const SETTINGS_TABS = [
-  { id: 'wallet', title: 'Wallet' },
-  { id: 'budget', title: 'Budget' },
-  { id: 'rate', title: 'Rate' },
-  { id: 'other', title: 'Settings' },
+  { id: 'wallet', titleKey: 'settings_tabs_wallet_text' },
+  { id: 'budget', titleKey: 'settings_tabs_budget_text' },
+  { id: 'rate', titleKey: 'settings_tabs_rate_text' },
+  { id: 'other', titleKey: 'settings_tabs_other_text' },
 ] as const;
 
 export type SettingsTabId = (typeof SETTINGS_TABS)[number]['id'];
@@ -19,6 +20,7 @@ export const isValidSettingsTabId = (
 export const SETTINGS_TAB_STORAGE_KEY = 'settings.tabId';
 
 export const SettingsLayout = ({ children }: { children: React.ReactNode }) => {
+  const t = useTranslation();
   const [pathname, navigate] = useLocation();
   const tabId = pathname === '/' ? undefined : pathname.slice(1);
 
@@ -44,7 +46,7 @@ export const SettingsLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex flex-1 flex-col">
       <div role="tablist" className="mb-8 flex border-b border-gray-200">
-        {SETTINGS_TABS.map(({ id, title }) => (
+        {SETTINGS_TABS.map(({ id, titleKey }) => (
           <Link
             key={id}
             id={`settings-tab-${id}`}
@@ -59,7 +61,7 @@ export const SettingsLayout = ({ children }: { children: React.ReactNode }) => {
               'cursor-pointer whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium focus:outline-hidden focus-visible:outline',
             )}
           >
-            {title}
+            {t(titleKey)}
           </Link>
         ))}
       </div>
