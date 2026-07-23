@@ -83,6 +83,14 @@ Detailed instructions are available at [Firefox Extension Workshop](https://exte
    - You can open `about:debugging` page on your computer's Firefox, and **Connect** to your Android device and inspect the extension.
    - On your Android device, you can see the extension listed in under **Menu > Extensions**. You can access the extension's UI page from there.
 
+## Using web-ext
+
+[`web-ext`](https://github.com/mozilla/web-ext) is used for Firefox for Android to simplify the setup. It can also be used for Chrome and Firefox Desktop if you would like to. You probably want to create a new profile and then use the `--keep-profile-changes` flag to save the wallet connection. For example for Firefox:
+
+```
+web-ext run --devtools --firefox="/Applications/Firefox.app/Contents/MacOS/firefox" --firefox-profile wmdev --start-url "https://mkohler.dev/webmonetization/usd.html" --keep-profile-changes -s dev/firefox
+```
+
 ## Install Pre-built Versions
 
 You can also install pre-built versions, such as [nightly builds](https://github.com/interledger/web-monetization-extension/releases/tag/nightly) or any .zip files from the [releases page](https://github.com/interledger/web-monetization-extension/releases). These are ready to use and don't require a development environment.

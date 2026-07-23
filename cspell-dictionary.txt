@@ -82,3 +82,6 @@ storytogo
 ericahargreave
 roamancing
 naturallyours
+
+# profile names
+wmdev
