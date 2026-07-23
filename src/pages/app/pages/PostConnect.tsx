@@ -1,6 +1,7 @@
 import React from 'react';
 import { deepClone } from 'valtio/utils';
 import { cva } from 'class-variance-authority';
+import { Redirect } from 'wouter';
 import { navigate } from 'wouter/use-hash-location';
 import { isErrorWithKey } from '@/shared/helpers';
 import { useMessage, useTranslation } from '@/app/lib/context';
@@ -17,12 +18,12 @@ export default function PostConnect() {
   const { transientState } = useAppState();
 
   if (!transientState.connect || transientState.connect.type === 'progress') {
-    return <p>{t('postConnect_empty_text')}</p>;
+    return <Redirect to="/" />;
   }
 
   const params = mapStatusToMessage(transientState.connect as WalletStatus, t);
   if (!params) {
-    return <p>{t('postConnect_unmapped_text')}</p>;
+    return <Redirect to="/" />;
   }
 
   return (

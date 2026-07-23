@@ -482,12 +482,6 @@
   "postConnect_title": {
     "message": "Web Monetization extension"
   },
-  "postConnect_empty_text": {
-    "message": "Nothing to see here"
-  },
-  "postConnect_unmapped_text": {
-    "message": "No mapping from status to messages!!"
-  },
   "postConnect_retry_action": {
     "message": "Try again"
   },
