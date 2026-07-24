@@ -203,12 +203,10 @@ export class PaymentManager {
       );
     }
 
-    const payingAmount = amount - remainingAmount;
-
     this.logger.debug('sending outgoing payments', {
       amount: {
         total: amount.toString(),
-        paying: payingAmount.toString(),
+        paying: (amount - remainingAmount).toString(),
         remaining: remainingAmount.toString(),
       },
       distribution: [...distribution].map(([s, amount]) => ({
@@ -217,9 +215,7 @@ export class PaymentManager {
         amount: amount.toString(),
       })),
     });
-    this.deps.events.emit('balance.adjust_spent_amount', {
-      amount: payingAmount.toString(),
-    });
+
     const outgoingPaymentResults = await Promise.allSettled(
       [...distribution.entries()].map(([session, amount]) =>
         session.payOneTime(amount),
@@ -232,7 +228,6 @@ export class PaymentManager {
       outgoingPaymentResults,
       Array.from(distribution.keys()),
       signal,
-      payingAmount,
     );
 
     return {
@@ -257,8 +252,7 @@ export class PaymentManager {
   private async getPayStatus(
     results: PromiseSettledResult<OutgoingPayment>[],
     payableSessions: PaymentSession[],
-    signal: AbortSignal,
-    expectedDebitAmount: bigint,
+    signal?: AbortSignal,
   ) {
     const { isOutOfBalanceError } = await import('./openPayments');
     const outgoingPayments = new Map<string, OutgoingPayment | null>(
@@ -299,12 +293,6 @@ export class PaymentManager {
       (acc, op) => acc + BigInt(op?.debitAmount?.value ?? 0),
       0n,
     );
-
-    if (debitAmount < expectedDebitAmount) {
-      this.deps.events.emit('balance.adjust_spent_amount', {
-        amount: (expectedDebitAmount - debitAmount).toString(),
-      });
-    }
 
     if (sentAmount === 0n) {
       const pollingErrors = pollingResults
@@ -394,7 +382,9 @@ export class PaymentManager {
       return;
     }
     const amount = bigIntMax(this.interval.units, session.minSendAmount);
-    this.payAndAdjustBalance(session, amount);
+    void session.payWithRetry(amount).then((paid) => {
+      if (!paid) this.pendingAmount += amount;
+    });
     this.pendingAmount -= amount;
 
     this.checkAndPayContinuously();
@@ -485,24 +475,12 @@ export class PaymentManager {
     if (this.pendingAmount >= session.minSendAmount) {
       this.consumeSession();
       const amount = this.getPayableAmount(session);
-      this.payAndAdjustBalance(session, amount);
+      void session.payWithRetry(amount).then((paid) => {
+        if (!paid) this.pendingAmount += amount;
+      });
       this.pendingAmount -= amount;
     }
   };
-
-  private payAndAdjustBalance(session: PaymentSession, amount: bigint) {
-    this.deps.events.emit('balance.adjust_spent_amount', {
-      amount: amount.toString(),
-    });
-    void session.payWithRetry(amount).then((paid) => {
-      if (!paid) {
-        this.pendingAmount += amount;
-        this.deps.events.emit('balance.adjust_spent_amount', {
-          amount: (-amount).toString(),
-        });
-      }
-    });
-  }
 
   /**
    * For current {@linkcode pendingAmount} and a given session, see how much of

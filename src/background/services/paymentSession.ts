@@ -404,6 +404,10 @@ export class PaymentSession {
       },
     );
 
+    this.events.emit('open_payments.outgoing_payment_created', {
+      debitAmount: outgoingPayment.debitAmount,
+    });
+
     await this.storage.setState({ out_of_funds: false });
 
     return outgoingPayment;
@@ -497,16 +501,27 @@ export class PaymentSession {
           accessToken: this.outgoingPaymentGrantService.accessToken,
         });
         yield outgoingPayment;
-        if (
-          outgoingPayment.failed &&
-          outgoingPayment.sentAmount.value === '0'
-        ) {
-          throw new ErrorWithKey('pay_outgoingPaymentFailed_error');
+        if (outgoingPayment.failed) {
+          this.events.emit('open_payments.outgoing_payment_completed', {
+            debitAmount: outgoingPayment.debitAmount,
+            sentAmount: outgoingPayment.sentAmount,
+            status: 'failed',
+          });
+
+          if (outgoingPayment.sentAmount.value === '0') {
+            throw new ErrorWithKey('pay_outgoingPaymentFailed_error');
+          }
         }
         if (
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
         ) {
-          return outgoingPayment; // completed
+          this.events.emit('open_payments.outgoing_payment_completed', {
+            debitAmount: outgoingPayment.debitAmount,
+            sentAmount: outgoingPayment.sentAmount,
+            status: 'succeeded',
+          });
+
+          return outgoingPayment;
         }
         signal?.throwIfAborted();
         await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);

@@ -3,9 +3,9 @@ import type {
   OutgoingPaymentGrantSpentAmounts,
 } from '@interledger/open-payments';
 import type { Cradle } from '@/background/container';
-import { Timeout } from '@/shared/helpers';
 import { isNotFoundError } from '@/background/services/openPayments';
 import { onPopupOpen } from '@/background/utils';
+import { ThrottleBatch, Timeout } from '@/shared/helpers';
 
 export const GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS =
   7 * 24 * 60 * 60 * 1000;
@@ -19,6 +19,7 @@ export class GrantBalanceService {
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private browser: Cradle['browser'];
   private balanceUpdateTimeout: Timeout | null = null;
+  private adjustSpentAmount: ThrottleBatch<[amount: bigint]>;
 
   constructor({
     storage,
@@ -32,6 +33,12 @@ export class GrantBalanceService {
     this.events = events;
     this.outgoingPaymentGrantService = outgoingPaymentGrantService;
     this.browser = browser;
+
+    this.adjustSpentAmount = new ThrottleBatch(
+      (amount) => this.setSpentAmount(amount),
+      (args) => [args.reduce((sum, [v]) => sum + v, 0n)],
+      1000,
+    );
   }
 
   start() {
@@ -48,13 +55,32 @@ export class GrantBalanceService {
 
     void this.checkGrantSpentAmountsSupport();
 
-    this.events.on('balance.adjust_spent_amount', async ({ amount }) => {
-      const amountToAdjust = BigInt(amount);
-      void this.adjustSpentAmount(amountToAdjust);
-    });
+    this.events.on(
+      'open_payments.outgoing_payment_created',
+      async ({ debitAmount }) => {
+        const amount = BigInt(debitAmount.value);
+        this.adjustSpentAmount.enqueue(amount);
+      },
+    );
+
+    this.events.on(
+      'open_payments.outgoing_payment_completed',
+      async ({ debitAmount, sentAmount, status }) => {
+        if (status !== 'failed') {
+          return;
+        }
+
+        const amountToAdjust =
+          sentAmount.value < debitAmount.value
+            ? BigInt(debitAmount.value) - BigInt(sentAmount.value)
+            : BigInt(debitAmount.value);
+
+        this.adjustSpentAmount.enqueue(amountToAdjust);
+      },
+    );
   }
 
-  private async adjustSpentAmount(amount: bigint) {
+  private async setSpentAmount(amount: bigint) {
     const grant = this.outgoingPaymentGrantService.grantType;
     const { recurringGrantSpentAmount, oneTimeGrantSpentAmount } =
       await this.storage.get([

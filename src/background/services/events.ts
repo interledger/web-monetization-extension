@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events';
 import type {
+  AmountType,
   AmountValue,
   TransientState,
   Storage,
@@ -7,8 +8,13 @@ import type {
 } from '@/shared/types';
 
 interface BackgroundEvents {
-  'balance.adjust_spent_amount': {
-    amount: AmountValue;
+  'open_payments.outgoing_payment_created': {
+    debitAmount: AmountType;
+  };
+  'open_payments.outgoing_payment_completed': {
+    sentAmount: AmountType;
+    debitAmount: AmountType;
+    status: 'succeeded' | 'failed';
   };
   'open_payments.key_revoked': undefined;
   'open_payments.out_of_funds': undefined;
