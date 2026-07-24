@@ -5,7 +5,7 @@ import {
   hostnameToSiteKey,
   type RateListRecord,
 } from '../rateList';
-import type { StorageService } from '../storage';
+import { makeStorage } from './helpers';
 import type { WalletInfo } from '@/shared/types';
 import { describe, it, afterEach, vi, expect } from 'vitest';
 
@@ -90,9 +90,7 @@ type Wallet = Pick<WalletInfo, 'assetCode' | 'assetScale'>;
 function makeRateListService(
   wallet: Wallet | null = { assetCode: 'USD', assetScale: 2 },
 ): RateListService {
-  const storage = {
-    get: vi.fn().mockResolvedValue({ walletAddress: wallet }),
-  } as unknown as StorageService;
+  const storage = makeStorage({ walletAddress: wallet });
   return new RateListService({ storage });
 }
 
