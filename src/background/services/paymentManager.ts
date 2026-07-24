@@ -340,6 +340,7 @@ export class PaymentManager {
   #iter: PeekAbleIterator<PaymentSession> | null = null;
 
   setRate(hourlyRate: AmountValue) {
+    const hourlyRateWasZero = this.hourlyRate === 0n;
     this.hourlyRate = BigInt(hourlyRate);
     this.interval = calculateInterval(this.hourlyRate);
 
@@ -351,6 +352,8 @@ export class PaymentManager {
       if (this.hourlyRate === 0n) {
         this.logger.debug('Pausing timer. Hourly rate is 0');
         this.timer.clear();
+      } else if (hourlyRateWasZero) {
+        void this.payNowAndScheduleNext();
       } else {
         this.timer.reset(this.interval.period);
       }
@@ -378,6 +381,10 @@ export class PaymentManager {
       this.logger.debug('Skip payment. Hourly rate is 0');
       return;
     }
+    await this.payNowAndScheduleNext();
+  }
+
+  private async payNowAndScheduleNext() {
     await this.preventOverpaying();
     if (this.#state !== 'active') {
       return;
