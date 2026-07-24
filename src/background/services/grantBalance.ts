@@ -6,6 +6,7 @@ import type { Cradle } from '@/background/container';
 import { isNotFoundError } from '@/background/services/openPayments';
 import { onPopupOpen } from '@/background/utils';
 import { ThrottleBatch, Timeout } from '@/shared/helpers';
+import type { GrantDetails } from '@/shared/types';
 
 export const GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS =
   7 * 24 * 60 * 60 * 1000;
@@ -19,7 +20,8 @@ export class GrantBalanceService {
   private outgoingPaymentGrantService: Cradle['outgoingPaymentGrantService'];
   private browser: Cradle['browser'];
   private balanceUpdateTimeout: Timeout | null = null;
-  private adjustSpentAmount: ThrottleBatch<[amount: bigint]>;
+  private adjustRecurringSpentAmount: ThrottleBatch<[amount: bigint]>;
+  private adjustOneTimeSpentAmount: ThrottleBatch<[amount: bigint]>;
 
   constructor({
     storage,
@@ -34,8 +36,14 @@ export class GrantBalanceService {
     this.outgoingPaymentGrantService = outgoingPaymentGrantService;
     this.browser = browser;
 
-    this.adjustSpentAmount = new ThrottleBatch(
-      (amount) => this.setSpentAmount(amount),
+    this.adjustRecurringSpentAmount = new ThrottleBatch(
+      (amount) => this.setSpentAmount('recurring', amount),
+      (args) => [args.reduce((sum, [v]) => sum + v, 0n)],
+      1000,
+    );
+
+    this.adjustOneTimeSpentAmount = new ThrottleBatch(
+      (amount) => this.setSpentAmount('one-time', amount),
       (args) => [args.reduce((sum, [v]) => sum + v, 0n)],
       1000,
     );
@@ -57,31 +65,42 @@ export class GrantBalanceService {
 
     this.events.on(
       'open_payments.outgoing_payment_created',
-      async ({ debitAmount }) => {
+      ({ debitAmount, grantType }) => {
         const amount = BigInt(debitAmount.value);
-        this.adjustSpentAmount.enqueue(amount);
+
+        if (grantType === 'recurring') {
+          this.adjustRecurringSpentAmount.enqueue(amount);
+        } else if (grantType === 'one-time') {
+          this.adjustOneTimeSpentAmount.enqueue(amount);
+        }
       },
     );
 
     this.events.on(
       'open_payments.outgoing_payment_completed',
-      async ({ debitAmount, sentAmount, status }) => {
+      ({ debitAmount, sentAmount, status, grantType }) => {
         if (status !== 'failed') {
           return;
         }
 
-        const amountToAdjust =
-          sentAmount.value < debitAmount.value
-            ? BigInt(debitAmount.value) - BigInt(sentAmount.value)
-            : BigInt(debitAmount.value);
+        const debitAmountValue = BigInt(debitAmount.value);
+        const sentAmountValue = BigInt(sentAmount.value);
 
-        this.adjustSpentAmount.enqueue(amountToAdjust);
+        const adjustment =
+          sentAmountValue < debitAmountValue
+            ? sentAmountValue - debitAmountValue
+            : -debitAmountValue;
+
+        if (grantType === 'recurring') {
+          this.adjustRecurringSpentAmount.enqueue(adjustment);
+        } else if (grantType === 'one-time') {
+          this.adjustOneTimeSpentAmount.enqueue(adjustment);
+        }
       },
     );
   }
 
-  private async setSpentAmount(amount: bigint) {
-    const grant = this.outgoingPaymentGrantService.grantType;
+  private async setSpentAmount(grant: GrantDetails['type'], amount: bigint) {
     const { recurringGrantSpentAmount, oneTimeGrantSpentAmount } =
       await this.storage.get([
         'recurringGrantSpentAmount',
@@ -168,8 +187,12 @@ export class GrantBalanceService {
       });
     }
 
-    const spentAmounts = await this.getGrantSpentAmounts(walletAddress);
-    return spentAmounts?.spentDebitAmount !== undefined;
+    try {
+      const spentAmounts = await this.getGrantSpentAmounts(walletAddress);
+      return spentAmounts?.spentDebitAmount !== undefined;
+    } catch (_error) {
+      return;
+    }
   }
 
   private async registerBalanceUpdateHandler() {

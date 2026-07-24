@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OpenPaymentsClientError } from '@interledger/open-payments';
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
-import type { Storage } from '@/shared/types';
+import type { GrantDetails, Storage } from '@/shared/types';
 import { EventsService } from '../events';
 import {
   GrantBalanceService,
@@ -66,50 +66,174 @@ function makePort(name: string) {
 }
 
 describe('open_payments.outgoing_payment_created event handling', () => {
-  async function emitAdjustment(events: EventsService, amount: string) {
+  async function emitOutgoingPaymentCreated(
+    events: EventsService,
+    amount: string,
+    grantType: GrantDetails['type'],
+  ) {
     events.emit('open_payments.outgoing_payment_created', {
       debitAmount: { value: amount, assetCode: 'USD', assetScale: 2 },
+      grantType,
     });
     await vi.advanceTimersByTimeAsync(1000);
   }
 
   it('adds amount to the recurring grant spent amount', async () => {
+    const grantType = 'recurring';
     const { service, storage, events } = makeService({
-      grantType: 'recurring',
+      grantType,
       storageState: { recurringGrantSpentAmount: '100' },
     });
     service.start();
 
-    await emitAdjustment(events, '25');
+    await emitOutgoingPaymentCreated(events, '25', grantType);
 
-    expect(storage.setSpentAmount).toHaveBeenCalledWith('recurring', '125');
+    expect(storage.setSpentAmount).toHaveBeenCalledWith(grantType, '125');
   });
 
   it('adds amount to the one-time grant spent amount', async () => {
+    const grantType = 'one-time';
     const { service, storage, events } = makeService({
-      grantType: 'one-time',
+      grantType,
       storageState: { oneTimeGrantSpentAmount: '50' },
     });
     service.start();
 
-    await emitAdjustment(events, '10');
+    await emitOutgoingPaymentCreated(events, '10', grantType);
 
-    expect(storage.setSpentAmount).toHaveBeenCalledWith('one-time', '60');
+    expect(storage.setSpentAmount).toHaveBeenCalledWith(grantType, '60');
   });
 
   it('accumulates correctly across multiple sequential emits', async () => {
+    const grantType = 'recurring';
     const { service, storage, events } = makeService({
-      grantType: 'recurring',
+      grantType,
       storageState: { recurringGrantSpentAmount: '0' },
     });
     service.start();
 
-    await emitAdjustment(events, '10');
-    await emitAdjustment(events, '5');
-    await emitAdjustment(events, '-3');
+    await emitOutgoingPaymentCreated(events, '10', grantType);
+    await emitOutgoingPaymentCreated(events, '5', grantType);
+    await emitOutgoingPaymentCreated(events, '-3', grantType);
 
-    expect(storage.setSpentAmount).toHaveBeenLastCalledWith('recurring', '12');
-    expect(storage.state.recurringGrantSpentAmount).toBe('12');
+    expect(storage.setSpentAmount).toHaveBeenLastCalledWith(grantType, '12');
+    expect(
+      (await storage.get(['recurringGrantSpentAmount']))
+        .recurringGrantSpentAmount,
+    ).toBe('12');
+  });
+});
+
+describe('open_payments.outgoing_payment_completed event handling', () => {
+  async function emitOutgoingPaymentCompleted(
+    events: EventsService,
+    {
+      debitAmountValue,
+      sentAmountValue,
+      status,
+      grantType,
+    }: {
+      debitAmountValue: string;
+      sentAmountValue: string;
+      status: 'failed' | 'succeeded';
+      grantType: GrantDetails['type'];
+    },
+  ) {
+    events.emit('open_payments.outgoing_payment_completed', {
+      debitAmount: { value: debitAmountValue, assetCode: 'USD', assetScale: 2 },
+      sentAmount: { value: sentAmountValue, assetCode: 'USD', assetScale: 2 },
+      status,
+      grantType,
+    });
+    await vi.advanceTimersByTimeAsync(1000);
+  }
+
+  it('subtracts amount from the recurring grant spent amount', async () => {
+    const grantType = 'recurring';
+    const { service, storage, events } = makeService({
+      grantType,
+      storageState: { recurringGrantSpentAmount: '100' },
+    });
+    service.start();
+
+    await emitOutgoingPaymentCompleted(events, {
+      debitAmountValue: '25',
+      sentAmountValue: '25',
+      status: 'failed',
+      grantType,
+    });
+
+    expect(storage.setSpentAmount).toHaveBeenCalledWith(grantType, '75');
+  });
+
+  it('subtracts amount from the one-time grant spent amount', async () => {
+    const grantType = 'one-time';
+    const { service, storage, events } = makeService({
+      grantType,
+      storageState: { oneTimeGrantSpentAmount: '50' },
+    });
+    service.start();
+
+    await emitOutgoingPaymentCompleted(events, {
+      debitAmountValue: '25',
+      sentAmountValue: '25',
+      status: 'failed',
+      grantType,
+    });
+
+    expect(storage.setSpentAmount).toHaveBeenCalledWith(grantType, '25');
+  });
+
+  it('accumulates correctly across multiple sequential emits', async () => {
+    const grantType = 'recurring';
+    const { service, storage, events } = makeService({
+      grantType,
+      storageState: { recurringGrantSpentAmount: '100' },
+    });
+    service.start();
+
+    await emitOutgoingPaymentCompleted(events, {
+      debitAmountValue: '25',
+      sentAmountValue: '25',
+      status: 'failed',
+      grantType,
+    });
+    await emitOutgoingPaymentCompleted(events, {
+      debitAmountValue: '5',
+      sentAmountValue: '5',
+      status: 'failed',
+      grantType,
+    });
+    await emitOutgoingPaymentCompleted(events, {
+      debitAmountValue: '3',
+      sentAmountValue: '3',
+      status: 'failed',
+      grantType,
+    });
+
+    expect(storage.setSpentAmount).toHaveBeenLastCalledWith(grantType, '67');
+    expect(
+      (await storage.get(['recurringGrantSpentAmount']))
+        .recurringGrantSpentAmount,
+    ).toBe('67');
+  });
+
+  it('subtracts amount if not full amount was sent', async () => {
+    const grantType = 'recurring';
+    const { service, storage, events } = makeService({
+      grantType,
+      storageState: { recurringGrantSpentAmount: '100' },
+    });
+    service.start();
+
+    await emitOutgoingPaymentCompleted(events, {
+      debitAmountValue: '25',
+      sentAmountValue: '10',
+      status: 'failed',
+      grantType,
+    });
+
+    expect(storage.setSpentAmount).toHaveBeenCalledWith(grantType, '85');
   });
 });
 
@@ -173,7 +297,10 @@ describe('checkGrantSpentAmountsSupport (via start())', () => {
     service.start();
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(storage.state.supportsGrantSpentAmounts).toEqual({
+    expect(
+      (await storage.get(['supportsGrantSpentAmounts']))
+        .supportsGrantSpentAmounts,
+    ).toEqual({
       supported: true,
       lastCheckedAt: expect.any(Number),
     });
@@ -220,7 +347,10 @@ describe('checkGrantSpentAmountsSupport (via start())', () => {
     service.start();
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(storage.state.supportsGrantSpentAmounts).toEqual({
+    expect(
+      (await storage.get(['supportsGrantSpentAmounts']))
+        .supportsGrantSpentAmounts,
+    ).toEqual({
       supported: false,
       lastCheckedAt: expect.any(Number),
     });
@@ -241,7 +371,10 @@ describe('checkGrantSpentAmountsSupport (via start())', () => {
     service.start();
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(storage.state.supportsGrantSpentAmounts).toEqual({
+    expect(
+      (await storage.get(['supportsGrantSpentAmounts']))
+        .supportsGrantSpentAmounts,
+    ).toEqual({
       supported: false,
       lastCheckedAt: expect.any(Number),
     });

@@ -5,7 +5,7 @@ import {
   hostnameToSiteKey,
   type RateListRecord,
 } from '../rateList';
-import { makeStorage } from './helpers';
+import { makeStorage, makeWallet } from './helpers';
 import type { WalletInfo } from '@/shared/types';
 import { describe, it, afterEach, vi, expect } from 'vitest';
 
@@ -86,12 +86,13 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-type Wallet = Pick<WalletInfo, 'assetCode' | 'assetScale'>;
 function makeRateListService(
-  wallet: Wallet | null = { assetCode: 'USD', assetScale: 2 },
+  wallet: WalletInfo | null = makeWallet(),
 ): RateListService {
   const storage = makeStorage({ walletAddress: wallet });
-  return new RateListService({ storage });
+  return new RateListService({
+    storage,
+  } as unknown as ConstructorParameters<typeof RateListService>[0]);
 }
 
 describe('RateListService CRUD', () => {
@@ -265,8 +266,12 @@ describe('RateListService per-site priority and deletion', () => {
 
 describe('RateListService currency isolation', () => {
   it('different currency+scale combinations use separate entries', async () => {
-    const usd = makeRateListService({ assetCode: 'USD', assetScale: 2 });
-    const eur = makeRateListService({ assetCode: 'EUR', assetScale: 2 });
+    const usd = makeRateListService(
+      makeWallet({ assetCode: 'USD', assetScale: 2 }),
+    );
+    const eur = makeRateListService(
+      makeWallet({ assetCode: 'EUR', assetScale: 2 }),
+    );
 
     await usd.setRate('example.com', '3');
     await eur.setRate('example.com', '5');
@@ -276,8 +281,12 @@ describe('RateListService currency isolation', () => {
   });
 
   it('getAll only returns entries for the connected wallet currency', async () => {
-    const usd = makeRateListService({ assetCode: 'USD', assetScale: 2 });
-    const eur = makeRateListService({ assetCode: 'EUR', assetScale: 2 });
+    const usd = makeRateListService(
+      makeWallet({ assetCode: 'USD', assetScale: 2 }),
+    );
+    const eur = makeRateListService(
+      makeWallet({ assetCode: 'EUR', assetScale: 2 }),
+    );
 
     await usd.setRate('example.com', '3');
     await eur.setRate('other.com', '5');
@@ -288,10 +297,14 @@ describe('RateListService currency isolation', () => {
   });
 
   it('reconnecting with the same currency reuses existing data', async () => {
-    const rateList1 = makeRateListService({ assetCode: 'USD', assetScale: 2 });
+    const rateList1 = makeRateListService(
+      makeWallet({ assetCode: 'USD', assetScale: 2 }),
+    );
     await rateList1.setRate('example.com', '3');
 
-    const rateList2 = makeRateListService({ assetCode: 'USD', assetScale: 2 });
+    const rateList2 = makeRateListService(
+      makeWallet({ assetCode: 'USD', assetScale: 2 }),
+    );
     await expect(rateList2.getRateForHostname('example.com')).resolves.toBe(
       '3',
     );

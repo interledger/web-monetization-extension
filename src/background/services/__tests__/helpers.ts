@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
-import { StorageService } from '../storage';
+import type { Storage, WalletInfo } from '@/shared/types';
 
-export const walletInfo = {
+export const walletInfo: WalletInfo = {
   id: 'https://wallet.example/alice',
   url: 'https://wallet.example/alice',
   assetCode: 'USD',
@@ -9,6 +9,11 @@ export const walletInfo = {
   authServer: 'https://wallet.example',
   resourceServer: 'https://wallet.example',
 };
+
+export const makeWallet = (overrides?: Partial<WalletInfo>) => ({
+  ...walletInfo,
+  ...overrides,
+});
 
 export const makeLogger = () => ({
   debug: vi.fn(),
@@ -29,14 +34,13 @@ export const makeBrowser = () => ({
   },
 });
 
-export const makeStorage = (initial: Partial<Storage> = {}) : StorageService => {
+export const makeStorage = (initial: Partial<Storage> = {}) => {
   const state: Partial<Storage> = { ...initial };
 
   return {
-    state,
-    get: vi.fn(async (keys: (keyof Storage)[]) => {
+    get: vi.fn(async (keys?: (keyof Storage)[]) => {
       const result: Record<string, unknown> = {};
-      for (const key of keys) result[key] = state[key];
+      for (const key of keys ?? []) result[key] = state[key];
       return result;
     }),
     set: vi.fn(async (data: Partial<Storage>) => {

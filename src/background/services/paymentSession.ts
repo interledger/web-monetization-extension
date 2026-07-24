@@ -406,6 +406,7 @@ export class PaymentSession {
 
     this.events.emit('open_payments.outgoing_payment_created', {
       debitAmount: outgoingPayment.debitAmount,
+      grantType: this.outgoingPaymentGrantService.grantType,
     });
 
     await this.storage.setState({ out_of_funds: false });
@@ -506,11 +507,14 @@ export class PaymentSession {
             debitAmount: outgoingPayment.debitAmount,
             sentAmount: outgoingPayment.sentAmount,
             status: 'failed',
+            grantType: this.outgoingPaymentGrantService.grantType,
           });
 
           if (outgoingPayment.sentAmount.value === '0') {
             throw new ErrorWithKey('pay_outgoingPaymentFailed_error');
           }
+
+          return outgoingPayment;
         }
         if (
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
@@ -519,6 +523,7 @@ export class PaymentSession {
             debitAmount: outgoingPayment.debitAmount,
             sentAmount: outgoingPayment.sentAmount,
             status: 'succeeded',
+            grantType: this.outgoingPaymentGrantService.grantType,
           });
 
           return outgoingPayment;
