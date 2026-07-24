@@ -122,6 +122,32 @@ describe('open_payments.outgoing_payment_created event handling', () => {
         .recurringGrantSpentAmount,
     ).toBe('12');
   });
+
+  it('accumulates both amounts when two payments to multiple receivers complete within the same throttle window', async () => {
+    const grantType = 'recurring';
+    const { service, storage, events } = makeService({
+      grantType,
+      storageState: { recurringGrantSpentAmount: '0' },
+    });
+    service.start();
+
+    events.emit('open_payments.outgoing_payment_created', {
+      debitAmount: { value: '25', assetCode: 'USD', assetScale: 2 },
+      grantType,
+    });
+    await vi.advanceTimersByTimeAsync(100);
+    events.emit('open_payments.outgoing_payment_created', {
+      debitAmount: { value: '25', assetCode: 'USD', assetScale: 2 },
+      grantType,
+    });
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(storage.setSpentAmount).toHaveBeenLastCalledWith(grantType, '50');
+    expect(
+      (await storage.get(['recurringGrantSpentAmount']))
+        .recurringGrantSpentAmount,
+    ).toBe('50');
+  });
 });
 
 describe('open_payments.outgoing_payment_completed event handling', () => {
