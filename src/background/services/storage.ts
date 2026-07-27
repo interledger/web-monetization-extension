@@ -7,12 +7,8 @@ import type {
   StorageKey,
   WalletAmount,
 } from '@/shared/types';
-import {
-  isConsentRequired,
-  objectEquals,
-  ThrottleBatch,
-} from '@/shared/helpers';
-import { bigIntMax, computeBalance } from '@/background/utils';
+import { isConsentRequired, objectEquals } from '@/shared/helpers';
+import { computeBalance } from '@/background/utils';
 import type { Cradle } from '@/background/container';
 
 const defaultStorage = {
@@ -43,8 +39,6 @@ export class StorageService {
   private browser: Cradle['browser'];
   private events: Cradle['events'];
 
-  private setSpentAmountRecurring: ThrottleBatch<[amount: string]>;
-  private setSpentAmountOneTime: ThrottleBatch<[amount: string]>;
   // used as an optimization/cache
   private currentState: Storage['state'] | null = null;
 
@@ -53,17 +47,6 @@ export class StorageService {
   constructor({ browser, events }: Cradle) {
     this.browser = browser;
     this.events = events;
-
-    this.setSpentAmountRecurring = new ThrottleBatch(
-      (amount) => this.setSpentAmount('recurring', amount),
-      (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
-      1000,
-    );
-    this.setSpentAmountOneTime = new ThrottleBatch(
-      (amount) => this.setSpentAmount('one-time', amount),
-      (args) => [args.reduce((max, [v]) => bigIntMax(max, v), '0')],
-      1000,
-    );
   }
 
   async get<TKey extends StorageKey>(
@@ -162,14 +145,6 @@ export class StorageService {
       prevState: prevState,
     });
     return true;
-  }
-
-  updateSpentAmount(grant: GrantDetails['type'], amount: string) {
-    if (grant === 'recurring') {
-      this.setSpentAmountRecurring.enqueue(amount);
-    } else if (grant === 'one-time') {
-      this.setSpentAmountOneTime.enqueue(amount);
-    }
   }
 
   async setSpentAmount(grant: GrantDetails['type'], amount: string) {

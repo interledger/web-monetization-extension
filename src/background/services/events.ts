@@ -1,12 +1,24 @@
 import { EventEmitter } from 'node:events';
 import type {
+  AmountType,
   AmountValue,
+  GrantDetails,
   TransientState,
   Storage,
   TabId,
 } from '@/shared/types';
 
 interface BackgroundEvents {
+  'open_payments.outgoing_payment_created': {
+    debitAmount: AmountType;
+    grantType: GrantDetails['type'];
+  };
+  'open_payments.outgoing_payment_completed': {
+    sentAmount: AmountType;
+    debitAmount: AmountType;
+    status: 'succeeded' | 'failed';
+    grantType: GrantDetails['type'];
+  };
   'open_payments.key_revoked': undefined;
   'open_payments.out_of_funds': undefined;
   'open_payments.invalid_receiver': { tabId: number };

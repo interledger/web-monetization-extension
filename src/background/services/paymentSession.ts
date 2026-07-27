@@ -404,12 +404,11 @@ export class PaymentSession {
       },
     );
 
-    if (outgoingPayment.grantSpentDebitAmount) {
-      this.storage.updateSpentAmount(
-        this.outgoingPaymentGrantService.grantType,
-        outgoingPayment.grantSpentDebitAmount.value,
-      );
-    }
+    this.events.emit('open_payments.outgoing_payment_created', {
+      debitAmount: outgoingPayment.debitAmount,
+      grantType: this.outgoingPaymentGrantService.grantType,
+    });
+
     await this.storage.setState({ out_of_funds: false });
 
     return outgoingPayment;
@@ -503,16 +502,31 @@ export class PaymentSession {
           accessToken: this.outgoingPaymentGrantService.accessToken,
         });
         yield outgoingPayment;
-        if (
-          outgoingPayment.failed &&
-          outgoingPayment.sentAmount.value === '0'
-        ) {
-          throw new ErrorWithKey('pay_outgoingPaymentFailed_error');
+        if (outgoingPayment.failed) {
+          this.events.emit('open_payments.outgoing_payment_completed', {
+            debitAmount: outgoingPayment.debitAmount,
+            sentAmount: outgoingPayment.sentAmount,
+            status: 'failed',
+            grantType: this.outgoingPaymentGrantService.grantType,
+          });
+
+          if (outgoingPayment.sentAmount.value === '0') {
+            throw new ErrorWithKey('pay_outgoingPaymentFailed_error');
+          }
+
+          return outgoingPayment;
         }
         if (
           outgoingPayment.debitAmount.value === outgoingPayment.sentAmount.value
         ) {
-          return outgoingPayment; // completed
+          this.events.emit('open_payments.outgoing_payment_completed', {
+            debitAmount: outgoingPayment.debitAmount,
+            sentAmount: outgoingPayment.sentAmount,
+            status: 'succeeded',
+            grantType: this.outgoingPaymentGrantService.grantType,
+          });
+
+          return outgoingPayment;
         }
         signal?.throwIfAborted();
         await sleep(OUTGOING_PAYMENT_POLLING_INTERVAL);

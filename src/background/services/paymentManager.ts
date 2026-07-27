@@ -215,6 +215,7 @@ export class PaymentManager {
         amount: amount.toString(),
       })),
     });
+
     const outgoingPaymentResults = await Promise.allSettled(
       [...distribution.entries()].map(([session, amount]) =>
         session.payOneTime(amount),
