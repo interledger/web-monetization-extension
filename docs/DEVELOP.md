@@ -199,8 +199,6 @@ mindmap
   - The backend part is for orchestration only.
 - **`EventsService`**:
   - A simple EventEmitter/pub-sub service
-- **`Deduplicator`**:
-  - Essentially a function to cache certain async function calls (promises) for a few seconds and then eventually clear their memory
 
 #### Content scripts
 
