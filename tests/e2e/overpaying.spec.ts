@@ -1,3 +1,4 @@
+import { DEFAULT_RATE_OF_PAY } from '@/background/config';
 import { test, expect } from './fixtures/connected';
 import {
   getLastCallArg,
@@ -14,9 +15,14 @@ test.afterEach(({ context }) => {
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
 test.describe('should not pay immediately when overpaying', () => {
-  test('on page reload', async ({ page, popup, context }) => {
+  test('on page reload', async ({ page, popup, background, context }) => {
     const { outgoingPaymentCreatedCallback } =
       interceptPaymentCreateRequests(context);
+
+    await background.evaluate(
+      (rateOfPay) => chrome.storage.local.set({ rateOfPay }),
+      DEFAULT_RATE_OF_PAY,
+    );
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
@@ -68,11 +74,17 @@ test.describe('should not pay immediately when overpaying', () => {
   test('on page navigation - URL param change', async ({
     page,
     popup,
+    background,
     context,
   }) => {
     const homePage = popup.getByTestId('home-page');
     const { outgoingPaymentCreatedCallback, incomingPaymentCreatedCallback } =
       interceptPaymentCreateRequests(context);
+
+    await background.evaluate(
+      (rateOfPay) => chrome.storage.local.set({ rateOfPay }),
+      DEFAULT_RATE_OF_PAY,
+    );
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
 
@@ -122,10 +134,15 @@ test.describe('should not pay immediately when overpaying', () => {
     ).toHaveBeenCalledTimes(3);
   });
 
-  test('on URL hash change', async ({ page, popup, context }) => {
+  test('on URL hash change', async ({ page, popup, background, context }) => {
     const homePage = popup.getByTestId('home-page');
     const { outgoingPaymentCreatedCallback, incomingPaymentCreatedCallback } =
       interceptPaymentCreateRequests(context);
+
+    await background.evaluate(
+      (rateOfPay) => chrome.storage.local.set({ rateOfPay }),
+      DEFAULT_RATE_OF_PAY,
+    );
 
     const monetizationCallback = await setupPlayground(page, walletAddressUrl);
     await page.evaluate(() => {
