@@ -1,4 +1,3 @@
-import { MIN_PAYMENT_WAIT } from '@/background/config';
 import { test, expect, DEFAULT_BUDGET } from './fixtures/connected';
 import {
   getWalletInfoCached,
@@ -58,7 +57,6 @@ test.describe('should monetized site with multiple wallet address', () => {
     // At rateOfPay=3600, we pay $0.01 every second. But given minimum interval
     // is 2s, we'll need to wait for 2s.
     const rateOfPay = '3600';
-    const interval = MIN_PAYMENT_WAIT;
     await background.evaluate((rateOfPay) => {
       return chrome.storage.local.set({ rateOfPay });
     }, rateOfPay);
@@ -140,7 +138,6 @@ test.describe('should monetized site with multiple wallet address', () => {
     // session may need several ticks before it gets paid.
     test.setTimeout(120_000);
     const rateOfPay = '3600';
-    const interval = MIN_PAYMENT_WAIT;
     const crossCurrencyTimeout = 30_000;
     await background.evaluate((rateOfPay) => {
       return chrome.storage.local.set({ rateOfPay });
@@ -216,7 +213,7 @@ test.describe('should monetized site with multiple wallet address', () => {
     await setContinuousPayments(popup, false);
     await goToHome(popup);
     // Let payments finish, in case there was one in-flight right before turning off
-    // continuous payments. Otherwise occationally it can happen that the spy call count
+    // continuous payments. Otherwise occasionally it can happen that the spy call count
     // is off by one.
     await page.waitForTimeout(5000);
     monetizationCallback.reset();
