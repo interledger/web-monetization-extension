@@ -1,13 +1,16 @@
 import React from 'react';
 import { Power } from '@/pages/shared/components/Icons';
 import { cn } from '@/pages/shared/lib/utils';
-import { useMessage } from '@/popup/lib/context';
+import { useMessage, useTranslation } from '@/popup/lib/context';
 import { dispatch, usePopupState } from '@/popup/lib/store';
 
 export const TogglePaymentsButton = () => {
+  const t = useTranslation();
   const { enabled } = usePopupState();
   const message = useMessage();
-  const title = enabled ? 'Disable extension' : 'Enable extension';
+  const title = enabled
+    ? t('header_togglePayments_disable_action')
+    : t('header_togglePayments_enable_action');
 
   return (
     <label

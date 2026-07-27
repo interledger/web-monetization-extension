@@ -21,7 +21,9 @@ export default () => {
           <WarningSign className="size-8 text-orange-500" />
         </div>
         <div className="ml-3 flex flex-col gap-2">
-          <h3 className="font-medium text-orange-800">Permission needed</h3>
+          <h3 className="font-medium text-orange-800">
+            {t('missingHostPermission_title')}
+          </h3>
           <div className="text-orange-700">
             <p>{t('missingHostPermission_text')}</p>
           </div>
@@ -44,7 +46,7 @@ export default () => {
           });
         }}
       >
-        Grant permission
+        {t('postInstall_stepPermissions_grant_action')}
       </button>
     </div>
   );
