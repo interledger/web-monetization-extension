@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { md } from 'imd/react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { Input } from '@/pages/shared/components/ui/Input';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
@@ -312,9 +313,9 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
             whyText: t('connectWallet_failedAutoKeyAdd_why_text'),
           }}
           retry={resetState}
+          retryText={t('connectWallet_retry_action')}
           hideError={!errors.keyPair}
           text={t('connectWallet_publicKey_label')}
-          learnMoreText={t('connectWallet_publicKeyLearnMore_text')}
           publicKey={publicKey}
         />
       )}
@@ -694,10 +695,10 @@ const ManualKeyPairNeeded: React.FC<{
   error: { message: string; details: null | ErrorInfo; whyText: string };
   hideError?: boolean;
   retry: () => Promise<void>;
+  retryText: string;
   text: string;
-  learnMoreText: string;
   publicKey: string;
-}> = ({ error, hideError, text, learnMoreText, publicKey, retry }) => {
+}> = ({ error, hideError, text, retryText, publicKey, retry }) => {
   const ErrorDetails = () => {
     if (!error?.details) return null;
     return (
@@ -712,7 +713,7 @@ const ManualKeyPairNeeded: React.FC<{
             onClick={retry}
             className="ml-1 inline-block text-primary underline"
           >
-            Try again?
+            {retryText}
           </button>
         )}
       </details>
@@ -727,15 +728,18 @@ const ManualKeyPairNeeded: React.FC<{
         </div>
       )}
       <p className="px-2 text-left text-xs">
-        {text}{' '}
-        <a
-          href="https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure"
-          className="text-primary"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {learnMoreText}
-        </a>
+        {md(text, {
+          link: (children, href) => (
+            <a
+              href={href}
+              className="text-primary"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {children}
+            </a>
+          ),
+        })}
       </p>
       <Code className="text-xs" value={publicKey} />
     </div>

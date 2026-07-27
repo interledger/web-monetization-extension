@@ -11,7 +11,10 @@ describe('Code', () => {
 
     expect(code).toBeInTheDocument();
     expect(code).toHaveTextContent('test');
-    expect(queryByRole('button')).toHaveAttribute('aria-label', 'copy');
+    expect(queryByRole('button')).toHaveAttribute(
+      'aria-label',
+      'code_copy_action',
+    );
   });
 
   it('calls clipboard.writeText with the correct value', () => {

@@ -247,7 +247,9 @@ const Steps = () => {
           />
           <img
             {...selectedWallet.walletAddressScreenshot}
-            alt={`Screenshot of wallet address for ${selectedWallet.name}`}
+            alt={t('postInstall_stepWalletAddress_screenshot_text', [
+              selectedWallet.name,
+            ])}
             className="mx-auto p-4 shadow-2xl sm:w-auto w-9/12"
           />
         </picture>
@@ -447,9 +449,10 @@ function Step({
 }
 
 function StepNumber({ number }: { number: number }) {
+  const t = useTranslation();
   return (
     <span className="inline-block shrink-0 rounded-lg bg-black/5 p-1 align-middle text-sm outline outline-1 outline-gray-800/10 font-normal">
-      <span className="sr-only">Step </span>
+      <span className="sr-only">{t('postInstall_step_text')}</span>
       {number}.
     </span>
   );

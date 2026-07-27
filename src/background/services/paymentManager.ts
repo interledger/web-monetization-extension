@@ -341,6 +341,7 @@ export class PaymentManager {
   #iter: PeekAbleIterator<PaymentSession> | null = null;
 
   setRate(hourlyRate: AmountValue) {
+    const hourlyRateWasZero = this.hourlyRate === 0n;
     this.hourlyRate = BigInt(hourlyRate);
     this.interval = calculateInterval(this.hourlyRate);
 
@@ -349,7 +350,14 @@ export class PaymentManager {
     // amount by minSendAmount unit to make the interval longer.
 
     if (this.#state === 'active') {
-      this.timer.reset(this.interval.period);
+      if (this.hourlyRate === 0n) {
+        this.logger.debug('Pausing timer. Hourly rate is 0');
+        this.timer.clear();
+      } else if (hourlyRateWasZero) {
+        void this.payNowAndScheduleNext();
+      } else {
+        this.timer.reset(this.interval.period);
+      }
     }
   }
 
@@ -370,11 +378,18 @@ export class PaymentManager {
 
     this.#state = 'active';
 
+    if (this.hourlyRate === 0n) {
+      this.logger.debug('Skip payment. Hourly rate is 0');
+      return;
+    }
+    await this.payNowAndScheduleNext();
+  }
+
+  private async payNowAndScheduleNext() {
     await this.preventOverpaying();
     if (this.#state !== 'active') {
       return;
     }
-
     this.#iter ??= this.setupSessionIterator();
     const session = this.consumeSession();
     if (!session) {
@@ -405,6 +420,10 @@ export class PaymentManager {
     }
     if (this.#state === 'paused') {
       this.#state = 'active';
+    }
+    if (this.hourlyRate === 0n) {
+      this.logger.debug('Skip resuming timer. Hourly rate is 0');
+      return;
     }
     this.timer.resume();
   }
@@ -700,6 +719,10 @@ class PeekAbleIterator<T> implements Iterator<T, never, never> {
 }
 
 export function calculateInterval(hourlyRate: bigint): Interval {
+  if (hourlyRate === 0n) {
+    return { units: 0n, period: Number.POSITIVE_INFINITY };
+  }
+
   const period = MS_IN_HOUR / Number(hourlyRate);
 
   // The math below is equivalent to:

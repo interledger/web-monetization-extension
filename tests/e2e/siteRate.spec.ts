@@ -2,7 +2,7 @@ import { MIN_PAYMENT_WAIT } from '@/background/config';
 import { hostnameToSiteKey } from '@/background/services/rateList';
 import { getResponseOrThrow, type SiteRateEntry } from '@/shared/messages';
 import { test, expect } from './fixtures/connected';
-import { sendMessageToBackground } from './fixtures/helpers';
+import { type Background, sendMessageToBackground } from './fixtures/helpers';
 import {
   interceptPaymentCreateRequests,
   playgroundUrl,
@@ -79,10 +79,7 @@ test.describe('per-site rate – GET_DATA_POPUP', () => {
 
 test.describe('per-site rate – payment session', () => {
   test.beforeEach(async ({ background }) => {
-    await background.evaluate(
-      (rate) => chrome.storage.local.set({ rateOfPay: rate }),
-      GLOBAL_RATE,
-    );
+    await defineGlobalRate(background, GLOBAL_RATE);
   });
 
   test('site rate is used when a payment session starts', async ({
@@ -180,6 +177,142 @@ test.describe('per-site rate – payment session', () => {
     expect(revertedDebit).toBe(globalDebit);
   });
 });
+
+test.describe('per-site rate – zero rate', () => {
+  test('site rate 0 skips payments despite non-zero global rate', async ({
+    page,
+    context,
+    popup,
+    background,
+  }) => {
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+
+    await defineGlobalRate(background, GLOBAL_RATE);
+    await setSiteRate(popup, PLAYGROUND_HOSTNAME, '0');
+    await setupPlayground(page, walletAddressUrl);
+
+    await context.clock.runFor(MIN_PAYMENT_WAIT * 5);
+    await page.waitForTimeout(2000);
+    await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(0);
+  });
+
+  test('global rate 0 skips payments without a site override', async ({
+    page,
+    context,
+    popup,
+    background,
+  }) => {
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+
+    await defineGlobalRate(background, '0');
+    await setupPlayground(page, walletAddressUrl);
+
+    await expect(
+      popup.getByTestId('home-page'),
+      'monetized despite rate being 0',
+    ).toBeVisible();
+
+    await context.clock.runFor(MIN_PAYMENT_WAIT * 5);
+    await page.waitForTimeout(2000);
+    await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(0);
+  });
+
+  test('site rate override keeps paying despite global rate 0', async ({
+    page,
+    context,
+    popup,
+    background,
+  }) => {
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+
+    await defineGlobalRate(background, '0');
+    await setSiteRate(popup, PLAYGROUND_HOSTNAME, SITE_RATE);
+    await setupPlayground(page, walletAddressUrl);
+
+    await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(1, {
+      timeout: 10_000,
+    });
+  });
+
+  test('site rate 0 pauses active session; reverting resumes it', async ({
+    page,
+    context,
+    popup,
+    background,
+  }) => {
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+
+    await defineGlobalRate(background, GLOBAL_RATE);
+    await setupPlayground(page, walletAddressUrl);
+
+    await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(1);
+
+    await setSiteRate(popup, PLAYGROUND_HOSTNAME, '0');
+    await context.clock.runFor(MIN_PAYMENT_WAIT * 5);
+    await page.waitForTimeout(2000);
+    await expect(
+      outgoingPaymentCreatedCallback,
+      'no new payment while rate is 0',
+    ).toHaveBeenCalledTimes(1);
+
+    await setSiteRate(popup, PLAYGROUND_HOSTNAME, SITE_RATE);
+    await context.clock.runFor(MIN_PAYMENT_WAIT);
+    await expect(
+      outgoingPaymentCreatedCallback,
+      'payments resume once rate is non-zero',
+    ).toHaveBeenCalledTimes(2);
+  });
+
+  test('rate 0 to non-zero pays without a page refresh', async ({
+    page,
+    context,
+    popup,
+    background,
+  }) => {
+    const { outgoingPaymentCreatedCallback } =
+      interceptPaymentCreateRequests(context);
+
+    await defineGlobalRate(background, '0');
+    await setupPlayground(page, walletAddressUrl);
+    await expect(
+      popup.getByTestId('home-page'),
+      'monetized (active) despite rate being 0',
+    ).toBeVisible();
+    await context.clock.runFor(MIN_PAYMENT_WAIT * 5);
+    await expect(
+      outgoingPaymentCreatedCallback,
+      'no payment while rate is 0',
+    ).toHaveBeenCalledTimes(0);
+
+    const SLOW_RATE = '1';
+    await setGlobalRate(popup, SLOW_RATE);
+    await context.clock.runFor(MIN_PAYMENT_WAIT * 5);
+
+    await expect(
+      outgoingPaymentCreatedCallback,
+      'pays immediately once rate is non-zero, no refresh needed',
+    ).toHaveBeenCalledTimes(1, { timeout: 6000 });
+  });
+});
+
+async function defineGlobalRate(
+  background: Background,
+  rateOfPay: AmountValue,
+) {
+  await background.evaluate((rateOfPay) => {
+    return chrome.storage.local.set({ rateOfPay });
+  }, rateOfPay);
+}
+
+async function setGlobalRate(popup: Popup, rateOfPay: AmountValue) {
+  await sendMessageToBackground(popup, 'UPDATE_RATE_OF_PAY', {
+    rateOfPay,
+  }).then(getResponseOrThrow);
+}
 
 // TODO: we'll use UI interactions in the future.
 async function setSiteRate(

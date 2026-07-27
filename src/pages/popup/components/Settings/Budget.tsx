@@ -1,4 +1,5 @@
 import React from 'react';
+import { md } from 'imd/react';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmount } from '@/pages/shared/components/InputAmount';
@@ -117,7 +118,7 @@ const BudgetAmount = ({
       <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
         <InputAmount
           id="budgetAmount"
-          label="Budget amount"
+          label={t('settings_budget_amount_label')}
           walletAddress={walletAddress}
           className="@sm:max-w-48"
           amount={amount}
@@ -140,7 +141,7 @@ const BudgetAmount = ({
           className="flex items-center gap-x-4 px-2 @sm:mt-7"
         >
           <span className="font-medium text-medium @sm:font-normal flex-grow @sm:flex-grow-0 @sm:order-last">
-            Monthly
+            {t('settings_budget_monthly_label')}
           </span>
           <SwitchButton
             id="budgetRecurring"
@@ -158,23 +159,7 @@ const BudgetAmount = ({
           />
         </label>
       </div>
-      {renewDate && (
-        <p className="px-2 text-xs" data-testid="renew-date-msg">
-          Your budget will renew on{' '}
-          <time
-            dateTime={renewDate.toISOString()}
-            title={renewDate.toLocaleString(undefined, {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            })}
-          >
-            {renewDate.toLocaleString(undefined, {
-              dateStyle: 'medium',
-            })}
-          </time>
-          .
-        </p>
-      )}
+      {renewDate && <RenewDateMessage renewDate={renewDate} />}
 
       <div className="space-y-1 pt-4">
         {errors.root?.message && <ErrorMessage error={errors.root.message} />}
@@ -189,12 +174,37 @@ const BudgetAmount = ({
           }
           loading={isSubmitting}
         >
-          Submit changes
+          {t('settings_budget_submit_action')}
         </Button>
       </div>
     </form>
   );
 };
+
+function RenewDateMessage({ renewDate }: { renewDate: Date }) {
+  const t = useTranslation();
+
+  const formattedDate = renewDate.toLocaleString(undefined, {
+    dateStyle: 'medium',
+  });
+  const title = renewDate.toLocaleString(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  });
+  const datetime = renewDate.toISOString();
+
+  return (
+    <p className="px-2 text-xs" data-testid="renew-date-msg">
+      {md(t('settings_budget_renewDate_text', [formattedDate]), {
+        html: ({ children }) => (
+          <time dateTime={datetime} title={title}>
+            {children}
+          </time>
+        ),
+      })}
+    </p>
+  );
+}
 
 type RemainingBalanceProps = Pick<PopupState, 'balance' | 'walletAddress'>;
 
@@ -202,6 +212,7 @@ const RemainingBalance = ({
   balance,
   walletAddress,
 }: RemainingBalanceProps) => {
+  const t = useTranslation();
   const amount = transformBalance(balance, walletAddress.assetScale);
   return (
     <div className="space-y-2">
@@ -209,7 +220,7 @@ const RemainingBalance = ({
         id="remainingBalance"
         onChange={() => {}}
         onError={() => {}}
-        label="Remaining balance"
+        label={t('settings_budget_remainingBalance_label')}
         className="max-w-56"
         walletAddress={walletAddress}
         amount={amount}
