@@ -6,7 +6,7 @@ import {
 } from '@/pages/shared/lib/context';
 import browser from '@/shared/browser';
 import { MessageContextProvider, WaitForStateLoad } from '@/app/lib/context';
-import { Route, Router, Switch } from 'wouter';
+import { Redirect, Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import * as PAGES from './pages/index';
 
@@ -23,6 +23,9 @@ const Routes = () => (
     <Route path={P.DEFAULT} component={C.PostInstall} />
     <Route path={P.CONSENT} component={C.Consent} />
     <Route path={P.POST_CONNECT} component={C.PostConnect} />
+    <Route>
+      <Redirect to={P.DEFAULT} />
+    </Route>
   </Switch>
 );
 

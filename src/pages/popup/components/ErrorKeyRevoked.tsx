@@ -1,4 +1,5 @@
 import React from 'react';
+import { md } from 'imd/react';
 import { deepClone } from 'valtio/utils';
 import { isErrorWithKey } from '@/shared/helpers';
 import { AutoKeyAddConsent } from '@/pages/shared/components/AutoKeyAddConsent';
@@ -111,7 +112,7 @@ const MainScreen = ({
     const state = transientState.connect;
     if (state?.intent !== 'reconnect') return;
     if (state.type === 'failure') {
-      let msg = 'Unknown error';
+      let msg = t('keyRevoked_unknown_error');
       if (isErrorWithKey(state.details)) {
         const errInfo = toErrorInfo(deepClone(state.details));
         if (errInfo) msg = errInfo.message;
@@ -196,13 +197,13 @@ const ManualReconnectScreen = ({
     if (state?.intent !== 'reconnect') return;
     if (state.type !== 'failure') return;
 
-    let message = 'Unknown error';
+    let message = t('keyRevoked_unknown_error');
     if (isErrorWithKey(state.details)) {
       const errInfo = toErrorInfo(state.details);
       if (errInfo) message = errInfo.message;
     }
     setErrors({ root: { message } });
-  }, [transientState?.connect, toErrorInfo]);
+  }, [transientState?.connect, toErrorInfo, t]);
 
   const requestManualReconnect = async () => {
     setErrors({ root: null });
@@ -232,13 +233,16 @@ const ManualReconnectScreen = ({
     >
       <div className="space-y-1 text-sm">
         <p className="px-2">
-          Reconnecting to wallet:{' '}
-          <span className="underline">{info.walletAddress?.id}</span>
+          {md(
+            t('keyRevoked_reconnecting_text', [info.walletAddress?.id ?? '']),
+            {
+              html: ({ children }) => (
+                <span className="underline">{children}</span>
+              ),
+            },
+          )}
         </p>
-        <p className="px-2">
-          <strong>Before</strong> you reconnect, copy the public key below and
-          add it to your wallet.
-        </p>
+        <p className="px-2">{md(t('keyRevoked_copyKey_text'))}</p>
         <Code className="text-xs" value={info.publicKey} />
       </div>
 
