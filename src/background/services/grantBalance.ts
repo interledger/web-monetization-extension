@@ -79,6 +79,8 @@ export class GrantBalanceService {
     this.events.on(
       'open_payments.outgoing_payment_completed',
       ({ debitAmount, sentAmount, status, grantType }) => {
+        // We can ignore successful payments here as the spent amount
+        // was already updated when the payment was created.
         if (status !== 'failed') {
           return;
         }
