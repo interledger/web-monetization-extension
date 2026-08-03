@@ -136,7 +136,7 @@ test.describe('should monetized site with multiple wallet address', () => {
     // PaymentManager's round-robin scheduler only pays a session once enough
     // pendingAmount has accumulated to clear that *session's* probed `minSendAmount`. A
     // session may need several ticks before it gets paid.
-    test.setTimeout(120_000);
+    test.slow();
     const rateOfPay = '3600';
     const crossCurrencyTimeout = 30_000;
     await background.evaluate((rateOfPay) => {
