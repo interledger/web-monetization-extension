@@ -1,9 +1,10 @@
-import type { BrowserContext, Page, Worker } from '@playwright/test';
+import type { BrowserContext, Page } from '@playwright/test';
 import type {
   WalletAddress,
   IncomingPayment,
   OutgoingPayment,
 } from '@interledger/open-payments';
+import type { Background } from '../fixtures/helpers';
 import type { ConnectDetails } from '../pages/popup';
 import { TOTP, type TOTPAlgorithm, type TOTPEncoding } from 'totp-generator';
 import { spy, type SpyFn } from 'tinyspy';
@@ -169,7 +170,7 @@ export function interceptPaymentCreateRequests(context: BrowserContext) {
 }
 
 export async function defineGlobalRate(
-  background: Worker,
+  background: Background,
   rateOfPay: AmountValue,
 ) {
   await background.evaluate((rateOfPay) => {
