@@ -202,7 +202,7 @@ mindmap
 - **`GrantBalanceService`**:
   - Responsible for grant balance updates
   - Listens to created/completed payments and adjusts the balance
-  - Regularly queries "grant spent" endpoint and adjusts the balance
+  - Regularly queries the grant spent amounts endpoint and adjusts the balance
 
 #### Content scripts
 
