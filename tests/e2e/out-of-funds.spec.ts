@@ -274,15 +274,8 @@ for (const testCase of TEST_CASES) {
             'Remaining balance is new budget',
           ).toHaveValue(newAmountFormatted);
         } else {
-          const { oneTimeGrantSpentAmount, recurringGrantSpentAmount } =
-            await getStorage(background, [
-              'oneTimeGrantSpentAmount',
-              'recurringGrantSpentAmount',
-            ]);
           const total = transformBalance(
-            BigInt(oneTimeGrantSpentAmount ?? '0') +
-              BigInt(recurringGrantSpentAmount ?? '0') +
-              BigInt(newAmount),
+            BigInt(newAmount),
             walletAddress.assetScale,
           );
           await expect(

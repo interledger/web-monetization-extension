@@ -1,4 +1,5 @@
 import React from 'react';
+import { md } from 'imd/react';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { useTranslation } from '@/popup/lib/context';
 import type { TranslationKeys } from '@/shared/helpers';
@@ -24,16 +25,19 @@ export const AutoKeyAddConsent = ({ onAccept, onDecline, intent }: Props) => {
       data-testid="connect-wallet-auto-key-consent"
     >
       <p className="text-lg leading-snug text-weak">
-        {t(consentMessage[intent])}{' '}
-        <a
-          hidden
-          href="https://webmonetization.org/supporters/get-started/#resolve-a-key-addition-failure"
-          className="text-primary hover:underline"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {t('connectWalletKeyService_consentLearnMore_text')}
-        </a>
+        {md(t(consentMessage[intent]), {
+          link: (children, href) => (
+            <a
+              hidden
+              href={href}
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {children}
+            </a>
+          ),
+        })}
       </p>
 
       <div className="space-y-2 pt-12 text-medium">

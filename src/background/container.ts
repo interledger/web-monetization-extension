@@ -19,7 +19,6 @@ import {
   SendToPort,
   EventsService,
   Heartbeat,
-  Deduplicator,
   PaymentSession,
   PaymentManager,
   Telemetry,
@@ -49,7 +48,6 @@ export interface Cradle {
   browserName: BrowserName;
   appName: string;
   events: EventsService;
-  deduplicator: Deduplicator;
   storage: StorageService;
   rateList: RateListService;
   outgoingPaymentGrantService: OutgoingPaymentGrantService;
@@ -86,11 +84,6 @@ export const configureContainer = () => {
     appName: asValue(browser.runtime.getManifest().name),
     t: asValue(tFactory(browser)),
     events: asClass(EventsService).singleton(),
-    deduplicator: asClass(Deduplicator)
-      .singleton()
-      .inject(() => ({
-        logger: logger.getLogger('deduplicator'),
-      })),
     storage: asClass(StorageService)
       .singleton()
       .inject(() => ({

@@ -42,6 +42,57 @@ export class WalletStatusCancelError extends Error {
   }
 }
 
+const dedupeCache = new Map<string, Promise<unknown>>();
+
+/**
+ * Dedupe async function calls within `wait` ms of a previous call settling.
+ * Returns a function with the exact same signature as `fn`.
+ *
+ * `dedupe.clear()` empties the cache immediately, e.g. for test isolation.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: needs to accept any function
+export function dedupe<Fn extends (...args: any[]) => Promise<any>>(
+  fn: Fn,
+  {
+    cacheRejections = false,
+    wait = 5000,
+  }: Partial<{ cacheRejections: boolean; wait: number }> = {},
+): Fn {
+  const wrapped = async (...args: Parameters<Fn>) => {
+    const key = fn.name;
+    if (!key) {
+      throw new Error('Function name is required for caching');
+    }
+
+    const cached = dedupeCache.get(key);
+    if (cached) {
+      return cached as ReturnType<Fn>;
+    }
+
+    const promise = fn(...args);
+    dedupeCache.set(key, promise);
+
+    try {
+      const res = await promise;
+      dedupeCache.set(key, Promise.resolve(res));
+      return res;
+    } catch (err) {
+      if (cacheRejections) {
+        dedupeCache.set(key, Promise.reject(err));
+      } else {
+        dedupeCache.delete(key);
+      }
+      throw err;
+    } finally {
+      setTimeout(() => dedupeCache.delete(key), wait);
+    }
+  };
+  return wrapped as Fn;
+}
+dedupe.clear = (): void => {
+  dedupeCache.clear();
+};
+
 export const getCurrentActiveTab = async (browser: Browser) => {
   const window = browser.windows
     ? await browser.windows.getLastFocused()

@@ -25,6 +25,7 @@ import {
 } from '@/background/services/openPayments';
 import {
   createTabIfNotExists,
+  dedupe,
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from '@/background/utils';
@@ -45,7 +46,6 @@ export const MAX_GET_GRANT_SPENT_AMOUNTS_RETRIES = 3;
 export class OutgoingPaymentGrantService {
   private storage: Cradle['storage'];
   private logger: Cradle['logger'];
-  private deduplicator: Cradle['deduplicator'];
   private openPaymentsService: Cradle['openPaymentsService'];
   private events: Cradle['events'];
   private browser: Cradle['browser'];
@@ -61,20 +61,18 @@ export class OutgoingPaymentGrantService {
   constructor({
     storage,
     logger,
-    deduplicator,
     openPaymentsService,
     events,
     browser,
   }: Cradle) {
     this.storage = storage;
     this.logger = logger;
-    this.deduplicator = deduplicator;
     this.events = events;
     this.openPaymentsService = openPaymentsService;
     this.browser = browser;
 
     void this.initialize();
-    this.switchGrant = this.deduplicator.dedupe(this._switchGrant.bind(this));
+    this.switchGrant = dedupe(this._switchGrant.bind(this));
   }
 
   public get isAnyGrantUsable() {
@@ -187,9 +185,7 @@ export class OutgoingPaymentGrantService {
       throw new Error('No grant to rotate token for');
     }
 
-    const rotate = this.deduplicator.dedupe(
-      this.openPaymentsService.client.token.rotate,
-    );
+    const rotate = dedupe(this.openPaymentsService.client.token.rotate);
     const newToken = await rotate({
       url: this.token.manageUrl,
       accessToken: this.token.value,

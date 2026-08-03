@@ -8,6 +8,7 @@ import {
 import {
   TelemetryContextProvider,
   useBrowser,
+  useTranslation,
 } from '@/pages/shared/lib/context';
 import { dispatch } from './store';
 
@@ -19,6 +20,7 @@ export {
 } from '@/pages/shared/lib/context';
 
 export function WaitForStateLoad({ children }: React.PropsWithChildren) {
+  const t = useTranslation();
   const message = useMessage();
   const [isLoading, setIsLoading] = React.useState(true);
   const [telemetryConfig, setTelemetryConfig] = React.useState<{
@@ -47,7 +49,7 @@ export function WaitForStateLoad({ children }: React.PropsWithChildren) {
   }, [message]);
 
   if (isLoading) {
-    return 'Loading';
+    return t('app_loading_text');
   }
 
   return (

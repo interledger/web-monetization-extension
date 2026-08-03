@@ -2,6 +2,12 @@ import { beforeEach, describe, expect, it, test } from 'vitest';
 import { distributeAmount, calculateInterval } from '../paymentManager';
 
 describe('continuous payments / calculateInterval', () => {
+  test('handles zero rate', () => {
+    const result = calculateInterval(0n);
+    expect(result.units).toBe(0n);
+    expect(result.period).toBe(Number.POSITIVE_INFINITY);
+  });
+
   test('handles general rate - $0.60/hr', () => {
     const result = calculateInterval(60n);
     expect(result.units).toBe(1n);

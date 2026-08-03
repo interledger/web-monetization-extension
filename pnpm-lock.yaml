@@ -38,6 +38,9 @@ importers:
       idb:
         specifier: ^8.0.3
         version: 8.0.3
+      imd:
+        specifier: npm:@sidvishnoi/imd@^0.0.2
+        version: '@sidvishnoi/imd@0.0.2(preact@10.29.2)(react@19.2.7)'
       iso8601-duration:
         specifier: ^2.1.4
         version: 2.1.4
@@ -798,6 +801,18 @@ packages:
     resolution: {integrity: sha512-BfzEnDJOt9T8M989/lA37EcJgat01wLRnoi5dQf3QzOH7jzpqTAzdDbVfRljVr5r+jzKqpbHeyOfAaXxAd0PAA==}
     cpu: [x64]
     os: [win32]
+
+  '@sidvishnoi/imd@0.0.2':
+    resolution: {integrity: sha512-cs0giWaoHVC65BMiQIWKjk21B4TKCCNtTd62zLPUyBy/BP4aDKgYxbXAgmfHCdch9fx2PB957ys8U2yg8XUCYg==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      preact: '>=10'
+      react: '>=18'
+    peerDependenciesMeta:
+      preact:
+        optional: true
+      react:
+        optional: true
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -3034,6 +3049,11 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
+
+  '@sidvishnoi/imd@0.0.2(preact@10.29.2)(react@19.2.7)':
+    optionalDependencies:
+      preact: 10.29.2
+      react: 19.2.7
 
   '@standard-schema/spec@1.1.0': {}
 

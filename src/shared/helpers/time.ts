@@ -83,7 +83,10 @@ export class ThrottleBatch<Args extends unknown[], R = unknown> {
     private argsReducer: (args: Args[]) => [...Args],
     wait: number,
   ) {
-    this.throttled = throttle(() => this.flush(), wait, { leading: true });
+    this.throttled = throttle(() => this.flush(), wait, {
+      leading: false,
+      trailing: true,
+    });
   }
 
   enqueue(...data: Args) {

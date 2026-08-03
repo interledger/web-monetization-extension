@@ -1,4 +1,5 @@
 import React from 'react';
+import { md } from 'imd/react';
 import { Link, Redirect as Navigate } from 'wouter';
 import {
   formatNumber,
@@ -60,8 +61,8 @@ export default () => {
       style={{ height: 'calc(100% + 1rem)' }}
     >
       <header className="text-center text-3xl text-secondary-dark">
-        <h2 className="font-bold">Pay as you browse</h2>
-        <p className="font-light">Support content you love</p>
+        <h2 className="font-bold">{t('tagline_text__2')}</h2>
+        <p className="font-light">{t('tagline_text__1')}</p>
       </header>
       <InfoBanner />
       <PayWebsiteForm />
@@ -123,8 +124,11 @@ const InfoBanner = () => {
 
           {!!tab.rateOfPay && (
             <span className="text-xs font-normal px-2 py-1 rounded-lg bg-slate-50 w-fit">
-              {t('home_hourlyRateDefault_text')}{' '}
-              <span className="tabular-nums">{rate}</span>
+              {md(t('home_hourlyRateDefaultRate_text', [rate]), {
+                html: ({ children }) => (
+                  <span className="tabular-nums">{children}</span>
+                ),
+              })}
             </span>
           )}
         </p>

@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   convertWithExchangeRate,
+  dedupe,
   getNextSendableAmount,
   isSecureContext,
 } from './utils';
@@ -224,6 +225,170 @@ describe('convertWithExchangeRate', () => {
         `input: ${input} ${from.assetCode}, expected: ${expected} ${to.assetCode}`,
       ).toBe(expected);
     }
+  });
+});
+
+describe('dedupe', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    dedupe.clear();
+  });
+
+  const createAsyncFn = <T>({
+    returnValue,
+    timeout = 0,
+    shouldReject = false,
+    mockFnName = 'mockFn',
+  }: {
+    returnValue: T;
+    timeout?: number;
+    shouldReject?: boolean;
+    mockFnName?: string;
+  }) => {
+    const fn = vi.fn(async (..._args: unknown[]) => {
+      return new Promise((resolve, reject) => {
+        if (shouldReject) {
+          return reject(new Error('Test error'));
+        }
+        setTimeout(() => resolve(returnValue), timeout);
+      });
+    });
+    // dedupe's cache key needs a name, but vi.fn() returns anonymous fn
+    Object.defineProperty(fn, 'name', { value: mockFnName });
+    return fn;
+  };
+
+  it('calls the original function only once for multiple simultaneous calls', async () => {
+    const returnValue = { value: 'value' };
+    const fn = createAsyncFn({ returnValue, mockFnName: 'basic' });
+    const dedupedFn = dedupe(fn);
+    const resultPromises = [dedupedFn(), dedupedFn(), dedupedFn()];
+    vi.runAllTimers();
+
+    const results = await Promise.all(resultPromises);
+    expect(results[0]).toBe(returnValue);
+    expect(results[1]).toBe(returnValue);
+    expect(results[2]).toBe(returnValue);
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not dedupe functions with different names', async () => {
+    const returnValue1 = { value: 'value1' };
+    const returnValue2 = { value: 'value2' };
+    const fn1 = createAsyncFn({
+      returnValue: returnValue1,
+      timeout: 100,
+      mockFnName: 'fn1',
+    });
+    const fn2 = createAsyncFn({
+      returnValue: returnValue2,
+      timeout: 400,
+      mockFnName: 'fn2',
+    });
+    const dedupedFn1 = dedupe(fn1);
+    const dedupedFn2 = dedupe(fn2);
+    const resultPromises = [dedupedFn1('arg1'), dedupedFn2('arg2')];
+
+    vi.runAllTimers();
+
+    const [result1, result2] = await Promise.all(resultPromises);
+    expect(result1).toBe(returnValue1);
+    expect(result2).toBe(returnValue2);
+    expect(fn1).toHaveBeenCalledTimes(1);
+    expect(fn2).toHaveBeenCalledTimes(1);
+  });
+
+  it('dedupes pending calls to the same fn regardless of arguments', async () => {
+    const returnValue = { value: 'value' };
+    const fn = createAsyncFn({
+      returnValue,
+      timeout: 100,
+      mockFnName: 'sameNameDifferentArgs',
+    });
+    const dedupedFn = dedupe(fn);
+
+    const result1 = dedupedFn(1, { key: 'arg1' });
+    // at this point, result1's promise is still pending, so result2/result3
+    // reuse it even though the arguments differ
+    const result2 = dedupedFn({ key: 'arg2' }, 2);
+    const result3 = dedupedFn({ key: 'arg3' }, 3);
+    vi.runAllTimers();
+
+    await expect(result1).resolves.toBe(returnValue);
+    await expect(result2).resolves.toBe(returnValue);
+    await expect(result3).resolves.toBe(returnValue);
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not cache rejections by default', async () => {
+    const fn = createAsyncFn({
+      returnValue: { value: 'value' },
+      shouldReject: true,
+      mockFnName: 'rejectsByDefault',
+    });
+    const dedupedFn = dedupe(fn);
+
+    const result1 = dedupedFn(1, { key: 'value' });
+    await expect(result1).rejects.toThrow('Test error');
+    // since the rejection wasn't cached, this re-invokes the original fn
+    const result2 = dedupedFn(1, { key: 'value' });
+    await expect(result2).rejects.toThrow('Test error');
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('shares a pending promise even if it eventually rejects', async () => {
+    const fn = createAsyncFn({
+      returnValue: { value: 'value' },
+      shouldReject: true,
+      timeout: 500,
+      mockFnName: 'pendingRejection',
+    });
+    const dedupedFn = dedupe(fn);
+    const result1 = dedupedFn(1, 2);
+    const result2 = dedupedFn(1, 2);
+    vi.runAllTimers();
+
+    await expect(result1).rejects.toThrow('Test error');
+    await expect(result2).rejects.toThrow('Test error');
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('caches and reuses rejected promises when cacheRejections is true', async () => {
+    const fn = createAsyncFn({
+      returnValue: { value: 'value' },
+      shouldReject: true,
+      mockFnName: 'cacheRejections',
+    });
+    const dedupedFn = dedupe(fn, { cacheRejections: true });
+
+    const result1 = dedupedFn();
+    await expect(result1).rejects.toThrow('Test error');
+    const result2 = dedupedFn();
+    await expect(result2).rejects.toThrow('Test error');
+    await expect(result1).rejects.toBe(await result2.catch((e) => e));
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps serving the resolved value from cache until `wait` elapses, then re-invokes', async () => {
+    const returnValue = { value: 'value' };
+    const fn = createAsyncFn({ returnValue, mockFnName: 'cacheExpiration' });
+    const dedupedFn = dedupe(fn, { wait: 5000 });
+
+    const promise1 = dedupedFn();
+    await vi.advanceTimersByTimeAsync(0); // let fn's own setTimeout(0) resolve
+    expect(await promise1).toBe(returnValue);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    // still within the wait window: served from cache, fn not called again
+    expect(await dedupedFn()).toBe(returnValue);
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(5000); // cache-clear timeout fires
+
+    const promise2 = dedupedFn();
+    await vi.advanceTimersByTimeAsync(0);
+    await promise2;
+    expect(fn).toHaveBeenCalledTimes(2);
   });
 });
 
