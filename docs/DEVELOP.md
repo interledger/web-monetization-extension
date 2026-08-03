@@ -199,6 +199,10 @@ mindmap
   - The backend part is for orchestration only.
 - **`EventsService`**:
   - A simple EventEmitter/pub-sub service
+- **`GrantBalanceService`**:
+  - Responsible for grant balance updates
+  - Listens to created/completed payments and adjusts the balance
+  - Regularly queries "grant spent" endpoint and adjusts the balance
 
 #### Content scripts
 
