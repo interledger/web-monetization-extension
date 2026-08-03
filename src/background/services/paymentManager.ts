@@ -10,14 +10,8 @@ import {
   OUTGOING_PAYMENT_POLLING_MAX_ATTEMPTS,
   OUTGOING_PAYMENT_POLLING_MAX_DURATION,
 } from '@/background/config';
-import { bigIntMax } from '../utils';
-import {
-  ErrorWithKey,
-  isAbortSignalTimeout,
-  isErrorWithKey,
-  sleep,
-  Timeout,
-} from '@/shared/helpers';
+import { bigIntMax, isAbortSignalTimeout, Timeout } from '@/background/utils';
+import { ErrorWithKey, isErrorWithKey, sleep } from '@/shared/helpers';
 
 type Cradle = Pick<
   Cradle_,

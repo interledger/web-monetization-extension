@@ -7,7 +7,7 @@ import type {
 import type { ConnectDetails } from '../pages/popup';
 import { TOTP, type TOTPAlgorithm, type TOTPEncoding } from 'totp-generator';
 import { spy, type SpyFn } from 'tinyspy';
-import { getWalletInformation } from '@/shared/helpers';
+import { getWalletInformation } from '@/background/utils';
 
 const PLAYGROUND_URL = 'https://webmonetization.org/play/';
 

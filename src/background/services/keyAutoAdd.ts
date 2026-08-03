@@ -1,15 +1,15 @@
 import {
   ErrorWithKey,
   errorWithKeyToJSON,
-  getJWKS,
   isErrorWithKey,
   withResolvers,
-  Timeout,
   type ErrorWithKeyLike,
   type I18nInfo,
 } from '@/shared/helpers';
 import {
   createTab,
+  getJWKS,
+  Timeout,
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from '@/background/utils';
