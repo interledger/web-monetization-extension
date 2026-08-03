@@ -2,8 +2,9 @@ import { MIN_PAYMENT_WAIT } from '@/background/config';
 import { hostnameToSiteKey } from '@/background/services/rateList';
 import { getResponseOrThrow, type SiteRateEntry } from '@/shared/messages';
 import { test, expect } from './fixtures/connected';
-import { type Background, sendMessageToBackground } from './fixtures/helpers';
+import { sendMessageToBackground } from './fixtures/helpers';
 import {
+  defineGlobalRate,
   interceptPaymentCreateRequests,
   playgroundUrl,
   setupPlayground,
@@ -298,15 +299,6 @@ test.describe('per-site rate – zero rate', () => {
     ).toHaveBeenCalledTimes(1, { timeout: 6000 });
   });
 });
-
-async function defineGlobalRate(
-  background: Background,
-  rateOfPay: AmountValue,
-) {
-  await background.evaluate((rateOfPay) => {
-    return chrome.storage.local.set({ rateOfPay });
-  }, rateOfPay);
-}
 
 async function setGlobalRate(popup: Popup, rateOfPay: AmountValue) {
   await sendMessageToBackground(popup, 'UPDATE_RATE_OF_PAY', {

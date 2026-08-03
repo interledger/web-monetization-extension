@@ -1,4 +1,4 @@
-import type { BrowserContext, Page } from '@playwright/test';
+import type { BrowserContext, Page, Worker } from '@playwright/test';
 import type {
   WalletAddress,
   IncomingPayment,
@@ -8,6 +8,7 @@ import type { ConnectDetails } from '../pages/popup';
 import { TOTP, type TOTPAlgorithm, type TOTPEncoding } from 'totp-generator';
 import { spy, type SpyFn } from 'tinyspy';
 import { getWalletInformation } from '@/shared/helpers';
+import type { AmountValue } from '@/shared/types';
 
 const PLAYGROUND_URL = 'https://webmonetization.org/play/';
 
@@ -165,4 +166,13 @@ export function interceptPaymentCreateRequests(context: BrowserContext) {
     outgoingPaymentCreatedCallback,
     incomingPaymentCreatedCallback,
   };
+}
+
+export async function defineGlobalRate(
+  background: Worker,
+  rateOfPay: AmountValue,
+) {
+  await background.evaluate((rateOfPay) => {
+    return chrome.storage.local.set({ rateOfPay });
+  }, rateOfPay);
 }

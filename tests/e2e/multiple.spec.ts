@@ -1,5 +1,6 @@
 import { test, expect, DEFAULT_BUDGET } from './fixtures/connected';
 import {
+  defineGlobalRate,
   getWalletInfoCached,
   interceptPaymentCreateRequests,
   setupPlayground,
@@ -53,13 +54,11 @@ const orderById = <T extends { id: string }>(a: T, b: T) =>
   a.id.localeCompare(b.id);
 
 test.describe('should monetized site with multiple wallet address', () => {
-  test('same currency', async ({ page, popup, background, context }) => {
+  test('same currency', async ({ page, popup, background }) => {
     // At rateOfPay=3600, we pay $0.01 every second. But given minimum interval
     // is 2s, we'll need to wait for 2s.
     const rateOfPay = '3600';
-    await background.evaluate((rateOfPay) => {
-      return chrome.storage.local.set({ rateOfPay });
-    }, rateOfPay);
+    await defineGlobalRate(background, rateOfPay);
 
     const walletAddresses = [
       walletAddressUrl,
@@ -139,9 +138,7 @@ test.describe('should monetized site with multiple wallet address', () => {
     test.slow();
     const rateOfPay = '3600';
     const crossCurrencyTimeout = 30_000;
-    await background.evaluate((rateOfPay) => {
-      return chrome.storage.local.set({ rateOfPay });
-    }, rateOfPay);
+    await defineGlobalRate(background, rateOfPay);
 
     const walletAddressesInfo = [
       walletInfoSameCurrency,
