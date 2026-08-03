@@ -4,9 +4,11 @@ import type {
   IncomingPayment,
   OutgoingPayment,
 } from '@interledger/open-payments';
+import type { Background } from '../fixtures/helpers';
 import type { ConnectDetails } from '../pages/popup';
 import { TOTP, type TOTPAlgorithm, type TOTPEncoding } from 'totp-generator';
 import { spy, type SpyFn } from 'tinyspy';
+import type { AmountValue } from '@/shared/types';
 import { getWalletInformation } from '@/background/utils';
 
 const PLAYGROUND_URL = 'https://webmonetization.org/play/';
@@ -165,4 +167,13 @@ export function interceptPaymentCreateRequests(context: BrowserContext) {
     outgoingPaymentCreatedCallback,
     incomingPaymentCreatedCallback,
   };
+}
+
+export async function defineGlobalRate(
+  background: Background,
+  rateOfPay: AmountValue,
+) {
+  await background.evaluate((rateOfPay) => {
+    return chrome.storage.local.set({ rateOfPay });
+  }, rateOfPay);
 }

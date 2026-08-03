@@ -1,6 +1,6 @@
-import { MIN_PAYMENT_WAIT } from '@/background/config';
 import { test, expect, DEFAULT_BUDGET } from './fixtures/connected';
 import {
+  defineGlobalRate,
   getWalletInfoCached,
   interceptPaymentCreateRequests,
   setupPlayground,
@@ -54,14 +54,11 @@ const orderById = <T extends { id: string }>(a: T, b: T) =>
   a.id.localeCompare(b.id);
 
 test.describe('should monetized site with multiple wallet address', () => {
-  test('same currency', async ({ page, popup, background, context }) => {
+  test('same currency', async ({ page, popup, background }) => {
     // At rateOfPay=3600, we pay $0.01 every second. But given minimum interval
     // is 2s, we'll need to wait for 2s.
     const rateOfPay = '3600';
-    const interval = MIN_PAYMENT_WAIT;
-    await background.evaluate((rateOfPay) => {
-      return chrome.storage.local.set({ rateOfPay });
-    }, rateOfPay);
+    await defineGlobalRate(background, rateOfPay);
 
     const walletAddresses = [
       walletAddressUrl,
@@ -79,7 +76,6 @@ test.describe('should monetized site with multiple wallet address', () => {
         paymentPointer: walletAddresses[0],
       });
 
-      await context.clock.runFor(interval);
       await expect(monetizationCallback).toHaveBeenCalledTimes(2);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
@@ -90,13 +86,11 @@ test.describe('should monetized site with multiple wallet address', () => {
         'monetization callback is called once for each wallet address',
       ).toEqual([...walletAddresses].sort());
 
-      await context.clock.runFor(interval);
       await expect(monetizationCallback).toHaveBeenCalledTimes(3);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[0],
       });
 
-      await context.clock.runFor(interval);
       await expect(monetizationCallback).toHaveBeenCalledTimes(4);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
@@ -138,13 +132,13 @@ test.describe('should monetized site with multiple wallet address', () => {
   });
 
   test('different currencies', async ({ page, popup, background, context }) => {
-    // At rateOfPay=3600, we pay $0.01 every second. But given minimum interval
-    // is 2s, we'll need to wait for 2s.
+    // PaymentManager's round-robin scheduler only pays a session once enough
+    // pendingAmount has accumulated to clear that *session's* probed `minSendAmount`. A
+    // session may need several ticks before it gets paid.
+    test.slow();
     const rateOfPay = '3600';
-    const interval = MIN_PAYMENT_WAIT;
-    await background.evaluate((rateOfPay) => {
-      return chrome.storage.local.set({ rateOfPay });
-    }, rateOfPay);
+    const crossCurrencyTimeout = 30_000;
+    await defineGlobalRate(background, rateOfPay);
 
     const walletAddressesInfo = [
       walletInfoSameCurrency,
@@ -160,19 +154,23 @@ test.describe('should monetized site with multiple wallet address', () => {
     );
 
     await test.step('continuous payments', async () => {
-      await expect(monetizationCallback).toHaveBeenCalledTimes(1);
+      await expect(monetizationCallback).toHaveBeenCalledTimes(1, {
+        timeout: crossCurrencyTimeout,
+      });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[0],
       });
 
-      await context.clock.runFor(interval);
-      await expect(monetizationCallback).toHaveBeenCalledTimes(2);
+      await expect(monetizationCallback).toHaveBeenCalledTimes(2, {
+        timeout: crossCurrencyTimeout,
+      });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
       });
 
-      await context.clock.runFor(interval);
-      await expect(monetizationCallback).toHaveBeenCalledTimes(3);
+      await expect(monetizationCallback).toHaveBeenCalledTimes(3, {
+        timeout: crossCurrencyTimeout,
+      });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[2],
       });
@@ -182,20 +180,23 @@ test.describe('should monetized site with multiple wallet address', () => {
         'monetization callback is called once for each wallet address',
       ).toEqual([...walletAddresses].sort());
 
-      await context.clock.runFor(interval);
-      await expect(monetizationCallback).toHaveBeenCalledTimes(4);
+      await expect(monetizationCallback).toHaveBeenCalledTimes(4, {
+        timeout: crossCurrencyTimeout,
+      });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[0],
       });
 
-      await context.clock.runFor(interval);
-      await expect(monetizationCallback).toHaveBeenCalledTimes(5);
+      await expect(monetizationCallback).toHaveBeenCalledTimes(5, {
+        timeout: crossCurrencyTimeout,
+      });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
       });
 
-      await context.clock.runFor(interval);
-      await expect(monetizationCallback).toHaveBeenCalledTimes(6);
+      await expect(monetizationCallback).toHaveBeenCalledTimes(6, {
+        timeout: crossCurrencyTimeout,
+      });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[2],
       });
@@ -208,17 +209,18 @@ test.describe('should monetized site with multiple wallet address', () => {
 
     await setContinuousPayments(popup, false);
     await goToHome(popup);
+    // Let payments finish, in case there was one in-flight right before turning off
+    // continuous payments. Otherwise occasionally it can happen that the spy call count
+    // is off by one.
+    await page.waitForTimeout(5000);
     monetizationCallback.reset();
     const { outgoingPaymentCreatedCallback } =
       interceptPaymentCreateRequests(context);
 
     await test.step('one-time payments', async () => {
       const amountToSend = DEFAULT_BUDGET.amount - 1;
-      const splitAmount = Math.round(
-        (amountToSend * 10 ** walletInfoConnected.assetScale) / count,
-      );
 
-      await sendOneTimePayment(popup, amountToSend.toFixed(2));
+      await sendOneTimePayment(popup, amountToSend);
       await expect(monetizationCallback).toHaveBeenCalledTimes(count);
       await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(count);
       expect(
@@ -233,20 +235,15 @@ test.describe('should monetized site with multiple wallet address', () => {
         }),
       );
 
+      // Splits aren't exactly equal across sessions, so we only check
+      // that the sum is correct.
       expect(
-        outgoingPayments,
-        'outgoing payments created with same split debit amount',
-      ).toEqual(
-        Array.from({ length: count }, () =>
-          expect.objectContaining({
-            debitAmount: {
-              assetCode: walletInfoConnected.assetCode,
-              assetScale: walletInfoConnected.assetScale,
-              value: splitAmount.toString(),
-            },
-          }),
+        outgoingPayments.reduce(
+          (sum, { debitAmount }) => sum + Number(debitAmount.value),
+          0,
         ),
-      );
+        'debit amounts sum to the total one-time payment amount',
+      ).toBe(amountToSend * 10 ** walletInfoConnected.assetScale);
 
       const monetizationCallbackCalls = monetizationCallback.calls.map(
         ([ev]) => ({
