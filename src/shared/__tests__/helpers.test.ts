@@ -3,7 +3,6 @@ import { addDays } from 'date-fns/addDays';
 import { addMonths } from 'date-fns/addMonths';
 import { addSeconds } from 'date-fns/addSeconds';
 import {
-  afterEach,
   beforeEach,
   describe,
   expect,
@@ -13,15 +12,12 @@ import {
   type MockedFunction,
 } from 'vitest';
 import {
-  isOkState,
   objectEquals,
   normalizeHostname,
-  removeQueryParams,
   withResolvers,
   getNextOccurrence,
   toWalletAddressUrl,
   setDifference,
-  Timeout,
   memoize,
   moveToFront,
 } from '../helpers';
@@ -94,20 +90,6 @@ describe('normalizeHostname', () => {
   });
 });
 
-describe('removeQueryParams', () => {
-  it('should remove the query params from the URL', () => {
-    expect(removeQueryParams('https://example.com?foo=bar#baz')).toBe(
-      'https://example.com/',
-    );
-  });
-
-  it('should normalize the URL if there are no query params', () => {
-    expect(removeQueryParams('https://example.com')).toBe(
-      'https://example.com/',
-    );
-  });
-});
-
 test('setDifference', () => {
   const set = <T>(...items: T[]) => new Set(items);
   expect(setDifference(set(1, 2, 3), set(2, 3, 4))).toEqual(set(1));
@@ -137,24 +119,6 @@ describe('withResolvers', () => {
     r.reject(false);
     r.resolve(true);
     await expect(r.promise).rejects.toBe(false);
-  });
-});
-
-describe('isOkState', () => {
-  it('should return true if no state is set', () => {
-    expect(isOkState({})).toBe(true);
-    expect(
-      isOkState({ key_revoked: false, missing_host_permissions: false }),
-    ).toBe(true);
-  });
-
-  it('should return false if any state is set', () => {
-    expect(
-      isOkState({ key_revoked: true, missing_host_permissions: false }),
-    ).toBe(false);
-    expect(
-      isOkState({ key_revoked: false, missing_host_permissions: true }),
-    ).toBe(false);
   });
 });
 
@@ -256,57 +220,6 @@ describe('toWalletAddressUrl', () => {
       'https://wallet.com/bob',
     );
     expect(toWalletAddressUrl('https://wallet.com')).toBe('https://wallet.com');
-  });
-});
-
-describe('Timeout', () => {
-  vi.useFakeTimers();
-
-  let callback: MockedFunction<() => void>;
-  let timeout: Timeout;
-  beforeEach(() => {
-    callback = vi.fn<() => void>();
-    timeout = new Timeout(1000, callback);
-  });
-
-  afterEach(() => {
-    vi.clearAllTimers();
-    test;
-  });
-
-  it('should call the callback after the specified time', () => {
-    vi.advanceTimersByTime(1000);
-    expect(callback).toHaveBeenCalledTimes(1);
-  });
-
-  it('should reset the timeout', () => {
-    timeout.reset(2000);
-    // @ts-expect-error for testing it's ok to access private properties
-    expect(timeout.ms).toBe(2000);
-    vi.advanceTimersByTime(2000);
-    expect(callback).toHaveBeenCalledTimes(1);
-  });
-
-  it('should pause the timeout', () => {
-    timeout.pause();
-    vi.advanceTimersByTime(1000);
-    expect(callback).not.toHaveBeenCalled();
-  });
-
-  it('should resume the timeout', () => {
-    timeout.pause();
-    vi.advanceTimersByTime(500);
-    timeout.resume();
-    vi.advanceTimersByTime(500);
-    expect(callback).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(500);
-    expect(callback).toHaveBeenCalledTimes(1);
-  });
-
-  it('should clear the timeout', () => {
-    timeout.clear();
-    vi.advanceTimersByTime(1000);
-    expect(callback).not.toHaveBeenCalled();
   });
 });
 

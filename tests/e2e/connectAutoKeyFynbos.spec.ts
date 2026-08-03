@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/base';
-import { getJWKS, withResolvers } from '@/shared/helpers';
+import { withResolvers } from '@/shared/helpers';
+import { getJWKS } from '@/background/utils';
 import { disconnectWallet, fillPopup } from './pages/popup';
 import {
   getContinueWaitTime,

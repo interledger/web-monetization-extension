@@ -3,11 +3,11 @@ import type { MonetizationEventDetails } from '@/shared/messages';
 import type { PopupTabInfo, TabId } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 import type { PaymentManager } from './paymentManager';
-import { removeQueryParams } from '@/shared/helpers';
 import {
   isBrowserInternalPage,
   isBrowserNewTabPage,
   isSecureContext,
+  removeQueryParams,
 } from '@/background/utils';
 
 interface SaveLastPaymentDetails {

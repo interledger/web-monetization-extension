@@ -1,11 +1,7 @@
 import {
   ErrorWithKey,
   errorWithKeyToJSON,
-  getConnectWalletBudgetInfo,
-  getWalletInformation,
-  isAbortSignalTimeout,
   isErrorWithKey,
-  isKeyAddedToWallet,
   toWalletAddressUrl,
   type ErrorWithKeyLike,
   type I18nInfo,
@@ -24,6 +20,10 @@ import {
   onPopupOpen,
   closeTabsByFilter,
   highlightTab,
+  getConnectWalletBudgetInfo,
+  getWalletInformation,
+  isAbortSignalTimeout,
+  isKeyAddedToWallet,
   WalletStatusFailureError,
   WalletStatusCancelError,
 } from '@/background/utils';
