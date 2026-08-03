@@ -1,22 +1,38 @@
 import type {
   AmountValue,
   GrantDetails,
+  Storage,
   Tab,
   TabId,
   WalletAmount,
+  WalletInfo,
   WalletStatusCancel,
   WalletStatusFailure,
 } from '@/shared/types';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
-import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
-import { EXCHANGE_RATES_URL } from './config';
+import {
+  BACKGROUND_TO_POPUP_CONNECTION_NAME,
+  type ConnectWalletAddressInfo,
+} from '@/shared/messages';
+import {
+  DEFAULT_BUDGET,
+  DEFAULT_RATE_OF_PAY,
+  DEFAULT_SCALE,
+  EXCHANGE_RATES_URL,
+  MAX_RATE_OF_PAY,
+} from './config';
 import {
   APP_URL,
   INTERNAL_PAGE_URL_PROTOCOLS,
   NEW_TAB_PAGES,
 } from './constants';
-import { memoize, notNullOrUndef } from '@/shared/helpers';
-import type { WalletAddress } from '@interledger/open-payments';
+import {
+  ensureEnd,
+  memoize,
+  notNullOrUndef,
+  transformBalance,
+} from '@/shared/helpers';
+import type { JWKS, WalletAddress } from '@interledger/open-payments';
 
 type OnConnectCallback = Parameters<
   Browser['runtime']['onConnect']['addListener']
@@ -24,6 +40,76 @@ type OnConnectCallback = Parameters<
 type OnDisconnectCallback = Parameters<
   Runtime.Port['onDisconnect']['addListener']
 >[0];
+
+export const removeQueryParams = (urlString: string) => {
+  const url = new URL(urlString);
+  return url.origin + url.pathname;
+};
+
+export const isOkState = (state: Storage['state']) => {
+  return Object.values(state).every((value) => value === false);
+};
+
+export const isTabWithUrl = (tab: Tabs.Tab): tab is Tab => {
+  return !!tab.id && !!tab.url;
+};
+
+export class Timeout {
+  private timeout: ReturnType<typeof setTimeout> | null = null;
+  #isPaused = false;
+  #remaining = 0;
+  #startTime = 0;
+
+  constructor(
+    private ms: number,
+    private callback: () => void,
+  ) {
+    if (ms > 0) this.reset(ms);
+  }
+
+  reset(ms: number) {
+    this.clear();
+    this.ms = ms;
+    this.#isPaused = false;
+    this.#startTime = Date.now();
+    this.timeout = setTimeout(this.callback, ms);
+  }
+
+  pause() {
+    if (this.#isPaused) return;
+    this.clear();
+    this.#isPaused = true;
+    this.#remaining = this.ms - (Date.now() - this.#startTime);
+  }
+
+  resume() {
+    if (!this.#isPaused) {
+      throw new Error('Unexpected: Timeout was not paused, cannot resume');
+    }
+    if (this.#remaining > 0) {
+      this.timeout = setTimeout(() => {
+        this.callback();
+        this.reset(this.ms);
+      }, this.#remaining);
+    } else {
+      this.reset(this.ms);
+    }
+  }
+
+  clear() {
+    if (this.timeout !== null) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+  }
+}
+
+/**
+ * Check if `err` (reason) is result of `AbortSignal.timeout()`
+ */
+export const isAbortSignalTimeout = (err: unknown): err is DOMException => {
+  return err instanceof DOMException && err.name === 'TimeoutError';
+};
 
 export class WalletStatusFailureError extends Error {
   public readonly details: WalletStatusFailure['details'];
@@ -231,6 +317,104 @@ export const getBudgetRecommendationsData = memoize(
   },
   { maxAge: 30 * 60 * 1000, mechanism: 'stale-while-revalidate' },
 );
+
+const isWalletAddress = (o: Record<string, unknown>): o is WalletAddress => {
+  return !!(
+    o.id &&
+    typeof o.id === 'string' &&
+    o.assetScale &&
+    typeof o.assetScale === 'number' &&
+    o.assetCode &&
+    typeof o.assetCode === 'string' &&
+    o.authServer &&
+    typeof o.authServer === 'string' &&
+    o.resourceServer &&
+    typeof o.resourceServer === 'string'
+  );
+};
+
+export const getWalletInformation = async (
+  walletAddressUrl: string,
+): Promise<WalletInfo> => {
+  const response = await fetch(walletAddressUrl, {
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('This wallet address does not exist.');
+    }
+    throw new Error('Failed to fetch wallet address.');
+  }
+
+  const msgInvalidWalletAddress = 'Provided URL is not a valid wallet address.';
+  const json = await response.json().catch((error) => {
+    throw new Error(msgInvalidWalletAddress, { cause: error });
+  });
+  if (!isWalletAddress(json)) {
+    throw new Error(msgInvalidWalletAddress);
+  }
+
+  return { ...json, url: walletAddressUrl };
+};
+
+export const getConnectWalletBudgetInfo = async (
+  walletAddress: WalletAddress,
+): Promise<
+  Omit<
+    ConnectWalletAddressInfo,
+    'walletAddress' | 'isKeyAdded' | 'isKeyAutoAddSupported'
+  >
+> => {
+  const { assetCode, assetScale } = walletAddress;
+
+  const budgetData = await getBudgetRecommendationsData().catch(
+    (): Awaited<ReturnType<typeof getBudgetRecommendationsData>> => ({}),
+  );
+  if (Object.hasOwn(budgetData, assetCode)) {
+    const { budget, hourly } = budgetData[assetCode];
+    const defaultRateOfPay = Number(hourly.default) * 10 ** assetScale;
+    const maxRateOfPay = Number(hourly.max) * 10 ** assetScale;
+    return {
+      defaultBudget: budget.default,
+      defaultRateOfPay: defaultRateOfPay.toFixed(0),
+      maxRateOfPay: maxRateOfPay.toFixed(0),
+    };
+  }
+
+  const exchangeRates = await getExchangeRates().catch(() => {
+    return { base: 'USD', rates: { [assetCode]: 1 } };
+  });
+  const convert = (amount: AmountValue): AmountValue => {
+    const src = { assetCode: 'USD', assetScale: DEFAULT_SCALE };
+    return convertWithExchangeRate(amount, src, walletAddress, exchangeRates);
+  };
+
+  const defaultBudget = convert(DEFAULT_BUDGET);
+  const defaultRateOfPay = convert(DEFAULT_RATE_OF_PAY);
+  const maxRateOfPay = convert(MAX_RATE_OF_PAY);
+  return {
+    defaultBudget: Number(transformBalance(defaultBudget, assetScale)),
+    defaultRateOfPay,
+    maxRateOfPay,
+  };
+};
+
+export async function isKeyAddedToWallet(
+  walletAddressId: string,
+  kid: string,
+): Promise<boolean> {
+  const jwks = await getJWKS(walletAddressId);
+  return jwks.keys.some((key) => key.kid === kid);
+}
+
+export const getJWKS = async (walletAddressUrl: string) => {
+  const jwksUrl = new URL('jwks.json', ensureEnd(walletAddressUrl, '/'));
+  const res = await fetch(jwksUrl.href);
+  const json = await res.json();
+  return json as JWKS;
+};
 
 export function convert(value: bigint, source: number, target: number) {
   const scaleDiff = target - source;

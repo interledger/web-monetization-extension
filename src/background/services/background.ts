@@ -5,7 +5,6 @@ import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import {
   errorWithKeyToJSON,
   getNextOccurrence,
-  getWalletInformation,
   isErrorWithKey,
   moveToFront,
   CURRENT_DATA_CONSENT_VERSION,
@@ -13,7 +12,12 @@ import {
 } from '@/shared/helpers';
 import { KeyAutoAddService } from '@/background/services/keyAutoAdd';
 import { OpenPaymentsClientError } from '@interledger/open-payments/dist/client/error';
-import { getTab, isSecureContext, openAppPage } from '@/background/utils';
+import {
+  getTab,
+  getWalletInformation,
+  isSecureContext,
+  openAppPage,
+} from '@/background/utils';
 import { APP_URL } from '@/background/constants';
 import type { Cradle } from '@/background/container';
 import type { AppStore, Tab } from '@/shared/types';

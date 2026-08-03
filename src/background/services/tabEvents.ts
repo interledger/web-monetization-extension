@@ -1,4 +1,4 @@
-import { isOkState, removeQueryParams } from '@/shared/helpers';
+import { isOkState, removeQueryParams } from '@/background/utils';
 import type { PopupTabInfo, Storage, TabId } from '@/shared/types';
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';

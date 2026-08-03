@@ -4,8 +4,8 @@ import type {
 } from '@interledger/open-payments';
 import type { Cradle } from '@/background/container';
 import { isNotFoundError } from '@/background/services/openPayments';
-import { onPopupOpen } from '@/background/utils';
-import { ThrottleBatch, Timeout } from '@/shared/helpers';
+import { onPopupOpen, Timeout } from '@/background/utils';
+import { ThrottleBatch } from '@/shared/helpers';
 import type { GrantDetails } from '@/shared/types';
 
 export const GRANT_SPENT_AMOUNTS_SUPPORT_RECHECK_INTERVAL_MS =

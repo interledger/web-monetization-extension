@@ -10,14 +10,14 @@ import {
   matchesPattern,
   hostnameToSiteKey,
 } from '@/background/services/rateList';
-import { getSender, getTabId } from '@/background/utils';
 import {
-  ErrorWithKey,
+  getSender,
+  getTabId,
   isOkState,
   isTabWithUrl,
   removeQueryParams,
-  transformBalance,
-} from '@/shared/helpers';
+} from '@/background/utils';
+import { ErrorWithKey, transformBalance } from '@/shared/helpers';
 import type { PopupStore, Storage } from '@/shared/types';
 import type { Cradle } from '@/background/container';
 

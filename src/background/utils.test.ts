@@ -1,9 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type MockedFunction,
+} from 'vitest';
 import {
   convertWithExchangeRate,
   dedupe,
   getNextSendableAmount,
+  isOkState,
   isSecureContext,
+  removeQueryParams,
+  Timeout,
 } from './utils';
 
 // same as BuiltinIterator.take(n)
@@ -421,5 +432,87 @@ describe('isSecureContext', () => {
     // Not supported for our use case
     expect(isSecureContext('wss://example.com')).toBe(false);
     expect(isSecureContext('file:///users/sid')).toBe(false);
+  });
+});
+
+describe('removeQueryParams', () => {
+  it('should remove the query params from the URL', () => {
+    expect(removeQueryParams('https://example.com?foo=bar#baz')).toBe(
+      'https://example.com/',
+    );
+  });
+
+  it('should normalize the URL if there are no query params', () => {
+    expect(removeQueryParams('https://example.com')).toBe(
+      'https://example.com/',
+    );
+  });
+});
+
+describe('isOkState', () => {
+  it('should return true if no state is set', () => {
+    expect(isOkState({})).toBe(true);
+    expect(
+      isOkState({ key_revoked: false, missing_host_permissions: false }),
+    ).toBe(true);
+  });
+
+  it('should return false if any state is set', () => {
+    expect(
+      isOkState({ key_revoked: true, missing_host_permissions: false }),
+    ).toBe(false);
+    expect(
+      isOkState({ key_revoked: false, missing_host_permissions: true }),
+    ).toBe(false);
+  });
+});
+
+describe('Timeout', () => {
+  vi.useFakeTimers();
+
+  let callback: MockedFunction<() => void>;
+  let timeout: Timeout;
+  beforeEach(() => {
+    callback = vi.fn<() => void>();
+    timeout = new Timeout(1000, callback);
+  });
+
+  afterEach(() => {
+    vi.clearAllTimers();
+  });
+
+  it('should call the callback after the specified time', () => {
+    vi.advanceTimersByTime(1000);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reset the timeout', () => {
+    timeout.reset(2000);
+    // @ts-expect-error for testing it's ok to access private properties
+    expect(timeout.ms).toBe(2000);
+    vi.advanceTimersByTime(2000);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should pause the timeout', () => {
+    timeout.pause();
+    vi.advanceTimersByTime(1000);
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should resume the timeout', () => {
+    timeout.pause();
+    vi.advanceTimersByTime(500);
+    timeout.resume();
+    vi.advanceTimersByTime(500);
+    expect(callback).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(500);
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should clear the timeout', () => {
+    timeout.clear();
+    vi.advanceTimersByTime(1000);
+    expect(callback).not.toHaveBeenCalled();
   });
 });

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { test as setup, expect } from './fixtures/base';
 import { authFile } from './fixtures/helpers';
 import { TEST_WALLET_ORIGIN } from './helpers/testWallet';
-import { getJWKS } from '@/shared/helpers';
+import { getJWKS } from '@/background/utils';
 import type { JWK } from '@interledger/open-payments';
 
 // Authenticate with wallet once in "setup" so we don't have to do it over and

@@ -1,5 +1,5 @@
-import type { Browser, Tabs } from 'webextension-polyfill';
-import type { Storage, Tab } from '../types';
+import type { Browser } from 'webextension-polyfill';
+import type { Storage } from '../types';
 
 export const notNullOrUndef = <T>(
   t: T | null | undefined,
@@ -39,11 +39,6 @@ export function isNotNull<T>(value: T | null): value is T {
 
 export const normalizeHostname = (hostname: string): string =>
   hostname.startsWith('www.') ? hostname.slice(4) : hostname;
-
-export const removeQueryParams = (urlString: string) => {
-  const url = new URL(urlString);
-  return url.origin + url.pathname;
-};
 
 export const ensureEnd = (str: string, suffix: string) => {
   return str.endsWith(suffix) ? str : str + suffix;
@@ -98,10 +93,6 @@ export function memoize<T extends () => Promise<unknown>>(
   };
 }
 
-export const isOkState = (state: Storage['state']) => {
-  return Object.values(state).every((value) => value === false);
-};
-
 export type BrowserName = 'chrome' | 'edge' | 'firefox' | 'safari' | 'unknown';
 
 export const getBrowserName = (
@@ -131,10 +122,6 @@ export const getBrowserName = (
   }
 
   return 'unknown';
-};
-
-export const isTabWithUrl = (tab: Tabs.Tab): tab is Tab => {
-  return !!tab.id && !!tab.url;
 };
 
 /** @see {@linkcode Storage['consent']} */

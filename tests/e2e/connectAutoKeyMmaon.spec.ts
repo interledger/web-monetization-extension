@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures/base';
-import { withResolvers, getJWKS } from '@/shared/helpers';
+import { withResolvers } from '@/shared/helpers';
+import { getJWKS } from '@/background/utils';
 import { fillPopup } from './pages/popup';
 import { URLS, login, revokeKey } from './helpers/mmaon';
 import { getStorage } from './fixtures/helpers';
