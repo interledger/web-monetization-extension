@@ -1,5 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { Browser } from 'webextension-polyfill';
+import { describe, expect, it } from 'vitest';
 import {
   ErrorWithKey,
   errorWithKey,
@@ -7,19 +6,10 @@ import {
   isErrorWithKey,
   tFactory,
 } from '../helpers/i18n';
-
-function makeI18nBrowser() {
-  return {
-    i18n: {
-      getMessage: vi.fn<Browser['i18n']['getMessage']>(() => 'translated'),
-    },
-  };
-}
-
-// the fake above only implements the slice of Browser['i18n'] tFactory needs
-type FakeI18nBrowser = ReturnType<typeof makeI18nBrowser>;
-const asI18nBrowser = (browser: FakeI18nBrowser) =>
-  browser as unknown as Pick<Browser, 'i18n'>;
+import {
+  asBrowser,
+  makeBrowser,
+} from '@/background/services/__tests__/helpers';
 
 describe('errorWithKey / ErrorWithKey', () => {
   it('errorWithKey creates a plain object with key, substitutions and cause', () => {
@@ -83,9 +73,9 @@ describe('errorWithKeyToJSON', () => {
 
 describe('tFactory', () => {
   it('delegates to browser.i18n.getMessage for string keys', () => {
-    const browser = makeI18nBrowser();
-    const t = tFactory(asI18nBrowser(browser));
-    expect(t('appDescription')).toBe('translated');
+    const browser = makeBrowser();
+    const t = tFactory(asBrowser(browser));
+    expect(t('appDescription')).toBe('appDescription');
     expect(browser.i18n.getMessage).toHaveBeenCalledWith(
       'appDescription',
       undefined,
@@ -93,8 +83,8 @@ describe('tFactory', () => {
   });
 
   it('passes substitutions through for string keys', () => {
-    const browser = makeI18nBrowser();
-    const t = tFactory(asI18nBrowser(browser));
+    const browser = makeBrowser();
+    const t = tFactory(asBrowser(browser));
     t('disconnectWallet_error', ['oops']);
     expect(browser.i18n.getMessage).toHaveBeenCalledWith(
       'disconnectWallet_error',
@@ -103,8 +93,8 @@ describe('tFactory', () => {
   });
 
   it('supports being called with an ErrorWithKeyLike object', () => {
-    const browser = makeI18nBrowser();
-    const t = tFactory(asI18nBrowser(browser));
+    const browser = makeBrowser();
+    const t = tFactory(asBrowser(browser));
     t(errorWithKey('disconnectWallet_error', ['x']));
     expect(browser.i18n.getMessage).toHaveBeenCalledWith(
       'disconnectWallet_error',

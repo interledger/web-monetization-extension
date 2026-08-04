@@ -58,7 +58,9 @@ export const makeBrowser = () => ({
       .fn<MockedAsync<Browser['windows']['getLastFocused']>>()
       .mockResolvedValue({ id: 1 }),
   },
-
+  i18n: {
+    getMessage: vi.fn<Browser['i18n']['getMessage']>((key) => key),
+  },
   tabs: {
     query: vi
       .fn<
