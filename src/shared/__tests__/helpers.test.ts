@@ -191,6 +191,12 @@ describe('getNextOccurrence', () => {
       addSeconds(now, 30),
     );
   });
+
+  it('should throw for a malformed interval', () => {
+    expect(() => getNextOccurrence('not-an-interval')).toThrow(
+      'Invalid interval: not-an-interval',
+    );
+  });
 });
 
 describe('toWalletAddressUrl', () => {
