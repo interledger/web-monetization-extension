@@ -29,7 +29,7 @@ describe('exportJWK', () => {
     expect(exportJWK(key, 'kid1')).toEqual({
       kty: 'OKP',
       crv: 'Ed25519',
-      x: 'AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE',
+      x: 'AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE', // cspell:disable-line
       kid: 'kid1',
     });
   });
