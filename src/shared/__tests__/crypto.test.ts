@@ -40,6 +40,24 @@ describe('exportJWK', () => {
     const jwk = exportJWK(key, 'kid2');
     expect(jwk.x).not.toMatch(/[+/=]/);
   });
+
+  it('exports real generateEd25519KeyPair public key', async () => {
+    const { publicKey } = await generateEd25519KeyPair();
+    const jwk = exportJWK(publicKey, 'kid3');
+
+    expect(jwk).toEqual({
+      kty: 'OKP',
+      crv: 'Ed25519',
+      x: expect.any(String),
+      kid: 'kid3',
+    });
+
+    const decoded = Uint8Array.from(
+      atob(jwk.x.replace(/-/g, '+').replace(/_/g, '/')),
+      (c) => c.charCodeAt(0),
+    );
+    expect(decoded).toEqual(publicKey);
+  });
 });
 
 describe('createContentDigestHeader', () => {
