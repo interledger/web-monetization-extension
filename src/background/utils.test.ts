@@ -10,7 +10,7 @@ import {
   type MockedFunction,
 } from 'vitest';
 
-import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
+import type { Runtime } from 'webextension-polyfill';
 
 import type { GrantDetails } from '@/shared/types';
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
@@ -50,7 +50,12 @@ import {
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from './utils';
-import { makeWallet } from './services/__tests__/helpers';
+import {
+  asBrowser,
+  type FakeBrowser,
+  makeBrowser,
+  makeWallet,
+} from './services/__tests__/helpers';
 
 // same as BuiltinIterator.take(n)
 function take<T>(iter: IterableIterator<T>, n: number) {
@@ -1104,67 +1109,6 @@ describe('getConnectWalletBudgetInfo', () => {
     });
   });
 });
-
-// wraps a real Browser method's own param types with a relaxed (partial)
-// resolved value, so tests can pass minimal tab/window fixtures
-type MockedAsync<Method extends (...args: never[]) => Promise<unknown>> = (
-  ...args: Parameters<Method>
-) => Promise<Partial<Awaited<ReturnType<Method>>>>;
-
-// same, but also allows resolving `undefined` for a "not found" lookup
-type MockedAsyncOptional<
-  Method extends (...args: never[]) => Promise<unknown>,
-> = (
-  ...args: Parameters<Method>
-) => Promise<Partial<Awaited<ReturnType<Method>>> | undefined>;
-
-function makeBrowser() {
-  const windows = {
-    getLastFocused: vi
-      .fn<MockedAsync<Browser['windows']['getLastFocused']>>()
-      .mockResolvedValue({ id: 1 }),
-  };
-
-  const runtime = {
-    getURL: vi.fn<Browser['runtime']['getURL']>(
-      (path) => `chrome-extension://ext-id/${path}`,
-    ),
-    onConnect: {
-      addListener: vi.fn<Browser['runtime']['onConnect']['addListener']>(),
-      removeListener:
-        vi.fn<Browser['runtime']['onConnect']['removeListener']>(),
-    },
-  };
-
-  const tabs = {
-    query: vi
-      .fn<
-        (
-          ...args: Parameters<Browser['tabs']['query']>
-        ) => Promise<Partial<Tabs.Tab>[]>
-      >()
-      .mockResolvedValue([]),
-    get: vi
-      .fn<MockedAsyncOptional<Browser['tabs']['get']>>()
-      .mockResolvedValue(undefined),
-    update: vi
-      .fn<MockedAsync<Browser['tabs']['update']>>()
-      .mockResolvedValue({}),
-    create: vi
-      .fn<MockedAsync<Browser['tabs']['create']>>()
-      .mockResolvedValue({ id: 1 }),
-    remove: vi.fn<Browser['tabs']['remove']>().mockResolvedValue(undefined),
-    highlight: vi
-      .fn<MockedAsync<Browser['tabs']['highlight']>>()
-      .mockResolvedValue({}),
-  };
-
-  return { windows, tabs, runtime };
-}
-
-// the fake above only implements the slice of Browser each test needs
-type FakeBrowser = ReturnType<typeof makeBrowser>;
-const asBrowser = (browser: FakeBrowser) => browser as unknown as Browser;
 
 describe('getCurrentActiveTab', () => {
   it('queries the active tab in the last-focused window', async () => {
