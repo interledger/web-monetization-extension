@@ -10,19 +10,30 @@ import {
   type MockedFunction,
 } from 'vitest';
 
+import type { Runtime } from 'webextension-polyfill';
+
 import type { GrantDetails } from '@/shared/types';
+import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 import {
   bigIntMax,
+  closeTabsByFilter,
   computeBalance,
   computeRate,
   convert,
   convertWithExchangeRate,
+  createTab,
+  createTabIfNotExists,
   dedupe,
   getAppUrl,
+  getCurrentActiveTab,
   getExchangeRate,
   getJWKS,
   getNextSendableAmount,
+  getSender,
+  getTab,
+  getTabId,
   getWalletInformation,
+  highlightTab,
   isAbortSignalTimeout,
   isBrowserInternalPage,
   isBrowserNewTabPage,
@@ -30,13 +41,21 @@ import {
   isOkState,
   isSecureContext,
   isTabWithUrl,
+  onPopupOpen,
+  openAppPage,
+  redirectToPostConnect,
   removeQueryParams,
   Timeout,
   toAmount,
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from './utils';
-import { makeWallet } from './services/__tests__/helpers';
+import {
+  asBrowser,
+  type FakeBrowser,
+  makeBrowser,
+  makeWallet,
+} from './services/__tests__/helpers';
 
 // same as BuiltinIterator.take(n)
 function take<T>(iter: IterableIterator<T>, n: number) {
@@ -562,7 +581,7 @@ describe('Timeout', () => {
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
-  it('does not schedule anything when constructed with ms = 0', () => {
+  it('does not schedule anything when constructed with ms <= 0', () => {
     const cb = vi.fn<() => void>();
     new Timeout(0, cb);
     vi.advanceTimersByTime(10_000);
@@ -1088,5 +1107,361 @@ describe('getConnectWalletBudgetInfo', () => {
       defaultRateOfPay: '60',
       maxRateOfPay: '100',
     });
+  });
+});
+
+describe('getCurrentActiveTab', () => {
+  it('queries the active tab in the last-focused window', async () => {
+    const browser = makeBrowser();
+    browser.windows.getLastFocused.mockResolvedValue({ id: 42 });
+    browser.tabs.query.mockResolvedValue([{ id: 7 }]);
+    const tab = await getCurrentActiveTab(asBrowser(browser));
+    expect(browser.tabs.query).toHaveBeenCalledWith({
+      active: true,
+      windowId: 42,
+    });
+    expect(tab).toEqual({ id: 7 });
+  });
+
+  it('queries without a windowId when the windows API is unavailable', async () => {
+    const browser = makeBrowser();
+    // @ts-expect-error simulating a platform without the windows API (Firefox Android)
+    browser.windows = undefined;
+    browser.tabs.query.mockResolvedValue([{ id: 3 }]);
+    const tab = await getCurrentActiveTab(asBrowser(browser));
+    expect(browser.tabs.query).toHaveBeenCalledWith({
+      active: true,
+      windowId: undefined,
+    });
+    expect(tab).toEqual({ id: 3 });
+  });
+});
+
+describe('highlightTab', () => {
+  it('highlights the tab at its current index/window', async () => {
+    const browser = makeBrowser();
+    browser.tabs.get.mockResolvedValue({ index: 2, windowId: 5 });
+    await highlightTab(asBrowser(browser), 9);
+    expect(browser.tabs.get).toHaveBeenCalledWith(9);
+    expect(browser.tabs.highlight).toHaveBeenCalledWith({
+      tabs: [2],
+      windowId: 5,
+    });
+  });
+
+  it('does nothing when the highlight API is unavailable', async () => {
+    const browser = makeBrowser();
+    // @ts-expect-error simulating a platform without tabs.highlight
+    browser.tabs.highlight = undefined;
+    await highlightTab(asBrowser(browser), 9);
+    expect(browser.tabs.get).not.toHaveBeenCalled();
+  });
+
+  it('swallows a failure from tabs.highlight', async () => {
+    const browser = makeBrowser();
+    browser.tabs.get.mockResolvedValue({ index: 2, windowId: 5 });
+    browser.tabs.highlight.mockRejectedValue(new Error('cannot highlight'));
+    await expect(highlightTab(asBrowser(browser), 9)).resolves.toBeUndefined();
+  });
+});
+
+describe('closeTabsByFilter', () => {
+  it('removes tabs matching the filter', async () => {
+    const browser = makeBrowser();
+    browser.tabs.query.mockResolvedValue([
+      { id: 1, url: 'https://a.com' },
+      { id: 2, url: 'https://b.com' },
+    ]);
+    await closeTabsByFilter(
+      asBrowser(browser),
+      (tab) => tab.url === 'https://b.com',
+    );
+    expect(browser.tabs.remove).toHaveBeenCalledTimes(1);
+    expect(browser.tabs.remove).toHaveBeenCalledWith(2);
+  });
+
+  it('removes nothing when no tab matches', async () => {
+    const browser = makeBrowser();
+    browser.tabs.query.mockResolvedValue([{ id: 1, url: 'https://a.com' }]);
+    await closeTabsByFilter(asBrowser(browser), () => false);
+    expect(browser.tabs.remove).not.toHaveBeenCalled();
+  });
+});
+
+describe('createTab', () => {
+  it('creates a tab and returns its id', async () => {
+    const browser = makeBrowser();
+    browser.tabs.create.mockResolvedValue({ id: 11 });
+    const tabId = await createTab(asBrowser(browser), 'https://example.com');
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: 'https://example.com',
+    });
+    expect(tabId).toBe(11);
+  });
+});
+
+describe('createTabIfNotExists', () => {
+  it('creates a new tab when no tabId is given', async () => {
+    const browser = makeBrowser();
+    browser.tabs.create.mockResolvedValue({ id: 21 });
+    const tabId = await createTabIfNotExists(
+      asBrowser(browser),
+      'https://example.com',
+    );
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: 'https://example.com',
+    });
+    expect(tabId).toBe(21);
+  });
+
+  it('reuses and updates the tab when it still exists', async () => {
+    const browser = makeBrowser();
+    browser.tabs.get.mockResolvedValue({ id: 5 });
+    const tabId = await createTabIfNotExists(
+      asBrowser(browser),
+      'https://example.com',
+      5,
+    );
+    expect(browser.tabs.get).toHaveBeenCalledWith(5);
+    expect(browser.tabs.update).toHaveBeenCalledWith(5, {
+      url: 'https://example.com',
+    });
+    expect(browser.tabs.create).not.toHaveBeenCalled();
+    expect(tabId).toBe(5);
+  });
+
+  it('falls back to creating a tab when the given tabId no longer exists', async () => {
+    const browser = makeBrowser();
+    browser.tabs.get.mockRejectedValue(new Error('No tab'));
+    browser.tabs.create.mockResolvedValue({ id: 8 });
+    const tabId = await createTabIfNotExists(
+      asBrowser(browser),
+      'https://example.com',
+      999,
+    );
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: 'https://example.com',
+    });
+    expect(tabId).toBe(8);
+  });
+
+  it('reuses the existing tab without updating it when url is empty', async () => {
+    const browser = makeBrowser();
+    browser.tabs.get.mockResolvedValue({ id: 5 });
+    const tabId = await createTabIfNotExists(asBrowser(browser), '', 5);
+    expect(browser.tabs.get).toHaveBeenCalledWith(5);
+    expect(browser.tabs.update).not.toHaveBeenCalled();
+    expect(tabId).toBe(5);
+  });
+});
+
+describe('openAppPage', () => {
+  it('updates and highlights an existing app tab found by tabId', async () => {
+    const browser = makeBrowser();
+    browser.tabs.get.mockResolvedValue({ id: 3, index: 0, windowId: 1 });
+    const result = await openAppPage(asBrowser(browser), '/connect', {
+      tabId: 3,
+    });
+    expect(browser.tabs.update).toHaveBeenCalledWith(3, {
+      url: 'chrome-extension://ext-id/pages/app/index.html#/connect',
+    });
+    expect(browser.tabs.highlight).toHaveBeenCalledWith({
+      tabs: [0],
+      windowId: 1,
+    });
+    expect(result).toEqual({ id: 3, index: 0, windowId: 1 });
+  });
+
+  it('finds an already-open app tab via tabs.query when no tabId matches', async () => {
+    const browser = makeBrowser();
+    const appTab = {
+      id: 4,
+      index: 1,
+      windowId: 1,
+      url: 'chrome-extension://ext-id/pages/app/index.html#/home',
+    };
+    browser.tabs.get
+      // first call: openAppPage's own lookup by the given (stale) tabId
+      .mockRejectedValueOnce(new Error('not found'))
+      // second call: highlightTab looking up the found app tab
+      .mockResolvedValueOnce({
+        index: appTab.index,
+        windowId: appTab.windowId,
+      });
+    browser.tabs.query.mockResolvedValue([appTab]);
+    const result = await openAppPage(asBrowser(browser), '/connect', {
+      tabId: 999,
+    });
+    expect(browser.tabs.update).toHaveBeenCalledWith(4, {
+      url: 'chrome-extension://ext-id/pages/app/index.html#/connect',
+    });
+    expect(result).toEqual(appTab);
+  });
+
+  it('creates a new tab when no app tab is open', async () => {
+    const browser = makeBrowser();
+    browser.tabs.create.mockResolvedValue({ id: 9 });
+    const result = await openAppPage(asBrowser(browser), '/connect');
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: 'chrome-extension://ext-id/pages/app/index.html#/connect',
+    });
+    expect(result).toEqual({ id: 9 });
+  });
+});
+
+describe('redirectToPostConnect', () => {
+  it('opens the app at the post-connect route', async () => {
+    const browser = makeBrowser();
+    await redirectToPostConnect(asBrowser(browser), 5);
+    expect(browser.tabs.create).toHaveBeenCalledWith({
+      url: 'chrome-extension://ext-id/pages/app/index.html#/post-connect',
+    });
+  });
+});
+
+describe('onPopupOpen', () => {
+  function makePort(name: string, error?: unknown) {
+    return {
+      name,
+      error,
+      onDisconnect: { addListener: vi.fn(), removeListener: vi.fn() },
+    };
+  }
+
+  function getRegisteredListener(browser: FakeBrowser) {
+    return browser.runtime.onConnect.addListener.mock.calls[0][0];
+  }
+
+  it('invokes the callback when the popup connects', () => {
+    const browser = makeBrowser();
+    const callback = vi.fn().mockResolvedValue(undefined);
+    onPopupOpen(asBrowser(browser), callback);
+
+    const listener = getRegisteredListener(browser);
+    listener(makePort(BACKGROUND_TO_POPUP_CONNECTION_NAME) as never);
+
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a connection that errored', () => {
+    const browser = makeBrowser();
+    const callback = vi.fn();
+    onPopupOpen(asBrowser(browser), callback);
+
+    const listener = getRegisteredListener(browser);
+    listener(
+      makePort(BACKGROUND_TO_POPUP_CONNECTION_NAME, new Error('boom')) as never,
+    );
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('ignores connections on other ports', () => {
+    const browser = makeBrowser();
+    const callback = vi.fn();
+    onPopupOpen(asBrowser(browser), callback);
+
+    const listener = getRegisteredListener(browser);
+    listener(makePort('some-other-port') as never);
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('registers a disconnect listener that runs the close callback and detaches itself', () => {
+    const browser = makeBrowser();
+    const callback = vi.fn().mockResolvedValue(undefined);
+    const closeCallback = vi.fn().mockResolvedValue(undefined);
+    onPopupOpen(asBrowser(browser), callback, closeCallback);
+
+    const listener = getRegisteredListener(browser);
+    const port = makePort(BACKGROUND_TO_POPUP_CONNECTION_NAME);
+    listener(port as never);
+
+    expect(port.onDisconnect.addListener).toHaveBeenCalledTimes(1);
+    const disconnectListener = port.onDisconnect.addListener.mock.calls[0][0];
+    disconnectListener();
+
+    expect(closeCallback).toHaveBeenCalledTimes(1);
+    expect(port.onDisconnect.removeListener).toHaveBeenCalledWith(
+      disconnectListener,
+    );
+  });
+
+  it('the returned cleanup function removes the connect listener', () => {
+    const browser = makeBrowser();
+    const cleanup = onPopupOpen(asBrowser(browser), vi.fn());
+    cleanup();
+    expect(browser.runtime.onConnect.removeListener).toHaveBeenCalled();
+  });
+
+  it('the cleanup function also detaches an already-connected port', () => {
+    const browser = makeBrowser();
+    const callback = vi.fn().mockResolvedValue(undefined);
+    const closeCallback = vi.fn().mockResolvedValue(undefined);
+    const cleanup = onPopupOpen(asBrowser(browser), callback, closeCallback);
+
+    const listener = getRegisteredListener(browser);
+    const port = makePort(BACKGROUND_TO_POPUP_CONNECTION_NAME);
+    listener(port as never);
+    const disconnectListener = port.onDisconnect.addListener.mock.calls[0][0];
+
+    cleanup();
+
+    expect(port.onDisconnect.removeListener).toHaveBeenCalledWith(
+      disconnectListener,
+    );
+    // the port disconnecting on its own never fired, so the close callback
+    // (as opposed to the cleanup itself) should not have run
+    expect(closeCallback).not.toHaveBeenCalled();
+  });
+});
+
+describe('getTabId', () => {
+  it('returns the sender tab id', () => {
+    const sender = { tab: { id: 42 } } as Runtime.MessageSender;
+    expect(getTabId(sender)).toBe(42);
+  });
+
+  it('throws when the sender has no tab', () => {
+    const sender = {} as Runtime.MessageSender;
+    expect(() => getTabId(sender)).toThrow(/sender\.tab/);
+  });
+
+  it('throws when the tab has no id', () => {
+    const sender = { tab: {} } as Runtime.MessageSender;
+    expect(() => getTabId(sender)).toThrow(/tab\.id/);
+  });
+});
+
+describe('getTab', () => {
+  it('returns the sender tab', () => {
+    const tab = { id: 42, url: 'https://example.com' };
+    const sender = { tab } as Runtime.MessageSender;
+    expect(getTab(sender)).toEqual(tab);
+  });
+
+  it('throws when the sender has no tab', () => {
+    const sender = {} as Runtime.MessageSender;
+    expect(() => getTab(sender)).toThrow(/sender\.tab/);
+  });
+});
+
+describe('getSender', () => {
+  it('extracts tabId, frameId and url from the message sender', () => {
+    const sender = {
+      tab: { id: 42 },
+      frameId: 0,
+      url: 'https://example.com',
+    } as Runtime.MessageSender;
+    expect(getSender(sender)).toEqual({
+      tabId: 42,
+      frameId: 0,
+      url: 'https://example.com',
+    });
+  });
+
+  it('throws when frameId is missing', () => {
+    const sender = { tab: { id: 42 } } as Runtime.MessageSender;
+    expect(() => getSender(sender)).toThrow(/frameId/);
   });
 });
