@@ -52,10 +52,14 @@ export const makeBrowser = () => ({
       removeListener:
         vi.fn<Browser['runtime']['onConnect']['removeListener']>(),
     },
+    sendMessage: vi.fn<Browser['runtime']['sendMessage']>(),
   },
   windows: {
     getLastFocused: vi
       .fn<MockedAsync<Browser['windows']['getLastFocused']>>()
+      .mockResolvedValue({ id: 1 }),
+    getCurrent: vi
+      .fn<MockedAsync<Browser['windows']['getCurrent']>>()
       .mockResolvedValue({ id: 1 }),
   },
   i18n: {
@@ -82,6 +86,7 @@ export const makeBrowser = () => ({
     highlight: vi
       .fn<MockedAsync<Browser['tabs']['highlight']>>()
       .mockResolvedValue({}),
+    sendMessage: vi.fn<Browser['tabs']['sendMessage']>(),
   },
 });
 
