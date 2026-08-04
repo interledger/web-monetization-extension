@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { Runtime } from 'webextension-polyfill';
 import { OpenPaymentsClientError } from '@interledger/open-payments';
+
 import { BACKGROUND_TO_POPUP_CONNECTION_NAME } from '@/shared/messages';
 import type { GrantDetails, Storage } from '@/shared/types';
+
 import { EventsService } from '../events';
 import {
   GrantBalanceService,
@@ -62,7 +65,7 @@ function makePort(name: string) {
     disconnect: () => {
       for (const cb of disconnectListeners) cb();
     },
-  };
+  } as unknown as Runtime.Port;
 }
 
 describe('open_payments.outgoing_payment_created event handling', () => {
