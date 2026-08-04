@@ -562,7 +562,7 @@ describe('Timeout', () => {
     expect(callback).toHaveBeenCalledTimes(2);
   });
 
-  it('does not schedule anything when constructed with ms <= 0', () => {
+  it('does not schedule anything when constructed with ms = 0', () => {
     const cb = vi.fn<() => void>();
     new Timeout(0, cb);
     vi.advanceTimersByTime(10_000);
@@ -675,6 +675,7 @@ describe('isBrowserInternalPage', () => {
 
   it('returns false for regular http(s) pages', () => {
     expect(isBrowserInternalPage(new URL('https://example.com'))).toBe(false);
+    expect(isBrowserInternalPage(new URL('http://example.com'))).toBe(false);
   });
 });
 
