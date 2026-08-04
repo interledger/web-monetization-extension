@@ -689,6 +689,7 @@ describe('isBrowserInternalPage', () => {
 
   it('returns false for regular http(s) pages', () => {
     expect(isBrowserInternalPage(new URL('https://example.com'))).toBe(false);
+    expect(isBrowserInternalPage(new URL('http://example.com'))).toBe(false);
   });
 });
 
