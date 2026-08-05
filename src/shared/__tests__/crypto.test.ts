@@ -37,6 +37,7 @@ describe('exportJWK', () => {
   it('produces a base64url string without padding or unsafe characters', () => {
     // 0xfb/0xff bytes force `+`/`/`/`=` to appear in plain base64
     const key = new Uint8Array(32).fill(0xff);
+    key[0] = 0xfb;
     const jwk = exportJWK(key, 'kid2');
     expect(jwk.x).not.toMatch(/[+/=]/);
   });
