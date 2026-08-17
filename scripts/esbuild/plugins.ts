@@ -30,18 +30,22 @@ export const getPlugins = ({
     // package, but we need it. We instead use custom crypto layer based on
     // @noble/hashes in for our use case. crypto-browserify and the JSPM crypto
     // package are too large and not tree shakeable, so we don't use them.
-    nodeBuiltin({ exclude: ['crypto', 'buffer'] }),
+    nodeBuiltin({ exclude: ['crypto', 'constants', 'buffer'] }),
     {
-      name: 'crypto-for-extension',
+      name: 'node-polyfills-for-extension',
       setup(build) {
         build.onResolve({ filter: /^crypto$/ }, () => ({
           path: require.resolve('./polyfill/lite-crypto.ts'),
+        }));
+        build.onResolve({ filter: /^constants$/ }, () => ({
+          path: require.resolve('./polyfill/lite-constants.ts'),
         }));
       },
     } satisfies ESBuildPlugin,
     ignorePackagePlugin([
       /@apidevtools[/|\\]json-schema-ref-parser/,
       /@interledger[/|\\]openapi/,
+      /@interledger[/|\\]http-signature-utils/,
     ]),
     esbuildStylePlugin({
       extract: true,
