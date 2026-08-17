@@ -42,10 +42,11 @@ jobs:
             await script({ github, context, core })
 
       - name: Delete existing release # To keep the workflow idempotent.
-        run: gh release delete v${{ steps.version.outputs.version }}-preview --cleanup-tag --yes
+        run: gh release delete "v${RELEASE_VERSION}-preview" --cleanup-tag --yes
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
 
       - name: Release
         uses: softprops/action-gh-release@v3.0.1
