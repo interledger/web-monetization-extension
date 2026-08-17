@@ -5,11 +5,8 @@ import {
   MessageManager,
   type AppToBackgroundMessage,
 } from '@/shared/messages';
-import {
-  TelemetryContextProvider,
-  useBrowser,
-  useTranslation,
-} from '@/pages/shared/lib/context';
+import { useBrowser, useTranslation } from '@/pages/shared/lib/context';
+import { TelemetryContextProvider } from '@/pages/shared/lib/telemetry';
 import { dispatch } from './store';
 
 export {
