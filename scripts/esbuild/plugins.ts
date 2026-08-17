@@ -46,7 +46,6 @@ export const getPlugins = ({
       /@apidevtools[/|\\]json-schema-ref-parser/,
       /@interledger[/|\\]openapi/,
       /@interledger[/|\\]http-signature-utils/,
-      /^pino$/,
     ]),
     esbuildStylePlugin({
       extract: true,
