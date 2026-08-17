@@ -5,6 +5,9 @@ on:
   pull_request:
     branches: [main, 'v[0-9]+.x']
 
+permissions:
+  contents: read
+
 jobs:
   filter:
     name: Prepare
@@ -83,8 +86,10 @@ jobs:
         if: always()
         shell: bash
         working-directory: tests/e2e/playwright-report
+        env:
+          ZIP_PASSWORD: ${{ secrets.E2E_PLAYWRIGHT_REPORT_PASSWORD }}
         run: |
-          zip -r -P ${{ secrets.E2E_PLAYWRIGHT_REPORT_PASSWORD }} ../playwright-report.zip *
+          zip -r -P "$ZIP_PASSWORD" ../playwright-report.zip *
 
       - name: Upload report
         uses: actions/upload-artifact@v7

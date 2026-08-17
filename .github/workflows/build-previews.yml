@@ -7,6 +7,11 @@ on:
     workflows:
       - 'PR Checks'
 
+permissions:
+  contents: read
+  actions: read
+  pull-requests: write
+
 jobs:
   comment:
     name: Add comment with extension preview builds

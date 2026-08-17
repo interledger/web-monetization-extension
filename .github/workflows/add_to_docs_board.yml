@@ -4,6 +4,8 @@ on:
     types:
       - labeled
 
+permissions: {}
+
 jobs:
   add-to-project:
     if: github.event.label.name == 'user-docs'

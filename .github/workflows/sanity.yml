@@ -6,6 +6,9 @@ on:
       - main
       - 'v[0-9]+.x'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build extension
