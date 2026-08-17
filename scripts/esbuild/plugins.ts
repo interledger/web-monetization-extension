@@ -30,7 +30,7 @@ export const getPlugins = ({
     // package, but we need it. We instead use custom crypto layer based on
     // @noble/hashes in for our use case. crypto-browserify and the JSPM crypto
     // package are too large and not tree shakeable, so we don't use them.
-    nodeBuiltin({ exclude: ['crypto', 'constants'] }),
+    nodeBuiltin({ exclude: ['crypto', 'constants', 'buffer'] }),
     {
       name: 'node-polyfills-for-extension',
       setup(build) {

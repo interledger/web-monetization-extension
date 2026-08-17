@@ -4,9 +4,9 @@ import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import {
   useBrowser,
   useBrowserInfo,
-  useTelemetry,
   useTranslation,
 } from '@/pages/shared/lib/context';
+import { useTelemetry } from '@/pages/shared/lib/telemetry';
 import { dispatch, usePopupState } from '@/popup/lib/store';
 import { useMessage } from '@/popup/lib/context';
 import type { Browser } from '@/shared/browser';
