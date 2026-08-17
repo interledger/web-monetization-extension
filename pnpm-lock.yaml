@@ -56,9 +56,6 @@ importers:
       react-dom:
         specifier: ^19.2.7
         version: 19.2.7(react@19.2.7)
-      safe-buffer:
-        specifier: 5.2.1
-        version: 5.2.1
       structured-headers:
         specifier: ^2.0.2
         version: 2.0.2
