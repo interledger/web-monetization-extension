@@ -172,6 +172,7 @@ export class OpenPaymentsService {
       validateResponses: false,
       requestTimeoutMs: 10_000,
       walletAddressUrl,
+      logger: noopLogger,
       authenticatedRequestInterceptor: async (request) => {
         if (!request.method || !request.url) {
           throw new Error('Cannot intercept request: url or method missing');
@@ -216,6 +217,23 @@ export class OpenPaymentsService {
     });
   }
 }
+
+// open-payments uses pino for debug/error logging, which we don't need. passing
+// this avoids bundling pino (see ignorePackagePlugin in /esbuild)
+const noopLogger = {
+  trace() {},
+  debug() {},
+  info() {},
+  warn() {},
+  error() {},
+  fatal() {},
+  silent() {},
+  child() {
+    return noopLogger;
+  },
+} as unknown as NonNullable<
+  Parameters<typeof createAuthenticatedClient>[0]['logger']
+>;
 
 export const isOpenPaymentsClientError = (error: unknown) =>
   error instanceof OpenPaymentsClientError;
