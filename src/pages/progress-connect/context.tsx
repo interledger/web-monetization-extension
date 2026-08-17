@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Runtime } from 'webextension-polyfill';
-import { useBrowser } from '@/popup/lib/context';
+import { useBrowser } from '@/pages/shared/lib/context';
 import type {
   KeyAutoAddToBackgroundMessage,
   StepWithStatus,

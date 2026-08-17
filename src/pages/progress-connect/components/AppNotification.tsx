@@ -3,7 +3,7 @@ import { HeaderEmpty } from '@/popup/components/layout/HeaderEmpty';
 import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
 import { Countdown } from '@/pages/progress-connect/components/Countdown';
 import { useState } from '@/pages/progress-connect/context';
-import { useBrowser } from '@/popup/lib/context';
+import { useBrowser } from '@/pages/shared/lib/context';
 
 export function AppNotification() {
   const browser = useBrowser();

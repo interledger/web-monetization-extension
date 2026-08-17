@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from '@/pages/progress-connect/context';
-import { useBrowser } from '@/popup/lib/context';
+import { useBrowser } from '@/pages/shared/lib/context';
 import { Steps } from './Steps';
 
 export function AppFullscreen() {
