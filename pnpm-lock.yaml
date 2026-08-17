@@ -40,7 +40,7 @@ importers:
         version: 8.0.3
       imd:
         specifier: npm:@sidvishnoi/imd@^0.0.2
-        version: '@sidvishnoi/imd@0.0.2(preact@10.29.2)(react@19.2.7)'
+        version: '@sidvishnoi/imd@0.0.2(preact@10.29.2)(react@19.2.8)'
       iso8601-duration:
         specifier: ^2.1.4
         version: 2.1.4
@@ -51,11 +51,11 @@ importers:
         specifier: 1.396.1
         version: 1.396.1
       react:
-        specifier: ^19.2.7
-        version: 19.2.7
+        specifier: ^19.2.8
+        version: 19.2.8
       react-dom:
-        specifier: ^19.2.7
-        version: 19.2.7(react@19.2.7)
+        specifier: ^19.2.8
+        version: 19.2.8(react@19.2.8)
       structured-headers:
         specifier: ^2.0.2
         version: 2.0.2
@@ -64,13 +64,13 @@ importers:
         version: 3.6.0
       valtio:
         specifier: ^2.3.2
-        version: 2.3.2(@types/react@19.2.17)(react@19.2.7)
+        version: 2.3.2(@types/react@19.2.18)(react@19.2.8)
       webextension-polyfill:
         specifier: ^0.12.0
         version: 0.12.0
       wouter:
         specifier: ^3.10.0
-        version: 3.10.0(react@19.2.7)
+        version: 3.10.0(react@19.2.8)
     devDependencies:
       '@biomejs/biome':
         specifier: 2.5.3
@@ -92,7 +92,7 @@ importers:
         version: 6.9.1
       '@testing-library/react':
         specifier: ^16.3.2
-        version: 16.3.2(@testing-library/dom@10.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 16.3.2(@testing-library/dom@10.1.0)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/archiver':
         specifier: ^8.0.0
         version: 8.0.0
@@ -109,11 +109,11 @@ importers:
         specifier: ^24.13.3
         version: 24.13.3
       '@types/react':
-        specifier: ^19.2.17
-        version: 19.2.17
+        specifier: ^19.2.18
+        version: 19.2.18
       '@types/react-dom':
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.17)
+        specifier: ^19.2.4
+        version: 19.2.4(@types/react@19.2.18)
       '@types/webextension-polyfill':
         specifier: ^0.12.5
         version: 0.12.5
@@ -973,13 +973,13 @@ packages:
   '@types/node@24.13.3':
     resolution: {integrity: sha512-Dh8vAsV36ig5wa9OX4pXvMc9D3Veibfw2wix0CUwYODLD8nkj9UsLjASr49nPg+2eKzxhBV+v7L8pXvT4e639Q==}
 
-  '@types/react-dom@19.2.3':
-    resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
+  '@types/react-dom@19.2.4':
+    resolution: {integrity: sha512-Bsc+QHgp+P/F02XDzNCY9jnZNCUuLki36KT7VKrTXXLdHf+vHMNZnW1rVu5DNW/rCK+fya3DATySbLM4yhtKUw==}
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react@19.2.17':
-    resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
+  '@types/react@19.2.18':
+    resolution: {integrity: sha512-AnzbBERsrLKtk2XSfTbYRLjQPdy116Sty4q+T+Bp3IC4l6jNBvreVPAHmpq9qhXQM7CXZPjLVmGMw9sy+hxQ3w==}
 
   '@types/readdir-glob@1.1.5':
     resolution: {integrity: sha512-raiuEPUYqXu+nvtY2Pe8s8FEmZ3x5yAH4VkLdihcPdalvsHltomrRC9BzuStrJ9yk06470hS0Crw0f1pXqD+Hg==}
@@ -2084,16 +2084,16 @@ packages:
   quick-format-unescaped@4.0.4:
     resolution: {integrity: sha512-tYC1Q1hgyRuHgloV/YXs2w15unPVh8qfu/qCTfhTYamaw7fyhumKa2yGpdSo87vY32rIclj+4fWYQXUMs9EHvg==}
 
-  react-dom@19.2.7:
-    resolution: {integrity: sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==}
+  react-dom@19.2.8:
+    resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
     peerDependencies:
-      react: ^19.2.7
+      react: ^19.2.8
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react@19.2.7:
-    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
+  react@19.2.8:
+    resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
     engines: {node: '>=0.10.0'}
 
   readable-stream@2.3.8:
@@ -3047,10 +3047,10 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.2':
     optional: true
 
-  '@sidvishnoi/imd@0.0.2(preact@10.29.2)(react@19.2.7)':
+  '@sidvishnoi/imd@0.0.2(preact@10.29.2)(react@19.2.8)':
     optionalDependencies:
       preact: 10.29.2
-      react: 19.2.7
+      react: 19.2.8
 
   '@standard-schema/spec@1.1.0': {}
 
@@ -3148,15 +3148,15 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
 
-  '@testing-library/react@16.3.2(@testing-library/dom@10.1.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@testing-library/react@16.3.2(@testing-library/dom@10.1.0)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@babel/runtime': 7.28.4
       '@testing-library/dom': 10.1.0
-      react: 19.2.7
-      react-dom: 19.2.7(react@19.2.7)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
     optionalDependencies:
-      '@types/react': 19.2.17
-      '@types/react-dom': 19.2.3(@types/react@19.2.17)
+      '@types/react': 19.2.18
+      '@types/react-dom': 19.2.4(@types/react@19.2.18)
 
   '@types/archiver@8.0.0':
     dependencies:
@@ -3202,11 +3202,11 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@types/react-dom@19.2.3(@types/react@19.2.17)':
+  '@types/react-dom@19.2.4(@types/react@19.2.18)':
     dependencies:
-      '@types/react': 19.2.17
+      '@types/react': 19.2.18
 
-  '@types/react@19.2.17':
+  '@types/react@19.2.18':
     dependencies:
       csstype: 3.2.3
 
@@ -4239,14 +4239,14 @@ snapshots:
 
   quick-format-unescaped@4.0.4: {}
 
-  react-dom@19.2.7(react@19.2.7):
+  react-dom@19.2.8(react@19.2.8):
     dependencies:
-      react: 19.2.7
+      react: 19.2.8
       scheduler: 0.27.0
 
   react-is@17.0.2: {}
 
-  react@19.2.7: {}
+  react@19.2.8: {}
 
   readable-stream@2.3.8:
     dependencies:
@@ -4530,9 +4530,9 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  use-sync-external-store@1.4.0(react@19.2.7):
+  use-sync-external-store@1.4.0(react@19.2.8):
     dependencies:
-      react: 19.2.7
+      react: 19.2.8
 
   util-deprecate@1.0.2: {}
 
@@ -4540,12 +4540,12 @@ snapshots:
 
   uuid@9.0.1: {}
 
-  valtio@2.3.2(@types/react@19.2.17)(react@19.2.7):
+  valtio@2.3.2(@types/react@19.2.18)(react@19.2.8):
     dependencies:
       proxy-compare: 3.0.1
     optionalDependencies:
-      '@types/react': 19.2.17
-      react: 19.2.7
+      '@types/react': 19.2.18
+      react: 19.2.8
 
   vary@1.1.2: {}
 
@@ -4622,12 +4622,12 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  wouter@3.10.0(react@19.2.7):
+  wouter@3.10.0(react@19.2.8):
     dependencies:
       mitt: 3.0.1
-      react: 19.2.7
+      react: 19.2.8
       regexparam: 3.0.0
-      use-sync-external-store: 1.4.0(react@19.2.7)
+      use-sync-external-store: 1.4.0(react@19.2.8)
 
   wrap-ansi@7.0.0:
     dependencies:
