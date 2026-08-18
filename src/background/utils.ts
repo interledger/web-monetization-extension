@@ -62,7 +62,7 @@ export class Timeout {
 
   constructor(
     private ms: number,
-    private callback: () => void,
+    private callback: () => void | Promise<void>,
   ) {
     if (ms > 0) this.reset(ms);
   }
@@ -88,7 +88,7 @@ export class Timeout {
     }
     if (this.#remaining > 0) {
       this.timeout = setTimeout(() => {
-        this.callback();
+        void this.callback();
         this.reset(this.ms);
       }, this.#remaining);
     } else {
