@@ -19,14 +19,8 @@ Any person interested in testing the beta release of the Web Monetization extens
 
 ### Digital Wallets
 
-The main prerequisite for sending or receiving Web Monetization payments is to have a Web Monetization-enabled digital wallet. Web Monetization-enabled digital wallets are provided by licensed service providers. The wallet providers are regulated by the laws of the countries in which they operate.
+The main prerequisite for sending or receiving Web Monetization payments is to have a Web Monetization-enabled digital wallet. Web Monetization-enabled digital wallets are provided by licensed service providers. The wallet providers are regulated by the laws of the countries in which they operate. Wallet availability in a specific country, or availability in particular currency depends on the wallet provider.
 
-Below is a list of the available wallet providers if you want to use real money:
-
-- [Fynbos](https://wallet.fynbos.app)
-- [GateHub](https://gatehub.net)
-
-Wallet availability in a specific country, or availability in particular currency depends on the wallet provider.  
 We maintain a list of [Web Monetization compatible wallets](https://webmonetization.org/wallets/).
 
 #### Test Digital Wallet
@@ -39,17 +33,16 @@ You have the option to use “play” money from the [Interledger Test Wallet ap
 
 This test plan covers scenarios where you, as a website visitor, want to pay web monetized sites.
 
-1. Hardware: Any PC with internet access
-2. Digital wallet: A Web Monetization enabled digital wallet from which payments will be made
-3. Environment & software:  
-   a. Any operating system (OS)  
-   b. A Chromium-based Web browser (e.g. Chrome, Edge, Vivaldi, Brave) or Firefox
+1. Digital wallet: A Web Monetization enabled digital wallet from which payments will be made
+2. Environment & software:
+   a. Desktop: a Chromium-based Web browser (e.g. Chrome, Edge, Vivaldi, Brave), Firefox or Safari
+   b. Android: Firefox for Android
 
 ### Reporting Issues
 
 1. Use any screen recording application to record the steps and results of your testing (e.g. Loom, Camtasia etc.).
 2. File bugs or other issues, and monitor their status and resolution on [GitHub](https://github.com/interledger/web-monetization-extension/issues).
-3. Join the `#webmonetization` channel on [Slack](https://communityinviter.com/apps/interledger/interledger-working-groups-slack).
+3. Join the `#webmonetization` channel on [Slack](https://join.slack.com/t/interledger/shared_invite/zt-44g089zrn-XdSIiHF~cs8Oo_MBmSfECA).
 
 ### Prerequisites
 
@@ -62,14 +55,13 @@ Before you start testing, sign-up for a wallet:
    c. Once your wallet provider completes all sign-up and verification processes, you should be able to:
    - Log into your digital wallet application.
    - Setup and manage your wallet accounts, currencies, balances etc.
-   - Obtain the wallet address or payment pointer for your digital wallet.
+   - Obtain the wallet address for your digital wallet.
 
 ### Test Playground
 
 Use the [Web Monetization playground](https://webmonetization.org/play/) to quickly create the conditions of a monetized website in a playground area, to use only for testing purposes.
 
-When you add a wallet address or payment pointer to the playground, it is added as a receiving wallet on the playground.  
-So, the playground behaves like a monetized website on which you can use the Web Monetization extension to pay.
+When you add a wallet address to the playground, it is added as a receiving wallet on the playground. The playground behaves like a monetized website on which you can use the Web Monetization extension to pay.
 
 On the playground, you can add a wallet that uses real money from a real wallet, or you can add a wallet that uses “play” money from a “test wallet”.
 
@@ -85,57 +77,26 @@ On the playground, you can add a wallet that uses real money from a real wallet,
 
 This section lists examples of websites and Web Monetization compatible wallet addresses that you can pay using the Web Monetization extension.
 
-#### Websites and wallets using Fynbos US
-
-If you want to test the Web Monetization extension using real money, and you have a Fynbos US wallet connected to your extension, then you have two options:
-
-1. Visit and pay any of these monetized websites:
-   - [jeremiahLee.com](https://jeremiahLee.com)
-   - [lifebe.com.au](https://lifebe.com.au/)
-   - [storytogo.ca/classroom](https://storytogo.ca/classroom/)
-
-2. Visit the Web Monetization Playground, and add any Fynbos US wallet address. Here are a few wallet addresses that you can use:
-   - https://fynbos.me/jeremiah
-   - https://fynbos.me/adam
-   - https://fynbos.me/lori
-
-#### Websites and wallets using Fynbos Canada
-
-If you want to test the Web Monetization extension using real money, and you have a Fynbos Canada wallet connected to your extension, then you have two options:
-
-1. Visit and pay this monetized website:
-   - [ericahargreave.com](https://ericahargreave.com)
-2. Visit the Web Monetization Playground, and add any Fynbos Canada wallet address. Here is a wallet address that you can pay:
-   - https://fynbos.me/erica
-
-#### Websites and wallets using Fynbos South Africa
-
-If you want to test the Web Monetization extension using real money, and you have a Fynbos South Africa wallet connected to your extension, then you have two options:
-
-1. Visit and pay this monetized website:
-   - [www.radu.sh/fynbos](https://www.radu.sh/fynbos)
-2. Visit the Web Monetization Playground, and add any Fynbos South Africa wallet address. Here is a wallet address that you can use:
-   - https://fynbos.me/makedev
-
 #### Websites and wallets using GateHub
 
-If you want to test the Web Monetization extension using real money, and you have a GateHub wallet connected to your extension, then you have two options:
+If you want to test the Web Monetization extension using real money, and you have a GateHub wallet connected to your extension, then you have these options:
 
 1. Visit and pay these monetized websites:
    - [storytogo.ca](https://storytogo.ca)
    - [roamancing.com](https://roamancing.com)
+   - [jeremiahlee.com](https://jeremiahlee.com)
 
-2. Visit the Web Monetization Playground, and add any GateHub wallet addresses. Here are a few payment pointers that you can use:
+2. Visit the Web Monetization Playground, and add any GateHub wallet addresses. Here are a few wallet addresses that you can use:
    - https://ilp.gatehub.net/276288680/EUR
    - https://ilp.gatehub.net/870065172/USD
 
 #### Websites using multiple wallets
 
-Whether your extension is connected to the [test wallet][testWallet] (which uses "play" money), or Fynbos US (which uses real money), or GateHub (which uses real money), you can use the extension to pay this website:
+Whether your extension is connected to the [test wallet][testWallet] (which uses "play" money), or GateHub (which uses real money), you can use the extension to pay this website:
 
 - [roamancing.com/naturallyours](https://roamancing.com/naturallyours)
 
-This website has multiple receiving wallet addresses. It can receive play money into a test wallet, real money into a Fynbos US wallet, and real money into a GateHub wallet.
+This website has multiple receiving wallet addresses. It can receive play money into a test wallet, and real money into a GateHub wallet.
 
 ### Functional Test Cases
 
@@ -172,11 +133,11 @@ We have 2 risk categories:  `critical` | `high`
 
 1. You have already downloaded and installed the Web Monetization extension.
 2. Your digital wallet sign-up and account activation is complete (learn more from the [Prerequisites](#Prerequisites) section).
-3. You have obtained and copied your wallet address or payment pointer from your digital wallet.
+3. You have obtained and copied your wallet address from your digital wallet.
 
 **Steps**:
 
-1. Open the WM extension, and enter the wallet address or payment pointer.
+1. Open the WM extension, and enter the wallet address.
 2. Enter the amount you want to make available to the extension from your wallet.
 3. Keep the option to renew monthly disabled. Click Connect.
 4. Give consent for the secure and automatic addition of the extension's key to the wallet.
@@ -184,7 +145,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:
 
 1. You will receive an interaction prompt from your wallet to authorize the connection and access to the amount.
-2. On accepting, you get shown the message "Your wallet is now successfully connected to the extension."
+2. On accepting, you get shown the message "Wallet Connected!" and "You're all set to start using the extension."
 
 ##### Make continuous payments
 
@@ -280,7 +241,7 @@ We have 2 risk categories:  `critical` | `high`
  | Web monetized websites | Non monetized websites |
 | :------------------------------------------------------- | :------------------------------------------------------ |
 | Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), but with a red X](../../src/assets/icons/32x32/enabled-no-links.png) |
-| Opening the extension displays: <ul><li>The hourly rate of pay, and the remaining balance available to the extension.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "Could not facilitate payment for current website"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
+| Opening the extension displays: <ul><li>The hourly rate of pay, and the remaining balance available to the extension.</li><li>**The “Send now” button**: clicking the button to send a one-time payment results in the extension displaying the message "We were unable to process this transaction. Please try again!"</li></ul> | Opening the extension displays: <ul><li>This website is not monetized.</li></ul> |
 
 ##### Disable continuous payments
 
@@ -296,7 +257,7 @@ We have 2 risk categories:  `critical` | `high`
 1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
 2. Open the extension, and view the **remaining balance** available to the extension.
 3. Go to Settings, and click on the Rate tab.
-4. Disable “**Continuous payment**”.
+4. Disable “**Continuous payments**”.
 5. Observe the extension's icon when you visit web monetized and non-monetized websites.
 
 **Expected results**:  
@@ -319,8 +280,8 @@ We have 2 risk categories:  `critical` | `high`
 **Steps**:
 
 1. Open the extension, go to Settings, then go to the Rate tab.
-2. Ensure that “**Continuous payment**” is enabled.
-3. Use the slider to change the rate of pay per hour.
+2. Ensure that “**Continuous payments**” is enabled.
+3. Use the input to change the rate of pay per hour.
 4. Go back to the main page of extension, and take note of the extension's remaining balance.
 5. Spend some time, perhaps 3 to 5 minutes each, on a web monetized website and on a non-monetized website. On each site or page that you visit, open the extension to view the remaining balance on the extension.
 
@@ -347,7 +308,7 @@ We have 2 risk categories:  `critical` | `high`
 **Expected results**:  
 Once disconnected, the Settings page gets replaced by the main page of the extension, with the following fields displayed:
 
-1. The wallet address or payment pointer that was most recently used for wallet connection.
+1. The wallet address that was most recently used for wallet connection.
 2. The currency and value that had been authorized for the most recent wallet connection.
 3. The **Connect** button is enabled.
 
@@ -366,7 +327,7 @@ Once disconnected, the Settings page gets replaced by the main page of the exten
 
 **Steps**:
 
-1. Visit a monetized website that has multiple receiving wallet addresses or payment pointers:  
+1. Visit a monetized website that has multiple receiving wallet addresses:  
    a. You can visit [roamancing.com/naturallyours](https://roamancing.com/naturallyours/) because it has 6 different receiving wallet addresses, from different wallet providers.
 2. Open the extension and make a one-time payment that is lower than the extension's available balance.
 3. Visit a non-web monetized website, such as your favorite search engine. Open the extension to observe its available options.
@@ -398,6 +359,62 @@ Once disconnected, the Settings page gets replaced by the main page of the exten
  | Visit monetized or non-monetized websites |
 | :------------------------------------------------------- |
 | Extension icon, once the extension runs out of funds: ![active (full color), with an orange exclamation mark](../../src/assets/icons/32x32/enabled-warn.png) |
-| Opening the extension displays: <ul><li>**Alert text**: Out of funds. Funds have been depleted. You can no longer make payments. Please add funds.</li><li>The following two buttons: <ul><li>Let me add funds and auto-renew monthly.</li><li>Let me top-up funds one time.</li></ul></li></ul> |
+| Opening the extension displays: <ul><li>**Alert text**: Out of funds. Funds are depleted. You can no longer make payments. Please add funds.</li><li>The following two buttons: <ul><li>Let me add funds & auto-renew monthly.</li><li>Let me top-up funds one time.</li></ul></li></ul> |
+
+##### Set a custom rate for a specific website
+
+**Test ID**: 11
+**Description**: Set a custom rate of pay for a specific website overriding the default hourly rate of pay
+**Risk**: R4 (control my payments)
+**Preconditions**:
+
+1. The extension is connected to your wallet.
+2. "Continuous payments" is enabled.
+3. The extension has a positive remaining balance.
+4. Your wallet balance is greater than your extension's remaining balance.
+
+**Steps**:
+
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
+2. Open the extension, go to Settings, then go to the Rate tab.
+3. Click **Add exception** for the website you are visiting, and enter a custom rate of pay that is different from the default rate.
+4. Save the exception, go back to the main page of the extension, and note the remaining balance.
+5. Spend some time, e.g. 3 to 5 minutes, on the website for which you set the custom rate.
+6. Visit a different monetized website that does not have a custom rate set, and spend a similar amount of time there.
+
+**Expected results**:
+| Website with custom rate | Website with default rate |
+| :------------------------------------------------------- | :------------------------------------------------------ |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) | Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) |
+| Opening the extension on this site shows the custom rate you set. The remaining balance decreases according to the custom rate, not the default rate. | Opening the extension on this site shows the default rate of pay. The remaining balance decreases according to the default rate. |
+| The custom rate exception is listed under **Custom rates per site** in the settings, showing the website and the custom rate, and can be edited or removed from there. | |
+
+##### Set rate to zero to pause payments
+
+**Test ID**: 12
+**Description**: Set the custom rate of pay to `0.00` and verify that no continuous payments are made
+**Risk**: R3 (security of funds) and R4 (control my payments)
+**Preconditions**:
+
+1. The extension is connected to your wallet.
+2. "Continuous payments" is enabled.
+3. The extension has a positive remaining balance.
+
+**Steps**:
+
+1. Visit a monetized website. The [Test Data](#Test-Data) section lists monetized websites that you can visit.
+2. Open the extension, go to Settings, then go to the Rate tab.
+3. Set the custom rate of pay to `0.00` (see Test ID 11).
+4. Go back to the main page of the extension, and note the remaining balance.
+5. Spend some time, e.g. 3 to 5 minutes, on the monetized website.
+6. Open the extension again to check the remaining balance.
+
+**Expected results**:
+| Web monetized websites |
+| :------------------------------------------------------- |
+| Setting the rate to `0.00` is accepted, without any validation error. |
+| Extension icon: ![active (full color), with a green tick](../../src/assets/icons/32x32/enabled-has-links.png) |
+| Opening the extension shows that the remaining balance does **not** decrease over time, i.e. no continuous payments are made while the rate is `0.00`. |
+| Making a one-time payment remains available, and is unaffected by the `0.00` rate. |
 
 [testWallet]: https://wallet.interledger-test.dev
