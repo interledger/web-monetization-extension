@@ -14,19 +14,10 @@ Read the [developer's guide](./docs/DEVELOP.md) to understand the codebase.
 
 Please familiarize yourself with the [contribution guidelines](.github/CONTRIBUTING.md) before submitting contributions. All contributions must adhere to our [code of conduct](.github/CODE_OF_CONDUCT.md).
 
-## Roadmap
+## Feedback and issues
 
-[Web Monetization Roadmap](https://github.com/orgs/interledger/projects/6/views/1?filterQuery=label%3A%22web+monetization%22)
-
-See the [open issues](https://github.com/interledger/web-monetization-extension/issues) for a full list of proposed features (and known issues).
-
-## Feedback and Issues
-
-If you encounter any issues or have feedback, please open an issue on
-the [GitHub repository](https://github.com/interledger/web-monetization-extension/issues). We appreciate your feedback
-and contributions!
+If you encounter any issues or have feedback, please open an [issue](https://github.com/interledger/web-monetization-extension/issues). We appreciate your feedback and contributions!
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](./LICENSE)
-file for details
+This project is licensed under the Apache License 2.0 - see [LICENSE](./LICENSE) for details
