@@ -1,53 +1,48 @@
-# Contributing to this repository <!-- omit in toc -->
+# Contributing
 
-Thank you for contributing to Web Monetization Extension :tada: Your contributions are essential to making this project better.
+Thank you for contributing to the Web Monetization Extension :tada: Your contributions are essential to making this project better.
 
-## Getting Started
+## Before you start
 
 - Have you read the [code of conduct](CODE_OF_CONDUCT.md)?
-- Check out the [existing issues](https://github.com/interledger/web-monetization-extension/issues) & see if we [accept contributions](#types-of-contributions) for your type of issue.
+- Check out the [existing issues](https://github.com/interledger/web-monetization-extension/issues)
 
-## Table of Contents <!-- omit in toc -->
-
-- [Types of contributions](#types-of-contributions)
-  - [:beetle: Issues](#beetle-issues)
-  - [:hammer_and_wrench: Pull requests](#hammer_and_wrench-pull-requests)
-- [Working in the Web Monetization Extension repository](#working-in-the-web-monetization-extension-repository)
-  - [Code quality](#code-quality)
-    - [Linting](#linting)
-    - [Formatting](#formatting)
-    - [Testing](#testing)
-    - [Language](#language)
-    - [CI](#ci)
-  - [Reporting Issues](#reporting-issues)
-  - [Submitting Pull Requests](#submitting-pull-requests)
-  - [Review Process](#review-process)
-
-### Types of contributions
+## Types of contributions
 
 You can contribute to Web Monetization Extension in several ways.
 
-#### :beetle: Issues
+### :beetle: Issues
 
-We use GitHub issues to track tasks that contributors can help with. We haven't finalized labels yet for contributors to tackle. If you want to help with work related to an issue, please comment on the issue before starting work on it.
+We use GitHub issues to track tasks. If you've found something that needs fixing, search open issues to see if someone else has reported the same thing. If it's something new, open an issue. We'll use the issue to discuss the problem you want to fix.
 
-If you've found something that needs fixing, search open issues to see if someone else has reported the same thing. If it's something new, open an issue. We'll use the issue to discuss the problem you want to fix.
+Please include:
 
-#### :hammer_and_wrench: Pull requests
+- A clear and descriptive title.
+- A detailed description of the issue, including steps to reproduce if applicable.
+- Information about your environment (e.g., operating system, browser, version) if applicable.
+- Any relevant screenshots or error messages.
 
-Feel free to fork and create a pull request on changes you think you can contribute.
+### :hammer_and_wrench: Pull requests
 
-The team will review your pull request as soon as possible.
+Feel free to fork and create a pull request for [existing issues](https://github.com/interledger/web-monetization-extension/issues). Some issues are still being discussed though. You can pick work from the "Todo" column in the [project board](https://github.com/orgs/interledger/projects/14/views/6). If you have an idea, please create an issue for discussion first. This makes sure that the contribution is impactful and you don't spend time creating a PR that we will not accept.
 
-### Working in the Web Monetization Extension repository
+Ensure your PR includes a clear title and description following the [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/).
 
-This project uses `PNPM`. A list of steps for setting up a [local development environment](https://github.com/interledger/web-monetization-extension/#development) can be found in the Readme.
+If your PR addresses an issue, reference the issue in the description using `Closes #123`.
 
-#### Code quality
+Project maintainers will review your PR for code quality, correctness, and adherence to guidelines as soon as possible. Please respond to any feedback and make necessary changes.
+
+## Development
+
+### Setup
+
+Learn [how to build](./docs/BUILDING.md) the extension locally and [install](./docs/INSTALL.md) it in your browser. Please also look at the other documents in the `docs` folder, as they contain crucial information about the extension's architecture.
+
+### Code quality
 
 All the code quality tools used in the project are installed and configured at the root.
 
-#### Linting & Formatting
+### Linting & formatting
 
 We use [Biome](https://biomejs.dev/) for linting and formatting.
 
@@ -59,11 +54,11 @@ We also rely on prettier, for Markdown and YAML files, until Biome supports them
 ./biome.jsonc # config
 ```
 
-#### Testing
+### Testing
 
 [Vitest](https://vitest.dev/) is used for unit and integration testing.
 
-#### Language
+### Language
 
 [Typescript](https://www.staging-typescript.org/) is the chosen language.
 
@@ -73,37 +68,14 @@ We also rely on prettier, for Markdown and YAML files, until Biome supports them
 
 Typescript config at the root is intended to be a base config.
 
-#### CI
+### CI
 
 We use GitHub actions to manage our CI pipeline.
 
 The workflows can be found in `.github/workflows`
 
-### Reporting Issues
+---
 
-If you encounter any issues or have a feature request, please [create a new issue](https://github.com/interledger/web-monetization-extension/issues/new) and provide the following details:
-
-- A clear and descriptive title.
-- A detailed description of the issue, including steps to reproduce if applicable.
-- Information about your environment (e.g., operating system, browser, version).
-- Any relevant screenshots or error messages.
-
-### Submitting Pull Requests
-
-1. [Fork](https://github.com/interledger/web-monetization-extension) the repository.
-2. Create a new branch from `main`.
-3. Make your changes and commit them.
-4. Create a pull request (PR) to `main`.
-5. Ensure your PR includes a clear title and description following the [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/).
-6. If your PR addresses an issue, reference the issue in the description using `Closes #123`.
-7. Be patient and be prepared to address feedback and make changes if needed.
-
-### Review Process
-
-- Project maintainers will review your PR for code quality, correctness, and adherence to guidelines.
-- Please respond to any feedback promptly and make necessary changes.
-- Once the PR is approved, it will be merged into the main branch.
-
-Thank you for contributing to Web Monetization Extension! We appreciate your time and effort in helping make the Extension better. Join our community on [Slack](https://communityinviter.com/apps/interledger/interledger-working-groups-slack) to connect with other contributors and stay updated on project developments.
+Thank you for contributing to the Web Monetization extension! We appreciate your time and effort in helping make the extension better. Join our community on [Slack](https://join.slack.com/t/interledger/shared_invite/zt-44g089zrn-XdSIiHF~cs8Oo_MBmSfECA) to connect with other contributors and stay updated on project developments.
 
 Happy coding!
