@@ -2,6 +2,14 @@
 
 Thank you for contributing to the Web Monetization Extension :tada: Your contributions are essential to making this project better.
 
+The Web Monetization extension is no longer being proactively developed by the Interledger Foundation in terms of new features. We are maintaining the existing code and the extension will remain open source and available to use.
+
+The extension will continue to exist as a wallet agnostic browser extension that allows users to support Web Monetized websites while the native browser implementation continues to be developed.
+
+We are moving to a community-led model and welcome code contributions, including the development of new features. All code will be reviewed by the Interledger Foundation.
+
+The Web Monetization standard will continue to be actively stewarded by the foundation.
+
 ## Before you start
 
 - Have you read the [code of conduct](CODE_OF_CONDUCT.md)?
