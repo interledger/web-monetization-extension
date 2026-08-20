@@ -4,7 +4,16 @@
 
 [![Nightly build](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml/badge.svg)](https://github.com/interledger/web-monetization-extension/actions/workflows/nightly-build.yaml) [![Latest Nightly build](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2Finterledger%2Fweb-monetization-extension%2Freleases%2Ftags%2Fnightly&query=%24.name&logo=github&label=Latest)](https://github.com/interledger/web-monetization-extension/releases/tag/nightly)
 
-The Web Monetization browser extension is an open source implementation of the [Web Monetization draft specification](https://webmonetization.org/specification/).
+The Web Monetization browser extension is an open source implementation of the [Web Monetization draft specification](https://webmonetization.org/specificatio
+n/).
+
+The Web Monetization extension is no longer being proactively developed by the Interledger Foundation in terms of new features. We are maintaining the existing code and the extension will remain open source and available to use.
+
+The extension will continue to exist as a wallet agnostic browser extension that allows users to support Web Monetized websites while the native browser implementation continues to be developed.
+
+We are moving to a community-led model and welcome code contributions, including the development of new features. All code will be reviewed by the Interledger Foundation. For more information, review our [Contribution Guidelines](.github/CONTRIBUTING.md).
+
+The Web Monetization standard will continue to be actively stewarded by the foundation.
 
 ## Contributing
 
