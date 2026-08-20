@@ -6,6 +6,15 @@
 
 The Web Monetization browser extension is an open source implementation of the [Web Monetization draft specification](https://webmonetization.org/specification/).
 
+> [!NOTE]
+> The Web Monetization extension is no longer being proactively developed by the Interledger Foundation in terms of new features. We are maintaining the existing code and the extension will remain open source and available to use.
+>
+> The extension will continue to exist as a wallet agnostic browser extension that allows users to support Web Monetized websites while the native browser implementation continues to be developed.
+>
+> We are moving to a community-led model and welcome code contributions, including the development of new features. All code will be reviewed by the Interledger Foundation. For more information, review our [Contribution Guidelines](.github/CONTRIBUTING.md).
+>
+> The Web Monetization standard will continue to be actively stewarded by the foundation.
+
 ## Contributing
 
 Learn [how to build](./docs/BUILDING.md) the extension locally and [install](./docs/INSTALL.md) it in your browser.
