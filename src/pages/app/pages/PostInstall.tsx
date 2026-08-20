@@ -88,25 +88,6 @@ type WalletOption = {
 
 const WALLETS: Array<WalletOption> = [
   {
-    id: 'interledger.app',
-    name: 'Interledger Wallet',
-    url: 'https://interledger.app/',
-    logo: {
-      src: '/assets/images/logos/interledger-app-logo.svg',
-      width: 300,
-      height: 74,
-    },
-    walletAddressScreenshot: {
-      src: '/assets/images/wallet-address-interledger.png',
-      width: 1500,
-      height: 836,
-    },
-    walletAddressScreenshotMobile: {
-      src: '/assets/images/wallet-address-interledger.mobile.png',
-    },
-    walletAddressPlaceholder: 'https://ilp.link/my-wallet',
-  },
-  {
     id: 'gatehub',
     name: 'GateHub Wallet',
     url: 'https://gatehub.net/',
