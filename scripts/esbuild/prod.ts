@@ -89,35 +89,45 @@ function zipPlugin({
 }
 
 /**
- * Unmangles the MonetizationEvent class
+ * Unmangles the MonetizationEvent and MonetizationCurrencyAmount classes
  */
 function preservePolyfillClassNamesPlugin({
   outDir,
 }: {
   outDir: string;
 }): ESBuildPlugin {
+  const classNames = ['MonetizationEvent', 'MonetizationCurrencyAmount'];
   return {
     name: 'preserve-polyfill-class-names',
     setup(build) {
       build.onEnd(async () => {
         const polyfillPath = path.join(outDir, 'polyfill', 'polyfill.js');
-        const polyfillContent = await fs.readFile(polyfillPath, 'utf8');
-        const definitionRegex = /class\s+([A-Za-z_$][\w$]*)\s+extends\s+Event/;
+        let result = await fs.readFile(polyfillPath, 'utf8');
 
-        const match = polyfillContent.match(definitionRegex);
-        if (!match) {
-          throw new Error('Could not find MonetizationEvent definition');
+        for (const className of classNames) {
+          const assignmentRegex = new RegExp(
+            `window\\.${className}=([A-Za-z_$][\\w$]*)`,
+          );
+          const match = result.match(assignmentRegex);
+          if (!match) {
+            throw new Error(`Could not find ${className} definition`);
+          }
+
+          const minifiedName = match[1];
+          result = result
+            .replace(
+              new RegExp(`\\bclass\\s+${minifiedName}\\b`),
+              `class ${className}`,
+            )
+            .replace(
+              new RegExp(`window\\.${className}=${minifiedName}\\b`),
+              `window.${className}=${className}`,
+            )
+            .replace(
+              new RegExp(`\\bnew ${minifiedName}\\b`, 'g'),
+              `new ${className}`,
+            );
         }
-
-        const minifiedName = match[1];
-
-        const result = polyfillContent
-          .replace(definitionRegex, 'class MonetizationEvent extends Event')
-          .replace(
-            `window.MonetizationEvent=${minifiedName}`,
-            'window.MonetizationEvent=MonetizationEvent',
-          )
-          .replaceAll(`new ${minifiedName}`, 'new MonetizationEvent');
 
         await fs.writeFile(polyfillPath, result);
       });

@@ -64,9 +64,33 @@ import type { MonetizationEventPayload } from '@/shared/messages';
   Object.defineProperty(Window.prototype, 'onmonetization', attributes);
   Object.defineProperty(Document.prototype, 'onmonetization', attributes);
 
+  const illegalConstructor = Symbol('illegalConstructor');
+  class MonetizationCurrencyAmount {
+    public readonly currency: string;
+    public readonly value: string;
+
+    constructor(currency: string, value: string, key?: symbol) {
+      if (key !== illegalConstructor) {
+        throw new TypeError('Illegal constructor');
+      }
+      this.currency = currency;
+      this.value = value;
+    }
+
+    get [Symbol.toStringTag]() {
+      return 'MonetizationCurrencyAmount';
+    }
+  }
+
+  const createMonetizationCurrencyAmount = (currency: string, value: string) =>
+    new MonetizationCurrencyAmount(currency, value, illegalConstructor);
+
+  // @ts-expect-error: we're defining this now
+  window.MonetizationCurrencyAmount = MonetizationCurrencyAmount;
+
   let eventDetailDeprecationEmitted = false;
   class MonetizationEvent extends Event {
-    public readonly amountSent: PaymentCurrencyAmount;
+    public readonly amountSent: MonetizationCurrencyAmount;
     public readonly incomingPayment: string;
     public readonly paymentPointer: string;
 
@@ -76,7 +100,10 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     ) {
       super(type, { bubbles: true });
       const { amountSent, incomingPayment, paymentPointer } = eventInitDict;
-      this.amountSent = amountSent;
+      this.amountSent = createMonetizationCurrencyAmount(
+        amountSent.currency,
+        amountSent.value,
+      );
       this.incomingPayment = incomingPayment;
       this.paymentPointer = paymentPointer;
     }
