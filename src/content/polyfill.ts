@@ -66,23 +66,15 @@ import type { MonetizationEventPayload } from '@/shared/messages';
 
   const illegalConstructor = Symbol('illegalConstructor');
   class MonetizationCurrencyAmount {
-    #currency: string;
-    #value: string;
+    public readonly currency: string;
+    public readonly value: string;
 
     constructor(currency: string, value: string, key?: symbol) {
       if (key !== illegalConstructor) {
         throw new TypeError('Illegal constructor');
       }
-      this.#currency = currency;
-      this.#value = value;
-    }
-
-    get currency() {
-      return this.#currency;
-    }
-
-    get value() {
-      return this.#value;
+      this.currency = currency;
+      this.value = value;
     }
 
     get [Symbol.toStringTag]() {
