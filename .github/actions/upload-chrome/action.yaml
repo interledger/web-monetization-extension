@@ -1,0 +1,40 @@
+name: Upload to Chrome Web Store
+description: Upload extension zip from dist/ directory to Chrome Web Store
+
+inputs:
+  CHROME_EXT_ID:
+    description: Chrome Web Store extension ID
+    required: true
+  CHROME_CLIENT_ID:
+    description: Client ID for Chrome Web Store
+    required: true
+  CHROME_CLIENT_SECRET:
+    description: Client secret for Chrome Web Store
+    required: true
+  CHROME_REFRESH_TOKEN:
+    description: Refresh token for Chrome Web Store
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with: { node-version-file: .nvmrc }
+
+    - name: Get extension path
+      id: path
+      shell: bash
+      run: |
+        CHROME_ZIP=$(find dist -type f -name "*chrome*.zip")
+        echo "CHROME_ZIP=$CHROME_ZIP" >> $GITHUB_OUTPUT
+
+    - name: Upload to Chrome Web Store
+      run: npx chrome-webstore-upload-cli@3 upload --source ${{ steps.path.outputs.chrome }}
+      shell: bash
+      env:
+        EXTENSION_ID: ${{ inputs.CHROME_EXT_ID }}
+        CLIENT_ID: ${{ inputs.CHROME_CLIENT_ID }}
+        CLIENT_SECRET: ${{ inputs.CHROME_CLIENT_SECRET }}
+        REFRESH_TOKEN: ${{ inputs.CHROME_REFRESH_TOKEN }}
