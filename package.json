@@ -58,7 +58,7 @@
     "@types/jsdom": "^30.0.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
+    "@types/react-dom": "^19.2.5",
     "@types/webextension-polyfill": "^0.12.5",
     "@vitest/coverage-v8": "^4.1.10",
     "archiver": "^8.0.0",
