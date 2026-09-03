@@ -3,7 +3,7 @@ on:
   pull_request_review:
     types: [submitted]
   pull_request:
-    branches: [main, 'v[0-9]+.x']
+    branches: [main]
 
 permissions:
   contents: read

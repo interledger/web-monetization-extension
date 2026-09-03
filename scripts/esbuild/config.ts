@@ -7,7 +7,7 @@ import type { Manifest } from 'webextension-polyfill';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const TARGETS = ['chrome', 'firefox', 'safari'] as const;
-export const CHANNELS = ['nightly', 'preview', 'stable'] as const;
+export const CHANNELS = ['nightly', 'stable'] as const;
 
 export const ROOT_DIR = path.resolve(__dirname, '..', '..');
 export const SRC_DIR = path.resolve(ROOT_DIR, 'src');

@@ -1,13 +1,11 @@
 name: Release Stable
-run-name: Release Stable ${{ github.event.inputs.version }}
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Tag (vX.Y.Z-preview)'
-        required: true
-        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/manifest.json'
 
 defaults:
   run:
@@ -21,30 +19,16 @@ permissions:
   contents: write
 
 jobs:
-  release-stable:
+  release:
+    if: "${{ startsWith(github.event.head_commit.message, 'chore: release version') }}"
     runs-on: ubuntu-24.04
     name: Release
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          # We want to build extension using the code and dependencies as of
-          # this tag. The scripts, workflows are back-ported, so they can be
-          # used consistently.
-          ref: ${{ github.event.inputs.version }}
 
       - name: Environment setup
         uses: ./.github/actions/setup
-
-      - name: Validate stable release
-        uses: actions/github-script@v9
-        env:
-          INPUT_VERSION: ${{ github.event.inputs.version }}
-        with:
-          script: |
-            const { default: script } = await import('${{ github.workspace }}/.github/actions/validate-stable-release.ts')
-            await script({ github, context, core })
 
       - name: Build
         run: pnpm build --channel=stable
