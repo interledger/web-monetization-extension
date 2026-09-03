@@ -148,9 +148,7 @@ function processManifestPlugin({
           }
         }
 
-        if (channel === 'preview') {
-          json.name = `${json.name} Preview`;
-        } else if (channel === 'nightly') {
+        if (channel === 'nightly') {
           json.name = `${json.name} Nightly`;
         }
 
