@@ -44,7 +44,7 @@ All commands are run from the root of the project, from a terminal:
 - **`pnpm build [TARGET] --channel=CHANNEL`**
   - Creates a **production-ready build** of the extension.
     - `TARGET`: Specify `chrome` or `firefox` or `safari`. Builds for all targets if not specified.
-    - `CHANNEL`: Choose `nightly`, `preview`, or `stable`. Defaults to `nightly` if not specified.
+    - `CHANNEL`: Choose `nightly` or `stable`. Defaults to `nightly` if not specified.
   - **Output:** `dist/${TARGET}` folder. Also creates a `.zip` file in the `dist` folder.
 
 Learn how to install the extension from source by reading the [installation instructions](./INSTALL.md).
