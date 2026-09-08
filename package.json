@@ -60,7 +60,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/webextension-polyfill": "^0.12.5",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.11",
     "archiver": "^8.0.0",
     "esbuild": "^0.28.2",
     "esbuild-node-builtin": "^0.1.1",
@@ -75,7 +75,7 @@
     "totp-generator": "2.0.1",
     "typescript": "npm:typescript@^6.0.3",
     "typescript7": "npm:typescript@^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "engines": {
     "pnpm": "^11.9.0",
