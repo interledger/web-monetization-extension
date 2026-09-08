@@ -42,7 +42,7 @@ Artifacts follow the name: `nightly-{browser}-{version}.zip`, e.g. `nightly-chro
 
 ## Release
 
-Releases are triggered by bumping the extension version on the `main` branch, and can have a minor/patch/build version bump.
+Releases are triggered by bumping the extension version on the `main` branch, with either a minor or patch version bump.
 
 ### Release artifacts
 
