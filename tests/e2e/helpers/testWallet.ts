@@ -10,7 +10,7 @@ import { getContinueWaitTime, waitForWelcomePage } from './common';
 import { revokeKey as revokeKeyApi } from '@/content/keyAutoAdd/lib/helpers/testWallet';
 
 export const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
-export const API_URL_ORIGIN = 'https://api.wallet.interledger-test.dev';
+export const API_URL_ORIGIN = 'https://api-wallet.interledger-test.dev';
 export const KEYS_PAGE_URL = `${TEST_WALLET_ORIGIN}/settings/developer-keys`;
 export const LOGIN_PAGE_URL = `${TEST_WALLET_ORIGIN}/auth/login?callbackUrl=${encodeURIComponent('/settings/developer-keys')}`;
 
