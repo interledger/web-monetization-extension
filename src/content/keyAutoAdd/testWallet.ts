@@ -35,7 +35,7 @@ const IS_INTERLEDGER_CARDS = location.host === 'wallet.interledger.cards';
 
 const API_ORIGIN = IS_INTERLEDGER_CARDS
   ? 'https://api.interledger.cards'
-  : `https://api.${location.host}`;
+  : `https://api-${location.host}`;
 
 const waitForLogin: Run<void> = async (
   { keyAddUrl },
