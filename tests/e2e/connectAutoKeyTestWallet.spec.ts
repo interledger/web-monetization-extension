@@ -54,7 +54,7 @@ for (const testCase of TEST_CASES) {
     const API_URL_ORIGIN =
       origin === 'https://wallet.interledger.cards'
         ? origin.replace('https://wallet.', 'https://api.')
-        : origin.replace('https://wallet.', 'https://api.wallet.');
+        : origin.replace('https://wallet.', 'https://api-wallet.');
 
     test(testCase.name, async ({ page, popup, context, background, i18n }) => {
       if (!username || !password || !walletAddressUrl) return;
