@@ -74,30 +74,34 @@ test.describe('should monetized site with multiple wallet address', () => {
       await expect(monetizationCallback).toHaveBeenCalledTimes(1);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[0],
+        walletAddress: walletAddresses[0],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(2);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
+        walletAddress: walletAddresses[1],
       });
 
       expect(
-        monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
+        monetizationCallback.calls.map(([ev]) => ev.walletAddress).sort(),
         'monetization callback is called once for each wallet address',
       ).toEqual([...walletAddresses].sort());
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(3);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[0],
+        walletAddress: walletAddresses[0],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(4);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
+        walletAddress: walletAddresses[1],
       });
 
       expect(
-        monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
+        monetizationCallback.calls.map(([ev]) => ev.walletAddress).sort(),
         'monetization callback is called twice for each wallet address',
       ).toEqual([...walletAddresses, ...walletAddresses].sort());
     });
@@ -112,7 +116,7 @@ test.describe('should monetized site with multiple wallet address', () => {
       await sendOneTimePayment(popup, amountToSend.toFixed(2));
       await expect(monetizationCallback).toHaveBeenCalledTimes(count);
       expect(
-        monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
+        monetizationCallback.calls.map(([ev]) => ev.walletAddress).sort(),
         'monetization callback is called once for each wallet address',
       ).toEqual(walletAddresses);
 
@@ -159,6 +163,7 @@ test.describe('should monetized site with multiple wallet address', () => {
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[0],
+        walletAddress: walletAddresses[0],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(2, {
@@ -166,6 +171,7 @@ test.describe('should monetized site with multiple wallet address', () => {
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
+        walletAddress: walletAddresses[1],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(3, {
@@ -173,10 +179,11 @@ test.describe('should monetized site with multiple wallet address', () => {
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[2],
+        walletAddress: walletAddresses[2],
       });
 
       expect(
-        monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
+        monetizationCallback.calls.map(([ev]) => ev.walletAddress).sort(),
         'monetization callback is called once for each wallet address',
       ).toEqual([...walletAddresses].sort());
 
@@ -185,6 +192,7 @@ test.describe('should monetized site with multiple wallet address', () => {
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[0],
+        walletAddress: walletAddresses[0],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(5, {
@@ -192,6 +200,7 @@ test.describe('should monetized site with multiple wallet address', () => {
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[1],
+        walletAddress: walletAddresses[1],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(6, {
@@ -199,10 +208,11 @@ test.describe('should monetized site with multiple wallet address', () => {
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
         paymentPointer: walletAddresses[2],
+        walletAddress: walletAddresses[2],
       });
 
       expect(
-        monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
+        monetizationCallback.calls.map(([ev]) => ev.walletAddress).sort(),
         'monetization callback is called twice for each wallet address',
       ).toEqual([...walletAddresses, ...walletAddresses].sort());
     });
@@ -224,7 +234,7 @@ test.describe('should monetized site with multiple wallet address', () => {
       await expect(monetizationCallback).toHaveBeenCalledTimes(count);
       await expect(outgoingPaymentCreatedCallback).toHaveBeenCalledTimes(count);
       expect(
-        monetizationCallback.calls.map(([ev]) => ev.paymentPointer).sort(),
+        monetizationCallback.calls.map(([ev]) => ev.walletAddress).sort(),
         'monetization callback is called once for each wallet address',
       ).toEqual(walletAddresses);
 
@@ -247,7 +257,7 @@ test.describe('should monetized site with multiple wallet address', () => {
 
       const monetizationCallbackCalls = monetizationCallback.calls.map(
         ([ev]) => ({
-          id: ev.paymentPointer,
+          id: ev.walletAddress,
           currency: ev.amountSent.currency,
           amount: Number(ev.amountSent.value),
         }),

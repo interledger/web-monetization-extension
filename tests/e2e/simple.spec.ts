@@ -23,6 +23,7 @@ test('should monetize site with single wallet address', async ({
   await expect(monetizationCallback).toHaveBeenCalledTimes(1);
   await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
     paymentPointer: walletAddressUrl,
+    walletAddress: walletAddressUrl,
     amountSent: {
       currency: expect.stringMatching(/^[A-Z]{3}$/),
       value: expect.stringMatching(/^0\.\d+$/),
@@ -81,6 +82,7 @@ test('does not monetize when continuous payments are disabled', async ({
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
+      walletAddress: walletAddressUrl,
       amountSent: {
         currency: expect.stringMatching(/^[A-Z]{3}$/),
         value: expect.stringMatching(/^1\.\d+$/),
@@ -102,6 +104,7 @@ test('does not monetize when continuous payments are disabled', async ({
     await expect(monetizationCallback).toHaveBeenCalledTimes(2);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
+      walletAddress: walletAddressUrl,
       amountSent: {
         currency: expect.stringMatching(/^[A-Z]{3}$/),
         value: expect.stringMatching(/^0\.\d+$/),

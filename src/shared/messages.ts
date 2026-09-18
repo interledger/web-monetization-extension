@@ -312,6 +312,7 @@ export interface MonetizationEventDetails {
   amountSent: PaymentCurrencyAmount;
   incomingPayment: OutgoingPayment['receiver'];
   paymentPointer: WalletAddress['id'];
+  walletAddress: WalletAddress['id'];
 }
 
 export interface MonetizationEventPayload {

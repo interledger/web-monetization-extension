@@ -93,19 +93,22 @@ import type { MonetizationEventPayload } from '@/shared/messages';
     public readonly amountSent: MonetizationCurrencyAmount;
     public readonly incomingPayment: string;
     public readonly paymentPointer: string;
+    public readonly walletAddress: string;
 
     constructor(
       type: 'monetization',
       eventInitDict: MonetizationEventPayload['details'],
     ) {
       super(type, { bubbles: true });
-      const { amountSent, incomingPayment, paymentPointer } = eventInitDict;
+      const { amountSent, incomingPayment, paymentPointer, walletAddress } =
+        eventInitDict;
       this.amountSent = createMonetizationCurrencyAmount(
         amountSent.currency,
         amountSent.value,
       );
       this.incomingPayment = incomingPayment;
       this.paymentPointer = paymentPointer;
+      this.walletAddress = walletAddress;
     }
 
     get [Symbol.toStringTag]() {
@@ -120,8 +123,9 @@ import type { MonetizationEventPayload } from '@/shared/messages';
         console.warn(msg);
         eventDetailDeprecationEmitted = true;
       }
-      const { amountSent, incomingPayment, paymentPointer } = this;
-      return { amountSent, incomingPayment, paymentPointer };
+      const { amountSent, incomingPayment, paymentPointer, walletAddress } =
+        this;
+      return { amountSent, incomingPayment, paymentPointer, walletAddress };
     }
   }
 

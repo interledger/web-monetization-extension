@@ -20,6 +20,7 @@ test('iframe add/remove does not de-monetize main page', async ({
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
+      walletAddress: walletAddressUrl,
     });
 
     await expect(popup.getByTestId('home-page')).toBeVisible();
@@ -68,6 +69,7 @@ test('iframe navigate does not de-monetize main page', async ({
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
+      walletAddress: walletAddressUrl,
     });
 
     await expect(popup.getByTestId('home-page')).toBeVisible();

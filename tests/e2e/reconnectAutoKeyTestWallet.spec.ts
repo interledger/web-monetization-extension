@@ -168,6 +168,7 @@ test('Reconnect to test wallet with automatic key addition', async ({
     await expect(monetizationCallback).toHaveBeenCalledTimes(1);
     await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
       paymentPointer: walletAddressUrl,
+      walletAddress: walletAddressUrl,
       amountSent: {
         currency: expect.stringMatching(/^[A-Z]{3}$/),
         value: expect.stringMatching(/^1\.\d+$/),
