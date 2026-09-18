@@ -467,7 +467,7 @@ export class PaymentSession {
           ),
         },
         incomingPayment: outgoingPayment.receiver,
-        paymentPointer: this.receiver.id,
+        walletAddress: this.receiver.id,
       });
 
       return outgoingPayment;
@@ -579,7 +579,7 @@ export class PaymentSession {
           ),
         },
         incomingPayment,
-        paymentPointer: this.receiver.id,
+        walletAddress: this.receiver.id,
       };
 
       void this.sendMonetizationEvent(monetizationEventDetails);

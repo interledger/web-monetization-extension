@@ -82,6 +82,7 @@ declare global {
       };
       incomingPayment: string;
       paymentPointer: string;
+      walletAddress: string;
     }
   }
 }
