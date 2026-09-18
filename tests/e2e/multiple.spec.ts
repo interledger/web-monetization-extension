@@ -73,13 +73,11 @@ test.describe('should monetized site with multiple wallet address', () => {
     await test.step('continuous payments', async () => {
       await expect(monetizationCallback).toHaveBeenCalledTimes(1);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[0],
         walletAddress: walletAddresses[0],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(2);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[1],
         walletAddress: walletAddresses[1],
       });
 
@@ -90,13 +88,11 @@ test.describe('should monetized site with multiple wallet address', () => {
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(3);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[0],
         walletAddress: walletAddresses[0],
       });
 
       await expect(monetizationCallback).toHaveBeenCalledTimes(4);
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[1],
         walletAddress: walletAddresses[1],
       });
 
@@ -162,7 +158,6 @@ test.describe('should monetized site with multiple wallet address', () => {
         timeout: crossCurrencyTimeout,
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[0],
         walletAddress: walletAddresses[0],
       });
 
@@ -170,7 +165,6 @@ test.describe('should monetized site with multiple wallet address', () => {
         timeout: crossCurrencyTimeout,
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[1],
         walletAddress: walletAddresses[1],
       });
 
@@ -178,7 +172,6 @@ test.describe('should monetized site with multiple wallet address', () => {
         timeout: crossCurrencyTimeout,
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[2],
         walletAddress: walletAddresses[2],
       });
 
@@ -191,7 +184,6 @@ test.describe('should monetized site with multiple wallet address', () => {
         timeout: crossCurrencyTimeout,
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[0],
         walletAddress: walletAddresses[0],
       });
 
@@ -199,7 +191,6 @@ test.describe('should monetized site with multiple wallet address', () => {
         timeout: crossCurrencyTimeout,
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[1],
         walletAddress: walletAddresses[1],
       });
 
@@ -207,7 +198,6 @@ test.describe('should monetized site with multiple wallet address', () => {
         timeout: crossCurrencyTimeout,
       });
       await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
-        paymentPointer: walletAddresses[2],
         walletAddress: walletAddresses[2],
       });
 

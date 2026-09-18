@@ -89,26 +89,39 @@ import type { MonetizationEventPayload } from '@/shared/messages';
   window.MonetizationCurrencyAmount = MonetizationCurrencyAmount;
 
   let eventDetailDeprecationEmitted = false;
+  let paymentPointerDeprecationEmitted = false;
   class MonetizationEvent extends Event {
     public readonly amountSent: MonetizationCurrencyAmount;
     public readonly incomingPayment: string;
-    public readonly paymentPointer: string;
     public readonly walletAddress: string;
+    declare readonly paymentPointer: string;
 
     constructor(
       type: 'monetization',
       eventInitDict: MonetizationEventPayload['details'],
     ) {
       super(type, { bubbles: true });
-      const { amountSent, incomingPayment, paymentPointer, walletAddress } =
-        eventInitDict;
+      const { amountSent, incomingPayment, walletAddress } = eventInitDict;
       this.amountSent = createMonetizationCurrencyAmount(
         amountSent.currency,
         amountSent.value,
       );
       this.incomingPayment = incomingPayment;
-      this.paymentPointer = paymentPointer;
       this.walletAddress = walletAddress;
+
+      Object.defineProperty(this, 'paymentPointer', {
+        enumerable: true,
+        get() {
+          if (!paymentPointerDeprecationEmitted) {
+            // biome-ignore lint/suspicious/noConsole: warning meant for website devs
+            console.warn(
+              'MonetizationEvent.paymentPointer is deprecated, use MonetizationEvent.walletAddress instead',
+            );
+            paymentPointerDeprecationEmitted = true;
+          }
+          return walletAddress;
+        },
+      });
     }
 
     get [Symbol.toStringTag]() {
