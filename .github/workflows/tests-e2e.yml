@@ -11,7 +11,7 @@ permissions:
 jobs:
   filter:
     name: Prepare
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       matrix: ${{ steps.filter.outputs.matrix }}
       skip: ${{ steps.filter.outputs.skip }}
