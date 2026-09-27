@@ -42,8 +42,7 @@ jobs:
             await script({ github, context, core })
 
       - name: Delete existing release # To keep the workflow idempotent.
-        run: gh release delete "v${RELEASE_VERSION}" --cleanup-tag --yes
-        continue-on-error: true
+        run: gh release delete "v${RELEASE_VERSION}" --cleanup-tag --yes || true
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
