@@ -85,7 +85,7 @@ jobs:
 
   build-nightly:
     name: Create Release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: test-e2e
     if: ${{ always() }}
     steps:
