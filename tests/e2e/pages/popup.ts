@@ -40,6 +40,9 @@ export async function disconnectWallet(popup: Popup) {
     .getByRole('button', { name: 'Disconnect' })
     .click({ timeout: 2000 });
   await popup
+    .getByRole('button', { name: 'Yes, disconnect' })
+    .click({ timeout: 2000 });
+  await popup
     .getByTestId('connect-wallet-form')
     .waitFor({ state: 'visible', timeout: 2000 });
 }
