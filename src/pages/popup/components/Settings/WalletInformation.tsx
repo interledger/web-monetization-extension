@@ -93,7 +93,7 @@ export const WalletInformation = ({
           className="w-full"
           aria-label={
             confirmDisconnect
-              ? undefined
+              ? t('settings_wallet_disconnectConfirm_ariaLabel_action')
               : t('settings_wallet_disconnect_ariaLabel_action')
           }
           disabled={isSubmitting}
