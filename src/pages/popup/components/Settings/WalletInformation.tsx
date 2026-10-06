@@ -24,6 +24,7 @@ export const WalletInformation = ({
   const [_location, navigate] = useLocation();
   const [disconnectError, setDisconnectError] = React.useState<string>('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = React.useState(false);
   const toErrorInfo = toErrorInfoFactory(t);
 
   const disconnectWallet = async (force = false) => {
@@ -53,6 +54,10 @@ export const WalletInformation = ({
         className="space-y-4"
         onSubmit={async (ev) => {
           ev.preventDefault();
+          if (!confirmDisconnect) {
+            setConfirmDisconnect(true);
+            return;
+          }
           await disconnectWallet();
         }}
       >
@@ -69,15 +74,34 @@ export const WalletInformation = ({
           }
         />
 
+        {confirmDisconnect && (
+          <p className="text-sm text-medium">
+            {t('settings_wallet_disconnectConfirm_text')}{' '}
+            <button
+              type="button"
+              onClick={() => setConfirmDisconnect(false)}
+              className="inline-block underline"
+            >
+              {t('settings_wallet_disconnectCancel_action')}
+            </button>
+          </p>
+        )}
+
         <Button
           type="submit"
           variant="destructive"
           className="w-full"
-          aria-label={t('settings_wallet_disconnect_ariaLabel_action')}
+          aria-label={
+            confirmDisconnect
+              ? t('settings_wallet_disconnectConfirm_ariaLabel_action')
+              : t('settings_wallet_disconnect_ariaLabel_action')
+          }
           disabled={isSubmitting}
           loading={isSubmitting}
         >
-          {t('settings_wallet_disconnect_action')}
+          {confirmDisconnect
+            ? t('settings_wallet_disconnectConfirm_action')
+            : t('settings_wallet_disconnect_action')}
         </Button>
 
         {disconnectError && (

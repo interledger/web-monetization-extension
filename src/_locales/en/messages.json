@@ -691,6 +691,18 @@
   "settings_wallet_disconnect_ariaLabel_action": {
     "message": "Disconnect your wallet"
   },
+  "settings_wallet_disconnectConfirm_text": {
+    "message": "Are you sure you want to disconnect your wallet? You'll need to connect it again to keep supporting sites."
+  },
+  "settings_wallet_disconnectConfirm_action": {
+    "message": "Yes, disconnect!"
+  },
+  "settings_wallet_disconnectConfirm_ariaLabel_action": {
+    "message": "Yes, disconnect your wallet"
+  },
+  "settings_wallet_disconnectCancel_action": {
+    "message": "Cancel"
+  },
   "settings_wallet_forceDisconnect_action": {
     "message": "Force disconnect?"
   },
