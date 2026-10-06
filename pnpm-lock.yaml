@@ -76,8 +76,8 @@ importers:
         specifier: 2.5.8
         version: 2.5.8
       '@octokit/openapi-webhooks-types':
-        specifier: ^12.1.0
-        version: 12.1.0
+        specifier: ^12.2.0
+        version: 12.2.0
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1
@@ -584,8 +584,8 @@ packages:
   '@octokit/openapi-types@28.0.0':
     resolution: {integrity: sha512-0rFyLuyHvIj6uuZWuDslxkowFYdPXoNIkeAv4b27dzm2Tf4vGWXnPsMcxs7d65kLdMERgP3wc1AEPlqMz8e1cQ==}
 
-  '@octokit/openapi-webhooks-types@12.1.0':
-    resolution: {integrity: sha512-WiuzhOsiOvb7W3Pvmhf8d2C6qaLHXrWiLBP4nJ/4kydu+wpagV5Fkz9RfQwV2afYzv3PB+3xYgp4mAdNGjDprA==}
+  '@octokit/openapi-webhooks-types@12.2.0':
+    resolution: {integrity: sha512-akLRXeXspSB3jZDcfxEafNbpDbTQA/86Mshg7Wq6Hn5pKSKt6epct6nSZqxlnY4hdvPkZR7G1fDXqqUn7qoAQA==}
 
   '@octokit/plugin-paginate-rest@14.0.0':
     resolution: {integrity: sha512-fNVRE7ufJiAA3XUrha2omTA39M6IXIc6GIZLvlbsm8QOQCYvpq/LkMNGyFlB1d8hTDzsAXa3OKtybdMAYsV/fw==}
@@ -3144,7 +3144,7 @@ snapshots:
 
   '@octokit/openapi-types@28.0.0': {}
 
-  '@octokit/openapi-webhooks-types@12.1.0': {}
+  '@octokit/openapi-webhooks-types@12.2.0': {}
 
   '@octokit/plugin-paginate-rest@14.0.0(@octokit/core@7.0.7)':
     dependencies:

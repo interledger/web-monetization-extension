@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
-    "@octokit/openapi-webhooks-types": "^12.1.0",
+    "@octokit/openapi-webhooks-types": "^12.2.0",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.3.3",
