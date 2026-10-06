@@ -42,8 +42,8 @@ importers:
         specifier: npm:@sidvishnoi/imd@^0.0.2
         version: '@sidvishnoi/imd@0.0.2(preact@10.29.8)(react@19.2.8)'
       iso8601-duration:
-        specifier: ^2.1.4
-        version: 2.1.4
+        specifier: ^2.2.0
+        version: 2.2.0
       loglevel:
         specifier: ^1.9.2
         version: 1.9.2
@@ -1807,8 +1807,8 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  iso8601-duration@2.1.4:
-    resolution: {integrity: sha512-2TuWcuR6W0OhFZQDAY+jDUp9FC2fVTDgxTtbN0nFBfwmUA6HTqXc0wx2tIBVd/FhRp4CnJbDgCv3sCeTPMQbew==}
+  iso8601-duration@2.2.0:
+    resolution: {integrity: sha512-gyr8oFS2Xb/zaZOISDq91hAJn+KNR90iGQoKhnwhEDwswmcLsOkkICWnu19dS1I6FLhkKYmkB0llQ/3HttnM/A==}
 
   istanbul-lib-coverage@3.2.2:
     resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
@@ -4211,7 +4211,7 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  iso8601-duration@2.1.4: {}
+  iso8601-duration@2.2.0: {}
 
   istanbul-lib-coverage@3.2.2: {}
 
