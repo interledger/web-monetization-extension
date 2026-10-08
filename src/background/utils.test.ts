@@ -628,6 +628,15 @@ describe('toAmount', () => {
     ).toEqual({ value: '123' });
   });
 
+  it('does not lose a unit to floating point error', () => {
+    expect(
+      toAmount({ value: '4.35', recurring: false, assetScale: 2 }),
+    ).toEqual({ value: '435' });
+    expect(
+      toAmount({ value: '0.29', recurring: false, assetScale: 2 }),
+    ).toEqual({ value: '29' });
+  });
+
   it('omits interval when not recurring', () => {
     const amount = toAmount({ value: '1', recurring: false, assetScale: 2 });
     expect(amount).not.toHaveProperty('interval');
