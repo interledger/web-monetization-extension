@@ -212,9 +212,11 @@ export const toAmount = ({
   assetScale,
 }: ToAmountParams): WalletAmount => {
   const interval = `R/${new Date().toISOString()}/P1M`;
+  // toFixed avoids floating point errors, e.g. 4.35 * 100 = 434.99999999999994
+  const units = +(Number.parseFloat(value) * 10 ** assetScale).toFixed(9);
 
   return {
-    value: Math.floor(Number.parseFloat(value) * 10 ** assetScale).toString(),
+    value: Math.floor(units).toString(),
     ...(recurring ? { interval } : {}),
   };
 };
