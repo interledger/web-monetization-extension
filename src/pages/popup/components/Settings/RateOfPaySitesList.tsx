@@ -114,7 +114,7 @@ function SiteEntry({
         label={null}
         onRateChange={(rate) => onSetRate({ rate, hostname })}
         walletAddress={walletAddress}
-        className="w-30"
+        className="w-40 shrink-0"
         smallSize={true}
       />
 
