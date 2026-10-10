@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
-import { IconTrash } from '@/pages/shared/components/Icons';
+import { IconTrash, InfoCircle } from '@/pages/shared/components/Icons';
 import type { OtherSettingsHistoryState } from '@/popup/components/Settings/Settings';
 import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import { debounceAsync, normalizeHostname } from '@/shared/helpers';
@@ -93,21 +93,31 @@ export const RateOfPayComponent = ({
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <label
-          htmlFor="continuous-payments-toggle"
-          className="flex items-center gap-x-4"
-        >
-          <span className="font-medium text-medium grow">
-            {t('settings_rate_continuousPayments_label')}
-          </span>
-          <SwitchButton
-            id="continuous-payments-toggle"
-            data-testid="continuous-payments-toggle"
-            size="small"
-            checked={continuousPaymentsEnabled}
-            onChange={(e) => toggle(e.currentTarget.checked)}
-          />
-        </label>
+        <div className="flex items-center justify-between gap-x-4">
+          <div className="flex items-center gap-x-1.5 grow">
+            <label
+              htmlFor="continuous-payments-toggle"
+              className="font-medium text-medium cursor-pointer"
+            >
+              {t('settings_rate_continuousPayments_label')}
+            </label>
+            <InformationTooltip
+              text={t('settings_rate_continuousPayments_info_text')}
+            />
+          </div>
+          <label
+            htmlFor="continuous-payments-toggle"
+            className="cursor-pointer inline-flex items-center"
+          >
+            <SwitchButton
+              id="continuous-payments-toggle"
+              data-testid="continuous-payments-toggle"
+              size="small"
+              checked={continuousPaymentsEnabled}
+              onChange={(e) => toggle(e.currentTarget.checked)}
+            />
+          </label>
+        </div>
 
         {!continuousPaymentsEnabled ? (
           <p className="text-weak italic">
@@ -296,3 +306,29 @@ export const RateOfPayInput = ({
     />
   );
 };
+
+function InformationTooltip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <span className="relative group inline-flex items-center">
+      <button
+        type="button"
+        aria-label={text}
+        className="inline-flex items-center text-weak hover:text-medium transition-colors cursor-pointer focus:outline-none"
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <InfoCircle className="size-4" aria-hidden="true" />
+      </button>
+      <span
+        role="tooltip"
+        className={cn(
+          'pointer-events-none absolute bottom-full left-0 mb-1.5 w-56 rounded-md bg-gray-900 px-2.5 py-1.5 text-xs text-white shadow-lg z-50 font-normal leading-normal whitespace-normal',
+          open ? 'block' : 'hidden group-hover:block group-focus-within:block',
+        )}
+      >
+        {text}
+      </span>
+    </span>
+  );
+}

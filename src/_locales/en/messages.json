@@ -600,6 +600,9 @@
   "settings_rate_continuousPayments_label": {
     "message": "Continuous payments"
   },
+  "settings_rate_continuousPayments_info_text": {
+    "message": "Automatically stream payments to supported websites as you browse."
+  },
   "settings_rate_continuousPayments_disabled_text": {
     "message": "Ongoing payments are now disabled. You can still make one time payments."
   },
