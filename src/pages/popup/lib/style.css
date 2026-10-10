@@ -8,3 +8,14 @@
     --background-image: none;
   }
 }
+
+/*
+ * The popup layout has a fixed width (--popup-width). When the content gets
+ * taller than the popup, browsers with classic scrollbars (e.g. Firefox) take
+ * the vertical scrollbar's width out of the viewport, so the page also became
+ * horizontally scrollable. The scrollbar only overlaps the layout's side
+ * padding, so clip that instead of showing a second scrollbar.
+ */
+html {
+  overflow-x: hidden;
+}
