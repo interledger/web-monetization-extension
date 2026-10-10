@@ -58,7 +58,7 @@ Learn how to install the extension from source by reading the [installation inst
 - **`pnpm test:e2e:chromium`**
   - Runs all **end-to-end tests** using Chromium & Playwright.
   - Add `--ui` to run in interactive UI mode.
-  - Read our [documentation on testing](./docs/TESTING.md) for details.
+  - Read our [documentation on testing](./testing/testplan.md) for details.
 
 - **`pnpm format`**
   - Runs **Biome** and **Prettier** on the codebase to find formatting issues.
