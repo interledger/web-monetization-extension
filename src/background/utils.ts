@@ -212,13 +212,23 @@ export const toAmount = ({
   assetScale,
 }: ToAmountParams): WalletAmount => {
   const interval = `R/${new Date().toISOString()}/P1M`;
-  // toFixed avoids floating point errors, e.g. 4.35 * 100 = 434.99999999999994
-  const units = +(Number.parseFloat(value) * 10 ** assetScale).toFixed(9);
 
   return {
-    value: Math.floor(units).toString(),
+    value: toUnits(value, assetScale).toString(),
     ...(recurring ? { interval } : {}),
   };
+};
+
+/**
+ * Converts a decimal string to integer units at the given scale, dropping
+ * digits beyond the scale. Done on the string to avoid floating point errors,
+ * e.g. 4.35 * 100 = 434.99999999999994
+ */
+export const toUnits = (value: string, assetScale: number): bigint => {
+  const [integer, fraction = ''] = value.trim().split('.');
+  return BigInt(
+    integer + fraction.padEnd(assetScale, '0').slice(0, assetScale),
+  );
 };
 
 export function bigIntMax<T extends bigint | AmountValue>(a: T, b: T): T {
