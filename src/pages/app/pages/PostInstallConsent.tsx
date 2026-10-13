@@ -13,6 +13,7 @@ import { dispatch, useAppState } from '@/app/lib/store';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { InfoCircle } from '@/pages/shared/components/Icons';
+import { InformationTooltip } from '@/pages/shared/components/InformationTooltip';
 import { ROUTES } from '../App';
 
 export default () => {
@@ -274,14 +275,6 @@ function AcceptForm({
         {t('postInstallConsent_confirm_action')}
       </Button>
     </form>
-  );
-}
-
-function InformationTooltip({ text }: { text: string }) {
-  return (
-    <span title={text}>
-      <InfoCircle className="inline-block h-5 w-5 ml-1 -mt-1 text-gray-500" />
-    </span>
   );
 }
 
