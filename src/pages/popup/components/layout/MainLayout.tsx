@@ -8,7 +8,7 @@ const Divider = () => {
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div
-      className="flex h-popup w-popup touch:w-full touch:h-screen flex-col gap-4 px-6 touch:px-4 py-4 @container"
+      className="flex h-popup w-popup max-w-full touch:w-full touch:h-screen flex-col gap-4 px-6 touch:px-4 py-4 @container"
       id="main"
     >
       <Header />

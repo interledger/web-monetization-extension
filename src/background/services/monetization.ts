@@ -16,6 +16,7 @@ import {
   isOkState,
   isTabWithUrl,
   removeQueryParams,
+  toUnits,
 } from '@/background/utils';
 import { ErrorWithKey, transformBalance } from '@/shared/helpers';
 import type { PopupStore, Storage } from '@/shared/types';
@@ -331,9 +332,7 @@ export class MonetizationService {
       throw new ErrorWithKey('pay_notMonetized_error');
     }
 
-    const amountToSend = BigInt(
-      (Number(amount) * 10 ** walletAddress.assetScale).toFixed(0),
-    );
+    const amountToSend = toUnits(amount, walletAddress.assetScale);
     const result = await paymentManager.pay(amountToSend);
 
     const { sentAmount, debitAmount } = result.amounts;
