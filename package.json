@@ -37,7 +37,7 @@
     "posthog-js": "1.417.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "structured-headers": "^2.1.0",
+    "structured-headers": "^2.1.1",
     "tailwind-merge": "^3.7.0",
     "valtio": "^2.3.2",
     "webextension-polyfill": "^0.12.0",
