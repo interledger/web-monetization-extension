@@ -49,6 +49,7 @@ function makeService(
     storage,
     browser,
     events,
+    logger,
     outgoingPaymentGrantService,
   };
 }
@@ -514,6 +515,36 @@ describe('registerBalanceUpdateHandler / saveUpdatedBalance', () => {
     await vi.advanceTimersByTimeAsync(0);
 
     expect(storage.setSpentAmount).toHaveBeenCalledWith('recurring', '42');
+  });
+
+  it('logs and stops refreshing when saving the updated balance fails', async () => {
+    const { service, storage, browser, logger, outgoingPaymentGrantService } =
+      makeService({
+        isAnyGrantUsable: false,
+        grantType: 'recurring',
+        storageState: {
+          supportsGrantSpentAmounts: { supported: true, lastCheckedAt: 1 },
+          walletAddress: walletInfo,
+          continuousPaymentsEnabled: true,
+        },
+      });
+    outgoingPaymentGrantService.getGrantSpentAmounts.mockResolvedValue({
+      spentDebitAmount: { value: '42', assetCode: 'USD', assetScale: 2 },
+      spentReceiveAmount: null,
+    });
+    const error = new Error('storage write failed');
+    storage.setSpentAmount.mockRejectedValue(error);
+
+    service.start();
+    await vi.advanceTimersByTimeAsync(0);
+    const [listener] = browser.runtime.onConnect.addListener.mock.calls[0];
+    listener(makePort(BACKGROUND_TO_POPUP_CONNECTION_NAME));
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      'Background balance update failed',
+      error,
+    );
   });
 
   it('does not update the balance on popup connect when there is no connected wallet', async () => {
