@@ -251,7 +251,7 @@ export class GrantBalanceService {
 
       if (!amounts?.spentDebitAmount) return;
 
-      this.storage.setSpentAmount(
+      await this.storage.setSpentAmount(
         this.outgoingPaymentGrantService.grantType,
         amounts.spentDebitAmount.value,
       );
