@@ -4,6 +4,7 @@ import { SwitchButton } from '@/pages/shared/components/ui/Switch';
 import { Button } from '@/pages/shared/components/ui/Button';
 import { InputAmountMemoized as InputAmount } from '@/pages/shared/components/InputAmount';
 import { IconTrash } from '@/pages/shared/components/Icons';
+import { InformationTooltip } from '@/pages/shared/components/InformationTooltip';
 import type { OtherSettingsHistoryState } from '@/popup/components/Settings/Settings';
 import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import { debounceAsync, normalizeHostname } from '@/shared/helpers';
@@ -95,10 +96,13 @@ export const RateOfPayComponent = ({
       <div className="space-y-4">
         <label
           htmlFor="continuous-payments-toggle"
-          className="flex items-center gap-x-4"
+          className="flex items-center justify-between gap-x-4 cursor-pointer"
         >
           <span className="font-medium text-medium grow">
             {t('settings_rate_continuousPayments_label')}
+            <InformationTooltip
+              text={t('settings_rate_continuousPayments_info_text')}
+            />
           </span>
           <SwitchButton
             id="continuous-payments-toggle"
