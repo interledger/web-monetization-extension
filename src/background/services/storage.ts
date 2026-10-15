@@ -130,7 +130,7 @@ export class StorageService {
   async setState(state: Storage['state']): Promise<boolean> {
     const prevState = this.currentState ?? (await this.get(['state'])).state;
 
-    const newState: Storage['state'] = { ...this.currentState };
+    const newState: Storage['state'] = { ...prevState };
     for (const key of Object.keys(state) as ExtensionState[]) {
       newState[key] = state[key];
     }
