@@ -227,6 +227,18 @@ describe('toWalletAddressUrl', () => {
     );
     expect(toWalletAddressUrl('https://wallet.com')).toBe('https://wallet.com');
   });
+
+  it('ignores surrounding whitespace and scheme case', () => {
+    expect(toWalletAddressUrl(' https://wallet.com/bob')).toBe(
+      'https://wallet.com/bob',
+    );
+    expect(toWalletAddressUrl(' $wallet.com/bob ')).toBe(
+      'https://wallet.com/bob',
+    );
+    expect(toWalletAddressUrl('Https://wallet.com/bob')).toBe(
+      'https://wallet.com/bob',
+    );
+  });
 });
 
 describe('memoize', () => {

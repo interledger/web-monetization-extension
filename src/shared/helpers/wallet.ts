@@ -1,4 +1,5 @@
-export function toWalletAddressUrl(s: string): string {
+export function toWalletAddressUrl(input: string): string {
+  const s = input.trim().replace(/^https:\/\//i, 'https://');
   if (s.startsWith('https://')) return s;
 
   const addr = s.replace(/^\$/, 'https://').replace(/\/$/, '');
