@@ -341,6 +341,10 @@ export class WalletService {
         walletAmount,
       );
     await closeAppTabs(this.browser);
+    this.setConnectStateProgress('add_funds', {
+      key: 'connectWallet_stepAcceptGrant_text',
+      substitutions: [],
+    });
     let tabId: TabId | undefined;
     try {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
@@ -403,6 +407,10 @@ export class WalletService {
         walletAmount,
       );
     await closeAppTabs(this.browser);
+    this.setConnectStateProgress('update_budget', {
+      key: 'connectWallet_stepAcceptGrant_text',
+      substitutions: [],
+    });
     let tabId: TabId | undefined;
     try {
       await this.outgoingPaymentGrantService.completeOutgoingPaymentGrant(
