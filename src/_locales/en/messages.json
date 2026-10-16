@@ -488,6 +488,12 @@
   "postConnect_changeDetails_action": {
     "message": "Change the wallet address or budget amount"
   },
+  "postConnect_progress_title": {
+    "message": "Finishing up…"
+  },
+  "postConnect_progress_text": {
+    "message": "Confirming the details with your wallet provider. This only takes a moment."
+  },
   "postConnect_connect_success_title": {
     "message": "Wallet Connected!"
   },
