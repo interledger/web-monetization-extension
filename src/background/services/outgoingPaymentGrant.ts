@@ -339,6 +339,7 @@ export class OutgoingPaymentGrantService {
         }
 
         removeListeners();
+
         // Leave the redirect page right away, instead of only after the grant
         // is continued, so it isn't visible while we wait for those requests.
         // The post-connect page shows a progress state until the final result

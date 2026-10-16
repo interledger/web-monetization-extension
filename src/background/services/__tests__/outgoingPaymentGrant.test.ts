@@ -1,48 +1,29 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Browser } from 'webextension-polyfill';
+import type { Tabs } from 'webextension-polyfill';
 import type { Cradle } from '@/background/container';
-import { OutgoingPaymentGrantService } from '@/background/services/outgoingPaymentGrant';
+import { APP_URL } from '@/background/constants';
 import {
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from '@/background/utils';
 
-const APP_URL = 'chrome-extension://abc/pages/app/index.html';
-const POST_CONNECT_URL = `${APP_URL}#/post-connect`;
+import { OutgoingPaymentGrantService } from '../outgoingPaymentGrant';
+import { makeBrowser, makeLogger, makeStorage } from './helpers';
+
+const POST_CONNECT_URL = `chrome-extension://ext-id/${APP_URL}#/post-connect`;
 const REDIRECT_URL = 'https://webmonetization.org/welcome';
 const TAB_ID = 42;
 
-type TabUpdateListener = (
-  tabId: number,
-  changeInfo: { url?: string },
-) => Promise<void>;
-
 function setup() {
-  let onUpdated: TabUpdateListener | undefined;
-  const calls: string[] = [];
-
-  const browser = {
-    runtime: { getURL: vi.fn(() => APP_URL) },
-    tabs: {
-      create: vi.fn(async () => ({ id: TAB_ID })),
-      get: vi.fn(async () => ({ id: TAB_ID, index: 0, windowId: 1 })),
-      query: vi.fn(async () => []),
-      update: vi.fn(async (_tabId: number, { url }: { url: string }) => {
-        calls.push(`update:${url}`);
-      }),
-      onUpdated: {
-        addListener: vi.fn((cb: TabUpdateListener) => (onUpdated = cb)),
-        removeListener: vi.fn(),
-      },
-      onRemoved: { addListener: vi.fn(), removeListener: vi.fn() },
-    },
-  } as unknown as Browser;
+  const browser = makeBrowser();
+  browser.tabs.create.mockResolvedValue({ id: TAB_ID });
+  browser.tabs.get.mockResolvedValue({ id: TAB_ID, index: 0, windowId: 1 });
 
   const service = new OutgoingPaymentGrantService({
     browser,
-    storage: { get: vi.fn(async () => ({})) },
-    logger: { debug: vi.fn(), warn: vi.fn() },
+    storage: makeStorage(),
+    logger: makeLogger(),
     events: { emit: vi.fn() },
     openPaymentsService: {},
   } as unknown as Cradle);
@@ -56,11 +37,13 @@ function setup() {
     );
 
   const navigate = async (url: string) => {
-    await vi.waitFor(() => expect(onUpdated).toBeDefined());
-    await onUpdated!(TAB_ID, { url });
+    const { addListener } = browser.tabs.onUpdated;
+    await vi.waitFor(() => expect(addListener).toHaveBeenCalled());
+    const onUpdated = addListener.mock.calls[0][0];
+    await onUpdated(TAB_ID, { url }, {} as Tabs.Tab);
   };
 
-  return { browser, calls, getInteractionInfo, navigate };
+  return { browser, getInteractionInfo, navigate };
 }
 
 describe('OutgoingPaymentGrantService.getInteractionInfo', () => {
@@ -69,7 +52,7 @@ describe('OutgoingPaymentGrantService.getInteractionInfo', () => {
   });
 
   it('redirects to post-connect as soon as interaction params arrive', async () => {
-    const { browser, calls, getInteractionInfo, navigate } = setup();
+    const { browser, getInteractionInfo, navigate } = setup();
 
     const promise = getInteractionInfo();
     await navigate(`${REDIRECT_URL}?interact_ref=ref&hash=h`);
@@ -82,7 +65,6 @@ describe('OutgoingPaymentGrantService.getInteractionInfo', () => {
     expect(browser.tabs.update).toHaveBeenLastCalledWith(TAB_ID, {
       url: POST_CONNECT_URL,
     });
-    expect(calls.at(-1)).toBe(`update:${POST_CONNECT_URL}`);
     expect(browser.tabs.onUpdated.removeListener).toHaveBeenCalled();
   });
 
@@ -110,7 +92,7 @@ describe('OutgoingPaymentGrantService.getInteractionInfo', () => {
     });
   });
 
-  it('does not redirect for unrelated navigations', async () => {
+  it('does not redirect for unrelated navigation', async () => {
     const { browser, getInteractionInfo, navigate } = setup();
 
     const controller = new AbortController();
@@ -126,7 +108,7 @@ describe('OutgoingPaymentGrantService.getInteractionInfo', () => {
 
   it('still resolves if the redirect fails', async () => {
     const { browser, getInteractionInfo, navigate } = setup();
-    vi.mocked(browser.tabs.update).mockRejectedValueOnce(new Error('no tab'));
+    browser.tabs.update.mockRejectedValueOnce(new Error('no tab'));
 
     const promise = getInteractionInfo();
     await navigate(`${REDIRECT_URL}?interact_ref=ref&hash=h`);

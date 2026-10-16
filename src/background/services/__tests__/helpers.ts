@@ -87,6 +87,14 @@ export const makeBrowser = () => ({
       .fn<MockedAsync<Browser['tabs']['highlight']>>()
       .mockResolvedValue({}),
     sendMessage: vi.fn<Browser['tabs']['sendMessage']>(),
+    onUpdated: {
+      addListener: vi.fn<Browser['tabs']['onUpdated']['addListener']>(),
+      removeListener: vi.fn<Browser['tabs']['onUpdated']['removeListener']>(),
+    },
+    onRemoved: {
+      addListener: vi.fn<Browser['tabs']['onRemoved']['addListener']>(),
+      removeListener: vi.fn<Browser['tabs']['onRemoved']['removeListener']>(),
+    },
   },
 });
 
