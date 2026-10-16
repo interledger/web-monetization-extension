@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "Split view test",
+  "version": "0.1",
+  "description": "Logs what the tabs API reports for tabs in split view or tab tiling.",
+  "permissions": ["tabs", "<all_urls>"],
+  "background": { "scripts": ["background.js"] },
+  "browser_action": {},
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "browser_specific_settings": { "gecko": { "id": "split-view-test@local" } }
+}
