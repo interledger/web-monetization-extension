@@ -26,6 +26,7 @@ import {
 import {
   createTabIfNotExists,
   dedupe,
+  redirectToPostConnect,
   WalletStatusCancelError,
   WalletStatusFailureError,
 } from '@/background/utils';
@@ -330,12 +331,22 @@ export class OutgoingPaymentGrantService {
         const result = tabUrl.searchParams.get('result');
 
         if (
-          (interactRef && hash) ||
-          result === 'grant_rejected' ||
-          result === 'grant_invalid'
+          !(interactRef && hash) &&
+          result !== 'grant_rejected' &&
+          result !== 'grant_invalid'
         ) {
-          removeListeners();
+          return;
         }
+
+        removeListeners();
+
+        // Leave the redirect page right away, instead of only after the grant
+        // is continued, so it isn't visible while we wait for those requests.
+        // The post-connect page shows a progress state until the final result
+        // is set.
+        await redirectToPostConnect(this.browser, tabId).catch((error) => {
+          this.logger.warn('Failed to redirect to post-connect page', error);
+        });
 
         if (interactRef && hash) {
           resolve({ interactRef, hash, tabId });

@@ -6,6 +6,7 @@ import { navigate } from 'wouter/use-hash-location';
 import { isErrorWithKey } from '@/shared/helpers';
 import { useMessage, useTranslation } from '@/app/lib/context';
 import { useAppState } from '@/app/lib/store';
+import { LoadingSpinner } from '@/pages/shared/components/LoadingSpinner';
 import type {
   WalletStatus,
   WalletStatusCancel,
@@ -17,8 +18,20 @@ export default function PostConnect() {
   const message = useMessage();
   const { transientState } = useAppState();
 
-  if (!transientState.connect || transientState.connect.type === 'progress') {
+  if (!transientState.connect) {
     return <Redirect to="/" />;
+  }
+
+  if (transientState.connect.type === 'progress') {
+    return (
+      <Layout>
+        <LoadingSpinner color="gray" size="lg" />
+        <h2 className="text-3xl md:text-4xl font-bold">
+          {t('postConnect_progress_title')}
+        </h2>
+        <p className="text-lg">{t('postConnect_progress_text')}</p>
+      </Layout>
+    );
   }
 
   const params = mapStatusToMessage(transientState.connect as WalletStatus, t);
@@ -26,6 +39,54 @@ export default function PostConnect() {
     return <Redirect to="/" />;
   }
 
+  return (
+    <Layout>
+      <img
+        className="h-8 w-8 md:w-32 md:h-32"
+        src={params.image.src}
+        alt={params.image.alt}
+      />
+
+      <h2 className="text-3xl md:text-4xl font-bold">{params.heading}</h2>
+
+      <p className="text-lg whitespace-pre-wrap">{params.info}</p>
+
+      <div className="flex flex-col gap-3">
+        {params.retryPossible === 'auto' && params.retryMessage && (
+          <button
+            type="button"
+            className={ButtonVariants({ variant: 'solid' })}
+            onClick={() => {
+              const { action, payload } = params.retryMessage!;
+              return message.send(action, payload);
+            }}
+          >
+            {t('postConnect_retry_action')}
+          </button>
+        )}
+
+        {params.retryPossible && params.intent === 'connect' && (
+          // biome-ignore lint/a11y/useValidAnchor: link is used for handling behaviors like right-click to open in new tab, copying link address, etc.
+          <a
+            href="/pages/app/index.html#post-install"
+            onClick={(ev) => {
+              ev.preventDefault();
+              navigate('#post-install', { state: { focusConnect: true } });
+            }}
+            className={ButtonVariants({
+              variant: params.retryPossible === 'auto' ? 'outline' : 'solid',
+            })}
+          >
+            {t('postConnect_changeDetails_action')}
+          </a>
+        )}
+      </div>
+    </Layout>
+  );
+}
+
+function Layout({ children }: React.PropsWithChildren) {
+  const t = useTranslation();
   return (
     <div className="bg-white md:bg-gray-50 flex h-screen w-screen flex-col items-center justify-center gap-6 md:gap-14 p-3 md:p-4">
       <header className="flex gap-2 items-center w-fit mx-auto mt-8 md:mt-16 md:mb-14 text-center">
@@ -36,46 +97,7 @@ export default function PostConnect() {
       </header>
 
       <div className="md:p-8 md:border rounded-lg bg-white/75 border-gray-100 mb-auto flex flex-col items-center gap-6 text-center w-full md:w-[42rem]">
-        <img
-          className="h-8 w-8 md:w-32 md:h-32"
-          src={params.image.src}
-          alt={params.image.alt}
-        />
-
-        <h2 className="text-3xl md:text-4xl font-bold">{params.heading}</h2>
-
-        <p className="text-lg whitespace-pre-wrap">{params.info}</p>
-
-        <div className="flex flex-col gap-3">
-          {params.retryPossible === 'auto' && params.retryMessage && (
-            <button
-              type="button"
-              className={ButtonVariants({ variant: 'solid' })}
-              onClick={() => {
-                const { action, payload } = params.retryMessage!;
-                return message.send(action, payload);
-              }}
-            >
-              {t('postConnect_retry_action')}
-            </button>
-          )}
-
-          {params.retryPossible && params.intent === 'connect' && (
-            // biome-ignore lint/a11y/useValidAnchor: link is used for handling behaviors like right-click to open in new tab, copying link address, etc.
-            <a
-              href="/pages/app/index.html#post-install"
-              onClick={(ev) => {
-                ev.preventDefault();
-                navigate('#post-install', { state: { focusConnect: true } });
-              }}
-              className={ButtonVariants({
-                variant: params.retryPossible === 'auto' ? 'outline' : 'solid',
-              })}
-            >
-              {t('postConnect_changeDetails_action')}
-            </a>
-          )}
-        </div>
+        {children}
       </div>
     </div>
   );
