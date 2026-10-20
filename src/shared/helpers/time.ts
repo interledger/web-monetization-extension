@@ -1,7 +1,5 @@
-import { addSeconds } from 'date-fns/addSeconds';
-import { isAfter } from 'date-fns/isAfter';
 import { isBefore } from 'date-fns/isBefore';
-import { parse, toSeconds } from 'iso8601-duration';
+import { type Duration, parse } from 'iso8601-duration';
 import type { RepeatingInterval } from '../types';
 
 export const sleep = (ms: number) =>
@@ -130,17 +128,50 @@ export const getNextOccurrence = (
   }
   const count = match[1] ? Number.parseInt(match[1], 10) : null;
   const startDate = new Date(match[2]);
-  const pattern = parse(match[3]);
-  const seconds = toSeconds(pattern, base);
+  const duration = parse(match[3]);
 
-  if (count && isAfter(base, addSeconds(startDate, count * seconds))) {
-    throw new Error('No next occurrence is possible beyond given time');
-  }
-
-  let date = new Date(startDate);
-  while (!isBefore(base, date)) {
-    date = addSeconds(date, seconds);
+  // Like the wallet, each occurrence is the previous one plus the duration.
+  let date = startDate;
+  for (let i = 0; !isBefore(base, date); i++) {
+    if (count && i >= count) {
+      throw new Error('No next occurrence is possible beyond given time');
+    }
+    date = addDuration(date, duration);
   }
 
   return date;
 };
+
+/**
+ * Add an ISO 8601 duration to a date, in UTC. Same as the wallet (Rafiki, via
+ * luxon), the day is clamped to the resulting month, so Jan 31 + P1M is the
+ * last day of February, not a date in March.
+ */
+function addDuration(date: Date, duration: Duration): Date {
+  const {
+    years = 0,
+    months = 0,
+    weeks = 0,
+    days = 0,
+    hours = 0,
+    minutes = 0,
+    seconds = 0,
+  } = duration;
+  const result = new Date(date);
+
+  const dayOfMonth = result.getUTCDate();
+  result.setUTCDate(1);
+  result.setUTCFullYear(
+    result.getUTCFullYear() + years,
+    result.getUTCMonth() + months,
+  );
+  const daysInMonth = new Date(
+    Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  result.setUTCDate(Math.min(dayOfMonth, daysInMonth) + weeks * 7 + days);
+
+  result.setTime(
+    result.getTime() + ((hours * 60 + minutes) * 60 + seconds) * 1000,
+  );
+  return result;
+}

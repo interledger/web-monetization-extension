@@ -140,7 +140,7 @@ describe('getNextOccurrence', () => {
     ).toEqual(addMonths(dateJan, 1));
     expect(
       getNextOccurrence(`R/${dateJanEnd.toISOString()}/P1M`, dateJanEnd),
-    ).toEqual(new Date('2024-03-01T00:00:00.000Z'));
+    ).toEqual(new Date('2024-02-29T00:00:00.000Z'));
     expect(
       getNextOccurrence(`R/${dateFeb.toISOString()}/P1M`, dateFeb),
     ).toEqual(addMonths(dateFeb, 1));
@@ -150,6 +150,24 @@ describe('getNextOccurrence', () => {
     expect(
       getNextOccurrence(`R/${dateApr.toISOString()}/P1M`, dateApr),
     ).toEqual(addMonths(dateApr, 1));
+  });
+
+  it('should add each month to the previous occurrence, like the wallet', () => {
+    // Jan 31 -> Feb 29 -> Mar 29 -> ... -> Jul 29
+    const interval = 'R/2024-01-31T00:00:00.000Z/P1M';
+    expect(
+      getNextOccurrence(interval, new Date('2024-07-15T00:00:00.000Z')),
+    ).toEqual(new Date('2024-07-29T00:00:00.000Z'));
+    expect(
+      getNextOccurrence(interval, new Date('2024-07-29T00:00:00.000Z')),
+    ).toEqual(new Date('2024-08-29T00:00:00.000Z'));
+
+    expect(
+      getNextOccurrence(
+        'R/2024-02-29T00:00:00.000Z/P1Y',
+        new Date('2024-03-01T00:00:00.000Z'),
+      ),
+    ).toEqual(new Date('2025-02-28T00:00:00.000Z'));
   });
 
   it('should return next occurrence with /P1W', () => {
