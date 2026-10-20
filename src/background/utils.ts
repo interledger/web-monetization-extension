@@ -151,7 +151,7 @@ export function dedupe<Fn extends (...args: any[]) => Promise<any>>(
     }
 
     const cached = dedupeCache.get(key);
-    if (cached) {
+    if (cached !== undefined) {
       return cached as ReturnType<Fn>;
     }
 

@@ -15,9 +15,11 @@ type Primitive = string | number | boolean | null | undefined;
 
 // Warn: Not a nested object equals or a deepEquals function
 export function objectEquals<T extends Record<string, Primitive>>(a: T, b: T) {
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  return JSON.stringify(a, keysA.sort()) === JSON.stringify(b, keysB.sort());
+  // keys are unique, so they're never equal
+  const byKey = (x: string, y: string) => (x < y ? -1 : 1);
+  const keysA = Object.keys(a).sort(byKey);
+  const keysB = Object.keys(b).sort(byKey);
+  return JSON.stringify(a, keysA) === JSON.stringify(b, keysB);
 }
 
 /**
