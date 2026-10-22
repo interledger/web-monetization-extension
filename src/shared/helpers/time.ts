@@ -129,11 +129,17 @@ export const getNextOccurrence = (
   const count = match[1] ? Number.parseInt(match[1], 10) : null;
   const startDate = new Date(match[2]);
   const duration = parse(match[3]);
+  // A duration that doesn't move the date forward (e.g. `PT0S`) would never
+  // get past `base`.
+  if (!isBefore(startDate, addDuration(startDate, duration))) {
+    throw new Error(`Invalid interval: ${interval}`);
+  }
 
-  // Like the wallet, each occurrence is the previous one plus the duration.
+  // Like Rafiki, each occurrence is the previous one plus the duration.
+  // `Rn` means the first interval and `n` more after it.
   let date = startDate;
   for (let i = 0; !isBefore(base, date); i++) {
-    if (count && i >= count) {
+    if (count !== null && i > count) {
       throw new Error('No next occurrence is possible beyond given time');
     }
     date = addDuration(date, duration);

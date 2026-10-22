@@ -152,7 +152,7 @@ describe('getNextOccurrence', () => {
     ).toEqual(addMonths(dateApr, 1));
   });
 
-  it('should add each month to the previous occurrence, like the wallet', () => {
+  it('should add each month to the previous occurrence, like Rafiki', () => {
     // Jan 31 -> Feb 29 -> Mar 29 -> ... -> Jul 29
     const interval = 'R/2024-01-31T00:00:00.000Z/P1M';
     expect(
@@ -186,22 +186,44 @@ describe('getNextOccurrence', () => {
   });
 
   it('should throw if no more occurrences are possible', () => {
+    // R1: the first interval and 1 more after it
     const interval = `R1/${dateJan.toISOString()}/P1M`;
     const errorMsg = /No next occurrence is possible/;
 
-    expect(() =>
-      getNextOccurrence(interval, addMonths(dateJan, 0)),
-    ).not.toThrow(errorMsg);
-    expect(() => getNextOccurrence(interval, addDays(dateJan, 10))).not.toThrow(
-      errorMsg,
+    expect(getNextOccurrence(interval, dateJan)).toEqual(addMonths(dateJan, 1));
+    expect(getNextOccurrence(interval, addDays(dateJan, 10))).toEqual(
+      addMonths(dateJan, 1),
+    );
+    expect(getNextOccurrence(interval, addMonths(dateJan, 1))).toEqual(
+      addMonths(dateJan, 2),
     );
 
-    expect(() => getNextOccurrence(interval, addMonths(dateJan, 1))).toThrow(
-      errorMsg,
-    );
     expect(() => getNextOccurrence(interval, addMonths(dateJan, 2))).toThrow(
       errorMsg,
     );
+    expect(() => getNextOccurrence(interval, addMonths(dateJan, 3))).toThrow(
+      errorMsg,
+    );
+  });
+
+  it('should only allow the first interval with R0', () => {
+    const interval = `R0/${dateJan.toISOString()}/P1M`;
+
+    expect(getNextOccurrence(interval, addDays(dateJan, 10))).toEqual(
+      addMonths(dateJan, 1),
+    );
+    expect(() => getNextOccurrence(interval, addMonths(dateJan, 1))).toThrow(
+      /No next occurrence is possible/,
+    );
+  });
+
+  it('should throw for a duration that does not move forward', () => {
+    for (const duration of ['PT0S', 'P0D']) {
+      const interval = `R/${dateJan.toISOString()}/${duration}` as const;
+      expect(() => getNextOccurrence(interval, addDays(dateJan, 1))).toThrow(
+        `Invalid interval: ${interval}`,
+      );
+    }
   });
 
   it('should return the next occurrence with /PT', () => {
