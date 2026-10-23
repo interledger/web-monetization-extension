@@ -62,6 +62,11 @@ SVGOMG
 xvfb
 Titillium
 mindmap
+safaridriver
+geckodriver
+wdio
+bidi
+prefs
 
 # user names
 raducristianpopa
