@@ -62,6 +62,7 @@ SVGOMG
 xvfb
 Titillium
 mindmap
+luxon
 
 # user names
 raducristianpopa
