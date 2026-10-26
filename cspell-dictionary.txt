@@ -41,6 +41,7 @@ Camtasia
 networkidle
 webextensions
 firefoxUserPrefs
+prefs
 textbox
 appex
 pbxproj
@@ -60,6 +61,7 @@ esbuild
 msedge
 SVGOMG
 xvfb
+wdio
 Titillium
 mindmap
 luxon

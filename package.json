@@ -20,7 +20,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium",
-    "test:e2e:report": "playwright show-report tests/e2e/playwright-report"
+    "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
+    "test:e2e:wdio": "wdio run wdio.conf.ts"
   },
   "dependencies": {
     "@interledger/open-payments": "^7.4.0",
@@ -61,6 +62,11 @@
     "@types/react-dom": "^19.2.4",
     "@types/webextension-polyfill": "^0.12.6",
     "@vitest/coverage-v8": "^4.1.11",
+    "@wdio/cli": "^9.32.0",
+    "@wdio/globals": "^9.31.3",
+    "@wdio/local-runner": "^9.32.0",
+    "@wdio/mocha-framework": "^9.32.0",
+    "@wdio/spec-reporter": "^9.32.0",
     "archiver": "^8.0.0",
     "esbuild": "^0.28.2",
     "esbuild-node-builtin": "^0.1.1",
@@ -75,7 +81,8 @@
     "totp-generator": "2.0.1",
     "typescript": "npm:typescript@^6.0.3",
     "typescript7": "npm:typescript@^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "webdriverio": "^9.32.0"
   },
   "engines": {
     "pnpm": "^11.9.0",
