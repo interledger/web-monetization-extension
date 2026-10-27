@@ -11,7 +11,7 @@ const extensionPath = (target: string) => path.join(DIST_DIR, target);
 
 // Pinned so the extension's base URL is known before it's installed.
 // See `browser_specific_settings.gecko.id` in manifest.json
-export const FIREFOX_ADDON_UUID = '7f1c5c4e-3a6b-4f5e-9c1d-2b8e0d4a9f10';
+const FIREFOX_ADDON_UUID = '7f1c5c4e-3a6b-4f5e-9c1d-2b8e0d4a9f10';
 
 const browsers = {
   chrome: {
