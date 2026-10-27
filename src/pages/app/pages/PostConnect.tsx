@@ -47,7 +47,12 @@ export default function PostConnect() {
         alt={params.image.alt}
       />
 
-      <h2 className="text-3xl md:text-4xl font-bold">{params.heading}</h2>
+      <h2
+        className="text-3xl md:text-4xl font-bold"
+        data-testid="post-connect-result"
+      >
+        {params.heading}
+      </h2>
 
       <p className="text-lg whitespace-pre-wrap">{params.info}</p>
 

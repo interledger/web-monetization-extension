@@ -18,6 +18,11 @@ export async function waitForWelcomePage(page: Page) {
     (url) =>
       url.pathname === '/pages/app/index.html' && url.hash === '#/post-connect',
   );
+  // We're redirected to post-connect page before the grant is continued, where
+  // it shows a progress state. Wait for the final result instead.
+  await page
+    .getByTestId('post-connect-result')
+    .waitFor({ state: 'visible', timeout: 20_000 });
 }
 
 export async function waitForReconnectWelcomePage(page: Page) {
