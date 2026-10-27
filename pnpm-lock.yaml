@@ -57,8 +57,8 @@ importers:
         specifier: ^19.2.8
         version: 19.2.8(react@19.2.8)
       structured-headers:
-        specifier: ^2.1.0
-        version: 2.1.0
+        specifier: ^2.1.1
+        version: 2.1.1
       tailwind-merge:
         specifier: ^3.7.0
         version: 3.7.0
@@ -2477,8 +2477,8 @@ packages:
   structured-headers@0.5.0:
     resolution: {integrity: sha512-oLnmXSsjhud+LxRJpvokwP8ImEB2wTg8sg30buwfVViKMuluTv3BlOJHUX9VW9pJ2nQOxmx87Z0kB86O4cphag==}
 
-  structured-headers@2.1.0:
-    resolution: {integrity: sha512-ClzykN+XQVaSW5UfpOdEWfDplZ1Th7mISdaFvaC2+GjLTeBhGMJw83D/Rw9jPkHOml4oYd3EXaZhbz3gnE5nBQ==}
+  structured-headers@2.1.1:
+    resolution: {integrity: sha512-Ub9mpW7mtzUC7yM7Vrl+CwvHvXa4WhKWROUM9YKmkOsI55dMSg2rhiA7Q5vwRixQk1ndQ2m8YiM6YhO+GJn9LQ==}
     engines: {node: '>=18', npm: '>=6'}
 
   supports-color@7.2.0:
@@ -4143,7 +4143,7 @@ snapshots:
 
   http-message-signatures@1.0.6:
     dependencies:
-      structured-headers: 2.1.0
+      structured-headers: 2.1.1
 
   httpbis-digest-headers@1.0.0:
     dependencies:
@@ -4840,7 +4840,7 @@ snapshots:
 
   structured-headers@0.5.0: {}
 
-  structured-headers@2.1.0: {}
+  structured-headers@2.1.1: {}
 
   supports-color@7.2.0:
     dependencies:
