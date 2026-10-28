@@ -32,8 +32,16 @@ describe('connect', () => {
       process.env.TEST_WALLET_ADDRESS_URL,
     );
     await browser.keys('Tab');
-    await $('#connectAmount').setValue('10');
-    await browser.keys('Tab');
+    // The wallet's default budget can replace the amount if it loads while typing.
+    const amount = await $('#connectAmount');
+    await browser.waitUntil(async () => {
+      await amount.setValue('10');
+      await browser.keys('Tab');
+      return (
+        Number(await amount.getValue()) === 10 &&
+        (await amount.getAttribute('data-modified')) === '1'
+      );
+    });
     const recurring = await $('#connectRecurring');
     if (await recurring.isSelected()) {
       await browser.execute((el) => el.click(), recurring);
