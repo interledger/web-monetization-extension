@@ -20,7 +20,7 @@ describe('connect', () => {
   });
 
   it('connects with correct details provided', async () => {
-    let popup = await openPopup(main);
+    await openPopup(main);
     expect(await getStorage(['connected'])).toEqual({ connected: false });
 
     await setStorage({
@@ -35,7 +35,7 @@ describe('connect', () => {
     // Connect is enabled once the wallet details (and default budget) load.
     const connect = `button*=${await t('connectWallet_connect_action')}`;
     await $(connect).waitForEnabled();
-    const amount = $('#connectAmount');
+    const amount = await $('#connectAmount');
     await amount.setValue('10');
     await browser.keys('Tab');
     await expect(amount).toHaveValue('10.00');
@@ -57,7 +57,7 @@ describe('connect', () => {
     );
     await browser.closeWindow();
 
-    popup = await openPopup(main);
+    const popup = await openPopup(main);
     await browser.waitUntil(
       async () => (await getStorage(['connected'])).connected,
       { timeout: 30_000, interval: 1000 },
