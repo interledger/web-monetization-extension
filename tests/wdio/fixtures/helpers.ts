@@ -1,19 +1,11 @@
 /// <reference types="chrome"/>
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { DIST_DIR } from '../../../scripts/esbuild/config';
 import type { Storage, StorageKey } from '../../../src/shared/types';
 
 export const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
 
-export const t = (key: string): string => {
-  const file = path.join(
-    DIST_DIR,
-    process.env.EXTENSION_TARGET!,
-    '_locales/en/messages.json',
-  );
-  return JSON.parse(readFileSync(file, 'utf8'))[key].message;
-};
+// Needs an extension page (e.g. the popup) as the current window.
+export const t = (key: string) =>
+  browser.execute((key: string) => chrome.i18n.getMessage(key), key);
 
 export const getStorage = (keys: StorageKey[]) =>
   browser.executeAsync(
@@ -51,8 +43,8 @@ export const switchToUrl = (
     { timeout, interval: 500 },
   );
 
-// Like the Playwright fixture: a popup-type window, so the extension keeps
-// treating the main window as the current one.
+// A popup-type window, so the extension keeps treating the main window as the
+// current one.
 export const openPopup = async (main: string) => {
   await browser.switchToWindow(main);
   const before = await browser.getWindowHandles();
@@ -89,10 +81,14 @@ export const acceptConsent = async (main: string) => {
     uid: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
     consentTelemetry: false,
   });
-  if (await $('#consent-form').isExisting()) {
-    await click('#consent-form input[type="checkbox"]');
-    await click('#consent-form button[type="submit"]');
+  await $('#consent-form').waitForDisplayed();
+  await click('#consent-form input[type="checkbox"]');
+  const telemetry = $('#consent-field-telemetry');
+  if (await telemetry.isSelected()) {
+    await browser.execute((el) => el.click(), telemetry);
   }
+  await expect(telemetry).not.toBeSelected();
+  await click('#consent-form button[type="submit"]');
   await browser.switchToWindow(main);
 };
 

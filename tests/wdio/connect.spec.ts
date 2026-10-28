@@ -37,12 +37,16 @@ describe('connect', () => {
     if (await recurring.isSelected()) {
       await browser.execute((el) => el.click(), recurring);
     }
-    await click(`button*=${t('connectWallet_connect_action')}`);
+    await click(`button*=${await t('connectWallet_connect_action')}`);
 
     await switchToUrl((url) => url.includes('interactId='));
     await click('button=Accept');
     await browser.waitUntil(async () =>
       (await browser.getUrl()).endsWith('/pages/app/index.html#/post-connect'),
+    );
+    await expect($('[data-testid="post-connect-result"]')).toHaveText(
+      await t('postConnect_connect_success_title'),
+      { wait: 20_000 },
     );
     await browser.closeWindow();
 
@@ -53,7 +57,9 @@ describe('connect', () => {
     );
     // The popup moved to the connect route while connecting; start from home.
     await browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
-    await expect($('aria/Settings')).toBeDisplayed();
+    await expect(
+      $(`aria/${await t('header_settings_action')}`),
+    ).toBeDisplayed();
     expect(
       await getStorage(['connected', 'recurringGrant', 'oneTimeGrant']),
     ).toMatchObject({
@@ -70,12 +76,14 @@ describe('connect', () => {
     await browser.switchToWindow(main);
     await browser.url('https://webmonetization.org/play/');
     await browser.switchToWindow(popup);
-    await expect($('h3')).toHaveText(t('notMonetized_noLinks_text'));
+    await expect($('h3')).toHaveText(await t('notMonetized_noLinks_text'));
 
-    await click('aria/Settings');
-    await click('aria/Wallet');
-    await click('button=Disconnect');
-    await click(`button=${t('settings_wallet_disconnectConfirm_action')}`);
+    await click(`aria/${await t('header_settings_action')}`);
+    await click(`aria/${await t('settings_tabs_wallet_text')}`);
+    await click(`button=${await t('settings_wallet_disconnect_action')}`);
+    await click(
+      `button=${await t('settings_wallet_disconnectConfirm_action')}`,
+    );
     await expect($('[data-testid="connect-wallet-form"]')).toBeDisplayed();
     expect(await getStorage(['connected'])).toEqual({ connected: false });
   });

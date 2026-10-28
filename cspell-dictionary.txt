@@ -62,6 +62,8 @@ msedge
 SVGOMG
 xvfb
 wdio
+edgedriver
+geckodriver
 Titillium
 mindmap
 luxon
