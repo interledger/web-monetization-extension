@@ -1,5 +1,6 @@
 import {
   acceptConsent,
+  acceptGrant,
   click,
   getStorage,
   loginToTestWallet,
@@ -33,14 +34,14 @@ describe('connect', () => {
     await browser.keys('Tab');
     await $('#connectAmount').setValue('10');
     await browser.keys('Tab');
-    const recurring = $('#connectRecurring');
+    const recurring = await $('#connectRecurring');
     if (await recurring.isSelected()) {
       await browser.execute((el) => el.click(), recurring);
     }
     await click(`button*=${await t('connectWallet_connect_action')}`);
 
     await switchToUrl((url) => url.includes('interactId='));
-    await click('button=Accept');
+    await acceptGrant();
     await browser.waitUntil(async () =>
       (await browser.getUrl()).endsWith('/pages/app/index.html#/post-connect'),
     );

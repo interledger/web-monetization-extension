@@ -83,13 +83,22 @@ export const acceptConsent = async (main: string) => {
   });
   await $('#consent-form').waitForDisplayed();
   await click('#consent-form input[type="checkbox"]');
-  const telemetry = $('#consent-field-telemetry');
+  const telemetry = await $('#consent-field-telemetry');
   if (await telemetry.isSelected()) {
     await browser.execute((el) => el.click(), telemetry);
   }
   await expect(telemetry).not.toBeSelected();
   await click('#consent-form button[type="submit"]');
   await browser.switchToWindow(main);
+};
+
+// The wallet only continues the grant after its `continue.wait` time.
+const CONTINUE_WAIT_MS = 1000;
+
+export const acceptGrant = async () => {
+  await $('button=Accept').waitForClickable();
+  await browser.pause(CONTINUE_WAIT_MS);
+  await click('button=Accept');
 };
 
 export const loginToTestWallet = async () => {
