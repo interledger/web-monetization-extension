@@ -73,6 +73,7 @@ const BudgetAmount = ({
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
+    if (errors.amount) return;
     setErrors({ amount: null, root: null });
     setIsSubmitting(true);
     try {
