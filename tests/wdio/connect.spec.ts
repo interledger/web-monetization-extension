@@ -32,21 +32,19 @@ describe('connect', () => {
       process.env.TEST_WALLET_ADDRESS_URL,
     );
     await browser.keys('Tab');
-    // The wallet's default budget can replace the amount if it loads while typing.
-    const amount = await $('#connectAmount');
-    await browser.waitUntil(async () => {
-      await amount.setValue('10');
-      await browser.keys('Tab');
-      return (
-        Number(await amount.getValue()) === 10 &&
-        (await amount.getAttribute('data-modified')) === '1'
-      );
-    });
+    // Connect is enabled once the wallet details (and default budget) load.
+    const connect = `button*=${await t('connectWallet_connect_action')}`;
+    await $(connect).waitForEnabled();
+    const amount = $('#connectAmount');
+    await amount.setValue('10');
+    await browser.keys('Tab');
+    await expect(amount).toHaveValue('10.00');
     const recurring = await $('#connectRecurring');
     if (await recurring.isSelected()) {
       await browser.execute((el) => el.click(), recurring);
     }
-    await click(`button*=${await t('connectWallet_connect_action')}`);
+    await expect(recurring).not.toBeSelected();
+    await click(connect);
 
     await switchToUrl((url) => url.includes('interactId='));
     await acceptGrant();
