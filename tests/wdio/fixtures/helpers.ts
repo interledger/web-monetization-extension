@@ -8,17 +8,17 @@ export const t = (key: string) =>
   browser.execute((key: string) => chrome.i18n.getMessage(key), key);
 
 export const getStorage = (keys: StorageKey[]) =>
-  browser.executeAsync(
-    (keys: StorageKey[], done: (data: Partial<Storage>) => void) => {
-      chrome.storage.local.get(keys).then(done);
-    },
+  browser.execute(
+    (keys: StorageKey[]) =>
+      chrome.storage.local.get(keys) as Promise<Partial<Storage>>,
     keys,
   );
 
 export const setStorage = (data: Partial<Storage>) =>
-  browser.executeAsync((data: Partial<Storage>, done: () => void) => {
-    chrome.storage.local.set(data).then(done);
-  }, data);
+  browser.execute(
+    (data: Partial<Storage>) => chrome.storage.local.set(data),
+    data,
+  );
 
 export const click = async (selector: string) => {
   const el = $(selector);
