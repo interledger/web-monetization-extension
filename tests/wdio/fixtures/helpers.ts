@@ -1,7 +1,7 @@
 /// <reference types="chrome"/>
 import type { Storage, StorageKey } from '../../../src/shared/types';
 
-export const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
+const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
 
 // Needs an extension page (e.g. the popup) as the current window.
 export const t = (key: string) =>
@@ -66,9 +66,9 @@ export const openPopup = async (main: string) => {
   return handle;
 };
 
-// Give data sharing consent at once on the post-install page.
+// Accept data sharing consent on the post-install page so the popup is usable.
 export const acceptConsent = async (main: string) => {
-  const base = process.env.EXTENSION_BASE_URL!;
+  const base = process.env.EXTENSION_BASE_URL;
   await switchToUrl((url) => url.startsWith(`${base}/pages/app/`), 5000).catch(
     async () => {
       // window.open() can't open extension pages in Chrome.

@@ -68,7 +68,6 @@ export const config: WebdriverIO.Config = {
         extensionData: { type: 'path', path: extensionPath('firefox') },
       });
       process.env.EXTENSION_BASE_URL = `moz-extension://${FIREFOX_ADDON_UUID}`;
-      process.env.EXTENSION_TARGET = 'firefox';
     } else {
       // An unpacked extension's ID comes from its path: the first 32 hex
       // characters of the SHA-256 hash, mapped to a-p.
@@ -78,7 +77,6 @@ export const config: WebdriverIO.Config = {
         .slice(0, 32)
         .replace(/./g, (c) => String.fromCharCode(97 + Number.parseInt(c, 16)));
       process.env.EXTENSION_BASE_URL = `chrome-extension://${id}`;
-      process.env.EXTENSION_TARGET = 'chrome';
     }
   },
 };
