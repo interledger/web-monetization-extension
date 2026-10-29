@@ -111,3 +111,51 @@ export const loginToTestWallet = async () => {
     { timeout: 20_000 },
   );
 };
+
+// Needs the popup as the current window.
+export const connectWallet = async (main: string) => {
+  await setStorage({
+    keyId: process.env.TEST_WALLET_KEY_ID,
+    privateKey: process.env.TEST_WALLET_PRIVATE_KEY,
+    publicKey: process.env.TEST_WALLET_PUBLIC_KEY,
+  });
+  await $('#connectWalletAddressUrl').setValue(
+    process.env.TEST_WALLET_ADDRESS_URL,
+  );
+  await browser.keys('Tab');
+  // Connect is enabled once the wallet details (and default budget) load.
+  const connect = `button*=${await t('connectWallet_connect_action')}`;
+  await $(connect).waitForEnabled();
+  const amount = await $('#connectAmount');
+  await amount.setValue('10');
+  await browser.keys('Tab');
+  await expect(amount).toHaveValue('10.00');
+  const recurring = await $('#connectRecurring');
+  if (await recurring.isSelected()) {
+    await browser.execute((el) => el.click(), recurring);
+  }
+  await expect(recurring).not.toBeSelected();
+  await click(connect);
+
+  await switchToUrl((url) => url.includes('interactId='));
+  await acceptGrant();
+  await browser.waitUntil(
+    async () =>
+      (await browser.getUrl()).endsWith('/pages/app/index.html#/post-connect'),
+    { timeout: 20_000 },
+  );
+  await expect($('[data-testid="post-connect-result"]')).toHaveText(
+    await t('postConnect_connect_success_title'),
+    { wait: 20_000 },
+  );
+  await browser.closeWindow();
+
+  const popup = await openPopup(main);
+  await browser.waitUntil(
+    async () => (await getStorage(['connected'])).connected,
+    { timeout: 30_000, interval: 1000 },
+  );
+  // The popup moved to the connect route while connecting; start from home.
+  await browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
+  return popup;
+};
