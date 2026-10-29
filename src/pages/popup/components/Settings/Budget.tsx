@@ -88,8 +88,8 @@ const BudgetAmount = ({
         }));
       } else {
         setChanged({ amount: false, recurring: false });
+        onBudgetChanged();
       }
-      onBudgetChanged();
     } catch (error) {
       setErrors((prev) => ({ ...prev, root: toErrorInfo(error) }));
     }
