@@ -40,11 +40,13 @@ export const getPlugins = ({
         build.onResolve({ filter: /^constants$/ }, () => ({
           path: require.resolve('./polyfill/lite-constants.ts'),
         }));
+        build.onResolve({ filter: /^@interledger\/openapi(\/.*)?$/ }, () => ({
+          path: require.resolve('./polyfill/lite-openapi.ts'),
+        }));
       },
     } satisfies ESBuildPlugin,
     ignorePackagePlugin([
       /@apidevtools[/|\\]json-schema-ref-parser/,
-      /@interledger[/|\\]openapi/,
       /@interledger[/|\\]http-signature-utils/,
     ]),
     esbuildStylePlugin({
