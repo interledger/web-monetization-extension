@@ -45,7 +45,7 @@ export const InputAmount = ({
   labelHidden,
   errorHidden,
   description,
-  min = 0,
+  min,
   max,
   readOnly,
   size = 'default',
@@ -67,16 +67,21 @@ export const InputAmount = ({
 
   const handleValue = React.useCallback(
     (value: string, skipSetValue = false) => {
-      const error = validateAmount(value, walletAddress, min, max);
+      if (!value || Number.isNaN(Number(value))) {
+        const error = validateAmount(value, walletAddress, min, max);
+        if (error) onError(error);
+        return;
+      }
+      const rounded = formatAmount(+value);
+      const error = validateAmount(rounded, walletAddress, min, max);
       if (error) {
         onError(error);
       } else {
         const input = inputRef.current!;
-        const formattedValue = formatAmount(+value);
         if (!skipSetValue) {
-          input.value = formattedValue;
+          input.value = rounded;
         }
-        onChange(formattedValue, input);
+        onChange(rounded, input);
       }
     },
     [walletAddress, onChange, onError, formatAmount, min, max, inputRef],
@@ -253,7 +258,7 @@ function Controls({
 export function validateAmount(
   value: string,
   walletAddress: Pick<WalletAddress, 'assetCode' | 'assetScale'>,
-  min = 0,
+  min?: number,
   max?: number,
 ): null | ErrorWithKeyLike {
   if (!value) {
@@ -263,9 +268,14 @@ export function validateAmount(
   if (Number.isNaN(val)) {
     return errorWithKey('connectWallet_amount_invalidNumber_error');
   }
-  if (val < min) {
+  const effectiveMin = min ?? 1 / 10 ** walletAddress.assetScale;
+  if (val < effectiveMin) {
     return errorWithKey('connectWallet_amount_minimum_error', [
-      formatCurrency(min, walletAddress.assetCode, walletAddress.assetScale),
+      formatCurrency(
+        effectiveMin,
+        walletAddress.assetCode,
+        walletAddress.assetScale,
+      ),
     ]);
   }
   if (max && val > max) {
