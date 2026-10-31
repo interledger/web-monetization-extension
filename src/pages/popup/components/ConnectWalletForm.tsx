@@ -212,133 +212,137 @@ export const ConnectWalletForm = React.memo(function ConnectWalletForm({
       walletAddressInfo?.isKeyAutoAddSupported === false) &&
     keyAddNeeded;
 
-  if (showConsent) {
-    return (
-      <AutoKeyAddConsent
-        onAccept={async () => {
-          autoKeyAddConsent.current = true;
-          setShowConsent(false);
-          await sleep(200);
-          await handleSubmit();
-        }}
-        onDecline={() => {
-          const error = errorWithKey('connectWalletKeyService_noConsent_error');
-          setErrors({ keyPair: toErrorInfo(error) });
-          setShowConsent(false);
-        }}
-        intent="CONNECT_WALLET"
-      />
-    );
-  }
-
   return (
-    <form
-      data-testid="connect-wallet-form"
-      className="my-auto flex flex-col gap-4"
-      onSubmit={handleSubmit}
-    >
-      <ConnectStateErrorSync setErrors={setErrors} toErrorInfo={toErrorInfo} />
-
-      <div className={cn(!!errors.connect && 'sr-only')}>
-        <h2 className="text-center text-lg text-strong">
-          {t('connectWallet_title')}
-        </h2>
-        <p className="text-center text-sm text-weak">
-          {t('connectWallet_desc')}
-        </p>
-      </div>
-
-      {errors.connect && (
-        <ErrorMessage error={errors.connect.message} className="my-0" />
-      )}
-
-      <WalletAddressInput
-        ref={walletAddressInputRef}
-        placeholder={walletAddressPlaceholder}
-        defaultValue={defaultValues.walletAddressUrl || ''}
-        isSubmitting={isSubmitting}
-        saveValue={saveValue}
-        getWalletInfo={getWalletInfo}
-        resetState={resetState}
-        onWalletAddressChange={setWalletAddressUrl}
-        onWalletInfoChange={setWalletAddressInfo}
-      />
-
-      <fieldset className="space-y-2">
-        <legend className="flex items-center px-2 font-medium leading-6 text-medium">
-          {t('connectWallet_amount_group_label')}
-        </legend>
-        <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
-          <AmountInput
-            ref={amountInputRef}
-            defaultAmount={defaultValues.amount || '5.00'}
-            isSubmitting={isSubmitting}
-            walletAddressInfo={walletAddressInfo}
-            saveValue={saveValue}
-            onAmountChange={setAmount}
-            onErrorChange={setAmountError}
-          />
-
-          <label
-            htmlFor="connectRecurring"
-            className="flex items-center gap-x-4 px-2"
-          >
-            <span className="font-medium text-medium @sm:font-normal grow @sm:grow-0 @sm:order-last">
-              {t('connectWallet_recurring_label')}
-            </span>
-            <SwitchButton
-              id="connectRecurring"
-              size="small"
-              disabled={isSubmitting}
-              checked={recurring}
-              onChange={(ev) => {
-                const value = ev.currentTarget.checked;
-                setRecurring(value);
-                saveValue('recurring', value);
-              }}
-            />
-          </label>
-        </div>
-
-        {amountError && (
-          <p className="px-2 text-sm text-error">{amountError.message}</p>
-        )}
-      </fieldset>
-
-      {showManualKeyCopy && (
-        <ManualKeyPairNeeded
-          error={{
-            message: t('connectWallet_failedAutoKeyAdd_error'),
-            details: errors.keyPair,
-            whyText: t('connectWallet_failedAutoKeyAdd_why_text'),
+    <>
+      {showConsent && (
+        <AutoKeyAddConsent
+          onAccept={async () => {
+            autoKeyAddConsent.current = true;
+            setShowConsent(false);
+            await handleSubmit();
           }}
-          retry={resetState}
-          retryText={t('connectWallet_retry_action')}
-          hideError={!errors.keyPair}
-          text={t('connectWallet_publicKey_label')}
-          publicKey={publicKey}
+          onDecline={() => {
+            const error = errorWithKey(
+              'connectWalletKeyService_noConsent_error',
+            );
+            setErrors({ keyPair: toErrorInfo(error) });
+            setShowConsent(false);
+          }}
+          intent="CONNECT_WALLET"
         />
       )}
 
-      <div
-        className={cn(
-          'space-y-1',
-          !errors.keyPair && !autoKeyShareFailed && 'pt-4',
-        )}
+      <form
+        data-testid="connect-wallet-form"
+        className={cn('my-auto flex flex-col gap-4', showConsent && 'hidden')}
+        onSubmit={handleSubmit}
       >
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={
-            !walletAddressInfo || !!amountError || isSubmitting || !amount
-          }
-          loading={isSubmitting}
-          loadingText={<ConnectSubmitLoadingText />}
+        <ConnectStateErrorSync
+          setErrors={setErrors}
+          toErrorInfo={toErrorInfo}
+        />
+
+        <div className={cn(!!errors.connect && 'sr-only')}>
+          <h2 className="text-center text-lg text-strong">
+            {t('connectWallet_title')}
+          </h2>
+          <p className="text-center text-sm text-weak">
+            {t('connectWallet_desc')}
+          </p>
+        </div>
+
+        {errors.connect && (
+          <ErrorMessage error={errors.connect.message} className="my-0" />
+        )}
+
+        <WalletAddressInput
+          ref={walletAddressInputRef}
+          placeholder={walletAddressPlaceholder}
+          defaultValue={defaultValues.walletAddressUrl || ''}
+          isSubmitting={isSubmitting}
+          saveValue={saveValue}
+          getWalletInfo={getWalletInfo}
+          resetState={resetState}
+          onWalletAddressChange={setWalletAddressUrl}
+          onWalletInfoChange={setWalletAddressInfo}
+        />
+
+        <fieldset className="space-y-2">
+          <legend className="flex items-center px-2 font-medium leading-6 text-medium">
+            {t('connectWallet_amount_group_label')}
+          </legend>
+          <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
+            <AmountInput
+              ref={amountInputRef}
+              defaultAmount={defaultValues.amount || '5.00'}
+              isSubmitting={isSubmitting}
+              walletAddressInfo={walletAddressInfo}
+              saveValue={saveValue}
+              onAmountChange={setAmount}
+              onErrorChange={setAmountError}
+            />
+
+            <label
+              htmlFor="connectRecurring"
+              className="flex items-center gap-x-4 px-2"
+            >
+              <span className="font-medium text-medium @sm:font-normal grow @sm:grow-0 @sm:order-last">
+                {t('connectWallet_recurring_label')}
+              </span>
+              <SwitchButton
+                id="connectRecurring"
+                size="small"
+                disabled={isSubmitting}
+                checked={recurring}
+                onChange={(ev) => {
+                  const value = ev.currentTarget.checked;
+                  setRecurring(value);
+                  saveValue('recurring', value);
+                }}
+              />
+            </label>
+          </div>
+
+          {amountError && (
+            <p className="px-2 text-sm text-error">{amountError.message}</p>
+          )}
+        </fieldset>
+
+        {showManualKeyCopy && (
+          <ManualKeyPairNeeded
+            error={{
+              message: t('connectWallet_failedAutoKeyAdd_error'),
+              details: errors.keyPair,
+              whyText: t('connectWallet_failedAutoKeyAdd_why_text'),
+            }}
+            retry={resetState}
+            retryText={t('connectWallet_retry_action')}
+            hideError={!errors.keyPair}
+            text={t('connectWallet_publicKey_label')}
+            publicKey={publicKey}
+          />
+        )}
+
+        <div
+          className={cn(
+            'space-y-1',
+            !errors.keyPair && !autoKeyShareFailed && 'pt-4',
+          )}
         >
-          {t('connectWallet_connect_action')}
-        </Button>
-      </div>
-    </form>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={
+              !walletAddressInfo || !!amountError || isSubmitting || !amount
+            }
+            loading={isSubmitting}
+            loadingText={<ConnectSubmitLoadingText />}
+          >
+            {t('connectWallet_connect_action')}
+          </Button>
+        </div>
+      </form>
+    </>
   );
 });
 
