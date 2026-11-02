@@ -3,15 +3,10 @@ import {
   connectWallet,
   loginToTestWallet,
   openPopup,
+  playgroundUrl,
 } from './fixtures/helpers';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
-
-const playgroundUrl = () => {
-  const url = new URL('https://webmonetization.org/play/');
-  url.searchParams.append('wa', walletAddressUrl);
-  return url.href;
-};
 
 // Connecting is slow, so all checks share one connected session.
 describe('special', () => {
@@ -37,7 +32,7 @@ describe('special', () => {
         });
       });
       script.on('data', (data) => events.push(data));
-      await browser.url(playgroundUrl());
+      await browser.url(playgroundUrl(walletAddressUrl));
       return events;
     });
 
@@ -55,11 +50,13 @@ describe('special', () => {
         const el = iframe;
         const done = () => {
           el.dataset.loaded = src;
+          document.removeEventListener('securitypolicyviolation', onBlocked);
+        };
+        const onBlocked = (ev: SecurityPolicyViolationEvent) => {
+          if (ev.blockedURI.startsWith(src)) done();
         };
         el.addEventListener('load', done, { once: true });
-        document.addEventListener('securitypolicyviolation', done, {
-          once: true,
-        });
+        document.addEventListener('securitypolicyviolation', onBlocked);
         el.setAttribute('src', src);
       }, src);
       await $(`#cross-origin-iframe[data-loaded="${src}"]`).waitForExist();
@@ -155,7 +152,7 @@ describe('special', () => {
         });
       });
 
-    const urlA = playgroundUrl();
+    const urlA = playgroundUrl(walletAddressUrl);
     const urlB = 'https://example.com/';
 
     await inTab(() => browser.url(urlA));
