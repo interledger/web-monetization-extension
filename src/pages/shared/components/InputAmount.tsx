@@ -67,16 +67,11 @@ export const InputAmount = ({
 
   const handleValue = React.useCallback(
     (value: string, skipSetValue = false) => {
-      if (!value || Number.isNaN(Number(value))) {
-        const error = validateAmount(value, walletAddress, min, max);
-        if (error) onError(error);
-        return;
-      }
-      const rounded = formatAmount(+value);
-      const error = validateAmount(rounded, walletAddress, min, max);
+      const error = validateAmount(value, walletAddress, min, max);
       if (error) {
         onError(error);
       } else {
+        const rounded = formatAmount(+value);
         const input = inputRef.current!;
         if (!skipSetValue) {
           input.value = rounded;
