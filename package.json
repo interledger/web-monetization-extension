@@ -85,11 +85,11 @@
     "webdriverio": "^9.32.0"
   },
   "engines": {
-    "pnpm": "^11.9.0",
+    "pnpm": "^12.16.1",
     "npm": "pnpm",
     "yarn": "pnpm",
     "node": "^24.15.0"
   },
   "type": "module",
-  "packageManager": "pnpm@11.10.0"
+  "packageManager": "pnpm@12.16.1"
 }
