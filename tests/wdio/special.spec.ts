@@ -13,6 +13,7 @@ describe('special', () => {
   let main: string;
   let popup: string;
   let tab: string;
+  let initScripts: { remove: () => Promise<void> }[] = [];
   const homePage = () => $('[data-testid="home-page"]');
   const notMonetized = () => $('[data-testid="not-monetized-message"]');
 
@@ -32,6 +33,7 @@ describe('special', () => {
         });
       });
       script.on('data', (data) => events.push(data));
+      initScripts.push(script);
       await browser.url(playgroundUrl(walletAddressUrl));
       return events;
     });
@@ -41,13 +43,11 @@ describe('special', () => {
   const loadIframe = (src: string) =>
     inTab(async () => {
       await browser.execute((src) => {
-        let iframe = document.getElementById('cross-origin-iframe');
-        if (!iframe) {
-          iframe = document.createElement('iframe');
-          iframe.id = 'cross-origin-iframe';
-          document.body.prepend(iframe);
-        }
-        const el = iframe;
+        const existing = document.getElementById('cross-origin-iframe');
+        const el = existing ?? document.createElement('iframe');
+        el.id = 'cross-origin-iframe';
+        el.setAttribute('src', src);
+        if (!existing) document.body.prepend(el);
         const done = () => {
           el.dataset.loaded = src;
           document.removeEventListener('securitypolicyviolation', onBlocked);
@@ -57,10 +57,32 @@ describe('special', () => {
         };
         el.addEventListener('load', done, { once: true });
         document.addEventListener('securitypolicyviolation', onBlocked);
-        el.setAttribute('src', src);
       }, src);
       await $(`#cross-origin-iframe[data-loaded="${src}"]`).waitForExist();
     });
+
+  // De-monetization can happen a bit after the iframe changes.
+  const expectStaysMonetized = async () => {
+    for (let i = 0; i < 10; i++) {
+      await expect(notMonetized()).not.toBeDisplayed();
+      await expect(homePage()).toBeDisplayed();
+      await browser.pause(500);
+    }
+  };
+
+  const setContinuousPayments = async (enabled: boolean) => {
+    await browser.url(
+      `${process.env.EXTENSION_BASE_URL}/popup/index.html#/settings/rate`,
+    );
+    const toggle = await $('[data-testid="continuous-payments-toggle"]');
+    if ((await toggle.isSelected()) !== enabled) {
+      await browser.execute((el) => el.click(), toggle);
+    }
+    await browser.waitUntil(
+      async () => (await toggle.isSelected()) === enabled,
+    );
+    await browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
+  };
 
   before(async () => {
     main = await browser.getWindowHandle();
@@ -80,6 +102,10 @@ describe('special', () => {
   });
 
   afterEach(async () => {
+    for (const script of initScripts) {
+      await script.remove();
+    }
+    initScripts = [];
     await browser.switchToWindow(tab);
     await browser.closeWindow();
   });
@@ -102,8 +128,7 @@ describe('special', () => {
       }),
     );
     await inTab(() => expect($('#cross-origin-iframe')).not.toBeExisting());
-    await expect(notMonetized()).not.toBeDisplayed();
-    await expect(homePage()).toBeDisplayed();
+    await expectStaysMonetized();
   });
 
   it('iframe navigate does not de-monetize main page', async () => {
@@ -116,31 +141,23 @@ describe('special', () => {
 
     await loadIframe('https://example.com');
     await loadIframe('https://example.net');
-    await expect(notMonetized()).not.toBeDisplayed();
-    await expect(homePage()).toBeDisplayed();
+    await expectStaysMonetized();
   });
 
   it('keep site monetized on back-forward buttons', async () => {
     // Payments aren't needed to see the monetized status.
-    await browser.url(
-      `${process.env.EXTENSION_BASE_URL}/popup/index.html#/settings/rate`,
-    );
-    const toggle = await $('[data-testid="continuous-payments-toggle"]');
-    if (await toggle.isSelected()) {
-      await browser.execute((el) => el.click(), toggle);
-    }
-    await expect(toggle).not.toBeSelected();
-    await browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
+    await setContinuousPayments(false);
 
     // `persisted` is true when the page comes from the back-forward cache,
     // which keeps the page's own list of pageshow events.
-    await inTab(() =>
+    const script = await inTab(() =>
       browser.addInitScript(() => {
         const shows: boolean[] = [];
         Object.assign(window, { pageShows: shows });
         window.addEventListener('pageshow', (ev) => shows.push(ev.persisted));
       }),
     );
+    initScripts.push(script);
     const expectPageShows = (url: string, shows: boolean[]) =>
       inTab(async () => {
         await expect(browser).toHaveUrl(url);
@@ -174,5 +191,7 @@ describe('special', () => {
     await expectPageShows(urlB, [false, true]);
     await expect(homePage()).not.toBeDisplayed();
     await expect(notMonetized()).toBeDisplayed();
+
+    await setContinuousPayments(true);
   });
 });
