@@ -36,11 +36,11 @@ export function getResponseOrThrow<T>(res: Response<T>) {
   throw res.error ?? new Error(res.message);
 }
 
-type MessageMap = Record<string, { input: unknown; output: unknown }>;
-type MessagesWithInput<T extends MessageMap> = {
+export type MessageMap = Record<string, { input: unknown; output: unknown }>;
+export type MessagesWithInput<T extends MessageMap> = {
   [K in keyof T as T[K]['input'] extends never ? never : K]: T[K];
 };
-type MessagesWithoutInput<T extends MessageMap> = {
+export type MessagesWithoutInput<T extends MessageMap> = {
   [K in keyof T as T[K]['input'] extends never ? K : never]: T[K];
 };
 
