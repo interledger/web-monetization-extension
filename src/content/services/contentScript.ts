@@ -63,6 +63,7 @@ export class ContentScript {
 
     if (this.isFirstLevelFrame) {
       this.logger.info('Content script started');
+      this.message.watchConnection();
 
       if (this.isTopFrame) this.frameManager.start();
 
@@ -88,6 +89,7 @@ export class ContentScript {
     } catch {
       // the runtime may already be gone
     }
+    this.message.disconnect();
     this.monetizationLinkManager.end();
     this.frameManager.end();
     this.logger.info(`Content script stopped: ${reason}`);
@@ -127,7 +129,7 @@ export class ContentScript {
           );
           return;
         case 'IS_TAB_IN_VIEW':
-          return success(document.visibilityState === 'visible');
+          return success(this.document.visibilityState === 'visible');
         case 'REQUEST_RESUME_MONETIZATION':
           await this.monetizationLinkManager.resumeMonetization();
           return;

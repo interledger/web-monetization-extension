@@ -340,6 +340,12 @@ export type ToContentMessage = {
     payload: BackgroundToContentMessage[K]['input'];
   };
 }[keyof BackgroundToContentMessage];
+
+/**
+ * Port kept open by content scripts so they notice when the extension goes away
+ * (disabled, reloaded, updated). Nothing is sent on it.
+ */
+export const CONTENT_SCRIPT_CONNECTION_NAME = 'content-script';
 // #endregion
 
 // #region BG ↦ Popup

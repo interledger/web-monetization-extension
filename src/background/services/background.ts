@@ -1,6 +1,11 @@
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { BUILD_TARGET } from '@/shared/defines';
-import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
+import {
+  CONTENT_SCRIPT_CONNECTION_NAME,
+  failure,
+  success,
+  type ToBackgroundMessage,
+} from '@/shared/messages';
 import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import {
   errorWithKeyToJSON,
@@ -83,6 +88,7 @@ export class Background {
     this.logger.info('Background started');
     this.bindOnInstalled();
     this.bindMessageHandler();
+    this.bindContentScriptConnection();
     await this.onStart();
     this.heartbeat.start();
     void this.telemetry.start();
@@ -503,6 +509,17 @@ export class Background {
     );
   }
 
+  /**
+   * Content scripts keep a port open, so they notice right away when the
+   * extension is disabled, reloaded or updated (the port closes). Nothing is
+   * sent on it, but there has to be a listener for the connection to succeed.
+   */
+  bindContentScriptConnection() {
+    this.browser.runtime.onConnect.addListener((port) => {
+      if (port.name !== CONTENT_SCRIPT_CONNECTION_NAME) return;
+    });
+  }
+
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
       const data = await this.storage.get();
@@ -522,7 +539,11 @@ export class Background {
           );
         }
       }
-      await this.notifyWebsitesExtensionInstall();
+      // On other reasons (browser or shared module update), the scripts already
+      // running in tabs still work.
+      if (details.reason === 'install' || details.reason === 'update') {
+        await this.notifyWebsitesExtensionInstall();
+      }
       if (isConsentRequired(data.consent)) {
         await this.storage.setState({ consent_required: true });
       }

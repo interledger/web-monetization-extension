@@ -26,9 +26,14 @@ function createContentScript({
   window,
   document,
 }: ReturnType<typeof createDocument>) {
+  const port = {
+    disconnect: vi.fn(),
+    onDisconnect: { addListener: vi.fn() },
+  };
   const runtime: {
     id?: string;
     sendMessage: ReturnType<typeof vi.fn>;
+    connect: ReturnType<typeof vi.fn>;
     onMessage: {
       addListener: ReturnType<typeof vi.fn>;
       removeListener: ReturnType<typeof vi.fn>;
@@ -36,6 +41,7 @@ function createContentScript({
   } = {
     id: 'extension-id',
     sendMessage: vi.fn(),
+    connect: vi.fn(() => port),
     onMessage: { addListener: vi.fn(), removeListener: vi.fn() },
   };
   const browser = { runtime } as unknown as Browser;
@@ -63,6 +69,7 @@ function createContentScript({
   return {
     contentScript,
     runtime,
+    port,
     message,
     monetizationLinkManager,
     frameManager,
@@ -132,4 +139,34 @@ describe('ContentScript', () => {
     expect(only.frameManager.start).toHaveBeenCalledTimes(1);
     expect(only.monetizationLinkManager.end).not.toHaveBeenCalled();
   });
+
+  test('watches its connection to the extension once started, and closes it when stopped', async () => {
+    const env = createDocument();
+    const cs = createContentScript(env);
+    await cs.contentScript.start();
+
+    expect(cs.runtime.connect).toHaveBeenCalledTimes(1);
+
+    cs.contentScript.stop();
+    expect(cs.port.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    ['hidden', false],
+    ['visible', true],
+  ] as const)(
+    'answers IS_TAB_IN_VIEW from its own document (%s)',
+    async (visibilityState, inView) => {
+      const env = createDocument();
+      const cs = createContentScript(env);
+      vi.spyOn(env.document, 'visibilityState', 'get').mockReturnValue(
+        visibilityState,
+      );
+      const onMessage = cs.runtime.onMessage.addListener.mock.calls[0][0];
+
+      const res = await onMessage({ action: 'IS_TAB_IN_VIEW' });
+
+      expect(res).toEqual({ success: true, payload: inView });
+    },
+  );
 });
