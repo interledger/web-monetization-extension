@@ -1,15 +1,20 @@
 import { JSDOM } from 'jsdom';
 import { describe, expect, test, vi } from 'vitest';
-import type { Browser } from '@/shared/browser';
-import type { Logger } from '@/shared/logger';
+import type { Runtime } from 'webextension-polyfill';
+import {
+  asBrowser,
+  makeBrowser,
+  makeLogger,
+} from '@/background/services/__tests__/helpers';
 import type { Cradle } from '@/content/container';
 import { ContentScript } from '@/content/services/contentScript';
 import { ContentMessageManager } from '@/content/services/contentMessageManager';
 
-const logger = {
-  info: vi.fn(),
-  error: vi.fn(),
-} as unknown as Logger;
+vi.mock('@/shared/defines', () => ({
+  LOG_LEVEL: 'debug',
+  OPEN_PAYMENTS_REDIRECT_URL: 'https://webmonetization.org/welcome',
+  BUILD_TARGET: 'chrome',
+}));
 
 function createDocument() {
   const dom = new JSDOM(
@@ -30,21 +35,10 @@ function createContentScript({
     disconnect: vi.fn(),
     onDisconnect: { addListener: vi.fn() },
   };
-  const runtime: {
-    id?: string;
-    sendMessage: ReturnType<typeof vi.fn>;
-    connect: ReturnType<typeof vi.fn>;
-    onMessage: {
-      addListener: ReturnType<typeof vi.fn>;
-      removeListener: ReturnType<typeof vi.fn>;
-    };
-  } = {
-    id: 'extension-id',
-    sendMessage: vi.fn(),
-    connect: vi.fn(() => port),
-    onMessage: { addListener: vi.fn(), removeListener: vi.fn() },
-  };
-  const browser = { runtime } as unknown as Browser;
+  const fakeBrowser = makeBrowser();
+  fakeBrowser.runtime.connect.mockReturnValue(port as unknown as Runtime.Port);
+  const { runtime } = fakeBrowser;
+  const browser = asBrowser(fakeBrowser);
   const message = new ContentMessageManager({ browser });
   const monetizationLinkManager = {
     start: vi.fn(),
@@ -60,7 +54,7 @@ function createContentScript({
     window,
     global: window,
     document,
-    logger,
+    logger: makeLogger(),
     message,
     monetizationLinkManager,
     frameManager,
@@ -162,7 +156,9 @@ describe('ContentScript', () => {
       vi.spyOn(env.document, 'visibilityState', 'get').mockReturnValue(
         visibilityState,
       );
-      const onMessage = cs.runtime.onMessage.addListener.mock.calls[0][0];
+      // ContentScript's handler only uses the message
+      const onMessage = cs.runtime.onMessage.addListener.mock
+        .calls[0][0] as unknown as (msg: unknown) => Promise<unknown>;
 
       const res = await onMessage({ action: 'IS_TAB_IN_VIEW' });
 

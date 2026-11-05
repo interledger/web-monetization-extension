@@ -1,11 +1,6 @@
 import type { Browser, Runtime, Tabs } from 'webextension-polyfill';
 import { BUILD_TARGET } from '@/shared/defines';
-import {
-  CONTENT_SCRIPT_CONNECTION_NAME,
-  failure,
-  success,
-  type ToBackgroundMessage,
-} from '@/shared/messages';
+import { failure, success, type ToBackgroundMessage } from '@/shared/messages';
 import { MAX_CUSTOM_RATE_EXCEPTIONS } from '@/shared/config';
 import {
   errorWithKeyToJSON,
@@ -515,9 +510,7 @@ export class Background {
    * sent on it, but there has to be a listener for the connection to succeed.
    */
   bindContentScriptConnection() {
-    this.browser.runtime.onConnect.addListener((port) => {
-      if (port.name !== CONTENT_SCRIPT_CONNECTION_NAME) return;
-    });
+    this.browser.runtime.onConnect.addListener(() => {});
   }
 
   bindOnInstalled() {

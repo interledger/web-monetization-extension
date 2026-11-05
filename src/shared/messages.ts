@@ -45,7 +45,7 @@ export type MessagesWithoutInput<T extends MessageMap> = {
 };
 
 export class MessageManager<TMessages extends MessageMap> {
-  private browser: Browser;
+  protected browser: Browser;
   constructor({ browser }: { browser: Browser }) {
     this.browser = browser;
   }

@@ -1,4 +1,5 @@
 import type { Browser } from '@/shared/browser';
+import { BUILD_TARGET } from '@/shared/defines';
 import {
   CONTENT_SCRIPT_CONNECTION_NAME,
   type ContentToBackgroundMessage,
@@ -37,23 +38,17 @@ function isContextInvalidatedError(error: unknown): boolean {
 export class ContentMessageManager<
   TMessages extends MessageMap = ContentToBackgroundMessage,
 > extends MessageManager<TMessages> {
-  private extensionBrowser: Browser;
   private invalidated = false;
   private invalidationListeners = new Set<() => void>();
   private watching = false;
   private port: Port | null = null;
   private contextCheckTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor({ browser }: { browser: Browser }) {
-    super({ browser });
-    this.extensionBrowser = browser;
-  }
-
   get isContextValid(): boolean {
     if (this.invalidated) return false;
     try {
       // Chrome removes `runtime` (or its `id`) from a disconnected script
-      return Boolean(this.extensionBrowser.runtime?.id);
+      return Boolean(this.browser.runtime?.id);
     } catch {
       // Firefox throws on access to objects of an unloaded extension
       return false;
@@ -73,8 +68,12 @@ export class ContentMessageManager<
    * being idle, while the extension is fine. Then it is opened again after the
    * next message that reaches the background, not right away, as that would
    * keep waking up the service worker.
+   *
+   * Only for Chromium-based browsers: Firefox and Safari don't keep content
+   * scripts of a disabled or updated extension running.
    */
   watchConnection() {
+    if (BUILD_TARGET === 'firefox' || BUILD_TARGET === 'safari') return;
     this.watching = true;
     this.openPort();
   }
@@ -97,7 +96,7 @@ export class ContentMessageManager<
   private openPort() {
     if (!this.watching || this.port || this.invalidated) return;
     try {
-      const port = this.extensionBrowser.runtime.connect({
+      const port = this.browser.runtime.connect({
         name: CONTENT_SCRIPT_CONNECTION_NAME,
       });
       port.onDisconnect.addListener(() => this.onPortDisconnect(port));
@@ -112,7 +111,7 @@ export class ContentMessageManager<
     this.port = null;
     try {
       // read it, so Chrome doesn't log it as unchecked
-      void this.extensionBrowser.runtime?.lastError;
+      void this.browser.runtime?.lastError;
     } catch {
       // the runtime may already be gone
     }
