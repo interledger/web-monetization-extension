@@ -1,9 +1,12 @@
 import {
   acceptConsent,
   connectWallet,
+  goToHome,
   loginToTestWallet,
   openPopup,
   playgroundUrl,
+  setContinuousPayments,
+  setupPlayground,
 } from './fixtures/helpers';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
@@ -24,17 +27,10 @@ describe('special', () => {
     return result;
   };
 
-  const setupPlayground = () =>
+  const openPlayground = () =>
     inTab(async () => {
-      const events: string[] = [];
-      const script = await browser.addInitScript<string>((emit) => {
-        window.addEventListener('monetization', (ev) => {
-          emit((ev as Event & { walletAddress: string }).walletAddress);
-        });
-      });
-      script.on('data', (data) => events.push(data));
+      const { events, script } = await setupPlayground(walletAddressUrl);
       initScripts.push(script);
-      await browser.url(playgroundUrl(walletAddressUrl));
       return events;
     });
 
@@ -70,20 +66,6 @@ describe('special', () => {
     }
   };
 
-  const setContinuousPayments = async (enabled: boolean) => {
-    await browser.url(
-      `${process.env.EXTENSION_BASE_URL}/popup/index.html#/settings/rate`,
-    );
-    const toggle = await $('[data-testid="continuous-payments-toggle"]');
-    if ((await toggle.isSelected()) !== enabled) {
-      await browser.execute((el) => el.click(), toggle);
-    }
-    await browser.waitUntil(
-      async () => (await toggle.isSelected()) === enabled,
-    );
-    await browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
-  };
-
   before(async () => {
     main = await browser.getWindowHandle();
     await acceptConsent(main);
@@ -113,9 +95,9 @@ describe('special', () => {
   it('iframe add/remove does not de-monetize main page', async () => {
     await expect(notMonetized()).toBeDisplayed();
 
-    const events = await setupPlayground();
+    const events = await openPlayground();
     await browser.waitUntil(() => events.length === 1, { timeout: 20_000 });
-    expect(events).toEqual([walletAddressUrl]);
+    expect(events.map((ev) => ev.walletAddress)).toEqual([walletAddressUrl]);
     await expect(homePage()).toBeDisplayed();
 
     await loadIframe('https://example.com');
@@ -134,9 +116,9 @@ describe('special', () => {
   it('iframe navigate does not de-monetize main page', async () => {
     await expect(notMonetized()).toBeDisplayed();
 
-    const events = await setupPlayground();
+    const events = await openPlayground();
     await browser.waitUntil(() => events.length === 1, { timeout: 20_000 });
-    expect(events).toEqual([walletAddressUrl]);
+    expect(events.map((ev) => ev.walletAddress)).toEqual([walletAddressUrl]);
     await expect(homePage()).toBeDisplayed();
 
     await loadIframe('https://example.com');
@@ -147,6 +129,7 @@ describe('special', () => {
   it('keep site monetized on back-forward buttons', async () => {
     // Payments aren't needed to see the monetized status.
     await setContinuousPayments(false);
+    await goToHome();
 
     // `persisted` is true when the page comes from the back-forward cache,
     // which keeps the page's own list of pageshow events.
