@@ -83,6 +83,7 @@ export class Background {
     this.logger.info('Background started');
     this.bindOnInstalled();
     this.bindMessageHandler();
+    this.bindContentScriptConnection();
     await this.onStart();
     this.heartbeat.start();
     void this.telemetry.start();
@@ -503,6 +504,15 @@ export class Background {
     );
   }
 
+  /**
+   * Content scripts keep a port open, so they notice right away when the
+   * extension is disabled, reloaded or updated (the port closes). Nothing is
+   * sent on it, but there has to be a listener for the connection to succeed.
+   */
+  bindContentScriptConnection() {
+    this.browser.runtime.onConnect.addListener(() => {});
+  }
+
   bindOnInstalled() {
     this.browser.runtime.onInstalled.addListener(async (details) => {
       const data = await this.storage.get();
@@ -522,7 +532,11 @@ export class Background {
           );
         }
       }
-      await this.notifyWebsitesExtensionInstall();
+      // On other reasons (browser or shared module update), the scripts already
+      // running in tabs still work.
+      if (details.reason === 'install' || details.reason === 'update') {
+        await this.notifyWebsitesExtensionInstall();
+      }
       if (isConsentRequired(data.consent)) {
         await this.storage.setState({ consent_required: true });
       }
@@ -533,7 +547,12 @@ export class Background {
    * Firefox, Safari inject script to existing tabs on install.
    *
    * For others (mainly Chromium based ones) inject the polyfill manually so
-   * websites can detect extension installation (AKA, WM now supported).
+   * websites can detect extension installation (AKA, WM now supported), and
+   * the content script, so already open tabs get monetized again after an
+   * update without a reload. Content scripts left over from the previous
+   * version can no longer reach the extension; they stop when the new one
+   * starts. If a tab already has a working content script (e.g. after a browser
+   * update, or a page that loaded meanwhile), the injected one doesn't start.
    */
   private async notifyWebsitesExtensionInstall() {
     if (BUILD_TARGET === 'firefox' || BUILD_TARGET === 'safari') {
@@ -544,18 +563,24 @@ export class Background {
     const tabs = allTabs.filter(
       (t) => t.id && t.url && isSecureContext(t.url),
     ) as Tab[];
-    const injectPolyfill = (tab: Tab) => {
-      return this.browser.scripting.executeScript({
-        target: { tabId: tab.id },
+    const injectScripts = async (tab: Tab) => {
+      // polyfill first, so the content script has it to dispatch events to
+      await this.browser.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
         files: ['polyfill/polyfill.js'],
         world: 'MAIN',
         injectImmediately: true,
       });
+      await this.browser.scripting.executeScript({
+        target: { tabId: tab.id, allFrames: true },
+        files: ['content/content.js'],
+        injectImmediately: true,
+      });
     };
-    const result = await Promise.allSettled(tabs.map(injectPolyfill));
+    const result = await Promise.allSettled(tabs.map(injectScripts));
     const injectedCount = result.filter((r) => r.status === 'fulfilled').length;
     this.logger.log(
-      `injected polyfill to ${injectedCount}/${tabs.length} existing tabs`,
+      `injected polyfill and content script to ${injectedCount}/${tabs.length} existing tabs`,
     );
   }
 

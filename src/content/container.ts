@@ -10,10 +10,7 @@ import { ContentScript } from './services/contentScript';
 import { MonetizationLinkManager } from './services/monetizationLinkManager';
 import { LOG_LEVEL } from '@/shared/defines';
 import { FrameManager } from './services/frameManager';
-import {
-  type ContentToBackgroundMessage,
-  MessageManager,
-} from '@/shared/messages';
+import { ContentMessageManager } from './services/contentMessageManager';
 
 export interface Cradle {
   logger: Logger;
@@ -21,7 +18,7 @@ export interface Cradle {
   document: Document;
   window: Window;
   global: typeof globalThis;
-  message: MessageManager<ContentToBackgroundMessage>;
+  message: ContentMessageManager;
   monetizationLinkManager: MonetizationLinkManager;
   frameManager: FrameManager;
   contentScript: ContentScript;
@@ -40,7 +37,7 @@ export const configureContainer = () => {
     document: asValue(document),
     window: asValue(window),
     global: asValue(globalThis),
-    message: asClass(MessageManager<ContentToBackgroundMessage>).singleton(),
+    message: asClass(ContentMessageManager).singleton(),
     frameManager: asClass(FrameManager)
       .singleton()
       .inject(() => ({
