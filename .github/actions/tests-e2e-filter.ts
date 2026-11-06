@@ -34,6 +34,12 @@ export default async ({ core, context }: AsyncFunctionArguments) => {
     core.setOutput('matrix', matrix);
     core.info(`Running E2E tests for ${matrix.map((m) => m.name).join(', ')}`);
   }
+
+  if (context.eventName === 'push') {
+    const matrix = getMatrix(['chromium']);
+    core.setOutput('matrix', matrix);
+    core.info(`Running E2E tests for ${matrix.map((m) => m.name).join(', ')}`);
+  }
 };
 
 function isAllowedAuthor(authorAssociation: AuthorAssociation): boolean {
