@@ -1,28 +1,31 @@
 // cSpell:ignore serviceworker
-import type { Page } from '@playwright/test';
-import { test, expect } from './fixtures/base';
+import type { BrowserContext } from '@playwright/test';
+import { test, expect } from './fixtures/connected';
+import { setupPlayground } from './helpers/common';
 
 const walletAddressUrl = process.env.TEST_WALLET_ADDRESS_URL;
 
-/** Adds a monetization link and resolves with the event the extension fires on it. */
-function addMonetizationLink(page: Page, href: string) {
-  return page.evaluate(
-    (href) =>
-      new Promise<string>((resolve) => {
-        const link = document.createElement('link');
-        link.rel = 'monetization';
-        link.href = href;
-        link.addEventListener('load', () => resolve('load'), { once: true });
-        link.addEventListener('error', () => resolve('error'), { once: true });
-        document.head.append(link);
-      }),
-    href,
-  );
+/**
+ * `chrome.runtime.reload()` only brings an unpacked extension back with
+ * developer mode on; otherwise Chrome leaves it disabled.
+ */
+async function enableDeveloperMode(context: BrowserContext) {
+  const extensionsPage = await context.newPage();
+  await extensionsPage.goto('chrome://extensions/');
+  const devMode = extensionsPage.locator('extensions-toolbar #devMode');
+  // The toggle has a `checked` attribute while it's on, whether it's the older
+  // (aria-pressed) or the newer (role=switch, aria-checked) version.
+  if ((await devMode.getAttribute('checked')) === null) {
+    await devMode.click();
+  }
+  await expect(devMode).toHaveAttribute('checked');
+  await extensionsPage.close();
 }
 
 test('keeps monetizing an open tab after the extension is reloaded', async ({
   context,
   background,
+  popup,
   page,
   browserName,
 }) => {
@@ -30,7 +33,6 @@ test('keeps monetizing an open tab after the extension is reloaded', async ({
     browserName !== 'chromium',
     'Firefox and Safari stop the content scripts of a reloaded extension themselves',
   );
-  if (!walletAddressUrl) throw new Error('Missing TEST_WALLET_ADDRESS_URL');
 
   // Errors from every execution context, including the content script's.
   const cdp = await context.newCDPSession(page);
@@ -47,25 +49,15 @@ test('keeps monetizing an open tab after the extension is reloaded', async ({
   });
   await cdp.send('Runtime.enable');
 
-  await page.goto('https://example.com');
-  await expect
-    .poll(() => addMonetizationLink(page, walletAddressUrl), {
-      timeout: 10_000,
-    })
-    .toBe('load');
+  const monetizationCallback = await setupPlayground(page, walletAddressUrl);
+  await expect(monetizationCallback).toHaveBeenCalledTimes(1);
 
-  // chrome.runtime.reload() only brings an unpacked extension back with
-  // developer mode on; otherwise Chrome leaves it disabled.
-  const extensionsPage = await context.newPage();
-  await extensionsPage.goto('chrome://extensions/');
-  const devMode = extensionsPage.locator('extensions-toolbar #devMode');
-  await devMode.click();
-  await expect(devMode).toHaveAttribute('aria-pressed', 'true');
-  await extensionsPage.close();
+  await enableDeveloperMode(context);
   await page.bringToFront();
 
-  // Reload the extension, as an update does. Its content script in the open
+  // Reload the extension, as an update does. The content script in the open
   // tab loses its connection to the extension.
+  const popupUrl = popup.url().split('#', 2)[0];
   const newBackground = context.waitForEvent('serviceworker', {
     predicate: (worker) => worker !== background,
   });
@@ -76,14 +68,18 @@ test('keeps monetizing an open tab after the extension is reloaded', async ({
     });
   await newBackground;
 
-  // The content script injected after the reload takes over: links are still
-  // validated, and the previous one doesn't throw.
-  await expect
-    .poll(() => addMonetizationLink(page, walletAddressUrl), {
-      timeout: 10_000,
-    })
-    .toBe('load');
+  // The content script injected after the reload picks up the existing link,
+  // so the page keeps being monetized, and the previous one doesn't throw.
+  await expect(monetizationCallback).toHaveBeenCalledTimes(2, {
+    timeout: 15_000,
+  });
+  await expect(monetizationCallback).toHaveBeenLastCalledWithMatching({
+    walletAddress: walletAddressUrl,
+  });
   expect(
     errors.filter((e) => /Extension context invalidated|sendMessage/.test(e)),
   ).toEqual([]);
+
+  // The reload replaced the popup's page; open it again for the teardown.
+  await popup.goto(popupUrl);
 });
