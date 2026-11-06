@@ -73,6 +73,7 @@ const BudgetAmount = ({
 
   const onSubmit = async (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
+    if (errors.amount) return;
     setErrors({ amount: null, root: null });
     setIsSubmitting(true);
     try {
@@ -115,30 +116,32 @@ const BudgetAmount = ({
 
   return (
     <form className="space-y-2" onSubmit={onSubmit}>
-      <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-center">
-        <InputAmount
-          id="budgetAmount"
-          label={t('settings_budget_amount_label')}
-          walletAddress={walletAddress}
-          className="@sm:max-w-48"
-          amount={amount}
-          onChange={(amount) => {
-            setErrors((prev) => ({ ...prev, amount: null }));
-            setAmount(amount);
-            setChanged((prev) => ({
-              ...prev,
-              amount: amount !== originalValues.amount,
-            }));
-          }}
-          onError={(err) => {
-            setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
-          }}
-          errorMessage={errors.amount?.message}
-        />
+      <div className="flex gap-y-4 gap-x-6 flex-col @sm:flex-row @sm:items-start">
+        <div className="@sm:w-60 @sm:shrink-0">
+          <InputAmount
+            id="budgetAmount"
+            label={t('settings_budget_amount_label')}
+            walletAddress={walletAddress}
+            className="w-full"
+            amount={amount}
+            onChange={(amount) => {
+              setErrors((prev) => ({ ...prev, amount: null }));
+              setAmount(amount);
+              setChanged((prev) => ({
+                ...prev,
+                amount: amount !== originalValues.amount,
+              }));
+            }}
+            onError={(err) => {
+              setErrors((prev) => ({ ...prev, amount: toErrorInfo(err) }));
+            }}
+            errorMessage={errors.amount?.message}
+          />
+        </div>
 
         <label
           htmlFor="budgetRecurring"
-          className="flex items-center gap-x-4 px-2 @sm:mt-7"
+          className="flex items-center gap-x-4 px-2 @sm:mt-12"
         >
           <span className="font-medium text-medium @sm:font-normal flex-grow @sm:flex-grow-0 @sm:order-last">
             {t('settings_budget_monthly_label')}
