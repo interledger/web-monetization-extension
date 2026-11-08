@@ -109,5 +109,8 @@ export const useThrottle: typeof throttle = (
     cbRef.current = callback;
   });
   // biome-ignore lint/correctness/useExhaustiveDependencies: works as intended
-  return React.useCallback(throttle(cbRef.current, delay, options), [delay]);
+  return React.useCallback(
+    throttle((...args) => cbRef.current(...args), delay, options),
+    [delay],
+  );
 };
