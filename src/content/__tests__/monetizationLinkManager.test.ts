@@ -4,9 +4,9 @@ import { MonetizationLinkManager } from '@/content/services/monetizationLinkMana
 import { success, failure } from '@/shared/messages';
 import type {
   ContentToBackgroundMessage as Msg,
-  MessageManager,
   Response,
 } from '@/shared/messages';
+import type { ContentMessageManager } from '@/content/services/contentMessageManager';
 import type { Logger } from '@/shared/logger';
 import type { WalletAddress } from '@interledger/open-payments';
 import { beforeEach, describe, expect, test, vi, type Mock } from 'vitest';
@@ -45,7 +45,7 @@ const WALLET_ADDRESS = WALLET_INFO.map((e) => e.id);
 
 const messageManager = {
   send: () => {},
-} as unknown as MessageManager<Msg>;
+} as unknown as ContentMessageManager;
 const loggerMock = {
   error: vi.fn(),
 } as unknown as Logger;
@@ -1356,5 +1356,56 @@ describe('load event dispatching', () => {
         (call) => (call[0] as Event).type === 'load',
       ),
     ).toHaveLength(1);
+  });
+});
+
+describe('after end()', () => {
+  test('a validation still in flight does not dispatch an error event', async () => {
+    const { document } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+    });
+    const linkManager = createMonetizationLinkManager(document);
+    const link = document.querySelector('link')!;
+    const dispatchEventSpy = vi.spyOn(link, 'dispatchEvent');
+
+    let respond: (res: Response<WalletAddress>) => void = () => {};
+    msg.GET_WALLET_ADDRESS_INFO.mockReturnValueOnce(
+      new Promise((resolve) => {
+        respond = resolve;
+      }),
+    );
+
+    linkManager.start();
+    await nextTick();
+    expect(msg.GET_WALLET_ADDRESS_INFO).toHaveBeenCalledTimes(1);
+
+    // e.g. the extension context was invalidated while waiting for a reply
+    linkManager[Symbol.dispose]();
+    respond(failure('Extension context invalidated'));
+    await nextTick();
+
+    expect(dispatchEventSpy).not.toHaveBeenCalled();
+    expect(loggerMock.error).not.toHaveBeenCalled();
+  });
+
+  test('does not start when the document becomes ready later', async () => {
+    const { document, documentReadyState } = createTestEnv({
+      head: html`<link rel="monetization" href="${WALLET_ADDRESS[0]}">`,
+      readyState: 'loading',
+    });
+    const linkManager = createMonetizationLinkManager(document);
+
+    linkManager.start();
+    linkManager[Symbol.dispose]();
+
+    documentReadyState.mockReturnValue('interactive');
+    // start() listens on the global `document` (the same object in a real
+    // content script), so notify both
+    document.dispatchEvent(new Event('readystatechange'));
+    globalThis.document.dispatchEvent(new Event('readystatechange'));
+    await nextTick();
+
+    expect(msg.GET_WALLET_ADDRESS_INFO).not.toHaveBeenCalled();
+    expect(msg.TAB_FOCUSED).not.toHaveBeenCalled();
   });
 });

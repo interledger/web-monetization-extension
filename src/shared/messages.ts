@@ -36,16 +36,16 @@ export function getResponseOrThrow<T>(res: Response<T>) {
   throw res.error ?? new Error(res.message);
 }
 
-type MessageMap = Record<string, { input: unknown; output: unknown }>;
-type MessagesWithInput<T extends MessageMap> = {
+export type MessageMap = Record<string, { input: unknown; output: unknown }>;
+export type MessagesWithInput<T extends MessageMap> = {
   [K in keyof T as T[K]['input'] extends never ? never : K]: T[K];
 };
-type MessagesWithoutInput<T extends MessageMap> = {
+export type MessagesWithoutInput<T extends MessageMap> = {
   [K in keyof T as T[K]['input'] extends never ? K : never]: T[K];
 };
 
 export class MessageManager<TMessages extends MessageMap> {
-  private browser: Browser;
+  protected browser: Browser;
   constructor({ browser }: { browser: Browser }) {
     this.browser = browser;
   }
@@ -340,6 +340,12 @@ export type ToContentMessage = {
     payload: BackgroundToContentMessage[K]['input'];
   };
 }[keyof BackgroundToContentMessage];
+
+/**
+ * Port kept open by content scripts so they notice when the extension goes away
+ * (disabled, reloaded, updated). Nothing is sent on it.
+ */
+export const CONTENT_SCRIPT_CONNECTION_NAME = 'content-script';
 // #endregion
 
 // #region BG ↦ Popup

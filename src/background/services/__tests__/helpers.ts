@@ -18,6 +18,7 @@ export const makeWallet = (overrides?: Partial<WalletInfo>) => ({
 
 export const makeLogger = () => ({
   debug: vi.fn(),
+  info: vi.fn(),
   warn: vi.fn(),
   error: vi.fn(),
   log: vi.fn(),
@@ -44,15 +45,31 @@ export const makeBrowser = () => ({
     clear: vi.fn(),
   },
   runtime: {
+    // `undefined` once the extension context is invalidated
+    id: 'ext-id' as string | undefined,
     getURL: vi.fn<Browser['runtime']['getURL']>(
       (path) => `chrome-extension://ext-id/${path}`,
     ),
+    connect: vi.fn<Browser['runtime']['connect']>(),
     onConnect: {
       addListener: vi.fn<Browser['runtime']['onConnect']['addListener']>(),
       removeListener:
         vi.fn<Browser['runtime']['onConnect']['removeListener']>(),
     },
+    onInstalled: {
+      addListener: vi.fn<Browser['runtime']['onInstalled']['addListener']>(),
+    },
+    onMessage: {
+      addListener: vi.fn<Browser['runtime']['onMessage']['addListener']>(),
+      removeListener:
+        vi.fn<Browser['runtime']['onMessage']['removeListener']>(),
+    },
     sendMessage: vi.fn<Browser['runtime']['sendMessage']>(),
+  },
+  scripting: {
+    executeScript: vi
+      .fn<Browser['scripting']['executeScript']>()
+      .mockResolvedValue([]),
   },
   windows: {
     getLastFocused: vi
@@ -121,5 +138,8 @@ export const makeStorage = (initial: Partial<Storage> = {}) => {
         else state.oneTimeGrantSpentAmount = amount;
       },
     ),
+    populate: vi.fn(async () => {}),
+    migrate: vi.fn(async () => null),
+    setState: vi.fn(async (_state: Storage['state']) => true),
   };
 };

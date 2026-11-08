@@ -4,6 +4,7 @@ import {
   connectWallet,
   loginToTestWallet,
   openPopup,
+  playgroundUrl,
   t,
 } from './fixtures/helpers';
 
@@ -105,9 +106,7 @@ describe('not-monetized', () => {
     });
 
     it('navigating from monetized to non-monetized', async () => {
-      const playground = new URL('https://webmonetization.org/play/');
-      playground.searchParams.append('wa', walletAddressUrl);
-      await visit(playground.href);
+      await visit(playgroundUrl(walletAddressUrl));
       // Monetization starts once the wallet address is fetched.
       await expect(warning()).not.toBeDisplayed({ wait: 20_000 });
 

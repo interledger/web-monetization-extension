@@ -28,6 +28,12 @@ export const click = async (selector: string) => {
   await el.click();
 };
 
+export const playgroundUrl = (walletAddressUrl: string) => {
+  const url = new URL('https://webmonetization.org/play/');
+  url.searchParams.append('wa', walletAddressUrl);
+  return url.href;
+};
+
 export const switchToUrl = (
   match: (url: string) => boolean,
   timeout = 20_000,
