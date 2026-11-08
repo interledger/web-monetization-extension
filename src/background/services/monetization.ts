@@ -79,6 +79,12 @@ export class MonetizationService {
     if (!payload.length) {
       throw new Error('Unexpected: payload is empty');
     }
+    if (this.browserHandlesMonetization()) {
+      this.logger.info(
+        'Browser handles monetization natively. Skipping extension payment session.',
+      );
+      return;
+    }
     const {
       rateOfPay,
       connected,
@@ -360,6 +366,13 @@ export class MonetizationService {
     }
 
     return false;
+  }
+
+  private browserHandlesMonetization() {
+    const chrome = globalThis.chrome as
+      | { monetization?: { onPayment?: unknown } }
+      | undefined;
+    return Boolean(chrome?.monetization?.onPayment);
   }
 
   private registerEventListeners() {
