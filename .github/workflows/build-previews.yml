@@ -5,7 +5,7 @@ on:
     types:
       - 'completed'
     workflows:
-      - 'PR Checks'
+      - 'Checks'
 
 permissions:
   contents: read
@@ -16,7 +16,9 @@ jobs:
   comment:
     name: Add comment with extension preview builds
     runs-on: ubuntu-26.04
-    if: github.repository == 'interledger/web-monetization-extension'
+    if: >-
+      github.repository == 'interledger/web-monetization-extension' &&
+      github.event.workflow_run.event == 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7

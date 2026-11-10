@@ -1,4 +1,4 @@
-name: PR Checks
+name: Checks
 
 on:
   pull_request:
@@ -6,10 +6,12 @@ on:
       - opened
       - reopened
       - synchronize
+  push:
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -34,6 +36,7 @@ jobs:
         run: pnpm build ${{ matrix.browser }} --channel=nightly
 
       - name: Upload artifacts
+        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
