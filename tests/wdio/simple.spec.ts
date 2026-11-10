@@ -118,8 +118,11 @@ describe('simple', () => {
     }
     initScripts = [];
     try {
-      await browser.switchToWindow(popup);
-      await disconnectWallet();
+      // connectWallet() may have failed before returning the popup.
+      if ((await browser.getWindowHandles()).includes(popup)) {
+        await browser.switchToWindow(popup);
+        await disconnectWallet();
+      }
     } finally {
       await closeWindows([tab, connectPopup, popup], main);
     }

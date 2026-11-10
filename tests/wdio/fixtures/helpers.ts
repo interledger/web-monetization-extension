@@ -141,10 +141,13 @@ export const connectWallet = async (main: string) => {
     privateKey: process.env.TEST_WALLET_PRIVATE_KEY,
     publicKey: process.env.TEST_WALLET_PUBLIC_KEY,
   });
-  await $('#connectWalletAddressUrl').setValue(
-    process.env.TEST_WALLET_ADDRESS_URL,
-  );
-  await browser.keys('Tab');
+  // Retyping the remembered address resets the connect form.
+  const address = await $('#connectWalletAddressUrl');
+  await address.waitForDisplayed();
+  if ((await address.getValue()) !== process.env.TEST_WALLET_ADDRESS_URL) {
+    await address.setValue(process.env.TEST_WALLET_ADDRESS_URL);
+    await browser.keys('Tab');
+  }
   // Connect is enabled once the wallet details (and default budget) load.
   const connect = `button*=${await t('connectWallet_connect_action')}`;
   await $(connect).waitForEnabled();
