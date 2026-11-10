@@ -95,6 +95,7 @@ export class MonetizationLinkManager {
   }
 
   end() {
+    this._destroyed = true;
     this.documentObserver.disconnect();
     this.monetizationLinkAttrObserver.disconnect();
     this.monetizationLinks.clear();
@@ -111,6 +112,7 @@ export class MonetizationLinkManager {
    * Check if iframe or not
    */
   private async run() {
+    if (this._destroyed) return;
     this.document.addEventListener(
       'visibilitychange',
       this.onDocumentVisibilityChange,
@@ -205,6 +207,9 @@ export class MonetizationLinkManager {
       this.dispatchLoadEvent(link);
       return response.payload;
     } catch (e) {
+      // ended meanwhile (e.g. extension context invalidated): the failure is
+      // not about this link, so don't report it as invalid
+      if (this._destroyed) return null;
       this.logger.error(e);
       this.dispatchErrorEvent(link);
       return null;
