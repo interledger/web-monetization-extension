@@ -196,6 +196,41 @@ export const InputAmountMemoized = React.memo(InputAmount, (prev, next) => {
   );
 });
 
+const ControlButton = ({
+  onClick,
+  icon,
+  readOnly,
+}: {
+  onClick: () => void;
+  icon: React.ReactNode;
+  readOnly: boolean;
+}) => {
+  const longPress = useLongPress(onClick);
+  return (
+    <button
+      className="cursor-pointer p-1 text-lg text-weak outline-hidden hover:bg-gray-50 hover:text-strong disabled:cursor-default disabled:text-weak disabled:hover:bg-transparent"
+      type="button"
+      tabIndex={-1}
+      aria-hidden={true}
+      disabled={readOnly}
+      onClick={onClick}
+      {...longPress}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="size-3"
+      >
+        {icon}
+      </svg>
+    </button>
+  );
+};
+
 function Controls({
   readOnly = false,
   inc,
@@ -205,47 +240,22 @@ function Controls({
   inc: () => void;
   dec: () => void;
 }) {
-  const Button = ({
-    onClick,
-    icon,
-  }: {
-    onClick: () => void;
-    icon: React.ReactNode;
-  }) => {
-    const longPress = useLongPress(onClick);
-    return (
-      <button
-        className="cursor-pointer p-1 text-lg text-weak outline-hidden hover:bg-gray-50 hover:text-strong disabled:cursor-default disabled:text-weak disabled:hover:bg-transparent"
-        type="button"
-        tabIndex={-1}
-        aria-hidden={true}
-        disabled={readOnly}
-        onClick={onClick}
-        {...longPress}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="size-3"
-        >
-          {icon}
-        </svg>
-      </button>
-    );
-  };
-
   return (
     <div
       className="flex flex-col items-center justify-center"
       aria-hidden={true}
       tabIndex={-1}
     >
-      <Button onClick={inc} icon={<path d="m4.5 15.75 7.5-7.5 7.5 7.5" />} />
-      <Button onClick={dec} icon={<path d="m19.5 8.25-7.5 7.5-7.5-7.5" />} />
+      <ControlButton
+        onClick={inc}
+        readOnly={readOnly}
+        icon={<path d="m4.5 15.75 7.5-7.5 7.5 7.5" />}
+      />
+      <ControlButton
+        onClick={dec}
+        readOnly={readOnly}
+        icon={<path d="m19.5 8.25-7.5 7.5-7.5-7.5" />}
+      />
     </div>
   );
 }

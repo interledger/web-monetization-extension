@@ -117,6 +117,9 @@ function createTestEnv({
   const document = window.document;
   const documentReadyState = vi.spyOn(document, 'readyState', 'get');
   const documentVisibilityState = vi.spyOn(document, 'visibilityState', 'get');
+  // jsdom >=31 reports document.hasFocus() as true; default to an unfocused
+  // tab so tests opt in to focus (TAB_FOCUSED) explicitly.
+  vi.spyOn(document, 'hasFocus').mockReturnValue(false);
 
   if (readyState) {
     documentReadyState.mockReturnValue(readyState);
@@ -155,6 +158,7 @@ function createTestEnvWithIframe({
   const iframe = host.document.getElementsByTagName('iframe')[0];
   const iframeDocument = iframe.contentDocument!;
   const iframeWindow = iframe.contentWindow!.window;
+  vi.spyOn(iframeDocument, 'hasFocus').mockReturnValue(false);
 
   const crypto = iframeDocument.defaultView!.globalThis.crypto;
   Object.defineProperty(crypto, 'randomUUID', {

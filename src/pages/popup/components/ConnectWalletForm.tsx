@@ -695,6 +695,33 @@ function AmountInput({
   );
 }
 
+type ErrorDetailsProps = {
+  error: { details: null | ErrorInfo; whyText: string };
+  retry: () => Promise<void>;
+  retryText: string;
+};
+
+const ErrorDetails = ({ error, retry, retryText }: ErrorDetailsProps) => {
+  if (!error?.details) return null;
+  return (
+    <details className="group inline-block">
+      <summary className="cursor-pointer list-none underline decoration-dotted group-open:sr-only">
+        {error.whyText}
+      </summary>
+      <span>{error.details.message}</span>
+      {canRetryAutoKeyAdd(error.details.info) && (
+        <button
+          type="button"
+          onClick={retry}
+          className="ml-1 inline-block text-primary underline"
+        >
+          {retryText}
+        </button>
+      )}
+    </details>
+  );
+};
+
 const ManualKeyPairNeeded: React.FC<{
   error: { message: string; details: null | ErrorInfo; whyText: string };
   hideError?: boolean;
@@ -703,32 +730,12 @@ const ManualKeyPairNeeded: React.FC<{
   text: string;
   publicKey: string;
 }> = ({ error, hideError, text, retryText, publicKey, retry }) => {
-  const ErrorDetails = () => {
-    if (!error?.details) return null;
-    return (
-      <details className="group inline-block">
-        <summary className="cursor-pointer list-none underline decoration-dotted group-open:sr-only">
-          {error.whyText}
-        </summary>
-        <span>{error.details.message}</span>
-        {canRetryAutoKeyAdd(error.details.info) && (
-          <button
-            type="button"
-            onClick={retry}
-            className="ml-1 inline-block text-primary underline"
-          >
-            {retryText}
-          </button>
-        )}
-      </details>
-    );
-  };
-
   return (
     <div className="border-weak space-y-1 border-t pt-2">
       {!hideError && (
         <div className="px-2 text-xs text-error" role="alert">
-          <span>{error.message}</span> <ErrorDetails />
+          <span>{error.message}</span>{' '}
+          <ErrorDetails error={error} retry={retry} retryText={retryText} />
         </div>
       )}
       <p className="px-2 text-left text-xs">
