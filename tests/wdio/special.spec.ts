@@ -1,7 +1,9 @@
 import {
   acceptConsent,
+  closeWindows,
   connectWallet,
   goToHome,
+  inWindow,
   loginToTestWallet,
   openPopup,
   playgroundUrl,
@@ -20,12 +22,7 @@ describe('special', () => {
   const homePage = () => $('[data-testid="home-page"]');
   const notMonetized = () => $('[data-testid="not-monetized-message"]');
 
-  const inTab = async <T>(fn: () => Promise<T>) => {
-    await browser.switchToWindow(tab);
-    const result = await fn();
-    await browser.switchToWindow(popup);
-    return result;
-  };
+  const inTab = <T>(fn: () => Promise<T>) => inWindow(tab, popup, fn);
 
   const openPlayground = () =>
     inTab(async () => {
@@ -88,8 +85,7 @@ describe('special', () => {
       await script.remove();
     }
     initScripts = [];
-    await browser.switchToWindow(tab);
-    await browser.closeWindow();
+    await closeWindows([tab], main);
   });
 
   it('iframe add/remove does not de-monetize main page', async () => {

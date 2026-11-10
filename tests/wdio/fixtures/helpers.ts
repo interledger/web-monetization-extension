@@ -3,7 +3,6 @@ import type { Storage, StorageKey } from '../../../src/shared/types';
 
 const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
 
-// Budget set by connectWallet().
 export const DEFAULT_BUDGET = 10;
 
 // Needs an extension page (e.g. the popup) as the current window.
@@ -44,13 +43,27 @@ export const switchToUrl = (
   browser.waitUntil(
     async () => {
       for (const handle of await browser.getWindowHandles()) {
-        await browser.switchToWindow(handle);
-        if (match(await browser.getUrl())) return true;
+        // The extension closes some of its own tabs while connecting.
+        const url = await browser
+          .switchToWindow(handle)
+          .then(() => browser.getUrl())
+          .catch(() => '');
+        if (match(url)) return true;
       }
       return false;
     },
     { timeout, interval: 500 },
   );
+
+// Not `closeWindow()`: it makes WebdriverIO switch to another window in the
+// background, which can land after the next switch and close the wrong window.
+export const closeWindows = async (handles: string[], current: string) => {
+  await browser.switchToWindow(current);
+  const open = await browser.getWindowHandles();
+  for (const context of handles.filter((h) => open.includes(h))) {
+    await browser.browsingContextClose({ context });
+  }
+};
 
 // A popup-type window, so the extension keeps treating the main window as the
 // current one.
@@ -157,7 +170,7 @@ export const connectWallet = async (main: string) => {
     await t('postConnect_connect_success_title'),
     { wait: 20_000 },
   );
-  await browser.closeWindow();
+  await closeWindows([await browser.getWindowHandle()], main);
 
   const popup = await openPopup(main);
   await browser.waitUntil(
@@ -167,6 +180,17 @@ export const connectWallet = async (main: string) => {
   // The popup moved to the connect route while connecting; start from home.
   await browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
   return popup;
+};
+
+export const inWindow = async <T>(
+  handle: string,
+  back: string,
+  fn: () => Promise<T>,
+) => {
+  await browser.switchToWindow(handle);
+  const result = await fn();
+  await browser.switchToWindow(back);
+  return result;
 };
 
 export const goToHome = () =>
@@ -198,7 +222,7 @@ export const setContinuousPayments = async (enabled: boolean) => {
 
 export type MonetizationEventData = Pick<
   window.MonetizationEvent,
-  'paymentPointer' | 'walletAddress' | 'amountSent' | 'incomingPayment'
+  'walletAddress' | 'amountSent' | 'incomingPayment'
 >;
 
 // Opens the playground in the current window and collects its monetization
@@ -209,7 +233,6 @@ export const setupPlayground = async (walletAddressUrl: string) => {
     window.addEventListener('monetization', (event) => {
       const ev = event as Event & MonetizationEventData;
       emit({
-        paymentPointer: ev.paymentPointer,
         walletAddress: ev.walletAddress,
         amountSent: {
           currency: ev.amountSent.currency,

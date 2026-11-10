@@ -1,10 +1,12 @@
 import {
   acceptConsent,
+  closeWindows,
   connectWallet,
   DEFAULT_BUDGET,
   disconnectWallet,
   getStorage,
   goToHome,
+  inWindow,
   loginToTestWallet,
   type MonetizationEventData,
   openPopup,
@@ -24,12 +26,7 @@ describe('simple', () => {
   let tab: string;
   let initScripts: { remove: () => Promise<void> }[] = [];
 
-  const inTab = async <T>(fn: () => Promise<T>) => {
-    await browser.switchToWindow(tab);
-    const result = await fn();
-    await browser.switchToWindow(popup);
-    return result;
-  };
+  const inTab = <T>(fn: () => Promise<T>) => inWindow(tab, popup, fn);
 
   const openPlayground = () =>
     inTab(async () => {
@@ -42,8 +39,13 @@ describe('simple', () => {
       return events;
     });
 
-  const waitForEvents = (events: MonetizationEventData[], count: number) =>
-    browser.waitUntil(() => events.length === count, { timeout: 20_000 });
+  const waitForEvents = async (
+    events: MonetizationEventData[],
+    count: number,
+  ) => {
+    await browser.waitUntil(() => events.length >= count, { timeout: 20_000 });
+    expect(events).toHaveLength(count);
+  };
 
   // A payment can go out a bit after the page loads.
   const expectEventCountStays = async (
@@ -58,7 +60,6 @@ describe('simple', () => {
 
   const expectLastPayment = (events: MonetizationEventData[], value: RegExp) =>
     expect(events.at(-1)).toMatchObject({
-      paymentPointer: walletAddressUrl,
       walletAddress: walletAddressUrl,
       amountSent: {
         currency: expect.stringMatching(/^[A-Z]{3}$/),
@@ -91,8 +92,6 @@ describe('simple', () => {
     const button = await sendNow();
     await button.waitForClickable();
     await button.click();
-    // Lets the payment start.
-    await browser.pause(1500);
     return button;
   };
 
@@ -122,11 +121,7 @@ describe('simple', () => {
       await browser.switchToWindow(popup);
       await disconnectWallet();
     } finally {
-      for (const handle of [tab, connectPopup, popup]) {
-        await browser.switchToWindow(handle);
-        await browser.closeWindow();
-      }
-      await browser.switchToWindow(main);
+      await closeWindows([tab, connectPopup, popup], main);
     }
   });
 
@@ -156,10 +151,7 @@ describe('simple', () => {
     await goToHome();
     await expect(await sendNow()).toBeDisplayed();
     await expect($$('input[type="text"]')).toBeElementsArrayOfSize(1);
-    await $('#payAmount').setValue('1.5');
-    const button = await sendNow();
-    await button.waitForClickable();
-    await button.click();
+    await sendOneTimePayment(1.5);
     await waitForEvents(events, 1);
     expectLastPayment(events, /^1\.\d+$/);
 
@@ -217,10 +209,6 @@ describe('simple', () => {
       await goToHome();
     });
 
-    afterEach(async () => {
-      await setContinuousPayments(true);
-    });
-
     it('should send when within budget', async () => {
       const events = await openPlayground();
       expect(events).toHaveLength(0);
@@ -250,9 +238,9 @@ describe('simple', () => {
         await expect(form()).toBeDisplayed();
 
         const button = await sendOneTimePayment(DEFAULT_BUDGET * 1.2);
+        await expect(alert()).toHaveText(await t('pay_notEnoughFunds_error'));
         await expect(button).toHaveAttribute('data-progress', 'false');
         await expect(button).toBeEnabled();
-        await expect(alert()).toHaveText(await t('pay_notEnoughFunds_error'));
         expect(events).toHaveLength(0);
       });
 
@@ -261,14 +249,17 @@ describe('simple', () => {
         expect(events).toHaveLength(0);
         await expect(form()).toBeDisplayed();
 
-        await sendOneTimePayment(0.75 * DEFAULT_BUDGET);
+        const first = await sendOneTimePayment(0.75 * DEFAULT_BUDGET);
         await waitForEvents(events, 1);
+        await browser.waitUntil(
+          async () => (await first.getAttribute('data-progress')) === 'false',
+        );
         await browser.refresh();
 
         const button = await sendOneTimePayment(0.5 * DEFAULT_BUDGET);
+        await expect(alert()).toHaveText(await t('pay_notEnoughFunds_error'));
         await expect(button).toHaveAttribute('data-progress', 'false');
         await expect(button).toBeEnabled();
-        await expect(alert()).toHaveText(await t('pay_notEnoughFunds_error'));
         expect(events).toHaveLength(1);
       });
     });
