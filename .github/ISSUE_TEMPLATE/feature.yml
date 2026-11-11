@@ -1,5 +1,6 @@
 name: Feature
 description: Scope out a feature implementation
+type: feature
 body:
   - type: textarea
     id: context
