@@ -199,11 +199,11 @@ export const InputAmountMemoized = React.memo(InputAmount, (prev, next) => {
 const ControlButton = ({
   onClick,
   icon,
-  readOnly,
+  disabled,
 }: {
   onClick: () => void;
   icon: React.ReactNode;
-  readOnly: boolean;
+  disabled: boolean;
 }) => {
   const longPress = useLongPress(onClick);
   return (
@@ -212,7 +212,7 @@ const ControlButton = ({
       type="button"
       tabIndex={-1}
       aria-hidden={true}
-      disabled={readOnly}
+      disabled={disabled}
       onClick={onClick}
       {...longPress}
     >
@@ -248,12 +248,12 @@ function Controls({
     >
       <ControlButton
         onClick={inc}
-        readOnly={readOnly}
+        disabled={readOnly}
         icon={<path d="m4.5 15.75 7.5-7.5 7.5 7.5" />}
       />
       <ControlButton
         onClick={dec}
-        readOnly={readOnly}
+        disabled={readOnly}
         icon={<path d="m19.5 8.25-7.5 7.5-7.5-7.5" />}
       />
     </div>

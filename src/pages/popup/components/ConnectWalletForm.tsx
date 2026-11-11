@@ -702,7 +702,7 @@ type ErrorDetailsProps = {
 };
 
 const ErrorDetails = ({ error, retry, retryText }: ErrorDetailsProps) => {
-  if (!error?.details) return null;
+  if (!error.details) return null;
   return (
     <details className="group inline-block">
       <summary className="cursor-pointer list-none underline decoration-dotted group-open:sr-only">
