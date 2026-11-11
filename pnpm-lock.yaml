@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@actions/http-client@2>undici': ^6.29.1
+  '@actions/http-client@2>undici': ^8.12.4
 
 importers:
 
@@ -3778,7 +3778,7 @@ snapshots:
   '@actions/http-client@2.2.3':
     dependencies:
       tunnel: 0.0.6
-      undici: 6.29.1
+      undici: 8.12.4
 
   '@actions/http-client@3.0.2':
     dependencies:
