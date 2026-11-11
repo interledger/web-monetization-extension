@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.6/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -85,7 +85,7 @@
         "noFloatingPromises": "error",
         "noMisusedPromises": "error",
         "useExplicitType": "off", // TODO: check if we want to. way too many cases
-        "useSortedClasses": "off" // TODO: turn on
+        "useTailwindSortedClasses": "off" // TODO: turn on
       },
       "complexity": {
         "noUselessUndefined": "error"
@@ -102,6 +102,9 @@
     },
     "globals": ["chrome", "browser"]
   },
+  // Biome 2.6 formats YAML and Markdown by default; Prettier already owns those.
+  "yaml": { "formatter": { "enabled": false } },
+  "markdown": { "formatter": { "enabled": false } },
   "css": {
     "parser": {
       "tailwindDirectives": true

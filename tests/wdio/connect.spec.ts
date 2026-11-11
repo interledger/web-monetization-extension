@@ -44,7 +44,7 @@ describe('connect', () => {
     await expect($('h3')).toHaveText(await t('notMonetized_noLinks_text'));
 
     await click(`aria/${await t('header_settings_action')}`);
-    await click(`aria/${await t('settings_tabs_wallet_text')}`);
+    await click('#settings-tab-wallet');
     await click(`button=${await t('settings_wallet_disconnect_action')}`);
     await click(
       `button=${await t('settings_wallet_disconnectConfirm_action')}`,

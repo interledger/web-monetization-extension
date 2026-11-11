@@ -1,8 +1,7 @@
 overrides:
-  safe-buffer: '5.2.1'
-  string_decoder: '1.3.0'
-  readable-stream: '2.3.8'
-  parse5: '7.3.0'
+  # @types/github-script (types only) pulls undici 5 via @actions/http-client@2;
+  # undici 5.x has no security fixes. Remove once actions/github-script moves to @actions/core v3.
+  '@actions/http-client@2>undici': '^8.12.4'
 
 allowBuilds:
   '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3': true

@@ -11,8 +11,37 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react';
 import { useLocalStorage } from './hooks';
 
+const defaultMaxAge = 1000 * 24 * 60 * 60;
+
+function TestComponent({ maxAge = defaultMaxAge }: { maxAge?: number }) {
+  const [data, setData, clear] = useLocalStorage('name', 'John Doe', {
+    maxAge,
+  });
+  return (
+    <>
+      <p data-testid="data">{data}</p>
+      <button
+        type="button"
+        data-testid="set"
+        onClick={() => setData('John Wick')}
+      >
+        Set data
+      </button>
+      <button
+        type="button"
+        data-testid="set-cb"
+        onClick={() => setData((data) => `${data}Foo`)}
+      >
+        Set data callback
+      </button>
+      <button type="button" data-testid="clear" onClick={() => clear()}>
+        Clear data
+      </button>
+    </>
+  );
+}
+
 describe('useLocalStorage', () => {
-  const defaultMaxAge = 1000 * 24 * 60 * 60;
   let now = Date.now();
   let defaultExpiresAt = now + defaultMaxAge;
   beforeAll(() => {
@@ -27,34 +56,6 @@ describe('useLocalStorage', () => {
     vi.useRealTimers();
     localStorage.clear();
   });
-
-  function TestComponent({ maxAge = defaultMaxAge }: { maxAge?: number }) {
-    const [data, setData, clear] = useLocalStorage('name', 'John Doe', {
-      maxAge,
-    });
-    return (
-      <>
-        <p data-testid="data">{data}</p>
-        <button
-          type="button"
-          data-testid="set"
-          onClick={() => setData('John Wick')}
-        >
-          Set data
-        </button>
-        <button
-          type="button"
-          data-testid="set-cb"
-          onClick={() => setData((data) => `${data}Foo`)}
-        >
-          Set data callback
-        </button>
-        <button type="button" data-testid="clear" onClick={() => clear()}>
-          Clear data
-        </button>
-      </>
-    );
-  }
 
   it('sets localStorage based on default value', () => {
     const { getByTestId } = render(<TestComponent />);
