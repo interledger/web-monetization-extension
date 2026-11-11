@@ -1,8 +1,20 @@
+// cspell:ignore Toggleable
 import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 
 import { Switch, SwitchButton } from '@/pages/shared/components/ui/Switch';
+
+const ToggleableSwitch = () => {
+  const [checked, setChecked] = React.useState(false);
+  return (
+    <SwitchButton
+      id="test"
+      checked={checked}
+      onChange={() => setChecked((v) => !v)}
+    />
+  );
+};
 
 describe('Switch, SwitchButton', () => {
   it('renders without crashing', () => {
@@ -72,17 +84,7 @@ describe('Switch, SwitchButton', () => {
   });
 
   it('toggles switch state when clicked', () => {
-    const TestComponent = () => {
-      const [checked, setChecked] = React.useState(false);
-      return (
-        <SwitchButton
-          id="test"
-          checked={checked}
-          onChange={() => setChecked((v) => !v)}
-        />
-      );
-    };
-    render(<TestComponent />);
+    render(<ToggleableSwitch />);
 
     const inputElement = screen.getByRole('switch');
     expect(inputElement).not.toBeChecked();
