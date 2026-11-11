@@ -1,9 +1,7 @@
-# cspell:ignore undici
-
 overrides:
   # @types/github-script (types only) pulls undici 5 via @actions/http-client@2;
   # undici 5.x has no security fixes. Remove once actions/github-script moves to @actions/core v3.
-  '@actions/http-client@2>undici': '^6.29.1'
+  '@actions/http-client@2>undici': '^8.12.4'
 
 allowBuilds:
   '@actions/github-script@https://codeload.github.com/actions/github-script/tar.gz/3a2844b7e9c422d3c10d287c895573f7108da1b3': true
