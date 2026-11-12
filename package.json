@@ -21,7 +21,7 @@
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:report": "playwright show-report tests/e2e/playwright-report",
-    "test:e2e:wdio": "wdio run wdio.conf.ts"
+    "test:e2e:wdio": "wdio run tests/wdio/wdio.conf.ts"
   },
   "dependencies": {
     "@interledger/open-payments": "^7.4.0",

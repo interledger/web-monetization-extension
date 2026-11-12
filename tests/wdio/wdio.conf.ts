@@ -1,10 +1,10 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { loadEnvFile } from 'node:process';
-import { DIST_DIR } from './scripts/esbuild/config';
+import { DIST_DIR } from '../../scripts/esbuild/config';
 
 if (!process.env.CI) {
-  loadEnvFile(path.join(import.meta.dirname, 'tests', 'e2e', '.env'));
+  loadEnvFile(path.join(import.meta.dirname, '..', 'e2e', '.env'));
 }
 
 const extensionPath = (target: string) => path.join(DIST_DIR, target);
@@ -47,7 +47,7 @@ const names = (process.env.WDIO_BROWSERS || 'chrome,firefox').split(',');
 
 export const config: WebdriverIO.Config = {
   runner: 'local',
-  specs: ['./tests/wdio/**/*.spec.ts'],
+  specs: ['./**/*.spec.ts'],
   maxInstances: 1,
   capabilities: names.map((name) => ({
     ...browsers[name as keyof typeof browsers],
