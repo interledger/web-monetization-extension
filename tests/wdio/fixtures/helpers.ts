@@ -134,18 +134,13 @@ export const loginToTestWallet = async () => {
   );
 };
 
-// Needs the popup as the current window.
-export const connectWallet = async (main: string) => {
-  await setStorage({
-    keyId: process.env.TEST_WALLET_KEY_ID,
-    privateKey: process.env.TEST_WALLET_PRIVATE_KEY,
-    publicKey: process.env.TEST_WALLET_PUBLIC_KEY,
-  });
+// Needs the popup as the current window. Returns the Connect button selector.
+export const fillConnectForm = async (walletAddressUrl: string) => {
   // Retyping the remembered address resets the connect form.
   const address = await $('#connectWalletAddressUrl');
   await address.waitForDisplayed();
-  if ((await address.getValue()) !== process.env.TEST_WALLET_ADDRESS_URL) {
-    await address.setValue(process.env.TEST_WALLET_ADDRESS_URL);
+  if ((await address.getValue()) !== walletAddressUrl) {
+    await address.setValue(walletAddressUrl);
     await browser.keys('Tab');
   }
   // Connect is enabled once the wallet details (and default budget) load.
@@ -160,10 +155,10 @@ export const connectWallet = async (main: string) => {
     await browser.execute((el) => el.click(), recurring);
   }
   await expect(recurring).not.toBeSelected();
-  await click(connect);
+  return connect;
+};
 
-  await switchToUrl((url) => url.includes('interactId='));
-  await acceptGrant();
+export const waitForPostConnect = async () => {
   await browser.waitUntil(
     async () =>
       (await browser.getUrl()).endsWith('/pages/app/index.html#/post-connect'),
@@ -173,6 +168,20 @@ export const connectWallet = async (main: string) => {
     await t('postConnect_connect_success_title'),
     { wait: 20_000 },
   );
+};
+
+// Needs the popup as the current window.
+export const connectWallet = async (main: string) => {
+  await setStorage({
+    keyId: process.env.TEST_WALLET_KEY_ID,
+    privateKey: process.env.TEST_WALLET_PRIVATE_KEY,
+    publicKey: process.env.TEST_WALLET_PUBLIC_KEY,
+  });
+  await click(await fillConnectForm(process.env.TEST_WALLET_ADDRESS_URL));
+
+  await switchToUrl((url) => url.includes('interactId='));
+  await acceptGrant();
+  await waitForPostConnect();
   await closeWindows([await browser.getWindowHandle()], main);
 
   const popup = await openPopup(main);
