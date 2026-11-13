@@ -1,7 +1,7 @@
 name: Feature request
 description: Submit a feature request
-title: '[FEATURE REQUEST] '
 labels: ['discussion: idea', 'triage']
+type: Feature
 body:
   - type: markdown
     attributes:
