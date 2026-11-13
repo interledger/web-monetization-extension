@@ -1,4 +1,10 @@
-import { acceptConsent, getStorage, openPopup, t } from './fixtures/helpers';
+import {
+  acceptConsent,
+  closeWindows,
+  getStorage,
+  openPopup,
+  t,
+} from './fixtures/helpers';
 
 describe('basic', () => {
   let main: string;
@@ -9,13 +15,11 @@ describe('basic', () => {
   });
 
   afterEach(async () => {
-    for (const handle of await browser.getWindowHandles()) {
-      if (handle !== main) {
-        await browser.switchToWindow(handle);
-        await browser.closeWindow();
-      }
-    }
-    await browser.switchToWindow(main);
+    const handles = await browser.getWindowHandles();
+    await closeWindows(
+      handles.filter((h) => h !== main),
+      main,
+    );
   });
 
   it('should load popup', async () => {

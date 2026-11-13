@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import {
   acceptConsent,
+  closeWindows,
   connectWallet,
   loginToTestWallet,
   openPopup,
@@ -46,8 +47,7 @@ describe('not-monetized', () => {
   });
 
   afterEach(async () => {
-    await browser.switchToWindow(tab);
-    await browser.closeWindow();
+    await closeWindows([tab], main);
   });
 
   it('shows not monetized on empty tabs', async () => {

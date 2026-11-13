@@ -3,6 +3,8 @@ import type { Storage, StorageKey } from '../../../src/shared/types';
 
 const TEST_WALLET_ORIGIN = 'https://wallet.interledger-test.dev';
 
+export const DEFAULT_BUDGET = 10;
+
 // Needs an extension page (e.g. the popup) as the current window.
 export const t = (key: string) =>
   browser.execute((key: string) => chrome.i18n.getMessage(key), key);
@@ -41,13 +43,27 @@ export const switchToUrl = (
   browser.waitUntil(
     async () => {
       for (const handle of await browser.getWindowHandles()) {
-        await browser.switchToWindow(handle);
-        if (match(await browser.getUrl())) return true;
+        // The extension closes some of its own tabs while connecting.
+        const url = await browser
+          .switchToWindow(handle)
+          .then(() => browser.getUrl())
+          .catch(() => '');
+        if (match(url)) return true;
       }
       return false;
     },
     { timeout, interval: 500 },
   );
+
+// Not `closeWindow()`: it makes WebdriverIO switch to another window in the
+// background, which can land after the next switch and close the wrong window.
+export const closeWindows = async (handles: string[], current: string) => {
+  await browser.switchToWindow(current);
+  const open = await browser.getWindowHandles();
+  for (const context of handles.filter((h) => open.includes(h))) {
+    await browser.browsingContextClose({ context });
+  }
+};
 
 // A popup-type window, so the extension keeps treating the main window as the
 // current one.
@@ -125,17 +141,20 @@ export const connectWallet = async (main: string) => {
     privateKey: process.env.TEST_WALLET_PRIVATE_KEY,
     publicKey: process.env.TEST_WALLET_PUBLIC_KEY,
   });
-  await $('#connectWalletAddressUrl').setValue(
-    process.env.TEST_WALLET_ADDRESS_URL,
-  );
-  await browser.keys('Tab');
+  // Retyping the remembered address resets the connect form.
+  const address = await $('#connectWalletAddressUrl');
+  await address.waitForDisplayed();
+  if ((await address.getValue()) !== process.env.TEST_WALLET_ADDRESS_URL) {
+    await address.setValue(process.env.TEST_WALLET_ADDRESS_URL);
+    await browser.keys('Tab');
+  }
   // Connect is enabled once the wallet details (and default budget) load.
   const connect = `button*=${await t('connectWallet_connect_action')}`;
   await $(connect).waitForEnabled();
   const amount = await $('#connectAmount');
-  await amount.setValue('10');
+  await amount.setValue(DEFAULT_BUDGET.toString());
   await browser.keys('Tab');
-  await expect(amount).toHaveValue('10.00');
+  await expect(amount).toHaveValue(DEFAULT_BUDGET.toFixed(2));
   const recurring = await $('#connectRecurring');
   if (await recurring.isSelected()) {
     await browser.execute((el) => el.click(), recurring);
@@ -154,7 +173,7 @@ export const connectWallet = async (main: string) => {
     await t('postConnect_connect_success_title'),
     { wait: 20_000 },
   );
-  await browser.closeWindow();
+  await closeWindows([await browser.getWindowHandle()], main);
 
   const popup = await openPopup(main);
   await browser.waitUntil(
@@ -164,4 +183,69 @@ export const connectWallet = async (main: string) => {
   // The popup moved to the connect route while connecting; start from home.
   await browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
   return popup;
+};
+
+export const inWindow = async <T>(
+  handle: string,
+  back: string,
+  fn: () => Promise<T>,
+) => {
+  await browser.switchToWindow(handle);
+  const result = await fn();
+  await browser.switchToWindow(back);
+  return result;
+};
+
+export const goToHome = () =>
+  browser.url(`${process.env.EXTENSION_BASE_URL}/popup/index.html`);
+
+// Needs the popup as the current window.
+export const disconnectWallet = async () => {
+  await browser.url(
+    `${process.env.EXTENSION_BASE_URL}/popup/index.html#/settings/wallet`,
+  );
+  const disconnect = await t('settings_wallet_disconnect_ariaLabel_action');
+  await click(`button[aria-label="${disconnect}"]`);
+  const confirm = await t('settings_wallet_disconnectConfirm_ariaLabel_action');
+  await click(`button[aria-label="${confirm}"]`);
+  await $('[data-testid="connect-wallet-form"]').waitForDisplayed();
+};
+
+// Needs the popup as the current window. Leaves it on the Rate tab.
+export const setContinuousPayments = async (enabled: boolean) => {
+  await browser.url(
+    `${process.env.EXTENSION_BASE_URL}/popup/index.html#/settings/rate`,
+  );
+  const toggle = await $('[data-testid="continuous-payments-toggle"]');
+  if ((await toggle.isSelected()) !== enabled) {
+    await browser.execute((el) => el.click(), toggle);
+  }
+  await browser.waitUntil(async () => (await toggle.isSelected()) === enabled);
+};
+
+export type MonetizationEventData = Pick<
+  window.MonetizationEvent,
+  'walletAddress' | 'amountSent' | 'incomingPayment'
+>;
+
+// Opens the playground in the current window and collects its monetization
+// events. Remove the returned script when done.
+export const setupPlayground = async (walletAddressUrl: string) => {
+  const events: MonetizationEventData[] = [];
+  const script = await browser.addInitScript<MonetizationEventData>((emit) => {
+    window.addEventListener('monetization', (event) => {
+      const ev = event as Event & MonetizationEventData;
+      emit({
+        walletAddress: ev.walletAddress,
+        amountSent: {
+          currency: ev.amountSent.currency,
+          value: ev.amountSent.value,
+        },
+        incomingPayment: ev.incomingPayment,
+      });
+    });
+  });
+  script.on('data', (data) => events.push(data));
+  await browser.url(playgroundUrl(walletAddressUrl));
+  return { events, script };
 };
