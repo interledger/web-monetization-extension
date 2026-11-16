@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["node", "chrome", "@wdio/globals/types", "@wdio/mocha-framework"]
   },
-  "include": ["./**/*", "../e2e/env.d.ts", "../../wdio.conf.ts"]
+  "include": ["./**/*", "../e2e/env.d.ts", "./wdio.conf.ts"]
 }
