@@ -21,8 +21,8 @@ importers:
         specifier: ^2.4.0
         version: 2.4.0
       awilix:
-        specifier: ^13.0.5
-        version: 13.0.5
+        specifier: ^13.0.7
+        version: 13.0.7
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1613,8 +1613,8 @@ packages:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
 
-  awilix@13.0.5:
-    resolution: {integrity: sha512-ORtca6suBdYA1FyTzqHEZDvEuUwo3lPDDBRm7GrzHgi6STESzJKdBtpqfTzObdMj1NGQUWX6k26E3EbQaGJX5Q==}
+  awilix@13.0.7:
+    resolution: {integrity: sha512-M7B1oVIyWrkY7RmQgczsdqpCI+j0+t0UjL5h1G/qqr4fRFo+zxI5E/0QUuOc5zdPg740BpUv4V+QSXNNBQlonQ==}
     engines: {node: '>=20.0.0'}
 
   b4a@1.9.0:
@@ -3376,6 +3376,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@7.4.19:
     resolution: {integrity: sha512-48dH6aSpQnpbzDUc4vIQZ1VjB8tkK+e8c1yx05/SZK+rkssgjEOlxDd/yU8/a4vGYQ9vRgJr9dwMq9TJ0b3X2Q==}
@@ -5070,7 +5071,7 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
-  awilix@13.0.5:
+  awilix@13.0.7:
     dependencies:
       fast-glob: 3.3.3
 
