@@ -73,7 +73,7 @@
     "esbuild-plugin-copy": "^2.1.1",
     "esbuild-style-plugin": "^1.6.3",
     "jsdom": "^31.0.0",
-    "postcss": "^8.5.32",
+    "postcss": "^8.5.33",
     "prettier": "^3.9.10",
     "sade": "^1.8.1",
     "tailwindcss": "^4.3.5",
