@@ -30,8 +30,8 @@ importers:
         specifier: ^4.4.0
         version: 4.4.0
       http-message-signatures:
-        specifier: ^1.0.6
-        version: 1.0.6
+        specifier: ^1.0.8
+        version: 1.0.8
       idb:
         specifier: ^8.0.4
         version: 8.0.4
@@ -2327,6 +2327,9 @@ packages:
   http-message-signatures@1.0.6:
     resolution: {integrity: sha512-mGaW/gs0WyP1X4wcc0iHguoDuv/LGyGLbvn8NWgbSdR+opFXKncrNiwQO8bN5rZ5j0z9HrwrRj33CzIK5dhGXA==}
 
+  http-message-signatures@1.0.8:
+    resolution: {integrity: sha512-xBeoY5ym6Z577C5DKIhVXhGes9IHjl0AwW71+IVvT0U8HFc6cofGow5pxwZrjUPEbHZDFaeHN2cf355Ne0w9Xg==}
+
   httpbis-digest-headers@1.0.0:
     resolution: {integrity: sha512-RpaFuZD3tG8wtsvjDv1u7O8wAvfpAxS20F3CrFPZOMn+IBb7E7yiqlN5Tks4E5tBEnTdpMOD151rJsUv03sAIg==}
 
@@ -3376,6 +3379,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@7.4.19:
     resolution: {integrity: sha512-48dH6aSpQnpbzDUc4vIQZ1VjB8tkK+e8c1yx05/SZK+rkssgjEOlxDd/yU8/a4vGYQ9vRgJr9dwMq9TJ0b3X2Q==}
@@ -5800,6 +5804,10 @@ snapshots:
   http-message-signatures@0.1.2: {}
 
   http-message-signatures@1.0.6:
+    dependencies:
+      structured-headers: 2.1.1
+
+  http-message-signatures@1.0.8:
     dependencies:
       structured-headers: 2.1.1
 
