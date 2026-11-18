@@ -1,0 +1,38 @@
+name: Upload to Firefox Addons
+description: Upload extension zip from dist/ directory to Firefox Addons
+
+inputs:
+  FIREFOX_API_KEY:
+    description: API key for Firefox Addons
+    required: true
+  FIREFOX_API_SECRET:
+    description: API secret for Firefox Addons
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with: { node-version-file: .nvmrc }
+
+    - name: Get extension path
+      id: path
+      shell: bash
+      run: |
+        FIREFOX_ZIP=$(find dist -type f -name "*firefox*.zip")
+        echo "FIREFOX_ZIP=$FIREFOX_ZIP" >> $GITHUB_OUTPUT
+
+    - name: Get source code
+      shell: bash
+      run: git archive --output source.zip HEAD
+
+    # TODO: figure out how to specify build zip file
+    - name: Upload to Firefox Addons
+      run: npx web-ext@8 sign --channel listed --upload-source-code ./source.zip
+      shell: bash
+      working-directory: artifact
+      env:
+        WEB_EXT_API_KEY: ${{ inputs.FIREFOX_API_KEY }}
+        WEB_EXT_API_SECRET: ${{ inputs.FIREFOX_API_SECRET }}
