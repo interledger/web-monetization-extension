@@ -26,10 +26,10 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Build
         shell: bash
@@ -37,7 +37,7 @@ jobs:
 
       - name: Upload artifacts
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ github.event.pull_request.number }}-${{ matrix.browser }}
           path: dist/${{ matrix.browser }}/
@@ -51,10 +51,10 @@ jobs:
       FORCE_COLOR: true
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - run: pnpm format
         if: always()
@@ -63,7 +63,7 @@ jobs:
       - run: pnpm typecheck
         if: always()
       - name: Check spelling
-        uses: streetsidesoftware/cspell-action@v9
+        uses: streetsidesoftware/cspell-action@v9.2.0
         if: always()
 
   test:
@@ -71,10 +71,10 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Test
         run: pnpm test

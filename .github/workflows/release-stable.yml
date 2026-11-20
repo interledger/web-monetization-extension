@@ -25,16 +25,16 @@ jobs:
     name: Release
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Build
         run: pnpm build --channel=stable
 
       - name: Get built version
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         id: version
         with:
           script: |
