@@ -53,6 +53,8 @@ workflows:
         - 'pnpm/action-setup@v6.1.1'
     '.github/workflows/verify-lockfile.yml':
         - 'actions/checkout@v7.0.1'
+    '.github/workflows/welcome.yml':
+        - 'actions/github-script@v9.0.0'
 dependencies:
     'actions/add-to-project@v2.0.0':
         ref: 'v2.0.0'
