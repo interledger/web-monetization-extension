@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Delete artifacts
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             const { default: script } = await import('${{ github.workspace }}/.github/actions/delete-artifacts.ts')

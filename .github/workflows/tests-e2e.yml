@@ -18,13 +18,13 @@ jobs:
       matrix: ${{ steps.filter.outputs.matrix }}
       skip: ${{ steps.filter.outputs.skip }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Find tests to run
         id: filter
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             const { default: script } = await import('${{ github.workspace }}/.github/actions/tests-e2e-filter.ts')
@@ -43,13 +43,13 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     environment: test
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           # In a pull request trigger, ref is required as GitHub Actions checks out in detached HEAD mode, meaning it doesn’t check out your branch by default.
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Build
         run: pnpm build ${{ matrix.target }} --channel=nightly
@@ -94,7 +94,7 @@ jobs:
           zip -r -P "$ZIP_PASSWORD" ../playwright-report.zip *
 
       - name: Upload report
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: playwright-report-${{ matrix.project }}
@@ -109,12 +109,12 @@ jobs:
     runs-on: ubuntu-26.04
     environment: test
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Build
         run: pnpm build firefox --channel=nightly

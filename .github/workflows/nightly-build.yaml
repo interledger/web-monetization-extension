@@ -29,10 +29,10 @@ jobs:
     environment: test
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Build
         run: pnpm build ${{ matrix.target }} --channel=nightly
@@ -76,7 +76,7 @@ jobs:
           zip -r -P "$ZIP_PASSWORD" ../playwright-report.zip *
 
       - name: Upload report
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         if: always()
         with:
           name: playwright-report-${{ matrix.project }}
@@ -90,16 +90,16 @@ jobs:
     if: ${{ always() }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Environment setup
-        uses: ./.github/actions/setup
+        uses: $/.github/actions/setup
 
       - name: Build
         run: pnpm build --channel=nightly
 
       - name: Get built version
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         id: version
         with:
           script: |
