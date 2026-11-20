@@ -38,6 +38,7 @@ xcuserdata/
 *.pbxuser
 *~.nib
 *.lock
+!actions.lock
 *.swp
 .Trashes
 src/safari/Web Monetization/Shared \(Extension\)/Resources/*
